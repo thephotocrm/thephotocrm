@@ -580,3 +580,59 @@ export type ClientWithStage = Client & {
     isDefault: boolean;
   } | null;
 };
+
+// Timeline event types for client history
+export type TimelineEvent = 
+  | {
+      type: 'activity';
+      id: string;
+      title: string;
+      description?: string;
+      activityType: string;
+      metadata?: any;
+      createdAt: Date;
+    }
+  | {
+      type: 'email';
+      id: string;
+      title: string;
+      description: string;
+      status: string;
+      sentAt?: Date;
+      openedAt?: Date;
+      clickedAt?: Date;
+      bouncedAt?: Date;
+      createdAt: Date;
+    }
+  | {
+      type: 'sms';
+      id: string;
+      title: string;
+      description: string;
+      status: string;
+      sentAt?: Date;
+      deliveredAt?: Date;
+      createdAt: Date;
+    }
+  | {
+      type: 'proposal';
+      id: string;
+      title: string;
+      description: string;
+      status: string;
+      totalCents: number;
+      sentAt?: Date;
+      signedAt?: Date;
+      createdAt: Date;
+    }
+  | {
+      type: 'payment';
+      id: string;
+      title: string;
+      description: string;
+      status: string;
+      amountCents: number;
+      method: string;
+      completedAt?: Date;
+      createdAt: Date;
+    };

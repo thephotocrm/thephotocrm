@@ -3,11 +3,13 @@ import {
   emailLogs, smsLogs, photographerLinks, checklistTemplateItems, clientChecklistItems,
   packages, packageItems, questionnaireTemplates, questionnaireQuestions, clientQuestionnaires,
   availabilitySlots, bookings, estimates, estimateItems, estimatePayments,
+  messages, clientActivityLog,
   type User, type InsertUser, type Photographer, type InsertPhotographer,
   type Client, type InsertClient, type ClientWithStage, type Stage, type InsertStage,
   type Template, type InsertTemplate, type Automation, type InsertAutomation,
   type AutomationStep, type InsertAutomationStep, type Package, type InsertPackage,
-  type Estimate, type InsertEstimate, type QuestionnaireTemplate, type InsertQuestionnaireTemplate
+  type Estimate, type InsertEstimate, type QuestionnaireTemplate, type InsertQuestionnaireTemplate,
+  type Message, type ClientActivityLog, type TimelineEvent
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, inArray, gte, lte } from "drizzle-orm";
@@ -28,6 +30,8 @@ export interface IStorage {
   getClient(id: string): Promise<Client | undefined>;
   createClient(client: InsertClient): Promise<Client>;
   updateClient(id: string, client: Partial<Client>): Promise<Client>;
+  getClientHistory(clientId: string): Promise<TimelineEvent[]>;
+  getClientMessages(clientId: string): Promise<Message[]>;
   
   // Stages
   getStagesByPhotographer(photographerId: string): Promise<Stage[]>;
@@ -262,6 +266,113 @@ export class DatabaseStorage implements IStorage {
   async createQuestionnaireTemplate(insertTemplate: InsertQuestionnaireTemplate): Promise<QuestionnaireTemplate> {
     const [template] = await db.insert(questionnaireTemplates).values(insertTemplate).returning();
     return template;
+  }
+
+  async getClientHistory(clientId: string): Promise<TimelineEvent[]> {
+    // Parallelize all queries for better performance
+    const [activityLogs, emailLogEntries, smsLogEntries, clientEstimates, paymentHistory] = await Promise.all([
+      // Get activity log entries
+      db.select().from(clientActivityLog)
+        .where(eq(clientActivityLog.clientId, clientId)),
+      
+      // Get email logs  
+      db.select().from(emailLogs)
+        .where(eq(emailLogs.clientId, clientId)),
+      
+      // Get SMS logs
+      db.select().from(smsLogs)
+        .where(eq(smsLogs.clientId, clientId)),
+      
+      // Get estimates for this client
+      db.select().from(estimates)
+        .where(eq(estimates.clientId, clientId)),
+      
+      // Get estimate payments
+      db.select({
+        id: estimatePayments.id,
+        amountCents: estimatePayments.amountCents,
+        method: estimatePayments.method,
+        status: estimatePayments.status,
+        createdAt: estimatePayments.createdAt,
+        completedAt: estimatePayments.completedAt,
+        estimateTitle: estimates.title
+      })
+        .from(estimatePayments)
+        .innerJoin(estimates, eq(estimatePayments.estimateId, estimates.id))
+        .where(eq(estimates.clientId, clientId))
+    ]);
+
+    // Combine all history into unified timeline with proper typing
+    const history: TimelineEvent[] = [
+      ...activityLogs.map(log => ({
+        type: 'activity' as const,
+        id: log.id,
+        title: log.title,
+        description: log.description,
+        activityType: log.activityType,
+        metadata: log.metadata,
+        createdAt: log.createdAt
+      })),
+      ...emailLogEntries.map(email => {
+        // Use proper timestamp precedence: first non-null of clickedAt, openedAt, sentAt, bouncedAt
+        const timestamp = email.clickedAt || email.openedAt || email.sentAt || email.bouncedAt;
+        return {
+          type: 'email' as const,
+          id: email.id,
+          title: 'Automated email sent',
+          description: `Status: ${email.status}`,
+          status: email.status,
+          sentAt: email.sentAt,
+          openedAt: email.openedAt,
+          clickedAt: email.clickedAt,
+          bouncedAt: email.bouncedAt,
+          createdAt: timestamp || email.sentAt || new Date()
+        };
+      }),
+      ...smsLogEntries.map(sms => ({
+        type: 'sms' as const,
+        id: sms.id,
+        title: 'Automated SMS sent',
+        description: `Status: ${sms.status}`,
+        status: sms.status,
+        sentAt: sms.sentAt,
+        deliveredAt: sms.deliveredAt,
+        createdAt: sms.sentAt || new Date()
+      })),
+      ...clientEstimates.map(estimate => ({
+        type: 'proposal' as const,
+        id: estimate.id,
+        title: `Proposal: ${estimate.title}`,
+        description: `Status: ${estimate.status}, Total: $${((estimate.totalCents || 0) / 100).toFixed(2)}`,
+        status: estimate.status,
+        totalCents: estimate.totalCents || 0,
+        sentAt: estimate.sentAt,
+        signedAt: estimate.signedAt,
+        createdAt: estimate.createdAt
+      })),
+      ...paymentHistory.map(payment => ({
+        type: 'payment' as const,
+        id: payment.id,
+        title: `Payment received: ${payment.estimateTitle}`,
+        description: `${payment.method} - $${(payment.amountCents / 100).toFixed(2)}`,
+        status: payment.status,
+        amountCents: payment.amountCents,
+        method: payment.method,
+        completedAt: payment.completedAt,
+        createdAt: payment.createdAt
+      }))
+    ];
+
+    // Global sort by createdAt descending (most recent first)
+    return history.sort((a, b) => 
+      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+  }
+
+  async getClientMessages(clientId: string): Promise<Message[]> {
+    return await db.select().from(messages)
+      .where(eq(messages.clientId, clientId))
+      .orderBy(desc(messages.createdAt));
   }
 }
 

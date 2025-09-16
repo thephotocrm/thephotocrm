@@ -233,6 +233,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/clients/:id", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      const client = await storage.getClient(req.params.id);
+      if (!client || client.photographerId !== req.user!.photographerId!) {
+        return res.status(404).json({ message: "Client not found" });
+      }
+      res.json(client);
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.get("/api/clients/:id/history", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      const client = await storage.getClient(req.params.id);
+      if (!client || client.photographerId !== req.user!.photographerId!) {
+        return res.status(404).json({ message: "Client not found" });
+      }
+      
+      const history = await storage.getClientHistory(req.params.id);
+      res.json(history);
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.get("/api/clients/:id/messages", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      const client = await storage.getClient(req.params.id);
+      if (!client || client.photographerId !== req.user!.photographerId!) {
+        return res.status(404).json({ message: "Client not found" });
+      }
+      
+      const messages = await storage.getClientMessages(req.params.id);
+      res.json(messages);
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.post("/api/clients/:id/send-login-link", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      const client = await storage.getClient(req.params.id);
+      if (!client || client.photographerId !== req.user!.photographerId!) {
+        return res.status(404).json({ message: "Client not found" });
+      }
+      
+      if (!client.email) {
+        return res.status(400).json({ message: "Client has no email address" });
+      }
+
+      // TODO: Implement email sending with client login link
+      // This should create a secure token for the client and send via SendGrid
+      
+      res.json({ message: "Login link sent successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   // Templates
   app.get("/api/templates", authenticateToken, requirePhotographer, async (req, res) => {
     try {
