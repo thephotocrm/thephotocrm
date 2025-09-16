@@ -265,7 +265,7 @@ export default function Automations() {
         (data.delayDays * 24 * 60) + (data.delayHours * 60) + data.delayMinutes;
       
       // Create the first automation step if template is selected
-      if (data.templateId) {
+      if (data.templateId && data.templateId !== "none" && data.templateId !== "unavailable") {
         await apiRequest("POST", `/api/automations/${automation.id}/steps`, {
           stepIndex: 0,
           delayMinutes: totalDelayMinutes,
@@ -416,7 +416,7 @@ export default function Automations() {
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="">No template (create later)</SelectItem>
+                              <SelectItem value="none">No template (create later)</SelectItem>
                               {templates
                                 .filter((t: any) => t.channel === form.watch('channel'))
                                 .map((template: any) => (
@@ -425,7 +425,7 @@ export default function Automations() {
                                   </SelectItem>
                                 ))}
                               {templates.filter((t: any) => t.channel === form.watch('channel')).length === 0 && (
-                                <SelectItem value="" disabled>
+                                <SelectItem value="unavailable" disabled>
                                   No {form.watch('channel').toLowerCase()} templates available
                                 </SelectItem>
                               )}
