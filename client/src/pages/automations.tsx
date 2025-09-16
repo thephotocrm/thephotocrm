@@ -82,6 +82,48 @@ function AutomationStepManager({ automation }: { automation: any }) {
     }
   };
 
+  // Toggle automation mutation
+  const toggleAutomationMutation = useMutation({
+    mutationFn: async (enabled: boolean) => {
+      return apiRequest(`/api/automations/${automation.id}`, {
+        method: "PATCH",
+        body: JSON.stringify({ enabled })
+      });
+    },
+    onSuccess: () => {
+      toast({ title: "Automation updated successfully" });
+      queryClient.invalidateQueries({ queryKey: ["/api/automations"] });
+    },
+    onError: () => {
+      toast({ title: "Failed to update automation", variant: "destructive" });
+    }
+  });
+
+  // Toggle step mutation
+  const toggleStepMutation = useMutation({
+    mutationFn: async ({ stepId, enabled }: { stepId: string; enabled: boolean }) => {
+      return apiRequest(`/api/automation-steps/${stepId}`, {
+        method: "PATCH",
+        body: JSON.stringify({ enabled })
+      });
+    },
+    onSuccess: () => {
+      toast({ title: "Step updated successfully" });
+      queryClient.invalidateQueries({ queryKey: ["/api/automations", automation.id, "steps"] });
+    },
+    onError: () => {
+      toast({ title: "Failed to update step", variant: "destructive" });
+    }
+  });
+
+  const handleToggleAutomation = (enabled: boolean) => {
+    toggleAutomationMutation.mutate(enabled);
+  };
+
+  const handleToggleStep = (stepId: string, enabled: boolean) => {
+    toggleStepMutation.mutate({ stepId, enabled });
+  };
+
   return (
     <div className="border rounded-lg p-4 space-y-3">
       <div className="flex items-center justify-between">
@@ -103,11 +145,9 @@ function AutomationStepManager({ automation }: { automation: any }) {
           </Badge>
           <Switch 
             checked={automation.enabled}
+            disabled={toggleAutomationMutation.isPending}
             data-testid={`switch-automation-${automation.id}`}
-            onCheckedChange={() => {
-              // TODO: Implement toggle automation (Task #6)
-              console.log('Toggle automation', automation.id);
-            }}
+            onCheckedChange={handleToggleAutomation}
           />
         </div>
       </div>
@@ -132,9 +172,13 @@ function AutomationStepManager({ automation }: { automation: any }) {
                   </span>
                 </div>
                 <div className="flex items-center space-x-1">
-                  <Badge variant={step.enabled ? "outline" : "secondary"} className="text-xs">
-                    {step.enabled ? "On" : "Off"}
-                  </Badge>
+                  <Switch
+                    checked={step.enabled}
+                    disabled={toggleStepMutation.isPending}
+                    size="sm"
+                    data-testid={`switch-step-${step.id}`}
+                    onCheckedChange={(enabled) => handleToggleStep(step.id, enabled)}
+                  />
                   <Button
                     variant="ghost"
                     size="sm"
