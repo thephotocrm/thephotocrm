@@ -255,6 +255,29 @@ export const estimatePayments = pgTable("estimate_payments", {
   completedAt: timestamp("completed_at")
 });
 
+export const messages = pgTable("messages", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  clientId: varchar("client_id").notNull().references(() => clients.id),
+  photographerId: varchar("photographer_id").notNull().references(() => photographers.id),
+  content: text("content").notNull(),
+  sentByPhotographer: boolean("sent_by_photographer").notNull(),
+  channel: text("channel").notNull(), // EMAIL, SMS, INTERNAL
+  readAt: timestamp("read_at"),
+  createdAt: timestamp("created_at").defaultNow()
+});
+
+export const clientActivityLog = pgTable("client_activity_log", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  clientId: varchar("client_id").notNull().references(() => clients.id),
+  activityType: text("activity_type").notNull(), // STAGE_CHANGE, PROPOSAL_SENT, PROPOSAL_SIGNED, PAYMENT_RECEIVED, MESSAGE_SENT, EMAIL_OPENED, etc.
+  title: text("title").notNull(),
+  description: text("description"),
+  metadata: json("metadata"), // Additional structured data
+  relatedId: varchar("related_id"), // ID of related record (estimate, message, etc.)
+  relatedType: text("related_type"), // Type of related record (ESTIMATE, MESSAGE, EMAIL_LOG, etc.)
+  createdAt: timestamp("created_at").defaultNow()
+});
+
 // Relations
 export const photographersRelations = relations(photographers, ({ many }) => ({
   users: many(users),
@@ -268,7 +291,8 @@ export const photographersRelations = relations(photographers, ({ many }) => ({
   availability: many(availabilitySlots),
   clients: many(clients),
   estimates: many(estimates),
-  bookings: many(bookings)
+  bookings: many(bookings),
+  messages: many(messages)
 }));
 
 export const usersRelations = relations(users, ({ one }) => ({
@@ -301,7 +325,9 @@ export const clientsRelations = relations(clients, ({ one, many }) => ({
   checklistItems: many(clientChecklistItems),
   questionnaires: many(clientQuestionnaires),
   estimates: many(estimates),
-  bookings: many(bookings)
+  bookings: many(bookings),
+  messages: many(messages),
+  activityLog: many(clientActivityLog)
 }));
 
 export const templatesRelations = relations(templates, ({ one, many }) => ({
@@ -437,6 +463,24 @@ export const bookingsRelations = relations(bookings, ({ one }) => ({
   })
 }));
 
+export const messagesRelations = relations(messages, ({ one }) => ({
+  client: one(clients, {
+    fields: [messages.clientId],
+    references: [clients.id]
+  }),
+  photographer: one(photographers, {
+    fields: [messages.photographerId],
+    references: [photographers.id]
+  })
+}));
+
+export const clientActivityLogRelations = relations(clientActivityLog, ({ one }) => ({
+  client: one(clients, {
+    fields: [clientActivityLog.clientId],
+    references: [clients.id]
+  })
+}));
+
 // Insert schemas
 export const insertPhotographerSchema = createInsertSchema(photographers).omit({
   id: true,
@@ -491,6 +535,16 @@ export const insertQuestionnaireTemplateSchema = createInsertSchema(questionnair
   createdAt: true
 });
 
+export const insertMessageSchema = createInsertSchema(messages).omit({
+  id: true,
+  createdAt: true
+});
+
+export const insertClientActivityLogSchema = createInsertSchema(clientActivityLog).omit({
+  id: true,
+  createdAt: true
+});
+
 // Type exports
 export type Photographer = typeof photographers.$inferSelect;
 export type InsertPhotographer = z.infer<typeof insertPhotographerSchema>;
@@ -512,6 +566,10 @@ export type Estimate = typeof estimates.$inferSelect;
 export type InsertEstimate = z.infer<typeof insertEstimateSchema>;
 export type QuestionnaireTemplate = typeof questionnaireTemplates.$inferSelect;
 export type InsertQuestionnaireTemplate = z.infer<typeof insertQuestionnaireTemplateSchema>;
+export type Message = typeof messages.$inferSelect;
+export type InsertMessage = z.infer<typeof insertMessageSchema>;
+export type ClientActivityLog = typeof clientActivityLog.$inferSelect;
+export type InsertClientActivityLog = z.infer<typeof insertClientActivityLogSchema>;
 
 // Client with stage information for display
 export type ClientWithStage = Client & {
