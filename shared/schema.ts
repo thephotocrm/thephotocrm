@@ -452,6 +452,8 @@ export const insertClientSchema = createInsertSchema(clients).omit({
   id: true,
   createdAt: true,
   stageEnteredAt: true
+}).extend({
+  weddingDate: z.string().optional().transform((val) => val ? new Date(val) : undefined)
 });
 
 export const insertStageSchema = createInsertSchema(stages).omit({

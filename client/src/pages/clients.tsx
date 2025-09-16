@@ -108,7 +108,7 @@ export default function Clients() {
       lastName,
       email: email || undefined,
       phone: phone || undefined,
-      weddingDate: weddingDate ? new Date(weddingDate).toISOString() : undefined
+      weddingDate: weddingDate ? new Date(weddingDate) : undefined
     });
   };
 
