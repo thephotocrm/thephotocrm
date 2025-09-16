@@ -275,11 +275,6 @@ export default function ClientDetail() {
                     >
                       {client.stage.name}
                     </Badge>
-                    {client.stage.description && (
-                      <p className="text-sm text-muted-foreground">
-                        {client.stage.description}
-                      </p>
-                    )}
                   </div>
                 ) : (
                   <div className="text-center py-4">
@@ -431,7 +426,7 @@ export default function ClientDetail() {
                             >
                               <p className="text-sm">{message.content}</p>
                               <p className="text-xs mt-1 opacity-70">
-                                {formatDate(message.createdAt)}
+                                {message.createdAt ? formatDate(message.createdAt) : 'Unknown'}
                                 {message.sentByPhotographer && (
                                   <span className="ml-1">(You)</span>
                                 )}
