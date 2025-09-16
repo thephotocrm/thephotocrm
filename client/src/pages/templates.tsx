@@ -59,20 +59,7 @@ export default function Templates() {
   const [htmlBody, setHtmlBody] = useState("");
   const [textBody, setTextBody] = useState("");
 
-  // Redirect to login if not authenticated
-  if (!loading && !user) {
-    setLocation("/login");
-    return null;
-  }
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
-      </div>
-    );
-  }
-
+  // ALL HOOKS MUST BE CALLED BEFORE ANY CONDITIONALS
   const { data: templates, isLoading } = useQuery({
     queryKey: ["/api/templates"],
     enabled: !!user
@@ -100,6 +87,20 @@ export default function Templates() {
     }
   });
 
+  // Redirect to login if not authenticated
+  if (!loading && !user) {
+    setLocation("/login");
+    return null;
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
+      </div>
+    );
+  }
+
   const resetForm = () => {
     setName("");
     setChannel("");
@@ -120,8 +121,8 @@ export default function Templates() {
     });
   };
 
-  const emailTemplates = templates?.filter((t: Template) => t.channel === "EMAIL") || [];
-  const smsTemplates = templates?.filter((t: Template) => t.channel === "SMS") || [];
+  const emailTemplates = (templates || []).filter((t: Template) => t.channel === "EMAIL");
+  const smsTemplates = (templates || []).filter((t: Template) => t.channel === "SMS");
 
   return (
     <div className="min-h-screen flex bg-background">
