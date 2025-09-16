@@ -189,10 +189,27 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createClient(insertClient: InsertClient): Promise<Client> {
-    // If client is being assigned to a stage, set stageEnteredAt timestamp
+    // If no stage provided, assign default stage automatically
+    let finalStageId = insertClient.stageId;
+    
+    if (!finalStageId) {
+      // Find default stage (Inquiry) for this photographer
+      const [defaultStage] = await db.select()
+        .from(stages)
+        .where(and(
+          eq(stages.photographerId, insertClient.photographerId),
+          eq(stages.isDefault, true)
+        ))
+        .limit(1);
+      
+      finalStageId = defaultStage?.id || null;
+    }
+    
+    // Set stageEnteredAt timestamp when assigning to any stage
     const clientData = {
       ...insertClient,
-      stageEnteredAt: insertClient.stageId ? new Date() : null
+      stageId: finalStageId,
+      stageEnteredAt: finalStageId ? new Date() : null
     };
     
     const [client] = await db.insert(clients).values(clientData).returning();
