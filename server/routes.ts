@@ -277,22 +277,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/messages", authenticateToken, requirePhotographer, async (req, res) => {
     try {
-      const validatedData = insertMessageSchema.parse(req.body);
+      // Add photographerId before validation since it's required by the schema
+      const messageData = insertMessageSchema.parse({
+        ...req.body,
+        photographerId: req.user!.photographerId!
+      });
       
       // Verify client belongs to photographer
-      const client = await storage.getClient(validatedData.clientId);
+      const client = await storage.getClient(messageData.clientId);
       if (!client || client.photographerId !== req.user!.photographerId!) {
         return res.status(404).json({ message: "Client not found" });
       }
       
-      // Add photographerId from authenticated user
-      const messageData = {
-        ...validatedData,
-        photographerId: req.user!.photographerId!
-      };
-      
       const message = await storage.createMessage(messageData);
-      res.json(message);
+      res.status(201).json(message);
     } catch (error: any) {
       if (error.name === 'ZodError') {
         return res.status(400).json({ message: "Invalid request data", errors: error.errors });
