@@ -310,11 +310,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Client has no email address" });
       }
 
-      // Rate limiting check - max 3 tokens per hour per client
+      // Rate limiting check - max 10 tokens per hour per client (increased for testing)
       const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
       const recentTokens = await storage.getClientPortalTokensByClient(client.id, oneHourAgo);
       
-      if (recentTokens.length >= 3) {
+      if (recentTokens.length >= 10) {
         return res.status(429).json({ message: "Too many login link requests. Please wait before requesting another." });
       }
 
