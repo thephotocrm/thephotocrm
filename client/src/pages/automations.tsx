@@ -584,21 +584,12 @@ export default function Automations() {
                 </div>
               </div>
 
-              {/* Add new rule button */}
-              <Button 
-                variant="outline" 
-                className="w-full" 
-                data-testid="button-add-rule-modal"
-                onClick={() => {
-                  // Pre-fill the create automation form with this stage
-                  form.setValue('stageId', selectedStage?.id || '');
-                  setManageRulesDialogOpen(false);
-                  setCreateDialogOpen(true);
-                }}
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Add New Rule for {selectedStage?.name} Stage
-              </Button>
+              {/* Add new rule section */}
+              <div className="text-center py-4 border-t">
+                <p className="text-sm text-muted-foreground mb-2">
+                  To add more automation rules for this stage, use the main "Create Automation" button.
+                </p>
+              </div>
 
               <div className="flex justify-end pt-4">
                 <Button
@@ -719,10 +710,6 @@ export default function Automations() {
                       </div>
                     </div>
 
-                    <Button variant="outline" className="w-full" data-testid={`button-add-rule-${stage.id}`}>
-                      <Plus className="w-4 h-4 mr-2" />
-                      Add Automation Rule
-                    </Button>
                   </div>
                 </CardContent>
               </Card>
