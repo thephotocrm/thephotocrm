@@ -193,7 +193,10 @@ export default function ClientModal({ clientId, isOpen, onClose }: ClientModalPr
                 emailOptIn: client.emailOptIn,
                 smsOptIn: client.smsOptIn,
               }}
-              onSubmit={(data) => updateClientMutation.mutate(data)}
+              onSubmit={(data) => updateClientMutation.mutate({
+                ...data,
+                weddingDate: data.weddingDate ? new Date(data.weddingDate) : undefined
+              })}
               isLoading={updateClientMutation.isPending}
               submitText="Update Client"
             />
