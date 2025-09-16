@@ -3,13 +3,13 @@ import {
   emailLogs, smsLogs, photographerLinks, checklistTemplateItems, clientChecklistItems,
   packages, packageItems, questionnaireTemplates, questionnaireQuestions, clientQuestionnaires,
   availabilitySlots, bookings, estimates, estimateItems, estimatePayments,
-  messages, clientActivityLog,
+  messages, clientActivityLog, clientPortalTokens,
   type User, type InsertUser, type Photographer, type InsertPhotographer,
   type Client, type InsertClient, type ClientWithStage, type Stage, type InsertStage,
   type Template, type InsertTemplate, type Automation, type InsertAutomation,
   type AutomationStep, type InsertAutomationStep, type Package, type InsertPackage,
   type Estimate, type InsertEstimate, type QuestionnaireTemplate, type InsertQuestionnaireTemplate,
-  type Message, type ClientActivityLog, type TimelineEvent
+  type Message, type ClientActivityLog, type TimelineEvent, type ClientPortalToken, type InsertClientPortalToken
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, inArray, gte, lte } from "drizzle-orm";
@@ -32,6 +32,11 @@ export interface IStorage {
   updateClient(id: string, client: Partial<Client>): Promise<Client>;
   getClientHistory(clientId: string): Promise<TimelineEvent[]>;
   getClientMessages(clientId: string): Promise<Message[]>;
+  
+  // Client Portal Tokens
+  getClientPortalTokensByClient(clientId: string, after?: Date): Promise<ClientPortalToken[]>;
+  createClientPortalToken(token: InsertClientPortalToken): Promise<ClientPortalToken>;
+  validateClientPortalToken(token: string): Promise<ClientPortalToken | undefined>;
   
   // Stages
   getStagesByPhotographer(photographerId: string): Promise<Stage[]>;
@@ -373,6 +378,32 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(messages)
       .where(eq(messages.clientId, clientId))
       .orderBy(desc(messages.createdAt));
+  }
+
+  async getClientPortalTokensByClient(clientId: string, after?: Date): Promise<ClientPortalToken[]> {
+    const conditions = [eq(clientPortalTokens.clientId, clientId)];
+    if (after) {
+      conditions.push(gte(clientPortalTokens.createdAt, after));
+    }
+    
+    return await db.select().from(clientPortalTokens)
+      .where(and(...conditions))
+      .orderBy(desc(clientPortalTokens.createdAt));
+  }
+
+  async createClientPortalToken(tokenData: InsertClientPortalToken): Promise<ClientPortalToken> {
+    const [token] = await db.insert(clientPortalTokens).values(tokenData).returning();
+    return token;
+  }
+
+  async validateClientPortalToken(token: string): Promise<ClientPortalToken | undefined> {
+    const [portalToken] = await db.select().from(clientPortalTokens)
+      .where(and(
+        eq(clientPortalTokens.token, token),
+        gte(clientPortalTokens.expiresAt, new Date())
+      ))
+      .limit(1);
+    return portalToken;
   }
 }
 

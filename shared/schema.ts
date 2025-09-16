@@ -278,6 +278,15 @@ export const clientActivityLog = pgTable("client_activity_log", {
   createdAt: timestamp("created_at").defaultNow()
 });
 
+export const clientPortalTokens = pgTable("client_portal_tokens", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  clientId: varchar("client_id").notNull().references(() => clients.id),
+  token: text("token").notNull().unique(),
+  expiresAt: timestamp("expires_at").notNull(),
+  usedAt: timestamp("used_at"),
+  createdAt: timestamp("created_at").defaultNow()
+});
+
 // Relations
 export const photographersRelations = relations(photographers, ({ many }) => ({
   users: many(users),
@@ -544,6 +553,10 @@ export const insertClientActivityLogSchema = createInsertSchema(clientActivityLo
   id: true,
   createdAt: true
 });
+export const insertClientPortalTokenSchema = createInsertSchema(clientPortalTokens).omit({
+  id: true,
+  createdAt: true
+});
 
 // Type exports
 export type Photographer = typeof photographers.$inferSelect;
@@ -570,6 +583,8 @@ export type Message = typeof messages.$inferSelect;
 export type InsertMessage = z.infer<typeof insertMessageSchema>;
 export type ClientActivityLog = typeof clientActivityLog.$inferSelect;
 export type InsertClientActivityLog = z.infer<typeof insertClientActivityLogSchema>;
+export type ClientPortalToken = typeof clientPortalTokens.$inferSelect;
+export type InsertClientPortalToken = z.infer<typeof insertClientPortalTokenSchema>;
 
 // Client with stage information for display
 export type ClientWithStage = Client & {

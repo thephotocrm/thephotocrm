@@ -4,7 +4,8 @@ import cookieParser from 'cookie-parser';
 import Stripe from "stripe";
 import { storage } from "./storage";
 import { authenticateToken, requirePhotographer, requireRole } from "./middleware/auth";
-import { hashPassword, authenticateUser } from "./services/auth";
+import { hashPassword, authenticateUser, generateToken } from "./services/auth";
+import { sendEmail } from "./services/email";
 import { createPaymentIntent, createCheckoutSession, handleWebhook } from "./services/stripe";
 import { insertUserSchema, insertPhotographerSchema, insertClientSchema, insertStageSchema, 
          insertTemplateSchema, insertAutomationSchema, insertPackageSchema, insertEstimateSchema } from "@shared/schema";
@@ -284,9 +285,78 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Client has no email address" });
       }
 
-      // TODO: Implement email sending with client login link
-      // This should create a secure token for the client and send via SendGrid
+      // Rate limiting check - max 3 tokens per hour per client
+      const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+      const recentTokens = await storage.getClientPortalTokensByClient(client.id, oneHourAgo);
       
+      if (recentTokens.length >= 3) {
+        return res.status(429).json({ message: "Too many login link requests. Please wait before requesting another." });
+      }
+
+      // Generate secure token (valid for 7 days)
+      const token = generateToken({ 
+        userId: client.id, 
+        role: 'CLIENT', 
+        clientId: client.id,
+        photographerId: client.photographerId 
+      });
+      
+      // Store token in database
+      const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
+      await storage.createClientPortalToken({
+        clientId: client.id,
+        token,
+        expiresAt
+      });
+
+      // Send email with login link
+      const photographer = await storage.getPhotographer(client.photographerId);
+      const loginUrl = `${process.env.FRONTEND_URL || 'http://localhost:5000'}/client-portal?token=${token}`;
+      
+      const emailSent = await sendEmail({
+        to: client.email,
+        from: photographer?.emailFromAddr || 'noreply@lazyphotog.com',
+        subject: `Access Your Client Portal - ${photographer?.businessName || 'Your Photographer'}`,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <h2 style="color: #333;">Welcome to Your Client Portal</h2>
+            <p>Hi ${client.firstName},</p>
+            <p>You can now access your client portal to view your project details, proposals, and communicate with us.</p>
+            
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${loginUrl}" style="background-color: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">
+                Access Client Portal
+              </a>
+            </div>
+            
+            <p><strong>This link is valid for 7 days.</strong></p>
+            
+            <p>If you have any questions, please don't hesitate to reach out.</p>
+            <p>Best regards,<br>${photographer?.businessName || 'Your Photography Team'}</p>
+            
+            <hr style="margin-top: 30px; border: none; border-top: 1px solid #eee;">
+            <p style="font-size: 12px; color: #666;">
+              If the button doesn't work, copy and paste this link into your browser:<br>
+              ${loginUrl}
+            </p>
+          </div>
+        `,
+        text: `
+Hi ${client.firstName},
+
+You can now access your client portal at: ${loginUrl}
+
+This link is valid for 7 days.
+
+Best regards,
+${photographer?.businessName || 'Your Photography Team'}
+        `
+      });
+
+      if (!emailSent) {
+        return res.status(500).json({ message: "Failed to send email" });
+      }
+
       res.json({ message: "Login link sent successfully" });
     } catch (error) {
       res.status(500).json({ message: "Internal server error" });
