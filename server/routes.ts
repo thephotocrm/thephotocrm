@@ -322,9 +322,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const token = generateToken({ 
         userId: client.id, 
         role: 'CLIENT', 
-        clientId: client.id,
         photographerId: client.photographerId 
-      });
+      } as any);
       
       // Store token in database
       const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
@@ -383,7 +382,7 @@ ${photographer?.businessName || 'Your Photography Team'}
       }
 
       res.json({ message: "Login link sent successfully" });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Send login link error:', error);
       console.error('Error details:', { 
         name: error?.name, 
