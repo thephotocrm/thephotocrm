@@ -326,9 +326,9 @@ export default function Automations() {
   const [selectedStage, setSelectedStage] = useState<any>(null);
   const [timingMode, setTimingMode] = useState<'immediate' | 'delayed'>('immediate');
 
-  // Extended form schema for creation with template and timing
+  // Extended form schema for creation with template and timing - template required
   const extendedFormSchema = createAutomationFormSchema.extend({
-    templateId: z.string().optional(),
+    templateId: z.string().min(1, "Template selection is required"),
     delayMinutes: z.number().min(0).default(0),
     delayHours: z.number().min(0).default(0),
     delayDays: z.number().min(0).default(0)
@@ -366,33 +366,61 @@ export default function Automations() {
     enabled: !!user
   });
 
-  // Create automation mutation
+  // Create automation mutation - atomic with rollback
   const createAutomationMutation = useMutation({
     mutationFn: async (data: ExtendedFormData) => {
-      // First create the automation
-      const automationResponse = await apiRequest("POST", "/api/automations", {
-        name: data.name,
-        stageId: (data.stageId && data.stageId !== 'global') ? data.stageId : null,
-        channel: data.channel,
-        enabled: data.enabled
-      });
-      const automation = await automationResponse.json();
-      
-      // Calculate total delay minutes
-      const totalDelayMinutes = timingMode === 'immediate' ? 0 : 
-        (data.delayDays * 24 * 60) + (data.delayHours * 60) + data.delayMinutes;
-      
-      // Create the first automation step if template is selected
-      if (data.templateId && data.templateId !== "none" && data.templateId !== "unavailable") {
+      // Validate template exists before creating anything
+      if (!data.templateId || data.templateId === "unavailable") {
+        throw new Error("Template selection is required for automation creation");
+      }
+
+      // Validate templates are available for selected channel
+      const channelTemplates = templates.filter((t: any) => t.channel === data.channel);
+      if (channelTemplates.length === 0) {
+        throw new Error(`No ${data.channel.toLowerCase()} templates available. Please create templates first.`);
+      }
+
+      // Validate selected template exists
+      const selectedTemplate = channelTemplates.find((t: any) => t.id === data.templateId);
+      if (!selectedTemplate) {
+        throw new Error("Selected template is not valid");
+      }
+
+      let automation: any = null;
+      try {
+        // Create the automation
+        const automationResponse = await apiRequest("POST", "/api/automations", {
+          name: data.name,
+          stageId: (data.stageId && data.stageId !== 'global') ? data.stageId : null,
+          channel: data.channel,
+          enabled: data.enabled
+        });
+        automation = await automationResponse.json();
+        
+        // Calculate total delay minutes
+        const totalDelayMinutes = timingMode === 'immediate' ? 0 : 
+          (data.delayDays * 24 * 60) + (data.delayHours * 60) + data.delayMinutes;
+        
+        // Create the first automation step with template (atomic)
         await apiRequest("POST", `/api/automations/${automation.id}/steps`, {
           stepIndex: 0,
           delayMinutes: totalDelayMinutes,
           templateId: data.templateId,
           enabled: true
         });
+        
+        return automation;
+      } catch (error) {
+        // Rollback: delete automation if step creation failed
+        if (automation?.id) {
+          try {
+            await apiRequest("DELETE", `/api/automations/${automation.id}`);
+          } catch (rollbackError) {
+            console.error('Failed to rollback automation creation:', rollbackError);
+          }
+        }
+        throw error;
       }
-      
-      return automation;
     },
     onSuccess: () => {
       toast({ title: "Automation created successfully" });
@@ -534,7 +562,6 @@ export default function Automations() {
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="none">No template (create later)</SelectItem>
                               {templates
                                 .filter((t: any) => t.channel === form.watch('channel'))
                                 .map((template: any) => (
@@ -544,7 +571,7 @@ export default function Automations() {
                                 ))}
                               {templates.filter((t: any) => t.channel === form.watch('channel')).length === 0 && (
                                 <SelectItem value="unavailable" disabled>
-                                  No {form.watch('channel').toLowerCase()} templates available
+                                  No {form.watch('channel').toLowerCase()} templates available - create templates first
                                 </SelectItem>
                               )}
                             </SelectContent>
@@ -642,7 +669,7 @@ export default function Automations() {
                       )}
                     </div>
 
-                    <div className="flex justify-end space-x-2 pt-4">
+                                    <div className="flex justify-end space-x-2 pt-4">
                       <Button
                         type="button" 
                         variant="outline"
@@ -653,10 +680,20 @@ export default function Automations() {
                       </Button>
                       <Button 
                         type="submit" 
-                        disabled={createAutomationMutation.isPending}
+                        disabled={
+                          createAutomationMutation.isPending ||
+                          templates.filter((t: any) => t.channel === form.watch('channel')).length === 0 ||
+                          !form.watch('templateId') ||
+                          form.watch('templateId') === 'unavailable'
+                        }
                         data-testid="button-submit-automation"
                       >
-                        {createAutomationMutation.isPending ? "Creating..." : "Create Automation"}
+                        {createAutomationMutation.isPending 
+                          ? "Creating..." 
+                          : templates.filter((t: any) => t.channel === form.watch('channel')).length === 0
+                          ? `Create ${form.watch('channel').toLowerCase()} templates first`
+                          : "Create Automation"
+                        }
                       </Button>
                     </div>
                   </form>
@@ -785,49 +822,19 @@ export default function Automations() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {/* Sample automation rules */}
-                    <div className="flex items-center justify-between p-4 border border-border rounded-lg">
-                      <div className="flex items-center space-x-4">
-                        <Mail className="w-5 h-5 text-blue-500" />
-                        <div>
-                          <p className="font-medium">Welcome Email</p>
-                          <p className="text-sm text-muted-foreground">Send immediately when entering stage</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center space-x-4">
-                        <Badge variant="secondary">Active</Badge>
-                        <Switch defaultChecked data-testid={`switch-welcome-email-${stage.id}`} />
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-between p-4 border border-border rounded-lg">
-                      <div className="flex items-center space-x-4">
-                        <Smartphone className="w-5 h-5 text-green-500" />
-                        <div>
-                          <p className="font-medium">Follow-up SMS</p>
-                          <p className="text-sm text-muted-foreground">Send after 24 hours if still in stage</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center space-x-4">
-                        <Badge variant="secondary">Active</Badge>
-                        <Switch defaultChecked data-testid={`switch-followup-sms-${stage.id}`} />
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-between p-4 border border-border rounded-lg">
-                      <div className="flex items-center space-x-4">
-                        <Mail className="w-5 h-5 text-orange-500" />
-                        <div>
-                          <p className="font-medium">Check-in Email</p>
-                          <p className="text-sm text-muted-foreground">Send after 7 days if still in stage</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center space-x-4">
-                        <Badge variant="outline">Inactive</Badge>
-                        <Switch data-testid={`switch-checkin-email-${stage.id}`} />
-                      </div>
-                    </div>
-
+                    {/* Real automation rules with edit buttons */}
+                    {(() => {
+                      const stageAutomations = (automations ?? []).filter((a: any) => a.stageId === stage.id);
+                      return stageAutomations.length === 0 ? (
+                        <p className="text-muted-foreground text-center py-4">
+                          No automation rules configured for this stage yet.
+                        </p>
+                      ) : (
+                        stageAutomations.map((automation: any) => (
+                          <AutomationStepManager key={automation.id} automation={automation} />
+                        ))
+                      );
+                    })()}
                   </div>
                 </CardContent>
               </Card>
