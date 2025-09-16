@@ -206,28 +206,82 @@ export default function Automations() {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [manageRulesDialogOpen, setManageRulesDialogOpen] = useState(false);
   const [selectedStage, setSelectedStage] = useState<any>(null);
+  const [timingMode, setTimingMode] = useState<'immediate' | 'delayed'>('immediate');
+
+  // Extended form schema for creation with template and timing
+  const extendedFormSchema = createAutomationFormSchema.extend({
+    templateId: z.string().optional(),
+    delayMinutes: z.number().min(0).default(0),
+    delayHours: z.number().min(0).default(0),
+    delayDays: z.number().min(0).default(0)
+  });
+  type ExtendedFormData = z.infer<typeof extendedFormSchema>;
 
   // Form setup
-  const form = useForm<CreateAutomationFormData>({
-    resolver: zodResolver(createAutomationFormSchema),
+  const form = useForm<ExtendedFormData>({
+    resolver: zodResolver(extendedFormSchema),
     defaultValues: {
       name: "",
       stageId: "",
       channel: "EMAIL",
-      enabled: true
+      enabled: true,
+      templateId: "",
+      delayMinutes: 0,
+      delayHours: 0,
+      delayDays: 0
     }
+  });
+
+  // ALL HOOKS MUST BE CALLED BEFORE ANY CONDITIONALS
+  const { data: stages = [] } = useQuery<any[]>({
+    queryKey: ["/api/stages"],
+    enabled: !!user
+  });
+
+  const { data: automations = [] } = useQuery<any[]>({
+    queryKey: ["/api/automations"],
+    enabled: !!user
+  });
+
+  const { data: templates = [] } = useQuery<any[]>({
+    queryKey: ["/api/templates"],
+    enabled: !!user
   });
 
   // Create automation mutation
   const createAutomationMutation = useMutation({
-    mutationFn: async (data: CreateAutomationFormData) => {
-      return apiRequest("POST", "/api/automations", data);
+    mutationFn: async (data: ExtendedFormData) => {
+      // First create the automation
+      const automationResponse = await apiRequest("POST", "/api/automations", {
+        name: data.name,
+        stageId: data.stageId || null,
+        channel: data.channel,
+        enabled: data.enabled
+      });
+      const automation = await automationResponse.json();
+      
+      // Calculate total delay minutes
+      const totalDelayMinutes = timingMode === 'immediate' ? 0 : 
+        (data.delayDays * 24 * 60) + (data.delayHours * 60) + data.delayMinutes;
+      
+      // Create the first automation step if template is selected
+      if (data.templateId) {
+        await apiRequest("POST", `/api/automations/${automation.id}/steps`, {
+          stepIndex: 0,
+          delayMinutes: totalDelayMinutes,
+          templateId: data.templateId,
+          enabled: true
+        });
+      }
+      
+      return automation;
     },
     onSuccess: () => {
       toast({ title: "Automation created successfully" });
       queryClient.invalidateQueries({ queryKey: ["/api/automations"] });
       setCreateDialogOpen(false);
       form.reset();
+      setTimingMode('immediate');
     },
     onError: (error: any) => {
       console.error('Create automation error:', error);
@@ -235,7 +289,7 @@ export default function Automations() {
     }
   });
 
-  const handleCreateAutomation = (data: CreateAutomationFormData) => {
+  const handleCreateAutomation = (data: ExtendedFormData) => {
     createAutomationMutation.mutate(data);
   };
 
@@ -252,16 +306,6 @@ export default function Automations() {
       </div>
     );
   }
-
-  const { data: stages = [] } = useQuery<any[]>({
-    queryKey: ["/api/stages"],
-    enabled: !!user
-  });
-
-  const { data: automations = [] } = useQuery<any[]>({
-    queryKey: ["/api/automations"],
-    enabled: !!user
-  });
 
   return (
     <div className="min-h-screen flex bg-background">
@@ -358,6 +402,127 @@ export default function Automations() {
                         </FormItem>
                       )}
                     />
+
+                    <FormField
+                      control={form.control}
+                      name="templateId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Message Template</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value || ""}>
+                            <FormControl>
+                              <SelectTrigger data-testid="select-template">
+                                <SelectValue placeholder="Select a template" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="">No template (create later)</SelectItem>
+                              {templates
+                                .filter((t: any) => t.channel === form.watch('channel'))
+                                .map((template: any) => (
+                                  <SelectItem key={template.id} value={template.id}>
+                                    {template.name}
+                                  </SelectItem>
+                                ))}
+                              {templates.filter((t: any) => t.channel === form.watch('channel')).length === 0 && (
+                                <SelectItem value="" disabled>
+                                  No {form.watch('channel').toLowerCase()} templates available
+                                </SelectItem>
+                              )}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <div className="space-y-3">
+                      <FormLabel>Send Timing</FormLabel>
+                      <div className="grid grid-cols-2 gap-2">
+                        <Button
+                          type="button"
+                          variant={timingMode === 'immediate' ? 'default' : 'outline'}
+                          className="w-full"
+                          onClick={() => setTimingMode('immediate')}
+                          data-testid="button-timing-immediate"
+                        >
+                          Send Immediately
+                        </Button>
+                        <Button
+                          type="button"
+                          variant={timingMode === 'delayed' ? 'default' : 'outline'}
+                          className="w-full"
+                          onClick={() => setTimingMode('delayed')}
+                          data-testid="button-timing-delayed"
+                        >
+                          Send After Delay
+                        </Button>
+                      </div>
+
+                      {timingMode === 'delayed' && (
+                        <div className="grid grid-cols-3 gap-2 pt-2">
+                          <FormField
+                            control={form.control}
+                            name="delayDays"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-xs">Days</FormLabel>
+                                <FormControl>
+                                  <Input
+                                    type="number"
+                                    min="0"
+                                    placeholder="0"
+                                    data-testid="input-delay-days"
+                                    {...field}
+                                    onChange={e => field.onChange(parseInt(e.target.value) || 0)}
+                                  />
+                                </FormControl>
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="delayHours"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-xs">Hours</FormLabel>
+                                <FormControl>
+                                  <Input
+                                    type="number"
+                                    min="0"
+                                    max="23"
+                                    placeholder="0"
+                                    data-testid="input-delay-hours"
+                                    {...field}
+                                    onChange={e => field.onChange(parseInt(e.target.value) || 0)}
+                                  />
+                                </FormControl>
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="delayMinutes"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-xs">Minutes</FormLabel>
+                                <FormControl>
+                                  <Input
+                                    type="number"
+                                    min="0"
+                                    max="59"
+                                    placeholder="0"
+                                    data-testid="input-delay-minutes"
+                                    {...field}
+                                    onChange={e => field.onChange(parseInt(e.target.value) || 0)}
+                                  />
+                                </FormControl>
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                      )}
+                    </div>
 
                     <div className="flex justify-end space-x-2 pt-4">
                       <Button
