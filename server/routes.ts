@@ -384,6 +384,12 @@ ${photographer?.businessName || 'Your Photography Team'}
 
       res.json({ message: "Login link sent successfully" });
     } catch (error) {
+      console.error('Send login link error:', error);
+      console.error('Error details:', { 
+        name: error?.name, 
+        message: error?.message, 
+        stack: error?.stack 
+      });
       res.status(500).json({ message: "Internal server error" });
     }
   });
