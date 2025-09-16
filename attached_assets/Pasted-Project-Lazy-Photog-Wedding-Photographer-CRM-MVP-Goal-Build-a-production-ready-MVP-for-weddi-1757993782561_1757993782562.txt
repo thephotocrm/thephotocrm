@@ -1,0 +1,542 @@
+Project: Lazy Photog — Wedding Photographer CRM (MVP+)
+
+Goal: Build a production-ready MVP for wedding photographers:
+
+Multi-tenant (each photographer has isolated data)
+
+Roles: PHOTOGRAPHER, CLIENT, ADMIN
+
+Pipeline stages (kanban + drag/drop)
+
+Stage-based automations (SMS + Email) sending X mins/hours/days after entering a stage, only if still in that stage
+
+Inquiry long-drip: ~24 emails over 12 months (≈ every 15 days)
+
+Template library (Email/SMS) referenced by automation steps
+
+Client dashboard with Quick Links and Checklist (global template → per-client snapshot)
+
+Estimates/Proposals with deposit % per estimate, e-signature, Stripe payments (deposit/full) + webhook updates
+
+Packages (price presets) → import into estimates
+
+Questionnaires/Forms (templates → assign to client)
+
+Scheduling (availability slots + client self-book; GCal sync later)
+
+Reporting/Analytics (bookings, revenue, balances, conversion)
+
+Payment reminders (automated until paid)
+
+No Zapier/custom domains now, but keep internal event emitters for future
+
+Tech stack
+
+Backend: Node.js + Express
+
+DB/ORM: PostgreSQL + Prisma (SQLite for dev ok)
+
+Auth: JWT in httpOnly cookies, bcrypt, role guard
+
+Frontend: React + Vite + React Router
+
+Email: SendGrid API
+
+SMS: Twilio Programmable SMS
+
+Jobs: node-cron (tick every 60s)
+
+Env vars:
+DATABASE_URL, JWT_SECRET, SENDGRID_API_KEY,
+TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_FROM_NUMBER,
+STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, APP_BASE_URL
+
+Data model (Prisma – create these models)
+enum Role { PHOTOGRAPHER CLIENT ADMIN }
+enum Channel { EMAIL SMS }
+
+model Photographer {
+  id               String   @id @default(cuid())
+  business_name    String
+  logo_url         String?
+  brand_primary    String?
+  brand_secondary  String?
+  email_from_name  String?
+  email_from_addr  String?
+  timezone         String   // e.g. "America/Chicago"
+  created_at       DateTime @default(now())
+  users            User[]
+  stages           Stage[]
+  templates        Template[]
+  automations      Automation[]
+  links            PhotographerLink[]
+  checklistTemplateItems ChecklistTemplateItem[]
+  packages         Package[]
+  questionnaires   QuestionnaireTemplate[]
+  availability     AvailabilitySlot[]
+}
+
+model User {
+  id              String   @id @default(cuid())
+  email           String   @unique
+  password_hash   String
+  role            Role
+  photographer_id String?
+  photographer    Photographer? @relation(fields: [photographer_id], references: [id])
+  client_id       String?
+  created_at      DateTime @default(now())
+}
+
+model Stage {
+  id              String   @id @default(cuid())
+  photographer_id String
+  photographer    Photographer @relation(fields: [photographer_id], references: [id])
+  name            String
+  order_index     Int
+  is_default      Boolean  @default(false)
+  clients         Client[]
+  automations     Automation[]
+}
+
+model Client {
+  id               String   @id @default(cuid())
+  photographer_id  String
+  photographer     Photographer @relation(fields: [photographer_id], references: [id])
+  first_name       String
+  last_name        String
+  email            String?
+  phone            String?
+  wedding_date     DateTime?
+  notes            String?
+  stage_id         String?
+  stage            Stage?   @relation(fields: [stage_id], references: [id])
+  stage_entered_at DateTime?
+  sms_opt_in       Boolean  @default(false)
+  email_opt_in     Boolean  @default(true)
+  created_at       DateTime @default(now())
+  emailLogs        EmailLog[]
+  smsLogs          SmsLog[]
+  checklistItems   ClientChecklistItem[]
+  questionnaires   ClientQuestionnaire[]
+  estimates        Estimate[]
+  bookings         Booking[]
+}
+
+model Template {
+  id              String   @id @default(cuid())
+  photographer_id String
+  photographer    Photographer @relation(fields: [photographer_id], references: [id])
+  name            String
+  channel         Channel
+  subject         String?   // email only
+  html_body       String?
+  text_body       String?
+  created_at      DateTime  @default(now())
+}
+
+model Automation {
+  id              String   @id @default(cuid())
+  photographer_id String
+  photographer    Photographer @relation(fields: [photographer_id], references: [id])
+  name            String
+  stage_id        String?
+  stage           Stage?   @relation(fields: [stage_id], references: [id])
+  channel         Channel
+  enabled         Boolean  @default(true)
+  steps           AutomationStep[]
+}
+
+model AutomationStep {
+  id               String   @id @default(cuid())
+  automation_id    String
+  automation       Automation @relation(fields: [automation_id], references: [id])
+  step_index       Int
+  delay_minutes    Int
+  template_id      String?
+  template         Template? @relation(fields: [template_id], references: [id])
+  enabled          Boolean  @default(true)
+  quiet_hours_start Int?
+  quiet_hours_end   Int?
+}
+
+model EmailLog {
+  id                 String   @id @default(cuid())
+  client_id          String
+  client             Client   @relation(fields: [client_id], references: [id])
+  automation_step_id String?
+  status             String   // queued|sent|delivered|opened|clicked|bounced|failed
+  provider_id        String?
+  sent_at            DateTime?
+  opened_at          DateTime?
+  clicked_at         DateTime?
+  bounced_at         DateTime?
+}
+
+model SmsLog {
+  id                 String   @id @default(cuid())
+  client_id          String
+  client             Client   @relation(fields: [client_id], references: [id])
+  automation_step_id String?
+  status             String   // queued|sent|delivered|failed|unsubscribed
+  provider_id        String?
+  sent_at            DateTime?
+  delivered_at       DateTime?
+}
+
+model PhotographerLink {
+  id              String   @id @default(cuid())
+  photographer_id String
+  photographer    Photographer @relation(fields: [photographer_id], references: [id])
+  title           String
+  url             String
+  order_index     Int      @default(0)
+  created_at      DateTime @default(now())
+}
+
+model ChecklistTemplateItem {
+  id              String   @id @default(cuid())
+  photographer_id String
+  photographer    Photographer @relation(fields: [photographer_id], references: [id])
+  title           String
+  order_index     Int      @default(0)
+  created_at      DateTime @default(now())
+}
+
+model ClientChecklistItem {
+  id              String   @id @default(cuid())
+  client_id       String
+  client          Client   @relation(fields: [client_id], references: [id])
+  title           String
+  order_index     Int      @default(0)
+  completed_at    DateTime?
+  created_at      DateTime @default(now())
+}
+
+model Package {
+  id               String   @id @default(cuid())
+  photographer_id  String
+  photographer     Photographer @relation(fields: [photographer_id], references: [id])
+  name             String
+  description      String?
+  base_price_cents Int
+  created_at       DateTime @default(now())
+  items            PackageItem[]
+}
+
+model PackageItem {
+  id              String   @id @default(cuid())
+  package_id      String
+  pkg             Package  @relation(fields: [package_id], references: [id])
+  name            String
+  description     String?
+  qty             Int      @default(1)
+  unit_cents      Int      @default(0)
+  line_total_cents Int     @default(0)
+}
+
+model QuestionnaireTemplate {
+  id              String   @id @default(cuid())
+  photographer_id String
+  photographer    Photographer @relation(fields: [photographer_id], references: [id])
+  title           String
+  description     String?
+  created_at      DateTime @default(now())
+  questions       QuestionnaireQuestion[]
+}
+
+model QuestionnaireQuestion {
+  id              String   @id @default(cuid())
+  template_id     String
+  template        QuestionnaireTemplate @relation(fields: [template_id], references: [id])
+  type            String   // "TEXT" | "MULTI" | "CHECKBOX"
+  label           String
+  options         String?  // JSON for MULTI/CHECKBOX
+  order_index     Int
+}
+
+model ClientQuestionnaire {
+  id              String   @id @default(cuid())
+  client_id       String
+  client          Client   @relation(fields: [client_id], references: [id])
+  template_id     String
+  template        QuestionnaireTemplate @relation(fields: [template_id], references: [id])
+  status          String   @default("PENDING") // PENDING|COMPLETED
+  answers         Json?
+  completed_at    DateTime?
+}
+
+model AvailabilitySlot {
+  id              String   @id @default(cuid())
+  photographer_id String
+  photographer    Photographer @relation(fields: [photographer_id], references: [id])
+  start_at        DateTime
+  end_at          DateTime
+  is_booked       Boolean @default(false)
+}
+
+model Booking {
+  id              String   @id @default(cuid())
+  photographer_id String
+  photographer    Photographer @relation(fields: [photographer_id], references: [id])
+  client_id       String?
+  client          Client?  @relation(fields: [client_id], references: [id])
+  title           String
+  start_at        DateTime
+  end_at          DateTime
+  status          String   @default("PENDING") // PENDING|CONFIRMED|CANCELLED
+  created_at      DateTime @default(now())
+}
+
+model Estimate {
+  id                String   @id @default(cuid())
+  photographer_id   String
+  photographer      Photographer @relation(fields: [photographer_id], references: [id])
+  client_id         String
+  client            Client @relation(fields: [client_id], references: [id])
+  title             String
+  notes             String?
+  currency          String   @default("USD")
+  subtotal_cents    Int      @default(0)
+  discount_cents    Int      @default(0)
+  tax_cents         Int      @default(0)
+  total_cents       Int      @default(0)
+  deposit_percent   Int?     // set per estimate
+  deposit_cents     Int?     // computed
+  status            String   @default("DRAFT") // DRAFT|SENT|SIGNED|PAID_PARTIAL|PAID_FULL|CANCELLED|EXPIRED
+  valid_until       DateTime?
+  created_at        DateTime @default(now())
+  sent_at           DateTime?
+  signed_at         DateTime?
+  signed_by_name    String?
+  signed_by_email   String?
+  signed_ip         String?
+  signed_user_agent String?
+  signature_image_url String?
+  token             String   @default(uuid()) // public link token
+  items             EstimateItem[]
+  payments          EstimatePayment[]
+}
+
+model EstimateItem {
+  id                String   @id @default(cuid())
+  estimate_id       String
+  estimate          Estimate @relation(fields: [estimate_id], references: [id])
+  name              String
+  description       String?
+  qty               Int      @default(1)
+  unit_cents        Int      @default(0)
+  line_total_cents  Int      @default(0)
+  order_index       Int      @default(0)
+}
+
+model EstimatePayment {
+  id                       String   @id @default(cuid())
+  estimate_id              String
+  estimate                 Estimate @relation(fields: [estimate_id], references: [id])
+  amount_cents             Int
+  method                   String   // STRIPE_CHECKOUT
+  status                   String   // PENDING|SUCCEEDED|FAILED|REFUNDED
+  stripe_session_id        String?
+  stripe_payment_intent_id String?
+  created_at               DateTime @default(now())
+  completed_at             DateTime?
+}
+
+Core behaviors
+
+Client create: place in default Inquiry stage; set stage_entered_at=now(). Snapshot checklist template → ClientChecklistItems.
+
+Stage change (kanban drag/drop): update stage_id, reset stage_entered_at=now().
+
+Automations (cron every 60s): for each enabled automation → steps → clients currently in that stage; if now - stage_entered_at >= delay_minutes, not sent yet, not in quiet hours, and consent ok → send via provider; log to EmailLog/SmsLog.
+
+Inquiry long-drip: seed 24 email steps ≈ every 15 days (send only if still in Inquiry).
+
+Templates: automation steps reference a template_id (edit content once → updates all steps using it).
+
+Links: photographer creates PhotographerLinks → all clients see them in Quick Links card.
+
+Checklist: photographer defines ChecklistTemplateItems; new clients get a snapshot; clients can check off items.
+
+Estimates/Proposals: photographer drafts items, sets deposit %, sends link. Client signs (typed name + consent; record IP, UA, timestamp) then Pay Deposit or Pay Full via Stripe Checkout. Webhook updates status (PAID_PARTIAL/PAID_FULL).
+
+Packages: define packages & items; import into estimates.
+
+Questionnaires: templates → assign to client; client completes on dashboard.
+
+Scheduling: photographer adds AvailabilitySlots; client books; creates Booking.
+
+Reporting: aggregate: leads→booked %, revenue, outstanding balances, upcoming bookings.
+
+Payment reminders: cron finds signed/unpaid estimates and emails reminders every 7d until balance paid.
+
+API (high level)
+
+Auth: /api/auth/register, /api/auth/login, /api/auth/logout
+Me/Settings: /api/me, /api/branding, /api/timezone
+
+Stages: GET/POST/PUT/DELETE /api/stages, POST /api/stages/:id/make-default
+Clients: GET/POST/PUT /api/clients, PUT /api/clients/:id/stage, GET /api/clients/:id/checklist, POST /api/client-checklist/:itemId/toggle
+
+Templates: GET/POST/PUT/DELETE /api/templates
+Automations: GET/POST/PUT /api/automations
+AutomationSteps: GET/POST/PUT/DELETE /api/automations/:id/steps
+
+Links: GET/POST/PUT/DELETE /api/links
+
+Packages: GET/POST/PUT/DELETE /api/packages, GET/POST/PUT/DELETE /api/packages/:id/items
+
+Questionnaires:
+
+Templates: GET/POST/PUT/DELETE /api/questionnaire-templates (+ questions)
+
+Assign to client: POST /api/clients/:id/questionnaires
+
+Client submit: POST /api/client-questionnaires/:id/submit
+
+Scheduling:
+
+GET/POST/DELETE /api/availability
+
+POST /api/bookings (client picks slot)
+
+PUT /api/bookings/:id (confirm/cancel)
+
+Estimates:
+
+Photographer: POST/PUT /api/estimates, POST /api/estimates/:id/send, GET /api/estimates?client_id=, GET /api/estimates/:id, GET /api/estimates/:id/pdf
+
+Public: GET /public/estimates/:token, POST /public/estimates/:token/sign, POST /public/estimates/:token/pay (mode: DEPOSIT|FULL)
+
+Webhooks:
+
+SendGrid: POST /webhooks/sendgrid
+
+Twilio: POST /webhooks/twilio/sms-status, POST /webhooks/twilio/inbound (STOP→sms_opt_in=false)
+
+Stripe: POST /webhooks/stripe
+
+Reports: GET /api/reports/summary?from=&to= (revenue, balances, conversion, upcoming)
+
+Frontend pages
+
+Photographer app
+
+Login
+
+Dashboard (kanban by stage; drag clients)
+
+Clients list + detail (timeline, checklist, questionnaires, estimates, bookings)
+
+Automations (per stage; steps with delay + template picker + quiet hours)
+
+Templates (Email/SMS) CRUD
+
+Links (Quick Links) CRUD
+
+Checklist template CRUD
+
+Packages CRUD (+ import to estimate)
+
+Estimates: create/edit/preview/send; status & payments timeline
+
+Questionnaires: templates CRUD; assign to client
+
+Scheduling: availability slots; view bookings
+
+Reports: revenue, balances, conversion, upcoming
+
+Branding & Settings: logo/colors, email from, timezone, consent defaults
+
+Client portal
+
+Login
+
+Dashboard: Quick Links, Checklist, Questionnaires, Bookings (schedule button), Estimates/Invoices (status + pay), Wedding info
+
+Public proposal view (via token): read→sign→pay
+
+Cron worker (pseudo)
+// every 60s
+for each photographer:
+  const nowLocal = toTenantLocal(new Date(), photographer.timezone)
+  processAutomations(nowLocal)
+  sendPaymentReminders(nowLocal)
+
+
+Automations: for each enabled Automation → Steps (ASC) → Clients in automation.stage_id; due check on stage_entered_at + delay_minutes; consent, quiet hours, not already sent → send & log.
+Reminders: signed estimates with balance due → if last reminder >7d → send reminder via email template.
+
+Seeds
+
+Stages: Inquiry (default), Contacted, Consult Scheduled, Consult Completed, Proposal Sent, Follow-Up, Booked, Pre-Wedding Planning, Wedding Completed, Editing, Gallery Delivered, Album/Prints Delivered, Closed-Won, Closed-Lost.
+
+Inquiry automations: SMS (2h, 24h, 7d, 30d), Email (1d, 3d, 9d) + 24 long-drip email steps (~every 15 days).
+
+Templates: a handful of Email/SMS defaults (Inquiry intro, Proposal follow-up, Payment reminder, Gallery delivered, Review request).
+
+Links (placeholders): Gallery, Contract, FAQ.
+
+Checklist template: Book consult; Review proposal; Sign contract; Pay deposit; Complete questionnaire.
+
+One package (“Gold”) with sample items.
+
+One questionnaire template (“Wedding Day Details”) with 6–8 basic questions.
+
+Demo photographer + demo clients.
+
+File map (suggested)
+/prisma/schema.prisma
+/src/server.ts
+/src/config/env.ts
+/src/auth/*
+/src/middleware/tenant.ts
+/src/routes/auth.ts
+/src/routes/stages.ts
+/src/routes/clients.ts
+/src/routes/templates.ts
+/src/routes/automations.ts
+/src/routes/links.ts
+/src/routes/checklist.ts
+/src/routes/packages.ts
+/src/routes/questionnaires.ts
+/src/routes/scheduling.ts
+/src/routes/estimates.ts
+/src/routes/webhooks.ts
+/src/services/email.ts
+/src/services/sms.ts
+/src/services/stripe.ts
+/src/services/render.ts   // merge fields
+/src/jobs/cron.ts
+/web/src/main.tsx
+/web/src/App.tsx
+/web/src/pages/*
+/web/src/components/*
+
+Scripts
+
+dev: concurrently run API + Vite
+
+prisma:migrate, seed, start
+
+Acceptance criteria
+
+Create photographer → login → configure branding/timezone
+
+Create stages (Inquiry default), templates, links, checklist template
+
+Add client → Inquiry timers start; client dashboard shows links + checklist
+
+Automations send on schedule only if still in stage; logs recorded
+
+Drag to new stage → old sends stop; new timers reset
+
+Create package → import into estimate; set deposit % → send proposal → client signs → pays via Stripe; statuses update via webhook
+
+Assign questionnaire → client completes; status updates
+
+Add availability → client books; booking recorded
+
+Reports show revenue, balances, conversion, upcoming
+
+Name the project “Lazy Photog”. Build from this spec. Keep code modular, tenant-scoped (always filter by photographer_id). Leave internal event emitters (e.g., emit('lead.created', data)) so Zapier can be added later without refactor.
