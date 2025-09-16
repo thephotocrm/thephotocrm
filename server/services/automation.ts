@@ -21,6 +21,7 @@ interface ClientWithStage {
 
 export async function processAutomations(photographerId: string): Promise<void> {
   try {
+    console.log(`Processing automations for photographer: ${photographerId}`);
     // Get all enabled automations for this photographer
     const allAutomations = await db
       .select()
@@ -29,6 +30,8 @@ export async function processAutomations(photographerId: string): Promise<void> 
         eq(automations.photographerId, photographerId),
         eq(automations.enabled, true)
       ));
+      
+    console.log(`Found ${allAutomations.length} enabled automations`);
 
     for (const automation of allAutomations) {
       // Get automation steps
@@ -49,6 +52,8 @@ export async function processAutomations(photographerId: string): Promise<void> 
           eq(clients.photographerId, photographerId),
           eq(clients.stageId, automation.stageId!)
         ));
+        
+      console.log(`Automation "${automation.name}" (${automation.id}) - found ${clientsInStage.length} clients in stage`);
 
       for (const client of clientsInStage) {
         for (const step of steps) {
@@ -62,7 +67,12 @@ export async function processAutomations(photographerId: string): Promise<void> 
 }
 
 async function processAutomationStep(client: any, step: any, automation: any): Promise<void> {
-  if (!client.stageEnteredAt) return;
+  console.log(`Processing step for client ${client.firstName} ${client.lastName} (${client.email})`);
+  
+  if (!client.stageEnteredAt) {
+    console.log('No stageEnteredAt date, skipping');
+    return;
+  }
 
   const now = new Date();
   const stageEnteredAt = new Date(client.stageEnteredAt);

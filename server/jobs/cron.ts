@@ -9,13 +9,13 @@ export function startCronJobs() {
       console.log('Running automation check...');
       
       // Get all photographers
-      const photographers = await storage.getPhotographer(''); // This needs to be implemented
+      const photographers = await storage.getAllPhotographers();
       
-      // For now, we'll process for all photographers
-      // In a real implementation, you'd query all photographers
-      
-      // This is a placeholder - you'd need to implement getAllPhotographers
-      // For demo purposes, we'll skip this until we have actual data
+      // Process automations for each photographer
+      for (const photographer of photographers) {
+        await processAutomations(photographer.id);
+        await processPaymentReminders(photographer.id);
+      }
       
     } catch (error) {
       console.error('Cron job error:', error);

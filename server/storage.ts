@@ -21,6 +21,7 @@ export interface IStorage {
   createUser(user: InsertUser): Promise<User>;
   
   // Photographers
+  getAllPhotographers(): Promise<Photographer[]>;
   getPhotographer(id: string): Promise<Photographer | undefined>;
   createPhotographer(photographer: InsertPhotographer): Promise<Photographer>;
   updatePhotographer(id: string, photographer: Partial<Photographer>): Promise<Photographer>;
@@ -93,6 +94,10 @@ export class DatabaseStorage implements IStorage {
   async createUser(insertUser: InsertUser): Promise<User> {
     const [user] = await db.insert(users).values(insertUser).returning();
     return user;
+  }
+
+  async getAllPhotographers(): Promise<Photographer[]> {
+    return await db.select().from(photographers);
   }
 
   async getPhotographer(id: string): Promise<Photographer | undefined> {
