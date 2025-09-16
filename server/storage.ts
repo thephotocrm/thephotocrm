@@ -189,13 +189,27 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createClient(insertClient: InsertClient): Promise<Client> {
-    const [client] = await db.insert(clients).values(insertClient).returning();
+    // If client is being assigned to a stage, set stageEnteredAt timestamp
+    const clientData = {
+      ...insertClient,
+      stageEnteredAt: insertClient.stageId ? new Date() : null
+    };
+    
+    const [client] = await db.insert(clients).values(clientData).returning();
     return client;
   }
 
-  async updateClient(id: string, client: Partial<Client>): Promise<Client> {
+  async updateClient(id: string, clientUpdate: Partial<Client>): Promise<Client> {
+    // If stageId is being updated, set stageEnteredAt timestamp
+    const updateData = {
+      ...clientUpdate,
+      ...(clientUpdate.stageId !== undefined && {
+        stageEnteredAt: clientUpdate.stageId ? new Date() : null
+      })
+    };
+    
     const [updated] = await db.update(clients)
-      .set(client)
+      .set(updateData)
       .where(eq(clients.id, id))
       .returning();
     return updated;

@@ -94,20 +94,39 @@ async function processAutomationStep(client: any, step: any, automation: any): P
     }
   }
 
-  // Check if already sent
+  // Check if already sent successfully (only skip if status = 'sent')
   const alreadySent = automation.channel === 'EMAIL' 
     ? await db.select().from(emailLogs).where(and(
         eq(emailLogs.clientId, client.id),
-        eq(emailLogs.automationStepId, step.id)
+        eq(emailLogs.automationStepId, step.id),
+        eq(emailLogs.status, 'sent')
       ))
     : await db.select().from(smsLogs).where(and(
         eq(smsLogs.clientId, client.id),
-        eq(smsLogs.automationStepId, step.id)
+        eq(smsLogs.automationStepId, step.id),
+        eq(smsLogs.status, 'sent')
       ));
 
   if (alreadySent.length > 0) {
-    console.log(`✅ Already sent to ${client.firstName} ${client.lastName}, skipping`);
+    console.log(`✅ Already sent successfully to ${client.firstName} ${client.lastName}, skipping`);
     return;
+  }
+
+  // Check for previous failed attempts (allow retry but log it)
+  const failedAttempts = automation.channel === 'EMAIL' 
+    ? await db.select().from(emailLogs).where(and(
+        eq(emailLogs.clientId, client.id),
+        eq(emailLogs.automationStepId, step.id),
+        eq(emailLogs.status, 'failed')
+      ))
+    : await db.select().from(smsLogs).where(and(
+        eq(smsLogs.clientId, client.id),
+        eq(smsLogs.automationStepId, step.id),
+        eq(smsLogs.status, 'failed')
+      ));
+
+  if (failedAttempts.length > 0) {
+    console.log(`🔄 Retrying failed email for ${client.firstName} ${client.lastName} (${failedAttempts.length} previous failures)`);
   }
 
   // Check consent
@@ -161,9 +180,13 @@ async function processAutomationStep(client: any, step: any, automation: any): P
 
     console.log(`📧 Sending email to ${client.firstName} ${client.lastName} (${client.email})...`);
     
+    // Use photographer's verified sender or environment fallback
+    const fromEmail = photographer?.emailFromAddr || process.env.SENDGRID_FROM_EMAIL || 'noreply@lazyphotog.com';
+    const fromName = photographer?.emailFromName || process.env.SENDGRID_FROM_NAME || photographer?.businessName || 'Your Photographer';
+    
     const success = await sendEmail({
       to: client.email,
-      from: 'noreply@lazyphotog.com', // TODO: Use photographer's email
+      from: `${fromName} <${fromEmail}>`,
       subject,
       html: htmlBody,
       text: textBody
