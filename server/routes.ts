@@ -300,6 +300,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.post("/api/clients/:id/send-login-link", authenticateToken, requirePhotographer, async (req, res) => {
+    console.log('=== SEND LOGIN LINK REQUEST RECEIVED ===');
+    console.log('Client ID:', req.params.id);
+    console.log('User:', req.user);
     try {
       const client = await storage.getClient(req.params.id);
       if (!client || client.photographerId !== req.user!.photographerId!) {
