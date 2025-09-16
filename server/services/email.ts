@@ -11,6 +11,7 @@ mailService.setApiKey(process.env.SENDGRID_API_KEY);
 interface EmailParams {
   to: string;
   from: string;
+  replyTo?: string;
   subject: string;
   text?: string;
   html?: string;
@@ -18,11 +19,38 @@ interface EmailParams {
 
 export async function sendEmail(params: EmailParams): Promise<boolean> {
   try {
+    // Parse the from parameter to separate email and name
+    let fromEmail = params.from;
+    let fromName = '';
+    
+    // Handle both "Name <email>" format and plain email
+    const fromMatch = params.from.match(/^(.+?)\s*<(.+?)>$/);
+    if (fromMatch) {
+      fromName = fromMatch[1].trim();
+      fromEmail = fromMatch[2].trim();
+    }
+
     const emailData: any = {
       to: params.to,
-      from: params.from,
+      from: {
+        email: fromEmail,
+        name: fromName || fromEmail
+      },
       subject: params.subject,
     };
+
+    // Add reply-to if provided
+    if (params.replyTo) {
+      const replyToMatch = params.replyTo.match(/^(.+?)\s*<(.+?)>$/);
+      if (replyToMatch) {
+        emailData.reply_to = {
+          email: replyToMatch[2].trim(),
+          name: replyToMatch[1].trim()
+        };
+      } else {
+        emailData.reply_to = params.replyTo;
+      }
+    }
 
     // Only include text/html if provided
     if (params.text) {
@@ -36,6 +64,10 @@ export async function sendEmail(params: EmailParams): Promise<boolean> {
     return true;
   } catch (error) {
     console.error('SendGrid email error:', error);
+    // Log the specific error details to debug 403 issues
+    if (error.response && error.response.body && error.response.body.errors) {
+      console.error('SendGrid error details:', JSON.stringify(error.response.body.errors, null, 2));
+    }
     return false;
   }
 }

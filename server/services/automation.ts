@@ -165,13 +165,17 @@ async function processAutomationStep(client: any, step: any, automation: any): P
 
     console.log(`📧 Sending email to ${client.firstName} ${client.lastName} (${client.email})...`);
     
-    // Use photographer's verified sender or environment fallback
-    const fromEmail = photographer?.emailFromAddr || process.env.SENDGRID_FROM_EMAIL || 'noreply@lazyphotog.com';
-    const fromName = photographer?.emailFromName || process.env.SENDGRID_FROM_NAME || photographer?.businessName || 'Your Photographer';
+    // TEMPORARY FIX: Force verified sender to resolve SendGrid 403 error
+    const fromEmail = 'scoop@missionsccopable.com'; // Force verified sender
+    const fromName = photographer?.emailFromName || photographer?.businessName || 'Scoop Photography';
+    const replyToEmail = photographer?.emailFromAddr || fromEmail; // Use photographer preference as reply-to
+    
+    console.log(`📧 DEBUG: Forcing verified sender: ${fromEmail}, reply-to: ${replyToEmail}`);
     
     const success = await sendEmail({
       to: client.email,
       from: `${fromName} <${fromEmail}>`,
+      replyTo: `${fromName} <${replyToEmail}>`,
       subject,
       html: htmlBody,
       text: textBody
