@@ -158,7 +158,7 @@ export default function EstimateForm({
   const taxCents = form.watch("taxCents");
 
   // Calculate totals
-  const subtotalCents = watchedItems.reduce((sum, item) => sum + (item.lineTotalCents || 0), 0);
+  const subtotalCents = watchedItems.reduce((sum, item) => sum + ((item.qty || 0) * (item.unitCents || 0)), 0);
   const autoTaxCents = Math.round(subtotalCents * 0.0825); // 8.25% automatic tax
   const totalCents = subtotalCents - discountCents + autoTaxCents;
   const depositPercent = form.watch("depositPercent");
@@ -169,7 +169,7 @@ export default function EstimateForm({
     watchedItems.forEach((item, index) => {
       const lineTotal = (item.qty || 0) * (item.unitCents || 0);
       if (lineTotal !== item.lineTotalCents) {
-        form.setValue(`items.${index}.lineTotalCents`, lineTotal);
+        form.setValue(`items.${index}.lineTotalCents`, lineTotal, { shouldValidate: false });
       }
     });
   }, [watchedItems, form]);
@@ -469,7 +469,7 @@ export default function EstimateForm({
                 <div className="md:col-span-2">
                   <Label>Line Total</Label>
                   <div className="h-10 px-3 py-2 border border-input rounded-md bg-muted flex items-center">
-                    ${formatPrice(watchedItems[index]?.lineTotalCents || 0)}
+                    ${formatPrice((watchedItems[index]?.qty || 0) * (watchedItems[index]?.unitCents || 0))}
                   </div>
                 </div>
 
