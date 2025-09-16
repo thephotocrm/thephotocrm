@@ -1,4 +1,5 @@
 import twilio from 'twilio';
+import { renderTemplate } from '@shared/template-utils';
 
 // Use conditional initialization for development mode fallback
 let client: twilio.Twilio | null = null;
@@ -60,16 +61,7 @@ export async function sendSms(params: SmsParams): Promise<{ success: boolean; si
   }
 }
 
+// Use the shared template utility
 export function renderSmsTemplate(template: string, variables: Record<string, string>): string {
-  let rendered = template;
-  
-  for (const [key, value] of Object.entries(variables)) {
-    // Support both {variable} and {{variable}} formats
-    const singleBrace = `{${key}}`;
-    const doubleBrace = `{{${key}}}`;
-    rendered = rendered.replace(new RegExp(singleBrace, 'g'), value);
-    rendered = rendered.replace(new RegExp(doubleBrace, 'g'), value);
-  }
-  
-  return rendered;
+  return renderTemplate(template, variables);
 }

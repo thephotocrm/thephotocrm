@@ -1,4 +1,5 @@
 import { MailService } from '@sendgrid/mail';
+import { renderTemplate } from '@shared/template-utils';
 
 if (!process.env.SENDGRID_API_KEY) {
   throw new Error("SENDGRID_API_KEY environment variable must be set");
@@ -31,16 +32,5 @@ export async function sendEmail(params: EmailParams): Promise<boolean> {
   }
 }
 
-export function renderTemplate(template: string, variables: Record<string, string>): string {
-  let rendered = template;
-  
-  for (const [key, value] of Object.entries(variables)) {
-    // Support both {variable} and {{variable}} formats
-    const singleBrace = `{${key}}`;
-    const doubleBrace = `{{${key}}}`;
-    rendered = rendered.replace(new RegExp(singleBrace, 'g'), value);
-    rendered = rendered.replace(new RegExp(doubleBrace, 'g'), value);
-  }
-  
-  return rendered;
-}
+// Re-export the shared template utility for backward compatibility
+export { renderTemplate } from '@shared/template-utils';
