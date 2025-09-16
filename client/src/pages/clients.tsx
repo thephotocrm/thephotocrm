@@ -43,20 +43,7 @@ export default function Clients() {
   const [weddingDate, setWeddingDate] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
 
-  // Redirect to login if not authenticated
-  if (!loading && !user) {
-    setLocation("/login");
-    return null;
-  }
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
-      </div>
-    );
-  }
-
+  // All hooks must be called before any early returns
   const { data: clients, isLoading } = useQuery({
     queryKey: ["/api/clients"],
     enabled: !!user
