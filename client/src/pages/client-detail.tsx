@@ -74,18 +74,76 @@ export default function ClientDetail() {
 
   const sendLoginLinkMutation = useMutation({
     mutationFn: async () => {
-      await apiRequest("POST", `/api/clients/${clientId}/send-login-link`);
+      const response = await apiRequest("POST", `/api/clients/${clientId}/send-login-link`);
+      return response;
     },
-    onSuccess: () => {
+    onSuccess: (data: any) => {
+      console.log('Send login link success:', data);
+      
+      let title = "Login link sent";
+      let description = "Client will receive an email with their portal access link.";
+      
+      // Handle development mode responses
+      if (data?.loginUrl) {
+        title = "Login link generated";
+        description = data.message || "Login link created successfully.";
+        
+        // In development, show the actual login URL
+        if (data.debugInfo) {
+          description += ` \n\nDevelopment URL: ${data.loginUrl}`;
+        }
+      }
+      
       toast({
-        title: "Login link sent",
-        description: "Client will receive an email with their portal access link.",
+        title,
+        description,
       });
     },
-    onError: () => {
+    onError: async (error: any) => {
+      console.error('Send login link error:', error);
+      
+      let title = "Error";
+      let description = "Failed to send login link. Please try again.";
+      
+      try {
+        // Try to parse backend error response
+        if (error?.response) {
+          const errorData = await error.response.json();
+          console.log('Backend error data:', errorData);
+          
+          title = errorData.error ? "Email Service Error" : "Error";
+          description = errorData.message || errorData.error || description;
+          
+          // If backend provided a login URL in error response (development mode)
+          if (errorData.loginUrl) {
+            description += `\n\nDevelopment URL: ${errorData.loginUrl}`;
+          }
+          
+          if (errorData.warning) {
+            description += `\n\n${errorData.warning}`;
+          }
+        } else if (error?.message) {
+          description = error.message;
+        }
+      } catch (parseError) {
+        console.warn('Could not parse error response:', parseError);
+        
+        // Fallback: try to get error text directly
+        try {
+          if (error?.response) {
+            const errorText = await error.response.text();
+            if (errorText) {
+              description = errorText;
+            }
+          }
+        } catch (textError) {
+          console.warn('Could not get error text:', textError);
+        }
+      }
+      
       toast({
-        title: "Error",
-        description: "Failed to send login link. Please try again.",
+        title,
+        description,
         variant: "destructive"
       });
     }

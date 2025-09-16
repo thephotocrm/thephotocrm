@@ -340,35 +340,63 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const photographer = await storage.getPhotographer(client.photographerId);
       const loginUrl = `${process.env.FRONTEND_URL || 'http://localhost:5000'}/client-portal?token=${token}`;
       
-      const emailSent = await sendEmail({
-        to: client.email,
-        from: photographer?.emailFromAddr || 'noreply@lazyphotog.com',
-        subject: `Access Your Client Portal - ${photographer?.businessName || 'Your Photographer'}`,
-        html: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-            <h2 style="color: #333;">Welcome to Your Client Portal</h2>
-            <p>Hi ${client.firstName},</p>
-            <p>You can now access your client portal to view your project details, proposals, and communicate with us.</p>
-            
-            <div style="text-align: center; margin: 30px 0;">
-              <a href="${loginUrl}" style="background-color: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">
-                Access Client Portal
-              </a>
+      console.log('=== ATTEMPTING TO SEND EMAIL ===');
+      console.log('Login URL generated:', loginUrl);
+      console.log('Client email:', client.email);
+      console.log('NODE_ENV:', process.env.NODE_ENV);
+      console.log('SENDGRID_API_KEY exists:', !!process.env.SENDGRID_API_KEY);
+      
+      // Development fallback - skip email sending in development or when API key is missing
+      if (process.env.NODE_ENV === 'development' || !process.env.SENDGRID_API_KEY) {
+        console.log('=== DEVELOPMENT MODE: SKIPPING EMAIL ===');
+        const response: any = { 
+          message: "Login link generated successfully (development mode - no email sent)" 
+        };
+        
+        // Include login URL in development for debugging
+        if (process.env.NODE_ENV !== 'production') {
+          response.loginUrl = loginUrl;
+          response.debugInfo = {
+            clientEmail: client.email,
+            tokenGenerated: true,
+            validFor: '7 days'
+          };
+        }
+        
+        return res.json(response);
+      }
+      
+      // Production email sending with proper error handling
+      try {
+        const emailSent = await sendEmail({
+          to: client.email,
+          from: photographer?.emailFromAddr || 'noreply@lazyphotog.com',
+          subject: `Access Your Client Portal - ${photographer?.businessName || 'Your Photographer'}`,
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+              <h2 style="color: #333;">Welcome to Your Client Portal</h2>
+              <p>Hi ${client.firstName},</p>
+              <p>You can now access your client portal to view your project details, proposals, and communicate with us.</p>
+              
+              <div style="text-align: center; margin: 30px 0;">
+                <a href="${loginUrl}" style="background-color: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">
+                  Access Client Portal
+                </a>
+              </div>
+              
+              <p><strong>This link is valid for 7 days.</strong></p>
+              
+              <p>If you have any questions, please don't hesitate to reach out.</p>
+              <p>Best regards,<br>${photographer?.businessName || 'Your Photography Team'}</p>
+              
+              <hr style="margin-top: 30px; border: none; border-top: 1px solid #eee;">
+              <p style="font-size: 12px; color: #666;">
+                If the button doesn't work, copy and paste this link into your browser:<br>
+                ${loginUrl}
+              </p>
             </div>
-            
-            <p><strong>This link is valid for 7 days.</strong></p>
-            
-            <p>If you have any questions, please don't hesitate to reach out.</p>
-            <p>Best regards,<br>${photographer?.businessName || 'Your Photography Team'}</p>
-            
-            <hr style="margin-top: 30px; border: none; border-top: 1px solid #eee;">
-            <p style="font-size: 12px; color: #666;">
-              If the button doesn't work, copy and paste this link into your browser:<br>
-              ${loginUrl}
-            </p>
-          </div>
-        `,
-        text: `
+          `,
+          text: `
 Hi ${client.firstName},
 
 You can now access your client portal at: ${loginUrl}
@@ -377,14 +405,50 @@ This link is valid for 7 days.
 
 Best regards,
 ${photographer?.businessName || 'Your Photography Team'}
-        `
-      });
+          `
+        });
 
-      if (!emailSent) {
-        return res.status(500).json({ message: "Failed to send email" });
+        if (!emailSent) {
+          console.error('=== EMAIL SEND FAILED ===');
+          // In development, downgrade to warning instead of error
+          if (process.env.NODE_ENV === 'development') {
+            return res.status(202).json({ 
+              message: "Login link generated but email failed to send (development)",
+              loginUrl: loginUrl,
+              warning: "Email service not configured - use the login URL directly"
+            });
+          }
+          return res.status(500).json({ message: "Failed to send email" });
+        }
+
+        console.log('=== EMAIL SENT SUCCESSFULLY ===');
+        res.json({ message: "Login link sent successfully" });
+        
+      } catch (emailError: any) {
+        console.error('=== EMAIL SEND ERROR ===');
+        console.error('Email error:', emailError);
+        console.error('Email error details:', { 
+          name: emailError?.name, 
+          message: emailError?.message, 
+          code: emailError?.code,
+          stack: emailError?.stack 
+        });
+        
+        // In development, provide fallback instead of hard error
+        if (process.env.NODE_ENV === 'development') {
+          return res.status(202).json({ 
+            message: "Login link generated but email failed to send (development)",
+            loginUrl: loginUrl,
+            error: emailError?.message || 'Email service error',
+            warning: "Use the login URL directly"
+          });
+        }
+        
+        return res.status(500).json({ 
+          message: "Failed to send login email",
+          error: process.env.NODE_ENV === 'development' ? emailError?.message : 'Email service unavailable'
+        });
       }
-
-      res.json({ message: "Login link sent successfully" });
     } catch (error: any) {
       console.error('Send login link error:', error);
       console.error('Error details:', { 
