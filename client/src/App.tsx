@@ -9,6 +9,7 @@ import Register from "@/pages/register";
 import Dashboard from "@/pages/dashboard";
 import Clients from "@/pages/clients";
 import Estimates from "@/pages/estimates";
+import EstimateNew from "@/pages/estimate-new";
 import Templates from "@/pages/templates";
 import Automations from "@/pages/automations";
 import Packages from "@/pages/packages";
@@ -29,6 +30,7 @@ function Router() {
       <Route path="/" component={Dashboard} />
       <Route path="/clients" component={Clients} />
       <Route path="/estimates" component={Estimates} />
+      <Route path="/estimates/new" component={EstimateNew} />
       <Route path="/templates" component={Templates} />
       <Route path="/automations" component={Automations} />
       <Route path="/packages" component={Packages} />

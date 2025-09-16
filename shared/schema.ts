@@ -510,3 +510,13 @@ export type Estimate = typeof estimates.$inferSelect;
 export type InsertEstimate = z.infer<typeof insertEstimateSchema>;
 export type QuestionnaireTemplate = typeof questionnaireTemplates.$inferSelect;
 export type InsertQuestionnaireTemplate = z.infer<typeof insertQuestionnaireTemplateSchema>;
+
+// Client with stage information for display
+export type ClientWithStage = Client & {
+  stage?: {
+    id: string;
+    name: string;
+    color: string;
+    isDefault: boolean;
+  } | null;
+};

@@ -4,7 +4,7 @@ import {
   packages, packageItems, questionnaireTemplates, questionnaireQuestions, clientQuestionnaires,
   availabilitySlots, bookings, estimates, estimateItems, estimatePayments,
   type User, type InsertUser, type Photographer, type InsertPhotographer,
-  type Client, type InsertClient, type Stage, type InsertStage,
+  type Client, type InsertClient, type ClientWithStage, type Stage, type InsertStage,
   type Template, type InsertTemplate, type Automation, type InsertAutomation,
   type AutomationStep, type InsertAutomationStep, type Package, type InsertPackage,
   type Estimate, type InsertEstimate, type QuestionnaireTemplate, type InsertQuestionnaireTemplate
@@ -24,7 +24,7 @@ export interface IStorage {
   updatePhotographer(id: string, photographer: Partial<Photographer>): Promise<Photographer>;
   
   // Clients
-  getClientsByPhotographer(photographerId: string): Promise<Client[]>;
+  getClientsByPhotographer(photographerId: string): Promise<ClientWithStage[]>;
   getClient(id: string): Promise<Client | undefined>;
   createClient(client: InsertClient): Promise<Client>;
   updateClient(id: string, client: Partial<Client>): Promise<Client>;
@@ -96,10 +96,36 @@ export class DatabaseStorage implements IStorage {
     return updated;
   }
 
-  async getClientsByPhotographer(photographerId: string): Promise<Client[]> {
-    return await db.select().from(clients)
+  async getClientsByPhotographer(photographerId: string): Promise<ClientWithStage[]> {
+    const rows = await db.select({
+      id: clients.id,
+      firstName: clients.firstName,
+      lastName: clients.lastName,
+      email: clients.email,
+      phone: clients.phone,
+      weddingDate: clients.weddingDate,
+      createdAt: clients.createdAt,
+      stageId: clients.stageId,
+      stageData: {
+        id: stages.id,
+        name: stages.name,
+        isDefault: stages.isDefault
+      }
+    })
+      .from(clients)
+      .leftJoin(stages, eq(clients.stageId, stages.id))
       .where(eq(clients.photographerId, photographerId))
       .orderBy(desc(clients.createdAt));
+      
+    return rows.map(row => ({
+      ...row,
+      stage: row.stageData?.id ? {
+        id: row.stageData.id,
+        name: row.stageData.name,
+        color: "#3b82f6", // Default blue color since color field doesn't exist in DB
+        isDefault: row.stageData.isDefault
+      } : null
+    }));
   }
 
   async getClient(id: string): Promise<Client | undefined> {

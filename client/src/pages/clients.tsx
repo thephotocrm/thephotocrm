@@ -27,15 +27,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-interface Client {
-  id: string;
-  firstName: string;
-  lastName: string;
-  email?: string;
-  phone?: string;
-  weddingDate?: string;
-  createdAt: string;
-}
+import { type ClientWithStage } from "@shared/schema";
 
 export default function Clients() {
   const { user, loading } = useAuth();
@@ -260,6 +252,7 @@ export default function Clients() {
                     <TableRow>
                       <TableHead>Name</TableHead>
                       <TableHead>Contact</TableHead>
+                      <TableHead>Stage</TableHead>
                       <TableHead>Wedding Date</TableHead>
                       <TableHead>Created</TableHead>
                       <TableHead>Actions</TableHead>
@@ -286,6 +279,15 @@ export default function Clients() {
                               </div>
                             )}
                           </div>
+                        </TableCell>
+                        <TableCell>
+                          {client.stage?.id ? (
+                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium" style={{backgroundColor: `${client.stage.color}20`, color: client.stage.color}}>
+                              {client.stage.name}
+                            </span>
+                          ) : (
+                            <span className="text-muted-foreground">No stage</span>
+                          )}
                         </TableCell>
                         <TableCell>
                           {client.weddingDate ? (

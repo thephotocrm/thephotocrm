@@ -33,13 +33,16 @@ export default function Estimates() {
         <header className="bg-card border-b border-border px-6 py-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-semibold">Estimates & Proposals</h1>
-              <p className="text-muted-foreground">Create and manage client estimates and proposals</p>
+              <h1 className="text-2xl font-semibold">Proposals</h1>
+              <p className="text-muted-foreground">Create and manage client proposals</p>
             </div>
             
-            <Button data-testid="button-create-estimate">
+            <Button 
+              onClick={() => setLocation("/estimates/new")}
+              data-testid="button-create-proposal"
+            >
               <Plus className="w-5 h-5 mr-2" />
-              Create Estimate
+              Create Proposal
             </Button>
           </div>
         </header>
@@ -49,7 +52,7 @@ export default function Estimates() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Estimates</CardTitle>
+                <CardTitle className="text-sm font-medium">Total Proposals</CardTitle>
                 <FileText className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
@@ -84,15 +87,18 @@ export default function Estimates() {
           {/* Estimates List */}
           <Card>
             <CardHeader>
-              <CardTitle>Recent Estimates</CardTitle>
+              <CardTitle>Recent Proposals</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-center py-8">
                 <FileText className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                <p className="text-muted-foreground mb-4">No estimates created yet.</p>
-                <Button data-testid="button-create-first-estimate">
+                <p className="text-muted-foreground mb-4">No proposals created yet.</p>
+                <Button 
+                  onClick={() => setLocation("/estimates/new")}
+                  data-testid="button-create-first-proposal"
+                >
                   <Plus className="w-4 h-4 mr-2" />
-                  Create Your First Estimate
+                  Create Your First Proposal
                 </Button>
               </div>
             </CardContent>
