@@ -186,7 +186,7 @@ export default function Templates() {
                         id="subject"
                         value={subject}
                         onChange={(e) => setSubject(e.target.value)}
-                        placeholder="Welcome to {{businessName}}"
+                        placeholder="Welcome to {businessName}"
                         data-testid="input-subject"
                       />
                     </div>
@@ -199,7 +199,7 @@ export default function Templates() {
                         id="htmlBody"
                         value={htmlBody}
                         onChange={(e) => setHtmlBody(e.target.value)}
-                        placeholder="<h1>Welcome {{firstName}}!</h1><p>Thank you for your inquiry...</p>"
+                        placeholder="<h1>Welcome {firstName}!</h1><p>Thank you for your inquiry...</p>"
                         rows={6}
                         data-testid="textarea-html-body"
                       />
@@ -215,8 +215,8 @@ export default function Templates() {
                       value={textBody}
                       onChange={(e) => setTextBody(e.target.value)}
                       placeholder={channel === "EMAIL" 
-                        ? "Welcome {{firstName}}! Thank you for your inquiry..."
-                        : "Hi {{firstName}}, thank you for your inquiry! We'll be in touch soon."
+                        ? "Welcome {firstName}! Thank you for your inquiry..."
+                        : "Hi {firstName}, thank you for your inquiry! We'll be in touch soon."
                       }
                       rows={4}
                       required
@@ -227,12 +227,12 @@ export default function Templates() {
                   <div className="bg-muted p-3 rounded-md">
                     <p className="text-sm font-medium mb-2">Available Variables:</p>
                     <div className="text-xs text-muted-foreground space-y-1">
-                      <p>{{firstName}} - Client's first name</p>
-                      <p>{{lastName}} - Client's last name</p>
-                      <p>{{fullName}} - Client's full name</p>
-                      <p>{{email}} - Client's email address</p>
-                      <p>{{phone}} - Client's phone number</p>
-                      <p>{{businessName}} - Your business name</p>
+                      <p>{'{'}firstName{'}'} - Client's first name</p>
+                      <p>{'{'}lastName{'}'} - Client's last name</p>
+                      <p>{'{'}fullName{'}'} - Client's full name</p>
+                      <p>{'{'}email{'}'} - Client's email address</p>
+                      <p>{'{'}phone{'}'} - Client's phone number</p>
+                      <p>{'{'}businessName{'}'} - Your business name</p>
                     </div>
                   </div>
                   
