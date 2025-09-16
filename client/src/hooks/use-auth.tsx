@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, type PropsWithChildren } from "react";
 import { getCurrentUser, login as authLogin, logout as authLogout, register as authRegister } from "@/lib/auth";
 import type { User, LoginCredentials, RegisterData } from "@/lib/auth";
 
@@ -12,7 +12,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export function AuthProvider({ children }: { children: ReactNode }) {
+export function AuthProvider({ children }: PropsWithChildren): JSX.Element {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
