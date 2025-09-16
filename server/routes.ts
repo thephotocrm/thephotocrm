@@ -696,6 +696,34 @@ ${photographer?.businessName || 'Your Photography Team'}`;
     }
   });
 
+  app.put("/api/automations/:id", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      // First verify the automation belongs to this photographer
+      const automations = await storage.getAutomationsByPhotographer(req.user!.photographerId!);
+      const automation = automations.find(a => a.id === req.params.id);
+      
+      if (!automation) {
+        return res.status(404).json({ message: "Automation not found" });
+      }
+
+      // Create a safe update schema that only allows specific fields
+      const updateSchema = insertAutomationSchema.partial().omit({
+        photographerId: true,
+        id: true
+      });
+      
+      const updateData = updateSchema.parse(req.body);
+      const updated = await storage.updateAutomation(req.params.id, updateData);
+      res.json(updated);
+    } catch (error: any) {
+      console.error('Update automation error:', error);
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ message: "Invalid request data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   app.delete("/api/automations/:id", authenticateToken, requirePhotographer, async (req, res) => {
     try {
       // First verify the automation belongs to this photographer

@@ -13,8 +13,9 @@ import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Zap, Clock, Mail, Smartphone, Settings } from "lucide-react";
+import { Plus, Zap, Clock, Mail, Smartphone, Settings, Edit2 } from "lucide-react";
 import { insertAutomationSchema } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -27,6 +28,13 @@ type CreateAutomationFormData = z.infer<typeof createAutomationFormSchema>;
 function AutomationStepManager({ automation }: { automation: any }) {
   const { toast } = useToast();
   const [showAddStepForm, setShowAddStepForm] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editForm, setEditForm] = useState({
+    name: automation.name,
+    stageId: automation.stageId || 'global',
+    channel: automation.channel,
+    enabled: automation.enabled
+  });
 
   const { data: steps = [], isLoading } = useQuery<any[]>({
     queryKey: ["/api/automations", automation.id, "steps"],
@@ -105,12 +113,45 @@ function AutomationStepManager({ automation }: { automation: any }) {
     }
   });
 
+  // Update automation mutation
+  const updateAutomationMutation = useMutation({
+    mutationFn: async (updatedData: any) => {
+      const stageId = (updatedData.stageId && updatedData.stageId !== 'global') ? updatedData.stageId : null;
+      return apiRequest("PUT", `/api/automations/${automation.id}`, {
+        ...updatedData,
+        stageId
+      });
+    },
+    onSuccess: () => {
+      toast({ title: "Automation updated successfully" });
+      queryClient.invalidateQueries({ queryKey: ["/api/automations"] });
+      setEditDialogOpen(false);
+    },
+    onError: () => {
+      toast({ title: "Failed to update automation", variant: "destructive" });
+    }
+  });
+
   const handleToggleAutomation = (enabled: boolean) => {
     toggleAutomationMutation.mutate(enabled);
   };
 
   const handleToggleStep = (stepId: string, enabled: boolean) => {
     toggleStepMutation.mutate({ stepId, enabled });
+  };
+
+  const handleSaveEdit = () => {
+    updateAutomationMutation.mutate(editForm);
+  };
+
+  const handleCancelEdit = () => {
+    setEditForm({
+      name: automation.name,
+      stageId: automation.stageId || 'global',
+      channel: automation.channel,
+      enabled: automation.enabled
+    });
+    setEditDialogOpen(false);
   };
 
   return (
@@ -129,6 +170,15 @@ function AutomationStepManager({ automation }: { automation: any }) {
           </div>
         </div>
         <div className="flex items-center space-x-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 w-8 p-0"
+            data-testid={`button-edit-automation-${automation.id}`}
+            onClick={() => setEditDialogOpen(true)}
+          >
+            <Edit2 className="w-3 h-3" />
+          </Button>
           <Badge variant={automation.enabled ? "default" : "secondary"}>
             {automation.enabled ? "Active" : "Inactive"}
           </Badge>
@@ -195,6 +245,74 @@ function AutomationStepManager({ automation }: { automation: any }) {
           {createStepMutation.isPending ? "Adding..." : "Add Step"}
         </Button>
       </div>
+
+      {/* Edit Automation Dialog */}
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit Automation</DialogTitle>
+            <DialogDescription>
+              Modify the automation settings and click Save to apply changes.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="edit-name">Automation Name</Label>
+              <Input
+                id="edit-name"
+                value={editForm.name}
+                onChange={(e) => setEditForm({...editForm, name: e.target.value})}
+                placeholder="Enter automation name"
+                data-testid={`input-edit-name-${automation.id}`}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="edit-channel">Channel</Label>
+              <Select
+                value={editForm.channel}
+                onValueChange={(value) => setEditForm({...editForm, channel: value})}
+              >
+                <SelectTrigger data-testid={`select-edit-channel-${automation.id}`}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="EMAIL">Email</SelectItem>
+                  <SelectItem value="SMS">SMS</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <Switch
+                checked={editForm.enabled}
+                onCheckedChange={(checked) => setEditForm({...editForm, enabled: checked})}
+                data-testid={`switch-edit-enabled-${automation.id}`}
+              />
+              <Label>Enable automation</Label>
+            </div>
+          </div>
+
+          <div className="flex justify-end space-x-2 pt-4">
+            <Button
+              variant="outline"
+              onClick={handleCancelEdit}
+              disabled={updateAutomationMutation.isPending}
+              data-testid={`button-cancel-edit-${automation.id}`}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSaveEdit}
+              disabled={updateAutomationMutation.isPending || !editForm.name.trim()}
+              data-testid={`button-save-edit-${automation.id}`}
+            >
+              {updateAutomationMutation.isPending ? "Saving..." : "Save Changes"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
