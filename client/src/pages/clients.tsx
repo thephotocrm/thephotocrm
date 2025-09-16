@@ -104,7 +104,7 @@ export default function Clients() {
     });
   };
 
-  const filteredClients = clients?.filter((client: Client) =>
+  const filteredClients = clients?.filter((client: ClientWithStage) =>
     `${client.firstName} ${client.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
     client.email?.toLowerCase().includes(searchTerm.toLowerCase())
   ) || [];
@@ -259,7 +259,7 @@ export default function Clients() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredClients.map((client: Client) => (
+                    {filteredClients.map((client: ClientWithStage) => (
                       <TableRow key={client.id} data-testid={`client-row-${client.id}`}>
                         <TableCell className="font-medium">
                           {client.firstName} {client.lastName}
@@ -303,7 +303,12 @@ export default function Clients() {
                           {new Date(client.createdAt).toLocaleDateString()}
                         </TableCell>
                         <TableCell>
-                          <Button variant="outline" size="sm" data-testid={`button-view-client-${client.id}`}>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={() => setLocation(`/clients/${client.id}`)}
+                            data-testid={`button-view-client-${client.id}`}
+                          >
                             View
                           </Button>
                         </TableCell>
