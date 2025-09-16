@@ -56,6 +56,13 @@ export interface IStorage {
   createAutomation(automation: InsertAutomation): Promise<Automation>;
   updateAutomation(id: string, automation: Partial<Automation>): Promise<Automation>;
   
+  // Automation Steps
+  getAutomationSteps(automationId: string): Promise<AutomationStep[]>;
+  getAutomationStepById(id: string): Promise<AutomationStep | undefined>;
+  createAutomationStep(step: InsertAutomationStep): Promise<AutomationStep>;
+  updateAutomationStep(id: string, step: Partial<AutomationStep>): Promise<AutomationStep>;
+  deleteAutomationStep(id: string): Promise<void>;
+  
   // Packages
   getPackagesByPhotographer(photographerId: string): Promise<Package[]>;
   createPackage(pkg: InsertPackage): Promise<Package>;
@@ -218,6 +225,34 @@ export class DatabaseStorage implements IStorage {
       .where(eq(automations.id, id))
       .returning();
     return updated;
+  }
+
+  async getAutomationSteps(automationId: string): Promise<AutomationStep[]> {
+    return await db.select().from(automationSteps)
+      .where(eq(automationSteps.automationId, automationId))
+      .orderBy(automationSteps.stepIndex);
+  }
+
+  async getAutomationStepById(id: string): Promise<AutomationStep | undefined> {
+    const [step] = await db.select().from(automationSteps).where(eq(automationSteps.id, id));
+    return step || undefined;
+  }
+
+  async createAutomationStep(insertStep: InsertAutomationStep): Promise<AutomationStep> {
+    const [step] = await db.insert(automationSteps).values(insertStep).returning();
+    return step;
+  }
+
+  async updateAutomationStep(id: string, step: Partial<AutomationStep>): Promise<AutomationStep> {
+    const [updated] = await db.update(automationSteps)
+      .set(step)
+      .where(eq(automationSteps.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteAutomationStep(id: string): Promise<void> {
+    await db.delete(automationSteps).where(eq(automationSteps.id, id));
   }
 
   async getPackagesByPhotographer(photographerId: string): Promise<Package[]> {

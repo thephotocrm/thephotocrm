@@ -715,6 +715,108 @@ ${photographer?.businessName || 'Your Photography Team'}`;
     }
   });
 
+  // Automation Steps
+  app.get("/api/automations/:id/steps", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      // First verify the automation belongs to this photographer
+      const automations = await storage.getAutomationsByPhotographer(req.user!.photographerId!);
+      const automation = automations.find(a => a.id === req.params.id);
+      
+      if (!automation) {
+        return res.status(404).json({ message: "Automation not found" });
+      }
+
+      const steps = await storage.getAutomationSteps(req.params.id);
+      res.json(steps);
+    } catch (error) {
+      console.error('Get automation steps error:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.post("/api/automations/:id/steps", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      // First verify the automation belongs to this photographer
+      const automations = await storage.getAutomationsByPhotographer(req.user!.photographerId!);
+      const automation = automations.find(a => a.id === req.params.id);
+      
+      if (!automation) {
+        return res.status(404).json({ message: "Automation not found" });
+      }
+
+      const stepData = insertAutomationStepSchema.parse({
+        ...req.body,
+        automationId: req.params.id
+      });
+      
+      const step = await storage.createAutomationStep(stepData);
+      res.status(201).json(step);
+    } catch (error: any) {
+      console.error('Create automation step error:', error);
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ message: "Invalid request data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.patch("/api/automation-steps/:id", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      // Get the step and verify ownership through automation
+      const step = await storage.getAutomationStepById(req.params.id);
+      if (!step) {
+        return res.status(404).json({ message: "Automation step not found" });
+      }
+
+      // Get the automation to verify ownership
+      const automations = await storage.getAutomationsByPhotographer(req.user!.photographerId!);
+      const automation = automations.find(a => a.id === step.automationId);
+      
+      if (!automation) {
+        return res.status(404).json({ message: "Automation step not found" });
+      }
+
+      const updateSchema = insertAutomationStepSchema.partial().omit({
+        automationId: true,
+        id: true
+      });
+      
+      const updateData = updateSchema.parse(req.body);
+      const updated = await storage.updateAutomationStep(req.params.id, updateData);
+      res.json(updated);
+    } catch (error: any) {
+      console.error('Update automation step error:', error);
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ message: "Invalid request data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.delete("/api/automation-steps/:id", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      // Get the step and verify ownership through automation
+      const step = await storage.getAutomationStepById(req.params.id);
+      if (!step) {
+        return res.status(404).json({ message: "Automation step not found" });
+      }
+
+      // Get the automation to verify ownership
+      const automations = await storage.getAutomationsByPhotographer(req.user!.photographerId!);
+      const automation = automations.find(a => a.id === step.automationId);
+      
+      if (!automation) {
+        return res.status(404).json({ message: "Automation step not found" });
+      }
+
+      await storage.deleteAutomationStep(req.params.id);
+      res.json({ message: "Automation step deleted successfully" });
+    } catch (error) {
+      console.error('Delete automation step error:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   // Stripe webhook
   app.post("/webhooks/stripe", async (req, res) => {
     const signature = req.headers['stripe-signature'] as string;

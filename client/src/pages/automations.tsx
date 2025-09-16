@@ -23,11 +23,157 @@ import { useToast } from "@/hooks/use-toast";
 const createAutomationFormSchema = insertAutomationSchema.omit({ photographerId: true });
 type CreateAutomationFormData = z.infer<typeof createAutomationFormSchema>;
 
+// AutomationStepManager Component
+function AutomationStepManager({ automation }: { automation: any }) {
+  const { toast } = useToast();
+  const [showAddStepForm, setShowAddStepForm] = useState(false);
+
+  const { data: steps = [], isLoading } = useQuery({
+    queryKey: ["/api/automations", automation.id, "steps"],
+    enabled: !!automation.id
+  });
+
+  // Create step mutation
+  const createStepMutation = useMutation({
+    mutationFn: async (stepData: any) => {
+      return apiRequest(`/api/automations/${automation.id}/steps`, {
+        method: "POST", 
+        body: JSON.stringify(stepData)
+      });
+    },
+    onSuccess: () => {
+      toast({ title: "Step added successfully" });
+      queryClient.invalidateQueries({ queryKey: ["/api/automations", automation.id, "steps"] });
+      setShowAddStepForm(false);
+    },
+    onError: () => {
+      toast({ title: "Failed to add step", variant: "destructive" });
+    }
+  });
+
+  // Delete step mutation  
+  const deleteStepMutation = useMutation({
+    mutationFn: async (stepId: string) => {
+      return apiRequest(`/api/automation-steps/${stepId}`, {
+        method: "DELETE"
+      });
+    },
+    onSuccess: () => {
+      toast({ title: "Step deleted successfully" });
+      queryClient.invalidateQueries({ queryKey: ["/api/automations", automation.id, "steps"] });
+    },
+    onError: () => {
+      toast({ title: "Failed to delete step", variant: "destructive" });
+    }
+  });
+
+  const handleAddStep = () => {
+    const stepData = {
+      stepIndex: steps.length,
+      delayMinutes: 60, // Default 1 hour
+      enabled: true
+    };
+    createStepMutation.mutate(stepData);
+  };
+
+  const handleDeleteStep = (stepId: string) => {
+    if (confirm('Are you sure you want to delete this step?')) {
+      deleteStepMutation.mutate(stepId);
+    }
+  };
+
+  return (
+    <div className="border rounded-lg p-4 space-y-3">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-3">
+          {automation.channel === 'EMAIL' ? 
+            <Mail className="w-4 h-4 text-blue-500" /> : 
+            <Smartphone className="w-4 h-4 text-green-500" />
+          }
+          <div>
+            <p className="font-medium">{automation.name}</p>
+            <p className="text-sm text-muted-foreground">
+              {automation.channel === 'EMAIL' ? 'Email' : 'SMS'} automation
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center space-x-2">
+          <Badge variant={automation.enabled ? "default" : "secondary"}>
+            {automation.enabled ? "Active" : "Inactive"}
+          </Badge>
+          <Switch 
+            checked={automation.enabled}
+            data-testid={`switch-automation-${automation.id}`}
+            onCheckedChange={() => {
+              // TODO: Implement toggle automation (Task #6)
+              console.log('Toggle automation', automation.id);
+            }}
+          />
+        </div>
+      </div>
+
+      {/* Automation Steps */}
+      <div className="ml-7 space-y-2">
+        {isLoading ? (
+          <p className="text-sm text-muted-foreground">Loading steps...</p>
+        ) : steps.length === 0 ? (
+          <p className="text-sm text-muted-foreground">No steps configured</p>
+        ) : (
+          <div className="space-y-1">
+            <p className="text-xs font-medium text-muted-foreground">STEPS:</p>
+            {steps.map((step: any, index: number) => (
+              <div key={step.id} className="flex items-center justify-between text-sm p-2 bg-muted rounded">
+                <div className="flex items-center space-x-2">
+                  <span className="text-xs bg-primary text-primary-foreground px-1.5 py-0.5 rounded">
+                    {index + 1}
+                  </span>
+                  <span>
+                    Wait {step.delayMinutes} min, then send {automation.channel.toLowerCase()}
+                  </span>
+                </div>
+                <div className="flex items-center space-x-1">
+                  <Badge variant={step.enabled ? "outline" : "secondary"} className="text-xs">
+                    {step.enabled ? "On" : "Off"}
+                  </Badge>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 w-6 p-0"
+                    disabled={deleteStepMutation.isPending}
+                    data-testid={`button-delete-step-${step.id}`}
+                    onClick={() => handleDeleteStep(step.id)}
+                  >
+                    ×
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+        
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="w-full text-xs"
+          disabled={createStepMutation.isPending}
+          data-testid={`button-add-step-${automation.id}`}
+          onClick={handleAddStep}
+        >
+          <Plus className="w-3 h-3 mr-1" />
+          {createStepMutation.isPending ? "Adding..." : "Add Step"}
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 export default function Automations() {
   const { user, loading } = useAuth();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [manageRulesDialogOpen, setManageRulesDialogOpen] = useState(false);
+  const [selectedStage, setSelectedStage] = useState<any>(null);
 
   // Form setup
   const form = useForm<CreateAutomationFormData>({
@@ -208,6 +354,71 @@ export default function Automations() {
           </div>
         </header>
 
+        {/* Manage Rules Modal */}
+        <Dialog open={manageRulesDialogOpen} onOpenChange={setManageRulesDialogOpen}>
+          <DialogContent className="sm:max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>
+                Manage Rules - {selectedStage?.name} Stage
+              </DialogTitle>
+              <DialogDescription>
+                Configure automation rules for clients in the {selectedStage?.name} stage
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="space-y-4">
+              {/* Existing automations for this stage */}
+              <div className="border rounded-lg p-4">
+                <h4 className="font-semibold mb-3">Current Rules</h4>
+                <div className="space-y-2">
+                  {(() => {
+                    const stageAutomations = (automations ?? []).filter((a: any) => a.stageId === selectedStage?.id);
+                    return automations === undefined ? (
+                      <p className="text-muted-foreground text-center py-4">
+                        Loading automation rules...
+                      </p>
+                    ) : stageAutomations.length === 0 ? (
+                      <p className="text-muted-foreground text-center py-4">
+                        No automation rules configured for this stage yet.
+                      </p>
+                    ) : (
+                      stageAutomations.map((automation: any) => (
+                        <AutomationStepManager key={automation.id} automation={automation} />
+                      ))
+                    );
+                  })()}
+                </div>
+              </div>
+
+              {/* Add new rule button */}
+              <Button 
+                variant="outline" 
+                className="w-full" 
+                data-testid="button-add-rule-modal"
+                onClick={() => {
+                  // Pre-fill the create automation form with this stage
+                  form.setValue('stageId', selectedStage?.id || '');
+                  setManageRulesDialogOpen(false);
+                  setCreateDialogOpen(true);
+                }}
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Add New Rule for {selectedStage?.name} Stage
+              </Button>
+
+              <div className="flex justify-end pt-4">
+                <Button
+                  variant="outline"
+                  onClick={() => setManageRulesDialogOpen(false)}
+                  data-testid="button-close-manage-rules"
+                >
+                  Close
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
         <div className="p-6 space-y-6">
           {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -255,7 +466,15 @@ export default function Automations() {
                       <div className="w-3 h-3 bg-primary rounded-full mr-3"></div>
                       {stage.name} Stage
                     </CardTitle>
-                    <Button variant="outline" size="sm" data-testid={`button-manage-${stage.name.toLowerCase().replace(/\s+/g, '-')}`}>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      data-testid={`button-manage-${stage.name.toLowerCase().replace(/\s+/g, '-')}`}
+                      onClick={() => {
+                        setSelectedStage(stage);
+                        setManageRulesDialogOpen(true);
+                      }}
+                    >
                       <Settings className="w-4 h-4 mr-2" />
                       Manage Rules
                     </Button>
