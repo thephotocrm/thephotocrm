@@ -94,39 +94,24 @@ async function processAutomationStep(client: any, step: any, automation: any): P
     }
   }
 
-  // Check if already sent successfully (only skip if status = 'sent')
-  const alreadySent = automation.channel === 'EMAIL' 
-    ? await db.select().from(emailLogs).where(and(
+  // Check if automation already attempted for this stage entry
+  // Since failed attempts have NULL sentAt, we'll use a different approach:
+  // Check if ANY log exists for this client + automation step, and compare with stage entry time
+  const existingLogs = automation.channel === 'EMAIL' 
+    ? await db.select({ status: emailLogs.status, sentAt: emailLogs.sentAt }).from(emailLogs).where(and(
         eq(emailLogs.clientId, client.id),
-        eq(emailLogs.automationStepId, step.id),
-        eq(emailLogs.status, 'sent')
+        eq(emailLogs.automationStepId, step.id)
       ))
-    : await db.select().from(smsLogs).where(and(
+    : await db.select({ status: smsLogs.status, sentAt: smsLogs.sentAt }).from(smsLogs).where(and(
         eq(smsLogs.clientId, client.id),
-        eq(smsLogs.automationStepId, step.id),
-        eq(smsLogs.status, 'sent')
+        eq(smsLogs.automationStepId, step.id)
       ));
 
-  if (alreadySent.length > 0) {
-    console.log(`✅ Already sent successfully to ${client.firstName} ${client.lastName}, skipping`);
+  // For now, if ANY log exists for this automation step, skip it (one attempt per stage entry)
+  if (existingLogs.length > 0) {
+    const attempt = existingLogs[0];
+    console.log(`🚫 Already attempted for ${client.firstName} ${client.lastName} (${attempt.status}), skipping`);
     return;
-  }
-
-  // Check for previous failed attempts (allow retry but log it)
-  const failedAttempts = automation.channel === 'EMAIL' 
-    ? await db.select().from(emailLogs).where(and(
-        eq(emailLogs.clientId, client.id),
-        eq(emailLogs.automationStepId, step.id),
-        eq(emailLogs.status, 'failed')
-      ))
-    : await db.select().from(smsLogs).where(and(
-        eq(smsLogs.clientId, client.id),
-        eq(smsLogs.automationStepId, step.id),
-        eq(smsLogs.status, 'failed')
-      ));
-
-  if (failedAttempts.length > 0) {
-    console.log(`🔄 Retrying failed email for ${client.firstName} ${client.lastName} (${failedAttempts.length} previous failures)`);
   }
 
   // Check consent
