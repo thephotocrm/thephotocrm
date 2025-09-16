@@ -22,7 +22,7 @@ import {
   Link as LinkIcon,
   ExternalLink
 } from "lucide-react";
-import { type ClientWithStage, type Estimate, type Message } from "@shared/schema";
+import { type ClientWithStage, type Estimate, type Message, type TimelineEvent } from "@shared/schema";
 import { useState } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -56,6 +56,11 @@ export default function ClientDetail() {
 
   const { data: estimates } = useQuery<Estimate[]>({
     queryKey: ["/api/estimates", "client", clientId],
+    enabled: !!user && !!clientId
+  });
+
+  const { data: clientHistory = [], refetch: refetchHistory } = useQuery<TimelineEvent[]>({
+    queryKey: ["/api/clients", clientId, "history"],
     enabled: !!user && !!clientId
   });
 
@@ -99,7 +104,9 @@ export default function ClientDetail() {
       setNewMessage("");
       setShowMessageForm(false);
       refetchMessages();
+      refetchHistory();
       queryClient.invalidateQueries({ queryKey: ["/api/clients", clientId, "messages"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/clients", clientId, "history"] });
       toast({
         title: "Message sent",
         description: "Your message has been sent to the client."
@@ -333,30 +340,51 @@ export default function ClientDetail() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {estimates && estimates.length > 0 ? (
-                  estimates.map((estimate: any) => (
-                    <div key={estimate.id} className="flex items-center justify-between p-4 border rounded-lg" data-testid={`history-estimate-${estimate.id}`}>
+                {clientHistory && clientHistory.length > 0 ? (
+                  clientHistory.map((event: TimelineEvent) => (
+                    <div key={event.id} className="flex items-center justify-between p-4 border rounded-lg" data-testid={`history-${event.type}-${event.id}`}>
                       <div className="flex items-center space-x-3">
-                        <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                          <FileText className="w-4 h-4 text-blue-600" />
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                          event.type === 'message' ? 'bg-green-100' : 
+                          event.type === 'email' ? 'bg-blue-100' :
+                          event.type === 'sms' ? 'bg-purple-100' :
+                          event.type === 'proposal' ? 'bg-orange-100' :
+                          event.type === 'payment' ? 'bg-emerald-100' :
+                          'bg-gray-100'
+                        }`}>
+                          {event.type === 'message' ? <MessageSquare className={`w-4 h-4 ${event.type === 'message' ? 'text-green-600' : 'text-gray-600'}`} /> :
+                           event.type === 'email' ? <Mail className="w-4 h-4 text-blue-600" /> :
+                           event.type === 'sms' ? <Phone className="w-4 h-4 text-purple-600" /> :
+                           event.type === 'proposal' ? <FileText className="w-4 h-4 text-orange-600" /> :
+                           event.type === 'payment' ? <DollarSign className="w-4 h-4 text-emerald-600" /> :
+                           <FileText className="w-4 h-4 text-gray-600" />}
                         </div>
                         <div>
-                          <p className="font-medium">{estimate.title}</p>
+                          <p className="font-medium">{event.title}</p>
                           <p className="text-sm text-muted-foreground">
-                            Created {formatDate(estimate.createdAt)}
+                            {event.description}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {event.createdAt ? formatDate(event.createdAt) : 'Unknown'}
                           </p>
                         </div>
                       </div>
                       <div className="flex items-center space-x-3">
-                        <Badge variant={estimate.status === 'SENT' ? 'secondary' : estimate.status === 'SIGNED' ? 'default' : 'outline'}>
-                          {estimate.status}
-                        </Badge>
-                        <span className="font-medium">
-                          {formatCurrency(estimate.totalCents)}
-                        </span>
-                        <Button variant="ghost" size="sm" data-testid={`button-view-estimate-${estimate.id}`}>
-                          <ExternalLink className="w-4 h-4" />
-                        </Button>
+                        {'status' in event && (
+                          <Badge variant={event.status === 'SENT' ? 'secondary' : event.status === 'SIGNED' ? 'default' : 'outline'}>
+                            {event.status}
+                          </Badge>
+                        )}
+                        {'totalCents' in event && (
+                          <span className="font-medium">
+                            ${((event.totalCents || 0) / 100).toFixed(2)}
+                          </span>
+                        )}
+                        {'amountCents' in event && (
+                          <span className="font-medium">
+                            ${((event.amountCents || 0) / 100).toFixed(2)}
+                          </span>
+                        )}
                       </div>
                     </div>
                   ))
@@ -365,7 +393,7 @@ export default function ClientDetail() {
                     <FileText className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
                     <p className="text-muted-foreground">No activity yet</p>
                     <p className="text-sm text-muted-foreground mt-1">
-                      Proposals, messages, and other interactions will appear here
+                      Messages, proposals, and other interactions will appear here
                     </p>
                   </div>
                 )}

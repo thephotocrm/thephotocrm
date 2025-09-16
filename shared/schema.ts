@@ -650,4 +650,13 @@ export type TimelineEvent =
       method: string;
       completedAt?: Date;
       createdAt: Date;
+    }
+  | {
+      type: 'message';
+      id: string;
+      title: string;
+      description: string;
+      channel: string;
+      sentByPhotographer: boolean;
+      createdAt: Date;
     };

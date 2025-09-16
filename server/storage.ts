@@ -276,7 +276,7 @@ export class DatabaseStorage implements IStorage {
 
   async getClientHistory(clientId: string): Promise<TimelineEvent[]> {
     // Parallelize all queries for better performance
-    const [activityLogs, emailLogEntries, smsLogEntries, clientEstimates, paymentHistory] = await Promise.all([
+    const [activityLogs, emailLogEntries, smsLogEntries, clientEstimates, paymentHistory, messageHistory] = await Promise.all([
       // Get activity log entries
       db.select().from(clientActivityLog)
         .where(eq(clientActivityLog.clientId, clientId)),
@@ -305,7 +305,11 @@ export class DatabaseStorage implements IStorage {
       })
         .from(estimatePayments)
         .innerJoin(estimates, eq(estimatePayments.estimateId, estimates.id))
-        .where(eq(estimates.clientId, clientId))
+        .where(eq(estimates.clientId, clientId)),
+      
+      // Get messages for this client
+      db.select().from(messages)
+        .where(eq(messages.clientId, clientId))
     ]);
 
     // Combine all history into unified timeline with proper typing
@@ -366,6 +370,15 @@ export class DatabaseStorage implements IStorage {
         method: payment.method,
         completedAt: payment.completedAt,
         createdAt: payment.createdAt
+      })),
+      ...messageHistory.map(message => ({
+        type: 'message' as const,
+        id: message.id,
+        title: message.sentByPhotographer ? 'Message sent to client' : 'Message received from client',
+        description: message.content,
+        channel: message.channel,
+        sentByPhotographer: message.sentByPhotographer,
+        createdAt: message.createdAt || new Date()
       }))
     ];
 
