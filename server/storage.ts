@@ -28,7 +28,7 @@ export interface IStorage {
   
   // Clients
   getClientsByPhotographer(photographerId: string): Promise<ClientWithStage[]>;
-  getClient(id: string): Promise<Client | undefined>;
+  getClient(id: string): Promise<ClientWithStage | undefined>;
   createClient(client: InsertClient): Promise<Client>;
   updateClient(id: string, client: Partial<Client>): Promise<Client>;
   getClientHistory(clientId: string): Promise<TimelineEvent[]>;
@@ -150,9 +150,43 @@ export class DatabaseStorage implements IStorage {
     }));
   }
 
-  async getClient(id: string): Promise<Client | undefined> {
-    const [client] = await db.select().from(clients).where(eq(clients.id, id));
-    return client || undefined;
+  async getClient(id: string): Promise<ClientWithStage | undefined> {
+    const [row] = await db.select({
+      id: clients.id,
+      firstName: clients.firstName,
+      lastName: clients.lastName,
+      email: clients.email,
+      phone: clients.phone,
+      weddingDate: clients.weddingDate,
+      notes: clients.notes,
+      smsOptIn: clients.smsOptIn,
+      emailOptIn: clients.emailOptIn,
+      createdAt: clients.createdAt,
+      stageId: clients.stageId,
+      stageEnteredAt: clients.stageEnteredAt,
+      photographerId: clients.photographerId,
+      stageData: {
+        id: stages.id,
+        name: stages.name,
+        color: stages.color,
+        isDefault: stages.isDefault
+      }
+    })
+      .from(clients)
+      .leftJoin(stages, eq(clients.stageId, stages.id))
+      .where(eq(clients.id, id));
+      
+    if (!row) return undefined;
+    
+    return {
+      ...row,
+      stage: row.stageData?.id ? {
+        id: row.stageData.id,
+        name: row.stageData.name,
+        color: row.stageData.color || "#3b82f6", // Default blue color
+        isDefault: row.stageData.isDefault
+      } : null
+    };
   }
 
   async createClient(insertClient: InsertClient): Promise<Client> {
