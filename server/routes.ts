@@ -6,6 +6,7 @@ import { storage } from "./storage";
 import { authenticateToken, requirePhotographer, requireRole } from "./middleware/auth";
 import { hashPassword, authenticateUser, generateToken } from "./services/auth";
 import { sendEmail } from "./services/email";
+import { sendSms } from "./services/sms";
 import { createPaymentIntent, createCheckoutSession, handleWebhook } from "./services/stripe";
 import { insertUserSchema, insertPhotographerSchema, insertClientSchema, insertStageSchema, 
          insertTemplateSchema, insertAutomationSchema, insertPackageSchema, insertEstimateSchema,
@@ -336,40 +337,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
         expiresAt
       });
 
-      // Send email with login link
+      // Send email and SMS with login link
       const photographer = await storage.getPhotographer(client.photographerId);
       const loginUrl = `${process.env.FRONTEND_URL || 'http://localhost:5000'}/client-portal?token=${token}`;
       
-      console.log('=== ATTEMPTING TO SEND EMAIL ===');
+      console.log('=== ATTEMPTING TO SEND EMAIL & SMS ===');
       console.log('Login URL generated:', loginUrl);
       console.log('Client email:', client.email);
+      console.log('Client phone:', client.phone);
       console.log('NODE_ENV:', process.env.NODE_ENV);
       console.log('SENDGRID_API_KEY exists:', !!process.env.SENDGRID_API_KEY);
+      console.log('TWILIO credentials exist:', !!process.env.TWILIO_ACCOUNT_SID && !!process.env.TWILIO_AUTH_TOKEN);
       
-      // Development fallback - skip email sending in development or when API key is missing
-      // TEMP: Force development mode to bypass email issues
-      if (true || process.env.NODE_ENV === 'development' || !process.env.SENDGRID_API_KEY) {
-        console.log('=== DEVELOPMENT MODE: SKIPPING EMAIL ===');
-        const response: any = { 
-          message: "Login link generated successfully (development mode - no email sent)" 
-        };
-        
-        // Include login URL in development for debugging
-        if (process.env.NODE_ENV !== 'production') {
-          response.loginUrl = loginUrl;
-          response.debugInfo = {
-            clientEmail: client.email,
-            tokenGenerated: true,
-            validFor: '7 days'
-          };
-        }
-        
-        return res.json(response);
-      }
+      const emailText = `Hi ${client.firstName},
+
+You can now access your client portal to view your project details, proposals, and communicate with us.
+
+Access your portal: ${loginUrl}
+
+This link is valid for 7 days.
+
+Best regards,
+${photographer?.businessName || 'Your Photography Team'}`;
+
+      const smsText = `Hi ${client.firstName}! Access your client portal: ${loginUrl} (Valid for 7 days) - ${photographer?.businessName || 'Your Photographer'}`;
       
-      // Production email sending with proper error handling
-      try {
-        const emailSent = await sendEmail({
+      let emailSent = false;
+      let smsSent = false;
+      let emailError = '';
+      let smsError = '';
+      
+      // Try to send both email and SMS
+      const results = await Promise.allSettled([
+        // Send email
+        client.email ? sendEmail({
           to: client.email,
           from: photographer?.emailFromAddr || 'noreply@lazyphotog.com',
           subject: `Access Your Client Portal - ${photographer?.businessName || 'Your Photographer'}`,
@@ -397,59 +398,84 @@ export async function registerRoutes(app: Express): Promise<Server> {
               </p>
             </div>
           `,
-          text: `
-Hi ${client.firstName},
-
-You can now access your client portal at: ${loginUrl}
-
-This link is valid for 7 days.
-
-Best regards,
-${photographer?.businessName || 'Your Photography Team'}
-          `
-        });
-
-        if (!emailSent) {
-          console.error('=== EMAIL SEND FAILED ===');
-          // In development, downgrade to warning instead of error
-          if (process.env.NODE_ENV === 'development') {
-            return res.status(202).json({ 
-              message: "Login link generated but email failed to send (development)",
-              loginUrl: loginUrl,
-              warning: "Email service not configured - use the login URL directly"
-            });
-          }
-          return res.status(500).json({ message: "Failed to send email" });
+          text: emailText
+        }) : Promise.resolve(false),
+        
+        // Send SMS
+        client.phone ? sendSms({
+          to: client.phone,
+          body: smsText
+        }) : Promise.resolve({ success: false, error: 'No phone number' })
+      ]);
+      
+      // Process email result
+      if (results[0].status === 'fulfilled') {
+        emailSent = results[0].value as boolean;
+        if (!emailSent && client.email) {
+          emailError = 'Email service unavailable';
         }
-
-        console.log('=== EMAIL SENT SUCCESSFULLY ===');
-        res.json({ message: "Login link sent successfully" });
-        
-      } catch (emailError: any) {
-        console.error('=== EMAIL SEND ERROR ===');
-        console.error('Email error:', emailError);
-        console.error('Email error details:', { 
-          name: emailError?.name, 
-          message: emailError?.message, 
-          code: emailError?.code,
-          stack: emailError?.stack 
-        });
-        
-        // In development, provide fallback instead of hard error
-        if (process.env.NODE_ENV === 'development') {
-          return res.status(202).json({ 
-            message: "Login link generated but email failed to send (development)",
-            loginUrl: loginUrl,
-            error: emailError?.message || 'Email service error',
-            warning: "Use the login URL directly"
-          });
-        }
-        
-        return res.status(500).json({ 
-          message: "Failed to send login email",
-          error: process.env.NODE_ENV === 'development' ? emailError?.message : 'Email service unavailable'
-        });
+      } else {
+        emailError = results[0].reason?.message || 'Email failed';
+        console.error('Email promise rejected:', results[0].reason);
       }
+      
+      // Process SMS result  
+      if (results[1].status === 'fulfilled') {
+        const smsResult = results[1].value as { success: boolean; error?: string };
+        smsSent = smsResult.success;
+        if (!smsSent && client.phone) {
+          smsError = smsResult.error || 'SMS service unavailable';
+        }
+      } else {
+        smsError = results[1].reason?.message || 'SMS failed';
+        console.error('SMS promise rejected:', results[1].reason);
+      }
+      
+      console.log('=== NOTIFICATION RESULTS ===');
+      console.log('Email sent:', emailSent, emailError ? `(Error: ${emailError})` : '');
+      console.log('SMS sent:', smsSent, smsError ? `(Error: ${smsError})` : '');
+      
+      // Determine response message
+      let message = '';
+      let sentMethods: string[] = [];
+      let failedMethods: string[] = [];
+      
+      if (emailSent) sentMethods.push('email');
+      if (smsSent) sentMethods.push('SMS');
+      
+      if (!emailSent && client.email) failedMethods.push(`email (${emailError})`);
+      if (!smsSent && client.phone) failedMethods.push(`SMS (${smsError})`);
+      
+      if (sentMethods.length > 0) {
+        message = `Login link sent successfully via ${sentMethods.join(' and ')}`;
+        if (failedMethods.length > 0) {
+          message += `. Note: ${failedMethods.join(' and ')} failed`;
+        }
+      } else {
+        message = `Failed to send login link`;
+        if (failedMethods.length > 0) {
+          message += `: ${failedMethods.join(' and ')} failed`;
+        }
+      }
+      
+      // In development or if no methods worked, provide the login URL directly
+      const response: any = { message };
+      
+      if (process.env.NODE_ENV === 'development' || (!emailSent && !smsSent)) {
+        response.loginUrl = loginUrl;
+        response.debugInfo = {
+          clientEmail: client.email || 'not provided',
+          clientPhone: client.phone || 'not provided',
+          emailSent,
+          smsSent,
+          emailError: emailError || 'none',
+          smsError: smsError || 'none',
+          tokenGenerated: true,
+          validFor: '7 days'
+        };
+      }
+      
+      res.json(response);
     } catch (error: any) {
       console.error('Send login link error:', error);
       console.error('Error details:', { 
