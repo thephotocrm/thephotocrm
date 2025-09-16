@@ -298,6 +298,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const estimate = await storage.createEstimate(estimateData);
       res.status(201).json(estimate);
     } catch (error) {
+      console.error("Create estimate error:", error);
+      console.error("Request body:", req.body);
       res.status(500).json({ message: "Internal server error" });
     }
   });
