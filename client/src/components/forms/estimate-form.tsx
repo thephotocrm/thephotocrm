@@ -47,6 +47,68 @@ const estimateFormSchema = z.object({
 type EstimateFormData = z.infer<typeof estimateFormSchema>;
 type EstimateItem = z.infer<typeof estimateItemSchema>;
 
+// Separate component to handle unit price input without hooks violations
+interface UnitPriceInputProps {
+  value: number;
+  onChange: (value: number) => void;
+  onBlur: () => void;
+  index: number;
+}
+
+function UnitPriceInput({ value, onChange, onBlur, index }: UnitPriceInputProps) {
+  const formatPrice = (cents: number) => {
+    return (cents / 100).toFixed(2);
+  };
+
+  const parsePrice = (value: string) => {
+    const parsed = parseFloat(value || "0");
+    return isFinite(parsed) ? Math.round(parsed * 100) : 0;
+  };
+
+  const [displayValue, setDisplayValue] = useState(formatPrice(value));
+
+  // Sync display value when prop changes (e.g., from package import)
+  useEffect(() => {
+    setDisplayValue(formatPrice(value));
+  }, [value]);
+
+  return (
+    <FormItem>
+      <FormLabel>Unit Price</FormLabel>
+      <FormControl>
+        <Input 
+          type="text"
+          placeholder="0.00"
+          value={displayValue}
+          onChange={(e) => {
+            const inputValue = e.target.value;
+            // Allow typing decimal numbers, empty string, or just a decimal point
+            if (inputValue === '' || /^\d*\.?\d*$/.test(inputValue)) {
+              setDisplayValue(inputValue);
+            }
+          }}
+          onBlur={(e) => {
+            const inputValue = e.target.value;
+            // Handle edge cases: empty string or just '.' should be treated as 0
+            const cleanValue = inputValue === '' || inputValue === '.' ? '0' : inputValue;
+            const parsed = parsePrice(cleanValue);
+            onChange(parsed);
+            setDisplayValue(formatPrice(parsed));
+            onBlur();
+          }}
+          onFocus={() => {
+            // Remove formatting when focused for easier editing
+            const rawValue = value ? (value / 100).toString() : '0';
+            setDisplayValue(rawValue.endsWith('.00') ? rawValue.slice(0, -3) : rawValue);
+          }}
+          data-testid={`input-item-unit-price-${index}`}
+        />
+      </FormControl>
+      <FormMessage />
+    </FormItem>
+  );
+}
+
 interface EstimateFormProps {
   initialData?: Partial<EstimateFormData>;
   clients: Array<{ id: string; firstName: string; lastName: string }>;
@@ -97,7 +159,8 @@ export default function EstimateForm({
 
   // Calculate totals
   const subtotalCents = watchedItems.reduce((sum, item) => sum + (item.lineTotalCents || 0), 0);
-  const totalCents = subtotalCents - discountCents + taxCents;
+  const autoTaxCents = Math.round(subtotalCents * 0.0825); // 8.25% automatic tax
+  const totalCents = subtotalCents - discountCents + autoTaxCents;
   const depositPercent = form.watch("depositPercent");
   const depositCents = depositPercent ? Math.round(totalCents * (depositPercent / 100)) : 0;
 
@@ -110,6 +173,14 @@ export default function EstimateForm({
       }
     });
   }, [watchedItems, form]);
+
+  // Auto-update tax when subtotal changes
+  useEffect(() => {
+    const newTaxCents = Math.round(subtotalCents * 0.0825);
+    if (newTaxCents !== taxCents) {
+      form.setValue("taxCents", newTaxCents);
+    }
+  }, [subtotalCents, taxCents, form]);
 
   const formatPrice = (cents: number) => {
     return (cents / 100).toFixed(2);
@@ -385,20 +456,12 @@ export default function EstimateForm({
                     control={form.control}
                     name={`items.${index}.unitCents`}
                     render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Unit Price</FormLabel>
-                        <FormControl>
-                          <Input 
-                            type="number"
-                            step="0.01"
-                            min="0"
-                            value={formatPrice(field.value || 0)}
-                            onChange={(e) => field.onChange(parsePrice(e.target.value))}
-                            data-testid={`input-item-unit-price-${index}`}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
+                      <UnitPriceInput
+                        value={field.value || 0}
+                        onChange={field.onChange}
+                        onBlur={field.onBlur}
+                        index={index}
+                      />
                     )}
                   />
                 </div>
@@ -467,14 +530,13 @@ export default function EstimateForm({
                 name="taxCents"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Tax</FormLabel>
+                    <FormLabel>Tax (8.25% automatic)</FormLabel>
                     <FormControl>
                       <Input 
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        value={formatPrice(field.value || 0)}
-                        onChange={(e) => field.onChange(parsePrice(e.target.value))}
+                        type="text"
+                        value={formatPrice(autoTaxCents)}
+                        readOnly
+                        className="bg-muted"
                         data-testid="input-tax"
                       />
                     </FormControl>
