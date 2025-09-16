@@ -9,8 +9,8 @@ import { sendEmail } from "./services/email";
 import { sendSms } from "./services/sms";
 import { createPaymentIntent, createCheckoutSession, handleWebhook } from "./services/stripe";
 import { insertUserSchema, insertPhotographerSchema, insertClientSchema, insertStageSchema, 
-         insertTemplateSchema, insertAutomationSchema, insertPackageSchema, insertEstimateSchema,
-         insertMessageSchema } from "@shared/schema";
+         insertTemplateSchema, insertAutomationSchema, insertAutomationStepSchema, insertPackageSchema, 
+         insertEstimateSchema, insertMessageSchema } from "@shared/schema";
 import { startCronJobs } from "./jobs/cron";
 
 if (!process.env.STRIPE_SECRET_KEY) {
