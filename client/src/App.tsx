@@ -1,0 +1,60 @@
+import { Switch, Route } from "wouter";
+import { queryClient } from "./lib/queryClient";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { Toaster } from "@/components/ui/toaster";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { AuthProvider } from "./hooks/use-auth";
+import Login from "@/pages/login";
+import Register from "@/pages/register";
+import Dashboard from "@/pages/dashboard";
+import Clients from "@/pages/clients";
+import Estimates from "@/pages/estimates";
+import Templates from "@/pages/templates";
+import Automations from "@/pages/automations";
+import Packages from "@/pages/packages";
+import Questionnaires from "@/pages/questionnaires";
+import Scheduling from "@/pages/scheduling";
+import Reports from "@/pages/reports";
+import Settings from "@/pages/settings";
+import Checkout from "@/pages/checkout";
+import ClientPortal from "@/pages/client-portal";
+import PublicEstimate from "@/pages/public-estimate";
+import NotFound from "@/pages/not-found";
+
+function Router() {
+  return (
+    <Switch>
+      <Route path="/login" component={Login} />
+      <Route path="/register" component={Register} />
+      <Route path="/" component={Dashboard} />
+      <Route path="/clients" component={Clients} />
+      <Route path="/estimates" component={Estimates} />
+      <Route path="/templates" component={Templates} />
+      <Route path="/automations" component={Automations} />
+      <Route path="/packages" component={Packages} />
+      <Route path="/questionnaires" component={Questionnaires} />
+      <Route path="/scheduling" component={Scheduling} />
+      <Route path="/reports" component={Reports} />
+      <Route path="/settings" component={Settings} />
+      <Route path="/checkout" component={Checkout} />
+      <Route path="/client-portal" component={ClientPortal} />
+      <Route path="/estimates/:token" component={PublicEstimate} />
+      <Route component={NotFound} />
+    </Switch>
+  );
+}
+
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Router />
+        </TooltipProvider>
+      </AuthProvider>
+    </QueryClientProvider>
+  );
+}
+
+export default App;
