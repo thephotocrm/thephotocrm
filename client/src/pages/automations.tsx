@@ -28,7 +28,7 @@ function AutomationStepManager({ automation }: { automation: any }) {
   const { toast } = useToast();
   const [showAddStepForm, setShowAddStepForm] = useState(false);
 
-  const { data: steps = [], isLoading } = useQuery({
+  const { data: steps = [], isLoading } = useQuery<any[]>({
     queryKey: ["/api/automations", automation.id, "steps"],
     enabled: !!automation.id
   });
@@ -36,10 +36,7 @@ function AutomationStepManager({ automation }: { automation: any }) {
   // Create step mutation
   const createStepMutation = useMutation({
     mutationFn: async (stepData: any) => {
-      return apiRequest(`/api/automations/${automation.id}/steps`, {
-        method: "POST", 
-        body: JSON.stringify(stepData)
-      });
+      return apiRequest("POST", `/api/automations/${automation.id}/steps`, stepData);
     },
     onSuccess: () => {
       toast({ title: "Step added successfully" });
@@ -54,9 +51,7 @@ function AutomationStepManager({ automation }: { automation: any }) {
   // Delete step mutation  
   const deleteStepMutation = useMutation({
     mutationFn: async (stepId: string) => {
-      return apiRequest(`/api/automation-steps/${stepId}`, {
-        method: "DELETE"
-      });
+      return apiRequest("DELETE", `/api/automation-steps/${stepId}`);
     },
     onSuccess: () => {
       toast({ title: "Step deleted successfully" });
@@ -85,10 +80,7 @@ function AutomationStepManager({ automation }: { automation: any }) {
   // Toggle automation mutation
   const toggleAutomationMutation = useMutation({
     mutationFn: async (enabled: boolean) => {
-      return apiRequest(`/api/automations/${automation.id}`, {
-        method: "PATCH",
-        body: JSON.stringify({ enabled })
-      });
+      return apiRequest("PATCH", `/api/automations/${automation.id}`, { enabled });
     },
     onSuccess: () => {
       toast({ title: "Automation updated successfully" });
@@ -102,10 +94,7 @@ function AutomationStepManager({ automation }: { automation: any }) {
   // Toggle step mutation
   const toggleStepMutation = useMutation({
     mutationFn: async ({ stepId, enabled }: { stepId: string; enabled: boolean }) => {
-      return apiRequest(`/api/automation-steps/${stepId}`, {
-        method: "PATCH",
-        body: JSON.stringify({ enabled })
-      });
+      return apiRequest("PATCH", `/api/automation-steps/${stepId}`, { enabled });
     },
     onSuccess: () => {
       toast({ title: "Step updated successfully" });
@@ -175,7 +164,6 @@ function AutomationStepManager({ automation }: { automation: any }) {
                   <Switch
                     checked={step.enabled}
                     disabled={toggleStepMutation.isPending}
-                    size="sm"
                     data-testid={`switch-step-${step.id}`}
                     onCheckedChange={(enabled) => handleToggleStep(step.id, enabled)}
                   />
@@ -233,10 +221,7 @@ export default function Automations() {
   // Create automation mutation
   const createAutomationMutation = useMutation({
     mutationFn: async (data: CreateAutomationFormData) => {
-      return apiRequest("/api/automations", {
-        method: "POST",
-        body: JSON.stringify(data)
-      });
+      return apiRequest("POST", "/api/automations", data);
     },
     onSuccess: () => {
       toast({ title: "Automation created successfully" });
@@ -268,12 +253,12 @@ export default function Automations() {
     );
   }
 
-  const { data: stages } = useQuery({
+  const { data: stages = [] } = useQuery<any[]>({
     queryKey: ["/api/stages"],
     enabled: !!user
   });
 
-  const { data: automations } = useQuery({
+  const { data: automations = [] } = useQuery<any[]>({
     queryKey: ["/api/automations"],
     enabled: !!user
   });
@@ -332,7 +317,7 @@ export default function Automations() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Trigger Stage (Optional)</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value}>
+                          <Select onValueChange={field.onChange} value={field.value || ""}>
                             <FormControl>
                               <SelectTrigger data-testid="select-stage">
                                 <SelectValue placeholder="Select a stage or leave empty for global" />
