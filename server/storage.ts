@@ -168,7 +168,6 @@ export class DatabaseStorage implements IStorage {
       stageData: {
         id: stages.id,
         name: stages.name,
-        color: stages.color,
         isDefault: stages.isDefault
       }
     })
@@ -183,7 +182,7 @@ export class DatabaseStorage implements IStorage {
       stage: row.stageData?.id ? {
         id: row.stageData.id,
         name: row.stageData.name,
-        color: row.stageData.color || "#3b82f6", // Default blue color
+        color: "#3b82f6", // Default blue color since stages table doesn't have color
         isDefault: row.stageData.isDefault
       } : null
     };
