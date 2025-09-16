@@ -30,23 +30,10 @@ import {
 } from "lucide-react";
 import ClientForm from "../forms/client-form";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import type { Client, Stage } from "@shared/schema";
 
-interface Client {
-  id: string;
-  firstName: string;
-  lastName: string;
-  email?: string;
-  phone?: string;
-  weddingDate?: string;
-  notes?: string;
-  stage?: {
-    id: string;
-    name: string;
-  };
-  stageEnteredAt?: string;
-  createdAt: string;
-  emailOptIn: boolean;
-  smsOptIn: boolean;
+interface ClientWithStage extends Client {
+  stage?: Stage;
 }
 
 interface ClientModalProps {
@@ -60,7 +47,7 @@ export default function ClientModal({ clientId, isOpen, onClose }: ClientModalPr
   const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
 
-  const { data: client, isLoading } = useQuery({
+  const { data: client, isLoading } = useQuery<ClientWithStage>({
     queryKey: [`/api/clients/${clientId}`],
     enabled: !!clientId && isOpen
   });

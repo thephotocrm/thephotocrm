@@ -21,49 +21,20 @@ import {
   Mail,
   Phone
 } from "lucide-react";
+import type { Estimate, Client, Photographer } from "@shared/schema";
 
-interface EstimateItem {
-  id: string;
-  name: string;
-  description?: string;
-  qty: number;
-  unitCents: number;
-  lineTotalCents: number;
-  orderIndex: number;
-}
-
-interface Estimate {
-  id: string;
-  title: string;
-  notes?: string;
-  currency: string;
-  subtotalCents: number;
-  discountCents: number;
-  taxCents: number;
-  totalCents: number;
-  depositPercent?: number;
-  depositCents?: number;
-  status: string;
-  validUntil?: string;
-  createdAt: string;
-  sentAt?: string;
-  signedAt?: string;
-  signedByName?: string;
-  signedByEmail?: string;
-  items: EstimateItem[];
-  client: {
-    firstName: string;
-    lastName: string;
-    email?: string;
-    phone?: string;
-    weddingDate?: string;
-  };
-  photographer: {
-    businessName: string;
-    logoUrl?: string;
-    emailFromAddr?: string;
-    phone?: string;
-  };
+interface EstimateWithRelations extends Estimate {
+  items: Array<{
+    id: string;
+    name: string;
+    description?: string;
+    qty: number;
+    unitCents: number;
+    lineTotalCents: number;
+    orderIndex: number;
+  }>;
+  client: Client;
+  photographer: Photographer;
 }
 
 export default function PublicEstimate() {
@@ -73,7 +44,7 @@ export default function PublicEstimate() {
   const [signedByEmail, setSignedByEmail] = useState("");
   const [isSignatureValid, setIsSignatureValid] = useState(false);
 
-  const { data: estimate, isLoading } = useQuery({
+  const { data: estimate, isLoading } = useQuery<EstimateWithRelations>({
     queryKey: [`/public/estimates/${params?.token}`],
     enabled: !!params?.token
   });
@@ -279,24 +250,24 @@ export default function PublicEstimate() {
                 <div className="space-y-2">
                   <div className="flex justify-between">
                     <span>Subtotal</span>
-                    <span>{formatPrice(estimate.subtotalCents)}</span>
+                    <span>{formatPrice(estimate.subtotalCents || 0)}</span>
                   </div>
-                  {estimate.discountCents > 0 && (
+                  {(estimate.discountCents || 0) > 0 && (
                     <div className="flex justify-between text-green-600">
                       <span>Discount</span>
-                      <span>-{formatPrice(estimate.discountCents)}</span>
+                      <span>-{formatPrice(estimate.discountCents || 0)}</span>
                     </div>
                   )}
-                  {estimate.taxCents > 0 && (
+                  {(estimate.taxCents || 0) > 0 && (
                     <div className="flex justify-between">
                       <span>Tax</span>
-                      <span>{formatPrice(estimate.taxCents)}</span>
+                      <span>{formatPrice(estimate.taxCents || 0)}</span>
                     </div>
                   )}
                   <Separator className="my-2" />
                   <div className="flex justify-between text-lg font-semibold">
                     <span>Total</span>
-                    <span>{formatPrice(estimate.totalCents)}</span>
+                    <span>{formatPrice(estimate.totalCents || 0)}</span>
                   </div>
                   {estimate.depositCents && (
                     <div className="flex justify-between text-sm text-muted-foreground">
