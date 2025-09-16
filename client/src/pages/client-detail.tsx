@@ -22,7 +22,10 @@ import {
   Link as LinkIcon,
   ExternalLink
 } from "lucide-react";
-import { type ClientWithStage, type Estimate } from "@shared/schema";
+import { type ClientWithStage, type Estimate, type Message } from "@shared/schema";
+import { useState } from "react";
+import { Textarea } from "@/components/ui/textarea";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 export default function ClientDetail() {
   const { user, loading } = useAuth();
@@ -56,6 +59,14 @@ export default function ClientDetail() {
     enabled: !!user && !!clientId
   });
 
+  const { data: messages = [], refetch: refetchMessages } = useQuery<Message[]>({
+    queryKey: ["/api/clients", clientId, "messages"],
+    enabled: !!user && !!clientId
+  });
+
+  const [newMessage, setNewMessage] = useState("");
+  const [showMessageForm, setShowMessageForm] = useState(false);
+
   const sendLoginLinkMutation = useMutation({
     mutationFn: async () => {
       await apiRequest("POST", `/api/clients/${clientId}/send-login-link`);
@@ -70,6 +81,34 @@ export default function ClientDetail() {
       toast({
         title: "Error",
         description: "Failed to send login link. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const sendMessageMutation = useMutation({
+    mutationFn: async (content: string) => {
+      await apiRequest("POST", "/api/messages", {
+        clientId,
+        content,
+        channel: "INTERNAL",
+        sentByPhotographer: true
+      });
+    },
+    onSuccess: () => {
+      setNewMessage("");
+      setShowMessageForm(false);
+      refetchMessages();
+      queryClient.invalidateQueries({ queryKey: ["/api/clients", clientId, "messages"] });
+      toast({
+        title: "Message sent",
+        description: "Your message has been sent to the client."
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to send message. Please try again.",
         variant: "destructive"
       });
     }
@@ -152,7 +191,10 @@ export default function ClientDetail() {
                 <LinkIcon className="w-4 h-4 mr-2" />
                 {sendLoginLinkMutation.isPending ? "Sending..." : "Send Login Link"}
               </Button>
-              <Button data-testid="button-send-message">
+              <Button 
+                onClick={() => setShowMessageForm(true)}
+                data-testid="button-send-message"
+              >
                 <MessageSquare className="w-4 h-4 mr-2" />
                 Message Client
               </Button>
@@ -281,7 +323,9 @@ export default function ClientDetail() {
                     <MessageSquare className="w-4 h-4 text-muted-foreground" />
                     <span className="text-sm">Messages</span>
                   </div>
-                  <span className="font-medium">0</span>
+                  <span className="font-medium" data-testid="text-messages-count">
+                    {messages.length}
+                  </span>
                 </div>
               </CardContent>
             </Card>
@@ -337,17 +381,104 @@ export default function ClientDetail() {
           {/* Messaging Section */}
           <Card>
             <CardHeader>
-              <CardTitle>Messages</CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle>Messages</CardTitle>
+                {!showMessageForm && messages.length > 0 && (
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setShowMessageForm(true)}
+                    data-testid="button-new-message"
+                  >
+                    <Send className="w-4 h-4 mr-2" />
+                    New Message
+                  </Button>
+                )}
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="text-center py-8">
-                <MessageSquare className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                <p className="text-muted-foreground">No messages yet</p>
-                <Button className="mt-4" data-testid="button-start-conversation">
-                  <Send className="w-4 h-4 mr-2" />
-                  Start Conversation
-                </Button>
-              </div>
+              {messages.length === 0 && !showMessageForm ? (
+                <div className="text-center py-8">
+                  <MessageSquare className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                  <p className="text-muted-foreground">No messages yet</p>
+                  <Button 
+                    className="mt-4" 
+                    onClick={() => setShowMessageForm(true)}
+                    data-testid="button-start-conversation"
+                  >
+                    <Send className="w-4 h-4 mr-2" />
+                    Start Conversation
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {/* Message List */}
+                  {messages.length > 0 && (
+                    <ScrollArea className="h-64 pr-4">
+                      <div className="space-y-3">
+                        {messages.map((message) => (
+                          <div 
+                            key={message.id} 
+                            className={`flex ${message.sentByPhotographer ? 'justify-end' : 'justify-start'}`}
+                            data-testid={`message-${message.id}`}
+                          >
+                            <div 
+                              className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
+                                message.sentByPhotographer 
+                                  ? 'bg-primary text-primary-foreground' 
+                                  : 'bg-muted'
+                              }`}
+                            >
+                              <p className="text-sm">{message.content}</p>
+                              <p className="text-xs mt-1 opacity-70">
+                                {formatDate(message.createdAt)}
+                                {message.sentByPhotographer && (
+                                  <span className="ml-1">(You)</span>
+                                )}
+                              </p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </ScrollArea>
+                  )}
+                  
+                  {/* Message Form */}
+                  {showMessageForm && (
+                    <div className="border-t pt-4 mt-4">
+                      <div className="space-y-3">
+                        <Textarea
+                          placeholder="Type your message..."
+                          value={newMessage}
+                          onChange={(e) => setNewMessage(e.target.value)}
+                          className="min-h-[100px]"
+                          data-testid="textarea-message-content"
+                        />
+                        <div className="flex justify-end space-x-2">
+                          <Button 
+                            variant="outline" 
+                            onClick={() => {
+                              setShowMessageForm(false);
+                              setNewMessage("");
+                            }}
+                            data-testid="button-cancel-message"
+                          >
+                            Cancel
+                          </Button>
+                          <Button 
+                            onClick={() => sendMessageMutation.mutate(newMessage)}
+                            disabled={!newMessage.trim() || sendMessageMutation.isPending}
+                            data-testid="button-submit-message"
+                          >
+                            <Send className="w-4 h-4 mr-2" />
+                            {sendMessageMutation.isPending ? "Sending..." : "Send Message"}
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
