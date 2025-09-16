@@ -254,7 +254,7 @@ export default function Automations() {
       // First create the automation
       const automationResponse = await apiRequest("POST", "/api/automations", {
         name: data.name,
-        stageId: data.stageId || null,
+        stageId: (data.stageId && data.stageId !== 'global') ? data.stageId : null,
         channel: data.channel,
         enabled: data.enabled
       });
@@ -368,7 +368,7 @@ export default function Automations() {
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="">No specific stage (Global)</SelectItem>
+                              <SelectItem value="global">No specific stage (Global)</SelectItem>
                               {stages?.map((stage: any) => (
                                 <SelectItem key={stage.id} value={stage.id}>
                                   {stage.name}
