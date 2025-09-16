@@ -8,6 +8,7 @@ import Login from "@/pages/login";
 import Register from "@/pages/register";
 import Dashboard from "@/pages/dashboard";
 import Clients from "@/pages/clients";
+import ClientDetail from "@/pages/client-detail";
 import Estimates from "@/pages/estimates";
 import EstimateNew from "@/pages/estimate-new";
 import Templates from "@/pages/templates";
@@ -29,6 +30,7 @@ function Router() {
       <Route path="/register" component={Register} />
       <Route path="/" component={Dashboard} />
       <Route path="/clients" component={Clients} />
+      <Route path="/clients/:id" component={ClientDetail} />
       <Route path="/estimates" component={Estimates} />
       <Route path="/estimates/new" component={EstimateNew} />
       <Route path="/templates" component={Templates} />
