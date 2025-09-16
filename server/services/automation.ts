@@ -70,7 +70,7 @@ async function processAutomationStep(client: any, step: any, automation: any): P
   console.log(`Processing step for client ${client.firstName} ${client.lastName} (${client.email})`);
   
   if (!client.stageEnteredAt) {
-    console.log('No stageEnteredAt date, skipping');
+    console.log(`❌ No stageEnteredAt date for client ${client.firstName} ${client.lastName}, skipping`);
     return;
   }
 
@@ -80,12 +80,16 @@ async function processAutomationStep(client: any, step: any, automation: any): P
   const shouldSendAt = new Date(stageEnteredAt.getTime() + delayMs);
 
   // Check if it's time to send
-  if (now < shouldSendAt) return;
+  if (now < shouldSendAt) {
+    console.log(`⏰ Too early to send for ${client.firstName} ${client.lastName}. Should send at: ${shouldSendAt}, now: ${now}`);
+    return;
+  }
 
   // Check quiet hours
   if (step.quietHoursStart && step.quietHoursEnd) {
     const currentHour = now.getHours();
     if (currentHour >= step.quietHoursStart || currentHour <= step.quietHoursEnd) {
+      console.log(`🌙 In quiet hours for ${client.firstName} ${client.lastName}, current hour: ${currentHour}`);
       return; // In quiet hours
     }
   }
@@ -101,21 +105,36 @@ async function processAutomationStep(client: any, step: any, automation: any): P
         eq(smsLogs.automationStepId, step.id)
       ));
 
-  if (alreadySent.length > 0) return;
+  if (alreadySent.length > 0) {
+    console.log(`✅ Already sent to ${client.firstName} ${client.lastName}, skipping`);
+    return;
+  }
 
   // Check consent
-  if (automation.channel === 'EMAIL' && !client.emailOptIn) return;
-  if (automation.channel === 'SMS' && !client.smsOptIn) return;
+  if (automation.channel === 'EMAIL' && !client.emailOptIn) {
+    console.log(`📧 Email opt-in missing for ${client.firstName} ${client.lastName}`);
+    return;
+  }
+  if (automation.channel === 'SMS' && !client.smsOptIn) {
+    console.log(`📱 SMS opt-in missing for ${client.firstName} ${client.lastName}`);
+    return;
+  }
 
   // Get template
-  if (!step.templateId) return;
+  if (!step.templateId) {
+    console.log(`📝 No template ID for ${client.firstName} ${client.lastName}`);
+    return;
+  }
   
   const [template] = await db
     .select()
     .from(templates)
     .where(eq(templates.id, step.templateId));
 
-  if (!template) return;
+  if (!template) {
+    console.log(`📝 Template not found for ${client.firstName} ${client.lastName}, templateId: ${step.templateId}`);
+    return;
+  }
 
   // Get photographer info for businessName
   const [photographer] = await db
@@ -140,6 +159,8 @@ async function processAutomationStep(client: any, step: any, automation: any): P
     const htmlBody = renderTemplate(template.htmlBody || '', variables);
     const textBody = renderTemplate(template.textBody || '', variables);
 
+    console.log(`📧 Sending email to ${client.firstName} ${client.lastName} (${client.email})...`);
+    
     const success = await sendEmail({
       to: client.email,
       from: 'noreply@lazyphotog.com', // TODO: Use photographer's email
@@ -147,6 +168,8 @@ async function processAutomationStep(client: any, step: any, automation: any): P
       html: htmlBody,
       text: textBody
     });
+
+    console.log(`📧 Email ${success ? 'sent successfully' : 'FAILED'} to ${client.firstName} ${client.lastName}`);
 
     // Log the attempt
     await db.insert(emailLogs).values({
