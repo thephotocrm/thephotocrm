@@ -30,6 +30,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function ClientDetail() {
+  // ALL HOOKS MUST BE AT THE TOP - Rules of Hooks!
   const { user, loading } = useAuth();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
@@ -37,19 +38,10 @@ export default function ClientDetail() {
   const params = useParams();
   const clientId = params.id;
 
-  // Redirect to login if not authenticated
-  if (!loading && !user) {
-    setLocation("/login");
-    return null;
-  }
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
-      </div>
-    );
-  }
+  const [newMessage, setNewMessage] = useState("");
+  const [showMessageForm, setShowMessageForm] = useState(false);
+  const [showStageDialog, setShowStageDialog] = useState(false);
+  const [selectedStage, setSelectedStage] = useState("");
 
   const { data: client, isLoading } = useQuery<ClientWithStage>({
     queryKey: ["/api/clients", clientId],
@@ -75,11 +67,6 @@ export default function ClientDetail() {
     queryKey: ["/api/stages"],
     enabled: !!user
   });
-
-  const [newMessage, setNewMessage] = useState("");
-  const [showMessageForm, setShowMessageForm] = useState(false);
-  const [showStageDialog, setShowStageDialog] = useState(false);
-  const [selectedStage, setSelectedStage] = useState("");
 
   const assignStageMutation = useMutation({
     mutationFn: async ({ stageId }: { stageId: string }) => {
@@ -213,6 +200,21 @@ export default function ClientDetail() {
       });
     }
   });
+
+  // ALL CONDITIONAL LOGIC AFTER ALL HOOKS
+  // Redirect to login if not authenticated
+  if (!loading && !user) {
+    setLocation("/login");
+    return null;
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (
