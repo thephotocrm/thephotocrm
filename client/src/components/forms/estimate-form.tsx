@@ -230,9 +230,21 @@ export default function EstimateForm({
     }
   };
 
+  const handleFormSubmit = (data: EstimateFormData) => {
+    // Ensure line totals are calculated correctly before submission
+    const updatedData = {
+      ...data,
+      items: data.items.map(item => ({
+        ...item,
+        lineTotalCents: (item.qty || 0) * (item.unitCents || 0)
+      }))
+    };
+    onSubmit(updatedData);
+  };
+
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-6">
         {/* Basic Information */}
         <Card>
           <CardHeader>

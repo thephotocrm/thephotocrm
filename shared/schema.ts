@@ -482,6 +482,8 @@ export const insertEstimateSchema = createInsertSchema(estimates).omit({
   id: true,
   createdAt: true,
   token: true
+}).extend({
+  validUntil: z.string().optional().transform((val) => val && val.trim() !== '' ? new Date(val) : undefined)
 });
 
 export const insertQuestionnaireTemplateSchema = createInsertSchema(questionnaireTemplates).omit({
