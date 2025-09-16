@@ -639,6 +639,82 @@ ${photographer?.businessName || 'Your Photography Team'}`;
     }
   });
 
+  // Automations
+  app.get("/api/automations", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      const automations = await storage.getAutomationsByPhotographer(req.user!.photographerId!);
+      res.json(automations);
+    } catch (error) {
+      console.error('Get automations error:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.post("/api/automations", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      const automationData = insertAutomationSchema.parse({
+        ...req.body,
+        photographerId: req.user!.photographerId!
+      });
+      
+      const automation = await storage.createAutomation(automationData);
+      res.status(201).json(automation);
+    } catch (error: any) {
+      console.error('Create automation error:', error);
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ message: "Invalid request data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.patch("/api/automations/:id", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      // First verify the automation belongs to this photographer
+      const automations = await storage.getAutomationsByPhotographer(req.user!.photographerId!);
+      const automation = automations.find(a => a.id === req.params.id);
+      
+      if (!automation) {
+        return res.status(404).json({ message: "Automation not found" });
+      }
+
+      // Create a safe update schema that only allows specific fields
+      const updateSchema = insertAutomationSchema.partial().omit({
+        photographerId: true,
+        id: true
+      });
+      
+      const updateData = updateSchema.parse(req.body);
+      const updated = await storage.updateAutomation(req.params.id, updateData);
+      res.json(updated);
+    } catch (error: any) {
+      console.error('Update automation error:', error);
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ message: "Invalid request data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.delete("/api/automations/:id", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      // First verify the automation belongs to this photographer
+      const automations = await storage.getAutomationsByPhotographer(req.user!.photographerId!);
+      const automation = automations.find(a => a.id === req.params.id);
+      
+      if (!automation) {
+        return res.status(404).json({ message: "Automation not found" });
+      }
+
+      // For now, just disable the automation since we don't have deleteAutomation in storage yet
+      const updated = await storage.updateAutomation(req.params.id, { enabled: false });
+      res.json({ message: "Automation disabled successfully", automation: updated });
+    } catch (error) {
+      console.error('Delete automation error:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   // Stripe webhook
   app.post("/webhooks/stripe", async (req, res) => {
     const signature = req.headers['stripe-signature'] as string;
