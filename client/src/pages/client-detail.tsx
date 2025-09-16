@@ -22,10 +22,12 @@ import {
   Link as LinkIcon,
   ExternalLink
 } from "lucide-react";
-import { type ClientWithStage, type Estimate, type Message, type TimelineEvent } from "@shared/schema";
+import { type ClientWithStage, type Estimate, type Message, type TimelineEvent, type Stage } from "@shared/schema";
 import { useState } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function ClientDetail() {
   const { user, loading } = useAuth();
@@ -69,8 +71,41 @@ export default function ClientDetail() {
     enabled: !!user && !!clientId
   });
 
+  const { data: stages = [] } = useQuery<Stage[]>({
+    queryKey: ["/api/stages"],
+    enabled: !!user
+  });
+
   const [newMessage, setNewMessage] = useState("");
   const [showMessageForm, setShowMessageForm] = useState(false);
+  const [showStageDialog, setShowStageDialog] = useState(false);
+  const [selectedStage, setSelectedStage] = useState("");
+
+  const assignStageMutation = useMutation({
+    mutationFn: async ({ stageId }: { stageId: string }) => {
+      return apiRequest(`/api/clients/${clientId}/stage`, {
+        method: "PUT",
+        body: { stageId }
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/clients", clientId] });
+      queryClient.invalidateQueries({ queryKey: ["/api/clients"] });
+      toast({
+        title: "Success",
+        description: "Client stage updated successfully"
+      });
+      setShowStageDialog(false);
+    },
+    onError: (error) => {
+      console.error("Assign stage error:", error);
+      toast({
+        title: "Error",
+        description: "Failed to assign stage",
+        variant: "destructive"
+      });
+    }
+  });
 
   const sendLoginLinkMutation = useMutation({
     mutationFn: async () => {
@@ -344,7 +379,13 @@ export default function ClientDetail() {
                 ) : (
                   <div className="text-center py-4">
                     <p className="text-muted-foreground">No stage assigned</p>
-                    <Button variant="outline" size="sm" className="mt-2" data-testid="button-assign-stage">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="mt-2" 
+                      onClick={() => setShowStageDialog(true)}
+                      data-testid="button-assign-stage"
+                    >
                       Assign Stage
                     </Button>
                   </div>
@@ -390,6 +431,51 @@ export default function ClientDetail() {
               </CardContent>
             </Card>
           </div>
+
+          {/* Assign Stage Dialog */}
+          <Dialog open={showStageDialog} onOpenChange={setShowStageDialog}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Assign Stage to {client?.firstName} {client?.lastName}</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <Select value={selectedStage} onValueChange={setSelectedStage}>
+                  <SelectTrigger data-testid="select-stage">
+                    <SelectValue placeholder="Select a stage" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {stages.map((stage) => (
+                      <SelectItem key={stage.id} value={stage.id} data-testid={`option-stage-${stage.id}`}>
+                        <div className="flex items-center space-x-2">
+                          <div 
+                            className="w-3 h-3 rounded-full" 
+                            style={{ backgroundColor: stage.color }}
+                          />
+                          <span>{stage.name}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <div className="flex justify-end space-x-2">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setShowStageDialog(false)}
+                    data-testid="button-cancel-stage"
+                  >
+                    Cancel
+                  </Button>
+                  <Button 
+                    onClick={() => selectedStage && assignStageMutation.mutate({ stageId: selectedStage })}
+                    disabled={!selectedStage || assignStageMutation.isPending}
+                    data-testid="button-confirm-stage"
+                  >
+                    {assignStageMutation.isPending ? 'Assigning...' : 'Assign Stage'}
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
 
           {/* History Section */}
           <Card>
