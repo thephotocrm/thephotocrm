@@ -1,17 +1,68 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { useLocation } from "wouter";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import Sidebar from "@/components/layout/sidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Zap, Clock, Mail, Smartphone, Settings } from "lucide-react";
+import { insertAutomationSchema } from "@shared/schema";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+
+// Create form schema based on insertAutomationSchema but without photographerId (auto-added by backend)
+const createAutomationFormSchema = insertAutomationSchema.omit({ photographerId: true });
+type CreateAutomationFormData = z.infer<typeof createAutomationFormSchema>;
 
 export default function Automations() {
   const { user, loading } = useAuth();
   const [, setLocation] = useLocation();
+  const { toast } = useToast();
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+
+  // Form setup
+  const form = useForm<CreateAutomationFormData>({
+    resolver: zodResolver(createAutomationFormSchema),
+    defaultValues: {
+      name: "",
+      stageId: "",
+      channel: "EMAIL",
+      enabled: true
+    }
+  });
+
+  // Create automation mutation
+  const createAutomationMutation = useMutation({
+    mutationFn: async (data: CreateAutomationFormData) => {
+      return apiRequest("/api/automations", {
+        method: "POST",
+        body: JSON.stringify(data)
+      });
+    },
+    onSuccess: () => {
+      toast({ title: "Automation created successfully" });
+      queryClient.invalidateQueries({ queryKey: ["/api/automations"] });
+      setCreateDialogOpen(false);
+      form.reset();
+    },
+    onError: (error: any) => {
+      console.error('Create automation error:', error);
+      toast({ title: "Failed to create automation", variant: "destructive" });
+    }
+  });
+
+  const handleCreateAutomation = (data: CreateAutomationFormData) => {
+    createAutomationMutation.mutate(data);
+  };
 
   // Redirect to login if not authenticated
   if (!loading && !user) {
@@ -50,10 +101,110 @@ export default function Automations() {
               <p className="text-muted-foreground">Set up automated email and SMS workflows for each stage</p>
             </div>
             
-            <Button data-testid="button-create-automation">
-              <Plus className="w-5 h-5 mr-2" />
-              Create Automation
-            </Button>
+            <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+              <DialogTrigger asChild>
+                <Button data-testid="button-create-automation">
+                  <Plus className="w-5 h-5 mr-2" />
+                  Create Automation
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Create Automation</DialogTitle>
+                  <DialogDescription>
+                    Set up a new automated workflow for your clients
+                  </DialogDescription>
+                </DialogHeader>
+                
+                <Form {...form}>
+                  <form onSubmit={form.handleSubmit(handleCreateAutomation)} className="space-y-4">
+                    <FormField
+                      control={form.control}
+                      name="name"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Automation Name</FormLabel>
+                          <FormControl>
+                            <Input 
+                              placeholder="e.g., Welcome Email, Follow-up SMS"
+                              data-testid="input-automation-name"
+                              {...field} 
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="stageId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Trigger Stage (Optional)</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger data-testid="select-stage">
+                                <SelectValue placeholder="Select a stage or leave empty for global" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="">No specific stage (Global)</SelectItem>
+                              {stages?.map((stage: any) => (
+                                <SelectItem key={stage.id} value={stage.id}>
+                                  {stage.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="channel"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Communication Channel</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger data-testid="select-channel">
+                                <SelectValue />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="EMAIL">📧 Email</SelectItem>
+                              <SelectItem value="SMS">📱 SMS</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <div className="flex justify-end space-x-2 pt-4">
+                      <Button
+                        type="button" 
+                        variant="outline"
+                        onClick={() => setCreateDialogOpen(false)}
+                        data-testid="button-cancel-automation"
+                      >
+                        Cancel
+                      </Button>
+                      <Button 
+                        type="submit" 
+                        disabled={createAutomationMutation.isPending}
+                        data-testid="button-submit-automation"
+                      >
+                        {createAutomationMutation.isPending ? "Creating..." : "Create Automation"}
+                      </Button>
+                    </div>
+                  </form>
+                </Form>
+              </DialogContent>
+            </Dialog>
           </div>
         </header>
 
