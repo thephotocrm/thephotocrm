@@ -9,7 +9,7 @@ import {
   type Template, type InsertTemplate, type Automation, type InsertAutomation,
   type AutomationStep, type InsertAutomationStep, type Package, type InsertPackage,
   type Estimate, type InsertEstimate, type QuestionnaireTemplate, type InsertQuestionnaireTemplate,
-  type Message, type ClientActivityLog, type TimelineEvent, type ClientPortalToken, type InsertClientPortalToken
+  type Message, type InsertMessage, type ClientActivityLog, type TimelineEvent, type ClientPortalToken, type InsertClientPortalToken
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, inArray, gte, lte } from "drizzle-orm";
@@ -32,6 +32,7 @@ export interface IStorage {
   updateClient(id: string, client: Partial<Client>): Promise<Client>;
   getClientHistory(clientId: string): Promise<TimelineEvent[]>;
   getClientMessages(clientId: string): Promise<Message[]>;
+  createMessage(message: InsertMessage): Promise<Message>;
   
   // Client Portal Tokens
   getClientPortalTokensByClient(clientId: string, after?: Date): Promise<ClientPortalToken[]>;
@@ -378,6 +379,11 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(messages)
       .where(eq(messages.clientId, clientId))
       .orderBy(desc(messages.createdAt));
+  }
+
+  async createMessage(message: InsertMessage): Promise<Message> {
+    const [created] = await db.insert(messages).values(message).returning();
+    return created;
   }
 
   async getClientPortalTokensByClient(clientId: string, after?: Date): Promise<ClientPortalToken[]> {

@@ -8,7 +8,8 @@ import { hashPassword, authenticateUser, generateToken } from "./services/auth";
 import { sendEmail } from "./services/email";
 import { createPaymentIntent, createCheckoutSession, handleWebhook } from "./services/stripe";
 import { insertUserSchema, insertPhotographerSchema, insertClientSchema, insertStageSchema, 
-         insertTemplateSchema, insertAutomationSchema, insertPackageSchema, insertEstimateSchema } from "@shared/schema";
+         insertTemplateSchema, insertAutomationSchema, insertPackageSchema, insertEstimateSchema,
+         insertMessageSchema } from "@shared/schema";
 import { startCronJobs } from "./jobs/cron";
 
 if (!process.env.STRIPE_SECRET_KEY) {
@@ -270,6 +271,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const messages = await storage.getClientMessages(req.params.id);
       res.json(messages);
     } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.post("/api/messages", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      const validatedData = insertMessageSchema.parse(req.body);
+      
+      // Verify client belongs to photographer
+      const client = await storage.getClient(validatedData.clientId);
+      if (!client || client.photographerId !== req.user!.photographerId!) {
+        return res.status(404).json({ message: "Client not found" });
+      }
+      
+      // Add photographerId from authenticated user
+      const messageData = {
+        ...validatedData,
+        photographerId: req.user!.photographerId!
+      };
+      
+      const message = await storage.createMessage(messageData);
+      res.json(message);
+    } catch (error: any) {
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ message: "Invalid request data", errors: error.errors });
+      }
       res.status(500).json({ message: "Internal server error" });
     }
   });
