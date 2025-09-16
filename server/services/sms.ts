@@ -64,8 +64,11 @@ export function renderSmsTemplate(template: string, variables: Record<string, st
   let rendered = template;
   
   for (const [key, value] of Object.entries(variables)) {
-    const placeholder = `{{${key}}}`;
-    rendered = rendered.replace(new RegExp(placeholder, 'g'), value);
+    // Support both {variable} and {{variable}} formats
+    const singleBrace = `{${key}}`;
+    const doubleBrace = `{{${key}}}`;
+    rendered = rendered.replace(new RegExp(singleBrace, 'g'), value);
+    rendered = rendered.replace(new RegExp(doubleBrace, 'g'), value);
   }
   
   return rendered;

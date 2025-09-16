@@ -229,9 +229,10 @@ export default function Templates() {
                     <div className="text-xs text-muted-foreground space-y-1">
                       <p>{'{'}firstName{'}'} - Client's first name</p>
                       <p>{'{'}lastName{'}'} - Client's last name</p>
-                      <p>{'{'}fullName{'}'} - Client's full name</p>
+                      <p>{'{'}fullName{'}'} - Client's full name (first + last)</p>
                       <p>{'{'}email{'}'} - Client's email address</p>
                       <p>{'{'}phone{'}'} - Client's phone number</p>
+                      <p>{'{'}weddingDate{'}'} - Client's wedding date</p>
                       <p>{'{'}businessName{'}'} - Your business name</p>
                     </div>
                   </div>

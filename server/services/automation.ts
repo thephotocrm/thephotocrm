@@ -2,7 +2,7 @@ import { storage } from '../storage';
 import { sendEmail, renderTemplate } from './email';
 import { sendSms, renderSmsTemplate } from './sms';
 import { db } from '../db';
-import { clients, automations, automationSteps, stages, templates, emailLogs, smsLogs } from '@shared/schema';
+import { clients, automations, automationSteps, stages, templates, emailLogs, smsLogs, photographers, estimates } from '@shared/schema';
 import { eq, and, gte, lte } from 'drizzle-orm';
 
 interface ClientWithStage {
@@ -11,6 +11,7 @@ interface ClientWithStage {
   lastName: string;
   email: string | null;
   phone: string | null;
+  weddingDate: Date | null;
   stageEnteredAt: Date | null;
   stageId: string | null;
   emailOptIn: boolean;
@@ -106,13 +107,21 @@ async function processAutomationStep(client: any, step: any, automation: any): P
 
   if (!template) return;
 
+  // Get photographer info for businessName
+  const [photographer] = await db
+    .select()
+    .from(photographers)
+    .where(eq(photographers.id, client.photographerId));
+    
   // Prepare variables for template rendering
   const variables = {
     firstName: client.firstName,
     lastName: client.lastName,
     fullName: `${client.firstName} ${client.lastName}`,
     email: client.email || '',
-    phone: client.phone || ''
+    phone: client.phone || '',
+    businessName: photographer?.businessName || 'Your Photographer',
+    weddingDate: client.weddingDate ? new Date(client.weddingDate).toLocaleDateString() : 'Not set'
   };
 
   // Send message
