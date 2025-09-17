@@ -76,7 +76,7 @@ export default function Settings() {
           // Poll for connection status after opening auth window
           const pollInterval = setInterval(async () => {
             const result = await refetchStatus();
-            if ((result.data as any)?.connected) {
+            if ((result.data as any)?.authenticated) {
               clearInterval(pollInterval);
               toast({
                 title: "Google Calendar Connected!",
@@ -118,7 +118,7 @@ export default function Settings() {
       }
     });
 
-    const isConnected = (calendarStatus as any)?.connected;
+    const isConnected = (calendarStatus as any)?.authenticated;
     const connectedEmail = (calendarStatus as any)?.email;
 
     return (
