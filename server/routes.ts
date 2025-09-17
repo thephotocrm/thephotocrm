@@ -13,6 +13,7 @@ import { insertUserSchema, insertPhotographerSchema, insertClientSchema, insertS
          insertTemplateSchema, insertAutomationSchema, insertAutomationStepSchema, insertPackageSchema, 
          insertEstimateSchema, insertMessageSchema, emailLogs, smsLogs, clientActivityLog } from "@shared/schema";
 import { startCronJobs } from "./jobs/cron";
+import path from "path";
 
 if (!process.env.STRIPE_SECRET_KEY) {
   throw new Error('Missing required Stripe secret: STRIPE_SECRET_KEY');
@@ -1342,6 +1343,21 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       });
     } catch (error) {
       res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Add explicit route handler for public proposal pages to serve the React app
+  // This prevents Express from treating /public/proposals/:token as static file lookup
+  app.get("/public/proposals/:token", async (req, res, next) => {
+    // In development, let Vite handle serving the React app
+    // In production, serve the static index.html
+    if (app.get("env") === "development") {
+      // Let the request fall through to Vite middleware
+      next();
+    } else {
+      // In production, serve the index.html file
+      const distPath = path.resolve(import.meta.dirname, "public");
+      res.sendFile(path.resolve(distPath, "index.html"));
     }
   });
 
