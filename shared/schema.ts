@@ -200,9 +200,18 @@ export const bookings = pgTable("bookings", {
   photographerId: varchar("photographer_id").notNull().references(() => photographers.id),
   clientId: varchar("client_id").references(() => clients.id),
   title: text("title").notNull(),
+  description: text("description"),
   startAt: timestamp("start_at").notNull(),
   endAt: timestamp("end_at").notNull(),
-  status: text("status").default("PENDING"),
+  status: text("status").default("PENDING"), // PENDING, CONFIRMED, CANCELLED, COMPLETED
+  bookingType: text("booking_type").default("CONSULTATION"), // CONSULTATION, ENGAGEMENT, WEDDING, MEETING
+  isFirstBooking: boolean("is_first_booking").default(false),
+  googleCalendarEventId: text("google_calendar_event_id"),
+  googleMeetLink: text("google_meet_link"),
+  bookingToken: varchar("booking_token").default(sql`gen_random_uuid()`),
+  clientEmail: text("client_email"),
+  clientPhone: text("client_phone"),
+  clientName: text("client_name"),
   createdAt: timestamp("created_at").defaultNow()
 });
 
@@ -558,6 +567,15 @@ export const insertClientPortalTokenSchema = createInsertSchema(clientPortalToke
   createdAt: true
 });
 
+export const insertBookingSchema = createInsertSchema(bookings).omit({
+  id: true,
+  createdAt: true,
+  bookingToken: true
+}).extend({
+  startAt: z.string().transform((val) => new Date(val)),
+  endAt: z.string().transform((val) => new Date(val))
+});
+
 // Type exports
 export type Photographer = typeof photographers.$inferSelect;
 export type InsertPhotographer = z.infer<typeof insertPhotographerSchema>;
@@ -587,6 +605,8 @@ export type ClientActivityLog = typeof clientActivityLog.$inferSelect;
 export type InsertClientActivityLog = z.infer<typeof insertClientActivityLogSchema>;
 export type ClientPortalToken = typeof clientPortalTokens.$inferSelect;
 export type InsertClientPortalToken = z.infer<typeof insertClientPortalTokenSchema>;
+export type Booking = typeof bookings.$inferSelect;
+export type InsertBooking = z.infer<typeof insertBookingSchema>;
 
 // Client with stage information for display
 export type ClientWithStage = Client & {
