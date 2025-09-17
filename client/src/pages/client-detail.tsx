@@ -2,7 +2,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { useLocation, useParams } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
-import Sidebar from "@/components/layout/sidebar";
+import { SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/sidebar";
+import { AppSidebar } from "@/components/layout/app-sidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -265,22 +266,22 @@ export default function ClientDetail() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex bg-background">
-        <Sidebar />
-        <main className="flex-1 overflow-auto">
+      <SidebarProvider>
+        <AppSidebar />
+        <SidebarInset>
           <div className="flex items-center justify-center h-full">
             <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
           </div>
-        </main>
-      </div>
+        </SidebarInset>
+      </SidebarProvider>
     );
   }
 
   if (!client) {
     return (
-      <div className="min-h-screen flex bg-background">
-        <Sidebar />
-        <main className="flex-1 overflow-auto">
+      <SidebarProvider>
+        <AppSidebar />
+        <SidebarInset>
           <div className="flex items-center justify-center h-full">
             <div className="text-center">
               <h2 className="text-2xl font-semibold mb-2">Client not found</h2>
@@ -291,8 +292,8 @@ export default function ClientDetail() {
               </Button>
             </div>
           </div>
-        </main>
-      </div>
+        </SidebarInset>
+      </SidebarProvider>
     );
   }
 
@@ -312,13 +313,13 @@ export default function ClientDetail() {
   };
 
   return (
-    <div className="min-h-screen flex bg-background">
-      <Sidebar />
-      
-      <main className="flex-1 overflow-auto">
+    <SidebarProvider>
+      <AppSidebar />
+      <SidebarInset>
         {/* Header */}
         <header className="bg-card border-b border-border px-6 py-4">
           <div className="flex items-center justify-between">
+            <SidebarTrigger className="-ml-1" />
             <div className="flex items-center space-x-4">
               <Button 
                 variant="ghost" 
@@ -866,7 +867,7 @@ export default function ClientDetail() {
             </CardContent>
           </Card>
         </div>
-      </main>
-    </div>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }

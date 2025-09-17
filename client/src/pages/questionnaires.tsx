@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { useLocation } from "wouter";
-import Sidebar from "@/components/layout/sidebar";
+import { SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/sidebar";
+import { AppSidebar } from "@/components/layout/app-sidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -48,11 +49,18 @@ export default function Questionnaires() {
   const { user, loading } = useAuth();
   const [, setLocation] = useLocation();
 
-  // Redirect to login if not authenticated
-  if (!loading && !user) {
-    setLocation("/login");
-    return null;
-  }
+  // ALL HOOKS MUST BE CALLED BEFORE ANY CONDITIONAL LOGIC - Rules of Hooks!
+  const { data: templates = [], isLoading } = useQuery({
+    queryKey: ["/api/questionnaire-templates"],
+    enabled: !!user
+  });
+
+  // Redirect to login if not authenticated  
+  useEffect(() => {
+    if (!loading && !user) {
+      setLocation("/login");
+    }
+  }, [loading, user, setLocation]);
 
   if (loading) {
     return (
@@ -61,11 +69,6 @@ export default function Questionnaires() {
       </div>
     );
   }
-
-  const { data: templates = [], isLoading } = useQuery({
-    queryKey: ["/api/questionnaire-templates"],
-    enabled: !!user
-  });
 
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState<any>(null);
@@ -297,13 +300,13 @@ export default function Questionnaires() {
   }
 
   return (
-    <div className="min-h-screen flex bg-background">
-      <Sidebar />
-      
-      <main className="flex-1 overflow-auto">
+    <SidebarProvider>
+      <AppSidebar />
+      <SidebarInset>
         {/* Header */}
         <header className="bg-card border-b border-border px-6 py-4">
           <div className="flex items-center justify-between">
+            <SidebarTrigger className="-ml-1" />
             <div>
               <h1 className="text-2xl font-semibold">Questionnaires</h1>
               <p className="text-muted-foreground">Create questionnaires and assign them to clients</p>
@@ -515,7 +518,7 @@ export default function Questionnaires() {
             </CardContent>
           </Card>
         </div>
-      </main>
+      </SidebarInset>
 
       {/* Enhanced Edit Template Dialog with Question Management */}
       <Dialog open={!!editingTemplate} onOpenChange={() => setEditingTemplate(null)}>
@@ -689,6 +692,6 @@ export default function Questionnaires() {
           </div>
         </DialogContent>
       </Dialog>
-    </div>
+    </SidebarProvider>
   );
 }

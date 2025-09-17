@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { useLocation } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
-import Sidebar from "@/components/layout/sidebar";
+import { SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/sidebar";
+import { AppSidebar } from "@/components/layout/app-sidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -65,6 +66,13 @@ export default function Templates() {
     enabled: !!user
   });
 
+  // Redirect to login if not authenticated  
+  useEffect(() => {
+    if (!loading && !user) {
+      setLocation("/login");
+    }
+  }, [loading, user, setLocation]);
+
   const createTemplateMutation = useMutation({
     mutationFn: async (templateData: any) => {
       await apiRequest("POST", "/api/templates", templateData);
@@ -87,11 +95,6 @@ export default function Templates() {
     }
   });
 
-  // Redirect to login if not authenticated
-  if (!loading && !user) {
-    setLocation("/login");
-    return null;
-  }
 
   if (loading) {
     return (
@@ -125,13 +128,13 @@ export default function Templates() {
   const smsTemplates = (templates || []).filter((t: Template) => t.channel === "SMS");
 
   return (
-    <div className="min-h-screen flex bg-background">
-      <Sidebar />
-      
-      <main className="flex-1 overflow-auto">
+    <SidebarProvider>
+      <AppSidebar />
+      <SidebarInset>
         {/* Header */}
         <header className="bg-card border-b border-border px-6 py-4">
           <div className="flex items-center justify-between">
+            <SidebarTrigger className="-ml-1" />
             <div>
               <h1 className="text-2xl font-semibold">Templates</h1>
               <p className="text-muted-foreground">Create and manage email and SMS templates for automation</p>
@@ -396,7 +399,7 @@ export default function Templates() {
             </CardContent>
           </Card>
         </div>
-      </main>
-    </div>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }

@@ -1,10 +1,12 @@
 import { useAuth } from "@/hooks/use-auth";
 import { useLocation } from "wouter";
+import { useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import ProposalForm from "@/components/forms/proposal-form";
-import Sidebar from "@/components/layout/sidebar";
+import { SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/sidebar";
+import { AppSidebar } from "@/components/layout/app-sidebar";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { type ClientWithStage, type Package } from "@shared/schema";
@@ -14,20 +16,7 @@ export default function ProposalNew() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
 
-  // Redirect to login if not authenticated
-  if (!loading && !user) {
-    setLocation("/login");
-    return null;
-  }
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
-      </div>
-    );
-  }
-
+  // ALL HOOKS MUST BE CALLED BEFORE ANY CONDITIONAL LOGIC - Rules of Hooks!
   // Fetch clients for the form
   const { data: clients = [], isLoading: clientsLoading } = useQuery<ClientWithStage[]>({
     queryKey: ["/api/clients"],
@@ -39,6 +28,21 @@ export default function ProposalNew() {
     queryKey: ["/api/packages"],
     enabled: !!user
   });
+
+  // Redirect to login if not authenticated  
+  useEffect(() => {
+    if (!loading && !user) {
+      setLocation("/login");
+    }
+  }, [loading, user, setLocation]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
+      </div>
+    );
+  }
 
   const createProposalMutation = useMutation({
     mutationFn: (data: any) => apiRequest("POST", "/api/proposals", data),
@@ -65,25 +69,25 @@ export default function ProposalNew() {
 
   if (clientsLoading) {
     return (
-      <div className="min-h-screen flex bg-background">
-        <Sidebar />
-        <main className="flex-1 overflow-auto">
+      <SidebarProvider>
+        <AppSidebar />
+        <SidebarInset>
           <div className="min-h-screen flex items-center justify-center">
             <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
           </div>
-        </main>
-      </div>
+        </SidebarInset>
+      </SidebarProvider>
     );
   }
 
   return (
-    <div className="min-h-screen flex bg-background">
-      <Sidebar />
-      
-      <main className="flex-1 overflow-auto">
+    <SidebarProvider>
+      <AppSidebar />
+      <SidebarInset>
         {/* Header */}
         <header className="bg-card border-b border-border px-6 py-4">
           <div className="flex items-center gap-4">
+            <SidebarTrigger className="-ml-1" />
             <Button 
               variant="outline" 
               size="sm" 
@@ -109,7 +113,7 @@ export default function ProposalNew() {
             submitText="Create Proposal"
           />
         </div>
-      </main>
-    </div>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }
