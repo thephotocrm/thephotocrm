@@ -1,6 +1,7 @@
 import { useAuth } from "@/hooks/use-auth";
 import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
+import { useEffect } from "react";
 import KanbanBoard from "@/components/kanban/kanban-board";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -30,8 +31,14 @@ export default function Dashboard() {
   });
 
   // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!loading && !user) {
+      setLocation("/login");
+    }
+  }, [loading, user, setLocation]);
+
+  // Prevent flash of protected content
   if (!loading && !user) {
-    setLocation("/login");
     return null;
   }
 

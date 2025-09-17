@@ -3,7 +3,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { useLocation } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
-import Sidebar from "@/components/layout/sidebar";
+import { SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/sidebar";
+import { AppSidebar } from "@/components/layout/app-sidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -97,16 +98,18 @@ export default function Clients() {
   ) || [];
 
   return (
-    <div className="min-h-screen flex bg-background">
-      <Sidebar />
-      
-      <main className="flex-1 overflow-auto">
+    <SidebarProvider>
+      <AppSidebar />
+      <SidebarInset>
         {/* Header */}
         <header className="bg-card border-b border-border px-6 py-4">
           <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-semibold">Clients</h1>
-              <p className="text-muted-foreground">Manage your wedding photography clients</p>
+            <div className="flex items-center space-x-4">
+              <SidebarTrigger data-testid="button-menu-toggle" />
+              <div>
+                <h1 className="text-2xl font-semibold">Clients</h1>
+                <p className="text-muted-foreground">Manage your wedding photography clients</p>
+              </div>
             </div>
             
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -307,7 +310,7 @@ export default function Clients() {
             </CardContent>
           </Card>
         </div>
-      </main>
-    </div>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }

@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { useLocation } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
-import Sidebar from "@/components/layout/sidebar";
+import { SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/sidebar";
+import { AppSidebar } from "@/components/layout/app-sidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -48,20 +49,7 @@ export default function Packages() {
   const [description, setDescription] = useState("");
   const [basePrice, setBasePrice] = useState("");
 
-  // Redirect to login if not authenticated
-  if (!loading && !user) {
-    setLocation("/login");
-    return null;
-  }
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
-      </div>
-    );
-  }
-
+  // ALL HOOKS MUST BE CALLED BEFORE ANY CONDITIONAL LOGIC
   const { data: packages, isLoading } = useQuery({
     queryKey: ["/api/packages"],
     enabled: !!user
@@ -89,6 +77,26 @@ export default function Packages() {
     }
   });
 
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!loading && !user) {
+      setLocation("/login");
+    }
+  }, [loading, user, setLocation]);
+
+  // Prevent flash of protected content
+  if (!loading && !user) {
+    return null;
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
+      </div>
+    );
+  }
+
   const resetForm = () => {
     setName("");
     setDescription("");
@@ -113,16 +121,18 @@ export default function Packages() {
   };
 
   return (
-    <div className="min-h-screen flex bg-background">
-      <Sidebar />
-      
-      <main className="flex-1 overflow-auto">
+    <SidebarProvider>
+      <AppSidebar />
+      <SidebarInset>
         {/* Header */}
         <header className="bg-card border-b border-border px-6 py-4">
           <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-semibold">Packages</h1>
-              <p className="text-muted-foreground">Create pricing packages to quickly import into estimates</p>
+            <div className="flex items-center space-x-4">
+              <SidebarTrigger data-testid="button-menu-toggle" />
+              <div>
+                <h1 className="text-2xl font-semibold">Packages</h1>
+                <p className="text-muted-foreground">Create pricing packages to quickly import into estimates</p>
+              </div>
             </div>
             
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -310,7 +320,7 @@ export default function Packages() {
             </CardContent>
           </Card>
         </div>
-      </main>
-    </div>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }

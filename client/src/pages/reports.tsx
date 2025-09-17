@@ -1,7 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { useLocation } from "wouter";
-import Sidebar from "@/components/layout/sidebar";
+import { useEffect } from "react";
+import { SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/sidebar";
+import { AppSidebar } from "@/components/layout/app-sidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -11,9 +13,21 @@ export default function Reports() {
   const { user, loading } = useAuth();
   const [, setLocation] = useLocation();
 
+  // ALL HOOKS MUST BE CALLED BEFORE ANY CONDITIONAL LOGIC
+  const { data: reportData } = useQuery({
+    queryKey: ["/api/reports/summary"],
+    enabled: !!user
+  });
+
   // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!loading && !user) {
+      setLocation("/login");
+    }
+  }, [loading, user, setLocation]);
+
+  // Prevent flash of protected content
   if (!loading && !user) {
-    setLocation("/login");
     return null;
   }
 
@@ -25,22 +39,19 @@ export default function Reports() {
     );
   }
 
-  const { data: reportData } = useQuery({
-    queryKey: ["/api/reports/summary"],
-    enabled: !!user
-  });
-
   return (
-    <div className="min-h-screen flex bg-background">
-      <Sidebar />
-      
-      <main className="flex-1 overflow-auto">
+    <SidebarProvider>
+      <AppSidebar />
+      <SidebarInset>
         {/* Header */}
         <header className="bg-card border-b border-border px-6 py-4">
           <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-semibold">Reports & Analytics</h1>
-              <p className="text-muted-foreground">Track your business performance and client metrics</p>
+            <div className="flex items-center space-x-4">
+              <SidebarTrigger data-testid="button-menu-toggle" />
+              <div>
+                <h1 className="text-2xl font-semibold">Reports & Analytics</h1>
+                <p className="text-muted-foreground">Track your business performance and client metrics</p>
+              </div>
             </div>
             
             <Button data-testid="button-export-report">
@@ -283,7 +294,7 @@ export default function Reports() {
             </CardContent>
           </Card>
         </div>
-      </main>
-    </div>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }
