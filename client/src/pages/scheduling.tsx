@@ -62,12 +62,17 @@ export default function Scheduling() {
   const { data: availabilitySlots = [], isLoading: slotsLoading } = useQuery({
     queryKey: ["/api/availability"],
     enabled: !!user
-  });
+  }) as { data: any[]; isLoading: boolean };
   
   const { data: bookings = [], isLoading: bookingsLoading } = useQuery({
     queryKey: ["/api/bookings"],
     enabled: !!user
-  });
+  }) as { data: any[]; isLoading: boolean };
+  
+  const { data: calendarStatus, isLoading: calendarStatusLoading } = useQuery({
+    queryKey: ["/api/calendar/status"],
+    enabled: !!user
+  }) as { data: { configured?: boolean; authenticated?: boolean; message?: string } | undefined; isLoading: boolean };
   
   // Availability form
   const availabilityForm = useForm<AvailabilityFormData>({
@@ -508,13 +513,34 @@ export default function Scheduling() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-center py-12">
-                <CalendarDays className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-                <p className="text-muted-foreground mb-4">Calendar integration coming soon</p>
-                <p className="text-sm text-muted-foreground">
-                  Connect with Google Calendar to sync your availability and bookings
-                </p>
-              </div>
+              {calendarStatusLoading ? (
+                <div className="text-center py-12">
+                  <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4" />
+                  <p className="text-muted-foreground">Checking calendar status...</p>
+                </div>
+              ) : calendarStatus?.configured && calendarStatus?.authenticated ? (
+                <div className="text-center py-12">
+                  <CalendarDays className="w-16 h-16 text-green-500 mx-auto mb-4" />
+                  <p className="text-green-700 dark:text-green-400 mb-4 font-medium">Google Calendar Connected!</p>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Your availability and bookings will sync with Google Calendar
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Full calendar view coming soon
+                  </p>
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <CalendarDays className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+                  <p className="text-muted-foreground mb-4">Google Calendar not connected</p>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Connect with Google Calendar to sync your availability and bookings
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Visit the Settings page to set up Google Calendar integration
+                  </p>
+                </div>
+              )}
             </CardContent>
           </Card>
 
