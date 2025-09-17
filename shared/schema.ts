@@ -618,6 +618,11 @@ export type TimelineEvent =
       clickedAt?: Date;
       bouncedAt?: Date;
       createdAt: Date;
+      // Enhanced fields
+      templateName?: string;
+      templateSubject?: string;
+      templatePreview?: string;
+      automationName?: string;
     }
   | {
       type: 'sms';
@@ -628,6 +633,10 @@ export type TimelineEvent =
       sentAt?: Date;
       deliveredAt?: Date;
       createdAt: Date;
+      // Enhanced fields
+      templateName?: string;
+      templatePreview?: string;
+      automationName?: string;
     }
   | {
       type: 'proposal';

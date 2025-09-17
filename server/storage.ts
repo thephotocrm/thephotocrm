@@ -356,6 +356,22 @@ export class DatabaseStorage implements IStorage {
 
   async createEstimate(insertEstimate: InsertEstimate): Promise<Estimate> {
     const [estimate] = await db.insert(estimates).values(insertEstimate).returning();
+    
+    // Log proposal creation to client activity history
+    await db.insert(clientActivityLog).values({
+      clientId: estimate.clientId,
+      activityType: 'PROPOSAL_CREATED',
+      title: `Proposal created: ${estimate.title}`,
+      description: `New proposal "${estimate.title}" created with total of $${((estimate.totalCents || 0) / 100).toFixed(2)}`,
+      metadata: {
+        estimateId: estimate.id,
+        totalCents: estimate.totalCents,
+        status: estimate.status
+      },
+      relatedId: estimate.id,
+      relatedType: 'ESTIMATE'
+    });
+    
     return estimate;
   }
 
@@ -385,12 +401,46 @@ export class DatabaseStorage implements IStorage {
       db.select().from(clientActivityLog)
         .where(eq(clientActivityLog.clientId, clientId)),
       
-      // Get email logs  
-      db.select().from(emailLogs)
+      // Get email logs with template information
+      db.select({
+        id: emailLogs.id,
+        clientId: emailLogs.clientId,
+        automationStepId: emailLogs.automationStepId,
+        status: emailLogs.status,
+        providerId: emailLogs.providerId,
+        sentAt: emailLogs.sentAt,
+        openedAt: emailLogs.openedAt,
+        clickedAt: emailLogs.clickedAt,
+        bouncedAt: emailLogs.bouncedAt,
+        templateName: templates.name,
+        templateSubject: templates.subject,
+        templateHtmlBody: templates.htmlBody,
+        templateTextBody: templates.textBody,
+        automationName: automations.name
+      })
+        .from(emailLogs)
+        .leftJoin(automationSteps, eq(emailLogs.automationStepId, automationSteps.id))
+        .leftJoin(templates, eq(automationSteps.templateId, templates.id))
+        .leftJoin(automations, eq(automationSteps.automationId, automations.id))
         .where(eq(emailLogs.clientId, clientId)),
       
-      // Get SMS logs
-      db.select().from(smsLogs)
+      // Get SMS logs with template information
+      db.select({
+        id: smsLogs.id,
+        clientId: smsLogs.clientId,
+        automationStepId: smsLogs.automationStepId,
+        status: smsLogs.status,
+        providerId: smsLogs.providerId,
+        sentAt: smsLogs.sentAt,
+        deliveredAt: smsLogs.deliveredAt,
+        templateName: templates.name,
+        templateTextBody: templates.textBody,
+        automationName: automations.name
+      })
+        .from(smsLogs)
+        .leftJoin(automationSteps, eq(smsLogs.automationStepId, automationSteps.id))
+        .leftJoin(templates, eq(automationSteps.templateId, templates.id))
+        .leftJoin(automations, eq(automationSteps.automationId, automations.id))
         .where(eq(smsLogs.clientId, clientId)),
       
       // Get estimates for this client
@@ -422,37 +472,73 @@ export class DatabaseStorage implements IStorage {
         type: 'activity' as const,
         id: log.id,
         title: log.title,
-        description: log.description,
+        description: log.description || undefined,
         activityType: log.activityType,
         metadata: log.metadata,
-        createdAt: log.createdAt
+        createdAt: log.createdAt || new Date()
       })),
       ...emailLogEntries.map(email => {
         // Use proper timestamp precedence: first non-null of clickedAt, openedAt, sentAt, bouncedAt
         const timestamp = email.clickedAt || email.openedAt || email.sentAt || email.bouncedAt;
+        
+        // Create a preview from template content (first 100 characters)
+        const templatePreview = email.templateTextBody 
+          ? email.templateTextBody.substring(0, 100) + (email.templateTextBody.length > 100 ? '...' : '')
+          : undefined;
+        
+        const title = email.automationName 
+          ? `${email.automationName} - Email sent` 
+          : 'Automated email sent';
+        
+        const description = email.templateSubject 
+          ? `Subject: ${email.templateSubject}` 
+          : `Status: ${email.status}`;
+        
         return {
           type: 'email' as const,
           id: email.id,
-          title: 'Automated email sent',
-          description: `Status: ${email.status}`,
+          title,
+          description,
           status: email.status,
-          sentAt: email.sentAt,
-          openedAt: email.openedAt,
-          clickedAt: email.clickedAt,
-          bouncedAt: email.bouncedAt,
-          createdAt: timestamp || email.sentAt || new Date()
+          sentAt: email.sentAt || undefined,
+          openedAt: email.openedAt || undefined,
+          clickedAt: email.clickedAt || undefined,
+          bouncedAt: email.bouncedAt || undefined,
+          createdAt: timestamp || email.sentAt || new Date(),
+          // Enhanced fields
+          templateName: email.templateName || undefined,
+          templateSubject: email.templateSubject || undefined,
+          templatePreview,
+          automationName: email.automationName || undefined
         };
       }),
-      ...smsLogEntries.map(sms => ({
-        type: 'sms' as const,
-        id: sms.id,
-        title: 'Automated SMS sent',
-        description: `Status: ${sms.status}`,
-        status: sms.status,
-        sentAt: sms.sentAt,
-        deliveredAt: sms.deliveredAt,
-        createdAt: sms.sentAt || new Date()
-      })),
+      ...smsLogEntries.map(sms => {
+        // Create a preview from template content (first 100 characters)
+        const templatePreview = sms.templateTextBody 
+          ? sms.templateTextBody.substring(0, 100) + (sms.templateTextBody.length > 100 ? '...' : '')
+          : undefined;
+        
+        const title = sms.automationName 
+          ? `${sms.automationName} - SMS sent` 
+          : 'Automated SMS sent';
+        
+        const description = templatePreview || `Status: ${sms.status}`;
+        
+        return {
+          type: 'sms' as const,
+          id: sms.id,
+          title,
+          description,
+          status: sms.status,
+          sentAt: sms.sentAt || undefined,
+          deliveredAt: sms.deliveredAt || undefined,
+          createdAt: sms.sentAt || new Date(),
+          // Enhanced fields
+          templateName: sms.templateName || undefined,
+          templatePreview,
+          automationName: sms.automationName || undefined
+        };
+      }),
       ...clientEstimates.map(estimate => ({
         type: 'proposal' as const,
         id: estimate.id,

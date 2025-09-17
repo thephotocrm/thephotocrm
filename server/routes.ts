@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import cookieParser from 'cookie-parser';
 import Stripe from "stripe";
 import { storage } from "./storage";
+import { db } from "./db";
 import { authenticateToken, requirePhotographer, requireRole } from "./middleware/auth";
 import { hashPassword, authenticateUser, generateToken } from "./services/auth";
 import { sendEmail } from "./services/email";
@@ -10,7 +11,7 @@ import { sendSms } from "./services/sms";
 import { createPaymentIntent, createCheckoutSession, handleWebhook } from "./services/stripe";
 import { insertUserSchema, insertPhotographerSchema, insertClientSchema, insertStageSchema, 
          insertTemplateSchema, insertAutomationSchema, insertAutomationStepSchema, insertPackageSchema, 
-         insertEstimateSchema, insertMessageSchema } from "@shared/schema";
+         insertEstimateSchema, insertMessageSchema, emailLogs, smsLogs } from "@shared/schema";
 import { startCronJobs } from "./jobs/cron";
 
 if (!process.env.STRIPE_SECRET_KEY) {
@@ -550,6 +551,68 @@ ${photographer?.businessName || 'Your Photography Team'}`;
         photographerId: req.user!.photographerId!
       });
       const estimate = await storage.createEstimate(estimateData);
+      
+      // Send proposal notifications to client if estimate has sentAt date
+      if (estimate.sentAt && estimate.clientId) {
+        try {
+          // Get client info for notifications
+          const client = await storage.getClient(estimate.clientId);
+          const photographer = await storage.getPhotographer(req.user!.photographerId!);
+          
+          if (client && photographer) {
+            const proposalUrl = `${process.env.VITE_APP_URL || 'https://your-domain.replit.app'}/public/estimates/${estimate.token}`;
+            
+            // Email notification
+            if (client.email && client.emailOptIn) {
+              const emailSuccess = await sendEmail({
+                to: client.email,
+                from: `${photographer.businessName} <${process.env.SENDGRID_FROM_EMAIL}>`,
+                replyTo: photographer.emailFromAddr || process.env.SENDGRID_FROM_EMAIL,
+                subject: `New Proposal: ${estimate.title}`,
+                html: `
+                  <h2>You have received a new proposal!</h2>
+                  <p>Hi ${client.firstName},</p>
+                  <p>${photographer.businessName} has sent you a new proposal titled "${estimate.title}".</p>
+                  <p><strong>Total Amount:</strong> $${((estimate.totalCents || 0) / 100).toFixed(2)}</p>
+                  <p><a href="${proposalUrl}" style="background: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px;">View & Sign Proposal</a></p>
+                  <p>You can view and electronically sign your proposal by clicking the link above.</p>
+                  <p>Best regards,<br>${photographer.businessName}</p>
+                `,
+                text: `You have received a new proposal from ${photographer.businessName}!\n\nProposal: ${estimate.title}\nTotal: $${((estimate.totalCents || 0) / 100).toFixed(2)}\n\nView and sign at: ${proposalUrl}`
+              });
+              
+              if (emailSuccess) {
+                await db.insert(emailLogs).values({
+                  clientId: client.id,
+                  status: 'sent',
+                  sentAt: new Date()
+                });
+              }
+            }
+            
+            // SMS notification
+            if (client.phone && client.smsOptIn) {
+              const smsResult = await sendSms({
+                to: client.phone,
+                body: `New proposal from ${photographer.businessName}: "${estimate.title}" ($${((estimate.totalCents || 0) / 100).toFixed(2)}). View & sign: ${proposalUrl}`
+              });
+              
+              if (smsResult.success) {
+                await db.insert(smsLogs).values({
+                  clientId: client.id,
+                  status: 'sent',
+                  providerId: smsResult.sid,
+                  sentAt: new Date()
+                });
+              }
+            }
+          }
+        } catch (notificationError) {
+          console.error('Error sending proposal notifications:', notificationError);
+          // Don't fail the main request if notifications fail
+        }
+      }
+      
       res.status(201).json(estimate);
     } catch (error) {
       console.error("Create estimate error:", error);

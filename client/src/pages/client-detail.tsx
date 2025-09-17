@@ -512,12 +512,34 @@ export default function ClientDetail() {
                            event.type === 'payment' ? <DollarSign className="w-4 h-4 text-emerald-600" /> :
                            <FileText className="w-4 h-4 text-gray-600" />}
                         </div>
-                        <div>
+                        <div className="flex-1">
                           <p className="font-medium">{event.title}</p>
                           <p className="text-sm text-muted-foreground">
                             {event.description}
                           </p>
-                          <p className="text-xs text-muted-foreground">
+                          
+                          {/* Enhanced information for email and SMS */}
+                          {(event.type === 'email' || event.type === 'sms') && (
+                            <div className="mt-2 space-y-1">
+                              {event.type === 'email' && event.templateSubject && (
+                                <p className="text-xs font-medium text-blue-600" data-testid="email-subject">
+                                  📧 Subject: {event.templateSubject}
+                                </p>
+                              )}
+                              {event.templatePreview && (
+                                <p className="text-xs text-gray-600 bg-gray-50 p-2 rounded border" data-testid="message-preview">
+                                  {event.templatePreview}
+                                </p>
+                              )}
+                              {event.automationName && (
+                                <p className="text-xs text-purple-600" data-testid="automation-name">
+                                  🔄 Automation: {event.automationName}
+                                </p>
+                              )}
+                            </div>
+                          )}
+                          
+                          <p className="text-xs text-muted-foreground mt-2">
                             {event.createdAt ? formatDate(event.createdAt) : 'Unknown'}
                           </p>
                         </div>
