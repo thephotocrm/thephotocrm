@@ -19,7 +19,7 @@ if (!process.env.STRIPE_SECRET_KEY) {
 }
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: "2024-11-20.acacia",
+  apiVersion: "2025-08-27.basil",
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -681,7 +681,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
         return res.status(404).json({ message: "Estimate not found" });
       }
 
-      const amount = mode === "DEPOSIT" ? (estimate.depositCents || 0) : estimate.totalCents;
+      const amount = mode === "DEPOSIT" ? (estimate.depositCents || 0) : (estimate.totalCents || 0);
       
       const successUrl = `${process.env.APP_BASE_URL}/payment-success?estimate=${req.params.token}`;
       const cancelUrl = `${process.env.APP_BASE_URL}/estimates/${req.params.token}`;
@@ -699,6 +699,98 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       res.json({ url: checkoutUrl });
     } catch (error: any) {
       res.status(500).json({ message: "Error creating checkout session: " + error.message });
+    }
+  });
+
+  // Send proposal endpoint
+  app.post("/api/estimates/:id/send", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      const estimateId = req.params.id;
+      
+      // Get the estimate first to ensure it belongs to the photographer
+      const estimate = await storage.getEstimate(estimateId);
+      if (!estimate || estimate.photographerId !== req.user!.photographerId!) {
+        return res.status(404).json({ message: "Estimate not found" });
+      }
+
+      // Update estimate with sent timestamp
+      const updatedEstimate = await storage.updateEstimate(estimateId, {
+        sentAt: new Date()
+      });
+
+      // Send notifications to client
+      if (estimate.clientId) {
+        try {
+          // Get client info for notifications
+          const client = await storage.getClient(estimate.clientId);
+          const photographer = await storage.getPhotographer(req.user!.photographerId!);
+          
+          if (client && photographer) {
+            const proposalUrl = `${process.env.VITE_APP_URL || 'https://your-domain.replit.app'}/public/estimates/${estimate.token}`;
+            
+            // Email notification
+            if (client.email && client.emailOptIn) {
+              const emailSuccess = await sendEmail({
+                to: client.email,
+                from: `${photographer.businessName} <${process.env.SENDGRID_FROM_EMAIL}>`,
+                replyTo: photographer.emailFromAddr || process.env.SENDGRID_FROM_EMAIL,
+                subject: `New Proposal: ${estimate.title}`,
+                html: `
+                  <h2>You have received a new proposal!</h2>
+                  <p>Hi ${client.firstName},</p>
+                  <p>${photographer.businessName} has sent you a new proposal titled "${estimate.title}".</p>
+                  <p><strong>Total Amount:</strong> $${((estimate.totalCents || 0) / 100).toFixed(2)}</p>
+                  <p><a href="${proposalUrl}" style="background: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px;">View & Sign Proposal</a></p>
+                  <p>You can view and electronically sign your proposal by clicking the link above.</p>
+                  <p>Best regards,<br>${photographer.businessName}</p>
+                `,
+                text: `You have received a new proposal from ${photographer.businessName}!\n\nProposal: ${estimate.title}\nTotal: $${((estimate.totalCents || 0) / 100).toFixed(2)}\n\nView and sign at: ${proposalUrl}`
+              });
+              
+              if (emailSuccess) {
+                await db.insert(emailLogs).values({
+                  clientId: client.id,
+                  status: 'sent',
+                  sentAt: new Date()
+                });
+              }
+            }
+            
+            // SMS notification
+            if (client.phone && client.smsOptIn) {
+              const smsResult = await sendSms({
+                to: client.phone,
+                body: `Hi ${client.firstName}, ${photographer.businessName} has sent you a new proposal "${estimate.title}" ($${((estimate.totalCents || 0) / 100).toFixed(2)}). View and sign at: ${proposalUrl}`
+              });
+              
+              if (smsResult.success) {
+                await db.insert(smsLogs).values({
+                  clientId: client.id,
+                  status: 'sent',
+                  sentAt: new Date()
+                });
+              }
+            }
+
+            // Log the proposal activity
+            await db.insert(clientHistory).values({
+              clientId: client.id,
+              type: 'proposal_sent',
+              title: `Proposal Sent: ${estimate.title}`,
+              description: `Proposal "${estimate.title}" was sent to the client ($${((estimate.totalCents || 0) / 100).toFixed(2)}).`,
+              createdAt: new Date()
+            });
+          }
+        } catch (notificationError) {
+          console.error('Error sending proposal notifications:', notificationError);
+          // Don't fail the main request if notifications fail
+        }
+      }
+      
+      res.json(updatedEstimate);
+    } catch (error) {
+      console.error('Send proposal error:', error);
+      res.status(500).json({ message: "Internal server error" });
     }
   });
 

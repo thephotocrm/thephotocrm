@@ -20,7 +20,9 @@ import {
   DollarSign,
   MessageSquare,
   Link as LinkIcon,
-  ExternalLink
+  ExternalLink,
+  MoreHorizontal,
+  Eye
 } from "lucide-react";
 import { type ClientWithStage, type Estimate, type Message, type TimelineEvent, type Stage } from "@shared/schema";
 import { useState } from "react";
@@ -28,6 +30,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 export default function ClientDetail() {
   // ALL HOOKS MUST BE AT THE TOP - Rules of Hooks!
@@ -166,6 +169,26 @@ export default function ClientDetail() {
       toast({
         title,
         description,
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Send proposal mutation
+  const sendProposalMutation = useMutation({
+    mutationFn: (estimateId: string) => apiRequest("POST", `/api/estimates/${estimateId}/send`, {}),
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Proposal sent to client successfully!"
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/estimates", "client", clientId] });
+      queryClient.invalidateQueries({ queryKey: ["/api/clients", clientId, "history"] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to send proposal",
         variant: "destructive"
       });
     }
@@ -485,6 +508,105 @@ export default function ClientDetail() {
               </div>
             </DialogContent>
           </Dialog>
+
+          {/* Proposals Section */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Proposals</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {estimates && estimates.length > 0 ? (
+                <div className="space-y-4">
+                  {estimates.map((estimate) => (
+                    <div 
+                      key={estimate.id} 
+                      className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50"
+                      data-testid={`proposal-${estimate.id}`}
+                    >
+                      <div className="flex items-center space-x-4">
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                          estimate.status === 'SIGNED' ? 'bg-green-100' :
+                          estimate.sentAt ? 'bg-blue-100' :
+                          'bg-gray-100'
+                        }`}>
+                          {estimate.status === 'SIGNED' ? (
+                            <FileText className="w-5 h-5 text-green-600" />
+                          ) : estimate.sentAt ? (
+                            <Send className="w-5 h-5 text-blue-600" />
+                          ) : (
+                            <FileText className="w-5 h-5 text-gray-600" />
+                          )}
+                        </div>
+                        <div>
+                          <h3 className="font-medium">{estimate.title}</h3>
+                          <p className="text-sm text-muted-foreground">
+                            ${((estimate.totalCents || 0) / 100).toFixed(2)}
+                          </p>
+                          <div className="flex items-center space-x-2 mt-1">
+                            <Badge variant={
+                              estimate.status === 'SIGNED' ? 'default' : 
+                              estimate.sentAt ? 'secondary' : 'outline'
+                            }>
+                              {estimate.sentAt ? (
+                                estimate.status === 'SIGNED' ? 'Signed' : 'Sent'
+                              ) : 'Draft'}
+                            </Badge>
+                            {estimate.sentAt && (
+                              <span className="text-xs text-muted-foreground">
+                                Sent {new Date(estimate.sentAt).toLocaleDateString()}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center space-x-2">
+                        {!estimate.sentAt && (
+                          <Button 
+                            size="sm" 
+                            onClick={() => sendProposalMutation.mutate(estimate.id)}
+                            disabled={sendProposalMutation.isPending}
+                            data-testid={`send-proposal-${estimate.id}`}
+                          >
+                            <Send className="w-4 h-4 mr-2" />
+                            {sendProposalMutation.isPending ? 'Sending...' : 'Send'}
+                          </Button>
+                        )}
+                        
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm" data-testid={`menu-proposal-${estimate.id}`}>
+                              <MoreHorizontal className="w-4 h-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => window.open(`/estimates/${estimate.token}`, '_blank')}>
+                              <Eye className="w-4 h-4 mr-2" />
+                              Preview
+                            </DropdownMenuItem>
+                            {estimate.sentAt && (
+                              <DropdownMenuItem onClick={() => sendProposalMutation.mutate(estimate.id)}>
+                                <Send className="w-4 h-4 mr-2" />
+                                Resend
+                              </DropdownMenuItem>
+                            )}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <FileText className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                  <p className="text-muted-foreground mb-4">No proposals created yet</p>
+                  <p className="text-sm text-muted-foreground">
+                    Create proposals from the main proposals page to see them here
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
           {/* History Section */}
           <Card>
