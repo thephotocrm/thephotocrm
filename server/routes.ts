@@ -1606,14 +1606,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
     try {
       const { code, state } = req.query;
       
-      console.log('Google Calendar Callback DEBUG:', {
-        hasCode: !!code,
-        hasState: !!state,
-        query: req.query
-      });
-      
       if (!code || !state) {
-        console.error('Missing OAuth parameters:', { code: !!code, state: !!state });
         return res.status(400).send(`
           <html>
             <body style="font-family: Arial, sans-serif; text-align: center; padding: 50px;">
