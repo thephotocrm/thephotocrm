@@ -258,7 +258,7 @@ export class GoogleCalendarService {
       // Store credentials securely for this photographer
       await storage.storeGoogleCalendarCredentials(photographerId, {
         accessToken: tokens.access_token,
-        refreshToken: tokens.refresh_token,
+        refreshToken: tokens.refresh_token || undefined,
         expiryDate: tokens.expiry_date ? new Date(tokens.expiry_date) : undefined,
         scope: Array.isArray(tokens.scope) ? tokens.scope.join(' ') : tokens.scope
       });
@@ -409,7 +409,7 @@ export class GoogleCalendarService {
 
       const response = await calendar.events.insert({
         calendarId: 'primary',
-        resource: event,
+        requestBody: event,
         conferenceDataVersion: 1, // Required for Google Meet links
         sendUpdates: 'all' // Send invites to all attendees
       });
@@ -421,9 +421,9 @@ export class GoogleCalendarService {
 
       return {
         success: true,
-        eventId: response.data.id,
-        eventLink: response.data.htmlLink,
-        googleMeetLink: meetLink
+        eventId: response.data.id || undefined,
+        eventLink: response.data.htmlLink || undefined,
+        googleMeetLink: meetLink || undefined
       };
 
     } catch (error: any) {
@@ -507,7 +507,7 @@ export class GoogleCalendarService {
       const response = await calendar.events.update({
         calendarId: 'primary',
         eventId: eventId,
-        resource: updatedEvent,
+        requestBody: updatedEvent,
         sendUpdates: 'all'
       });
 
@@ -517,9 +517,9 @@ export class GoogleCalendarService {
 
       return {
         success: true,
-        eventId: response.data.id,
-        eventLink: response.data.htmlLink,
-        googleMeetLink: meetLink
+        eventId: response.data.id || undefined,
+        eventLink: response.data.htmlLink || undefined,
+        googleMeetLink: meetLink || undefined
       };
 
     } catch (error: any) {
