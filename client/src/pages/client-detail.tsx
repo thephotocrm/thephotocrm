@@ -51,8 +51,8 @@ export default function ClientDetail() {
     enabled: !!user && !!clientId
   });
 
-  const { data: estimates } = useQuery<Estimate[]>({
-    queryKey: ["/api/estimates", "client", clientId],
+  const { data: proposals } = useQuery<Estimate[]>({
+    queryKey: ["/api/proposals", "client", clientId],
     enabled: !!user && !!clientId
   });
 
@@ -176,13 +176,13 @@ export default function ClientDetail() {
 
   // Send proposal mutation
   const sendProposalMutation = useMutation({
-    mutationFn: (estimateId: string) => apiRequest("POST", `/api/estimates/${estimateId}/send`, {}),
+    mutationFn: (proposalId: string) => apiRequest("POST", `/api/proposals/${proposalId}/send`, {}),
     onSuccess: () => {
       toast({
         title: "Success",
         description: "Proposal sent to client successfully!"
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/estimates", "client", clientId] });
+      queryClient.invalidateQueries({ queryKey: ["/api/proposals", "client", clientId] });
       queryClient.invalidateQueries({ queryKey: ["/api/clients", clientId, "history"] });
     },
     onError: (error: any) => {
@@ -580,7 +580,7 @@ export default function ClientDetail() {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => window.open(`/estimates/${estimate.token}`, '_blank')}>
+                            <DropdownMenuItem onClick={() => window.open(`/proposals/${estimate.token}`, '_blank')}>
                               <Eye className="w-4 h-4 mr-2" />
                               Preview
                             </DropdownMenuItem>

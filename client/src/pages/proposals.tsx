@@ -11,7 +11,7 @@ import { Plus, FileText, DollarSign, Clock, Send, Eye, MoreHorizontal } from "lu
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import type { Estimate, Client } from "@shared/schema";
 
-interface EstimateWithClient extends Estimate {
+interface ProposalWithClient extends Estimate {
   client: {
     firstName: string;
     lastName: string;
@@ -19,26 +19,26 @@ interface EstimateWithClient extends Estimate {
   };
 }
 
-export default function Estimates() {
+export default function Proposals() {
   const { user, loading } = useAuth();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
 
-  // Fetch estimates
-  const { data: estimates = [], isLoading: estimatesLoading } = useQuery<EstimateWithClient[]>({
-    queryKey: ["/api/estimates"],
+  // Fetch proposals
+  const { data: proposals = [], isLoading: proposalsLoading } = useQuery<ProposalWithClient[]>({
+    queryKey: ["/api/proposals"],
     enabled: !!user
   });
 
   // Send proposal mutation
   const sendProposalMutation = useMutation({
-    mutationFn: (estimateId: string) => apiRequest("POST", `/api/estimates/${estimateId}/send`, {}),
+    mutationFn: (proposalId: string) => apiRequest("POST", `/api/proposals/${proposalId}/send`, {}),
     onSuccess: () => {
       toast({
         title: "Success",
         description: "Proposal sent to client successfully!"
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/estimates"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/proposals"] });
     },
     onError: (error: any) => {
       toast({
@@ -77,7 +77,7 @@ export default function Estimates() {
             </div>
             
             <Button 
-              onClick={() => setLocation("/estimates/new")}
+              onClick={() => setLocation("/proposals/new")}
               data-testid="button-create-proposal"
             >
               <Plus className="w-5 h-5 mr-2" />
@@ -95,8 +95,8 @@ export default function Estimates() {
                 <FileText className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{estimates.length}</div>
-                <p className="text-xs text-muted-foreground">{estimates.filter(e => e.sentAt).length} sent</p>
+                <div className="text-2xl font-bold">{proposals.length}</div>
+                <p className="text-xs text-muted-foreground">{proposals.filter(e => e.sentAt).length} sent</p>
               </CardContent>
             </Card>
 
@@ -107,10 +107,10 @@ export default function Estimates() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  ${((estimates.reduce((sum, e) => sum + (e.totalCents || 0), 0)) / 100).toFixed(0)}
+                  ${((proposals.reduce((sum, e) => sum + (e.totalCents || 0), 0)) / 100).toFixed(0)}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  {estimates.filter(e => e.status === 'SIGNED').length} signed
+                  {proposals.filter(e => e.status === 'SIGNED').length} signed
                 </p>
               </CardContent>
             </Card>
@@ -122,29 +122,29 @@ export default function Estimates() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  {estimates.filter(e => e.sentAt && e.status === 'DRAFT').length}
+                  {proposals.filter(e => e.sentAt && e.status === 'DRAFT').length}
                 </div>
                 <p className="text-xs text-muted-foreground">Awaiting client response</p>
               </CardContent>
             </Card>
           </div>
 
-          {/* Estimates List */}
+          {/* Proposals List */}
           <Card>
             <CardHeader>
               <CardTitle>Recent Proposals</CardTitle>
             </CardHeader>
             <CardContent>
-              {estimatesLoading ? (
+              {proposalsLoading ? (
                 <div className="flex justify-center py-8">
                   <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
                 </div>
-              ) : estimates.length === 0 ? (
+              ) : proposals.length === 0 ? (
                 <div className="text-center py-8">
                   <FileText className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
                   <p className="text-muted-foreground mb-4">No proposals created yet.</p>
                   <Button 
-                    onClick={() => setLocation("/estimates/new")}
+                    onClick={() => setLocation("/proposals/new")}
                     data-testid="button-create-first-proposal"
                   >
                     <Plus className="w-4 h-4 mr-2" />
@@ -153,44 +153,44 @@ export default function Estimates() {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {estimates.map((estimate) => (
+                  {proposals.map((proposal) => (
                     <div 
-                      key={estimate.id} 
+                      key={proposal.id} 
                       className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50"
-                      data-testid={`proposal-${estimate.id}`}
+                      data-testid={`proposal-${proposal.id}`}
                     >
                       <div className="flex items-center space-x-4">
                         <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                          estimate.status === 'SIGNED' ? 'bg-green-100' :
-                          estimate.sentAt ? 'bg-blue-100' :
+                          proposal.status === 'SIGNED' ? 'bg-green-100' :
+                          proposal.sentAt ? 'bg-blue-100' :
                           'bg-gray-100'
                         }`}>
-                          {estimate.status === 'SIGNED' ? (
+                          {proposal.status === 'SIGNED' ? (
                             <FileText className="w-5 h-5 text-green-600" />
-                          ) : estimate.sentAt ? (
+                          ) : proposal.sentAt ? (
                             <Send className="w-5 h-5 text-blue-600" />
                           ) : (
                             <FileText className="w-5 h-5 text-gray-600" />
                           )}
                         </div>
                         <div>
-                          <h3 className="font-medium">{estimate.title}</h3>
+                          <h3 className="font-medium">{proposal.title}</h3>
                           <p className="text-sm text-muted-foreground">
-                            {estimate.client.firstName} {estimate.client.lastName} • 
-                            ${((estimate.totalCents || 0) / 100).toFixed(2)}
+                            {proposal.client.firstName} {proposal.client.lastName} • 
+                            ${((proposal.totalCents || 0) / 100).toFixed(2)}
                           </p>
                           <div className="flex items-center space-x-2 mt-1">
                             <Badge variant={
-                              estimate.status === 'SIGNED' ? 'default' : 
-                              estimate.sentAt ? 'secondary' : 'outline'
+                              proposal.status === 'SIGNED' ? 'default' : 
+                              proposal.sentAt ? 'secondary' : 'outline'
                             }>
-                              {estimate.sentAt ? (
-                                estimate.status === 'SIGNED' ? 'Signed' : 'Sent'
+                              {proposal.sentAt ? (
+                                proposal.status === 'SIGNED' ? 'Signed' : 'Sent'
                               ) : 'Draft'}
                             </Badge>
-                            {estimate.sentAt && (
+                            {proposal.sentAt && (
                               <span className="text-xs text-muted-foreground">
-                                Sent {new Date(estimate.sentAt).toLocaleDateString()}
+                                Sent {new Date(proposal.sentAt).toLocaleDateString()}
                               </span>
                             )}
                           </div>
@@ -198,12 +198,12 @@ export default function Estimates() {
                       </div>
                       
                       <div className="flex items-center space-x-2">
-                        {!estimate.sentAt && (
+                        {!proposal.sentAt && (
                           <Button 
                             size="sm" 
-                            onClick={() => sendProposalMutation.mutate(estimate.id)}
+                            onClick={() => sendProposalMutation.mutate(proposal.id)}
                             disabled={sendProposalMutation.isPending}
-                            data-testid={`send-proposal-${estimate.id}`}
+                            data-testid={`send-proposal-${proposal.id}`}
                           >
                             <Send className="w-4 h-4 mr-2" />
                             {sendProposalMutation.isPending ? 'Sending...' : 'Send'}
@@ -212,17 +212,17 @@ export default function Estimates() {
                         
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="sm" data-testid={`menu-proposal-${estimate.id}`}>
+                            <Button variant="ghost" size="sm" data-testid={`menu-proposal-${proposal.id}`}>
                               <MoreHorizontal className="w-4 h-4" />
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => window.open(`/estimates/${estimate.token}`, '_blank')}>
+                            <DropdownMenuItem onClick={() => window.open(`/proposals/${proposal.token}`, '_blank')}>
                               <Eye className="w-4 h-4 mr-2" />
                               Preview
                             </DropdownMenuItem>
-                            {estimate.sentAt && (
-                              <DropdownMenuItem onClick={() => sendProposalMutation.mutate(estimate.id)}>
+                            {proposal.sentAt && (
+                              <DropdownMenuItem onClick={() => sendProposalMutation.mutate(proposal.id)}>
                                 <Send className="w-4 h-4 mr-2" />
                                 Resend
                               </DropdownMenuItem>

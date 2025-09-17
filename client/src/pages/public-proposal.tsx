@@ -23,7 +23,7 @@ import {
 } from "lucide-react";
 import type { Estimate, Client, Photographer } from "@shared/schema";
 
-interface EstimateWithRelations extends Estimate {
+interface ProposalWithRelations extends Estimate {
   items: Array<{
     id: string;
     name: string;
@@ -37,25 +37,25 @@ interface EstimateWithRelations extends Estimate {
   photographer: Photographer;
 }
 
-export default function PublicEstimate() {
-  const [, params] = useRoute("/estimates/:token");
+export default function PublicProposal() {
+  const [, params] = useRoute("/proposals/:token");
   const { toast } = useToast();
   const [signedByName, setSignedByName] = useState("");
   const [signedByEmail, setSignedByEmail] = useState("");
   const [isSignatureValid, setIsSignatureValid] = useState(false);
 
-  const { data: estimate, isLoading } = useQuery<EstimateWithRelations>({
-    queryKey: [`/public/estimates/${params?.token}`],
+  const { data: proposal, isLoading } = useQuery<ProposalWithRelations>({
+    queryKey: [`/public/proposals/${params?.token}`],
     enabled: !!params?.token
   });
 
-  const signEstimateMutation = useMutation({
+  const signProposalMutation = useMutation({
     mutationFn: async (signatureData: any) => {
-      await apiRequest("POST", `/public/estimates/${params?.token}/sign`, signatureData);
+      await apiRequest("POST", `/public/proposals/${params?.token}/sign`, signatureData);
     },
     onSuccess: () => {
       toast({
-        title: "Estimate signed",
+        title: "Proposal signed",
         description: "Your signature has been recorded successfully.",
       });
       window.location.reload();
@@ -63,7 +63,7 @@ export default function PublicEstimate() {
     onError: () => {
       toast({
         title: "Error",
-        description: "Failed to sign estimate. Please try again.",
+        description: "Failed to sign proposal. Please try again.",
         variant: "destructive"
       });
     }
@@ -71,7 +71,7 @@ export default function PublicEstimate() {
 
   const handlePayment = async (mode: 'DEPOSIT' | 'FULL') => {
     try {
-      const response = await apiRequest("POST", `/public/estimates/${params?.token}/pay`, { mode });
+      const response = await apiRequest("POST", `/public/proposals/${params?.token}/pay`, { mode });
       const { url } = await response.json();
       window.location.href = url;
     } catch (error) {
@@ -87,7 +87,7 @@ export default function PublicEstimate() {
     e.preventDefault();
     if (!isSignatureValid) return;
 
-    signEstimateMutation.mutate({
+    signProposalMutation.mutate({
       signedByName,
       signedByEmail,
       signatureImageUrl: null // For simplicity, not implementing actual signature drawing
@@ -106,15 +106,15 @@ export default function PublicEstimate() {
     );
   }
 
-  if (!estimate) {
+  if (!proposal) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Card className="max-w-md">
           <CardContent className="pt-6 text-center">
             <FileText className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-            <h2 className="text-xl font-semibold mb-2">Estimate Not Found</h2>
+            <h2 className="text-xl font-semibold mb-2">Proposal Not Found</h2>
             <p className="text-muted-foreground">
-              The estimate you're looking for doesn't exist or may have expired.
+              The proposal you're looking for doesn't exist or may have expired.
             </p>
           </CardContent>
         </Card>
@@ -125,14 +125,14 @@ export default function PublicEstimate() {
   const formatPrice = (cents: number) => {
     return (cents / 100).toLocaleString('en-US', {
       style: 'currency',
-      currency: estimate.currency || 'USD'
+      currency: proposal.currency || 'USD'
     });
   };
 
-  const isExpired = estimate.validUntil && new Date(estimate.validUntil) < new Date();
-  const isSigned = estimate.status === 'SIGNED' || estimate.signedAt;
+  const isExpired = proposal.validUntil && new Date(proposal.validUntil) < new Date();
+  const isSigned = proposal.status === 'SIGNED' || proposal.signedAt;
   const canSign = !isSigned && !isExpired;
-  const canPay = isSigned && (estimate.status === 'SIGNED' || estimate.status === 'PAID_PARTIAL');
+  const canPay = isSigned && (proposal.status === 'SIGNED' || proposal.status === 'PAID_PARTIAL');
 
   return (
     <div className="min-h-screen bg-background">
@@ -145,13 +145,13 @@ export default function PublicEstimate() {
                 <Camera className="w-6 h-6 text-primary-foreground" />
               </div>
               <div>
-                <h1 className="text-xl font-semibold">{estimate.photographer.businessName}</h1>
+                <h1 className="text-xl font-semibold">{proposal.photographer.businessName}</h1>
                 <p className="text-sm text-muted-foreground">Wedding Photography</p>
               </div>
             </div>
             <div className="text-right">
-              <p className="text-sm text-muted-foreground">Estimate</p>
-              <p className="text-lg font-semibold">{estimate.title}</p>
+              <p className="text-sm text-muted-foreground">Proposal</p>
+              <p className="text-lg font-semibold">{proposal.title}</p>
             </div>
           </div>
         </div>
@@ -162,7 +162,7 @@ export default function PublicEstimate() {
         {isExpired && (
           <div className="mb-6 p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
             <p className="text-destructive font-medium">
-              This estimate expired on {new Date(estimate.validUntil!).toLocaleDateString()}
+              This proposal expired on {new Date(proposal.validUntil!).toLocaleDateString()}
             </p>
           </div>
         )}
@@ -172,7 +172,7 @@ export default function PublicEstimate() {
             <div className="flex items-center">
               <CheckCircle className="w-5 h-5 text-green-600 mr-2" />
               <p className="text-green-800 font-medium">
-                Signed by {estimate.signedByName} on {estimate.signedAt && new Date(estimate.signedAt).toLocaleDateString()}
+                Signed by {proposal.signedByName} on {proposal.signedAt && new Date(proposal.signedAt).toLocaleDateString()}
               </p>
             </div>
           </div>
@@ -190,28 +190,28 @@ export default function PublicEstimate() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <h3 className="font-semibold text-lg">
-                      {estimate.client.firstName} {estimate.client.lastName}
+                      {proposal.client.firstName} {proposal.client.lastName}
                     </h3>
-                    {estimate.client.email && (
+                    {proposal.client.email && (
                       <div className="flex items-center mt-2">
                         <Mail className="w-4 h-4 mr-2 text-muted-foreground" />
-                        <span className="text-sm">{estimate.client.email}</span>
+                        <span className="text-sm">{proposal.client.email}</span>
                       </div>
                     )}
-                    {estimate.client.phone && (
+                    {proposal.client.phone && (
                       <div className="flex items-center mt-1">
                         <Phone className="w-4 h-4 mr-2 text-muted-foreground" />
-                        <span className="text-sm">{estimate.client.phone}</span>
+                        <span className="text-sm">{proposal.client.phone}</span>
                       </div>
                     )}
                   </div>
-                  {estimate.client.weddingDate && (
+                  {proposal.client.weddingDate && (
                     <div>
                       <p className="text-sm text-muted-foreground">Wedding Date</p>
                       <div className="flex items-center mt-1">
                         <Calendar className="w-4 h-4 mr-2 text-muted-foreground" />
                         <span className="font-medium">
-                          {new Date(estimate.client.weddingDate).toLocaleDateString()}
+                          {new Date(proposal.client.weddingDate).toLocaleDateString()}
                         </span>
                       </div>
                     </div>
@@ -220,14 +220,14 @@ export default function PublicEstimate() {
               </CardContent>
             </Card>
 
-            {/* Estimate Items */}
+            {/* Proposal Items */}
             <Card className="mb-6">
               <CardHeader>
                 <CardTitle>Services & Pricing</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {estimate.items.map((item) => (
+                  {proposal.items.map((item) => (
                     <div key={item.id} className="flex justify-between items-start py-3 border-b border-border last:border-b-0">
                       <div className="flex-1">
                         <h4 className="font-medium">{item.name}</h4>
@@ -250,29 +250,29 @@ export default function PublicEstimate() {
                 <div className="space-y-2">
                   <div className="flex justify-between">
                     <span>Subtotal</span>
-                    <span>{formatPrice(estimate.subtotalCents || 0)}</span>
+                    <span>{formatPrice(proposal.subtotalCents || 0)}</span>
                   </div>
-                  {(estimate.discountCents || 0) > 0 && (
+                  {(proposal.discountCents || 0) > 0 && (
                     <div className="flex justify-between text-green-600">
                       <span>Discount</span>
-                      <span>-{formatPrice(estimate.discountCents || 0)}</span>
+                      <span>-{formatPrice(proposal.discountCents || 0)}</span>
                     </div>
                   )}
-                  {(estimate.taxCents || 0) > 0 && (
+                  {(proposal.taxCents || 0) > 0 && (
                     <div className="flex justify-between">
                       <span>Tax</span>
-                      <span>{formatPrice(estimate.taxCents || 0)}</span>
+                      <span>{formatPrice(proposal.taxCents || 0)}</span>
                     </div>
                   )}
                   <Separator className="my-2" />
                   <div className="flex justify-between text-lg font-semibold">
                     <span>Total</span>
-                    <span>{formatPrice(estimate.totalCents || 0)}</span>
+                    <span>{formatPrice(proposal.totalCents || 0)}</span>
                   </div>
-                  {estimate.depositCents && (
+                  {proposal.depositCents && (
                     <div className="flex justify-between text-sm text-muted-foreground">
-                      <span>Deposit ({estimate.depositPercent}%)</span>
-                      <span>{formatPrice(estimate.depositCents)}</span>
+                      <span>Deposit ({proposal.depositPercent}%)</span>
+                      <span>{formatPrice(proposal.depositCents)}</span>
                     </div>
                   )}
                 </div>
@@ -280,13 +280,13 @@ export default function PublicEstimate() {
             </Card>
 
             {/* Notes */}
-            {estimate.notes && (
+            {proposal.notes && (
               <Card className="mb-6">
                 <CardHeader>
                   <CardTitle>Additional Information</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-muted-foreground whitespace-pre-wrap">{estimate.notes}</p>
+                  <p className="text-muted-foreground whitespace-pre-wrap">{proposal.notes}</p>
                 </CardContent>
               </Card>
             )}
@@ -299,25 +299,25 @@ export default function PublicEstimate() {
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <FileText className="w-5 h-5 mr-2" />
-                  Estimate Status
+                  Proposal Status
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <span>Status</span>
-                    <Badge variant={estimate.status === 'SIGNED' ? 'default' : 'secondary'}>
-                      {estimate.status}
+                    <Badge variant={proposal.status === 'SIGNED' ? 'default' : 'secondary'}>
+                      {proposal.status}
                     </Badge>
                   </div>
                   <div className="flex items-center justify-between">
                     <span>Created</span>
-                    <span className="text-sm">{new Date(estimate.createdAt).toLocaleDateString()}</span>
+                    <span className="text-sm">{new Date(proposal.createdAt).toLocaleDateString()}</span>
                   </div>
-                  {estimate.validUntil && (
+                  {proposal.validUntil && (
                     <div className="flex items-center justify-between">
                       <span>Valid Until</span>
-                      <span className="text-sm">{new Date(estimate.validUntil).toLocaleDateString()}</span>
+                      <span className="text-sm">{new Date(proposal.validUntil).toLocaleDateString()}</span>
                     </div>
                   )}
                 </div>
@@ -359,16 +359,16 @@ export default function PublicEstimate() {
                       />
                     </div>
                     <div className="text-xs text-muted-foreground">
-                      By signing, you agree to the terms and pricing outlined in this estimate.
+                      By signing, you agree to the terms and pricing outlined in this proposal.
                     </div>
                     <Button 
                       type="submit"
                       className="w-full"
-                      disabled={!isSignatureValid || signEstimateMutation.isPending}
-                      data-testid="button-sign-estimate"
+                      disabled={!isSignatureValid || signProposalMutation.isPending}
+                      data-testid="button-sign-proposal"
                     >
                       <Pen className="w-4 h-4 mr-2" />
-                      {signEstimateMutation.isPending ? "Signing..." : "Sign Estimate"}
+                      {signProposalMutation.isPending ? "Signing..." : "Sign Proposal"}
                     </Button>
                   </form>
                 </CardContent>
@@ -385,14 +385,14 @@ export default function PublicEstimate() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  {estimate.depositCents && (
+                  {proposal.depositCents && (
                     <Button 
                       className="w-full"
                       onClick={() => handlePayment('DEPOSIT')}
                       data-testid="button-pay-deposit"
                     >
                       <CreditCard className="w-4 h-4 mr-2" />
-                      Pay Deposit ({formatPrice(estimate.depositCents)})
+                      Pay Deposit ({formatPrice(proposal.depositCents)})
                     </Button>
                   )}
                   <Button 
@@ -402,7 +402,7 @@ export default function PublicEstimate() {
                     data-testid="button-pay-full"
                   >
                     <CreditCard className="w-4 h-4 mr-2" />
-                    Pay in Full ({formatPrice(estimate.totalCents)})
+                    Pay in Full ({formatPrice(proposal.totalCents)})
                   </Button>
                 </CardContent>
               </Card>
@@ -419,7 +419,7 @@ export default function PublicEstimate() {
                   Download PDF
                 </Button>
                 <Button variant="outline" className="w-full" data-testid="button-print">
-                  Print Estimate
+                  Print Proposal
                 </Button>
               </CardContent>
             </Card>
@@ -431,16 +431,16 @@ export default function PublicEstimate() {
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-muted-foreground mb-4">
-                  Have questions about this estimate? Get in touch with us.
+                  Have questions about this proposal? Get in touch with us.
                 </p>
-                {estimate.photographer.emailFromAddr && (
+                {proposal.photographer.emailFromAddr && (
                   <div className="flex items-center mb-2">
                     <Mail className="w-4 h-4 mr-2 text-muted-foreground" />
                     <a 
-                      href={`mailto:${estimate.photographer.emailFromAddr}`}
+                      href={`mailto:${proposal.photographer.emailFromAddr}`}
                       className="text-sm text-primary hover:underline"
                     >
-                      {estimate.photographer.emailFromAddr}
+                      {proposal.photographer.emailFromAddr}
                     </a>
                   </div>
                 )}

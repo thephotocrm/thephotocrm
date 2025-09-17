@@ -3,13 +3,13 @@ import { useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import EstimateForm from "@/components/forms/estimate-form";
+import ProposalForm from "@/components/forms/proposal-form";
 import Sidebar from "@/components/layout/sidebar";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { type ClientWithStage, type Package } from "@shared/schema";
 
-export default function EstimateNew() {
+export default function ProposalNew() {
   const { user, loading } = useAuth();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
@@ -40,15 +40,15 @@ export default function EstimateNew() {
     enabled: !!user
   });
 
-  const createEstimateMutation = useMutation({
-    mutationFn: (data: any) => apiRequest("POST", "/api/estimates", data),
+  const createProposalMutation = useMutation({
+    mutationFn: (data: any) => apiRequest("POST", "/api/proposals", data),
     onSuccess: () => {
       toast({
         title: "Success",
         description: "Proposal created successfully!"
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/estimates"] });
-      setLocation("/estimates");
+      queryClient.invalidateQueries({ queryKey: ["/api/proposals"] });
+      setLocation("/proposals");
     },
     onError: (error: any) => {
       toast({
@@ -60,7 +60,7 @@ export default function EstimateNew() {
   });
 
   const handleSubmit = (data: any) => {
-    createEstimateMutation.mutate(data);
+    createProposalMutation.mutate(data);
   };
 
   if (clientsLoading) {
@@ -87,7 +87,7 @@ export default function EstimateNew() {
             <Button 
               variant="outline" 
               size="sm" 
-              onClick={() => setLocation("/estimates")}
+              onClick={() => setLocation("/proposals")}
               data-testid="button-back"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
@@ -101,11 +101,11 @@ export default function EstimateNew() {
         </header>
 
         <div className="p-6">
-          <EstimateForm
+          <ProposalForm
             clients={clients}
             packages={packages}
             onSubmit={handleSubmit}
-            isLoading={createEstimateMutation.isPending}
+            isLoading={createProposalMutation.isPending}
             submitText="Create Proposal"
           />
         </div>

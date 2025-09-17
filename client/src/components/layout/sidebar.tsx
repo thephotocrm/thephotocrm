@@ -23,7 +23,7 @@ export default function Sidebar() {
   const navigation = [
     { name: "Dashboard", href: "/", icon: LayoutDashboard },
     { name: "Clients", href: "/clients", icon: Users },
-    { name: "Estimates", href: "/estimates", icon: FileText },
+    { name: "Proposals", href: "/proposals", icon: FileText },
     { name: "Packages", href: "/packages", icon: Package },
     { name: "Questionnaires", href: "/questionnaires", icon: ClipboardList },
     { name: "Scheduling", href: "/scheduling", icon: Calendar },

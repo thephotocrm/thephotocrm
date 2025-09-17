@@ -9,8 +9,8 @@ import Register from "@/pages/register";
 import Dashboard from "@/pages/dashboard";
 import Clients from "@/pages/clients";
 import ClientDetail from "@/pages/client-detail";
-import Estimates from "@/pages/estimates";
-import EstimateNew from "@/pages/estimate-new";
+import Proposals from "@/pages/proposals";
+import ProposalNew from "@/pages/proposal-new";
 import Templates from "@/pages/templates";
 import Automations from "@/pages/automations";
 import Packages from "@/pages/packages";
@@ -20,7 +20,7 @@ import Reports from "@/pages/reports";
 import Settings from "@/pages/settings";
 import Checkout from "@/pages/checkout";
 import ClientPortal from "@/pages/client-portal";
-import PublicEstimate from "@/pages/public-estimate";
+import PublicProposal from "@/pages/public-proposal";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -31,8 +31,8 @@ function Router() {
       <Route path="/" component={Dashboard} />
       <Route path="/clients" component={Clients} />
       <Route path="/clients/:id" component={ClientDetail} />
-      <Route path="/estimates" component={Estimates} />
-      <Route path="/estimates/new" component={EstimateNew} />
+      <Route path="/proposals" component={Proposals} />
+      <Route path="/proposals/new" component={ProposalNew} />
       <Route path="/templates" component={Templates} />
       <Route path="/automations" component={Automations} />
       <Route path="/packages" component={Packages} />
@@ -42,7 +42,7 @@ function Router() {
       <Route path="/settings" component={Settings} />
       <Route path="/checkout" component={Checkout} />
       <Route path="/client-portal" component={ClientPortal} />
-      <Route path="/estimates/:token" component={PublicEstimate} />
+      <Route path="/proposals/:token" component={PublicProposal} />
       <Route component={NotFound} />
     </Switch>
   );
