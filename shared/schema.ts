@@ -26,6 +26,12 @@ export const photographers = pgTable("photographers", {
   emailFromName: text("email_from_name"),
   emailFromAddr: text("email_from_addr"),
   timezone: text("timezone").notNull().default("America/New_York"),
+  // Google Calendar Integration
+  googleCalendarAccessToken: text("google_calendar_access_token"),
+  googleCalendarRefreshToken: text("google_calendar_refresh_token"),
+  googleCalendarTokenExpiry: timestamp("google_calendar_token_expiry"),
+  googleCalendarScope: text("google_calendar_scope"),
+  googleCalendarConnectedAt: timestamp("google_calendar_connected_at"),
   createdAt: timestamp("created_at").defaultNow()
 });
 

@@ -100,6 +100,23 @@ export interface IStorage {
   createBooking(booking: InsertBooking): Promise<Booking>;
   updateBooking(id: string, booking: Partial<Booking>): Promise<Booking>;
   deleteBooking(id: string): Promise<void>;
+
+  // Google Calendar Integration
+  storeGoogleCalendarCredentials(photographerId: string, credentials: {
+    accessToken: string;
+    refreshToken?: string;
+    expiryDate?: Date;
+    scope?: string;
+  }): Promise<void>;
+  getGoogleCalendarCredentials(photographerId: string): Promise<{
+    accessToken?: string;
+    refreshToken?: string;
+    expiryDate?: Date;
+    scope?: string;
+    connectedAt?: Date;
+  } | null>;
+  clearGoogleCalendarCredentials(photographerId: string): Promise<void>;
+  hasValidGoogleCalendarCredentials(photographerId: string): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -925,6 +942,87 @@ export class DatabaseStorage implements IStorage {
 
   async deleteBooking(id: string): Promise<void> {
     await db.delete(bookings).where(eq(bookings.id, id));
+  }
+
+  // Google Calendar Integration methods
+  async storeGoogleCalendarCredentials(photographerId: string, credentials: {
+    accessToken: string;
+    refreshToken?: string;
+    expiryDate?: Date;
+    scope?: string;
+  }): Promise<void> {
+    await db.update(photographers)
+      .set({
+        googleCalendarAccessToken: credentials.accessToken,
+        googleCalendarRefreshToken: credentials.refreshToken || null,
+        googleCalendarTokenExpiry: credentials.expiryDate || null,
+        googleCalendarScope: credentials.scope || null,
+        googleCalendarConnectedAt: new Date()
+      })
+      .where(eq(photographers.id, photographerId));
+  }
+
+  async getGoogleCalendarCredentials(photographerId: string): Promise<{
+    accessToken?: string;
+    refreshToken?: string;
+    expiryDate?: Date;
+    scope?: string;
+    connectedAt?: Date;
+  } | null> {
+    const [photographer] = await db.select({
+      accessToken: photographers.googleCalendarAccessToken,
+      refreshToken: photographers.googleCalendarRefreshToken,
+      expiryDate: photographers.googleCalendarTokenExpiry,
+      scope: photographers.googleCalendarScope,
+      connectedAt: photographers.googleCalendarConnectedAt
+    })
+      .from(photographers)
+      .where(eq(photographers.id, photographerId));
+
+    if (!photographer || !photographer.accessToken) {
+      return null;
+    }
+
+    return {
+      accessToken: photographer.accessToken,
+      refreshToken: photographer.refreshToken || undefined,
+      expiryDate: photographer.expiryDate || undefined,
+      scope: photographer.scope || undefined,
+      connectedAt: photographer.connectedAt || undefined
+    };
+  }
+
+  async clearGoogleCalendarCredentials(photographerId: string): Promise<void> {
+    await db.update(photographers)
+      .set({
+        googleCalendarAccessToken: null,
+        googleCalendarRefreshToken: null,
+        googleCalendarTokenExpiry: null,
+        googleCalendarScope: null,
+        googleCalendarConnectedAt: null
+      })
+      .where(eq(photographers.id, photographerId));
+  }
+
+  async hasValidGoogleCalendarCredentials(photographerId: string): Promise<boolean> {
+    const credentials = await this.getGoogleCalendarCredentials(photographerId);
+    
+    if (!credentials || !credentials.accessToken) {
+      return false;
+    }
+
+    // Check if token is expired (with 5 minute buffer)
+    if (credentials.expiryDate) {
+      const bufferTime = 5 * 60 * 1000; // 5 minutes in milliseconds
+      const now = new Date();
+      const expiryWithBuffer = new Date(credentials.expiryDate.getTime() - bufferTime);
+      
+      if (now >= expiryWithBuffer) {
+        return false; // Token is expired or expires soon
+      }
+    }
+
+    return true;
   }
 }
 
