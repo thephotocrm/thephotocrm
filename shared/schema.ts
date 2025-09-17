@@ -576,6 +576,36 @@ export const insertBookingSchema = createInsertSchema(bookings).omit({
   endAt: z.string().transform((val) => new Date(val))
 });
 
+// Booking confirmation validation schema
+export const bookingConfirmationSchema = z.object({
+  clientName: z.string().min(2, "Name must be at least 2 characters").max(100, "Name too long"),
+  clientEmail: z.string().email("Invalid email address").max(255, "Email too long"),
+  clientPhone: z.string().min(10, "Phone number must be at least 10 digits").max(20, "Phone number too long")
+});
+
+// Update booking validation schema for PUT requests
+export const updateBookingSchema = insertBookingSchema.partial().omit({
+  photographerId: true,
+  bookingToken: true
+});
+
+// Sanitized booking data for public endpoints (excludes sensitive photographer info)
+export const sanitizedBookingSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  description: z.string().nullable(),
+  startAt: z.date(),
+  endAt: z.date(),
+  status: z.string(),
+  bookingType: z.string().nullable(),
+  isFirstBooking: z.boolean(),
+  googleMeetLink: z.string().nullable(),
+  clientEmail: z.string().nullable(),
+  clientPhone: z.string().nullable(), 
+  clientName: z.string().nullable(),
+  createdAt: z.date()
+});
+
 // Type exports
 export type Photographer = typeof photographers.$inferSelect;
 export type InsertPhotographer = z.infer<typeof insertPhotographerSchema>;

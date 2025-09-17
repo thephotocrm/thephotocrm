@@ -11,7 +11,8 @@ import { sendSms } from "./services/sms";
 import { createPaymentIntent, createCheckoutSession, handleWebhook } from "./services/stripe";
 import { insertUserSchema, insertPhotographerSchema, insertClientSchema, insertStageSchema, 
          insertTemplateSchema, insertAutomationSchema, insertAutomationStepSchema, insertPackageSchema, 
-         insertEstimateSchema, insertMessageSchema, emailLogs, smsLogs, clientActivityLog } from "@shared/schema";
+         insertEstimateSchema, insertMessageSchema, insertBookingSchema, updateBookingSchema, 
+         bookingConfirmationSchema, sanitizedBookingSchema, emailLogs, smsLogs, clientActivityLog } from "@shared/schema";
 import { startCronJobs } from "./jobs/cron";
 import path from "path";
 
@@ -1343,6 +1344,224 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       });
     } catch (error) {
       res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Booking routes
+  app.get("/api/bookings", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      const bookings = await storage.getBookingsByPhotographer(req.user!.photographerId!);
+      res.json(bookings);
+    } catch (error) {
+      console.error('Get bookings error:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.post("/api/bookings", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      const bookingData = insertBookingSchema.parse({
+        ...req.body,
+        photographerId: req.user!.photographerId!
+      });
+      const booking = await storage.createBooking(bookingData);
+      res.status(201).json(booking);
+    } catch (error) {
+      console.error('Create booking error:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.get("/api/bookings/:id", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      const booking = await storage.getBooking(req.params.id);
+      if (!booking) {
+        return res.status(404).json({ message: "Booking not found" });
+      }
+      
+      // Verify ownership
+      if (booking.photographerId !== req.user!.photographerId!) {
+        return res.status(403).json({ message: "Forbidden" });
+      }
+      
+      res.json(booking);
+    } catch (error) {
+      console.error('Get booking error:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.put("/api/bookings/:id", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      const booking = await storage.getBooking(req.params.id);
+      if (!booking) {
+        return res.status(404).json({ message: "Booking not found" });
+      }
+      
+      // Verify ownership
+      if (booking.photographerId !== req.user!.photographerId!) {
+        return res.status(403).json({ message: "Forbidden" });
+      }
+      
+      // Validate update data
+      const updateData = updateBookingSchema.parse(req.body);
+      const updatedBooking = await storage.updateBooking(req.params.id, updateData);
+      res.json(updatedBooking);
+    } catch (error: any) {
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ message: "Invalid request data", errors: error.errors });
+      }
+      console.error('Update booking error:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.delete("/api/bookings/:id", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      const booking = await storage.getBooking(req.params.id);
+      if (!booking) {
+        return res.status(404).json({ message: "Booking not found" });
+      }
+      
+      // Verify ownership
+      if (booking.photographerId !== req.user!.photographerId!) {
+        return res.status(403).json({ message: "Forbidden" });
+      }
+      
+      await storage.deleteBooking(req.params.id);
+      res.json({ message: "Booking deleted successfully" });
+    } catch (error) {
+      console.error('Delete booking error:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Public booking routes (no authentication required)
+  app.get("/api/public/booking/:token", async (req, res) => {
+    try {
+      const booking = await storage.getBookingByToken(req.params.token);
+      if (!booking) {
+        return res.status(404).json({ message: "Booking not found" });
+      }
+      
+      // Return sanitized booking data (exclude sensitive photographer/internal info)
+      const sanitizedBooking = {
+        id: booking.id,
+        title: booking.title,
+        description: booking.description,
+        startAt: booking.startAt,
+        endAt: booking.endAt,
+        status: booking.status,
+        bookingType: booking.bookingType,
+        isFirstBooking: booking.isFirstBooking,
+        googleMeetLink: booking.googleMeetLink,
+        clientEmail: booking.clientEmail,
+        clientPhone: booking.clientPhone,
+        clientName: booking.clientName,
+        createdAt: booking.createdAt
+      };
+      
+      res.json(sanitizedBooking);
+    } catch (error) {
+      console.error('Get public booking error:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.post("/api/public/booking/:token/confirm", async (req, res) => {
+    try {
+      const booking = await storage.getBookingByToken(req.params.token);
+      if (!booking) {
+        return res.status(404).json({ message: "Booking not found" });
+      }
+      
+      // Prevent duplicate confirmations
+      if (booking.status === "CONFIRMED") {
+        return res.json({
+          ...booking,
+          // Return sanitized booking data
+          id: booking.id,
+          title: booking.title,
+          description: booking.description,
+          startAt: booking.startAt,
+          endAt: booking.endAt,
+          status: booking.status,
+          bookingType: booking.bookingType,
+          isFirstBooking: booking.isFirstBooking,
+          googleMeetLink: booking.googleMeetLink,
+          clientEmail: booking.clientEmail,
+          clientPhone: booking.clientPhone,
+          clientName: booking.clientName,
+          createdAt: booking.createdAt
+        });
+      }
+      
+      // Validate client information
+      const validatedData = bookingConfirmationSchema.parse(req.body);
+      
+      // Update booking with confirmed status and client details
+      const updatedBooking = await storage.updateBooking(booking.id, {
+        status: "CONFIRMED",
+        clientName: validatedData.clientName,
+        clientEmail: validatedData.clientEmail,
+        clientPhone: validatedData.clientPhone
+      });
+      
+      // Handle automatic stage progression for first bookings
+      if (booking.isFirstBooking && booking.clientId) {
+        try {
+          const stages = await storage.getStagesByPhotographer(booking.photographerId);
+          const consultationStage = stages.find(s => s.name.toLowerCase().includes("consultation"));
+          
+          if (consultationStage) {
+            await storage.updateClient(booking.clientId, {
+              stageId: consultationStage.id,
+              stageEnteredAt: new Date()
+            });
+            console.log(`✅ Client ${booking.clientId} moved to Consultation stage for first booking`);
+          } else {
+            console.warn(`⚠️ No Consultation stage found for photographer ${booking.photographerId}`);
+          }
+        } catch (stageError) {
+          console.error('Error updating client stage:', stageError);
+          // Don't fail the entire request if stage update fails
+        }
+      }
+      
+      // Return sanitized booking data
+      const sanitizedResult = {
+        id: updatedBooking.id,
+        title: updatedBooking.title,
+        description: updatedBooking.description,
+        startAt: updatedBooking.startAt,
+        endAt: updatedBooking.endAt,
+        status: updatedBooking.status,
+        bookingType: updatedBooking.bookingType,
+        isFirstBooking: updatedBooking.isFirstBooking,
+        googleMeetLink: updatedBooking.googleMeetLink,
+        clientEmail: updatedBooking.clientEmail,
+        clientPhone: updatedBooking.clientPhone,
+        clientName: updatedBooking.clientName,
+        createdAt: updatedBooking.createdAt
+      };
+      
+      res.json(sanitizedResult);
+    } catch (error: any) {
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ message: "Invalid client information", errors: error.errors });
+      }
+      console.error('Confirm booking error:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Add explicit route handler for public booking pages to serve the React app
+  app.get("/public/booking/:token", async (req, res, next) => {
+    if (app.get("env") === "development") {
+      next();
+    } else {
+      const distPath = path.resolve(import.meta.dirname, "public");
+      res.sendFile(path.resolve(distPath, "index.html"));
     }
   });
 

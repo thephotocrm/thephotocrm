@@ -21,6 +21,7 @@ import Settings from "@/pages/settings";
 import Checkout from "@/pages/checkout";
 import ClientPortal from "@/pages/client-portal";
 import PublicProposal from "@/pages/public-proposal";
+import PublicBooking from "@/pages/public-booking";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -43,6 +44,7 @@ function Router() {
       <Route path="/checkout" component={Checkout} />
       <Route path="/client-portal" component={ClientPortal} />
       <Route path="/public/proposals/:token" component={PublicProposal} />
+      <Route path="/public/booking/:token" component={PublicBooking} />
       <Route component={NotFound} />
     </Switch>
   );
