@@ -823,11 +823,19 @@ ${photographer?.businessName || 'Your Photography Team'}`;
 
   app.post("/api/proposals", authenticateToken, requirePhotographer, async (req, res) => {
     try {
+      // Preserve items before validation strips them out
+      const items = req.body.items;
+      
       const proposalData = insertEstimateSchema.parse({
         ...req.body,
         photographerId: req.user!.photographerId!
       });
-      const proposal = await storage.createProposal(proposalData);
+      
+      // Pass items separately to storage
+      const proposal = await storage.createProposal({
+        ...proposalData,
+        items
+      });
       
       // Send proposal notifications to client if proposal has sentAt date
       if (proposal.sentAt && proposal.clientId) {

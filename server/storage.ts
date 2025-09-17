@@ -533,8 +533,26 @@ export class DatabaseStorage implements IStorage {
     };
   }
 
-  async createEstimate(insertEstimate: InsertEstimate): Promise<Estimate> {
-    const [estimate] = await db.insert(estimates).values(insertEstimate).returning();
+  async createEstimate(insertEstimate: InsertEstimate & { items?: Array<any> }): Promise<Estimate> {
+    const { items, ...estimateData } = insertEstimate;
+    
+    // Create the main estimate record
+    const [estimate] = await db.insert(estimates).values(estimateData).returning();
+    
+    // If items were provided, save them to estimateItems table
+    if (items && items.length > 0) {
+      const estimateItemsData = items.map((item, index) => ({
+        estimateId: estimate.id,
+        name: item.name || '',
+        description: item.description || '',
+        qty: item.qty || 1,
+        unitCents: item.unitCents || 0,
+        lineTotalCents: item.lineTotalCents || 0,
+        orderIndex: index
+      }));
+      
+      await db.insert(estimateItems).values(estimateItemsData);
+    }
     
     // Log proposal creation to client activity history
     await db.insert(clientActivityLog).values({
