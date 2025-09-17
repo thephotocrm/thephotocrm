@@ -77,6 +77,7 @@ export interface IStorage {
   getEstimateByToken(token: string): Promise<EstimateWithRelations | undefined>;
   createEstimate(estimate: InsertEstimate): Promise<Estimate>;
   updateEstimate(id: string, estimate: Partial<Estimate>): Promise<Estimate>;
+  deleteEstimate(id: string): Promise<void>;
   
   // Proposals (aliases for Estimates to enable terminology migration)
   getProposalsByPhotographer(photographerId: string): Promise<ProposalWithClient[]>;
@@ -85,6 +86,7 @@ export interface IStorage {
   getProposalByToken(token: string): Promise<ProposalWithRelations | undefined>;
   createProposal(proposal: InsertProposal): Promise<Proposal>;
   updateProposal(id: string, proposal: Partial<Proposal>): Promise<Proposal>;
+  deleteProposal(id: string): Promise<void>;
   
   // Questionnaire Templates
   getQuestionnaireTemplatesByPhotographer(photographerId: string): Promise<QuestionnaireTemplate[]>;
@@ -580,6 +582,14 @@ export class DatabaseStorage implements IStorage {
     return updated;
   }
 
+  async deleteEstimate(id: string): Promise<void> {
+    // Delete estimate items first (foreign key constraint)
+    await db.delete(estimateItems).where(eq(estimateItems.estimateId, id));
+    
+    // Delete the estimate itself
+    await db.delete(estimates).where(eq(estimates.id, id));
+  }
+
   async getQuestionnaireTemplatesByPhotographer(photographerId: string): Promise<QuestionnaireTemplate[]> {
     return await db.select().from(questionnaireTemplates)
       .where(eq(questionnaireTemplates.photographerId, photographerId))
@@ -868,6 +878,10 @@ export class DatabaseStorage implements IStorage {
 
   async updateProposal(id: string, proposal: Partial<Proposal>): Promise<Proposal> {
     return this.updateEstimate(id, proposal);
+  }
+
+  async deleteProposal(id: string): Promise<void> {
+    return this.deleteEstimate(id);
   }
 }
 

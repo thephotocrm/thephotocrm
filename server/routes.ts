@@ -1004,6 +1004,27 @@ ${photographer?.businessName || 'Your Photography Team'}`;
     }
   });
 
+  // Delete proposal endpoint
+  app.delete("/api/proposals/:id", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      const proposalId = req.params.id;
+      
+      // Get the proposal first to ensure it belongs to the photographer
+      const proposal = await storage.getProposal(proposalId);
+      if (!proposal || proposal.photographerId !== req.user!.photographerId!) {
+        return res.status(404).json({ message: "Proposal not found" });
+      }
+
+      // Delete the proposal
+      await storage.deleteProposal(proposalId);
+      
+      res.json({ message: "Proposal deleted successfully" });
+    } catch (error) {
+      console.error('Delete proposal error:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   // Public proposal view
   app.get("/public/proposals/:token", async (req, res) => {
     try {
