@@ -13,7 +13,8 @@ import { googleCalendarService } from "./services/calendar";
 import { insertUserSchema, insertPhotographerSchema, insertClientSchema, insertStageSchema, 
          insertTemplateSchema, insertAutomationSchema, insertAutomationStepSchema, insertPackageSchema, 
          insertEstimateSchema, insertMessageSchema, insertBookingSchema, updateBookingSchema, 
-         bookingConfirmationSchema, sanitizedBookingSchema, insertQuestionnaireTemplateSchema, insertQuestionnaireQuestionSchema, emailLogs, smsLogs, clientActivityLog } from "@shared/schema";
+         bookingConfirmationSchema, sanitizedBookingSchema, insertQuestionnaireTemplateSchema, insertQuestionnaireQuestionSchema, 
+         insertAvailabilitySlotSchema, updateAvailabilitySlotSchema, emailLogs, smsLogs, clientActivityLog } from "@shared/schema";
 import { startCronJobs } from "./jobs/cron";
 import path from "path";
 
@@ -1579,6 +1580,83 @@ ${photographer?.businessName || 'Your Photography Team'}`;
         return res.status(400).json({ message: "Invalid client information", errors: error.errors });
       }
       console.error('Confirm booking error:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Availability slots API routes for photographers
+  app.get("/api/availability", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      const slots = await storage.getAvailabilitySlotsByPhotographer(req.user!.photographerId!);
+      res.json(slots);
+    } catch (error) {
+      console.error('Get availability slots error:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.post("/api/availability", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      // Validate and transform the request body
+      const slotData = insertAvailabilitySlotSchema.parse(req.body);
+      
+      // Add photographer ID
+      const slot = await storage.createAvailabilitySlot({
+        ...slotData,
+        photographerId: req.user!.photographerId!
+      });
+      
+      res.status(201).json(slot);
+    } catch (error: any) {
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ message: "Invalid availability data", errors: error.errors });
+      }
+      console.error('Create availability slot error:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.put("/api/availability/:id", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      const slot = await storage.getAvailabilitySlot(req.params.id);
+      if (!slot) {
+        return res.status(404).json({ message: "Availability slot not found" });
+      }
+      
+      // Verify ownership
+      if (slot.photographerId !== req.user!.photographerId!) {
+        return res.status(403).json({ message: "Forbidden" });
+      }
+      
+      // Validate update data
+      const updateData = updateAvailabilitySlotSchema.parse(req.body);
+      const updatedSlot = await storage.updateAvailabilitySlot(req.params.id, updateData);
+      res.json(updatedSlot);
+    } catch (error: any) {
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ message: "Invalid availability data", errors: error.errors });
+      }
+      console.error('Update availability slot error:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.delete("/api/availability/:id", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      const slot = await storage.getAvailabilitySlot(req.params.id);
+      if (!slot) {
+        return res.status(404).json({ message: "Availability slot not found" });
+      }
+      
+      // Verify ownership
+      if (slot.photographerId !== req.user!.photographerId!) {
+        return res.status(403).json({ message: "Forbidden" });
+      }
+      
+      await storage.deleteAvailabilitySlot(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error('Delete availability slot error:', error);
       res.status(500).json({ message: "Internal server error" });
     }
   });

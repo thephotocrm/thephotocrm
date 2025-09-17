@@ -13,6 +13,7 @@ import {
   type QuestionnaireQuestion, type InsertQuestionnaireQuestion,
   type Message, type InsertMessage, type ClientActivityLog, type TimelineEvent, type ClientPortalToken, type InsertClientPortalToken,
   type Proposal, type InsertProposal, type ProposalItem, type ProposalPayment, type ProposalWithClient, type ProposalWithRelations,
+  type AvailabilitySlot, type InsertAvailabilitySlot,
   type Booking, type InsertBooking
 } from "@shared/schema";
 import { db } from "./db";
@@ -111,6 +112,13 @@ export interface IStorage {
   createBooking(booking: InsertBooking): Promise<Booking>;
   updateBooking(id: string, booking: Partial<Booking>): Promise<Booking>;
   deleteBooking(id: string): Promise<void>;
+
+  // Availability Slots
+  getAvailabilitySlotsByPhotographer(photographerId: string): Promise<AvailabilitySlot[]>;
+  getAvailabilitySlot(id: string): Promise<AvailabilitySlot | undefined>;
+  createAvailabilitySlot(slot: InsertAvailabilitySlot): Promise<AvailabilitySlot>;
+  updateAvailabilitySlot(id: string, slot: Partial<AvailabilitySlot>): Promise<AvailabilitySlot>;
+  deleteAvailabilitySlot(id: string): Promise<void>;
 
   // Google Calendar Integration
   storeGoogleCalendarCredentials(photographerId: string, credentials: {
@@ -1006,6 +1014,35 @@ export class DatabaseStorage implements IStorage {
 
   async deleteBooking(id: string): Promise<void> {
     await db.delete(bookings).where(eq(bookings.id, id));
+  }
+
+  // Availability Slot methods
+  async getAvailabilitySlotsByPhotographer(photographerId: string): Promise<AvailabilitySlot[]> {
+    return await db.select().from(availabilitySlots)
+      .where(eq(availabilitySlots.photographerId, photographerId))
+      .orderBy(asc(availabilitySlots.startAt));
+  }
+
+  async getAvailabilitySlot(id: string): Promise<AvailabilitySlot | undefined> {
+    const [slot] = await db.select().from(availabilitySlots).where(eq(availabilitySlots.id, id));
+    return slot || undefined;
+  }
+
+  async createAvailabilitySlot(slot: InsertAvailabilitySlot): Promise<AvailabilitySlot> {
+    const [newSlot] = await db.insert(availabilitySlots).values(slot).returning();
+    return newSlot;
+  }
+
+  async updateAvailabilitySlot(id: string, slot: Partial<AvailabilitySlot>): Promise<AvailabilitySlot> {
+    const [updatedSlot] = await db.update(availabilitySlots)
+      .set(slot)
+      .where(eq(availabilitySlots.id, id))
+      .returning();
+    return updatedSlot;
+  }
+
+  async deleteAvailabilitySlot(id: string): Promise<void> {
+    await db.delete(availabilitySlots).where(eq(availabilitySlots.id, id));
   }
 
   // Google Calendar Integration methods

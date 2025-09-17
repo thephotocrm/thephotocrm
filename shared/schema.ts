@@ -616,6 +616,18 @@ export const sanitizedBookingSchema = z.object({
   createdAt: z.date()
 });
 
+// Availability slot schemas
+export const insertAvailabilitySlotSchema = createInsertSchema(availabilitySlots).omit({
+  id: true
+}).extend({
+  startAt: z.string().transform((val) => new Date(val)),
+  endAt: z.string().transform((val) => new Date(val))
+});
+
+export const updateAvailabilitySlotSchema = insertAvailabilitySlotSchema.partial().omit({
+  photographerId: true
+});
+
 // Type exports
 export type Photographer = typeof photographers.$inferSelect;
 export type InsertPhotographer = z.infer<typeof insertPhotographerSchema>;
@@ -647,6 +659,8 @@ export type ClientActivityLog = typeof clientActivityLog.$inferSelect;
 export type InsertClientActivityLog = z.infer<typeof insertClientActivityLogSchema>;
 export type ClientPortalToken = typeof clientPortalTokens.$inferSelect;
 export type InsertClientPortalToken = z.infer<typeof insertClientPortalTokenSchema>;
+export type AvailabilitySlot = typeof availabilitySlots.$inferSelect;
+export type InsertAvailabilitySlot = z.infer<typeof insertAvailabilitySlotSchema>;
 export type Booking = typeof bookings.$inferSelect;
 export type InsertBooking = z.infer<typeof insertBookingSchema>;
 
