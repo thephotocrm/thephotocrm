@@ -71,6 +71,7 @@ export interface IStorage {
   
   // Estimates
   getEstimatesByPhotographer(photographerId: string): Promise<Estimate[]>;
+  getEstimate(id: string): Promise<Estimate | undefined>;
   getEstimateByToken(token: string): Promise<Estimate | undefined>;
   createEstimate(estimate: InsertEstimate): Promise<Estimate>;
   updateEstimate(id: string, estimate: Partial<Estimate>): Promise<Estimate>;
