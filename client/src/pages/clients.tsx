@@ -103,22 +103,23 @@ export default function Clients() {
       <SidebarInset>
         {/* Header */}
         <header className="bg-card border-b border-border px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <SidebarTrigger data-testid="button-menu-toggle" />
-              <div>
-                <h1 className="text-2xl font-semibold">Clients</h1>
-                <p className="text-muted-foreground">Manage your wedding photography clients</p>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-3 min-w-0 flex-1">
+              <SidebarTrigger data-testid="button-menu-toggle" className="shrink-0" />
+              <div className="min-w-0">
+                <h1 className="text-2xl font-semibold truncate">Clients</h1>
+                <p className="text-muted-foreground hidden sm:block">Manage your wedding photography clients</p>
               </div>
             </div>
             
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-              <DialogTrigger asChild>
-                <Button data-testid="button-add-client">
-                  <Plus className="w-5 h-5 mr-2" />
-                  Add Client
-                </Button>
-              </DialogTrigger>
+            <div className="shrink-0 w-full sm:w-auto">
+              <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button data-testid="button-add-client" className="w-full sm:w-auto">
+                    <Plus className="w-5 h-5 mr-2" />
+                    Add Client
+                  </Button>
+                </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
                   <DialogTitle>Add New Client</DialogTitle>
@@ -205,20 +206,23 @@ export default function Clients() {
               </DialogContent>
             </Dialog>
           </div>
+          </div>
         </header>
 
         <div className="p-6">
           {/* Search */}
           <div className="mb-6">
-            <div className="relative max-w-sm">
-              <Search className="absolute left-3 top-2.5 w-4 h-4 text-muted-foreground" />
-              <Input
-                placeholder="Search clients..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-9"
-                data-testid="input-search-clients"
-              />
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="relative w-full sm:max-w-sm">
+                <Search className="absolute left-3 top-2.5 w-4 h-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search clients..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-9"
+                  data-testid="input-search-clients"
+                />
+              </div>
             </div>
           </div>
 
