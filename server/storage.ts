@@ -10,7 +10,8 @@ import {
   type AutomationStep, type InsertAutomationStep, type Package, type InsertPackage,
   type Estimate, type InsertEstimate, type EstimateItem, type EstimateWithClient, type EstimateWithRelations,
   type QuestionnaireTemplate, type InsertQuestionnaireTemplate,
-  type Message, type InsertMessage, type ClientActivityLog, type TimelineEvent, type ClientPortalToken, type InsertClientPortalToken
+  type Message, type InsertMessage, type ClientActivityLog, type TimelineEvent, type ClientPortalToken, type InsertClientPortalToken,
+  type Proposal, type InsertProposal, type ProposalItem, type ProposalPayment, type ProposalWithClient, type ProposalWithRelations
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, inArray, gte, lte } from "drizzle-orm";
@@ -76,6 +77,13 @@ export interface IStorage {
   getEstimateByToken(token: string): Promise<EstimateWithRelations | undefined>;
   createEstimate(estimate: InsertEstimate): Promise<Estimate>;
   updateEstimate(id: string, estimate: Partial<Estimate>): Promise<Estimate>;
+  
+  // Proposals (aliases for Estimates to enable terminology migration)
+  getProposalsByPhotographer(photographerId: string): Promise<ProposalWithClient[]>;
+  getProposal(id: string): Promise<ProposalWithRelations | undefined>;
+  getProposalByToken(token: string): Promise<ProposalWithRelations | undefined>;
+  createProposal(proposal: InsertProposal): Promise<Proposal>;
+  updateProposal(id: string, proposal: Partial<Proposal>): Promise<Proposal>;
   
   // Questionnaire Templates
   getQuestionnaireTemplatesByPhotographer(photographerId: string): Promise<QuestionnaireTemplate[]>;
@@ -783,6 +791,27 @@ export class DatabaseStorage implements IStorage {
       ))
       .limit(1);
     return portalToken;
+  }
+
+  // Proposal wrapper methods (aliases for Estimate methods to enable terminology migration)
+  async getProposalsByPhotographer(photographerId: string): Promise<ProposalWithClient[]> {
+    return this.getEstimatesByPhotographer(photographerId);
+  }
+
+  async getProposal(id: string): Promise<ProposalWithRelations | undefined> {
+    return this.getEstimate(id);
+  }
+
+  async getProposalByToken(token: string): Promise<ProposalWithRelations | undefined> {
+    return this.getEstimateByToken(token);
+  }
+
+  async createProposal(proposal: InsertProposal): Promise<Proposal> {
+    return this.createEstimate(proposal);
+  }
+
+  async updateProposal(id: string, proposal: Partial<Proposal>): Promise<Proposal> {
+    return this.updateEstimate(id, proposal);
   }
 }
 

@@ -687,3 +687,12 @@ export type TimelineEvent =
       sentByPhotographer: boolean;
       createdAt: Date;
     };
+
+// Proposal type aliases (for terminology migration from "Estimate" to "Proposal")
+// These aliases enable gradual UI/API migration while maintaining backend consistency
+export type Proposal = Estimate;
+export type InsertProposal = InsertEstimate;
+export type ProposalItem = EstimateItem;
+export type ProposalPayment = EstimatePayment;
+export type ProposalWithClient = EstimateWithClient;
+export type ProposalWithRelations = EstimateWithRelations;
