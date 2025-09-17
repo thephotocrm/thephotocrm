@@ -626,7 +626,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
     try {
       const estimate = await storage.getEstimateByToken(req.params.token);
       if (!estimate) {
-        return res.status(404).json({ message: "Estimate not found" });
+        return res.status(404).json({ message: "Proposal not found" });
       }
       res.json(estimate);
     } catch (error) {
@@ -640,7 +640,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       const estimate = await storage.getEstimateByToken(req.params.token);
       
       if (!estimate) {
-        return res.status(404).json({ message: "Estimate not found" });
+        return res.status(404).json({ message: "Proposal not found" });
       }
 
       const updated = await storage.updateEstimate(estimate.id, {
@@ -678,20 +678,20 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       const estimate = await storage.getEstimateByToken(req.params.token);
       
       if (!estimate) {
-        return res.status(404).json({ message: "Estimate not found" });
+        return res.status(404).json({ message: "Proposal not found" });
       }
 
       const amount = mode === "DEPOSIT" ? (estimate.depositCents || 0) : (estimate.totalCents || 0);
       
-      const successUrl = `${process.env.APP_BASE_URL}/payment-success?estimate=${req.params.token}`;
-      const cancelUrl = `${process.env.APP_BASE_URL}/estimates/${req.params.token}`;
+      const successUrl = `${process.env.APP_BASE_URL}/payment-success?proposal=${req.params.token}`;
+      const cancelUrl = `${process.env.APP_BASE_URL}/proposals/${req.params.token}`;
 
       const checkoutUrl = await createCheckoutSession({
         amountCents: amount,
         successUrl,
         cancelUrl,
         metadata: {
-          estimateId: estimate.id,
+          proposalId: estimate.id,
           paymentType: mode
         }
       });
@@ -710,7 +710,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       // Get the estimate first to ensure it belongs to the photographer
       const estimate = await storage.getEstimate(estimateId);
       if (!estimate || estimate.photographerId !== req.user!.photographerId!) {
-        return res.status(404).json({ message: "Estimate not found" });
+        return res.status(404).json({ message: "Proposal not found" });
       }
 
       // Update estimate with sent timestamp

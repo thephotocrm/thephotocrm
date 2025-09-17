@@ -212,7 +212,7 @@ async function processAutomationStep(client: any, step: any, automation: any): P
 
 export async function processPaymentReminders(photographerId: string): Promise<void> {
   try {
-    // Find estimates that are signed but not fully paid
+    // Find proposals that are signed but not fully paid
     const overdueEstimates = await db
       .select()
       .from(estimates)
