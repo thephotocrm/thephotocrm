@@ -309,16 +309,18 @@ export default function Scheduling() {
   }
 
   return (
-    <div className="min-h-screen flex bg-background">
-      <Sidebar />
-      
-      <main className="flex-1 overflow-auto">
+    <SidebarProvider>
+      <AppSidebar />
+      <SidebarInset>
         {/* Header */}
         <header className="bg-card border-b border-border px-6 py-4">
           <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-semibold">Scheduling</h1>
-              <p className="text-muted-foreground">Manage availability and client bookings</p>
+            <div className="flex items-center space-x-4">
+              <SidebarTrigger data-testid="button-menu-toggle" />
+              <div>
+                <h1 className="text-2xl font-semibold">Scheduling</h1>
+                <p className="text-muted-foreground">Manage availability and client bookings</p>
+              </div>
             </div>
             
             <div className="flex space-x-2">
@@ -956,7 +958,7 @@ export default function Scheduling() {
             </CardContent>
           </Card>
         </div>
-      </main>
-    </div>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }
