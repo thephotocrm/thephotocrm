@@ -25,9 +25,8 @@ const createAutomationFormSchema = insertAutomationSchema.omit({ photographerId:
 type CreateAutomationFormData = z.infer<typeof createAutomationFormSchema>;
 
 // AutomationStepManager Component
-function AutomationStepManager({ automation }: { automation: any }) {
+function AutomationStepManager({ automation, onDelete }: { automation: any, onDelete: (id: string) => void }) {
   const { toast } = useToast();
-  const [showAddStepForm, setShowAddStepForm] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editForm, setEditForm] = useState({
     name: automation.name,
@@ -41,20 +40,6 @@ function AutomationStepManager({ automation }: { automation: any }) {
     enabled: !!automation.id
   });
 
-  // Create step mutation
-  const createStepMutation = useMutation({
-    mutationFn: async (stepData: any) => {
-      return apiRequest("POST", `/api/automations/${automation.id}/steps`, stepData);
-    },
-    onSuccess: () => {
-      toast({ title: "Step added successfully" });
-      queryClient.invalidateQueries({ queryKey: ["/api/automations", automation.id, "steps"] });
-      setShowAddStepForm(false);
-    },
-    onError: () => {
-      toast({ title: "Failed to add step", variant: "destructive" });
-    }
-  });
 
   // Delete step mutation  
   const deleteStepMutation = useMutation({
@@ -70,14 +55,6 @@ function AutomationStepManager({ automation }: { automation: any }) {
     }
   });
 
-  const handleAddStep = () => {
-    const stepData = {
-      stepIndex: steps.length,
-      delayMinutes: 60, // Default 1 hour
-      enabled: true
-    };
-    createStepMutation.mutate(stepData);
-  };
 
   const handleDeleteStep = (stepId: string) => {
     if (confirm('Are you sure you want to delete this step?')) {
@@ -173,6 +150,19 @@ function AutomationStepManager({ automation }: { automation: any }) {
           <Button
             variant="ghost"
             size="sm"
+            className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+            data-testid={`button-delete-automation-${automation.id}`}
+            onClick={() => {
+              if (confirm('Are you sure you want to delete this automation? This cannot be undone.')) {
+                onDelete(automation.id);
+              }
+            }}
+          >
+            ×
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
             className="h-8 w-8 p-0"
             data-testid={`button-edit-automation-${automation.id}`}
             onClick={() => setEditDialogOpen(true)}
@@ -232,18 +222,6 @@ function AutomationStepManager({ automation }: { automation: any }) {
             ))}
           </div>
         )}
-        
-        <Button 
-          variant="outline" 
-          size="sm" 
-          className="w-full text-xs"
-          disabled={createStepMutation.isPending}
-          data-testid={`button-add-step-${automation.id}`}
-          onClick={handleAddStep}
-        >
-          <Plus className="w-3 h-3 mr-1" />
-          {createStepMutation.isPending ? "Adding..." : "Add Step"}
-        </Button>
       </div>
 
       {/* Edit Automation Dialog */}
@@ -366,6 +344,20 @@ export default function Automations() {
     enabled: !!user
   });
 
+  // Delete automation mutation
+  const deleteAutomationMutation = useMutation({
+    mutationFn: async (automationId: string) => {
+      return apiRequest("DELETE", `/api/automations/${automationId}`);
+    },
+    onSuccess: () => {
+      toast({ title: "Automation deleted successfully" });
+      queryClient.invalidateQueries({ queryKey: ["/api/automations"] });
+    },
+    onError: () => {
+      toast({ title: "Failed to delete automation", variant: "destructive" });
+    }
+  });
+
   // Create automation mutation - atomic with rollback
   const createAutomationMutation = useMutation({
     mutationFn: async (data: ExtendedFormData) => {
@@ -439,6 +431,10 @@ export default function Automations() {
     createAutomationMutation.mutate(data);
   };
 
+  const handleDeleteAutomation = (automationId: string) => {
+    deleteAutomationMutation.mutate(automationId);
+  };
+
   // Redirect to login if not authenticated
   if (!loading && !user) {
     setLocation("/login");
@@ -460,19 +456,14 @@ export default function Automations() {
       <main className="flex-1 overflow-auto">
         {/* Header */}
         <header className="bg-card border-b border-border px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-semibold">Automations</h1>
-              <p className="text-muted-foreground">Set up automated email and SMS workflows for each stage</p>
-            </div>
-            
-            <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-              <DialogTrigger asChild>
-                <Button data-testid="button-create-automation">
-                  <Plus className="w-5 h-5 mr-2" />
-                  Create Automation
-                </Button>
-              </DialogTrigger>
+          <div>
+            <h1 className="text-2xl font-semibold">Automations</h1>
+            <p className="text-muted-foreground">Set up automated email and SMS workflows for each stage</p>
+          </div>
+        </header>
+        
+        {/* Create Automation Dialog */}
+        <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
               <DialogContent className="sm:max-w-md">
                 <DialogHeader>
                   <DialogTitle>Create Automation</DialogTitle>
@@ -700,8 +691,6 @@ export default function Automations() {
                 </Form>
               </DialogContent>
             </Dialog>
-          </div>
-        </header>
 
         {/* Manage Rules Modal */}
         <Dialog open={manageRulesDialogOpen} onOpenChange={setManageRulesDialogOpen}>
@@ -732,7 +721,7 @@ export default function Automations() {
                       </p>
                     ) : (
                       stageAutomations.map((automation: any) => (
-                        <AutomationStepManager key={automation.id} automation={automation} />
+                        <AutomationStepManager key={automation.id} automation={automation} onDelete={handleDeleteAutomation} />
                       ))
                     );
                   })()}
@@ -831,10 +820,27 @@ export default function Automations() {
                         </p>
                       ) : (
                         stageAutomations.map((automation: any) => (
-                          <AutomationStepManager key={automation.id} automation={automation} />
+                          <AutomationStepManager key={automation.id} automation={automation} onDelete={handleDeleteAutomation} />
                         ))
                       );
                     })()}
+                    
+                    {/* Add Automation button for this stage */}
+                    <div className="pt-4 border-t">
+                      <Button 
+                        variant="outline" 
+                        className="w-full"
+                        onClick={() => {
+                          // Pre-populate the stage in the form
+                          form.setValue('stageId', stage.id);
+                          setCreateDialogOpen(true);
+                        }}
+                        data-testid={`button-add-automation-${stage.id}`}
+                      >
+                        <Plus className="w-4 h-4 mr-2" />
+                        Add Automation for {stage.name} Stage
+                      </Button>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
