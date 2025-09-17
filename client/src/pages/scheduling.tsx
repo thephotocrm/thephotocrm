@@ -46,7 +46,30 @@ const availabilitySchema = z.object({
   path: ["recurrencePattern"]
 });
 
+// Form schema for bookings
+const bookingSchema = z.object({
+  title: z.string().min(1, "Title is required"),
+  description: z.string().optional(),
+  date: z.string().min(1, "Date is required"),
+  startTime: z.string().min(1, "Start time is required"),
+  endTime: z.string().min(1, "End time is required"),
+  bookingType: z.enum(["CONSULTATION", "ENGAGEMENT", "WEDDING", "MEETING"]).default("CONSULTATION"),
+  clientName: z.string().optional(),
+  clientEmail: z.string().email("Invalid email").optional().or(z.literal("")),
+  clientPhone: z.string().optional()
+}).refine((data) => {
+  // Validate that end time is after start time
+  if (data.startTime && data.endTime) {
+    return data.endTime > data.startTime;
+  }
+  return true;
+}, {
+  message: "End time must be after start time",
+  path: ["endTime"]
+});
+
 type AvailabilityFormData = z.infer<typeof availabilitySchema>;
+type BookingFormData = z.infer<typeof bookingSchema>;
 
 export default function Scheduling() {
   const { user, loading } = useAuth();
@@ -87,6 +110,22 @@ export default function Scheduling() {
       recurrencePattern: "WEEKLY"
     }
   });
+
+  // Booking form
+  const bookingForm = useForm<BookingFormData>({
+    resolver: zodResolver(bookingSchema),
+    defaultValues: {
+      title: "",
+      description: "",
+      date: "",
+      startTime: "",
+      endTime: "",
+      bookingType: "CONSULTATION",
+      clientName: "",
+      clientEmail: "",
+      clientPhone: ""
+    }
+  });
   
   // Create availability mutation
   const createAvailabilityMutation = useMutation({
@@ -101,11 +140,7 @@ export default function Scheduling() {
         recurrencePattern: data.isRecurring ? data.recurrencePattern : null
       };
       
-      return apiRequest("/api/availability", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(slotData)
-      });
+      return apiRequest("POST", "/api/availability", slotData);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/availability"] });
@@ -137,11 +172,7 @@ export default function Scheduling() {
         recurrencePattern: data.isRecurring ? data.recurrencePattern : null
       };
       
-      return apiRequest(`/api/availability/${data.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(slotData)
-      });
+      return apiRequest("PUT", `/api/availability/${data.id}`, slotData);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/availability"] });
@@ -165,9 +196,7 @@ export default function Scheduling() {
   // Delete availability mutation
   const deleteAvailabilityMutation = useMutation({
     mutationFn: async (id: string) => {
-      return apiRequest(`/api/availability/${id}`, {
-        method: "DELETE"
-      });
+      return apiRequest("DELETE", `/api/availability/${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/availability"] });
@@ -180,6 +209,42 @@ export default function Scheduling() {
       toast({
         title: "Error",
         description: error?.message || "Failed to delete availability slot",
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Create booking mutation
+  const createBookingMutation = useMutation({
+    mutationFn: async (data: BookingFormData) => {
+      // Transform form data to match backend schema
+      const bookingData = {
+        title: data.title,
+        description: data.description || null,
+        startAt: new Date(`${data.date}T${data.startTime}`).toISOString(),
+        endAt: new Date(`${data.date}T${data.endTime}`).toISOString(),
+        bookingType: data.bookingType,
+        status: "PENDING",
+        clientName: data.clientName || null,
+        clientEmail: data.clientEmail || null,
+        clientPhone: data.clientPhone || null
+      };
+      
+      return apiRequest("POST", "/api/bookings", bookingData);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/bookings"] });
+      setIsBookingModalOpen(false);
+      bookingForm.reset();
+      toast({
+        title: "Success",
+        description: "Booking created successfully"
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error?.message || "Failed to create booking",
         variant: "destructive"
       });
     }
@@ -419,19 +484,181 @@ export default function Scheduling() {
                     Add Booking
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="max-w-md" aria-describedby="booking-description">
+                <DialogContent className="max-w-2xl" aria-describedby="booking-description">
                   <DialogHeader>
                     <DialogTitle>Add Manual Booking</DialogTitle>
                   </DialogHeader>
                   <p id="booking-description" className="text-sm text-muted-foreground mb-4">
                     Create a manual booking for clients outside the normal booking flow
                   </p>
-                  <div className="text-center py-8">
-                    <Plus className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                    <p className="text-muted-foreground">
-                      Manual booking creation coming soon
-                    </p>
-                  </div>
+                  <Form {...bookingForm}>
+                    <form onSubmit={bookingForm.handleSubmit(createBookingMutation.mutate)} className="space-y-4">
+                      <div className="grid grid-cols-2 gap-4">
+                        <FormField
+                          control={bookingForm.control}
+                          name="title"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Title *</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Consultation Call" data-testid="input-booking-title" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <FormField
+                          control={bookingForm.control}
+                          name="bookingType"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Booking Type</FormLabel>
+                              <Select onValueChange={field.onChange} value={field.value} data-testid="select-booking-type">
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select type" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="CONSULTATION">Consultation</SelectItem>
+                                  <SelectItem value="ENGAGEMENT">Engagement Session</SelectItem>
+                                  <SelectItem value="WEDDING">Wedding Day</SelectItem>
+                                  <SelectItem value="MEETING">Meeting</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
+                      <FormField
+                        control={bookingForm.control}
+                        name="description"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Description (Optional)</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Discuss wedding photography package..." data-testid="input-booking-description" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <div className="grid grid-cols-3 gap-4">
+                        <FormField
+                          control={bookingForm.control}
+                          name="date"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Date *</FormLabel>
+                              <FormControl>
+                                <Input type="date" data-testid="input-booking-date" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <FormField
+                          control={bookingForm.control}
+                          name="startTime"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Start Time *</FormLabel>
+                              <FormControl>
+                                <Input type="time" data-testid="input-booking-start-time" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <FormField
+                          control={bookingForm.control}
+                          name="endTime"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>End Time *</FormLabel>
+                              <FormControl>
+                                <Input type="time" data-testid="input-booking-end-time" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
+                      <div className="border-t pt-4">
+                        <h4 className="font-medium mb-3 text-sm">Client Information (Optional)</h4>
+                        <div className="grid grid-cols-1 gap-4">
+                          <FormField
+                            control={bookingForm.control}
+                            name="clientName"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Client Name</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="John & Jane Smith" data-testid="input-booking-client-name" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          
+                          <div className="grid grid-cols-2 gap-4">
+                            <FormField
+                              control={bookingForm.control}
+                              name="clientEmail"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Client Email</FormLabel>
+                                  <FormControl>
+                                    <Input type="email" placeholder="john@example.com" data-testid="input-booking-client-email" {...field} />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            
+                            <FormField
+                              control={bookingForm.control}
+                              name="clientPhone"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Client Phone</FormLabel>
+                                  <FormControl>
+                                    <Input type="tel" placeholder="(555) 123-4567" data-testid="input-booking-client-phone" {...field} />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="flex justify-end space-x-2">
+                        <Button 
+                          type="button" 
+                          variant="outline" 
+                          onClick={() => setIsBookingModalOpen(false)}
+                          data-testid="button-cancel-booking"
+                        >
+                          Cancel
+                        </Button>
+                        <Button 
+                          type="submit" 
+                          disabled={createBookingMutation.isPending}
+                          data-testid="button-save-booking"
+                        >
+                          {createBookingMutation.isPending ? "Creating..." : "Create Booking"}
+                        </Button>
+                      </div>
+                    </form>
+                  </Form>
                 </DialogContent>
               </Dialog>
             </div>
