@@ -11,7 +11,7 @@ import { sendSms } from "./services/sms";
 import { createPaymentIntent, createCheckoutSession, handleWebhook } from "./services/stripe";
 import { insertUserSchema, insertPhotographerSchema, insertClientSchema, insertStageSchema, 
          insertTemplateSchema, insertAutomationSchema, insertAutomationStepSchema, insertPackageSchema, 
-         insertEstimateSchema, insertMessageSchema, emailLogs, smsLogs } from "@shared/schema";
+         insertEstimateSchema, insertMessageSchema, emailLogs, smsLogs, clientActivityLog } from "@shared/schema";
 import { startCronJobs } from "./jobs/cron";
 
 if (!process.env.STRIPE_SECRET_KEY) {
@@ -773,7 +773,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
             }
 
             // Log the proposal activity
-            await db.insert(clientHistory).values({
+            await db.insert(clientActivityLog).values({
               clientId: client.id,
               type: 'proposal_sent',
               title: `Proposal Sent: ${estimate.title}`,
@@ -791,6 +791,259 @@ ${photographer?.businessName || 'Your Photography Team'}`;
     } catch (error) {
       console.error('Send proposal error:', error);
       res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Proposals (route aliases for Estimates to enable terminology migration)
+  app.get("/api/proposals", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      const proposals = await storage.getProposalsByPhotographer(req.user!.photographerId!);
+      res.json(proposals);
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.post("/api/proposals", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      const proposalData = insertEstimateSchema.parse({
+        ...req.body,
+        photographerId: req.user!.photographerId!
+      });
+      const proposal = await storage.createProposal(proposalData);
+      
+      // Send proposal notifications to client if proposal has sentAt date
+      if (proposal.sentAt && proposal.clientId) {
+        try {
+          // Get client info for notifications
+          const client = await storage.getClient(proposal.clientId);
+          const photographer = await storage.getPhotographer(req.user!.photographerId!);
+          
+          if (client && photographer) {
+            const proposalUrl = `${process.env.VITE_APP_URL || 'https://your-domain.replit.app'}/public/proposals/${proposal.token}`;
+            
+            // Email notification
+            if (client.email && client.emailOptIn) {
+              const emailSuccess = await sendEmail({
+                to: client.email,
+                from: `${photographer.businessName} <${process.env.SENDGRID_FROM_EMAIL}>`,
+                replyTo: photographer.emailFromAddr || process.env.SENDGRID_FROM_EMAIL,
+                subject: `New Proposal: ${proposal.title}`,
+                html: `
+                  <h2>You have received a new proposal!</h2>
+                  <p>Hi ${client.firstName},</p>
+                  <p>${photographer.businessName} has sent you a new proposal titled "${proposal.title}".</p>
+                  <p><strong>Total Amount:</strong> $${((proposal.totalCents || 0) / 100).toFixed(2)}</p>
+                  <p><a href="${proposalUrl}" style="background: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px;">View & Sign Proposal</a></p>
+                  <p>You can view and electronically sign your proposal by clicking the link above.</p>
+                  <p>Best regards,<br>${photographer.businessName}</p>
+                `,
+                text: `You have received a new proposal from ${photographer.businessName}!\n\nProposal: ${proposal.title}\nTotal: $${((proposal.totalCents || 0) / 100).toFixed(2)}\n\nView and sign at: ${proposalUrl}`
+              });
+              
+              if (emailSuccess) {
+                await db.insert(emailLogs).values({
+                  clientId: client.id,
+                  status: 'sent',
+                  sentAt: new Date()
+                });
+              }
+            }
+            
+            // SMS notification
+            if (client.phone && client.smsOptIn) {
+              const smsResult = await sendSms({
+                to: client.phone,
+                body: `New proposal from ${photographer.businessName}: "${proposal.title}" ($${((proposal.totalCents || 0) / 100).toFixed(2)}). View & sign: ${proposalUrl}`
+              });
+              
+              if (smsResult.success) {
+                await db.insert(smsLogs).values({
+                  clientId: client.id,
+                  status: 'sent',
+                  providerId: smsResult.sid,
+                  sentAt: new Date()
+                });
+              }
+            }
+          }
+        } catch (notificationError) {
+          console.error('Error sending proposal notifications:', notificationError);
+          // Don't fail the main request if notifications fail
+        }
+      }
+      
+      res.status(201).json(proposal);
+    } catch (error) {
+      console.error("Create proposal error:", error);
+      console.error("Request body:", req.body);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Send proposal endpoint
+  app.post("/api/proposals/:id/send", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      const proposalId = req.params.id;
+      
+      // Get the proposal first to ensure it belongs to the photographer
+      const proposal = await storage.getProposal(proposalId);
+      if (!proposal || proposal.photographerId !== req.user!.photographerId!) {
+        return res.status(404).json({ message: "Proposal not found" });
+      }
+
+      // Update proposal with sent timestamp
+      const updatedProposal = await storage.updateProposal(proposalId, {
+        sentAt: new Date()
+      });
+
+      // Send notifications to client
+      if (proposal.clientId) {
+        try {
+          // Get client info for notifications
+          const client = await storage.getClient(proposal.clientId);
+          const photographer = await storage.getPhotographer(req.user!.photographerId!);
+          
+          if (client && photographer) {
+            const proposalUrl = `${process.env.VITE_APP_URL || 'https://your-domain.replit.app'}/public/proposals/${proposal.token}`;
+            
+            // Email notification
+            if (client.email && client.emailOptIn) {
+              const emailSuccess = await sendEmail({
+                to: client.email,
+                from: `${photographer.businessName} <${process.env.SENDGRID_FROM_EMAIL}>`,
+                replyTo: photographer.emailFromAddr || process.env.SENDGRID_FROM_EMAIL,
+                subject: `New Proposal: ${proposal.title}`,
+                html: `
+                  <h2>You have received a new proposal!</h2>
+                  <p>Hi ${client.firstName},</p>
+                  <p>${photographer.businessName} has sent you a new proposal titled "${proposal.title}".</p>
+                  <p><strong>Total Amount:</strong> $${((proposal.totalCents || 0) / 100).toFixed(2)}</p>
+                  <p><a href="${proposalUrl}" style="background: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px;">View & Sign Proposal</a></p>
+                  <p>You can view and electronically sign your proposal by clicking the link above.</p>
+                  <p>Best regards,<br>${photographer.businessName}</p>
+                `,
+                text: `You have received a new proposal from ${photographer.businessName}!\n\nProposal: ${proposal.title}\nTotal: $${((proposal.totalCents || 0) / 100).toFixed(2)}\n\nView and sign at: ${proposalUrl}`
+              });
+              
+              if (emailSuccess) {
+                await db.insert(emailLogs).values({
+                  clientId: client.id,
+                  status: 'sent',
+                  sentAt: new Date()
+                });
+              }
+            }
+            
+            // SMS notification
+            if (client.phone && client.smsOptIn) {
+              const smsResult = await sendSms({
+                to: client.phone,
+                body: `Hi ${client.firstName}, ${photographer.businessName} has sent you a new proposal "${proposal.title}" ($${((proposal.totalCents || 0) / 100).toFixed(2)}). View and sign at: ${proposalUrl}`
+              });
+              
+              if (smsResult.success) {
+                await db.insert(smsLogs).values({
+                  clientId: client.id,
+                  status: 'sent',
+                  sentAt: new Date()
+                });
+              }
+            }
+
+            // Log the proposal activity
+            await db.insert(clientActivityLog).values({
+              clientId: client.id,
+              activityType: 'PROPOSAL_SENT',
+              title: `Proposal Sent: ${proposal.title}`,
+              description: `Proposal "${proposal.title}" was sent to the client ($${((proposal.totalCents || 0) / 100).toFixed(2)}).`,
+              metadata: {
+                proposalId: proposal.id,
+                totalCents: proposal.totalCents,
+                status: 'SENT'
+              },
+              relatedId: proposal.id,
+              relatedType: 'ESTIMATE'
+            });
+          }
+        } catch (notificationError) {
+          console.error('Error sending proposal notifications:', notificationError);
+          // Don't fail the main request if notifications fail
+        }
+      }
+      
+      res.json(updatedProposal);
+    } catch (error) {
+      console.error('Send proposal error:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Public proposal view
+  app.get("/public/proposals/:token", async (req, res) => {
+    try {
+      const proposal = await storage.getProposalByToken(req.params.token);
+      if (!proposal) {
+        return res.status(404).json({ message: "Proposal not found" });
+      }
+      res.json(proposal);
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.post("/public/proposals/:token/sign", async (req, res) => {
+    try {
+      const { signedByName, signedByEmail, signatureImageUrl } = req.body;
+      const proposal = await storage.getProposalByToken(req.params.token);
+      
+      if (!proposal) {
+        return res.status(404).json({ message: "Proposal not found" });
+      }
+
+      const updated = await storage.updateProposal(proposal.id, {
+        status: "SIGNED",
+        signedAt: new Date(),
+        signedByName,
+        signedByEmail,
+        signatureImageUrl,
+        signedIp: req.ip,
+        signedUserAgent: req.get('User-Agent')
+      });
+
+      res.json(updated);
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.post("/public/proposals/:token/pay", async (req, res) => {
+    try {
+      const { mode } = req.body; // "DEPOSIT" or "FULL"
+      const proposal = await storage.getProposalByToken(req.params.token);
+      
+      if (!proposal) {
+        return res.status(404).json({ message: "Proposal not found" });
+      }
+
+      const amount = mode === "DEPOSIT" ? (proposal.depositCents || 0) : (proposal.totalCents || 0);
+      
+      const successUrl = `${process.env.APP_BASE_URL}/payment-success?proposal=${req.params.token}`;
+      const cancelUrl = `${process.env.APP_BASE_URL}/proposals/${req.params.token}`;
+
+      const checkoutUrl = await createCheckoutSession({
+        amountCents: amount,
+        successUrl,
+        cancelUrl,
+        metadata: {
+          estimateId: proposal.id,
+          paymentType: mode
+        }
+      });
+
+      res.json({ url: checkoutUrl });
+    } catch (error: any) {
+      res.status(500).json({ message: "Error creating checkout session: " + error.message });
     }
   });
 
