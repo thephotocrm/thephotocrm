@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Settings as SettingsIcon, User, Palette, Mail, Clock, Shield } from "lucide-react";
+import { Settings as SettingsIcon, User, Palette, Mail, Clock, Shield, Calendar, CheckCircle, XCircle, ExternalLink } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -46,13 +46,171 @@ export default function Settings() {
     enabled: !!user
   });
 
-  const [businessName, setBusinessName] = useState(photographer?.businessName || "");
-  const [logoUrl, setLogoUrl] = useState(photographer?.logoUrl || "");
-  const [brandPrimary, setBrandPrimary] = useState(photographer?.brandPrimary || "#3b82f6");
-  const [brandSecondary, setBrandSecondary] = useState(photographer?.brandSecondary || "#64748b");
-  const [emailFromName, setEmailFromName] = useState(photographer?.emailFromName || "");
-  const [emailFromAddr, setEmailFromAddr] = useState(photographer?.emailFromAddr || "");
-  const [timezone, setTimezone] = useState(photographer?.timezone || "America/New_York");
+  const [businessName, setBusinessName] = useState((photographer as any)?.businessName || "");
+  const [logoUrl, setLogoUrl] = useState((photographer as any)?.logoUrl || "");
+  const [brandPrimary, setBrandPrimary] = useState((photographer as any)?.brandPrimary || "#3b82f6");
+  const [brandSecondary, setBrandSecondary] = useState((photographer as any)?.brandSecondary || "#64748b");
+  const [emailFromName, setEmailFromName] = useState((photographer as any)?.emailFromName || "");
+  const [emailFromAddr, setEmailFromAddr] = useState((photographer as any)?.emailFromAddr || "");
+  const [timezone, setTimezone] = useState((photographer as any)?.timezone || "America/New_York");
+
+  // Google Calendar integration component
+  function GoogleCalendarIntegration() {
+    const { data: calendarStatus, refetch: refetchStatus } = useQuery({
+      queryKey: ["/api/calendar/status"],
+      enabled: !!user
+    });
+
+    const connectMutation = useMutation({
+      mutationFn: async () => {
+        const response = await fetch("/api/auth/google-calendar", {
+          credentials: 'include'
+        });
+        if (!response.ok) throw new Error("Failed to get auth URL");
+        const data = await response.json();
+        return data;
+      },
+      onSuccess: (data) => {
+        if (data.authUrl) {
+          window.open(data.authUrl, '_blank', 'width=500,height=600');
+          // Poll for connection status after opening auth window
+          const pollInterval = setInterval(async () => {
+            const result = await refetchStatus();
+            if ((result.data as any)?.connected) {
+              clearInterval(pollInterval);
+              toast({
+                title: "Google Calendar Connected!",
+                description: "Your calendar integration is now active.",
+              });
+            }
+          }, 2000);
+          
+          // Stop polling after 5 minutes
+          setTimeout(() => clearInterval(pollInterval), 5 * 60 * 1000);
+        }
+      },
+      onError: () => {
+        toast({
+          title: "Connection Failed",
+          description: "Failed to connect to Google Calendar. Please try again.",
+          variant: "destructive"
+        });
+      }
+    });
+
+    const disconnectMutation = useMutation({
+      mutationFn: async () => {
+        await apiRequest("POST", "/api/calendar/disconnect");
+      },
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ["/api/calendar/status"] });
+        toast({
+          title: "Calendar Disconnected",
+          description: "Your Google Calendar has been disconnected.",
+        });
+      },
+      onError: () => {
+        toast({
+          title: "Disconnection Failed",
+          description: "Failed to disconnect calendar. Please try again.",
+          variant: "destructive"
+        });
+      }
+    });
+
+    const isConnected = (calendarStatus as any)?.connected;
+    const connectedEmail = (calendarStatus as any)?.email;
+
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center justify-between p-4 border border-border rounded-lg">
+          <div className="flex items-center space-x-3">
+            <Calendar className="w-8 h-8 text-primary" />
+            <div>
+              <h3 className="font-medium">Google Calendar</h3>
+              <p className="text-sm text-muted-foreground">
+                Sync your bookings with Google Calendar and generate Meet links
+              </p>
+              {isConnected && connectedEmail && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  Connected as: {connectedEmail}
+                </p>
+              )}
+            </div>
+          </div>
+          <div className="flex items-center space-x-3">
+            {isConnected ? (
+              <>
+                <div className="flex items-center text-green-600">
+                  <CheckCircle className="w-4 h-4 mr-1" />
+                  <span className="text-sm font-medium">Connected</span>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => disconnectMutation.mutate()}
+                  disabled={disconnectMutation.isPending}
+                  data-testid="button-disconnect-calendar"
+                >
+                  {disconnectMutation.isPending ? "Disconnecting..." : "Disconnect"}
+                </Button>
+              </>
+            ) : (
+              <>
+                <div className="flex items-center text-gray-500">
+                  <XCircle className="w-4 h-4 mr-1" />
+                  <span className="text-sm">Not Connected</span>
+                </div>
+                <Button
+                  onClick={() => connectMutation.mutate()}
+                  disabled={connectMutation.isPending}
+                  data-testid="button-connect-calendar"
+                  className="flex items-center"
+                >
+                  {connectMutation.isPending ? (
+                    "Connecting..."
+                  ) : (
+                    <>
+                      Connect
+                      <ExternalLink className="w-4 h-4 ml-1" />
+                    </>
+                  )}
+                </Button>
+              </>
+            )}
+          </div>
+        </div>
+        
+        {isConnected && (
+          <div className="p-3 bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded-lg">
+            <div className="flex items-start space-x-2">
+              <CheckCircle className="w-4 h-4 text-green-600 mt-0.5" />
+              <div className="text-sm">
+                <p className="font-medium text-green-800 dark:text-green-200">Calendar integration active</p>
+                <p className="text-green-700 dark:text-green-300 mt-1">
+                  New bookings will automatically create calendar events with Google Meet links
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        {!isConnected && (
+          <div className="p-3 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg">
+            <div className="flex items-start space-x-2">
+              <Calendar className="w-4 h-4 text-blue-600 mt-0.5" />
+              <div className="text-sm">
+                <p className="font-medium text-blue-800 dark:text-blue-200">Connect your calendar</p>
+                <p className="text-blue-700 dark:text-blue-300 mt-1">
+                  Connect Google Calendar to automatically create events and Generate Meet links for client bookings
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
 
   const updatePhotographerMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -108,7 +266,7 @@ export default function Settings() {
 
         <div className="p-6">
           <Tabs defaultValue="profile" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-5">
+            <TabsList className="grid w-full grid-cols-6">
               <TabsTrigger value="profile" className="flex items-center">
                 <User className="w-4 h-4 mr-2" />
                 Profile
@@ -128,6 +286,10 @@ export default function Settings() {
               <TabsTrigger value="security" className="flex items-center">
                 <Shield className="w-4 h-4 mr-2" />
                 Security
+              </TabsTrigger>
+              <TabsTrigger value="integrations" className="flex items-center">
+                <Calendar className="w-4 h-4 mr-2" />
+                Integrations
               </TabsTrigger>
             </TabsList>
 
@@ -420,6 +582,17 @@ export default function Settings() {
                       Delete Account
                     </Button>
                   </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="integrations">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Calendar Integration</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <GoogleCalendarIntegration />
                 </CardContent>
               </Card>
             </TabsContent>
