@@ -8,7 +8,8 @@ import {
   type Client, type InsertClient, type ClientWithStage, type Stage, type InsertStage,
   type Template, type InsertTemplate, type Automation, type InsertAutomation,
   type AutomationStep, type InsertAutomationStep, type Package, type InsertPackage,
-  type Estimate, type InsertEstimate, type QuestionnaireTemplate, type InsertQuestionnaireTemplate,
+  type Estimate, type InsertEstimate, type EstimateItem, type EstimateWithClient, type EstimateWithRelations,
+  type QuestionnaireTemplate, type InsertQuestionnaireTemplate,
   type Message, type InsertMessage, type ClientActivityLog, type TimelineEvent, type ClientPortalToken, type InsertClientPortalToken
 } from "@shared/schema";
 import { db } from "./db";
@@ -70,9 +71,9 @@ export interface IStorage {
   updatePackage(id: string, pkg: Partial<Package>): Promise<Package>;
   
   // Estimates
-  getEstimatesByPhotographer(photographerId: string): Promise<Estimate[]>;
-  getEstimate(id: string): Promise<Estimate | undefined>;
-  getEstimateByToken(token: string): Promise<Estimate | undefined>;
+  getEstimatesByPhotographer(photographerId: string): Promise<EstimateWithClient[]>;
+  getEstimate(id: string): Promise<EstimateWithRelations | undefined>;
+  getEstimateByToken(token: string): Promise<EstimateWithRelations | undefined>;
   createEstimate(estimate: InsertEstimate): Promise<Estimate>;
   updateEstimate(id: string, estimate: Partial<Estimate>): Promise<Estimate>;
   
@@ -344,7 +345,7 @@ export class DatabaseStorage implements IStorage {
     return updated;
   }
 
-  async getEstimatesByPhotographer(photographerId: string): Promise<any[]> {
+  async getEstimatesByPhotographer(photographerId: string): Promise<EstimateWithClient[]> {
     return await db.select({
       id: estimates.id,
       photographerId: estimates.photographerId,
@@ -381,9 +382,146 @@ export class DatabaseStorage implements IStorage {
     .orderBy(desc(estimates.createdAt));
   }
 
-  async getEstimateByToken(token: string): Promise<Estimate | undefined> {
-    const [estimate] = await db.select().from(estimates).where(eq(estimates.token, token));
-    return estimate || undefined;
+  async getEstimate(id: string): Promise<EstimateWithRelations | undefined> {
+    // Fetch estimate with all relations (photographer, client, items)
+    const [estimate] = await db.select({
+      id: estimates.id,
+      photographerId: estimates.photographerId,
+      clientId: estimates.clientId,
+      title: estimates.title,
+      notes: estimates.notes,
+      currency: estimates.currency,
+      subtotalCents: estimates.subtotalCents,
+      discountCents: estimates.discountCents,
+      taxCents: estimates.taxCents,
+      totalCents: estimates.totalCents,
+      depositPercent: estimates.depositPercent,
+      depositCents: estimates.depositCents,
+      status: estimates.status,
+      validUntil: estimates.validUntil,
+      createdAt: estimates.createdAt,
+      sentAt: estimates.sentAt,
+      signedAt: estimates.signedAt,
+      signedByName: estimates.signedByName,
+      signedByEmail: estimates.signedByEmail,
+      signedIp: estimates.signedIp,
+      signedUserAgent: estimates.signedUserAgent,
+      signatureImageUrl: estimates.signatureImageUrl,
+      token: estimates.token,
+      photographer: {
+        id: photographers.id,
+        businessName: photographers.businessName,
+        logoUrl: photographers.logoUrl,
+        brandPrimary: photographers.brandPrimary,
+        brandSecondary: photographers.brandSecondary,
+        emailFromName: photographers.emailFromName,
+        emailFromAddr: photographers.emailFromAddr,
+        timezone: photographers.timezone,
+        createdAt: photographers.createdAt
+      },
+      client: {
+        id: clients.id,
+        firstName: clients.firstName,
+        lastName: clients.lastName,
+        email: clients.email,
+        phone: clients.phone,
+        weddingDate: clients.weddingDate,
+        notes: clients.notes,
+        stageId: clients.stageId,
+        stageEnteredAt: clients.stageEnteredAt,
+        smsOptIn: clients.smsOptIn,
+        emailOptIn: clients.emailOptIn,
+        createdAt: clients.createdAt,
+        photographerId: clients.photographerId
+      }
+    })
+      .from(estimates)
+      .innerJoin(photographers, eq(estimates.photographerId, photographers.id))
+      .innerJoin(clients, eq(estimates.clientId, clients.id))
+      .where(eq(estimates.id, id));
+
+    if (!estimate) return undefined;
+
+    // Fetch estimate items separately
+    const items = await db.select().from(estimateItems)
+      .where(eq(estimateItems.estimateId, id))
+      .orderBy(asc(estimateItems.orderIndex));
+
+    return {
+      ...estimate,
+      items
+    };
+  }
+
+  async getEstimateByToken(token: string): Promise<EstimateWithRelations | undefined> {
+    // Fetch estimate with all relations (photographer, client, items)
+    const [estimate] = await db.select({
+      id: estimates.id,
+      photographerId: estimates.photographerId,
+      clientId: estimates.clientId,
+      title: estimates.title,
+      notes: estimates.notes,
+      currency: estimates.currency,
+      subtotalCents: estimates.subtotalCents,
+      discountCents: estimates.discountCents,
+      taxCents: estimates.taxCents,
+      totalCents: estimates.totalCents,
+      depositPercent: estimates.depositPercent,
+      depositCents: estimates.depositCents,
+      status: estimates.status,
+      validUntil: estimates.validUntil,
+      createdAt: estimates.createdAt,
+      sentAt: estimates.sentAt,
+      signedAt: estimates.signedAt,
+      signedByName: estimates.signedByName,
+      signedByEmail: estimates.signedByEmail,
+      signedIp: estimates.signedIp,
+      signedUserAgent: estimates.signedUserAgent,
+      signatureImageUrl: estimates.signatureImageUrl,
+      token: estimates.token,
+      photographer: {
+        id: photographers.id,
+        businessName: photographers.businessName,
+        logoUrl: photographers.logoUrl,
+        brandPrimary: photographers.brandPrimary,
+        brandSecondary: photographers.brandSecondary,
+        emailFromName: photographers.emailFromName,
+        emailFromAddr: photographers.emailFromAddr,
+        timezone: photographers.timezone,
+        createdAt: photographers.createdAt
+      },
+      client: {
+        id: clients.id,
+        firstName: clients.firstName,
+        lastName: clients.lastName,
+        email: clients.email,
+        phone: clients.phone,
+        weddingDate: clients.weddingDate,
+        notes: clients.notes,
+        stageId: clients.stageId,
+        stageEnteredAt: clients.stageEnteredAt,
+        smsOptIn: clients.smsOptIn,
+        emailOptIn: clients.emailOptIn,
+        createdAt: clients.createdAt,
+        photographerId: clients.photographerId
+      }
+    })
+      .from(estimates)
+      .innerJoin(photographers, eq(estimates.photographerId, photographers.id))
+      .innerJoin(clients, eq(estimates.clientId, clients.id))
+      .where(eq(estimates.token, token));
+
+    if (!estimate) return undefined;
+
+    // Fetch estimate items separately
+    const items = await db.select().from(estimateItems)
+      .where(eq(estimateItems.estimateId, estimate.id))
+      .orderBy(asc(estimateItems.orderIndex));
+
+    return {
+      ...estimate,
+      items
+    };
   }
 
   async createEstimate(insertEstimate: InsertEstimate): Promise<Estimate> {

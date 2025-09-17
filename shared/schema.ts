@@ -577,6 +577,8 @@ export type Package = typeof packages.$inferSelect;
 export type InsertPackage = z.infer<typeof insertPackageSchema>;
 export type Estimate = typeof estimates.$inferSelect;
 export type InsertEstimate = z.infer<typeof insertEstimateSchema>;
+export type EstimateItem = typeof estimateItems.$inferSelect;
+export type EstimatePayment = typeof estimatePayments.$inferSelect;
 export type QuestionnaireTemplate = typeof questionnaireTemplates.$inferSelect;
 export type InsertQuestionnaireTemplate = z.infer<typeof insertQuestionnaireTemplateSchema>;
 export type Message = typeof messages.$inferSelect;
@@ -594,6 +596,22 @@ export type ClientWithStage = Client & {
     color: string;
     isDefault: boolean;
   } | null;
+};
+
+// Estimate with basic client information for list views
+export type EstimateWithClient = Estimate & {
+  client: {
+    firstName: string;
+    lastName: string;
+    email: string | null;
+  };
+};
+
+// Estimate with full relations for detailed views
+export type EstimateWithRelations = Estimate & {
+  photographer: Photographer;
+  client: Client;
+  items: EstimateItem[];
 };
 
 // Timeline event types for client history
