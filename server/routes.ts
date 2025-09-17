@@ -804,6 +804,23 @@ ${photographer?.businessName || 'Your Photography Team'}`;
     }
   });
 
+  app.get("/api/proposals/client/:clientId", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      const { clientId } = req.params;
+      
+      // First verify the client belongs to this photographer (tenant security)
+      const client = await storage.getClient(clientId);
+      if (!client || client.photographerId !== req.user!.photographerId!) {
+        return res.status(404).json({ message: "Proposal not found" });
+      }
+      
+      const proposals = await storage.getProposalsByClient(clientId);
+      res.json(proposals);
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   app.post("/api/proposals", authenticateToken, requirePhotographer, async (req, res) => {
     try {
       const proposalData = insertEstimateSchema.parse({

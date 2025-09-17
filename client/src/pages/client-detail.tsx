@@ -22,7 +22,8 @@ import {
   Link as LinkIcon,
   ExternalLink,
   MoreHorizontal,
-  Eye
+  Eye,
+  Plus
 } from "lucide-react";
 import { type ClientWithStage, type Estimate, type Message, type TimelineEvent, type Stage } from "@shared/schema";
 import { useState } from "react";
@@ -512,7 +513,17 @@ export default function ClientDetail() {
           {/* Proposals Section */}
           <Card>
             <CardHeader>
-              <CardTitle>Proposals</CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle>Proposals</CardTitle>
+                <Button 
+                  onClick={() => setLocation(`/proposals/new?clientId=${clientId}`)}
+                  size="sm"
+                  data-testid="button-create-proposal"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Create Proposal
+                </Button>
+              </div>
             </CardHeader>
             <CardContent>
               {proposals && proposals.length > 0 ? (
@@ -600,9 +611,13 @@ export default function ClientDetail() {
                 <div className="text-center py-8">
                   <FileText className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
                   <p className="text-muted-foreground mb-4">No proposals created yet</p>
-                  <p className="text-sm text-muted-foreground">
-                    Create proposals from the main proposals page to see them here
-                  </p>
+                  <Button 
+                    onClick={() => setLocation(`/proposals/new?clientId=${clientId}`)}
+                    data-testid="button-create-first-proposal"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Create First Proposal
+                  </Button>
                 </div>
               )}
             </CardContent>
