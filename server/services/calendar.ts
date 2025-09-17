@@ -45,7 +45,7 @@ export class GoogleCalendarService {
   ];
 
   private static readonly REDIRECT_URI = process.env.GOOGLE_REDIRECT_URI || 
-    `${process.env.NODE_ENV === 'production' ? 'https' : 'http'}://localhost:5000/api/auth/google-calendar/callback`;
+    GoogleCalendarService.getDefaultRedirectURI();
 
   private clientId: string | null;
   private clientSecret: string | null;
@@ -53,6 +53,26 @@ export class GoogleCalendarService {
 
   private static readonly HMAC_ALGORITHM = 'sha256';
   private static readonly STATE_SEPARATOR = '.';
+
+  /**
+   * Get default redirect URI that works with both Replit and local development
+   */
+  private static getDefaultRedirectURI(): string {
+    // Check if running on Replit
+    if (process.env.REPL_SLUG && process.env.REPL_OWNER) {
+      return `https://${process.env.REPL_SLUG}--${process.env.REPL_OWNER}.repl.co/api/auth/google-calendar/callback`;
+    }
+    
+    // Check for other cloud providers or custom domains
+    if (process.env.REPLIT_DOMAINS) {
+      // Use the first domain from REPLIT_DOMAINS
+      const domains = process.env.REPLIT_DOMAINS.split(',');
+      return `https://${domains[0]}/api/auth/google-calendar/callback`;
+    }
+    
+    // Fallback to localhost for local development
+    return `${process.env.NODE_ENV === 'production' ? 'https' : 'http'}://localhost:5000/api/auth/google-calendar/callback`;
+  }
 
   constructor() {
     this.clientId = process.env.GOOGLE_CLIENT_ID || null;
