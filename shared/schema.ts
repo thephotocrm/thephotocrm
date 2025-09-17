@@ -559,6 +559,10 @@ export const insertQuestionnaireTemplateSchema = createInsertSchema(questionnair
   createdAt: true
 });
 
+export const insertQuestionnaireQuestionSchema = createInsertSchema(questionnaireQuestions).omit({
+  id: true
+});
+
 export const insertMessageSchema = createInsertSchema(messages).omit({
   id: true,
   createdAt: true
@@ -635,6 +639,8 @@ export type EstimateItem = typeof estimateItems.$inferSelect;
 export type EstimatePayment = typeof estimatePayments.$inferSelect;
 export type QuestionnaireTemplate = typeof questionnaireTemplates.$inferSelect;
 export type InsertQuestionnaireTemplate = z.infer<typeof insertQuestionnaireTemplateSchema>;
+export type QuestionnaireQuestion = typeof questionnaireQuestions.$inferSelect;
+export type InsertQuestionnaireQuestion = z.infer<typeof insertQuestionnaireQuestionSchema>;
 export type Message = typeof messages.$inferSelect;
 export type InsertMessage = z.infer<typeof insertMessageSchema>;
 export type ClientActivityLog = typeof clientActivityLog.$inferSelect;

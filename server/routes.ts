@@ -13,7 +13,7 @@ import { googleCalendarService } from "./services/calendar";
 import { insertUserSchema, insertPhotographerSchema, insertClientSchema, insertStageSchema, 
          insertTemplateSchema, insertAutomationSchema, insertAutomationStepSchema, insertPackageSchema, 
          insertEstimateSchema, insertMessageSchema, insertBookingSchema, updateBookingSchema, 
-         bookingConfirmationSchema, sanitizedBookingSchema, insertQuestionnaireTemplateSchema, emailLogs, smsLogs, clientActivityLog } from "@shared/schema";
+         bookingConfirmationSchema, sanitizedBookingSchema, insertQuestionnaireTemplateSchema, insertQuestionnaireQuestionSchema, emailLogs, smsLogs, clientActivityLog } from "@shared/schema";
 import { startCronJobs } from "./jobs/cron";
 import path from "path";
 
@@ -1808,6 +1808,114 @@ ${photographer?.businessName || 'Your Photography Team'}`;
     } catch (error) {
       console.error('Failed to delete questionnaire template:', error);
       res.status(500).json({ error: 'Failed to delete template' });
+    }
+  });
+
+  // Questionnaire Questions Routes
+  
+  // Get questions for a template
+  app.get("/api/questionnaire-templates/:templateId/questions", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      // First verify template exists and belongs to photographer
+      const template = await storage.getQuestionnaireTemplate(req.params.templateId);
+      
+      if (!template) {
+        return res.status(404).json({ error: 'Template not found' });
+      }
+      
+      if (template.photographerId !== req.user!.photographerId) {
+        return res.status(403).json({ error: 'Access denied' });
+      }
+      
+      const questions = await storage.getQuestionnaireQuestionsByTemplate(req.params.templateId);
+      res.json(questions);
+    } catch (error) {
+      console.error('Failed to fetch questionnaire questions:', error);
+      res.status(500).json({ error: 'Failed to fetch questions' });
+    }
+  });
+
+  // Create a new question for a template
+  app.post("/api/questionnaire-templates/:templateId/questions", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      // First verify template exists and belongs to photographer
+      const template = await storage.getQuestionnaireTemplate(req.params.templateId);
+      
+      if (!template) {
+        return res.status(404).json({ error: 'Template not found' });
+      }
+      
+      if (template.photographerId !== req.user!.photographerId) {
+        return res.status(403).json({ error: 'Access denied' });
+      }
+
+      const validatedData = insertQuestionnaireQuestionSchema.parse({
+        ...req.body,
+        templateId: req.params.templateId
+      });
+
+      const question = await storage.createQuestionnaireQuestion(validatedData);
+      res.status(201).json(question);
+    } catch (error: any) {
+      console.error('Failed to create questionnaire question:', error);
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ error: 'Invalid question data', details: error.errors });
+      }
+      res.status(500).json({ error: 'Failed to create question' });
+    }
+  });
+
+  // Update a question
+  app.put("/api/questionnaire-questions/:id", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      // Get the question to verify template ownership using storage method
+      const question = await storage.getQuestionnaireQuestionById(req.params.id);
+      
+      if (!question) {
+        return res.status(404).json({ error: 'Question not found' });
+      }
+      
+      // Verify template belongs to photographer
+      const template = await storage.getQuestionnaireTemplate(question.templateId);
+      if (!template || template.photographerId !== req.user!.photographerId) {
+        return res.status(403).json({ error: 'Access denied' });
+      }
+
+      // Validate the update data using partial schema
+      const validatedData = insertQuestionnaireQuestionSchema.partial().parse(req.body);
+      
+      const updatedQuestion = await storage.updateQuestionnaireQuestion(req.params.id, validatedData);
+      res.json(updatedQuestion);
+    } catch (error: any) {
+      console.error('Failed to update questionnaire question:', error);
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ error: 'Invalid question data', details: error.errors });
+      }
+      res.status(500).json({ error: 'Failed to update question' });
+    }
+  });
+
+  // Delete a question
+  app.delete("/api/questionnaire-questions/:id", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      // Get the question to verify template ownership using storage method
+      const question = await storage.getQuestionnaireQuestionById(req.params.id);
+      
+      if (!question) {
+        return res.status(404).json({ error: 'Question not found' });
+      }
+      
+      // Verify template belongs to photographer
+      const template = await storage.getQuestionnaireTemplate(question.templateId);
+      if (!template || template.photographerId !== req.user!.photographerId) {
+        return res.status(403).json({ error: 'Access denied' });
+      }
+
+      await storage.deleteQuestionnaireQuestion(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error('Failed to delete questionnaire question:', error);
+      res.status(500).json({ error: 'Failed to delete question' });
     }
   });
 

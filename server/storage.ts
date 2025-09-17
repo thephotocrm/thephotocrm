@@ -10,6 +10,7 @@ import {
   type AutomationStep, type InsertAutomationStep, type Package, type InsertPackage,
   type Estimate, type InsertEstimate, type EstimateItem, type EstimateWithClient, type EstimateWithRelations,
   type QuestionnaireTemplate, type InsertQuestionnaireTemplate,
+  type QuestionnaireQuestion, type InsertQuestionnaireQuestion,
   type Message, type InsertMessage, type ClientActivityLog, type TimelineEvent, type ClientPortalToken, type InsertClientPortalToken,
   type Proposal, type InsertProposal, type ProposalItem, type ProposalPayment, type ProposalWithClient, type ProposalWithRelations,
   type Booking, type InsertBooking
@@ -95,6 +96,13 @@ export interface IStorage {
   createQuestionnaireTemplate(template: InsertQuestionnaireTemplate): Promise<QuestionnaireTemplate>;
   updateQuestionnaireTemplate(id: string, template: Partial<QuestionnaireTemplate>): Promise<QuestionnaireTemplate>;
   deleteQuestionnaireTemplate(id: string): Promise<void>;
+  
+  // Questionnaire Questions
+  getQuestionnaireQuestionsByTemplate(templateId: string): Promise<QuestionnaireQuestion[]>;
+  getQuestionnaireQuestionById(id: string): Promise<QuestionnaireQuestion | undefined>;
+  createQuestionnaireQuestion(question: InsertQuestionnaireQuestion): Promise<QuestionnaireQuestion>;
+  updateQuestionnaireQuestion(id: string, question: Partial<QuestionnaireQuestion>): Promise<QuestionnaireQuestion>;
+  deleteQuestionnaireQuestion(id: string): Promise<void>;
   
   // Bookings
   getBookingsByPhotographer(photographerId: string): Promise<Booking[]>;
@@ -652,6 +660,35 @@ export class DatabaseStorage implements IStorage {
     
     // Delete the template itself
     await db.delete(questionnaireTemplates).where(eq(questionnaireTemplates.id, id));
+  }
+
+  async getQuestionnaireQuestionsByTemplate(templateId: string): Promise<QuestionnaireQuestion[]> {
+    return await db.select().from(questionnaireQuestions)
+      .where(eq(questionnaireQuestions.templateId, templateId))
+      .orderBy(asc(questionnaireQuestions.orderIndex));
+  }
+
+  async getQuestionnaireQuestionById(id: string): Promise<QuestionnaireQuestion | undefined> {
+    const [question] = await db.select().from(questionnaireQuestions)
+      .where(eq(questionnaireQuestions.id, id));
+    return question || undefined;
+  }
+
+  async createQuestionnaireQuestion(insertQuestion: InsertQuestionnaireQuestion): Promise<QuestionnaireQuestion> {
+    const [question] = await db.insert(questionnaireQuestions).values(insertQuestion).returning();
+    return question;
+  }
+
+  async updateQuestionnaireQuestion(id: string, question: Partial<QuestionnaireQuestion>): Promise<QuestionnaireQuestion> {
+    const [updated] = await db.update(questionnaireQuestions)
+      .set(question)
+      .where(eq(questionnaireQuestions.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteQuestionnaireQuestion(id: string): Promise<void> {
+    await db.delete(questionnaireQuestions).where(eq(questionnaireQuestions.id, id));
   }
 
   async getClientHistory(clientId: string): Promise<TimelineEvent[]> {

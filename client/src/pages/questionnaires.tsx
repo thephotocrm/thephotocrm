@@ -12,7 +12,37 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { Plus, ClipboardList, Users, CheckCircle, Clock, Edit, UserPlus, Trash2 } from "lucide-react";
+import { Plus, ClipboardList, Users, CheckCircle, Clock, Edit, UserPlus, Trash2, GripVertical, X } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+
+// Question types
+const QUESTION_TYPES = [
+  { value: "TEXT", label: "Text Input" },
+  { value: "TEXTAREA", label: "Long Text" },
+  { value: "MULTIPLE_CHOICE", label: "Multiple Choice" },
+  { value: "CHECKBOX", label: "Checkboxes" },
+  { value: "NUMBER", label: "Number" },
+  { value: "DATE", label: "Date" },
+  { value: "EMAIL", label: "Email" }
+];
+
+// Form schemas
+const templateFormSchema = z.object({
+  title: z.string().min(1, "Title is required"),
+  description: z.string().optional()
+});
+
+const questionFormSchema = z.object({
+  type: z.string().min(1, "Question type is required"),
+  label: z.string().min(1, "Question label is required"),
+  options: z.string().optional(),
+  orderIndex: z.number().min(0)
+});
 
 export default function Questionnaires() {
   const { user, loading } = useAuth();
@@ -42,8 +72,19 @@ export default function Questionnaires() {
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<any>(null);
   const [newTemplate, setNewTemplate] = useState({ title: "", description: "" });
+  const [editingQuestions, setEditingQuestions] = useState<any[]>([]);
+  const [activeTab, setActiveTab] = useState("template");
   
   const { toast } = useToast();
+
+  // Fetch questions when editing a template
+  const { data: questions = [], isLoading: questionsLoading } = useQuery({
+    queryKey: ["/api/questionnaire-templates", editingTemplate?.id, "questions"],
+    enabled: !!editingTemplate?.id,
+    onSuccess: (data) => {
+      setEditingQuestions(data);
+    }
+  });
 
   // Create template mutation
   const createMutation = useMutation({
@@ -75,10 +116,10 @@ export default function Questionnaires() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/questionnaire-templates"] });
-      setEditingTemplate(null);
+      // Keep dialog open - users often want to continue editing questions
       toast({
         title: "Template Updated",
-        description: "Questionnaire template has been updated successfully."
+        description: "Template details have been saved successfully."
       });
     },
     onError: () => {
@@ -111,6 +152,67 @@ export default function Questionnaires() {
     }
   });
 
+  // Question mutations
+  const createQuestionMutation = useMutation({
+    mutationFn: async (data: { templateId: string; type: string; label: string; options?: string; orderIndex: number }) => {
+      await apiRequest("POST", `/api/questionnaire-templates/${data.templateId}/questions`, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/questionnaire-templates", editingTemplate?.id, "questions"] });
+      toast({
+        title: "Question Added",
+        description: "Question has been added successfully."
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to add question. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const updateQuestionMutation = useMutation({
+    mutationFn: async (data: { id: string; type: string; label: string; options?: string; orderIndex: number }) => {
+      await apiRequest("PUT", `/api/questionnaire-questions/${data.id}`, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/questionnaire-templates", editingTemplate?.id, "questions"] });
+      toast({
+        title: "Question Updated",
+        description: "Question has been updated successfully."
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to update question. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const deleteQuestionMutation = useMutation({
+    mutationFn: async (id: string) => {
+      await apiRequest("DELETE", `/api/questionnaire-questions/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/questionnaire-templates", editingTemplate?.id, "questions"] });
+      toast({
+        title: "Question Deleted", 
+        description: "Question has been deleted successfully."
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to delete question. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
   const handleCreateSubmit = () => {
     if (!newTemplate.title.trim()) {
       toast({
@@ -138,6 +240,52 @@ export default function Questionnaires() {
   const handleAssignTemplate = (template: any) => {
     setSelectedTemplate(template);
     setAssignDialogOpen(true);
+  };
+
+  const addNewQuestion = () => {
+    const newQuestion = {
+      id: `new-${Date.now()}`,
+      type: "TEXT",
+      label: "",
+      options: "",
+      orderIndex: editingQuestions.length,
+      isNew: true
+    };
+    setEditingQuestions([...editingQuestions, newQuestion]);
+  };
+
+  const updateQuestion = (index: number, field: string, value: any) => {
+    const updated = [...editingQuestions];
+    updated[index] = { ...updated[index], [field]: value };
+    setEditingQuestions(updated);
+  };
+
+  const deleteQuestion = (index: number) => {
+    const question = editingQuestions[index];
+    if (question.isNew) {
+      // Remove from local state if it's a new question
+      const updated = editingQuestions.filter((_, i) => i !== index);
+      setEditingQuestions(updated);
+    } else {
+      // Call API to delete existing question
+      deleteQuestionMutation.mutate(question.id);
+    }
+  };
+
+  const saveQuestion = (question: any) => {
+    if (question.isNew) {
+      // Create new question
+      createQuestionMutation.mutate({
+        templateId: editingTemplate.id,
+        type: question.type,
+        label: question.label,
+        options: question.options,
+        orderIndex: question.orderIndex
+      });
+    } else {
+      // Update existing question
+      updateQuestionMutation.mutate(question);
+    }
   };
 
   if (isLoading) {
@@ -369,45 +517,156 @@ export default function Questionnaires() {
         </div>
       </main>
 
-      {/* Edit Template Dialog */}
+      {/* Enhanced Edit Template Dialog with Question Management */}
       <Dialog open={!!editingTemplate} onOpenChange={() => setEditingTemplate(null)}>
-        <DialogContent>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Edit Questionnaire Template</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="edit-title">Title</Label>
-              <Input
-                id="edit-title"
-                value={editingTemplate?.title || ""}
-                onChange={(e) => setEditingTemplate({ ...editingTemplate, title: e.target.value })}
-                placeholder="Enter template title"
-                data-testid="input-edit-template-title"
-              />
-            </div>
-            <div>
-              <Label htmlFor="edit-description">Description</Label>
-              <Textarea
-                id="edit-description"
-                value={editingTemplate?.description || ""}
-                onChange={(e) => setEditingTemplate({ ...editingTemplate, description: e.target.value })}
-                placeholder="Enter template description"
-                data-testid="input-edit-template-description"
-              />
-            </div>
-            <div className="flex justify-end space-x-2">
-              <Button variant="outline" onClick={() => setEditingTemplate(null)}>
-                Cancel
-              </Button>
-              <Button 
-                onClick={handleUpdateSubmit}
-                disabled={updateMutation.isPending}
-                data-testid="button-update-submit"
-              >
-                {updateMutation.isPending ? "Updating..." : "Update Template"}
-              </Button>
-            </div>
+          
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="template" data-testid="tab-template">Template Details</TabsTrigger>
+              <TabsTrigger value="questions" data-testid="tab-questions">Questions ({editingQuestions.length})</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="template" className="space-y-4">
+              <div>
+                <Label htmlFor="edit-title">Title</Label>
+                <Input
+                  id="edit-title"
+                  value={editingTemplate?.title || ""}
+                  onChange={(e) => setEditingTemplate({ ...editingTemplate, title: e.target.value })}
+                  placeholder="Enter template title"
+                  data-testid="input-edit-template-title"
+                />
+              </div>
+              <div>
+                <Label htmlFor="edit-description">Description</Label>
+                <Textarea
+                  id="edit-description"
+                  value={editingTemplate?.description || ""}
+                  onChange={(e) => setEditingTemplate({ ...editingTemplate, description: e.target.value })}
+                  placeholder="Enter template description"
+                  data-testid="input-edit-template-description"
+                />
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="questions" className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-medium">Questions</h3>
+                <Button 
+                  onClick={addNewQuestion}
+                  size="sm"
+                  data-testid="button-add-question"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Question
+                </Button>
+              </div>
+              
+              {questionsLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="animate-spin w-6 h-6 border-4 border-primary border-t-transparent rounded-full" />
+                </div>
+              ) : editingQuestions.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <p>No questions yet. Add your first question to get started.</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {editingQuestions.map((question, index) => (
+                    <div key={question.id || index} className="border border-border rounded-lg p-4 space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-2">
+                          <GripVertical className="w-4 h-4 text-muted-foreground" />
+                          <span className="text-sm text-muted-foreground">Question {index + 1}</span>
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => deleteQuestion(index)}
+                          data-testid={`button-delete-question-${index}`}
+                        >
+                          <X className="w-4 h-4 text-red-500" />
+                        </Button>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label>Question Type</Label>
+                          <Select 
+                            value={question.type} 
+                            onValueChange={(value) => updateQuestion(index, 'type', value)}
+                          >
+                            <SelectTrigger data-testid={`select-question-type-${index}`}>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {QUESTION_TYPES.map((type) => (
+                                <SelectItem key={type.value} value={type.value}>
+                                  {type.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        
+                        <div>
+                          <Label>Question Text</Label>
+                          <Input
+                            value={question.label}
+                            onChange={(e) => updateQuestion(index, 'label', e.target.value)}
+                            placeholder="Enter your question"
+                            data-testid={`input-question-label-${index}`}
+                          />
+                        </div>
+                      </div>
+                      
+                      {(question.type === 'MULTIPLE_CHOICE' || question.type === 'CHECKBOX') && (
+                        <div>
+                          <Label>Options (one per line)</Label>
+                          <Textarea
+                            value={question.options || ""}
+                            onChange={(e) => updateQuestion(index, 'options', e.target.value)}
+                            placeholder="Option 1&#10;Option 2&#10;Option 3"
+                            data-testid={`textarea-question-options-${index}`}
+                          />
+                        </div>
+                      )}
+                      
+                      <div className="flex justify-end">
+                        <Button 
+                          onClick={() => saveQuestion(question)}
+                          size="sm"
+                          disabled={!question.label.trim() || createQuestionMutation.isPending || updateQuestionMutation.isPending}
+                          data-testid={`button-save-question-${index}`}
+                        >
+                          {(createQuestionMutation.isPending || updateQuestionMutation.isPending) ? 
+                            "Saving..." : 
+                            question.isNew ? "Add Question" : "Update Question"
+                          }
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </TabsContent>
+          </Tabs>
+          
+          <div className="flex justify-end space-x-2 border-t pt-4 mt-6">
+            <Button variant="outline" onClick={() => setEditingTemplate(null)}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleUpdateSubmit}
+              disabled={updateMutation.isPending}
+              data-testid="button-update-submit"
+            >
+              {updateMutation.isPending ? "Updating..." : "Update Template"}
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
