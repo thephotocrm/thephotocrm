@@ -232,13 +232,26 @@ export default function ProposalForm({
 
   const handleFormSubmit = (data: ProposalFormData) => {
     // Ensure line totals are calculated correctly before submission
+    const itemsWithTotals = data.items.map(item => ({
+      ...item,
+      lineTotalCents: (item.qty || 0) * (item.unitCents || 0)
+    }));
+    
+    // Calculate proposal-level totals
+    const itemSubtotal = itemsWithTotals.reduce((sum, item) => sum + item.lineTotalCents, 0);
+    const calculatedTaxCents = Math.round(itemSubtotal * 0.0825); // 8.25% automatic tax
+    const calculatedTotalCents = itemSubtotal - (data.discountCents || 0) + calculatedTaxCents;
+    const calculatedDepositCents = data.depositPercent ? Math.round(calculatedTotalCents * (data.depositPercent / 100)) : null;
+    
     const updatedData = {
       ...data,
-      items: data.items.map(item => ({
-        ...item,
-        lineTotalCents: (item.qty || 0) * (item.unitCents || 0)
-      }))
+      items: itemsWithTotals,
+      subtotalCents: itemSubtotal,
+      taxCents: calculatedTaxCents,
+      totalCents: calculatedTotalCents,
+      depositCents: calculatedDepositCents
     };
+    
     onSubmit(updatedData);
   };
 
