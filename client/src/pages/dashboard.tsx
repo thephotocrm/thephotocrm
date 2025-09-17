@@ -1,11 +1,12 @@
 import { useAuth } from "@/hooks/use-auth";
 import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
-import Sidebar from "@/components/layout/sidebar";
 import KanbanBoard from "@/components/kanban/kanban-board";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/sidebar";
+import { AppSidebar } from "@/components/layout/app-sidebar";
 import { Users, CheckCircle, DollarSign, Clock, Search, Plus } from "lucide-react";
 
 export default function Dashboard() {
@@ -43,16 +44,18 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen flex bg-background">
-      <Sidebar />
-      
-      <main className="flex-1 overflow-auto">
+    <SidebarProvider>
+      <AppSidebar />
+      <SidebarInset>
         {/* Header */}
         <header className="bg-card border-b border-border px-6 py-4">
           <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-semibold">Client Pipeline</h1>
-              <p className="text-muted-foreground">Manage your wedding photography clients through each stage</p>
+            <div className="flex items-center space-x-4">
+              <SidebarTrigger data-testid="button-menu-toggle" />
+              <div>
+                <h1 className="text-2xl font-semibold">Client Pipeline</h1>
+                <p className="text-muted-foreground">Manage your wedding photography clients through each stage</p>
+              </div>
             </div>
             
             <div className="flex items-center space-x-4">
@@ -156,7 +159,7 @@ export default function Dashboard() {
             </CardContent>
           </Card>
         </div>
-      </main>
-    </div>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }
