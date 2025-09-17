@@ -312,7 +312,7 @@ export default function PublicProposal() {
                   </div>
                   <div className="flex items-center justify-between">
                     <span>Created</span>
-                    <span className="text-sm">{new Date(proposal.createdAt).toLocaleDateString()}</span>
+                    <span className="text-sm">{proposal.createdAt ? new Date(proposal.createdAt).toLocaleDateString() : 'Unknown'}</span>
                   </div>
                   {proposal.validUntil && (
                     <div className="flex items-center justify-between">
@@ -402,7 +402,7 @@ export default function PublicProposal() {
                     data-testid="button-pay-full"
                   >
                     <CreditCard className="w-4 h-4 mr-2" />
-                    Pay in Full ({formatPrice(proposal.totalCents)})
+                    Pay in Full ({formatPrice(proposal.totalCents || 0)})
                   </Button>
                 </CardContent>
               </Card>
