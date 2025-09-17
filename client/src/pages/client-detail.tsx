@@ -23,7 +23,8 @@ import {
   ExternalLink,
   MoreHorizontal,
   Eye,
-  Plus
+  Plus,
+  Trash2
 } from "lucide-react";
 import { type ClientWithStage, type Estimate, type Message, type TimelineEvent, type Stage } from "@shared/schema";
 import { useState } from "react";
@@ -32,6 +33,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
 export default function ClientDetail() {
   // ALL HOOKS MUST BE AT THE TOP - Rules of Hooks!
@@ -190,6 +192,27 @@ export default function ClientDetail() {
       toast({
         title: "Error",
         description: error.message || "Failed to send proposal",
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Delete proposal mutation  
+  const deleteProposalMutation = useMutation({
+    mutationFn: (proposalId: string) => apiRequest("DELETE", `/api/proposals/${proposalId}`, {}),
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Proposal deleted successfully!"
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/proposals", "client", clientId] });
+      queryClient.invalidateQueries({ queryKey: ["/api/clients", clientId, "history"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/proposals"] }); // Keep global proposals list consistent
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete proposal",
         variant: "destructive"
       });
     }
@@ -601,6 +624,32 @@ export default function ClientDetail() {
                                 Resend
                               </DropdownMenuItem>
                             )}
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <DropdownMenuItem onSelect={(e) => e.preventDefault()} data-testid={`delete-proposal-${estimate.id}`}>
+                                  <Trash2 className="w-4 h-4 mr-2" />
+                                  Delete
+                                </DropdownMenuItem>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Delete Proposal</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Are you sure you want to delete "{estimate.title}"? This action cannot be undone.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel data-testid="cancel-delete-proposal">Cancel</AlertDialogCancel>
+                                  <AlertDialogAction 
+                                    onClick={() => deleteProposalMutation.mutate(estimate.id)}
+                                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                    data-testid="confirm-delete-proposal"
+                                  >
+                                    Delete
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </div>
