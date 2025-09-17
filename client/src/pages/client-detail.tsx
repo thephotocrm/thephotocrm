@@ -437,7 +437,7 @@ export default function ClientDetail() {
                     <span className="text-sm">Proposals</span>
                   </div>
                   <span className="font-medium" data-testid="text-proposals-count">
-                    {estimates?.length || 0}
+                    {proposals?.length || 0}
                   </span>
                 </div>
                 
@@ -447,7 +447,7 @@ export default function ClientDetail() {
                     <span className="text-sm">Total Value</span>
                   </div>
                   <span className="font-medium" data-testid="text-total-value">
-                    {estimates ? formatCurrency(estimates.reduce((sum: number, est: any) => sum + (est.totalCents || 0), 0)) : "$0.00"}
+                    {proposals ? formatCurrency(proposals.reduce((sum: number, est: any) => sum + (est.totalCents || 0), 0)) : "$0.00"}
                   </span>
                 </div>
                 
@@ -515,9 +515,9 @@ export default function ClientDetail() {
               <CardTitle>Proposals</CardTitle>
             </CardHeader>
             <CardContent>
-              {estimates && estimates.length > 0 ? (
+              {proposals && proposals.length > 0 ? (
                 <div className="space-y-4">
-                  {estimates.map((estimate) => (
+                  {proposals.map((estimate) => (
                     <div 
                       key={estimate.id} 
                       className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50"
