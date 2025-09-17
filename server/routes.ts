@@ -561,7 +561,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
           const photographer = await storage.getPhotographer(req.user!.photographerId!);
           
           if (client && photographer) {
-            const proposalUrl = `${process.env.VITE_APP_URL || 'https://your-domain.replit.app'}/public/estimates/${estimate.token}`;
+            const proposalUrl = `${process.env.VITE_APP_URL || 'https://lens-leads-crm-austinpacholek2.replit.app'}/public/estimates/${estimate.token}`;
             
             // Email notification
             if (client.email && client.emailOptIn) {
@@ -931,7 +931,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
           const photographer = await storage.getPhotographer(req.user!.photographerId!);
           
           if (client && photographer) {
-            const proposalUrl = `${process.env.VITE_APP_URL || 'https://your-domain.replit.app'}/public/proposals/${proposal.token}`;
+            const proposalUrl = `${process.env.VITE_APP_URL || 'https://lens-leads-crm-austinpacholek2.replit.app'}/public/proposals/${proposal.token}`;
             
             // Email notification
             if (client.email && client.emailOptIn) {
