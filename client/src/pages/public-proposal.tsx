@@ -45,13 +45,13 @@ export default function PublicProposal() {
   const [isSignatureValid, setIsSignatureValid] = useState(false);
 
   const { data: proposal, isLoading } = useQuery<ProposalWithRelations>({
-    queryKey: [`/public/proposals/${params?.token}`],
+    queryKey: [`/api/public/proposals/${params?.token}`],
     enabled: !!params?.token
   });
 
   const signProposalMutation = useMutation({
     mutationFn: async (signatureData: any) => {
-      await apiRequest("POST", `/public/proposals/${params?.token}/sign`, signatureData);
+      await apiRequest("POST", `/api/public/proposals/${params?.token}/sign`, signatureData);
     },
     onSuccess: () => {
       toast({
@@ -71,7 +71,7 @@ export default function PublicProposal() {
 
   const handlePayment = async (mode: 'DEPOSIT' | 'FULL') => {
     try {
-      const response = await apiRequest("POST", `/public/proposals/${params?.token}/pay`, { mode });
+      const response = await apiRequest("POST", `/api/public/proposals/${params?.token}/pay`, { mode });
       const { url } = await response.json();
       window.location.href = url;
     } catch (error) {

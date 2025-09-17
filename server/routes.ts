@@ -1026,7 +1026,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
   });
 
   // Public proposal view
-  app.get("/public/proposals/:token", async (req, res) => {
+  app.get("/api/public/proposals/:token", async (req, res) => {
     try {
       const proposal = await storage.getProposalByToken(req.params.token);
       if (!proposal) {
@@ -1038,7 +1038,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
     }
   });
 
-  app.post("/public/proposals/:token/sign", async (req, res) => {
+  app.post("/api/public/proposals/:token/sign", async (req, res) => {
     try {
       const { signedByName, signedByEmail, signatureImageUrl } = req.body;
       const proposal = await storage.getProposalByToken(req.params.token);
@@ -1063,7 +1063,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
     }
   });
 
-  app.post("/public/proposals/:token/pay", async (req, res) => {
+  app.post("/api/public/proposals/:token/pay", async (req, res) => {
     try {
       const { mode } = req.body; // "DEPOSIT" or "FULL"
       const proposal = await storage.getProposalByToken(req.params.token);
