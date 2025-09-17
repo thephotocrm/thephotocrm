@@ -7,8 +7,9 @@ import Sidebar from "@/components/layout/sidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, FileText, DollarSign, Clock, Send, Eye, MoreHorizontal } from "lucide-react";
+import { Plus, FileText, DollarSign, Clock, Send, Eye, MoreHorizontal, Trash2 } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import type { Estimate, Client } from "@shared/schema";
 
 interface ProposalWithClient extends Estimate {
@@ -44,6 +45,25 @@ export default function Proposals() {
       toast({
         title: "Error",
         description: error.message || "Failed to send proposal",
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Delete proposal mutation
+  const deleteProposalMutation = useMutation({
+    mutationFn: (proposalId: string) => apiRequest("DELETE", `/api/proposals/${proposalId}`, {}),
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Proposal deleted successfully!"
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/proposals"] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete proposal",
         variant: "destructive"
       });
     }
@@ -227,6 +247,32 @@ export default function Proposals() {
                                 Resend
                               </DropdownMenuItem>
                             )}
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <DropdownMenuItem onSelect={(e) => e.preventDefault()} data-testid={`delete-proposal-${proposal.id}`}>
+                                  <Trash2 className="w-4 h-4 mr-2" />
+                                  Delete
+                                </DropdownMenuItem>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Delete Proposal</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Are you sure you want to delete "{proposal.title}"? This action cannot be undone.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel data-testid="cancel-delete-proposal">Cancel</AlertDialogCancel>
+                                  <AlertDialogAction 
+                                    onClick={() => deleteProposalMutation.mutate(proposal.id)}
+                                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                    data-testid="confirm-delete-proposal"
+                                  >
+                                    Delete
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </div>
