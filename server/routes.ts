@@ -13,7 +13,7 @@ import { googleCalendarService } from "./services/calendar";
 import { insertUserSchema, insertPhotographerSchema, insertClientSchema, insertStageSchema, 
          insertTemplateSchema, insertAutomationSchema, insertAutomationStepSchema, insertPackageSchema, 
          insertEstimateSchema, insertMessageSchema, insertBookingSchema, updateBookingSchema, 
-         bookingConfirmationSchema, sanitizedBookingSchema, emailLogs, smsLogs, clientActivityLog } from "@shared/schema";
+         bookingConfirmationSchema, sanitizedBookingSchema, insertQuestionnaireTemplateSchema, emailLogs, smsLogs, clientActivityLog } from "@shared/schema";
 import { startCronJobs } from "./jobs/cron";
 import path from "path";
 
@@ -1702,6 +1702,112 @@ ${photographer?.businessName || 'Your Photography Team'}`;
     } catch (error) {
       console.error('Calendar disconnect error:', error);
       res.status(500).json({ message: "Failed to disconnect calendar" });
+    }
+  });
+
+  // === QUESTIONNAIRE TEMPLATE ROUTES ===
+
+  // Get questionnaire templates for photographer
+  app.get("/api/questionnaire-templates", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      const templates = await storage.getQuestionnaireTemplatesByPhotographer(req.user!.photographerId!);
+      res.json(templates);
+    } catch (error) {
+      console.error('Failed to fetch questionnaire templates:', error);
+      res.status(500).json({ error: 'Failed to fetch templates' });
+    }
+  });
+
+  // Get single questionnaire template
+  app.get("/api/questionnaire-templates/:id", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      const template = await storage.getQuestionnaireTemplate(req.params.id);
+      
+      if (!template) {
+        return res.status(404).json({ error: 'Template not found' });
+      }
+      
+      // Verify template belongs to photographer
+      if (template.photographerId !== req.user!.photographerId) {
+        return res.status(403).json({ error: 'Access denied' });
+      }
+      
+      res.json(template);
+    } catch (error) {
+      console.error('Failed to fetch questionnaire template:', error);
+      res.status(500).json({ error: 'Failed to fetch template' });
+    }
+  });
+
+  // Create questionnaire template
+  app.post("/api/questionnaire-templates", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      const validatedData = insertQuestionnaireTemplateSchema.parse({
+        ...req.body,
+        photographerId: req.user!.photographerId
+      });
+
+      const template = await storage.createQuestionnaireTemplate(validatedData);
+      res.status(201).json(template);
+    } catch (error: any) {
+      console.error('Failed to create questionnaire template:', error);
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ error: 'Invalid template data', details: error.errors });
+      }
+      res.status(500).json({ error: 'Failed to create template' });
+    }
+  });
+
+  // Update questionnaire template
+  app.put("/api/questionnaire-templates/:id", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      // First verify template exists and belongs to photographer
+      const existingTemplate = await storage.getQuestionnaireTemplate(req.params.id);
+      
+      if (!existingTemplate) {
+        return res.status(404).json({ error: 'Template not found' });
+      }
+      
+      if (existingTemplate.photographerId !== req.user!.photographerId) {
+        return res.status(403).json({ error: 'Access denied' });
+      }
+
+      // Validate the update data (don't allow changing photographerId)
+      const updateData = { ...req.body };
+      delete updateData.photographerId;
+      delete updateData.id;
+      delete updateData.createdAt;
+
+      const template = await storage.updateQuestionnaireTemplate(req.params.id, updateData);
+      res.json(template);
+    } catch (error: any) {
+      console.error('Failed to update questionnaire template:', error);
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ error: 'Invalid template data', details: error.errors });
+      }
+      res.status(500).json({ error: 'Failed to update template' });
+    }
+  });
+
+  // Delete questionnaire template
+  app.delete("/api/questionnaire-templates/:id", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      // First verify template exists and belongs to photographer
+      const existingTemplate = await storage.getQuestionnaireTemplate(req.params.id);
+      
+      if (!existingTemplate) {
+        return res.status(404).json({ error: 'Template not found' });
+      }
+      
+      if (existingTemplate.photographerId !== req.user!.photographerId) {
+        return res.status(403).json({ error: 'Access denied' });
+      }
+
+      await storage.deleteQuestionnaireTemplate(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error('Failed to delete questionnaire template:', error);
+      res.status(500).json({ error: 'Failed to delete template' });
     }
   });
 

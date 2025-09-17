@@ -91,7 +91,10 @@ export interface IStorage {
   
   // Questionnaire Templates
   getQuestionnaireTemplatesByPhotographer(photographerId: string): Promise<QuestionnaireTemplate[]>;
+  getQuestionnaireTemplate(id: string): Promise<QuestionnaireTemplate | undefined>;
   createQuestionnaireTemplate(template: InsertQuestionnaireTemplate): Promise<QuestionnaireTemplate>;
+  updateQuestionnaireTemplate(id: string, template: Partial<QuestionnaireTemplate>): Promise<QuestionnaireTemplate>;
+  deleteQuestionnaireTemplate(id: string): Promise<void>;
   
   // Bookings
   getBookingsByPhotographer(photographerId: string): Promise<Booking[]>;
@@ -625,6 +628,30 @@ export class DatabaseStorage implements IStorage {
   async createQuestionnaireTemplate(insertTemplate: InsertQuestionnaireTemplate): Promise<QuestionnaireTemplate> {
     const [template] = await db.insert(questionnaireTemplates).values(insertTemplate).returning();
     return template;
+  }
+
+  async getQuestionnaireTemplate(id: string): Promise<QuestionnaireTemplate | undefined> {
+    const [template] = await db.select().from(questionnaireTemplates).where(eq(questionnaireTemplates.id, id));
+    return template || undefined;
+  }
+
+  async updateQuestionnaireTemplate(id: string, template: Partial<QuestionnaireTemplate>): Promise<QuestionnaireTemplate> {
+    const [updated] = await db.update(questionnaireTemplates)
+      .set(template)
+      .where(eq(questionnaireTemplates.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteQuestionnaireTemplate(id: string): Promise<void> {
+    // Delete questions first (foreign key constraint)
+    await db.delete(questionnaireQuestions).where(eq(questionnaireQuestions.templateId, id));
+    
+    // Delete client questionnaires
+    await db.delete(clientQuestionnaires).where(eq(clientQuestionnaires.templateId, id));
+    
+    // Delete the template itself
+    await db.delete(questionnaireTemplates).where(eq(questionnaireTemplates.id, id));
   }
 
   async getClientHistory(clientId: string): Promise<TimelineEvent[]> {

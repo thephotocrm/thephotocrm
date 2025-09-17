@@ -1,12 +1,18 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { useLocation } from "wouter";
 import Sidebar from "@/components/layout/sidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, ClipboardList, Users, CheckCircle, Clock } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { Plus, ClipboardList, Users, CheckCircle, Clock, Edit, UserPlus, Trash2 } from "lucide-react";
 
 export default function Questionnaires() {
   const { user, loading } = useAuth();
@@ -26,10 +32,121 @@ export default function Questionnaires() {
     );
   }
 
-  const { data: questionnaires } = useQuery({
+  const { data: templates = [], isLoading } = useQuery({
     queryKey: ["/api/questionnaire-templates"],
     enabled: !!user
   });
+
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [editingTemplate, setEditingTemplate] = useState<any>(null);
+  const [assignDialogOpen, setAssignDialogOpen] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState<any>(null);
+  const [newTemplate, setNewTemplate] = useState({ title: "", description: "" });
+  
+  const { toast } = useToast();
+
+  // Create template mutation
+  const createMutation = useMutation({
+    mutationFn: async (data: { title: string; description: string }) => {
+      await apiRequest("POST", "/api/questionnaire-templates", data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/questionnaire-templates"] });
+      setCreateDialogOpen(false);
+      setNewTemplate({ title: "", description: "" });
+      toast({
+        title: "Template Created",
+        description: "Questionnaire template has been created successfully."
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error", 
+        description: "Failed to create template. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Update template mutation
+  const updateMutation = useMutation({
+    mutationFn: async ({ id, ...data }: { id: string; title: string; description: string }) => {
+      await apiRequest("PUT", `/api/questionnaire-templates/${id}`, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/questionnaire-templates"] });
+      setEditingTemplate(null);
+      toast({
+        title: "Template Updated",
+        description: "Questionnaire template has been updated successfully."
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to update template. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Delete template mutation
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      await apiRequest("DELETE", `/api/questionnaire-templates/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/questionnaire-templates"] });
+      toast({
+        title: "Template Deleted",
+        description: "Questionnaire template has been deleted successfully."
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to delete template. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const handleCreateSubmit = () => {
+    if (!newTemplate.title.trim()) {
+      toast({
+        title: "Error",
+        description: "Template title is required.",
+        variant: "destructive"
+      });
+      return;
+    }
+    createMutation.mutate(newTemplate);
+  };
+
+  const handleUpdateSubmit = () => {
+    if (!editingTemplate?.title?.trim()) {
+      toast({
+        title: "Error",
+        description: "Template title is required.",
+        variant: "destructive"
+      });
+      return;
+    }
+    updateMutation.mutate(editingTemplate);
+  };
+
+  const handleAssignTemplate = (template: any) => {
+    setSelectedTemplate(template);
+    setAssignDialogOpen(true);
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex bg-background">
@@ -44,10 +161,53 @@ export default function Questionnaires() {
               <p className="text-muted-foreground">Create questionnaires and assign them to clients</p>
             </div>
             
-            <Button data-testid="button-create-questionnaire">
-              <Plus className="w-5 h-5 mr-2" />
-              Create Questionnaire
-            </Button>
+            <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+              <DialogTrigger asChild>
+                <Button data-testid="button-create-questionnaire">
+                  <Plus className="w-5 h-5 mr-2" />
+                  Create Questionnaire
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Create New Questionnaire Template</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="title">Title</Label>
+                    <Input
+                      id="title"
+                      value={newTemplate.title}
+                      onChange={(e) => setNewTemplate({ ...newTemplate, title: e.target.value })}
+                      placeholder="Enter template title"
+                      data-testid="input-template-title"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="description">Description</Label>
+                    <Textarea
+                      id="description"
+                      value={newTemplate.description}
+                      onChange={(e) => setNewTemplate({ ...newTemplate, description: e.target.value })}
+                      placeholder="Enter template description"
+                      data-testid="input-template-description"
+                    />
+                  </div>
+                  <div className="flex justify-end space-x-2">
+                    <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>
+                      Cancel
+                    </Button>
+                    <Button 
+                      onClick={handleCreateSubmit}
+                      disabled={createMutation.isPending}
+                      data-testid="button-create-submit"
+                    >
+                      {createMutation.isPending ? "Creating..." : "Create Template"}
+                    </Button>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
           </div>
         </header>
 
@@ -60,7 +220,7 @@ export default function Questionnaires() {
                 <ClipboardList className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">4</div>
+                <div className="text-2xl font-bold">{templates.length}</div>
                 <p className="text-xs text-muted-foreground">Active templates</p>
               </CardContent>
             </Card>
@@ -71,7 +231,7 @@ export default function Questionnaires() {
                 <Users className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">18</div>
+                <div className="text-2xl font-bold">-</div>
                 <p className="text-xs text-muted-foreground">To clients</p>
               </CardContent>
             </Card>
@@ -82,8 +242,8 @@ export default function Questionnaires() {
                 <CheckCircle className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">12</div>
-                <p className="text-xs text-muted-foreground">67% completion rate</p>
+                <div className="text-2xl font-bold">-</div>
+                <p className="text-xs text-muted-foreground">Completion rate</p>
               </CardContent>
             </Card>
 
@@ -93,7 +253,7 @@ export default function Questionnaires() {
                 <Clock className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">6</div>
+                <div className="text-2xl font-bold">-</div>
                 <p className="text-xs text-muted-foreground">Awaiting response</p>
               </CardContent>
             </Card>
@@ -106,70 +266,54 @@ export default function Questionnaires() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {/* Sample templates */}
-                <div className="flex items-center justify-between p-4 border border-border rounded-lg">
-                  <div>
-                    <h3 className="font-medium">Wedding Day Details</h3>
-                    <p className="text-sm text-muted-foreground">8 questions about wedding timeline, venue, and special moments</p>
+                {templates.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <ClipboardList className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                    <p>No questionnaire templates yet</p>
+                    <p className="text-sm">Create your first template to get started</p>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <Badge variant="secondary">8 questions</Badge>
-                    <Button variant="outline" size="sm" data-testid="button-edit-wedding-details">
-                      Edit
-                    </Button>
-                    <Button variant="outline" size="sm" data-testid="button-assign-wedding-details">
-                      Assign
-                    </Button>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between p-4 border border-border rounded-lg">
-                  <div>
-                    <h3 className="font-medium">Photography Preferences</h3>
-                    <p className="text-sm text-muted-foreground">6 questions about style, must-have shots, and preferences</p>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Badge variant="secondary">6 questions</Badge>
-                    <Button variant="outline" size="sm" data-testid="button-edit-photo-preferences">
-                      Edit
-                    </Button>
-                    <Button variant="outline" size="sm" data-testid="button-assign-photo-preferences">
-                      Assign
-                    </Button>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between p-4 border border-border rounded-lg">
-                  <div>
-                    <h3 className="font-medium">Contact Information</h3>
-                    <p className="text-sm text-muted-foreground">5 questions about key contacts and emergency information</p>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Badge variant="secondary">5 questions</Badge>
-                    <Button variant="outline" size="sm" data-testid="button-edit-contact-info">
-                      Edit
-                    </Button>
-                    <Button variant="outline" size="sm" data-testid="button-assign-contact-info">
-                      Assign
-                    </Button>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between p-4 border border-border rounded-lg">
-                  <div>
-                    <h3 className="font-medium">Reception Details</h3>
-                    <p className="text-sm text-muted-foreground">7 questions about reception timeline and special events</p>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Badge variant="secondary">7 questions</Badge>
-                    <Button variant="outline" size="sm" data-testid="button-edit-reception-details">
-                      Edit
-                    </Button>
-                    <Button variant="outline" size="sm" data-testid="button-assign-reception-details">
-                      Assign
-                    </Button>
-                  </div>
-                </div>
+                ) : (
+                  templates.map((template: any) => (
+                    <div key={template.id} className="flex items-center justify-between p-4 border border-border rounded-lg">
+                      <div>
+                        <h3 className="font-medium">{template.title}</h3>
+                        <p className="text-sm text-muted-foreground">
+                          {template.description || "No description"}
+                        </p>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Badge variant="secondary">0 questions</Badge>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => setEditingTemplate({ ...template })}
+                          data-testid={`button-edit-${template.id}`}
+                        >
+                          <Edit className="w-4 h-4 mr-1" />
+                          Edit
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => handleAssignTemplate(template)}
+                          data-testid={`button-assign-${template.id}`}
+                        >
+                          <UserPlus className="w-4 h-4 mr-1" />
+                          Assign
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => deleteMutation.mutate(template.id)}
+                          disabled={deleteMutation.isPending}
+                          data-testid={`button-delete-${template.id}`}
+                        >
+                          <Trash2 className="w-4 h-4 text-red-500" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
             </CardContent>
           </Card>
@@ -224,6 +368,68 @@ export default function Questionnaires() {
           </Card>
         </div>
       </main>
+
+      {/* Edit Template Dialog */}
+      <Dialog open={!!editingTemplate} onOpenChange={() => setEditingTemplate(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Questionnaire Template</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="edit-title">Title</Label>
+              <Input
+                id="edit-title"
+                value={editingTemplate?.title || ""}
+                onChange={(e) => setEditingTemplate({ ...editingTemplate, title: e.target.value })}
+                placeholder="Enter template title"
+                data-testid="input-edit-template-title"
+              />
+            </div>
+            <div>
+              <Label htmlFor="edit-description">Description</Label>
+              <Textarea
+                id="edit-description"
+                value={editingTemplate?.description || ""}
+                onChange={(e) => setEditingTemplate({ ...editingTemplate, description: e.target.value })}
+                placeholder="Enter template description"
+                data-testid="input-edit-template-description"
+              />
+            </div>
+            <div className="flex justify-end space-x-2">
+              <Button variant="outline" onClick={() => setEditingTemplate(null)}>
+                Cancel
+              </Button>
+              <Button 
+                onClick={handleUpdateSubmit}
+                disabled={updateMutation.isPending}
+                data-testid="button-update-submit"
+              >
+                {updateMutation.isPending ? "Updating..." : "Update Template"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Assign Template Dialog */}
+      <Dialog open={assignDialogOpen} onOpenChange={setAssignDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Assign Questionnaire Template</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Assign "{selectedTemplate?.title}" to a client. This feature will be available soon.
+            </p>
+            <div className="flex justify-end space-x-2">
+              <Button variant="outline" onClick={() => setAssignDialogOpen(false)}>
+                Close
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
