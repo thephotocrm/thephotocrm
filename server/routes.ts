@@ -1075,8 +1075,8 @@ ${photographer?.businessName || 'Your Photography Team'}`;
 
       const amount = mode === "DEPOSIT" ? (proposal.depositCents || 0) : (proposal.totalCents || 0);
       
-      const successUrl = `${process.env.APP_BASE_URL}/payment-success?proposal=${req.params.token}`;
-      const cancelUrl = `${process.env.APP_BASE_URL}/public/proposals/${req.params.token}`;
+      const successUrl = `${process.env.APP_BASE_URL || 'https://lens-leads-crm-austinpacholek2.replit.app'}/payment-success?proposal=${req.params.token}`;
+      const cancelUrl = `${process.env.APP_BASE_URL || 'https://lens-leads-crm-austinpacholek2.replit.app'}/public/proposals/${req.params.token}`;
 
       const checkoutUrl = await createCheckoutSession({
         amountCents: amount,
