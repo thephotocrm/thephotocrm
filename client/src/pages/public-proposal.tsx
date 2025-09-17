@@ -38,7 +38,7 @@ interface ProposalWithRelations extends Estimate {
 }
 
 export default function PublicProposal() {
-  const [, params] = useRoute("/proposals/:token");
+  const [, params] = useRoute("/public/proposals/:token");
   const { toast } = useToast();
   const [signedByName, setSignedByName] = useState("");
   const [signedByEmail, setSignedByEmail] = useState("");

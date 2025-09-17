@@ -614,7 +614,7 @@ export default function ClientDetail() {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => window.open(`/proposals/${estimate.token}`, '_blank')}>
+                            <DropdownMenuItem onClick={() => window.open(`/public/proposals/${estimate.token}`, '_blank')}>
                               <Eye className="w-4 h-4 mr-2" />
                               Preview
                             </DropdownMenuItem>

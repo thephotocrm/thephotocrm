@@ -42,7 +42,7 @@ function Router() {
       <Route path="/settings" component={Settings} />
       <Route path="/checkout" component={Checkout} />
       <Route path="/client-portal" component={ClientPortal} />
-      <Route path="/proposals/:token" component={PublicProposal} />
+      <Route path="/public/proposals/:token" component={PublicProposal} />
       <Route component={NotFound} />
     </Switch>
   );

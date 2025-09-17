@@ -684,7 +684,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       const amount = mode === "DEPOSIT" ? (estimate.depositCents || 0) : (estimate.totalCents || 0);
       
       const successUrl = `${process.env.APP_BASE_URL}/payment-success?proposal=${req.params.token}`;
-      const cancelUrl = `${process.env.APP_BASE_URL}/proposals/${req.params.token}`;
+      const cancelUrl = `${process.env.APP_BASE_URL}/public/proposals/${req.params.token}`;
 
       const checkoutUrl = await createCheckoutSession({
         amountCents: amount,
@@ -1075,7 +1075,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       const amount = mode === "DEPOSIT" ? (proposal.depositCents || 0) : (proposal.totalCents || 0);
       
       const successUrl = `${process.env.APP_BASE_URL}/payment-success?proposal=${req.params.token}`;
-      const cancelUrl = `${process.env.APP_BASE_URL}/proposals/${req.params.token}`;
+      const cancelUrl = `${process.env.APP_BASE_URL}/public/proposals/${req.params.token}`;
 
       const checkoutUrl = await createCheckoutSession({
         amountCents: amount,

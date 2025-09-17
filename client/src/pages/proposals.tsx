@@ -237,7 +237,7 @@ export default function Proposals() {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => window.open(`/proposals/${proposal.token}`, '_blank')}>
+                            <DropdownMenuItem onClick={() => window.open(`/public/proposals/${proposal.token}`, '_blank')}>
                               <Eye className="w-4 h-4 mr-2" />
                               Preview
                             </DropdownMenuItem>
