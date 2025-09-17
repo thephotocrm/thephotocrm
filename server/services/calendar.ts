@@ -58,16 +58,16 @@ export class GoogleCalendarService {
    * Get default redirect URI that works with both Replit and local development
    */
   private static getDefaultRedirectURI(): string {
-    // Check if running on Replit
-    if (process.env.REPL_SLUG && process.env.REPL_OWNER) {
-      return `https://${process.env.REPL_SLUG}--${process.env.REPL_OWNER}.repl.co/api/auth/google-calendar/callback`;
-    }
-    
-    // Check for other cloud providers or custom domains
+    // Check for current domain first (most accurate)
     if (process.env.REPLIT_DOMAINS) {
-      // Use the first domain from REPLIT_DOMAINS
+      // Use the first domain from REPLIT_DOMAINS (this is the actual current domain)
       const domains = process.env.REPLIT_DOMAINS.split(',');
       return `https://${domains[0]}/api/auth/google-calendar/callback`;
+    }
+    
+    // Check if running on Replit (fallback to legacy format)
+    if (process.env.REPL_SLUG && process.env.REPL_OWNER) {
+      return `https://${process.env.REPL_SLUG}--${process.env.REPL_OWNER}.repl.co/api/auth/google-calendar/callback`;
     }
     
     // Fallback to localhost for local development
@@ -88,6 +88,7 @@ export class GoogleCalendarService {
     if (!process.env.GOOGLE_OAUTH_HMAC_SECRET && process.env.NODE_ENV === 'production') {
       console.warn('Google Calendar: GOOGLE_OAUTH_HMAC_SECRET not set in production. Using GOOGLE_CLIENT_SECRET as HMAC key.');
     }
+
   }
 
   /**
