@@ -297,6 +297,170 @@ function AutomationStepManager({ automation, onDelete }: { automation: any, onDe
   );
 }
 
+// StageChangeAutomationCard Component
+function StageChangeAutomationCard({ automation, onDelete }: { automation: any, onDelete: (id: string) => void }) {
+  const { toast } = useToast();
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editForm, setEditForm] = useState({
+    name: automation.name,
+    enabled: automation.enabled
+  });
+
+  // Toggle automation mutation
+  const toggleAutomationMutation = useMutation({
+    mutationFn: async (enabled: boolean) => {
+      return apiRequest("PATCH", `/api/automations/${automation.id}`, { enabled });
+    },
+    onSuccess: () => {
+      toast({ title: "Pipeline automation updated successfully" });
+      queryClient.invalidateQueries({ queryKey: ["/api/automations"] });
+    },
+    onError: () => {
+      toast({ title: "Failed to update pipeline automation", variant: "destructive" });
+    }
+  });
+
+  // Update automation mutation
+  const updateAutomationMutation = useMutation({
+    mutationFn: async (updatedData: any) => {
+      return apiRequest("PUT", `/api/automations/${automation.id}`, updatedData);
+    },
+    onSuccess: () => {
+      toast({ title: "Pipeline automation updated successfully" });
+      queryClient.invalidateQueries({ queryKey: ["/api/automations"] });
+      setEditDialogOpen(false);
+    },
+    onError: () => {
+      toast({ title: "Failed to update pipeline automation", variant: "destructive" });
+    }
+  });
+
+  const handleToggleAutomation = (enabled: boolean) => {
+    toggleAutomationMutation.mutate(enabled);
+  };
+
+  const handleSaveEdit = () => {
+    updateAutomationMutation.mutate(editForm);
+  };
+
+  const handleCancelEdit = () => {
+    setEditForm({
+      name: automation.name,
+      enabled: automation.enabled
+    });
+    setEditDialogOpen(false);
+  };
+
+  const getTriggerLabel = (triggerType: string) => {
+    const triggers = {
+      'DEPOSIT_PAID': '💳 Deposit Payment',
+      'FULL_PAYMENT_MADE': '✅ Full Payment',
+      'PROJECT_BOOKED': '📋 Project Booked',
+      'ESTIMATE_ACCEPTED': '📄 Estimate Accepted',
+      'EVENT_DATE_REACHED': '📅 Event Date',
+      'PROJECT_DELIVERED': '📦 Project Delivered',
+      'CLIENT_ONBOARDED': '🎯 Client Onboarded'
+    };
+    return triggers[triggerType as keyof typeof triggers] || triggerType;
+  };
+
+  return (
+    <div className="border rounded-lg p-4 space-y-3">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-3">
+          <ArrowRight className="w-4 h-4 text-purple-500" />
+          <div>
+            <p className="font-medium">{automation.name}</p>
+            <p className="text-sm text-muted-foreground">
+              Pipeline stage automation
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center space-x-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setEditDialogOpen(true)}
+            data-testid={`button-edit-automation-${automation.id}`}
+          >
+            <Edit2 className="w-4 h-4" />
+          </Button>
+          <Switch
+            checked={automation.enabled}
+            onCheckedChange={handleToggleAutomation}
+            disabled={toggleAutomationMutation.isPending}
+            data-testid={`switch-toggle-automation-${automation.id}`}
+          />
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => onDelete(automation.id)}
+            className="text-destructive hover:text-destructive"
+            data-testid={`button-delete-automation-${automation.id}`}
+          >
+            Delete
+          </Button>
+        </div>
+      </div>
+
+      <div className="text-sm text-muted-foreground space-y-1">
+        <p><strong>Trigger:</strong> {getTriggerLabel(automation.triggerType)}</p>
+        <p><strong>Action:</strong> Move to "{automation.targetStage?.name || 'Unknown Stage'}"</p>
+      </div>
+
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent data-testid={`dialog-edit-automation-${automation.id}`}>
+          <DialogHeader>
+            <DialogTitle>Edit Pipeline Automation</DialogTitle>
+            <DialogDescription>
+              Update the pipeline automation settings
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor={`edit-name-${automation.id}`}>Automation Name</Label>
+              <Input
+                id={`edit-name-${automation.id}`}
+                value={editForm.name}
+                onChange={(e) => setEditForm({...editForm, name: e.target.value})}
+                data-testid={`input-edit-name-${automation.id}`}
+              />
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <Switch
+                checked={editForm.enabled}
+                onCheckedChange={(checked) => setEditForm({...editForm, enabled: checked})}
+                data-testid={`switch-edit-enabled-${automation.id}`}
+              />
+              <Label>Enable automation</Label>
+            </div>
+          </div>
+
+          <div className="flex justify-end space-x-2 pt-4">
+            <Button
+              variant="outline"
+              onClick={handleCancelEdit}
+              disabled={updateAutomationMutation.isPending}
+              data-testid={`button-cancel-edit-${automation.id}`}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSaveEdit}
+              disabled={updateAutomationMutation.isPending || !editForm.name.trim()}
+              data-testid={`button-save-edit-${automation.id}`}
+            >
+              {updateAutomationMutation.isPending ? "Saving..." : "Save Changes"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
 export default function Automations() {
   const { user, loading } = useAuth();
   const [, setLocation] = useLocation();
@@ -908,7 +1072,11 @@ export default function Automations() {
                       </p>
                     ) : (
                       stageAutomations.map((automation: any) => (
-                        <AutomationStepManager key={automation.id} automation={automation} onDelete={handleDeleteAutomation} />
+                        automation.automationType === 'COMMUNICATION' ? (
+                          <AutomationStepManager key={automation.id} automation={automation} onDelete={handleDeleteAutomation} />
+                        ) : (
+                          <StageChangeAutomationCard key={automation.id} automation={automation} onDelete={handleDeleteAutomation} />
+                        )
                       ))
                     );
                   })()}
@@ -1042,7 +1210,11 @@ export default function Automations() {
                               </p>
                             ) : (
                               stageAutomations.map((automation: any) => (
-                                <AutomationStepManager key={automation.id} automation={automation} onDelete={handleDeleteAutomation} />
+                                automation.automationType === 'COMMUNICATION' ? (
+                                  <AutomationStepManager key={automation.id} automation={automation} onDelete={handleDeleteAutomation} />
+                                ) : (
+                                  <StageChangeAutomationCard key={automation.id} automation={automation} onDelete={handleDeleteAutomation} />
+                                )
                               ))
                             );
                           })()}
