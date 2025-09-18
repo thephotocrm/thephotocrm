@@ -147,11 +147,11 @@ async function processAutomationStep(client: any, step: any, automation: any): P
   // Check if ANY log exists for this client + automation step, and compare with stage entry time
   const existingLogs = automation.channel === 'EMAIL' 
     ? await db.select({ status: emailLogs.status, sentAt: emailLogs.sentAt }).from(emailLogs).where(and(
-        eq(emailLogs.clientId, client.id),
+        eq(emailLogs.projectId, client.id),
         eq(emailLogs.automationStepId, step.id)
       ))
     : await db.select({ status: smsLogs.status, sentAt: smsLogs.sentAt }).from(smsLogs).where(and(
-        eq(smsLogs.clientId, client.id),
+        eq(smsLogs.projectId, client.id),
         eq(smsLogs.automationStepId, step.id)
       ));
 
@@ -233,7 +233,7 @@ async function processAutomationStep(client: any, step: any, automation: any): P
 
     // Log the attempt
     await db.insert(emailLogs).values({
-      clientId: client.id,
+      projectId: client.id,
       automationStepId: step.id,
       status: success ? 'sent' : 'failed',
       sentAt: success ? now : null
@@ -249,7 +249,7 @@ async function processAutomationStep(client: any, step: any, automation: any): P
 
     // Log the attempt
     await db.insert(smsLogs).values({
-      clientId: client.id,
+      projectId: client.id,
       automationStepId: step.id,
       status: result.success ? 'sent' : 'failed',
       providerId: result.sid,

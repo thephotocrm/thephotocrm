@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { useLocation } from "wouter";
@@ -17,8 +17,8 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Zap, Clock, Mail, Smartphone, Settings, Edit2 } from "lucide-react";
-import { insertAutomationSchema, projectTypeEnum } from "@shared/schema";
+import { Plus, Zap, Clock, Mail, Smartphone, Settings, Edit2, ArrowRight } from "lucide-react";
+import { insertAutomationSchema, projectTypeEnum, automationTypeEnum, triggerTypeEnum } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
@@ -306,14 +306,40 @@ export default function Automations() {
   const [selectedStage, setSelectedStage] = useState<any>(null);
   const [timingMode, setTimingMode] = useState<'immediate' | 'delayed'>('immediate');
   const [activeProjectType, setActiveProjectType] = useState<string>('WEDDING');
+  const [automationType, setAutomationType] = useState<'COMMUNICATION' | 'STAGE_CHANGE'>('COMMUNICATION');
 
-  // Extended form schema for creation with template and timing - template required
-  const extendedFormSchema = createAutomationFormSchema.extend({
-    templateId: z.string().min(1, "Template selection is required"),
-    delayMinutes: z.number().min(0).default(0),
-    delayHours: z.number().min(0).default(0),
-    delayDays: z.number().min(0).default(0)
-  });
+  // Dynamic schema function that updates based on automation type
+  const createExtendedFormSchema = (type: 'COMMUNICATION' | 'STAGE_CHANGE') => {
+    return createAutomationFormSchema.extend({
+      // Communication automation fields
+      templateId: z.string().optional(),
+      delayMinutes: z.number().min(0).default(0),
+      delayHours: z.number().min(0).default(0),
+      delayDays: z.number().min(0).default(0),
+      // Pipeline automation fields
+      triggerType: z.string().optional(),
+      targetStageId: z.string().optional()
+    }).refine(
+      (data) => {
+        if (type === 'COMMUNICATION') {
+          return data.templateId && data.templateId.length > 0;
+        }
+        if (type === 'STAGE_CHANGE') {
+          return data.triggerType && data.targetStageId;
+        }
+        return true;
+      },
+      {
+        message: type === 'COMMUNICATION' 
+          ? "Template selection is required for communication automations"
+          : "Both trigger type and target stage are required for pipeline automations",
+        path: type === 'COMMUNICATION' ? ["templateId"] : ["triggerType"]
+      }
+    );
+  };
+
+  // Memoize the schema to update when automation type changes
+  const extendedFormSchema = useMemo(() => createExtendedFormSchema(automationType), [automationType]);
   type ExtendedFormData = z.infer<typeof extendedFormSchema>;
 
   // Form setup
@@ -327,9 +353,26 @@ export default function Automations() {
       templateId: "",
       delayMinutes: 0,
       delayHours: 0,
-      delayDays: 0
+      delayDays: 0,
+      triggerType: "",
+      targetStageId: ""
     }
   });
+
+  // Update form values when automation type changes
+  useEffect(() => {
+    form.clearErrors();
+    // Reset fields that don't apply to the new automation type
+    if (automationType === 'COMMUNICATION') {
+      form.setValue('triggerType', '');
+      form.setValue('targetStageId', '');
+    } else {
+      form.setValue('templateId', '');
+      form.setValue('delayMinutes', 0);
+      form.setValue('delayHours', 0);
+      form.setValue('delayDays', 0);
+    }
+  }, [automationType, form]);
 
   // ALL HOOKS MUST BE CALLED BEFORE ANY CONDITIONALS
   const { data: stages = [], isError: stagesError, isLoading: stagesLoading } = useQuery<any[]>({
@@ -373,46 +416,62 @@ export default function Automations() {
   // Create automation mutation - atomic with rollback
   const createAutomationMutation = useMutation({
     mutationFn: async (data: ExtendedFormData) => {
-      // Validate template exists before creating anything
-      if (!data.templateId || data.templateId === "unavailable") {
-        throw new Error("Template selection is required for automation creation");
-      }
+      // Validate template for communication automations only
+      if (data.automationType === 'COMMUNICATION') {
+        if (!data.templateId || data.templateId === "unavailable") {
+          throw new Error("Template selection is required for communication automation creation");
+        }
 
-      // Validate templates are available for selected channel
-      const channelTemplates = templates.filter((t: any) => t.channel === data.channel);
-      if (channelTemplates.length === 0) {
-        throw new Error(`No ${data.channel.toLowerCase()} templates available. Please create templates first.`);
-      }
+        // Validate templates are available for selected channel
+        const channelTemplates = templates.filter((t: any) => t.channel === data.channel);
+        if (channelTemplates.length === 0) {
+          throw new Error(`No ${data.channel.toLowerCase()} templates available. Please create templates first.`);
+        }
 
-      // Validate selected template exists
-      const selectedTemplate = channelTemplates.find((t: any) => t.id === data.templateId);
-      if (!selectedTemplate) {
-        throw new Error("Selected template is not valid");
+        // Validate selected template exists
+        const selectedTemplate = channelTemplates.find((t: any) => t.id === data.templateId);
+        if (!selectedTemplate) {
+          throw new Error("Selected template is not valid");
+        }
       }
 
       let automation: any = null;
       try {
-        // Create the automation - inject activeProjectType from current tab
-        const automationResponse = await apiRequest("POST", "/api/automations", {
+        // Create the automation with type-specific data
+        const automationData = {
           name: data.name,
           stageId: (data.stageId && data.stageId !== 'global') ? data.stageId : null,
-          channel: data.channel,
           enabled: data.enabled,
-          projectType: activeProjectType
-        });
+          projectType: activeProjectType,
+          automationType: data.automationType,
+          // Communication automation fields
+          ...(data.automationType === 'COMMUNICATION' && {
+            channel: data.channel
+          }),
+          // Pipeline automation fields
+          ...(data.automationType === 'STAGE_CHANGE' && {
+            triggerType: data.triggerType,
+            targetStageId: data.targetStageId
+          })
+        };
+
+        const automationResponse = await apiRequest("POST", "/api/automations", automationData);
         automation = await automationResponse.json();
         
-        // Calculate total delay minutes
-        const totalDelayMinutes = timingMode === 'immediate' ? 0 : 
-          (data.delayDays * 24 * 60) + (data.delayHours * 60) + data.delayMinutes;
-        
-        // Create the first automation step with template (atomic)
-        await apiRequest("POST", `/api/automations/${automation.id}/steps`, {
-          stepIndex: 0,
-          delayMinutes: totalDelayMinutes,
-          templateId: data.templateId,
-          enabled: true
-        });
+        // Create automation step ONLY for communication automations
+        if (data.automationType === 'COMMUNICATION') {
+          // Calculate total delay minutes
+          const totalDelayMinutes = timingMode === 'immediate' ? 0 : 
+            (data.delayDays * 24 * 60) + (data.delayHours * 60) + data.delayMinutes;
+          
+          // Create the first automation step with template (atomic)
+          await apiRequest("POST", `/api/automations/${automation.id}/steps`, {
+            stepIndex: 0,
+            delayMinutes: totalDelayMinutes,
+            templateId: data.templateId,
+            enabled: true
+          });
+        }
         
         return automation;
       } catch (error) {
@@ -441,7 +500,25 @@ export default function Automations() {
   });
 
   const handleCreateAutomation = (data: ExtendedFormData) => {
-    createAutomationMutation.mutate(data);
+    // Add automation type and appropriate data based on type
+    const automationData = {
+      ...data,
+      automationType,
+      projectType: activeProjectType,
+      // Communication automation fields
+      ...(automationType === 'COMMUNICATION' && {
+        stageId: (data.stageId && data.stageId !== 'global') ? data.stageId : null,
+        channel: data.channel,
+        templateId: data.templateId
+      }),
+      // Pipeline automation fields
+      ...(automationType === 'STAGE_CHANGE' && {
+        triggerType: data.triggerType,
+        targetStageId: data.targetStageId
+      })
+    };
+
+    createAutomationMutation.mutate(automationData);
   };
 
   const handleDeleteAutomation = (automationId: string) => {
@@ -487,7 +564,7 @@ export default function Automations() {
                   </DialogDescription>
                 </DialogHeader>
                 
-                <Form {...form}>
+                <Form key={automationType} {...form}>
                   <form onSubmit={form.handleSubmit(handleCreateAutomation)} className="space-y-4">
                     <FormField
                       control={form.control}
@@ -507,9 +584,45 @@ export default function Automations() {
                       )}
                     />
 
-                    <FormField
-                      control={form.control}
-                      name="stageId"
+                    {/* Automation Type Selector */}
+                    <div className="space-y-3">
+                      <FormLabel>Automation Type</FormLabel>
+                      <div className="grid grid-cols-2 gap-2">
+                        <Button
+                          type="button"
+                          variant={automationType === 'COMMUNICATION' ? 'default' : 'outline'}
+                          className="w-full justify-start"
+                          onClick={() => setAutomationType('COMMUNICATION')}
+                          data-testid="button-automation-communication"
+                        >
+                          <Mail className="mr-2 h-4 w-4" />
+                          Communication
+                        </Button>
+                        <Button
+                          type="button"
+                          variant={automationType === 'STAGE_CHANGE' ? 'default' : 'outline'}
+                          className="w-full justify-start"
+                          onClick={() => setAutomationType('STAGE_CHANGE')}
+                          data-testid="button-automation-pipeline"
+                        >
+                          <ArrowRight className="mr-2 h-4 w-4" />
+                          Pipeline Stage
+                        </Button>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        {automationType === 'COMMUNICATION' 
+                          ? 'Send automated emails and SMS to clients when they enter specific stages'
+                          : 'Automatically move clients through pipeline stages based on business triggers'
+                        }
+                      </p>
+                    </div>
+
+                    {/* Communication Automation Fields */}
+                    {automationType === 'COMMUNICATION' && (
+                      <>
+                        <FormField
+                          control={form.control}
+                          name="stageId"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Trigger Stage (Optional)</FormLabel>
@@ -674,8 +787,67 @@ export default function Automations() {
                         </div>
                       )}
                     </div>
+                      </>
+                    )}
 
-                                    <div className="flex justify-end space-x-2 pt-4">
+                    {/* Pipeline Stage Change Automation Fields */}
+                    {automationType === 'STAGE_CHANGE' && (
+                      <>
+                        <FormField
+                          control={form.control}
+                          name="triggerType"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Business Trigger</FormLabel>
+                              <Select onValueChange={field.onChange} value={field.value || ""}>
+                                <FormControl>
+                                  <SelectTrigger data-testid="select-trigger">
+                                    <SelectValue placeholder="Select when this automation should trigger" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="DEPOSIT_PAID">💳 Deposit Payment Received</SelectItem>
+                                  <SelectItem value="FULL_PAYMENT_MADE">✅ Full Payment Completed</SelectItem>
+                                  <SelectItem value="PROJECT_BOOKED">📋 Project Booked/Contract Signed</SelectItem>
+                                  <SelectItem value="ESTIMATE_ACCEPTED">📄 Estimate Accepted</SelectItem>
+                                  <SelectItem value="EVENT_DATE_REACHED">📅 Event Date Reached</SelectItem>
+                                  <SelectItem value="PROJECT_DELIVERED">📦 Project Delivered</SelectItem>
+                                  <SelectItem value="CLIENT_ONBOARDED">🎯 Client Onboarded</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="targetStageId"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Move Project To Stage</FormLabel>
+                              <Select onValueChange={field.onChange} value={field.value || ""}>
+                                <FormControl>
+                                  <SelectTrigger data-testid="select-target-stage">
+                                    <SelectValue placeholder="Select destination stage" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {stages?.map((stage: any) => (
+                                    <SelectItem key={stage.id} value={stage.id}>
+                                      {stage.name}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </>
+                    )}
+
+                    <div className="flex justify-end space-x-2 pt-4">
                       <Button
                         type="button" 
                         variant="outline"

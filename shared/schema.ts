@@ -622,6 +622,24 @@ export const insertAutomationSchema = createInsertSchema(automations).omit({
   id: true
 });
 
+// Separate validation schema for backend API with stricter rules
+export const validateAutomationSchema = insertAutomationSchema.refine(
+  (data) => {
+    if (data.automationType === 'COMMUNICATION') {
+      // Communication automations require stageId and channel
+      return data.stageId !== undefined && data.channel !== undefined;
+    }
+    if (data.automationType === 'STAGE_CHANGE') {
+      // Pipeline automations require triggerType and targetStageId
+      return data.triggerType !== undefined && data.targetStageId !== undefined;
+    }
+    return true;
+  },
+  {
+    message: "Invalid automation configuration - ensure required fields are present for the selected automation type"
+  }
+);
+
 export const insertAutomationStepSchema = createInsertSchema(automationSteps).omit({
   id: true
 });
