@@ -41,11 +41,10 @@ export default function Clients() {
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
-  const [weddingDate, setWeddingDate] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
 
   // All hooks must be called before any early returns
-  const { data: clients, isLoading } = useQuery({
+  const { data: clients, isLoading } = useQuery<ClientWithStage[]>({
     queryKey: ["/api/clients"],
     enabled: !!user
   });
@@ -77,7 +76,6 @@ export default function Clients() {
     setLastName("");
     setEmail("");
     setPhone("");
-    setWeddingDate("");
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -87,8 +85,7 @@ export default function Clients() {
       firstName,
       lastName,
       email: email || undefined,
-      phone: phone || undefined,
-      weddingDate: weddingDate ? new Date(weddingDate) : undefined
+      phone: phone || undefined
     });
   };
 
@@ -108,7 +105,7 @@ export default function Clients() {
               <SidebarTrigger data-testid="button-menu-toggle" className="shrink-0" />
               <div className="min-w-0">
                 <h1 className="text-2xl font-semibold truncate">Clients</h1>
-                <p className="text-muted-foreground hidden sm:block">Manage your wedding photography clients</p>
+                <p className="text-muted-foreground hidden sm:block">Manage your photography clients</p>
               </div>
             </div>
             
@@ -124,7 +121,7 @@ export default function Clients() {
                 <DialogHeader>
                   <DialogTitle>Add New Client</DialogTitle>
                   <DialogDescription>
-                    Create a new client profile for your wedding photography services.
+                    Create a new client profile for your photography services.
                   </DialogDescription>
                 </DialogHeader>
                 
@@ -171,17 +168,6 @@ export default function Clients() {
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
                       data-testid="input-phone"
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="weddingDate">Wedding Date</Label>
-                    <Input
-                      id="weddingDate"
-                      type="date"
-                      value={weddingDate}
-                      onChange={(e) => setWeddingDate(e.target.value)}
-                      data-testid="input-wedding-date"
                     />
                   </div>
                   
@@ -247,7 +233,7 @@ export default function Clients() {
                       <TableHead>Name</TableHead>
                       <TableHead>Contact</TableHead>
                       <TableHead>Stage</TableHead>
-                      <TableHead>Wedding Date</TableHead>
+                      <TableHead>Projects</TableHead>
                       <TableHead>Created</TableHead>
                       <TableHead>Actions</TableHead>
                     </TableRow>
@@ -284,14 +270,7 @@ export default function Clients() {
                           )}
                         </TableCell>
                         <TableCell>
-                          {client.weddingDate ? (
-                            <div className="flex items-center text-sm">
-                              <Calendar className="w-3 h-3 mr-1" />
-                              {new Date(client.weddingDate).toLocaleDateString()}
-                            </div>
-                          ) : (
-                            <span className="text-muted-foreground">Not set</span>
-                          )}
+                          <span className="text-muted-foreground">View Projects</span>
                         </TableCell>
                         <TableCell>
                           {new Date(client.createdAt).toLocaleDateString()}

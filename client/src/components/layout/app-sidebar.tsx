@@ -4,6 +4,7 @@ import {
   Camera, 
   LayoutDashboard, 
   Users, 
+  FolderOpen,
   FileText, 
   Package, 
   ClipboardList, 
@@ -37,6 +38,7 @@ export function AppSidebar() {
   const navigation = [
     { name: "Dashboard", href: "/", icon: LayoutDashboard },
     { name: "Clients", href: "/clients", icon: Users },
+    { name: "Projects", href: "/projects", icon: FolderOpen },
     { name: "Proposals", href: "/proposals", icon: FileText },
     { name: "Packages", href: "/packages", icon: Package },
     { name: "Widget Generator", href: "/widget-generator", icon: Code },
@@ -64,7 +66,7 @@ export function AppSidebar() {
           </div>
           <div>
             <h1 className="text-lg font-semibold">Lazy Photog</h1>
-            <p className="text-sm text-muted-foreground">Wedding CRM</p>
+            <p className="text-sm text-muted-foreground">Photography CRM</p>
           </div>
         </div>
       </SidebarHeader>

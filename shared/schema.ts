@@ -754,6 +754,16 @@ export type ClientWithProjects = Client & {
   projects: Project[];
 };
 
+// Client with stage information for display
+export type ClientWithStage = Client & {
+  stage?: {
+    id: string;
+    name: string;
+    color: string;
+    isDefault: boolean;
+  } | null;
+};
+
 // Estimate with basic project and client information for list views
 export type EstimateWithProject = Estimate & {
   project: {

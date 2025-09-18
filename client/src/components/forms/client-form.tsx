@@ -21,7 +21,6 @@ const clientFormSchema = z.object({
   lastName: z.string().min(1, "Last name is required"),
   email: z.string().email("Please enter a valid email").optional().or(z.literal("")),
   phone: z.string().optional(),
-  weddingDate: z.string().optional(),
   notes: z.string().optional(),
   emailOptIn: z.boolean().default(true),
   smsOptIn: z.boolean().default(false),
@@ -49,7 +48,6 @@ export default function ClientForm({
       lastName: initialData?.lastName || "",
       email: initialData?.email || "",
       phone: initialData?.phone || "",
-      weddingDate: initialData?.weddingDate || "",
       notes: initialData?.notes || "",
       emailOptIn: initialData?.emailOptIn ?? true,
       smsOptIn: initialData?.smsOptIn ?? false,
@@ -130,25 +128,6 @@ export default function ClientForm({
                   type="tel"
                   data-testid="input-phone"
                   placeholder="Enter phone number"
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        {/* Wedding Date */}
-        <FormField
-          control={form.control}
-          name="weddingDate"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Wedding Date</FormLabel>
-              <FormControl>
-                <Input 
-                  {...field} 
-                  type="date"
-                  data-testid="input-wedding-date"
                 />
               </FormControl>
               <FormMessage />
