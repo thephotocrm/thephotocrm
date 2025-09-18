@@ -1,18 +1,21 @@
 import { useAuth } from "@/hooks/use-auth";
 import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { projectTypeEnum } from "@shared/schema";
 import KanbanBoard from "@/components/kanban/kanban-board";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/sidebar";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { Users, CheckCircle, DollarSign, Clock, Search, Plus } from "lucide-react";
 
 export default function Dashboard() {
   const { user, loading } = useAuth();
   const [, setLocation] = useLocation();
+  const [activeProjectType, setActiveProjectType] = useState<string>('WEDDING');
 
   // ALL HOOKS MUST BE CALLED BEFORE ANY CONDITIONAL LOGIC
   const { data: stats } = useQuery({
@@ -21,12 +24,14 @@ export default function Dashboard() {
   });
 
   const { data: clients } = useQuery({
-    queryKey: ["/api/clients"],
+    queryKey: ["/api/clients", activeProjectType],
+    queryFn: () => fetch(`/api/clients?projectType=${activeProjectType}`).then(res => res.json()),
     enabled: !!user
   });
 
   const { data: stages } = useQuery({
-    queryKey: ["/api/stages"],
+    queryKey: ["/api/stages", activeProjectType], 
+    queryFn: () => fetch(`/api/stages?projectType=${activeProjectType}`).then(res => res.json()),
     enabled: !!user
   });
 
@@ -61,7 +66,7 @@ export default function Dashboard() {
               <SidebarTrigger data-testid="button-menu-toggle" />
               <div>
                 <h1 className="text-2xl font-semibold">Client Pipeline</h1>
-                <p className="text-muted-foreground">Manage your wedding photography clients through each stage</p>
+                <p className="text-muted-foreground">Manage your {activeProjectType.toLowerCase()} photography clients through each stage</p>
               </div>
             </div>
             
@@ -87,6 +92,20 @@ export default function Dashboard() {
 
         {/* Dashboard Content */}
         <div className="p-6 space-y-6">
+          {/* Project Type Tabs */}
+          <Tabs value={activeProjectType} onValueChange={setActiveProjectType} className="w-full">
+            <div className="flex items-center justify-between mb-6">
+              <TabsList className="grid w-full grid-cols-5 max-w-3xl">
+                <TabsTrigger value="WEDDING" data-testid="tab-wedding">💒 Wedding</TabsTrigger>
+                <TabsTrigger value="ENGAGEMENT" data-testid="tab-engagement">💍 Engagement</TabsTrigger>
+                <TabsTrigger value="PORTRAIT" data-testid="tab-portrait">🎭 Portrait</TabsTrigger>
+                <TabsTrigger value="CORPORATE" data-testid="tab-corporate">🏢 Corporate</TabsTrigger>
+                <TabsTrigger value="EVENT" data-testid="tab-event">🎉 Event</TabsTrigger>
+              </TabsList>
+            </div>
+
+            {Object.keys(projectTypeEnum).map((projectType) => (
+              <TabsContent key={projectType} value={projectType} className="space-y-6">
           {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <Card>
@@ -150,21 +169,24 @@ export default function Dashboard() {
             </Card>
           </div>
 
-          {/* Kanban Board */}
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle>Client Pipeline</CardTitle>
-                <div className="flex space-x-2">
-                  <Button variant="outline" size="sm">Manage Stages</Button>
-                  <Button variant="outline" size="sm">Automation Rules</Button>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <KanbanBoard clients={clients || []} stages={stages || []} />
-            </CardContent>
-          </Card>
+                {/* Kanban Board */}
+                <Card>
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <CardTitle>Client Pipeline</CardTitle>
+                      <div className="flex space-x-2">
+                        <Button variant="outline" size="sm">Manage Stages</Button>
+                        <Button variant="outline" size="sm">Automation Rules</Button>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <KanbanBoard clients={clients || []} stages={stages || []} />
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            ))}
+          </Tabs>
         </div>
       </SidebarInset>
     </SidebarProvider>
