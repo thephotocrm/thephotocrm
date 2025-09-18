@@ -32,7 +32,7 @@ export interface IStorage {
   updatePhotographer(id: string, photographer: Partial<Photographer>): Promise<Photographer>;
   
   // Clients
-  getClientsByPhotographer(photographerId: string): Promise<ClientWithStage[]>;
+  getClientsByPhotographer(photographerId: string, projectType?: string): Promise<ClientWithStage[]>;
   getClient(id: string): Promise<ClientWithStage | undefined>;
   createClient(client: InsertClient): Promise<Client>;
   updateClient(id: string, client: Partial<Client>): Promise<Client>;
@@ -46,7 +46,7 @@ export interface IStorage {
   validateClientPortalToken(token: string): Promise<ClientPortalToken | undefined>;
   
   // Stages
-  getStagesByPhotographer(photographerId: string): Promise<Stage[]>;
+  getStagesByPhotographer(photographerId: string, projectType?: string): Promise<Stage[]>;
   createStage(stage: InsertStage): Promise<Stage>;
   updateStage(id: string, stage: Partial<Stage>): Promise<Stage>;
   deleteStage(id: string): Promise<void>;
@@ -58,7 +58,7 @@ export interface IStorage {
   deleteTemplate(id: string): Promise<void>;
   
   // Automations
-  getAutomationsByPhotographer(photographerId: string): Promise<Automation[]>;
+  getAutomationsByPhotographer(photographerId: string, projectType?: string): Promise<Automation[]>;
   createAutomation(automation: InsertAutomation): Promise<Automation>;
   updateAutomation(id: string, automation: Partial<Automation>): Promise<Automation>;
   
@@ -179,14 +179,16 @@ export class DatabaseStorage implements IStorage {
     return updated;
   }
 
-  async getClientsByPhotographer(photographerId: string): Promise<ClientWithStage[]> {
+  async getClientsByPhotographer(photographerId: string, projectType?: string): Promise<ClientWithStage[]> {
     const rows = await db.select({
       id: clients.id,
       firstName: clients.firstName,
       lastName: clients.lastName,
       email: clients.email,
       phone: clients.phone,
-      weddingDate: clients.weddingDate,
+      eventDate: clients.eventDate,
+      projectType: clients.projectType,
+      leadSource: clients.leadSource,
       createdAt: clients.createdAt,
       stageId: clients.stageId,
       stageData: {
@@ -197,7 +199,10 @@ export class DatabaseStorage implements IStorage {
     })
       .from(clients)
       .leftJoin(stages, eq(clients.stageId, stages.id))
-      .where(eq(clients.photographerId, photographerId))
+      .where(projectType ? 
+        and(eq(clients.photographerId, photographerId), eq(clients.projectType, projectType)) :
+        eq(clients.photographerId, photographerId)
+      )
       .orderBy(desc(clients.createdAt));
       
     return rows.map(row => ({
@@ -218,7 +223,9 @@ export class DatabaseStorage implements IStorage {
       lastName: clients.lastName,
       email: clients.email,
       phone: clients.phone,
-      weddingDate: clients.weddingDate,
+      eventDate: clients.eventDate,
+      projectType: clients.projectType,
+      leadSource: clients.leadSource,
       notes: clients.notes,
       smsOptIn: clients.smsOptIn,
       emailOptIn: clients.emailOptIn,
@@ -254,11 +261,12 @@ export class DatabaseStorage implements IStorage {
     let finalStageId = insertClient.stageId;
     
     if (!finalStageId) {
-      // Find default stage (Inquiry) for this photographer
+      // Find default stage for this photographer and project type
       const [defaultStage] = await db.select()
         .from(stages)
         .where(and(
           eq(stages.photographerId, insertClient.photographerId),
+          eq(stages.projectType, insertClient.projectType || 'WEDDING'),
           eq(stages.isDefault, true)
         ))
         .limit(1);
@@ -293,9 +301,12 @@ export class DatabaseStorage implements IStorage {
     return updated;
   }
 
-  async getStagesByPhotographer(photographerId: string): Promise<Stage[]> {
+  async getStagesByPhotographer(photographerId: string, projectType?: string): Promise<Stage[]> {
     return await db.select().from(stages)
-      .where(eq(stages.photographerId, photographerId))
+      .where(projectType ? 
+        and(eq(stages.photographerId, photographerId), eq(stages.projectType, projectType)) :
+        eq(stages.photographerId, photographerId)
+      )
       .orderBy(asc(stages.orderIndex));
   }
 
@@ -339,9 +350,12 @@ export class DatabaseStorage implements IStorage {
     await db.delete(templates).where(eq(templates.id, id));
   }
 
-  async getAutomationsByPhotographer(photographerId: string): Promise<Automation[]> {
+  async getAutomationsByPhotographer(photographerId: string, projectType?: string): Promise<Automation[]> {
     return await db.select().from(automations)
-      .where(eq(automations.photographerId, photographerId));
+      .where(projectType ? 
+        and(eq(automations.photographerId, photographerId), eq(automations.projectType, projectType)) :
+        eq(automations.photographerId, photographerId)
+      );
   }
 
   async createAutomation(insertAutomation: InsertAutomation): Promise<Automation> {
@@ -432,7 +446,10 @@ export class DatabaseStorage implements IStorage {
       client: {
         firstName: clients.firstName,
         lastName: clients.lastName,
-        email: clients.email
+        email: clients.email,
+        eventDate: clients.eventDate,
+        projectType: clients.projectType,
+        leadSource: clients.leadSource
       }
     })
     .from(estimates)
@@ -484,7 +501,9 @@ export class DatabaseStorage implements IStorage {
         lastName: clients.lastName,
         email: clients.email,
         phone: clients.phone,
-        weddingDate: clients.weddingDate,
+        eventDate: clients.eventDate,
+        projectType: clients.projectType,
+        leadSource: clients.leadSource,
         notes: clients.notes,
         stageId: clients.stageId,
         stageEnteredAt: clients.stageEnteredAt,
@@ -555,7 +574,9 @@ export class DatabaseStorage implements IStorage {
         lastName: clients.lastName,
         email: clients.email,
         phone: clients.phone,
-        weddingDate: clients.weddingDate,
+        eventDate: clients.eventDate,
+        projectType: clients.projectType,
+        leadSource: clients.leadSource,
         notes: clients.notes,
         stageId: clients.stageId,
         stageEnteredAt: clients.stageEnteredAt,
@@ -956,7 +977,10 @@ export class DatabaseStorage implements IStorage {
       client: {
         firstName: clients.firstName,
         lastName: clients.lastName,
-        email: clients.email
+        email: clients.email,
+        eventDate: clients.eventDate,
+        projectType: clients.projectType,
+        leadSource: clients.leadSource
       }
     })
     .from(estimates)
