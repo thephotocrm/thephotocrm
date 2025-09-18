@@ -12,10 +12,11 @@ export function startCronJobs() {
       const photographers = await storage.getAllPhotographers();
       
       // Process automations for each photographer
-      for (const photographer of photographers) {
-        await processAutomations(photographer.id);
-        await processPaymentReminders(photographer.id);
-      }
+      // TODO: Temporarily disabled during client/project separation migration
+      // for (const photographer of photographers) {
+      //   await processAutomations(photographer.id);
+      //   await processPaymentReminders(photographer.id);
+      // }
       
     } catch (error) {
       console.error('Cron job error:', error);
