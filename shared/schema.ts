@@ -38,6 +38,22 @@ export const leadSourceEnum = {
   OTHER: "OTHER"
 } as const;
 
+export const automationTypeEnum = {
+  COMMUNICATION: "COMMUNICATION",
+  STAGE_CHANGE: "STAGE_CHANGE"
+} as const;
+
+export const triggerTypeEnum = {
+  DEPOSIT_PAID: "DEPOSIT_PAID",
+  FULL_PAYMENT_MADE: "FULL_PAYMENT_MADE", 
+  PROJECT_BOOKED: "PROJECT_BOOKED",
+  CONTRACT_SIGNED: "CONTRACT_SIGNED",
+  ESTIMATE_ACCEPTED: "ESTIMATE_ACCEPTED",
+  EVENT_DATE_REACHED: "EVENT_DATE_REACHED",
+  PROJECT_DELIVERED: "PROJECT_DELIVERED",
+  CLIENT_ONBOARDED: "CLIENT_ONBOARDED"
+} as const;
+
 // Tables
 export const photographers = pgTable("photographers", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -124,8 +140,13 @@ export const automations = pgTable("automations", {
   photographerId: varchar("photographer_id").notNull().references(() => photographers.id),
   projectType: text("project_type").notNull().default("WEDDING"),
   name: text("name").notNull(),
+  automationType: text("automation_type").notNull().default("COMMUNICATION"), // COMMUNICATION, STAGE_CHANGE
+  // Communication automation fields
   stageId: varchar("stage_id").references(() => stages.id),
-  channel: text("channel").notNull(),
+  channel: text("channel"), // EMAIL, SMS (nullable for stage change automations)
+  // Stage change automation fields  
+  triggerType: text("trigger_type"), // DEPOSIT_PAID, FULL_PAYMENT_MADE, PROJECT_BOOKED, etc.
+  targetStageId: varchar("target_stage_id").references(() => stages.id),
   enabled: boolean("enabled").default(true)
 });
 
