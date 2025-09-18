@@ -28,6 +28,7 @@ export interface IStorage {
   // Photographers
   getAllPhotographers(): Promise<Photographer[]>;
   getPhotographer(id: string): Promise<Photographer | undefined>;
+  getPhotographerByPublicToken(publicToken: string): Promise<Photographer | undefined>;
   createPhotographer(photographer: InsertPhotographer): Promise<Photographer>;
   updatePhotographer(id: string, photographer: Partial<Photographer>): Promise<Photographer>;
   
@@ -163,6 +164,11 @@ export class DatabaseStorage implements IStorage {
 
   async getPhotographer(id: string): Promise<Photographer | undefined> {
     const [photographer] = await db.select().from(photographers).where(eq(photographers.id, id));
+    return photographer || undefined;
+  }
+
+  async getPhotographerByPublicToken(publicToken: string): Promise<Photographer | undefined> {
+    const [photographer] = await db.select().from(photographers).where(eq(photographers.publicToken, publicToken));
     return photographer || undefined;
   }
 

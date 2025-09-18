@@ -14,7 +14,9 @@ import { insertUserSchema, insertPhotographerSchema, insertClientSchema, insertS
          insertTemplateSchema, insertAutomationSchema, insertAutomationStepSchema, insertPackageSchema, 
          insertEstimateSchema, insertMessageSchema, insertBookingSchema, updateBookingSchema, 
          bookingConfirmationSchema, sanitizedBookingSchema, insertQuestionnaireTemplateSchema, insertQuestionnaireQuestionSchema, 
-         insertAvailabilitySlotSchema, updateAvailabilitySlotSchema, emailLogs, smsLogs, clientActivityLog } from "@shared/schema";
+         insertAvailabilitySlotSchema, updateAvailabilitySlotSchema, emailLogs, smsLogs, clientActivityLog,
+         projectTypeEnum } from "@shared/schema";
+import { z } from "zod";
 import { startCronJobs } from "./jobs/cron";
 import path from "path";
 
@@ -2089,6 +2091,91 @@ ${photographer?.businessName || 'Your Photography Team'}`;
     } catch (error) {
       console.error('Failed to delete questionnaire question:', error);
       res.status(500).json({ error: 'Failed to delete question' });
+    }
+  });
+
+  // Public widget API CORS preflight handler
+  app.options("/api/public/lead/:photographerToken", (req, res) => {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Methods", "POST, OPTIONS");
+    res.header("Access-Control-Allow-Headers", "Content-Type");
+    res.status(200).end();
+  });
+
+  // Public widget API endpoint (no authentication required)
+  app.post("/api/public/lead/:photographerToken", async (req, res) => {
+    // Add CORS headers for widget embedding
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Methods", "POST, OPTIONS");
+    res.header("Access-Control-Allow-Headers", "Content-Type");
+
+    try {
+      const { photographerToken } = req.params;
+      
+      // Find photographer by public token
+      const photographer = await storage.getPhotographerByPublicToken(photographerToken);
+      if (!photographer) {
+        return res.status(404).json({ 
+          success: false,
+          message: "Invalid photographer token" 
+        });
+      }
+      
+      // Validate lead data with schema
+      const publicLeadSchema = z.object({
+        firstName: z.string().min(1, "First name is required"),
+        lastName: z.string().min(1, "Last name is required"), 
+        email: z.string().email("Valid email is required"),
+        phone: z.string().optional(),
+        message: z.string().optional(),
+        projectType: z.enum(['WEDDING', 'ENGAGEMENT', 'PROPOSAL', 'CORPORATE', 'PORTRAIT', 'FAMILY', 'MATERNITY', 'NEWBORN', 'EVENT', 'COMMERCIAL', 'OTHER']),
+        eventDate: z.string().optional().refine(val => !val || !isNaN(Date.parse(val)), "Invalid date format"),
+        emailOptIn: z.boolean().default(true),
+        smsOptIn: z.boolean().default(false)
+      });
+      
+      const leadData = publicLeadSchema.parse(req.body);
+      
+      // Get default stage for the project type
+      const stages = await storage.getStagesByPhotographer(photographer.id, leadData.projectType);
+      const defaultStage = stages.find(stage => stage.isDefault);
+      
+      // Create new client with lead data
+      const client = await storage.createClient({
+        photographerId: photographer.id,
+        projectType: leadData.projectType,
+        leadSource: "WEBSITE_WIDGET",
+        firstName: leadData.firstName,
+        lastName: leadData.lastName,
+        email: leadData.email,
+        phone: leadData.phone,
+        notes: leadData.message,
+        eventDate: leadData.eventDate && !isNaN(Date.parse(leadData.eventDate)) ? new Date(leadData.eventDate) : undefined,
+        stageId: defaultStage?.id,
+        stageEnteredAt: defaultStage ? new Date() : undefined,
+        emailOptIn: leadData.emailOptIn,
+        smsOptIn: leadData.smsOptIn
+      });
+      
+      res.status(201).json({ 
+        success: true, 
+        message: "Lead submitted successfully",
+        clientId: client.id 
+      });
+      
+    } catch (error: any) {
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ 
+          success: false,
+          message: "Invalid lead data", 
+          errors: error.errors 
+        });
+      }
+      console.error('Public lead submission error:', error);
+      res.status(500).json({ 
+        success: false,
+        message: "Failed to submit lead" 
+      });
     }
   });
 
