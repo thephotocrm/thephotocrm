@@ -65,6 +65,7 @@ async function processCommunicationAutomation(automation: any, photographerId: s
       eventDate: projects.eventDate,
       smsOptIn: projects.smsOptIn,
       emailOptIn: projects.emailOptIn,
+      photographerId: projects.photographerId, // Add missing photographerId
       // Client details
       firstName: clients.firstName,
       lastName: clients.lastName,
@@ -136,29 +137,50 @@ async function processAutomationStep(client: any, step: any, automation: any): P
   // Check quiet hours
   if (step.quietHoursStart && step.quietHoursEnd) {
     const currentHour = now.getHours();
-    if (currentHour >= step.quietHoursStart || currentHour <= step.quietHoursEnd) {
+    const start = step.quietHoursStart;
+    const end = step.quietHoursEnd;
+    
+    // Handle both midnight-crossing and non-midnight-crossing quiet hours
+    const inQuietHours = start <= end 
+      ? (currentHour >= start && currentHour <= end)  // Non-crossing: 9-17
+      : (currentHour >= start || currentHour <= end); // Crossing: 22-6
+    
+    if (inQuietHours) {
       console.log(`🌙 In quiet hours for ${client.firstName} ${client.lastName}, current hour: ${currentHour}`);
       return; // In quiet hours
     }
   }
 
-  // Check if automation already attempted for this stage entry
-  // Since failed attempts have NULL sentAt, we'll use a different approach:
-  // Check if ANY log exists for this client + automation step, and compare with stage entry time
+  // Check if automation already attempted for this specific stage entry
+  // We need to check all logs (including failed attempts) and determine if any were created after stageEnteredAt
+  // Since failed attempts have NULL sentAt, we'll use a heuristic: assume logs are created chronologically
+  // and compare the most recent log's sentAt (if available) or simply count recent logs as a proxy
   const existingLogs = automation.channel === 'EMAIL' 
-    ? await db.select({ status: emailLogs.status, sentAt: emailLogs.sentAt }).from(emailLogs).where(and(
+    ? await db.select({ 
+        id: emailLogs.id, 
+        status: emailLogs.status, 
+        sentAt: emailLogs.sentAt 
+      }).from(emailLogs).where(and(
         eq(emailLogs.projectId, client.id),
         eq(emailLogs.automationStepId, step.id)
-      ))
-    : await db.select({ status: smsLogs.status, sentAt: smsLogs.sentAt }).from(smsLogs).where(and(
+      )).orderBy(emailLogs.id) // Order by ID as proxy for creation time
+    : await db.select({ 
+        id: smsLogs.id, 
+        status: smsLogs.status, 
+        sentAt: smsLogs.sentAt 
+      }).from(smsLogs).where(and(
         eq(smsLogs.projectId, client.id),
         eq(smsLogs.automationStepId, step.id)
-      ));
+      )).orderBy(smsLogs.id); // Order by ID as proxy for creation time
 
-  // For now, if ANY log exists for this automation step, skip it (one attempt per stage entry)
-  if (existingLogs.length > 0) {
-    const attempt = existingLogs[0];
-    console.log(`🚫 Already attempted for ${client.firstName} ${client.lastName} (${attempt.status}), skipping`);
+  // Simple approach: if there are any existing logs, check if the most recent successful one
+  // was after stageEnteredAt. This allows re-attempts after failures but prevents duplicate successes.
+  const recentSuccessfulAttempts = existingLogs.filter(log => 
+    log.status === 'sent' && log.sentAt && new Date(log.sentAt) >= stageEnteredAt
+  );
+  
+  if (recentSuccessfulAttempts.length > 0) {
+    console.log(`🚫 Already successfully sent for ${client.firstName} ${client.lastName} since stage entry, skipping`);
     return;
   }
 
@@ -202,7 +224,8 @@ async function processAutomationStep(client: any, step: any, automation: any): P
     email: client.email || '',
     phone: client.phone || '',
     businessName: photographer?.businessName || 'Your Photographer',
-    weddingDate: client.weddingDate ? new Date(client.weddingDate).toLocaleDateString() : 'Not set'
+    eventDate: client.eventDate ? new Date(client.eventDate).toLocaleDateString() : 'Not set',
+    weddingDate: client.eventDate ? new Date(client.eventDate).toLocaleDateString() : 'Not set' // Backward compatibility
   };
 
   // Send message
