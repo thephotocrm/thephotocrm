@@ -1,18 +1,18 @@
 import { 
-  photographers, users, clients, stages, templates, automations, automationSteps,
-  emailLogs, smsLogs, photographerLinks, checklistTemplateItems, clientChecklistItems,
-  packages, packageItems, questionnaireTemplates, questionnaireQuestions, clientQuestionnaires,
+  photographers, users, clients, projects, stages, templates, automations, automationSteps,
+  emailLogs, smsLogs, photographerLinks, checklistTemplateItems, projectChecklistItems,
+  packages, packageItems, questionnaireTemplates, questionnaireQuestions, projectQuestionnaires,
   availabilitySlots, bookings, estimates, estimateItems, estimatePayments,
-  messages, clientActivityLog, clientPortalTokens,
+  messages, projectActivityLog, clientPortalTokens,
   type User, type InsertUser, type Photographer, type InsertPhotographer,
-  type Client, type InsertClient, type ClientWithStage, type Stage, type InsertStage,
+  type Client, type InsertClient, type Project, type InsertProject, type ProjectWithClientAndStage, type ClientWithProjects, type Stage, type InsertStage,
   type Template, type InsertTemplate, type Automation, type InsertAutomation,
   type AutomationStep, type InsertAutomationStep, type Package, type InsertPackage,
-  type Estimate, type InsertEstimate, type EstimateItem, type EstimateWithClient, type EstimateWithRelations,
+  type Estimate, type InsertEstimate, type EstimateItem, type EstimateWithProject, type EstimateWithRelations,
   type QuestionnaireTemplate, type InsertQuestionnaireTemplate,
   type QuestionnaireQuestion, type InsertQuestionnaireQuestion,
-  type Message, type InsertMessage, type ClientActivityLog, type TimelineEvent, type ClientPortalToken, type InsertClientPortalToken,
-  type Proposal, type InsertProposal, type ProposalItem, type ProposalPayment, type ProposalWithClient, type ProposalWithRelations,
+  type Message, type InsertMessage, type ProjectActivityLog, type TimelineEvent, type ClientPortalToken, type InsertClientPortalToken,
+  type Proposal, type InsertProposal, type ProposalItem, type ProposalPayment, type ProposalWithProject, type ProposalWithRelations,
   type AvailabilitySlot, type InsertAvailabilitySlot,
   type Booking, type InsertBooking
 } from "@shared/schema";
@@ -33,11 +33,17 @@ export interface IStorage {
   updatePhotographer(id: string, photographer: Partial<Photographer>): Promise<Photographer>;
   
   // Clients
-  getClientsByPhotographer(photographerId: string, projectType?: string): Promise<ClientWithStage[]>;
-  getClient(id: string): Promise<ClientWithStage | undefined>;
+  getClientsByPhotographer(photographerId: string): Promise<ClientWithProjects[]>;
+  getClient(id: string): Promise<ClientWithProjects | undefined>;
   createClient(client: InsertClient): Promise<Client>;
   updateClient(id: string, client: Partial<Client>): Promise<Client>;
-  getClientHistory(clientId: string): Promise<TimelineEvent[]>;
+  
+  // Projects
+  getProjectsByPhotographer(photographerId: string, projectType?: string): Promise<ProjectWithClientAndStage[]>;
+  getProject(id: string): Promise<ProjectWithClientAndStage | undefined>;
+  createProject(project: InsertProject): Promise<Project>;
+  updateProject(id: string, project: Partial<Project>): Promise<Project>;
+  getProjectHistory(projectId: string): Promise<TimelineEvent[]>;
   getClientMessages(clientId: string): Promise<Message[]>;
   createMessage(message: InsertMessage): Promise<Message>;
   

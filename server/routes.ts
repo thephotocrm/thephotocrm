@@ -14,7 +14,7 @@ import { insertUserSchema, insertPhotographerSchema, insertClientSchema, insertS
          insertTemplateSchema, insertAutomationSchema, insertAutomationStepSchema, insertPackageSchema, 
          insertEstimateSchema, insertMessageSchema, insertBookingSchema, updateBookingSchema, 
          bookingConfirmationSchema, sanitizedBookingSchema, insertQuestionnaireTemplateSchema, insertQuestionnaireQuestionSchema, 
-         insertAvailabilitySlotSchema, updateAvailabilitySlotSchema, emailLogs, smsLogs, clientActivityLog,
+         insertAvailabilitySlotSchema, updateAvailabilitySlotSchema, emailLogs, smsLogs, projectActivityLog,
          projectTypeEnum } from "@shared/schema";
 import { z } from "zod";
 import { startCronJobs } from "./jobs/cron";

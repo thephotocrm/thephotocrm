@@ -76,22 +76,33 @@ export const stages = pgTable("stages", {
   projectType: text("project_type").notNull().default("WEDDING"),
   name: text("name").notNull(),
   orderIndex: integer("order_index").notNull(),
+  color: text("color").default("#64748b"),
   isDefault: boolean("is_default").default(false),
 });
 
 export const clients = pgTable("clients", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   photographerId: varchar("photographer_id").notNull().references(() => photographers.id),
-  projectType: text("project_type").notNull().default("WEDDING"),
-  leadSource: text("lead_source").default("MANUAL"),
   firstName: text("first_name").notNull(),
   lastName: text("last_name").notNull(),
   email: text("email"),
   phone: text("phone"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow()
+});
+
+export const projects = pgTable("projects", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  clientId: varchar("client_id").notNull().references(() => clients.id),
+  photographerId: varchar("photographer_id").notNull().references(() => photographers.id),
+  projectType: text("project_type").notNull().default("WEDDING"),
+  title: text("title").notNull(),
+  leadSource: text("lead_source").default("MANUAL"),
   eventDate: timestamp("event_date"),
   notes: text("notes"),
   stageId: varchar("stage_id").references(() => stages.id),
   stageEnteredAt: timestamp("stage_entered_at"),
+  status: text("status").default("ACTIVE"), // ACTIVE, COMPLETED, CANCELLED
   smsOptIn: boolean("sms_opt_in").default(false),
   emailOptIn: boolean("email_opt_in").default(true),
   createdAt: timestamp("created_at").defaultNow()
@@ -131,7 +142,7 @@ export const automationSteps = pgTable("automation_steps", {
 
 export const emailLogs = pgTable("email_logs", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  clientId: varchar("client_id").notNull().references(() => clients.id),
+  projectId: varchar("project_id").notNull().references(() => projects.id),
   automationStepId: varchar("automation_step_id").references(() => automationSteps.id),
   status: text("status").notNull(),
   providerId: text("provider_id"),
@@ -143,7 +154,7 @@ export const emailLogs = pgTable("email_logs", {
 
 export const smsLogs = pgTable("sms_logs", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  clientId: varchar("client_id").notNull().references(() => clients.id),
+  projectId: varchar("project_id").notNull().references(() => projects.id),
   automationStepId: varchar("automation_step_id").references(() => automationSteps.id),
   status: text("status").notNull(),
   providerId: text("provider_id"),
@@ -168,9 +179,9 @@ export const checklistTemplateItems = pgTable("checklist_template_items", {
   createdAt: timestamp("created_at").defaultNow()
 });
 
-export const clientChecklistItems = pgTable("client_checklist_items", {
+export const projectChecklistItems = pgTable("project_checklist_items", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  clientId: varchar("client_id").notNull().references(() => clients.id),
+  projectId: varchar("project_id").notNull().references(() => projects.id),
   title: text("title").notNull(),
   orderIndex: integer("order_index").default(0),
   completedAt: timestamp("completed_at"),
@@ -213,9 +224,9 @@ export const questionnaireQuestions = pgTable("questionnaire_questions", {
   orderIndex: integer("order_index").notNull()
 });
 
-export const clientQuestionnaires = pgTable("client_questionnaires", {
+export const projectQuestionnaires = pgTable("project_questionnaires", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  clientId: varchar("client_id").notNull().references(() => clients.id),
+  projectId: varchar("project_id").notNull().references(() => projects.id),
   templateId: varchar("template_id").notNull().references(() => questionnaireTemplates.id),
   status: text("status").default("PENDING"),
   answers: json("answers"),
@@ -233,7 +244,7 @@ export const availabilitySlots = pgTable("availability_slots", {
 export const bookings = pgTable("bookings", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   photographerId: varchar("photographer_id").notNull().references(() => photographers.id),
-  clientId: varchar("client_id").references(() => clients.id),
+  projectId: varchar("project_id").references(() => projects.id),
   title: text("title").notNull(),
   description: text("description"),
   startAt: timestamp("start_at").notNull(),
@@ -253,7 +264,7 @@ export const bookings = pgTable("bookings", {
 export const estimates = pgTable("estimates", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   photographerId: varchar("photographer_id").notNull().references(() => photographers.id),
-  clientId: varchar("client_id").notNull().references(() => clients.id),
+  projectId: varchar("project_id").notNull().references(() => projects.id),
   title: text("title").notNull(),
   notes: text("notes"),
   currency: text("currency").default("USD"),
@@ -310,9 +321,9 @@ export const messages = pgTable("messages", {
   createdAt: timestamp("created_at").defaultNow()
 });
 
-export const clientActivityLog = pgTable("client_activity_log", {
+export const projectActivityLog = pgTable("project_activity_log", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  clientId: varchar("client_id").notNull().references(() => clients.id),
+  projectId: varchar("project_id").notNull().references(() => projects.id),
   activityType: text("activity_type").notNull(), // STAGE_CHANGE, PROPOSAL_SENT, PROPOSAL_SIGNED, PAYMENT_RECEIVED, MESSAGE_SENT, EMAIL_OPENED, etc.
   title: text("title").notNull(),
   description: text("description"),
@@ -343,6 +354,7 @@ export const photographersRelations = relations(photographers, ({ many }) => ({
   questionnaires: many(questionnaireTemplates),
   availability: many(availabilitySlots),
   clients: many(clients),
+  projects: many(projects),
   estimates: many(estimates),
   bookings: many(bookings),
   messages: many(messages)
@@ -360,7 +372,7 @@ export const stagesRelations = relations(stages, ({ one, many }) => ({
     fields: [stages.photographerId],
     references: [photographers.id]
   }),
-  clients: many(clients),
+  projects: many(projects),
   automations: many(automations)
 }));
 
@@ -369,18 +381,29 @@ export const clientsRelations = relations(clients, ({ one, many }) => ({
     fields: [clients.photographerId],
     references: [photographers.id]
   }),
+  projects: many(projects),
+  messages: many(messages)
+}));
+
+export const projectsRelations = relations(projects, ({ one, many }) => ({
+  client: one(clients, {
+    fields: [projects.clientId],
+    references: [clients.id]
+  }),
+  photographer: one(photographers, {
+    fields: [projects.photographerId],
+    references: [photographers.id]
+  }),
   stage: one(stages, {
-    fields: [clients.stageId],
+    fields: [projects.stageId],
     references: [stages.id]
   }),
   emailLogs: many(emailLogs),
   smsLogs: many(smsLogs),
-  checklistItems: many(clientChecklistItems),
-  questionnaires: many(clientQuestionnaires),
+  checklistItems: many(projectChecklistItems),
+  questionnaires: many(projectQuestionnaires),
   estimates: many(estimates),
-  bookings: many(bookings),
-  messages: many(messages),
-  activityLog: many(clientActivityLog)
+  activityLog: many(projectActivityLog)
 }));
 
 export const templatesRelations = relations(templates, ({ one, many }) => ({
@@ -415,9 +438,9 @@ export const automationStepsRelations = relations(automationSteps, ({ one }) => 
 }));
 
 export const emailLogsRelations = relations(emailLogs, ({ one }) => ({
-  client: one(clients, {
-    fields: [emailLogs.clientId],
-    references: [clients.id]
+  project: one(projects, {
+    fields: [emailLogs.projectId],
+    references: [projects.id]
   }),
   automationStep: one(automationSteps, {
     fields: [emailLogs.automationStepId],
@@ -426,9 +449,9 @@ export const emailLogsRelations = relations(emailLogs, ({ one }) => ({
 }));
 
 export const smsLogsRelations = relations(smsLogs, ({ one }) => ({
-  client: one(clients, {
-    fields: [smsLogs.clientId],
-    references: [clients.id]
+  project: one(projects, {
+    fields: [smsLogs.projectId],
+    references: [projects.id]
   }),
   automationStep: one(automationSteps, {
     fields: [smsLogs.automationStepId],
@@ -457,7 +480,7 @@ export const questionnaireTemplatesRelations = relations(questionnaireTemplates,
     references: [photographers.id]
   }),
   questions: many(questionnaireQuestions),
-  clientQuestionnaires: many(clientQuestionnaires)
+  projectQuestionnaires: many(projectQuestionnaires)
 }));
 
 export const questionnaireQuestionsRelations = relations(questionnaireQuestions, ({ one }) => ({
@@ -467,13 +490,13 @@ export const questionnaireQuestionsRelations = relations(questionnaireQuestions,
   })
 }));
 
-export const clientQuestionnairesRelations = relations(clientQuestionnaires, ({ one }) => ({
-  client: one(clients, {
-    fields: [clientQuestionnaires.clientId],
-    references: [clients.id]
+export const projectQuestionnairesRelations = relations(projectQuestionnaires, ({ one }) => ({
+  project: one(projects, {
+    fields: [projectQuestionnaires.projectId],
+    references: [projects.id]
   }),
   template: one(questionnaireTemplates, {
-    fields: [clientQuestionnaires.templateId],
+    fields: [projectQuestionnaires.templateId],
     references: [questionnaireTemplates.id]
   })
 }));
@@ -483,9 +506,9 @@ export const estimatesRelations = relations(estimates, ({ one, many }) => ({
     fields: [estimates.photographerId],
     references: [photographers.id]
   }),
-  client: one(clients, {
-    fields: [estimates.clientId],
-    references: [clients.id]
+  project: one(projects, {
+    fields: [estimates.projectId],
+    references: [projects.id]
   }),
   items: many(estimateItems),
   payments: many(estimatePayments)
@@ -510,9 +533,9 @@ export const bookingsRelations = relations(bookings, ({ one }) => ({
     fields: [bookings.photographerId],
     references: [photographers.id]
   }),
-  client: one(clients, {
-    fields: [bookings.clientId],
-    references: [clients.id]
+  project: one(projects, {
+    fields: [bookings.projectId],
+    references: [projects.id]
   })
 }));
 
@@ -527,10 +550,17 @@ export const messagesRelations = relations(messages, ({ one }) => ({
   })
 }));
 
-export const clientActivityLogRelations = relations(clientActivityLog, ({ one }) => ({
-  client: one(clients, {
-    fields: [clientActivityLog.clientId],
-    references: [clients.id]
+export const projectActivityLogRelations = relations(projectActivityLog, ({ one }) => ({
+  project: one(projects, {
+    fields: [projectActivityLog.projectId],
+    references: [projects.id]
+  })
+}));
+
+export const projectChecklistItemsRelations = relations(projectChecklistItems, ({ one }) => ({
+  project: one(projects, {
+    fields: [projectChecklistItems.projectId],
+    references: [projects.id]
   })
 }));
 
@@ -546,6 +576,11 @@ export const insertUserSchema = createInsertSchema(users).omit({
 });
 
 export const insertClientSchema = createInsertSchema(clients).omit({
+  id: true,
+  createdAt: true
+});
+
+export const insertProjectSchema = createInsertSchema(projects).omit({
   id: true,
   createdAt: true,
   stageEnteredAt: true
@@ -597,7 +632,7 @@ export const insertMessageSchema = createInsertSchema(messages).omit({
   createdAt: true
 });
 
-export const insertClientActivityLogSchema = createInsertSchema(clientActivityLog).omit({
+export const insertProjectActivityLogSchema = createInsertSchema(projectActivityLog).omit({
   id: true,
   createdAt: true
 });
@@ -664,6 +699,8 @@ export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type Client = typeof clients.$inferSelect;
 export type InsertClient = z.infer<typeof insertClientSchema>;
+export type Project = typeof projects.$inferSelect;
+export type InsertProject = z.infer<typeof insertProjectSchema>;
 export type Stage = typeof stages.$inferSelect;
 export type InsertStage = z.infer<typeof insertStageSchema>;
 export type Template = typeof templates.$inferSelect;
@@ -684,8 +721,10 @@ export type QuestionnaireQuestion = typeof questionnaireQuestions.$inferSelect;
 export type InsertQuestionnaireQuestion = z.infer<typeof insertQuestionnaireQuestionSchema>;
 export type Message = typeof messages.$inferSelect;
 export type InsertMessage = z.infer<typeof insertMessageSchema>;
-export type ClientActivityLog = typeof clientActivityLog.$inferSelect;
-export type InsertClientActivityLog = z.infer<typeof insertClientActivityLogSchema>;
+export type ProjectActivityLog = typeof projectActivityLog.$inferSelect;
+export type InsertProjectActivityLog = z.infer<typeof insertProjectActivityLogSchema>;
+export type ProjectChecklistItem = typeof projectChecklistItems.$inferSelect;
+export type ProjectQuestionnaire = typeof projectQuestionnaires.$inferSelect;
 export type ClientPortalToken = typeof clientPortalTokens.$inferSelect;
 export type InsertClientPortalToken = z.infer<typeof insertClientPortalTokenSchema>;
 export type AvailabilitySlot = typeof availabilitySlots.$inferSelect;
@@ -693,8 +732,15 @@ export type InsertAvailabilitySlot = z.infer<typeof insertAvailabilitySlotSchema
 export type Booking = typeof bookings.$inferSelect;
 export type InsertBooking = z.infer<typeof insertBookingSchema>;
 
-// Client with stage information for display
-export type ClientWithStage = Client & {
+// Project with client and stage information for display
+export type ProjectWithClientAndStage = Project & {
+  client: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string | null;
+    phone: string | null;
+  };
   stage?: {
     id: string;
     name: string;
@@ -703,20 +749,33 @@ export type ClientWithStage = Client & {
   } | null;
 };
 
-// Estimate with basic client information for list views
-export type EstimateWithClient = Estimate & {
-  client: {
-    firstName: string;
-    lastName: string;
-    email: string | null;
+// Client with projects for display
+export type ClientWithProjects = Client & {
+  projects: Project[];
+};
+
+// Estimate with basic project and client information for list views
+export type EstimateWithProject = Estimate & {
+  project: {
+    id: string;
+    title: string;
+    projectType: string;
+    client: {
+      firstName: string;
+      lastName: string;
+      email: string | null;
+    };
   };
 };
 
 // Estimate with full relations for detailed views
 export type EstimateWithRelations = Estimate & {
   photographer: Photographer;
-  client: Client;
+  project: Project & {
+    client: Client;
+  };
   items: EstimateItem[];
+  payments: EstimatePayment[];
 };
 
 // Timeline event types for client history
@@ -799,5 +858,5 @@ export type Proposal = Estimate;
 export type InsertProposal = InsertEstimate;
 export type ProposalItem = EstimateItem;
 export type ProposalPayment = EstimatePayment;
-export type ProposalWithClient = EstimateWithClient;
+export type ProposalWithProject = EstimateWithProject;
 export type ProposalWithRelations = EstimateWithRelations;
