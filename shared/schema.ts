@@ -16,6 +16,28 @@ export const channelEnum = {
   SMS: "SMS"
 } as const;
 
+export const projectTypeEnum = {
+  WEDDING: "WEDDING",
+  ENGAGEMENT: "ENGAGEMENT", 
+  PROPOSAL: "PROPOSAL",
+  CORPORATE: "CORPORATE",
+  PORTRAIT: "PORTRAIT",
+  FAMILY: "FAMILY",
+  MATERNITY: "MATERNITY",
+  NEWBORN: "NEWBORN",
+  EVENT: "EVENT",
+  COMMERCIAL: "COMMERCIAL",
+  OTHER: "OTHER"
+} as const;
+
+export const leadSourceEnum = {
+  MANUAL: "MANUAL",
+  WEBSITE_WIDGET: "WEBSITE_WIDGET",
+  REFERRAL: "REFERRAL",
+  SOCIAL_MEDIA: "SOCIAL_MEDIA",
+  OTHER: "OTHER"
+} as const;
+
 // Tables
 export const photographers = pgTable("photographers", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -26,6 +48,8 @@ export const photographers = pgTable("photographers", {
   emailFromName: text("email_from_name"),
   emailFromAddr: text("email_from_addr"),
   timezone: text("timezone").notNull().default("America/New_York"),
+  // Widget Integration
+  publicToken: varchar("public_token").unique().default(sql`gen_random_uuid()`),
   // Google Calendar Integration
   googleCalendarAccessToken: text("google_calendar_access_token"),
   googleCalendarRefreshToken: text("google_calendar_refresh_token"),
@@ -49,6 +73,7 @@ export const users = pgTable("users", {
 export const stages = pgTable("stages", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   photographerId: varchar("photographer_id").notNull().references(() => photographers.id),
+  projectType: text("project_type").notNull().default("WEDDING"),
   name: text("name").notNull(),
   orderIndex: integer("order_index").notNull(),
   isDefault: boolean("is_default").default(false),
@@ -57,11 +82,13 @@ export const stages = pgTable("stages", {
 export const clients = pgTable("clients", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   photographerId: varchar("photographer_id").notNull().references(() => photographers.id),
+  projectType: text("project_type").notNull().default("WEDDING"),
+  leadSource: text("lead_source").default("MANUAL"),
   firstName: text("first_name").notNull(),
   lastName: text("last_name").notNull(),
   email: text("email"),
   phone: text("phone"),
-  weddingDate: timestamp("wedding_date"),
+  eventDate: timestamp("event_date"),
   notes: text("notes"),
   stageId: varchar("stage_id").references(() => stages.id),
   stageEnteredAt: timestamp("stage_entered_at"),
@@ -84,6 +111,7 @@ export const templates = pgTable("templates", {
 export const automations = pgTable("automations", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   photographerId: varchar("photographer_id").notNull().references(() => photographers.id),
+  projectType: text("project_type").notNull().default("WEDDING"),
   name: text("name").notNull(),
   stageId: varchar("stage_id").references(() => stages.id),
   channel: text("channel").notNull(),
@@ -522,7 +550,7 @@ export const insertClientSchema = createInsertSchema(clients).omit({
   createdAt: true,
   stageEnteredAt: true
 }).extend({
-  weddingDate: z.string().optional().transform((val) => val ? new Date(val) : undefined)
+  eventDate: z.string().optional().transform((val) => val ? new Date(val) : undefined)
 });
 
 export const insertStageSchema = createInsertSchema(stages).omit({
