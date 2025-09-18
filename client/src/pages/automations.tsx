@@ -332,9 +332,15 @@ export default function Automations() {
   });
 
   // ALL HOOKS MUST BE CALLED BEFORE ANY CONDITIONALS
-  const { data: stages = [] } = useQuery<any[]>({
+  const { data: stages = [], isError: stagesError, isLoading: stagesLoading } = useQuery<any[]>({
     queryKey: ["/api/stages", activeProjectType],
-    queryFn: () => fetch(`/api/stages?projectType=${activeProjectType}`).then(res => res.json()),
+    queryFn: async () => {
+      const res = await fetch(`/api/stages?projectType=${activeProjectType}`);
+      if (!res.ok) {
+        throw new Error(`Failed to fetch stages: ${res.status}`);
+      }
+      return res.json();
+    },
     enabled: !!user
   });
 
@@ -819,7 +825,19 @@ export default function Automations() {
 
                 {/* Automation Rules by Stage */}
                 <div className="space-y-6">
-                  {stages?.map((stage: any) => (
+                  {stagesError ? (
+                    <Card>
+                      <CardContent className="text-center py-8">
+                        <p className="text-muted-foreground">Failed to load stages. Please try refreshing the page.</p>
+                      </CardContent>
+                    </Card>
+                  ) : stagesLoading ? (
+                    <Card>
+                      <CardContent className="text-center py-8">
+                        <p className="text-muted-foreground">Loading stages...</p>
+                      </CardContent>
+                    </Card>
+                  ) : Array.isArray(stages) && stages?.map((stage: any) => (
                     <Card key={stage.id}>
                       <CardHeader>
                         <div className="flex items-center justify-between">

@@ -168,12 +168,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/stages", authenticateToken, requirePhotographer, async (req, res) => {
     try {
       const { projectType } = req.query;
+      console.log(`[STAGES API] Getting stages for photographer: ${req.user!.photographerId}, projectType: ${projectType}`);
       const stages = await storage.getStagesByPhotographer(
         req.user!.photographerId!, 
         projectType as string | undefined
       );
+      console.log(`[STAGES API] Retrieved ${stages.length} stages`);
       res.json(stages);
     } catch (error) {
+      console.error("[STAGES API] Error:", error);
       res.status(500).json({ message: "Internal server error" });
     }
   });
