@@ -637,6 +637,10 @@ export const validateAutomationSchema = insertAutomationSchema.refine(
       // Pipeline automations require triggerType and targetStageId
       return data.triggerType !== undefined && data.targetStageId !== undefined;
     }
+    if (data.automationType === 'COUNTDOWN') {
+      // Countdown automations require daysBefore and channel
+      return data.daysBefore !== undefined && data.channel !== undefined;
+    }
     return true;
   },
   {

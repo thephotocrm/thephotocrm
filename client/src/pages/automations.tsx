@@ -751,7 +751,7 @@ export default function Automations() {
                     {/* Automation Type Selector */}
                     <div className="space-y-3">
                       <FormLabel>Automation Type</FormLabel>
-                      <div className="grid grid-cols-2 gap-2">
+                      <div className="grid grid-cols-3 gap-2">
                         <Button
                           type="button"
                           variant={automationType === 'COMMUNICATION' ? 'default' : 'outline'}
@@ -772,11 +772,23 @@ export default function Automations() {
                           <ArrowRight className="mr-2 h-4 w-4" />
                           Pipeline Stage
                         </Button>
+                        <Button
+                          type="button"
+                          variant={automationType === 'COUNTDOWN' ? 'default' : 'outline'}
+                          className="w-full justify-start"
+                          onClick={() => setAutomationType('COUNTDOWN')}
+                          data-testid="button-automation-countdown"
+                        >
+                          <Clock className="mr-2 h-4 w-4" />
+                          Countdown
+                        </Button>
                       </div>
                       <p className="text-xs text-muted-foreground">
                         {automationType === 'COMMUNICATION' 
                           ? 'Send automated emails and SMS to clients when they enter specific stages'
-                          : 'Automatically move clients through pipeline stages based on business triggers'
+                          : automationType === 'STAGE_CHANGE'
+                          ? 'Automatically move clients through pipeline stages based on business triggers'
+                          : 'Send automated reminders X days before the event date'
                         }
                       </p>
                     </div>
@@ -977,6 +989,7 @@ export default function Automations() {
                                   <SelectItem value="EVENT_DATE_REACHED">📅 Event Date Reached</SelectItem>
                                   <SelectItem value="PROJECT_DELIVERED">📦 Project Delivered</SelectItem>
                                   <SelectItem value="CLIENT_ONBOARDED">🎯 Client Onboarded</SelectItem>
+                                  <SelectItem value="APPOINTMENT_BOOKED">📅 Appointment Booked</SelectItem>
                                 </SelectContent>
                               </Select>
                               <FormMessage />
@@ -1002,6 +1015,88 @@ export default function Automations() {
                                       {stage.name}
                                     </SelectItem>
                                   ))}
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </>
+                    )}
+
+                    {/* Countdown Automation Fields */}
+                    {automationType === 'COUNTDOWN' && (
+                      <>
+                        <FormField
+                          control={form.control}
+                          name="daysBefore"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Days Before Event</FormLabel>
+                              <FormControl>
+                                <Input 
+                                  type="number" 
+                                  min="1" 
+                                  max="365"
+                                  placeholder="e.g., 7, 14, 30"
+                                  data-testid="input-days-before"
+                                  {...field} 
+                                  onChange={(e) => field.onChange(parseInt(e.target.value) || '')}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="channel"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Communication Channel</FormLabel>
+                              <Select onValueChange={field.onChange} value={field.value}>
+                                <FormControl>
+                                  <SelectTrigger data-testid="select-channel-countdown">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="EMAIL">📧 Email</SelectItem>
+                                  <SelectItem value="SMS">📱 SMS</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="templateId"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Message Template</FormLabel>
+                              <Select onValueChange={field.onChange} value={field.value}>
+                                <FormControl>
+                                  <SelectTrigger data-testid="select-template-countdown">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {templates.filter((t: any) => t.channel === form.watch('channel')).length === 0 ? (
+                                    <SelectItem value="unavailable" disabled>
+                                      No {form.watch('channel')?.toLowerCase()} templates available
+                                    </SelectItem>
+                                  ) : (
+                                    templates
+                                      .filter((t: any) => t.channel === form.watch('channel'))
+                                      .map((template: any) => (
+                                        <SelectItem key={template.id} value={template.id}>
+                                          {template.name}
+                                        </SelectItem>
+                                      ))
+                                  )}
                                 </SelectContent>
                               </Select>
                               <FormMessage />
