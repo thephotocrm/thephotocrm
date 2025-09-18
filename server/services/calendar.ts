@@ -285,6 +285,24 @@ export class GoogleCalendarService {
       });
       
       console.log(`Calendar tokens stored successfully for photographer ${photographerId}`);
+      
+      // Create a dedicated business calendar for this photographer
+      try {
+        const photographer = await storage.getPhotographer(photographerId);
+        if (photographer) {
+          const calendarResult = await this.createDedicatedCalendar(photographerId, photographer.businessName);
+          if (calendarResult.success) {
+            console.log(`Dedicated calendar created successfully for photographer ${photographerId}: ${calendarResult.calendarId}`);
+          } else {
+            console.warn(`Failed to create dedicated calendar for photographer ${photographerId}: ${calendarResult.error}`);
+            // Don't fail the entire OAuth flow if calendar creation fails
+          }
+        }
+      } catch (calendarError: any) {
+        console.warn(`Calendar creation failed for photographer ${photographerId}:`, calendarError.message);
+        // Don't fail the entire OAuth flow if calendar creation fails
+      }
+      
       return { success: true };
     } catch (error: any) {
       console.error('Error exchanging code for tokens:', error);
@@ -357,6 +375,106 @@ export class GoogleCalendarService {
   }
 
   /**
+   * Create a dedicated business calendar for a photographer (idempotent)
+   */
+  async createDedicatedCalendar(photographerId: string, businessName: string): Promise<{ success: boolean; calendarId?: string; error?: string }> {
+    try {
+      // First check if photographer already has a dedicated calendar ID
+      const existingCredentials = await storage.getGoogleCalendarCredentials(photographerId);
+      if (existingCredentials?.calendarId) {
+        console.log(`Photographer ${photographerId} already has dedicated calendar: ${existingCredentials.calendarId}`);
+        return {
+          success: true,
+          calendarId: existingCredentials.calendarId
+        };
+      }
+
+      const oauth2Client = this.createOAuth2Client();
+      if (!oauth2Client) {
+        return {
+          success: false,
+          error: 'Google Calendar not configured'
+        };
+      }
+      
+      const credentialsLoaded = await this.loadPhotographerCredentials(oauth2Client, photographerId);
+      
+      if (!credentialsLoaded) {
+        return {
+          success: false,
+          error: 'Failed to load calendar credentials'
+        };
+      }
+
+      const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
+
+      // Get photographer details for timezone
+      const photographer = await storage.getPhotographer(photographerId);
+      const timeZone = photographer?.timezone || 'America/New_York';
+
+      const expectedSummary = `📸 ${businessName} - Client Bookings`;
+
+      // Check for existing calendar with the same name to avoid duplicates
+      try {
+        const calendarList = await calendar.calendarList.list();
+        const existingCalendar = calendarList.data.items?.find(cal => 
+          cal.summary === expectedSummary
+        );
+
+        if (existingCalendar?.id) {
+          console.log(`Found existing calendar for photographer ${photographerId}: ${existingCalendar.id}`);
+          // Store the found calendar ID
+          await storage.storeGoogleCalendarId(photographerId, existingCalendar.id);
+          return {
+            success: true,
+            calendarId: existingCalendar.id
+          };
+        }
+      } catch (listError: any) {
+        console.warn(`Could not list calendars for photographer ${photographerId}:`, listError.message);
+        // Continue with creation if listing fails
+      }
+
+      // Create a new dedicated calendar for business bookings
+      const calendarResource = {
+        summary: expectedSummary,
+        description: `Dedicated calendar for ${businessName} photography client bookings and appointments. Managed by Lazy Photog CRM.`,
+        timeZone: timeZone
+      };
+
+      const response = await calendar.calendars.insert({
+        requestBody: calendarResource
+      });
+
+      const calendarId = response.data.id;
+      
+      if (!calendarId) {
+        return {
+          success: false,
+          error: 'Failed to create calendar - no calendar ID returned'
+        };
+      }
+
+      // Store the calendar ID in the database
+      await storage.storeGoogleCalendarId(photographerId, calendarId);
+
+      console.log(`Created dedicated calendar for photographer ${photographerId}: ${calendarId}`);
+      
+      return {
+        success: true,
+        calendarId: calendarId
+      };
+
+    } catch (error: any) {
+      console.error(`Error creating dedicated calendar for photographer ${photographerId}:`, error);
+      return {
+        success: false,
+        error: `Failed to create dedicated calendar: ${error.message}`
+      };
+    }
+  }
+
+  /**
    * Create a calendar event for a specific photographer
    */
   async createEvent(photographerId: string, eventDetails: CalendarEventDetails): Promise<CalendarEventResult> {
@@ -394,6 +512,28 @@ export class GoogleCalendarService {
 
       const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
 
+      // Get photographer's calendar settings to use dedicated calendar if available
+      const credentials = await storage.getGoogleCalendarCredentials(photographerId);
+      let calendarId = credentials?.calendarId;
+
+      // Lazy creation: if no dedicated calendar exists, create one for existing users
+      if (!calendarId) {
+        const photographer = await storage.getPhotographer(photographerId);
+        if (photographer) {
+          console.log(`Creating dedicated calendar for existing photographer: ${photographerId}`);
+          const calendarResult = await this.createDedicatedCalendar(photographerId, photographer.businessName);
+          if (calendarResult.success && calendarResult.calendarId) {
+            calendarId = calendarResult.calendarId;
+            console.log(`Lazy creation successful for photographer ${photographerId}: ${calendarId}`);
+          } else {
+            console.warn(`Lazy calendar creation failed for photographer ${photographerId}: ${calendarResult.error}`);
+            calendarId = 'primary'; // Fallback to primary if creation fails
+          }
+        } else {
+          calendarId = 'primary'; // Fallback if photographer not found
+        }
+      }
+
       // Generate a unique request ID for the conference
       const conferenceRequestId = `meet-${Date.now()}-${nanoid()}`;
 
@@ -429,7 +569,7 @@ export class GoogleCalendarService {
       };
 
       const response = await calendar.events.insert({
-        calendarId: 'primary',
+        calendarId: calendarId,
         requestBody: event,
         conferenceDataVersion: 1, // Required for Google Meet links
         sendUpdates: 'all' // Send invites to all attendees
@@ -496,9 +636,13 @@ export class GoogleCalendarService {
 
       const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
 
+      // Get photographer's calendar settings to use dedicated calendar if available
+      const credentials = await storage.getGoogleCalendarCredentials(photographerId);
+      const calendarId = credentials?.calendarId || 'primary'; // Use dedicated calendar or fallback to primary
+
       // First, get the existing event
       const existingEvent = await calendar.events.get({
-        calendarId: 'primary',
+        calendarId: calendarId,
         eventId: eventId
       });
 
@@ -526,7 +670,7 @@ export class GoogleCalendarService {
       };
 
       const response = await calendar.events.update({
-        calendarId: 'primary',
+        calendarId: calendarId,
         eventId: eventId,
         requestBody: updatedEvent,
         sendUpdates: 'all'
@@ -576,8 +720,12 @@ export class GoogleCalendarService {
 
       const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
 
+      // Get photographer's calendar settings to use dedicated calendar if available
+      const credentials = await storage.getGoogleCalendarCredentials(photographerId);
+      const calendarId = credentials?.calendarId || 'primary'; // Use dedicated calendar or fallback to primary
+
       await calendar.events.delete({
-        calendarId: 'primary',
+        calendarId: calendarId,
         eventId: eventId,
         sendUpdates: 'all'
       });

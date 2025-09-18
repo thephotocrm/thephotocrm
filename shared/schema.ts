@@ -32,6 +32,7 @@ export const photographers = pgTable("photographers", {
   googleCalendarTokenExpiry: timestamp("google_calendar_token_expiry"),
   googleCalendarScope: text("google_calendar_scope"),
   googleCalendarConnectedAt: timestamp("google_calendar_connected_at"),
+  googleCalendarId: text("google_calendar_id"), // Dedicated business calendar ID
   createdAt: timestamp("created_at").defaultNow()
 });
 

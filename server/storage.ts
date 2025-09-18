@@ -126,6 +126,7 @@ export interface IStorage {
     refreshToken?: string;
     expiryDate?: Date;
     scope?: string;
+    calendarId?: string;
   }): Promise<void>;
   getGoogleCalendarCredentials(photographerId: string): Promise<{
     accessToken?: string;
@@ -133,9 +134,11 @@ export interface IStorage {
     expiryDate?: Date;
     scope?: string;
     connectedAt?: Date;
+    calendarId?: string;
   } | null>;
   clearGoogleCalendarCredentials(photographerId: string): Promise<void>;
   hasValidGoogleCalendarCredentials(photographerId: string): Promise<boolean>;
+  storeGoogleCalendarId(photographerId: string, calendarId: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1051,6 +1054,7 @@ export class DatabaseStorage implements IStorage {
     refreshToken?: string;
     expiryDate?: Date;
     scope?: string;
+    calendarId?: string;
   }): Promise<void> {
     await db.update(photographers)
       .set({
@@ -1058,6 +1062,7 @@ export class DatabaseStorage implements IStorage {
         googleCalendarRefreshToken: credentials.refreshToken || null,
         googleCalendarTokenExpiry: credentials.expiryDate || null,
         googleCalendarScope: credentials.scope || null,
+        googleCalendarId: credentials.calendarId || null,
         googleCalendarConnectedAt: new Date()
       })
       .where(eq(photographers.id, photographerId));
@@ -1069,13 +1074,15 @@ export class DatabaseStorage implements IStorage {
     expiryDate?: Date;
     scope?: string;
     connectedAt?: Date;
+    calendarId?: string;
   } | null> {
     const [photographer] = await db.select({
       accessToken: photographers.googleCalendarAccessToken,
       refreshToken: photographers.googleCalendarRefreshToken,
       expiryDate: photographers.googleCalendarTokenExpiry,
       scope: photographers.googleCalendarScope,
-      connectedAt: photographers.googleCalendarConnectedAt
+      connectedAt: photographers.googleCalendarConnectedAt,
+      calendarId: photographers.googleCalendarId
     })
       .from(photographers)
       .where(eq(photographers.id, photographerId));
@@ -1089,7 +1096,8 @@ export class DatabaseStorage implements IStorage {
       refreshToken: photographer.refreshToken || undefined,
       expiryDate: photographer.expiryDate || undefined,
       scope: photographer.scope || undefined,
-      connectedAt: photographer.connectedAt || undefined
+      connectedAt: photographer.connectedAt || undefined,
+      calendarId: photographer.calendarId || undefined
     };
   }
 
@@ -1100,7 +1108,8 @@ export class DatabaseStorage implements IStorage {
         googleCalendarRefreshToken: null,
         googleCalendarTokenExpiry: null,
         googleCalendarScope: null,
-        googleCalendarConnectedAt: null
+        googleCalendarConnectedAt: null,
+        googleCalendarId: null
       })
       .where(eq(photographers.id, photographerId));
   }
@@ -1124,6 +1133,14 @@ export class DatabaseStorage implements IStorage {
     }
 
     return true;
+  }
+
+  async storeGoogleCalendarId(photographerId: string, calendarId: string): Promise<void> {
+    await db.update(photographers)
+      .set({
+        googleCalendarId: calendarId
+      })
+      .where(eq(photographers.id, photographerId));
   }
 }
 
