@@ -1178,6 +1178,183 @@ export class DatabaseStorage implements IStorage {
       })
       .where(eq(photographers.id, photographerId));
   }
+
+  // Projects - NEW IMPLEMENTATIONS
+  async getProjectsByPhotographer(photographerId: string, projectType?: string): Promise<ProjectWithClientAndStage[]> {
+    const rows = await db.select({
+      // Project fields
+      id: projects.id,
+      photographerId: projects.photographerId,
+      clientId: projects.clientId,
+      title: projects.title,
+      projectType: projects.projectType,
+      eventDate: projects.eventDate,
+      stageId: projects.stageId,
+      stageEnteredAt: projects.stageEnteredAt,
+      leadSource: projects.leadSource,
+      status: projects.status,
+      smsOptIn: projects.smsOptIn,
+      emailOptIn: projects.emailOptIn,
+      notes: projects.notes,
+      createdAt: projects.createdAt,
+      // Client fields
+      clientData: {
+        id: clients.id,
+        firstName: clients.firstName,
+        lastName: clients.lastName,
+        email: clients.email,
+        phone: clients.phone
+      },
+      // Stage fields
+      stageData: {
+        id: stages.id,
+        name: stages.name,
+        isDefault: stages.isDefault,
+        orderIndex: stages.orderIndex
+      }
+    })
+      .from(projects)
+      .leftJoin(clients, eq(projects.clientId, clients.id))
+      .leftJoin(stages, eq(projects.stageId, stages.id))
+      .where(projectType ? 
+        and(eq(projects.photographerId, photographerId), eq(projects.projectType, projectType)) :
+        eq(projects.photographerId, photographerId)
+      )
+      .orderBy(desc(projects.createdAt));
+      
+    return rows.map(row => ({
+      ...row,
+      client: row.clientData ? {
+        id: row.clientData.id,
+        firstName: row.clientData.firstName,
+        lastName: row.clientData.lastName,
+        email: row.clientData.email,
+        phone: row.clientData.phone
+      } : null,
+      stage: row.stageData?.id ? {
+        id: row.stageData.id,
+        name: row.stageData.name,
+        isDefault: row.stageData.isDefault,
+        orderIndex: row.stageData.orderIndex
+      } : null
+    }));
+  }
+
+  async getProject(id: string): Promise<ProjectWithClientAndStage | undefined> {
+    const [row] = await db.select({
+      // Project fields
+      id: projects.id,
+      photographerId: projects.photographerId,
+      clientId: projects.clientId,
+      title: projects.title,
+      projectType: projects.projectType,
+      eventDate: projects.eventDate,
+      stageId: projects.stageId,
+      stageEnteredAt: projects.stageEnteredAt,
+      leadSource: projects.leadSource,
+      status: projects.status,
+      smsOptIn: projects.smsOptIn,
+      emailOptIn: projects.emailOptIn,
+      notes: projects.notes,
+      createdAt: projects.createdAt,
+      // Client fields
+      clientData: {
+        id: clients.id,
+        firstName: clients.firstName,
+        lastName: clients.lastName,
+        email: clients.email,
+        phone: clients.phone
+      },
+      // Stage fields
+      stageData: {
+        id: stages.id,
+        name: stages.name,
+        isDefault: stages.isDefault,
+        orderIndex: stages.orderIndex
+      }
+    })
+      .from(projects)
+      .leftJoin(clients, eq(projects.clientId, clients.id))
+      .leftJoin(stages, eq(projects.stageId, stages.id))
+      .where(eq(projects.id, id));
+      
+    if (!row) return undefined;
+    
+    return {
+      ...row,
+      client: row.clientData ? {
+        id: row.clientData.id,
+        firstName: row.clientData.firstName,
+        lastName: row.clientData.lastName,
+        email: row.clientData.email,
+        phone: row.clientData.phone
+      } : null,
+      stage: row.stageData?.id ? {
+        id: row.stageData.id,
+        name: row.stageData.name,
+        isDefault: row.stageData.isDefault,
+        orderIndex: row.stageData.orderIndex
+      } : null
+    };
+  }
+
+  async createProject(insertProject: InsertProject): Promise<Project> {
+    // If no stage provided, assign default stage automatically
+    let finalStageId = insertProject.stageId;
+    
+    if (!finalStageId) {
+      // Find default stage for this photographer and project type
+      const [defaultStage] = await db.select()
+        .from(stages)
+        .where(and(
+          eq(stages.photographerId, insertProject.photographerId),
+          eq(stages.projectType, insertProject.projectType || 'WEDDING'),
+          eq(stages.isDefault, true)
+        ))
+        .limit(1);
+      
+      finalStageId = defaultStage?.id || null;
+    }
+    
+    // Set stageEnteredAt timestamp when assigning to any stage
+    const projectData = {
+      ...insertProject,
+      stageId: finalStageId,
+      stageEnteredAt: finalStageId ? new Date() : null
+    };
+    
+    const [project] = await db.insert(projects).values(projectData).returning();
+    return project;
+  }
+
+  async updateProject(id: string, projectUpdate: Partial<Project>): Promise<Project> {
+    // If stageId is being updated, set stageEnteredAt timestamp
+    const updateData = {
+      ...projectUpdate,
+      ...(projectUpdate.stageId !== undefined && {
+        stageEnteredAt: projectUpdate.stageId ? new Date() : null
+      })
+    };
+    
+    const [updated] = await db.update(projects)
+      .set(updateData)
+      .where(eq(projects.id, id))
+      .returning();
+    return updated;
+  }
+
+  async getProjectHistory(projectId: string): Promise<TimelineEvent[]> {
+    // Get the project to find the client ID
+    const project = await this.getProject(projectId);
+    if (!project || !project.clientId) return [];
+    
+    // Use the existing client history method but filter for this project
+    const clientHistory = await this.getClientHistory(project.clientId);
+    
+    // TODO: In the future, we could filter timeline events specifically related to this project
+    // For now, return all client history as it's project-scoped in the new architecture
+    return clientHistory;
+  }
 }
 
 export const storage = new DatabaseStorage();
