@@ -22,13 +22,43 @@ interface Client {
   createdAt: string;
 }
 
+interface Project {
+  id: string;
+  title: string;
+  projectType: string;
+  clientId: string;
+  client?: {
+    firstName: string;
+    lastName: string;
+    email?: string;
+    phone?: string;
+  };
+  eventDate?: string;
+  stageEnteredAt?: string;
+  createdAt: string;
+}
+
+type ClientOrProject = Client | Project;
+
 interface ClientCardProps {
-  client: Client;
+  client: ClientOrProject;
   onMove: (stageId: string) => void;
 }
 
 export default function ClientCard({ client, onMove }: ClientCardProps) {
-  const fullName = `${client.firstName} ${client.lastName}`;
+  const isProject = 'title' in client;
+  const fullName = isProject 
+    ? (client as Project).client 
+      ? `${(client as Project).client!.firstName} ${(client as Project).client!.lastName}`
+      : (client as Project).title
+    : `${(client as Client).firstName} ${(client as Client).lastName}`;
+  
+  const email = isProject 
+    ? (client as Project).client?.email 
+    : (client as Client).email;
+  const phone = isProject 
+    ? (client as Project).client?.phone 
+    : (client as Client).phone;
   
   const getDaysInStage = () => {
     const enteredAt = client.stageEnteredAt ? new Date(client.stageEnteredAt) : new Date(client.createdAt);
@@ -69,9 +99,11 @@ export default function ClientCard({ client, onMove }: ClientCardProps) {
           <div className={`w-2 h-2 rounded-full ${getStatusColor()}`} />
         </div>
         
-        {client.weddingDate && (
-          <p className="text-xs text-muted-foreground mb-2" data-testid={`client-wedding-date-${client.id}`}>
-            {format(new Date(client.weddingDate), "MMMM d, yyyy")}
+        {((isProject && (client as Project).eventDate) || (!isProject && (client as Client).weddingDate)) && (
+          <p className="text-xs text-muted-foreground mb-2" data-testid={`client-event-date-${client.id}`}>
+            {format(new Date(
+              isProject ? (client as Project).eventDate! : (client as Client).weddingDate!
+            ), "MMMM d, yyyy")}
           </p>
         )}
 
@@ -85,12 +117,12 @@ export default function ClientCard({ client, onMove }: ClientCardProps) {
         </div>
 
         {/* Contact info */}
-        {(client.email || client.phone) && (
+        {(email || phone) && (
           <div className="flex items-center space-x-2 mt-2">
-            {client.email && (
+            {email && (
               <Mail className="w-3 h-3 text-muted-foreground" />
             )}
-            {client.phone && (
+            {phone && (
               <Phone className="w-3 h-3 text-muted-foreground" />
             )}
           </div>

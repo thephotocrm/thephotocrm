@@ -6,13 +6,18 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 
-interface Client {
+interface Project {
   id: string;
-  firstName: string;
-  lastName: string;
-  email?: string;
-  phone?: string;
-  weddingDate?: string;
+  title: string;
+  projectType: string;
+  clientId: string;
+  client?: {
+    firstName: string;
+    lastName: string;
+    email?: string;
+    phone?: string;
+  };
+  eventDate?: string;
   stageId?: string;
   stageEnteredAt?: string;
   createdAt: string;
@@ -26,46 +31,46 @@ interface Stage {
 }
 
 interface KanbanBoardProps {
-  clients: Client[];
+  projects: Project[];
   stages: Stage[];
 }
 
-export default function KanbanBoard({ clients, stages }: KanbanBoardProps) {
+export default function KanbanBoard({ projects, stages }: KanbanBoardProps) {
   const queryClient = useQueryClient();
   const { toast } = useToast();
   
-  const moveClientMutation = useMutation({
-    mutationFn: async ({ clientId, stageId }: { clientId: string; stageId: string }) => {
-      await apiRequest("PUT", `/api/clients/${clientId}/stage`, { stageId });
+  const moveProjectMutation = useMutation({
+    mutationFn: async ({ projectId, stageId }: { projectId: string; stageId: string }) => {
+      await apiRequest("PUT", `/api/projects/${projectId}/stage`, { stageId });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/clients"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
       toast({
-        title: "Client moved",
-        description: "Client has been moved to the new stage.",
+        title: "Project moved",
+        description: "Project has been moved to the new stage.",
       });
     },
     onError: () => {
       toast({
         title: "Error",
-        description: "Failed to move client. Please try again.",
+        description: "Failed to move project. Please try again.",
         variant: "destructive"
       });
     }
   });
 
-  const getClientsForStage = (stageId: string) => {
-    return clients.filter(client => client.stageId === stageId);
+  const getProjectsForStage = (stageId: string) => {
+    return projects.filter(project => project.stageId === stageId);
   };
 
-  const handleClientMove = (clientId: string, newStageId: string) => {
-    moveClientMutation.mutate({ clientId, stageId: newStageId });
+  const handleProjectMove = (projectId: string, newStageId: string) => {
+    moveProjectMutation.mutate({ projectId, stageId: newStageId });
   };
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 overflow-x-auto min-h-[500px]">
-      {stages.map((stage) => {
-        const stageClients = getClientsForStage(stage.id);
+      {Array.isArray(stages) ? stages.map((stage) => {
+        const stageProjects = getProjectsForStage(stage.id);
         
         return (
           <div key={stage.id} className="flex flex-col">
@@ -74,36 +79,38 @@ export default function KanbanBoard({ clients, stages }: KanbanBoardProps) {
               <div className="flex items-center justify-between">
                 <h3 className="font-medium">{stage.name}</h3>
                 <Badge variant="secondary" data-testid={`stage-count-${stage.name.toLowerCase().replace(/\s+/g, '-')}`}>
-                  {stageClients.length}
+                  {stageProjects.length}
                 </Badge>
               </div>
               <p className="text-xs text-muted-foreground mt-1">
-                {stage.isDefault ? "Default stage for new clients" : "Client progression stage"}
+                {stage.isDefault ? "Default stage for new projects" : "Project progression stage"}
               </p>
             </div>
 
-            {/* Client Cards */}
+            {/* Project Cards */}
             <div className="space-y-3 flex-1">
-              {stageClients.map((client) => (
+              {stageProjects.map((project) => (
                 <ClientCard
-                  key={client.id}
-                  client={client}
-                  onMove={(newStageId) => handleClientMove(client.id, newStageId)}
+                  key={project.id}
+                  client={project}
+                  onMove={(newStageId) => handleProjectMove(project.id, newStageId)}
                 />
               ))}
               
-              {/* Add Client Button */}
+              {/* Add Project Button */}
               <Button
                 variant="outline"
                 className="w-full h-20 border-dashed text-muted-foreground hover:bg-accent"
-                data-testid={`button-add-client-${stage.name.toLowerCase().replace(/\s+/g, '-')}`}
+                data-testid={`button-add-project-${stage.name.toLowerCase().replace(/\s+/g, '-')}`}
               >
-                + Add client to {stage.name}
+                + Add project to {stage.name}
               </Button>
             </div>
           </div>
         );
-      })}
+      }) : <div className="col-span-4 text-center text-muted-foreground py-8">
+        Failed to load stages. Please refresh the page.
+      </div>}
     </div>
   );
 }

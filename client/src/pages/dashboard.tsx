@@ -23,9 +23,9 @@ export default function Dashboard() {
     enabled: !!user
   });
 
-  const { data: clients } = useQuery({
-    queryKey: ["/api/clients", activeProjectType],
-    queryFn: () => fetch(`/api/clients?projectType=${activeProjectType}`).then(res => res.json()),
+  const { data: projects } = useQuery({
+    queryKey: ["/api/projects", activeProjectType],
+    queryFn: () => fetch(`/api/projects?projectType=${activeProjectType}`).then(res => res.json()),
     enabled: !!user
   });
 
@@ -65,8 +65,8 @@ export default function Dashboard() {
             <div className="flex items-center space-x-4">
               <SidebarTrigger data-testid="button-menu-toggle" />
               <div>
-                <h1 className="text-2xl font-semibold">Client Pipeline</h1>
-                <p className="text-muted-foreground">Manage your {activeProjectType.toLowerCase()} photography clients through each stage</p>
+                <h1 className="text-2xl font-semibold">Project Pipeline</h1>
+                <p className="text-muted-foreground">Manage your {activeProjectType.toLowerCase()} photography projects through each stage</p>
               </div>
             </div>
             
@@ -74,17 +74,17 @@ export default function Dashboard() {
               {/* Search */}
               <div className="relative">
                 <Input 
-                  placeholder="Search clients..." 
+                  placeholder="Search projects..." 
                   className="w-64 pl-10"
-                  data-testid="input-search-clients"
+                  data-testid="input-search-projects"
                 />
                 <Search className="absolute left-3 top-2.5 w-5 h-5 text-muted-foreground" />
               </div>
               
-              {/* Add Client Button */}
-              <Button onClick={() => setLocation("/clients")} data-testid="button-add-client">
+              {/* Add Project Button */}
+              <Button onClick={() => setLocation("/projects")} data-testid="button-add-project">
                 <Plus className="w-5 h-5 mr-2" />
-                Add Client
+                Add Project
               </Button>
             </div>
           </div>
@@ -110,12 +110,12 @@ export default function Dashboard() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Clients</CardTitle>
+                <CardTitle className="text-sm font-medium">Active Projects</CardTitle>
                 <Users className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold" data-testid="stat-total-clients">
-                  {stats?.totalClients || 0}
+                <div className="text-2xl font-bold" data-testid="stat-active-projects">
+                  {(stats as any)?.totalProjects || 0}
                 </div>
                 <p className="text-xs text-muted-foreground">
                   <span className="text-green-600">+12%</span> from last month
@@ -130,7 +130,7 @@ export default function Dashboard() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold" data-testid="stat-booked-month">
-                  {stats?.bookedThisMonth || 0}
+                  {(stats as any)?.bookedThisMonth || 0}
                 </div>
                 <p className="text-xs text-muted-foreground">
                   <span className="text-green-600">+25%</span> conversion rate
@@ -145,7 +145,7 @@ export default function Dashboard() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold" data-testid="stat-revenue-ytd">
-                  ${stats?.revenueYTD?.toLocaleString() || '0'}
+                  ${(stats as any)?.revenueYTD?.toLocaleString() || '0'}
                 </div>
                 <p className="text-xs text-muted-foreground">
                   <span className="text-green-600">+18%</span> vs last year
@@ -160,7 +160,7 @@ export default function Dashboard() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold" data-testid="stat-outstanding-balance">
-                  ${stats?.outstandingBalance?.toLocaleString() || '0'}
+                  ${(stats as any)?.outstandingBalance?.toLocaleString() || '0'}
                 </div>
                 <p className="text-xs text-muted-foreground">
                   14 clients pending payment
@@ -173,7 +173,7 @@ export default function Dashboard() {
                 <Card>
                   <CardHeader>
                     <div className="flex items-center justify-between">
-                      <CardTitle>Client Pipeline</CardTitle>
+                      <CardTitle>Project Pipeline</CardTitle>
                       <div className="flex space-x-2">
                         <Button variant="outline" size="sm">Manage Stages</Button>
                         <Button variant="outline" size="sm">Automation Rules</Button>
@@ -181,7 +181,7 @@ export default function Dashboard() {
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <KanbanBoard clients={clients || []} stages={stages || []} />
+                    <KanbanBoard projects={projects || []} stages={stages || []} />
                   </CardContent>
                 </Card>
               </TabsContent>
