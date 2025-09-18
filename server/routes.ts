@@ -11,7 +11,7 @@ import { sendSms } from "./services/sms";
 import { createPaymentIntent, createCheckoutSession, handleWebhook } from "./services/stripe";
 import { googleCalendarService } from "./services/calendar";
 import { insertUserSchema, insertPhotographerSchema, insertClientSchema, insertStageSchema, 
-         insertTemplateSchema, insertAutomationSchema, insertAutomationStepSchema, insertPackageSchema, 
+         insertTemplateSchema, insertAutomationSchema, validateAutomationSchema, insertAutomationStepSchema, insertPackageSchema, 
          insertEstimateSchema, insertMessageSchema, insertBookingSchema, updateBookingSchema, 
          bookingConfirmationSchema, sanitizedBookingSchema, insertQuestionnaireTemplateSchema, insertQuestionnaireQuestionSchema, 
          insertAvailabilitySlotSchema, updateAvailabilitySlotSchema, emailLogs, smsLogs, projectActivityLog,
@@ -1332,7 +1332,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
 
   app.post("/api/automations", authenticateToken, requirePhotographer, async (req, res) => {
     try {
-      const automationData = insertAutomationSchema.parse({
+      const automationData = validateAutomationSchema.parse({
         ...req.body,
         photographerId: req.user!.photographerId!
       });
@@ -1359,7 +1359,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       }
 
       // Create a safe update schema that only allows specific fields
-      const updateSchema = insertAutomationSchema.partial().omit({
+      const updateSchema = validateAutomationSchema.partial().omit({
         photographerId: true,
         id: true
       });
@@ -1387,7 +1387,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       }
 
       // Create a safe update schema that only allows specific fields
-      const updateSchema = insertAutomationSchema.partial().omit({
+      const updateSchema = validateAutomationSchema.partial().omit({
         photographerId: true,
         id: true
       });
