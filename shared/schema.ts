@@ -40,7 +40,8 @@ export const leadSourceEnum = {
 
 export const automationTypeEnum = {
   COMMUNICATION: "COMMUNICATION",
-  STAGE_CHANGE: "STAGE_CHANGE"
+  STAGE_CHANGE: "STAGE_CHANGE",
+  COUNTDOWN: "COUNTDOWN"
 } as const;
 
 export const triggerTypeEnum = {
@@ -51,7 +52,8 @@ export const triggerTypeEnum = {
   ESTIMATE_ACCEPTED: "ESTIMATE_ACCEPTED",
   EVENT_DATE_REACHED: "EVENT_DATE_REACHED",
   PROJECT_DELIVERED: "PROJECT_DELIVERED",
-  CLIENT_ONBOARDED: "CLIENT_ONBOARDED"
+  CLIENT_ONBOARDED: "CLIENT_ONBOARDED",
+  APPOINTMENT_BOOKED: "APPOINTMENT_BOOKED"
 } as const;
 
 // Tables
@@ -140,13 +142,15 @@ export const automations = pgTable("automations", {
   photographerId: varchar("photographer_id").notNull().references(() => photographers.id),
   projectType: text("project_type").notNull().default("WEDDING"),
   name: text("name").notNull(),
-  automationType: text("automation_type").notNull().default("COMMUNICATION"), // COMMUNICATION, STAGE_CHANGE
+  automationType: text("automation_type").notNull().default("COMMUNICATION"), // COMMUNICATION, STAGE_CHANGE, COUNTDOWN
   // Communication automation fields
   stageId: varchar("stage_id").references(() => stages.id),
-  channel: text("channel"), // EMAIL, SMS (nullable for stage change automations)
+  channel: text("channel"), // EMAIL, SMS (nullable for stage change and countdown automations)
   // Stage change automation fields  
-  triggerType: text("trigger_type"), // DEPOSIT_PAID, FULL_PAYMENT_MADE, PROJECT_BOOKED, etc.
+  triggerType: text("trigger_type"), // DEPOSIT_PAID, FULL_PAYMENT_MADE, PROJECT_BOOKED, APPOINTMENT_BOOKED, etc.
   targetStageId: varchar("target_stage_id").references(() => stages.id),
+  // Countdown automation fields
+  daysBefore: integer("days_before"), // Days before event date to send countdown message
   enabled: boolean("enabled").default(true)
 });
 
