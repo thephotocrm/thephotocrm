@@ -64,7 +64,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         for (const stage of defaultStages) {
           await storage.createStage({
             ...stage,
-            photographerId: photographer.id
+            photographerId: photographer.id,
+            projectType: "WEDDING" // Default project type for new photographers
           });
         }
       }
@@ -164,7 +165,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Stages
   app.get("/api/stages", authenticateToken, requirePhotographer, async (req, res) => {
     try {
-      const stages = await storage.getStagesByPhotographer(req.user!.photographerId!);
+      const { projectType } = req.query;
+      const stages = await storage.getStagesByPhotographer(
+        req.user!.photographerId!, 
+        projectType as string | undefined
+      );
       res.json(stages);
     } catch (error) {
       res.status(500).json({ message: "Internal server error" });
@@ -187,7 +192,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Clients
   app.get("/api/clients", authenticateToken, requirePhotographer, async (req, res) => {
     try {
-      const clients = await storage.getClientsByPhotographer(req.user!.photographerId!);
+      const { projectType } = req.query;
+      const clients = await storage.getClientsByPhotographer(
+        req.user!.photographerId!, 
+        projectType as string | undefined
+      );
       res.json(clients);
     } catch (error) {
       res.status(500).json({ message: "Internal server error" });
@@ -196,18 +205,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/clients", authenticateToken, requirePhotographer, async (req, res) => {
     try {
-      // Get default stage
-      const stages = await storage.getStagesByPhotographer(req.user!.photographerId!);
-      const defaultStage = stages.find(s => s.isDefault);
-
+      // Parse client data first to get project type
       const clientData = insertClientSchema.parse({
         ...req.body,
-        photographerId: req.user!.photographerId!,
-        stageId: defaultStage?.id,
-        stageEnteredAt: new Date()
+        photographerId: req.user!.photographerId!
       });
 
-      const client = await storage.createClient(clientData);
+      // Get default stage for this project type
+      const stages = await storage.getStagesByPhotographer(
+        req.user!.photographerId!,
+        clientData.projectType
+      );
+      const defaultStage = stages.find(s => s.isDefault);
+
+      // Add stage info to client data
+      const finalClientData = {
+        ...clientData,
+        stageId: defaultStage?.id,
+        stageEnteredAt: defaultStage ? new Date() : undefined
+      };
+
+      const client = await storage.createClient(finalClientData);
 
       // TODO: Create checklist items for client
       // TODO: Trigger automation events
@@ -221,7 +239,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.put("/api/clients/:id", authenticateToken, requirePhotographer, async (req, res) => {
     try {
-      const client = await storage.updateClient(req.params.id, req.body);
+      // Verify client belongs to this photographer
+      const existingClient = await storage.getClient(req.params.id);
+      if (!existingClient || existingClient.photographerId !== req.user!.photographerId!) {
+        return res.status(404).json({ message: "Client not found" });
+      }
+      
+      // Whitelist allowed fields - explicitly reject dangerous fields
+      if (req.body.stageId !== undefined) {
+        return res.status(400).json({ message: "Use /api/clients/:id/stage to change client stage" });
+      }
+      if (req.body.photographerId !== undefined) {
+        return res.status(400).json({ message: "Cannot change photographer assignment" });
+      }
+      if (req.body.projectType !== undefined) {
+        return res.status(400).json({ message: "Project type changes not currently supported - contact support" });
+      }
+      
+      // Create safe update schema - only allow safe fields
+      const safeUpdateSchema = insertClientSchema.pick({
+        firstName: true,
+        lastName: true,
+        email: true,
+        phone: true,
+        eventDate: true,
+        leadSource: true,
+        notes: true,
+        smsOptIn: true,
+        emailOptIn: true
+      }).partial();
+      
+      const safeUpdateData = safeUpdateSchema.parse(req.body);
+      const client = await storage.updateClient(req.params.id, safeUpdateData);
       res.json(client);
     } catch (error) {
       res.status(500).json({ message: "Internal server error" });
@@ -231,6 +280,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.put("/api/clients/:id/stage", authenticateToken, requirePhotographer, async (req, res) => {
     try {
       const { stageId } = req.body;
+      
+      // Verify client belongs to this photographer
+      const existingClient = await storage.getClient(req.params.id);
+      if (!existingClient || existingClient.photographerId !== req.user!.photographerId!) {
+        return res.status(404).json({ message: "Client not found" });
+      }
+      
+      // Verify stage belongs to same photographer and matches client's project type
+      const stages = await storage.getStagesByPhotographer(
+        req.user!.photographerId!, 
+        existingClient.projectType
+      );
+      const targetStage = stages.find(s => s.id === stageId);
+      if (!targetStage) {
+        return res.status(400).json({ message: "Invalid stage for this client's project type" });
+      }
+      
       const client = await storage.updateClient(req.params.id, {
         stageId,
         stageEnteredAt: new Date()
@@ -1100,7 +1166,11 @@ ${photographer?.businessName || 'Your Photography Team'}`;
   // Automations
   app.get("/api/automations", authenticateToken, requirePhotographer, async (req, res) => {
     try {
-      const automations = await storage.getAutomationsByPhotographer(req.user!.photographerId!);
+      const { projectType } = req.query;
+      const automations = await storage.getAutomationsByPhotographer(
+        req.user!.photographerId!, 
+        projectType as string | undefined
+      );
       res.json(automations);
     } catch (error) {
       console.error('Get automations error:', error);
