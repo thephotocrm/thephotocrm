@@ -6,6 +6,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/sidebar";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -17,7 +18,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Zap, Clock, Mail, Smartphone, Settings, Edit2 } from "lucide-react";
-import { insertAutomationSchema } from "@shared/schema";
+import { insertAutomationSchema, projectTypeEnum } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
@@ -304,6 +305,7 @@ export default function Automations() {
   const [manageRulesDialogOpen, setManageRulesDialogOpen] = useState(false);
   const [selectedStage, setSelectedStage] = useState<any>(null);
   const [timingMode, setTimingMode] = useState<'immediate' | 'delayed'>('immediate');
+  const [activeProjectType, setActiveProjectType] = useState<string>('WEDDING');
 
   // Extended form schema for creation with template and timing - template required
   const extendedFormSchema = createAutomationFormSchema.extend({
@@ -331,17 +333,20 @@ export default function Automations() {
 
   // ALL HOOKS MUST BE CALLED BEFORE ANY CONDITIONALS
   const { data: stages = [] } = useQuery<any[]>({
-    queryKey: ["/api/stages"],
+    queryKey: ["/api/stages", activeProjectType],
+    queryFn: () => fetch(`/api/stages?projectType=${activeProjectType}`).then(res => res.json()),
     enabled: !!user
   });
 
   const { data: automations = [] } = useQuery<any[]>({
-    queryKey: ["/api/automations"],
+    queryKey: ["/api/automations", activeProjectType],
+    queryFn: () => fetch(`/api/automations?projectType=${activeProjectType}`).then(res => res.json()),
     enabled: !!user
   });
 
   const { data: templates = [] } = useQuery<any[]>({
-    queryKey: ["/api/templates"],
+    queryKey: ["/api/templates", activeProjectType],
+    queryFn: () => fetch(`/api/templates?projectType=${activeProjectType}`).then(res => res.json()),
     enabled: !!user
   });
 
@@ -381,12 +386,13 @@ export default function Automations() {
 
       let automation: any = null;
       try {
-        // Create the automation
+        // Create the automation - inject activeProjectType from current tab
         const automationResponse = await apiRequest("POST", "/api/automations", {
           name: data.name,
           stageId: (data.stageId && data.stageId !== 'global') ? data.stageId : null,
           channel: data.channel,
-          enabled: data.enabled
+          enabled: data.enabled,
+          projectType: activeProjectType
         });
         automation = await automationResponse.json();
         
@@ -752,149 +758,129 @@ export default function Automations() {
         </Dialog>
 
         <div className="p-6 space-y-6">
-          {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Active Automations</CardTitle>
-                <Zap className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">12</div>
-                <p className="text-xs text-muted-foreground">Running workflows</p>
-              </CardContent>
-            </Card>
+          {/* Project Type Tabs */}
+          <Tabs value={activeProjectType} onValueChange={setActiveProjectType} className="w-full">
+            <div className="flex items-center justify-between mb-6">
+              <TabsList className="grid w-full grid-cols-5 max-w-3xl">
+                <TabsTrigger value="WEDDING" data-testid="tab-wedding">💒 Wedding</TabsTrigger>
+                <TabsTrigger value="ENGAGEMENT" data-testid="tab-engagement">💍 Engagement</TabsTrigger>
+                <TabsTrigger value="PORTRAIT" data-testid="tab-portrait">🎭 Portrait</TabsTrigger>
+                <TabsTrigger value="CORPORATE" data-testid="tab-corporate">🏢 Corporate</TabsTrigger>
+                <TabsTrigger value="EVENT" data-testid="tab-event">🎉 Event</TabsTrigger>
+              </TabsList>
+              <Button
+                onClick={() => setCreateDialogOpen(true)}
+                data-testid="button-create-automation"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                New Automation
+              </Button>
+            </div>
 
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Messages Sent</CardTitle>
-                <Mail className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">1,247</div>
-                <p className="text-xs text-muted-foreground">This month</p>
-              </CardContent>
-            </Card>
+            {Object.keys(projectTypeEnum).map((projectType) => (
+              <TabsContent key={projectType} value={projectType} className="space-y-6">
+                {/* Stats Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium">Active Automations</CardTitle>
+                      <Zap className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold">
+                        {automations?.filter((a: any) => a.enabled).length || 0}
+                      </div>
+                      <p className="text-xs text-muted-foreground">Running workflows</p>
+                    </CardContent>
+                  </Card>
 
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Response Rate</CardTitle>
-                <Clock className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">68%</div>
-                <p className="text-xs text-muted-foreground">Average engagement</p>
-              </CardContent>
-            </Card>
-          </div>
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium">Total Stages</CardTitle>
+                      <Settings className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold">{stages?.length || 0}</div>
+                      <p className="text-xs text-muted-foreground">Pipeline stages</p>
+                    </CardContent>
+                  </Card>
 
-          {/* Automation Rules by Stage */}
-          <div className="space-y-6">
-            {stages?.map((stage: any) => (
-              <Card key={stage.id}>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="flex items-center">
-                      <div className="w-3 h-3 bg-primary rounded-full mr-3"></div>
-                      {stage.name} Stage
-                    </CardTitle>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      data-testid={`button-manage-${stage.name.toLowerCase().replace(/\s+/g, '-')}`}
-                      onClick={() => {
-                        setSelectedStage(stage);
-                        setManageRulesDialogOpen(true);
-                      }}
-                    >
-                      <Settings className="w-4 h-4 mr-2" />
-                      Manage Rules
-                    </Button>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {/* Real automation rules with edit buttons */}
-                    {(() => {
-                      const stageAutomations = (automations ?? []).filter((a: any) => a.stageId === stage.id);
-                      return stageAutomations.length === 0 ? (
-                        <p className="text-muted-foreground text-center py-4">
-                          No automation rules configured for this stage yet.
-                        </p>
-                      ) : (
-                        stageAutomations.map((automation: any) => (
-                          <AutomationStepManager key={automation.id} automation={automation} onDelete={handleDeleteAutomation} />
-                        ))
-                      );
-                    })()}
-                    
-                    {/* Add Automation button for this stage */}
-                    <div className="pt-4 border-t">
-                      <Button 
-                        variant="outline" 
-                        className="w-full"
-                        onClick={() => {
-                          // Pre-populate the stage in the form
-                          form.setValue('stageId', stage.id);
-                          setCreateDialogOpen(true);
-                        }}
-                        data-testid={`button-add-automation-${stage.id}`}
-                      >
-                        <Plus className="w-4 h-4 mr-2" />
-                        Add Automation for {stage.name} Stage
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium">Templates</CardTitle>
+                      <Mail className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold">{templates?.length || 0}</div>
+                      <p className="text-xs text-muted-foreground">Available templates</p>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Automation Rules by Stage */}
+                <div className="space-y-6">
+                  {stages?.map((stage: any) => (
+                    <Card key={stage.id}>
+                      <CardHeader>
+                        <div className="flex items-center justify-between">
+                          <CardTitle className="flex items-center">
+                            <div className="w-3 h-3 bg-primary rounded-full mr-3"></div>
+                            {stage.name} Stage
+                          </CardTitle>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            data-testid={`button-manage-${stage.name.toLowerCase().replace(/\s+/g, '-')}`}
+                            onClick={() => {
+                              setSelectedStage(stage);
+                              setManageRulesDialogOpen(true);
+                            }}
+                          >
+                            <Settings className="w-4 h-4 mr-2" />
+                            Manage Rules
+                          </Button>
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-4">
+                          {/* Real automation rules with edit buttons */}
+                          {(() => {
+                            const stageAutomations = (automations ?? []).filter((a: any) => a.stageId === stage.id);
+                            return stageAutomations.length === 0 ? (
+                              <p className="text-muted-foreground text-center py-4">
+                                No automation rules configured for this stage yet.
+                              </p>
+                            ) : (
+                              stageAutomations.map((automation: any) => (
+                                <AutomationStepManager key={automation.id} automation={automation} onDelete={handleDeleteAutomation} />
+                              ))
+                            );
+                          })()}
+                          
+                          {/* Add Automation button for this stage */}
+                          <div className="pt-4 border-t">
+                            <Button 
+                              variant="outline" 
+                              className="w-full"
+                              onClick={() => {
+                                // Pre-populate the stage in the form
+                                form.setValue('stageId', stage.id);
+                                setCreateDialogOpen(true);
+                              }}
+                              data-testid={`button-add-automation-${stage.id}`}
+                            >
+                              <Plus className="w-4 h-4 mr-2" />
+                              Add Automation for {stage.name} Stage
+                            </Button>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </TabsContent>
             ))}
-          </div>
-
-          {/* Long-drip Campaign */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <Clock className="w-5 h-5 mr-2" />
-                Inquiry Long-drip Campaign
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">24-Email Nurture Sequence</p>
-                    <p className="text-sm text-muted-foreground">
-                      Automated email series over 12 months for clients in Inquiry stage
-                    </p>
-                  </div>
-                  <div className="flex items-center space-x-4">
-                    <Badge variant="secondary">Active</Badge>
-                    <Switch defaultChecked data-testid="switch-long-drip-campaign" />
-                  </div>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-                  <div className="p-3 bg-muted rounded-lg">
-                    <p className="text-sm font-medium">Total Emails</p>
-                    <p className="text-2xl font-bold">24</p>
-                  </div>
-                  <div className="p-3 bg-muted rounded-lg">
-                    <p className="text-sm font-medium">Duration</p>
-                    <p className="text-2xl font-bold">12 mo</p>
-                  </div>
-                  <div className="p-3 bg-muted rounded-lg">
-                    <p className="text-sm font-medium">Frequency</p>
-                    <p className="text-2xl font-bold">~15 days</p>
-                  </div>
-                </div>
-
-                <Button variant="outline" data-testid="button-configure-drip">
-                  <Settings className="w-4 h-4 mr-2" />
-                  Configure Campaign
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+          </Tabs>
         </div>
       </SidebarInset>
     </SidebarProvider>
