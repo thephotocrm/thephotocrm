@@ -228,6 +228,12 @@ async function processAutomationStep(client: any, step: any, automation: any): P
     return;
   }
 
+  // Validate that template channel matches automation channel
+  if (template.channel !== automation.channel) {
+    console.log(`❌ Template channel mismatch for automation ${automation.name}: template=${template.channel}, automation=${automation.channel}`);
+    return;
+  }
+
   // Get photographer info for businessName
   const [photographer] = await db
     .select()
@@ -476,7 +482,7 @@ async function processCountdownAutomation(automation: any, photographerId: strin
     
     // Check if today is the target date
     if (today.getTime() === targetDate.getTime()) {
-      console.log(`🎯 Countdown trigger for project ${project.id}: ${automation.daysBefore} days before ${eventDateInTz.toLocaleDateString()} (timezone: ${timezone})`);
+      console.log(`🎯 Countdown trigger for project ${project.id}: ${automation.daysBefore} days before ${eventDateOnly.toLocaleDateString()} (timezone: ${timezone})`);
       
       await sendCountdownMessage(project, automation, photographerId);
     }
@@ -549,6 +555,16 @@ async function sendCountdownMessage(project: any, automation: any, photographerI
     return;
   }
 
+  // Check contact information and consent
+  if (automation.channel === 'EMAIL' && (!project.email || !project.emailOptIn)) {
+    console.log(`📧 Email not available or opt-in missing for ${project.firstName} ${project.lastName}`);
+    return;
+  }
+  if (automation.channel === 'SMS' && (!project.phone || !project.smsOptIn)) {
+    console.log(`📱 Phone not available or SMS opt-in missing for ${project.firstName} ${project.lastName}`);
+    return;
+  }
+
   // Calculate days remaining using photographer's timezone
   const eventDateParts = getDateInTimezone(new Date(project.eventDate), timezone);
   const eventDateInTz = new Date(eventDateParts.year, eventDateParts.month, eventDateParts.day);
@@ -594,10 +610,10 @@ async function sendCountdownMessage(project: any, automation: any, photographerI
 
     console.log(`📧 Countdown email ${success ? 'sent successfully' : 'FAILED'} to ${project.firstName} ${project.lastName}`);
 
-    // Log the attempt - use automation.id as automationStepId for countdown automations
+    // Log the attempt - use null for automationStepId since countdown automations don't have steps
     await db.insert(emailLogs).values({
       projectId: project.id,
-      automationStepId: automation.id,
+      automationStepId: null,
       status: success ? 'sent' : 'failed',
       sentAt: success ? new Date() : null
     });
@@ -614,10 +630,10 @@ async function sendCountdownMessage(project: any, automation: any, photographerI
 
     console.log(`📱 Countdown SMS ${result.success ? 'sent successfully' : 'FAILED'} to ${project.firstName} ${project.lastName}`);
 
-    // Log the attempt - use automation.id as automationStepId for countdown automations
+    // Log the attempt - use null for automationStepId since countdown automations don't have steps
     await db.insert(smsLogs).values({
       projectId: project.id,
-      automationStepId: automation.id,
+      automationStepId: null,
       status: result.success ? 'sent' : 'failed',
       providerId: result.sid,
       sentAt: result.success ? new Date() : null
