@@ -2,7 +2,7 @@ import { storage } from '../storage';
 import { sendEmail, renderTemplate } from './email';
 import { sendSms, renderSmsTemplate } from './sms';
 import { db } from '../db';
-import { clients, automations, automationSteps, stages, templates, emailLogs, smsLogs, photographers, estimates } from '@shared/schema';
+import { clients, automations, automationSteps, stages, templates, emailLogs, smsLogs, photographers, estimates, projects } from '@shared/schema';
 import { eq, and, gte, lte } from 'drizzle-orm';
 
 interface ClientWithStage {
@@ -34,35 +34,83 @@ export async function processAutomations(photographerId: string): Promise<void> 
     console.log(`Found ${allAutomations.length} enabled automations`);
 
     for (const automation of allAutomations) {
-      // Get automation steps
-      const steps = await db
-        .select()
-        .from(automationSteps)
-        .where(and(
-          eq(automationSteps.automationId, automation.id),
-          eq(automationSteps.enabled, true)
-        ))
-        .orderBy(automationSteps.stepIndex);
-
-      // Get clients in this stage
-      const clientsInStage = await db
-        .select()
-        .from(clients)
-        .where(and(
-          eq(clients.photographerId, photographerId),
-          eq(clients.stageId, automation.stageId!)
-        ));
-        
-      console.log(`Automation "${automation.name}" (${automation.id}) - found ${clientsInStage.length} clients in stage`);
-
-      for (const client of clientsInStage) {
-        for (const step of steps) {
-          await processAutomationStep(client, step, automation);
-        }
+      if (automation.automationType === 'COMMUNICATION') {
+        await processCommunicationAutomation(automation, photographerId);
+      } else if (automation.automationType === 'STAGE_CHANGE') {
+        await processStageChangeAutomation(automation, photographerId);
       }
     }
   } catch (error) {
     console.error('Error processing automations:', error);
+  }
+}
+
+async function processCommunicationAutomation(automation: any, photographerId: string): Promise<void> {
+  // Get automation steps
+  const steps = await db
+    .select()
+    .from(automationSteps)
+    .where(and(
+      eq(automationSteps.automationId, automation.id),
+      eq(automationSteps.enabled, true)
+    ))
+    .orderBy(automationSteps.stepIndex);
+
+  // Get projects in this stage (changed from clients to projects)
+  const projectsInStage = await db
+    .select({
+      id: projects.id,
+      clientId: projects.clientId,
+      stageEnteredAt: projects.stageEnteredAt,
+      eventDate: projects.eventDate,
+      smsOptIn: projects.smsOptIn,
+      emailOptIn: projects.emailOptIn,
+      // Client details
+      firstName: clients.firstName,
+      lastName: clients.lastName,
+      email: clients.email,
+      phone: clients.phone
+    })
+    .from(projects)
+    .innerJoin(clients, eq(projects.clientId, clients.id))
+    .where(and(
+      eq(projects.photographerId, photographerId),
+      eq(projects.stageId, automation.stageId!)
+    ));
+    
+  console.log(`Communication automation "${automation.name}" (${automation.id}) - found ${projectsInStage.length} projects in stage`);
+
+  for (const project of projectsInStage) {
+    for (const step of steps) {
+      await processAutomationStep(project, step, automation);
+    }
+  }
+}
+
+async function processStageChangeAutomation(automation: any, photographerId: string): Promise<void> {
+  console.log(`Processing stage change automation: ${automation.name} (trigger: ${automation.triggerType})`);
+  
+  // Get all active projects for this photographer and project type
+  const activeProjects = await db
+    .select()
+    .from(projects)
+    .innerJoin(clients, eq(projects.clientId, clients.id))
+    .where(and(
+      eq(projects.photographerId, photographerId),
+      eq(projects.projectType, automation.projectType),
+      eq(projects.status, 'ACTIVE')
+    ));
+
+  console.log(`Found ${activeProjects.length} active projects to check for trigger: ${automation.triggerType}`);
+
+  for (const projectRow of activeProjects) {
+    const project = projectRow.projects;
+    const shouldTrigger = await checkTriggerCondition(automation.triggerType, project, photographerId);
+    
+    if (shouldTrigger) {
+      console.log(`✅ Trigger "${automation.triggerType}" matched for project ${project.id}, moving to stage ${automation.targetStageId}`);
+      await moveProjectToStage(project.id, automation.targetStageId!);
+    }
   }
 }
 
@@ -207,6 +255,119 @@ async function processAutomationStep(client: any, step: any, automation: any): P
       providerId: result.sid,
       sentAt: result.success ? now : null
     });
+  }
+}
+
+async function checkTriggerCondition(triggerType: string, project: any, photographerId: string): Promise<boolean> {
+  console.log(`Checking trigger condition: ${triggerType} for project ${project.id}`);
+  
+  switch (triggerType) {
+    case 'DEPOSIT_PAID':
+      return await checkDepositPaid(project.id);
+    case 'FULL_PAYMENT_MADE':
+      return await checkFullPaymentMade(project.id);
+    case 'PROJECT_BOOKED':
+      return await checkProjectBooked(project);
+    case 'CONTRACT_SIGNED':
+      return await checkContractSigned(project.id);
+    case 'ESTIMATE_ACCEPTED':
+      return await checkEstimateAccepted(project.id);
+    case 'EVENT_DATE_REACHED':
+      return await checkEventDateReached(project);
+    case 'PROJECT_DELIVERED':
+      return await checkProjectDelivered(project);
+    case 'CLIENT_ONBOARDED':
+      return await checkClientOnboarded(project);
+    default:
+      console.log(`Unknown trigger type: ${triggerType}`);
+      return false;
+  }
+}
+
+async function checkDepositPaid(projectId: string): Promise<boolean> {
+  // Check if project has estimates with deposit payments
+  const paidEstimates = await db
+    .select()
+    .from(estimates)
+    .where(and(
+      eq(estimates.projectId, projectId),
+      eq(estimates.status, 'SIGNED'),
+      eq(estimates.depositPaid, true)
+    ));
+  return paidEstimates.length > 0;
+}
+
+async function checkFullPaymentMade(projectId: string): Promise<boolean> {
+  // Check if project has estimates with full payments
+  const fullyPaidEstimates = await db
+    .select()
+    .from(estimates)
+    .where(and(
+      eq(estimates.projectId, projectId),
+      eq(estimates.status, 'SIGNED'),
+      eq(estimates.fullPaid, true)
+    ));
+  return fullyPaidEstimates.length > 0;
+}
+
+async function checkProjectBooked(project: any): Promise<boolean> {
+  // Check if project has moved beyond initial inquiry stages
+  return project.status === 'ACTIVE' && project.stageId !== null;
+}
+
+async function checkContractSigned(projectId: string): Promise<boolean> {
+  // Check if project has signed estimates
+  const signedEstimates = await db
+    .select()
+    .from(estimates)
+    .where(and(
+      eq(estimates.projectId, projectId),
+      eq(estimates.status, 'SIGNED')
+    ));
+  return signedEstimates.length > 0;
+}
+
+async function checkEstimateAccepted(projectId: string): Promise<boolean> {
+  // Same as contract signed for now
+  return await checkContractSigned(projectId);
+}
+
+async function checkEventDateReached(project: any): Promise<boolean> {
+  if (!project.eventDate) return false;
+  
+  const eventDate = new Date(project.eventDate);
+  const now = new Date();
+  
+  // Trigger if event date is today or in the past
+  return eventDate <= now;
+}
+
+async function checkProjectDelivered(project: any): Promise<boolean> {
+  // This would typically check for file delivery or gallery completion
+  // For now, we'll check if project status is COMPLETED
+  return project.status === 'COMPLETED';
+}
+
+async function checkClientOnboarded(project: any): Promise<boolean> {
+  // Check if client has email/phone and has opted in
+  return !!(project.email && (project.emailOptIn || project.smsOptIn));
+}
+
+async function moveProjectToStage(projectId: string, targetStageId: string): Promise<void> {
+  try {
+    console.log(`Moving project ${projectId} to stage ${targetStageId}`);
+    
+    await db
+      .update(projects)
+      .set({
+        stageId: targetStageId,
+        stageEnteredAt: new Date()
+      })
+      .where(eq(projects.id, projectId));
+      
+    console.log(`✅ Successfully moved project ${projectId} to stage ${targetStageId}`);
+  } catch (error) {
+    console.error(`❌ Failed to move project ${projectId} to stage ${targetStageId}:`, error);
   }
 }
 
