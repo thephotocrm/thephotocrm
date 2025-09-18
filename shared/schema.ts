@@ -151,6 +151,7 @@ export const automations = pgTable("automations", {
   targetStageId: varchar("target_stage_id").references(() => stages.id),
   // Countdown automation fields
   daysBefore: integer("days_before"), // Days before event date to send countdown message
+  templateId: varchar("template_id").references(() => templates.id), // Template for countdown automations
   enabled: boolean("enabled").default(true)
 });
 
@@ -638,8 +639,8 @@ export const validateAutomationSchema = insertAutomationSchema.refine(
       return data.triggerType !== undefined && data.targetStageId !== undefined;
     }
     if (data.automationType === 'COUNTDOWN') {
-      // Countdown automations require daysBefore and channel
-      return data.daysBefore !== undefined && data.channel !== undefined;
+      // Countdown automations require daysBefore, channel, and templateId
+      return data.daysBefore !== undefined && data.channel !== undefined && data.templateId !== undefined;
     }
     return true;
   },

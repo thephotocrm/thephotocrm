@@ -2,8 +2,24 @@ import { storage } from '../storage';
 import { sendEmail, renderTemplate } from './email';
 import { sendSms, renderSmsTemplate } from './sms';
 import { db } from '../db';
-import { clients, automations, automationSteps, stages, templates, emailLogs, smsLogs, photographers, estimates, projects } from '@shared/schema';
+import { clients, automations, automationSteps, stages, templates, emailLogs, smsLogs, photographers, estimates, projects, bookings } from '@shared/schema';
 import { eq, and, gte, lte } from 'drizzle-orm';
+
+// Helper function to get date in photographer's timezone
+function getDateInTimezone(date: Date, timezone: string): { year: number, month: number, day: number } {
+  const formatter = new Intl.DateTimeFormat('en-CA', {
+    timeZone: timezone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  });
+  const parts = formatter.formatToParts(date);
+  return {
+    year: parseInt(parts.find(p => p.type === 'year')!.value),
+    month: parseInt(parts.find(p => p.type === 'month')!.value) - 1, // Month is 0-indexed in Date
+    day: parseInt(parts.find(p => p.type === 'day')!.value)
+  };
+}
 
 interface ClientWithStage {
   id: string;
@@ -38,6 +54,8 @@ export async function processAutomations(photographerId: string): Promise<void> 
         await processCommunicationAutomation(automation, photographerId);
       } else if (automation.automationType === 'STAGE_CHANGE') {
         await processStageChangeAutomation(automation, photographerId);
+      } else if (automation.automationType === 'COUNTDOWN') {
+        await processCountdownAutomation(automation, photographerId);
       }
     }
   } catch (error) {
@@ -301,6 +319,8 @@ async function checkTriggerCondition(triggerType: string, project: any, photogra
       return await checkProjectDelivered(project);
     case 'CLIENT_ONBOARDED':
       return await checkClientOnboarded(project);
+    case 'APPOINTMENT_BOOKED':
+      return await checkAppointmentBooked(project);
     default:
       console.log(`Unknown trigger type: ${triggerType}`);
       return false;
@@ -374,6 +394,235 @@ async function checkProjectDelivered(project: any): Promise<boolean> {
 async function checkClientOnboarded(project: any): Promise<boolean> {
   // Check if client has email/phone and has opted in
   return !!(project.email && (project.emailOptIn || project.smsOptIn));
+}
+
+async function checkAppointmentBooked(project: any): Promise<boolean> {
+  // Check if project has confirmed bookings in the bookings table
+  const confirmedBookings = await db
+    .select()
+    .from(bookings)
+    .where(and(
+      eq(bookings.projectId, project.id),
+      eq(bookings.status, 'CONFIRMED')
+    ));
+  return confirmedBookings.length > 0;
+}
+
+async function processCountdownAutomation(automation: any, photographerId: string): Promise<void> {
+  console.log(`Processing countdown automation: ${automation.name} (${automation.daysBefore} days before event)`);
+  
+  // Validate daysBefore is a non-negative integer (allow 0 for same-day triggers)
+  if (automation.daysBefore == null || automation.daysBefore < 0 || !Number.isInteger(automation.daysBefore)) {
+    console.log(`❌ Invalid daysBefore value for automation ${automation.name}: ${automation.daysBefore}`);
+    return;
+  }
+
+  // Validate required fields
+  if (!automation.channel || !automation.templateId) {
+    console.log(`❌ Missing required fields for countdown automation ${automation.name}: channel=${automation.channel}, templateId=${automation.templateId}`);
+    return;
+  }
+  
+  // Get all active projects for this photographer with event dates, filtered by project type
+  const activeProjects = await db
+    .select({
+      id: projects.id,
+      clientId: projects.clientId,
+      eventDate: projects.eventDate,
+      smsOptIn: projects.smsOptIn,
+      emailOptIn: projects.emailOptIn,
+      photographerId: projects.photographerId,
+      // Client details
+      firstName: clients.firstName,
+      lastName: clients.lastName,
+      email: clients.email,
+      phone: clients.phone
+    })
+    .from(projects)
+    .innerJoin(clients, eq(projects.clientId, clients.id))
+    .where(and(
+      eq(projects.photographerId, photographerId),
+      eq(projects.projectType, automation.projectType), // Filter by project type
+      eq(projects.status, 'ACTIVE')
+    ));
+
+  console.log(`Found ${activeProjects.length} active projects to check for countdown automation`);
+
+  // Get photographer info for timezone
+  const [photographer] = await db
+    .select()
+    .from(photographers)
+    .where(eq(photographers.id, photographerId));
+    
+  const timezone = photographer?.timezone || 'UTC';
+
+  // Get current date in photographer's timezone using proper timezone handling
+  const now = new Date();
+  const todayParts = getDateInTimezone(now, timezone);
+  const today = new Date(todayParts.year, todayParts.month, todayParts.day);
+
+  for (const project of activeProjects) {
+    if (!project.eventDate) {
+      continue; // Skip projects without event dates
+    }
+
+    // Convert event date to photographer's timezone using proper timezone handling
+    const eventDateParts = getDateInTimezone(new Date(project.eventDate), timezone);
+    const eventDateOnly = new Date(eventDateParts.year, eventDateParts.month, eventDateParts.day);
+    
+    // Calculate target date (X days before event) in photographer's timezone
+    const targetDate = new Date(eventDateOnly);
+    targetDate.setDate(targetDate.getDate() - automation.daysBefore);
+    
+    // Check if today is the target date
+    if (today.getTime() === targetDate.getTime()) {
+      console.log(`🎯 Countdown trigger for project ${project.id}: ${automation.daysBefore} days before ${eventDateInTz.toLocaleDateString()} (timezone: ${timezone})`);
+      
+      await sendCountdownMessage(project, automation, photographerId);
+    }
+  }
+}
+
+async function sendCountdownMessage(project: any, automation: any, photographerId: string): Promise<void> {
+  console.log(`Sending countdown message to ${project.firstName} ${project.lastName}`);
+  
+  // Check consent
+  if (automation.channel === 'EMAIL' && !project.emailOptIn) {
+    console.log(`📧 Email opt-in missing for ${project.firstName} ${project.lastName}`);
+    return;
+  }
+  if (automation.channel === 'SMS' && !project.smsOptIn) {
+    console.log(`📱 SMS opt-in missing for ${project.firstName} ${project.lastName}`);
+    return;
+  }
+
+  // Get photographer timezone for date calculations
+  const [photographer] = await db
+    .select()
+    .from(photographers)
+    .where(eq(photographers.id, photographerId));
+    
+  const timezone = photographer?.timezone || 'UTC';
+  
+  // Calculate today in photographer's timezone
+  const now = new Date();
+  const todayInTz = new Date(now.toLocaleString("en-CA", { timeZone: timezone }));
+  const startOfDay = new Date(todayInTz.getFullYear(), todayInTz.getMonth(), todayInTz.getDate());
+  const endOfDay = new Date(startOfDay.getTime() + 24 * 60 * 60 * 1000);
+
+  // Check if message already sent for this countdown period using automation ID as reference
+  const logTableName = automation.channel === 'EMAIL' ? emailLogs : smsLogs;
+  const existingLogs = await db
+    .select()
+    .from(logTableName)
+    .where(and(
+      eq(logTableName.projectId, project.id),
+      eq(logTableName.automationStepId, automation.id) // Use automation.id as reference
+    ));
+  
+  const todaysSuccessfulLogs = existingLogs.filter(log => 
+    log.status === 'sent' && 
+    log.sentAt &&
+    new Date(log.sentAt) >= startOfDay && 
+    new Date(log.sentAt) < endOfDay
+  );
+  
+  if (todaysSuccessfulLogs.length > 0) {
+    console.log(`🚫 Already sent countdown message today for ${project.firstName} ${project.lastName}`);
+    return;
+  }
+
+  // Get template using templateId from automation
+  const [template] = await db
+    .select()
+    .from(templates)
+    .where(eq(templates.id, automation.templateId));
+
+  if (!template) {
+    console.log(`📝 Template not found for countdown automation, templateId: ${automation.templateId}`);
+    return;
+  }
+
+  // Validate that template channel matches automation channel
+  if (template.channel !== automation.channel) {
+    console.log(`❌ Template channel mismatch for countdown automation ${automation.name}: template=${template.channel}, automation=${automation.channel}`);
+    return;
+  }
+
+  // Calculate days remaining using photographer's timezone
+  const eventDateParts = getDateInTimezone(new Date(project.eventDate), timezone);
+  const eventDateInTz = new Date(eventDateParts.year, eventDateParts.month, eventDateParts.day);
+  const todayParts = getDateInTimezone(new Date(), timezone);
+  const todayInTz = new Date(todayParts.year, todayParts.month, todayParts.day);
+  const daysRemaining = Math.ceil((eventDateInTz.getTime() - todayInTz.getTime()) / (1000 * 60 * 60 * 24));
+    
+  // Prepare variables for template rendering
+  const variables = {
+    firstName: project.firstName,
+    lastName: project.lastName,
+    fullName: `${project.firstName} ${project.lastName}`,
+    email: project.email || '',
+    phone: project.phone || '',
+    businessName: photographer?.businessName || 'Your Photographer',
+    eventDate: eventDateInTz.toLocaleDateString(),
+    weddingDate: eventDateInTz.toLocaleDateString(), // Backward compatibility
+    daysRemaining: daysRemaining.toString(),
+    daysBefore: automation.daysBefore.toString()
+  };
+
+  // Send message
+  if (automation.channel === 'EMAIL' && project.email) {
+    const subject = renderTemplate(template.subject || '', variables);
+    const htmlBody = renderTemplate(template.htmlBody || '', variables);
+    const textBody = renderTemplate(template.textBody || '', variables);
+
+    console.log(`📧 Sending countdown email to ${project.firstName} ${project.lastName} (${project.email})...`);
+    
+    // Use environment-configured verified sender
+    const fromEmail = process.env.SENDGRID_FROM_EMAIL || 'scoop@missionscoopable.com';
+    const fromName = photographer?.emailFromName || photographer?.businessName || 'Scoop Photography';
+    const replyToEmail = photographer?.emailFromAddr || process.env.SENDGRID_REPLY_TO || fromEmail;
+    
+    const success = await sendEmail({
+      to: project.email,
+      from: `${fromName} <${fromEmail}>`,
+      replyTo: `${fromName} <${replyToEmail}>`,
+      subject,
+      html: htmlBody,
+      text: textBody
+    });
+
+    console.log(`📧 Countdown email ${success ? 'sent successfully' : 'FAILED'} to ${project.firstName} ${project.lastName}`);
+
+    // Log the attempt - use automation.id as automationStepId for countdown automations
+    await db.insert(emailLogs).values({
+      projectId: project.id,
+      automationStepId: automation.id,
+      status: success ? 'sent' : 'failed',
+      sentAt: success ? new Date() : null
+    });
+
+  } else if (automation.channel === 'SMS' && project.phone) {
+    const body = renderSmsTemplate(template.textBody || '', variables);
+
+    console.log(`📱 Sending countdown SMS to ${project.firstName} ${project.lastName} (${project.phone})...`);
+
+    const result = await sendSms({
+      to: project.phone,
+      body
+    });
+
+    console.log(`📱 Countdown SMS ${result.success ? 'sent successfully' : 'FAILED'} to ${project.firstName} ${project.lastName}`);
+
+    // Log the attempt - use automation.id as automationStepId for countdown automations
+    await db.insert(smsLogs).values({
+      projectId: project.id,
+      automationStepId: automation.id,
+      status: result.success ? 'sent' : 'failed',
+      providerId: result.sid,
+      sentAt: result.success ? new Date() : null
+    });
+  }
 }
 
 async function moveProjectToStage(projectId: string, targetStageId: string): Promise<void> {
