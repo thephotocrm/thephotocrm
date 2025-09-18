@@ -60,6 +60,17 @@ Stripe integration for secure payment handling:
 - **E-signature Support**: Digital signature capture for estimate approval
 - **Payment Status Tracking**: Real-time payment status updates via webhooks
 
+### Google Calendar Integration
+Dedicated business calendar system with automatic event creation:
+- **Dedicated Calendars**: Each photographer gets a separate "📸 [Business Name] - Client Bookings" calendar
+- **Business/Personal Separation**: Booking events don't clutter the photographer's primary calendar
+- **Automatic Calendar Creation**: Dedicated calendars created during OAuth connection or first booking
+- **Timezone Awareness**: Uses photographer's timezone settings for calendar creation and events
+- **Google Meet Integration**: Automatic Google Meet link generation for virtual appointments
+- **Idempotent Operations**: Prevents duplicate calendar creation on reconnection
+- **Lazy Migration**: Existing users automatically get dedicated calendars on first booking
+- **Graceful Fallback**: Falls back to primary calendar if dedicated creation fails
+
 ## External Dependencies
 
 ### Communication Services
