@@ -16,6 +16,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
 import { Calendar, Clock, Users, CheckCircle, Plus, CalendarDays, X } from "lucide-react";
 
 // Form schema for availability slots
@@ -55,6 +57,8 @@ const bookingSchema = z.object({
   startTime: z.string().min(1, "Start time is required"),
   endTime: z.string().min(1, "End time is required"),
   bookingType: z.enum(["CONSULTATION", "ENGAGEMENT", "WEDDING", "MEETING"]).default("CONSULTATION"),
+  clientSource: z.enum(["existing", "manual"]).default("manual"),
+  clientId: z.string().optional(),
   clientName: z.string().optional(),
   clientEmail: z.string().email("Invalid email").optional().or(z.literal("")),
   clientPhone: z.string().optional()
@@ -67,6 +71,17 @@ const bookingSchema = z.object({
 }, {
   message: "End time must be after start time",
   path: ["endTime"]
+}).refine((data) => {
+  // Validate that either clientId OR manual fields are provided
+  if (data.clientSource === "existing") {
+    return !!data.clientId;
+  } else {
+    // For manual entry, require at least name and one contact method
+    return !!data.clientName && (!!data.clientEmail || !!data.clientPhone);
+  }
+}, {
+  message: "Please provide client information",
+  path: ["clientName"]
 });
 
 type AvailabilityFormData = z.infer<typeof availabilitySchema>;
@@ -98,6 +113,11 @@ export default function Scheduling() {
     enabled: !!user
   }) as { data: { configured?: boolean; authenticated?: boolean; message?: string } | undefined; isLoading: boolean };
   
+  const { data: clients = [], isLoading: clientsLoading } = useQuery({
+    queryKey: ["/api/clients"],
+    enabled: !!user
+  }) as { data: any[]; isLoading: boolean };
+  
   // Availability form
   const availabilityForm = useForm<AvailabilityFormData>({
     resolver: zodResolver(availabilitySchema),
@@ -122,6 +142,8 @@ export default function Scheduling() {
       startTime: "",
       endTime: "",
       bookingType: "CONSULTATION",
+      clientSource: "manual",
+      clientId: "",
       clientName: "",
       clientEmail: "",
       clientPhone: ""
@@ -226,9 +248,15 @@ export default function Scheduling() {
         endAt: new Date(`${data.date}T${data.endTime}`).toISOString(),
         bookingType: data.bookingType,
         status: "PENDING",
-        clientName: data.clientName || null,
-        clientEmail: data.clientEmail || null,
-        clientPhone: data.clientPhone || null
+        // Include clientId if using existing client, otherwise use manual fields
+        ...(data.clientSource === "existing" 
+          ? { clientId: data.clientId }
+          : { 
+              clientName: data.clientName || null,
+              clientEmail: data.clientEmail || null,
+              clientPhone: data.clientPhone || null
+            }
+        )
       };
       
       return apiRequest("POST", "/api/bookings", bookingData);
@@ -595,52 +623,122 @@ export default function Scheduling() {
                       </div>
 
                       <div className="border-t pt-4">
-                        <h4 className="font-medium mb-3 text-sm">Client Information (Optional)</h4>
-                        <div className="grid grid-cols-1 gap-4">
+                        <h4 className="font-medium mb-3 text-sm">Client Information</h4>
+                        
+                        {/* Client Source Selection */}
+                        <FormField
+                          control={bookingForm.control}
+                          name="clientSource"
+                          render={({ field }) => (
+                            <FormItem className="mb-4">
+                              <FormLabel>How would you like to add client information?</FormLabel>
+                              <FormControl>
+                                <RadioGroup
+                                  onValueChange={field.onChange}
+                                  value={field.value}
+                                  className="flex flex-col space-y-2"
+                                  data-testid="radio-client-source"
+                                >
+                                  <div className="flex items-center space-x-2">
+                                    <RadioGroupItem value="existing" id="existing" data-testid="radio-existing-client" />
+                                    <Label htmlFor="existing">Select from existing clients</Label>
+                                  </div>
+                                  <div className="flex items-center space-x-2">
+                                    <RadioGroupItem value="manual" id="manual" data-testid="radio-manual-client" />
+                                    <Label htmlFor="manual">Enter client details manually</Label>
+                                  </div>
+                                </RadioGroup>
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        {/* Existing Client Selection */}
+                        {bookingForm.watch("clientSource") === "existing" && (
                           <FormField
                             control={bookingForm.control}
-                            name="clientName"
+                            name="clientId"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>Client Name</FormLabel>
-                                <FormControl>
-                                  <Input placeholder="John & Jane Smith" data-testid="input-booking-client-name" {...field} />
-                                </FormControl>
+                                <FormLabel>Select Client *</FormLabel>
+                                <Select onValueChange={field.onChange} value={field.value} data-testid="select-existing-client">
+                                  <FormControl>
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="Choose a client..." />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    {clientsLoading ? (
+                                      <SelectItem value="" disabled>Loading clients...</SelectItem>
+                                    ) : clients.length === 0 ? (
+                                      <SelectItem value="" disabled>No clients found</SelectItem>
+                                    ) : (
+                                      clients.map((client: any) => (
+                                        <SelectItem key={client.id} value={client.id}>
+                                          {client.name} {client.email ? `(${client.email})` : ''}
+                                        </SelectItem>
+                                      ))
+                                    )}
+                                  </SelectContent>
+                                </Select>
                                 <FormMessage />
                               </FormItem>
                             )}
                           />
-                          
-                          <div className="grid grid-cols-2 gap-4">
+                        )}
+
+                        {/* Manual Client Entry */}
+                        {bookingForm.watch("clientSource") === "manual" && (
+                          <div className="space-y-4">
                             <FormField
                               control={bookingForm.control}
-                              name="clientEmail"
+                              name="clientName"
                               render={({ field }) => (
                                 <FormItem>
-                                  <FormLabel>Client Email</FormLabel>
+                                  <FormLabel>Client Name *</FormLabel>
                                   <FormControl>
-                                    <Input type="email" placeholder="john@example.com" data-testid="input-booking-client-email" {...field} />
+                                    <Input placeholder="John & Jane Smith" data-testid="input-booking-client-name" {...field} />
                                   </FormControl>
                                   <FormMessage />
                                 </FormItem>
                               )}
                             />
                             
-                            <FormField
-                              control={bookingForm.control}
-                              name="clientPhone"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Client Phone</FormLabel>
-                                  <FormControl>
-                                    <Input type="tel" placeholder="(555) 123-4567" data-testid="input-booking-client-phone" {...field} />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
+                            <div className="grid grid-cols-2 gap-4">
+                              <FormField
+                                control={bookingForm.control}
+                                name="clientEmail"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Client Email</FormLabel>
+                                    <FormControl>
+                                      <Input type="email" placeholder="john@example.com" data-testid="input-booking-client-email" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              
+                              <FormField
+                                control={bookingForm.control}
+                                name="clientPhone"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Client Phone</FormLabel>
+                                    <FormControl>
+                                      <Input type="tel" placeholder="(555) 123-4567" data-testid="input-booking-client-phone" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                            </div>
+                            <p className="text-xs text-muted-foreground">
+                              * Please provide at least an email or phone number
+                            </p>
                           </div>
-                        </div>
+                        )}
                       </div>
                       
                       <div className="flex justify-end space-x-2">

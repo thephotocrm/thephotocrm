@@ -1362,14 +1362,39 @@ ${photographer?.businessName || 'Your Photography Team'}`;
 
   app.post("/api/bookings", authenticateToken, requirePhotographer, async (req, res) => {
     try {
+      const photographerId = req.user!.photographerId!;
       const bookingData = insertBookingSchema.parse({
         ...req.body,
-        photographerId: req.user!.photographerId!
+        photographerId
       });
+
+      // Critical security check: If clientId is provided, validate tenant ownership
+      if (bookingData.clientId) {
+        const client = await storage.getClient(bookingData.clientId);
+        if (!client || client.photographerId !== photographerId) {
+          return res.status(403).json({ message: "Client not found or access denied" });
+        }
+        
+        // Populate client details for consistency (optional but recommended)
+        bookingData.clientName = client.name;
+        bookingData.clientEmail = client.email;
+        bookingData.clientPhone = client.phone;
+      } else {
+        // Server-side validation: Require manual client fields when no clientId
+        if (!bookingData.clientName || (!bookingData.clientEmail && !bookingData.clientPhone)) {
+          return res.status(400).json({ 
+            message: "Either clientId or manual client information (name + email or phone) is required" 
+          });
+        }
+      }
+
       const booking = await storage.createBooking(bookingData);
       res.status(201).json(booking);
     } catch (error) {
       console.error('Create booking error:', error);
+      if (error instanceof Error) {
+        return res.status(400).json({ message: error.message });
+      }
       res.status(500).json({ message: "Internal server error" });
     }
   });

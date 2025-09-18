@@ -455,6 +455,21 @@ export class GoogleCalendarService {
         };
       }
 
+      // Add the calendar to the user's calendar list to make it visible in Google Calendar UI
+      try {
+        await calendar.calendarList.insert({
+          requestBody: {
+            id: calendarId,
+            selected: true, // Make it visible by default
+            colorId: '9' // Set a nice blue color for business calendars
+          }
+        });
+        console.log(`Added calendar ${calendarId} to user's calendar list`);
+      } catch (listError: any) {
+        console.warn(`Failed to add calendar to user's list (calendar still created): ${listError.message}`);
+        // Don't fail the whole operation if this fails - calendar was still created
+      }
+
       // Store the calendar ID in the database
       await storage.storeGoogleCalendarId(photographerId, calendarId);
 
@@ -470,6 +485,81 @@ export class GoogleCalendarService {
       return {
         success: false,
         error: `Failed to create dedicated calendar: ${error.message}`
+      };
+    }
+  }
+
+  /**
+   * Ensure an existing calendar is visible in the user's calendar list
+   */
+  async ensureCalendarInList(photographerId: string): Promise<{ success: boolean; error?: string }> {
+    try {
+      const oauth2Client = this.createOAuth2Client();
+      if (!oauth2Client) {
+        return {
+          success: false,
+          error: 'Google Calendar not configured'
+        };
+      }
+      
+      const credentialsLoaded = await this.loadPhotographerCredentials(oauth2Client, photographerId);
+      
+      if (!credentialsLoaded) {
+        return {
+          success: false,
+          error: 'Failed to load calendar credentials'
+        };
+      }
+
+      const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
+      
+      // Get photographer to access the googleCalendarId
+      const photographer = await storage.getPhotographer(photographerId);
+      const calendarId = photographer?.googleCalendarId;
+      
+      if (!calendarId) {
+        return {
+          success: false,
+          error: 'No dedicated calendar found for photographer'
+        };
+      }
+
+      // Check if calendar is already in the user's list
+      try {
+        const calendarList = await calendar.calendarList.list();
+        const existingEntry = calendarList.data.items?.find(cal => cal.id === calendarId);
+        
+        if (existingEntry) {
+          console.log(`Calendar ${calendarId} already in user's list`);
+          return { success: true };
+        }
+      } catch (listError: any) {
+        console.warn(`Could not check calendar list: ${listError.message}`);
+      }
+
+      // Add calendar to user's list
+      try {
+        await calendar.calendarList.insert({
+          requestBody: {
+            id: calendarId,
+            selected: true,
+            colorId: '9' // Blue color for business calendars
+          }
+        });
+        console.log(`Added existing calendar ${calendarId} to user's calendar list`);
+        return { success: true };
+      } catch (insertError: any) {
+        console.error(`Failed to add calendar to user's list: ${insertError.message}`);
+        return {
+          success: false,
+          error: `Failed to make calendar visible: ${insertError.message}`
+        };
+      }
+    } catch (error: any) {
+      console.error(`Error ensuring calendar visibility for photographer ${photographerId}:`, error);
+      return {
+        success: false,
+        error: `Failed to ensure calendar visibility: ${error.message}`
       };
     }
   }
