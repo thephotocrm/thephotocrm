@@ -560,6 +560,153 @@ ${photographer?.businessName || 'Your Photography Team'}`;
     }
   });
 
+  // Projects - NEW CLIENT/PROJECT SEPARATION API
+  app.get("/api/projects", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      const { projectType } = req.query;
+      const projects = await storage.getProjectsByPhotographer(
+        req.user!.photographerId!, 
+        projectType as string | undefined
+      );
+      res.json(projects);
+    } catch (error) {
+      console.error("Get projects error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.post("/api/projects", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      // Import InsertProject schema
+      const insertProjectSchema = z.object({
+        photographerId: z.string(),
+        clientId: z.string(),
+        title: z.string().min(1),
+        projectType: z.enum(['WEDDING', 'ENGAGEMENT', 'PROPOSAL', 'CORPORATE', 'PORTRAIT', 'FAMILY', 'MATERNITY', 'NEWBORN', 'EVENT', 'COMMERCIAL', 'OTHER']),
+        eventDate: z.date().optional(),
+        leadSource: z.enum(['WEBSITE_WIDGET', 'REFERRAL', 'SOCIAL_MEDIA', 'ADVERTISING', 'REPEAT_CLIENT', 'OTHER']).optional(),
+        smsOptIn: z.boolean().default(false),
+        emailOptIn: z.boolean().default(true),
+        notes: z.string().optional()
+      });
+
+      const projectData = insertProjectSchema.parse({
+        ...req.body,
+        photographerId: req.user!.photographerId!
+      });
+
+      // Verify client belongs to photographer
+      const client = await storage.getClient(projectData.clientId);
+      if (!client || client.photographerId !== req.user!.photographerId!) {
+        return res.status(400).json({ message: "Invalid client ID" });
+      }
+
+      const project = await storage.createProject(projectData);
+      res.status(201).json(project);
+    } catch (error: any) {
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ 
+          message: "Invalid project data", 
+          errors: error.errors 
+        });
+      }
+      console.error("Create project error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.get("/api/projects/:id", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      const project = await storage.getProject(req.params.id);
+      if (!project || project.photographerId !== req.user!.photographerId!) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+      res.json(project);
+    } catch (error) {
+      console.error("Get project error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.put("/api/projects/:id", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      // Verify project belongs to photographer
+      const existingProject = await storage.getProject(req.params.id);
+      if (!existingProject || existingProject.photographerId !== req.user!.photographerId!) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+      
+      // Whitelist allowed fields - explicitly reject dangerous fields
+      if (req.body.stageId !== undefined) {
+        return res.status(400).json({ message: "Use /api/projects/:id/stage to change project stage" });
+      }
+
+      const allowedFields = ['title', 'eventDate', 'leadSource', 'smsOptIn', 'emailOptIn', 'notes', 'status'];
+      const updateData: any = {};
+      
+      for (const field of allowedFields) {
+        if (req.body[field] !== undefined) {
+          updateData[field] = req.body[field];
+        }
+      }
+
+      if (Object.keys(updateData).length === 0) {
+        return res.status(400).json({ message: "No valid fields to update" });
+      }
+
+      const project = await storage.updateProject(req.params.id, updateData);
+      res.json(project);
+    } catch (error) {
+      console.error("Update project error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.put("/api/projects/:id/stage", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      const { stageId } = req.body;
+      
+      // Verify project belongs to photographer
+      const existingProject = await storage.getProject(req.params.id);
+      if (!existingProject || existingProject.photographerId !== req.user!.photographerId!) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+      
+      // Verify stage belongs to same photographer and matches project type
+      if (stageId) {
+        const stage = await storage.getStage(stageId);
+        if (!stage || stage.photographerId !== req.user!.photographerId!) {
+          return res.status(400).json({ message: "Invalid stage ID" });
+        }
+        
+        if (stage.projectType !== existingProject.projectType) {
+          return res.status(400).json({ message: "Stage project type doesn't match project" });
+        }
+      }
+      
+      const project = await storage.updateProject(req.params.id, { stageId });
+      res.json(project);
+    } catch (error) {
+      console.error("Update project stage error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.get("/api/projects/:id/history", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      const project = await storage.getProject(req.params.id);
+      if (!project || project.photographerId !== req.user!.photographerId!) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+      
+      const history = await storage.getProjectHistory(req.params.id);
+      res.json(history);
+    } catch (error) {
+      console.error("Get project history error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   // Templates
   app.get("/api/templates", authenticateToken, requirePhotographer, async (req, res) => {
     try {
@@ -2136,31 +2283,36 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       
       const leadData = publicLeadSchema.parse(req.body);
       
-      // Get default stage for the project type
-      const stages = await storage.getStagesByPhotographer(photographer.id, leadData.projectType);
-      const defaultStage = stages.find(stage => stage.isDefault);
+      // NEW: Create separate client and project records
       
-      // Create new client with lead data
+      // 1. Create client with pure contact information
       const client = await storage.createClient({
         photographerId: photographer.id,
-        projectType: leadData.projectType,
-        leadSource: "WEBSITE_WIDGET",
         firstName: leadData.firstName,
         lastName: leadData.lastName,
         email: leadData.email,
-        phone: leadData.phone,
-        notes: leadData.message,
+        phone: leadData.phone
+      });
+      
+      // 2. Create project linked to the client
+      const project = await storage.createProject({
+        photographerId: photographer.id,
+        clientId: client.id,
+        title: `${leadData.projectType.toLowerCase().replace(/_/g, ' ')} for ${leadData.firstName} ${leadData.lastName}`,
+        projectType: leadData.projectType,
         eventDate: leadData.eventDate && !isNaN(Date.parse(leadData.eventDate)) ? new Date(leadData.eventDate) : undefined,
-        stageId: defaultStage?.id,
-        stageEnteredAt: defaultStage ? new Date() : undefined,
+        leadSource: "WEBSITE_WIDGET",
+        notes: leadData.message,
         emailOptIn: leadData.emailOptIn,
         smsOptIn: leadData.smsOptIn
+        // stageId will be assigned automatically by createProject method
       });
       
       res.status(201).json({ 
         success: true, 
         message: "Lead submitted successfully",
-        clientId: client.id 
+        clientId: client.id,
+        projectId: project.id 
       });
       
     } catch (error: any) {
