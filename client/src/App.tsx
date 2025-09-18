@@ -14,6 +14,7 @@ import ProposalNew from "@/pages/proposal-new";
 import Templates from "@/pages/templates";
 import Automations from "@/pages/automations";
 import Packages from "@/pages/packages";
+import WidgetGenerator from "@/pages/widget-generator";
 import Questionnaires from "@/pages/questionnaires";
 import Scheduling from "@/pages/scheduling";
 import Reports from "@/pages/reports";
@@ -37,6 +38,7 @@ function Router() {
       <Route path="/templates" component={Templates} />
       <Route path="/automations" component={Automations} />
       <Route path="/packages" component={Packages} />
+      <Route path="/widget-generator" component={WidgetGenerator} />
       <Route path="/questionnaires" component={Questionnaires} />
       <Route path="/scheduling" component={Scheduling} />
       <Route path="/reports" component={Reports} />
