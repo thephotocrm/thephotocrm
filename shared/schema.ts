@@ -707,8 +707,7 @@ export const bookingConfirmationSchema = z.object({
 
 // Update booking validation schema for PUT requests
 export const updateBookingSchema = insertBookingSchema.partial().omit({
-  photographerId: true,
-  bookingToken: true
+  photographerId: true
 });
 
 // Sanitized booking data for public endpoints (excludes sensitive photographer info)

@@ -553,7 +553,14 @@ export default function Automations() {
 
   const { data: automations = [] } = useQuery<any[]>({
     queryKey: ["/api/automations", activeProjectType],
-    queryFn: () => fetch(`/api/automations?projectType=${activeProjectType}`).then(res => res.json()),
+    queryFn: async () => {
+      const res = await fetch(`/api/automations?projectType=${activeProjectType}`);
+      if (!res.ok) {
+        throw new Error('Failed to fetch automations');
+      }
+      const data = await res.json();
+      return Array.isArray(data) ? data : [];
+    },
     enabled: !!user
   });
 
