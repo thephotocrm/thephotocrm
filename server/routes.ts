@@ -31,6 +31,22 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
 export async function registerRoutes(app: Express): Promise<Server> {
   app.use(cookieParser());
 
+  // CORS configuration for authenticated API routes
+  app.use((req, res, next) => {
+    // Allow credentials and set proper origin
+    res.header("Access-Control-Allow-Credentials", "true");
+    res.header("Access-Control-Allow-Origin", req.headers.origin);
+    res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+    res.header("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With");
+    
+    // Handle preflight requests
+    if (req.method === 'OPTIONS') {
+      return res.status(200).end();
+    }
+    
+    next();
+  });
+
   // Start cron jobs
   startCronJobs();
 
@@ -198,46 +214,71 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/clients", authenticateToken, requirePhotographer, async (req, res) => {
     try {
       const { projectType } = req.query;
+      console.log('[CLIENTS API] Getting clients for photographer:', req.user!.photographerId!, 'projectType:', projectType);
       const clients = await storage.getClientsByPhotographer(
         req.user!.photographerId!, 
         projectType as string | undefined
       );
+      console.log('[CLIENTS API] Retrieved', clients.length, 'clients');
       res.json(clients);
     } catch (error) {
+      console.error('[CLIENTS API] Error getting clients:', error);
       res.status(500).json({ message: "Internal server error" });
     }
   });
 
   app.post("/api/clients", authenticateToken, requirePhotographer, async (req, res) => {
     try {
-      // Parse client data first to get project type
+      console.log('[CLIENT CREATION] Request body:', req.body);
+      
+      // Separate client and project data
+      const { projectType, eventDate, leadSource, ...clientFields } = req.body;
+      
+      // Parse client data
       const clientData = insertClientSchema.parse({
-        ...req.body,
+        ...clientFields,
         photographerId: req.user!.photographerId!
       });
+      
+      console.log('[CLIENT CREATION] Parsed client data:', clientData);
 
-      // Get default stage for this project type
-      const stages = await storage.getStagesByPhotographer(
-        req.user!.photographerId!,
-        clientData.projectType
-      );
-      const defaultStage = stages.find(s => s.isDefault);
+      // Create the client first
+      const client = await storage.createClient(clientData);
+      console.log('[CLIENT CREATION] Created client:', client.id);
 
-      // Add stage info to client data
-      const finalClientData = {
-        ...clientData,
-        stageId: defaultStage?.id,
-        stageEnteredAt: defaultStage ? new Date() : undefined
-      };
+      // If project data is provided, create a project for this client
+      if (projectType) {
+        // Get default stage for this project type
+        const stages = await storage.getStagesByPhotographer(
+          req.user!.photographerId!,
+          projectType
+        );
+        const defaultStage = stages.find(s => s.isDefault);
+        console.log('[CLIENT CREATION] Default stage:', defaultStage?.name);
 
-      const client = await storage.createClient(finalClientData);
+        // Create project data
+        const projectData = {
+          clientId: client.id,
+          photographerId: req.user!.photographerId!,
+          projectType: projectType,
+          title: `${projectType} - ${client.firstName} ${client.lastName}`,
+          leadSource: leadSource || 'MANUAL',
+          eventDate: eventDate ? new Date(eventDate) : null,
+          stageId: defaultStage?.id,
+          stageEnteredAt: defaultStage ? new Date() : null
+        };
+        
+        console.log('[CLIENT CREATION] Creating project:', projectData);
+        const project = await storage.createProject(projectData);
+        console.log('[CLIENT CREATION] Created project:', project.id);
+      }
 
       // TODO: Create checklist items for client
       // TODO: Trigger automation events
 
       res.status(201).json(client);
     } catch (error) {
-      console.error("Create client error:", error);
+      console.error("[CLIENT CREATION] Error:", error);
       res.status(500).json({ message: "Internal server error" });
     }
   });

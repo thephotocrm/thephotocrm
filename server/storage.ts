@@ -198,21 +198,23 @@ export class DatabaseStorage implements IStorage {
       lastName: clients.lastName,
       email: clients.email,
       phone: clients.phone,
-      eventDate: clients.eventDate,
-      projectType: clients.projectType,
-      leadSource: clients.leadSource,
+      eventDate: projects.eventDate,
+      projectType: projects.projectType,
+      leadSource: projects.leadSource,
       createdAt: clients.createdAt,
-      stageId: clients.stageId,
+      stageId: projects.stageId,
       stageData: {
         id: stages.id,
         name: stages.name,
+        color: stages.color,
         isDefault: stages.isDefault
       }
     })
       .from(clients)
-      .leftJoin(stages, eq(clients.stageId, stages.id))
+      .leftJoin(projects, eq(clients.id, projects.clientId))
+      .leftJoin(stages, eq(projects.stageId, stages.id))
       .where(projectType ? 
-        and(eq(clients.photographerId, photographerId), eq(clients.projectType, projectType)) :
+        and(eq(clients.photographerId, photographerId), eq(projects.projectType, projectType)) :
         eq(clients.photographerId, photographerId)
       )
       .orderBy(desc(clients.createdAt));
@@ -222,7 +224,7 @@ export class DatabaseStorage implements IStorage {
       stage: row.stageData?.id ? {
         id: row.stageData.id,
         name: row.stageData.name,
-        color: "#3b82f6", // Default blue color since color field doesn't exist in DB
+        color: row.stageData.color || "#3b82f6", // Use stage color from DB
         isDefault: row.stageData.isDefault
       } : null
     }));
@@ -235,24 +237,26 @@ export class DatabaseStorage implements IStorage {
       lastName: clients.lastName,
       email: clients.email,
       phone: clients.phone,
-      eventDate: clients.eventDate,
-      projectType: clients.projectType,
-      leadSource: clients.leadSource,
       notes: clients.notes,
-      smsOptIn: clients.smsOptIn,
-      emailOptIn: clients.emailOptIn,
       createdAt: clients.createdAt,
-      stageId: clients.stageId,
-      stageEnteredAt: clients.stageEnteredAt,
       photographerId: clients.photographerId,
+      eventDate: projects.eventDate,
+      projectType: projects.projectType,
+      leadSource: projects.leadSource,
+      smsOptIn: projects.smsOptIn,
+      emailOptIn: projects.emailOptIn,
+      stageId: projects.stageId,
+      stageEnteredAt: projects.stageEnteredAt,
       stageData: {
         id: stages.id,
         name: stages.name,
+        color: stages.color,
         isDefault: stages.isDefault
       }
     })
       .from(clients)
-      .leftJoin(stages, eq(clients.stageId, stages.id))
+      .leftJoin(projects, eq(clients.id, projects.clientId))
+      .leftJoin(stages, eq(projects.stageId, stages.id))
       .where(eq(clients.id, id));
       
     if (!row) return undefined;
@@ -262,52 +266,22 @@ export class DatabaseStorage implements IStorage {
       stage: row.stageData?.id ? {
         id: row.stageData.id,
         name: row.stageData.name,
-        color: "#3b82f6", // Default blue color since stages table doesn't have color
+        color: row.stageData.color || "#3b82f6", // Use stage color from DB
         isDefault: row.stageData.isDefault
       } : null
     };
   }
 
   async createClient(insertClient: InsertClient): Promise<Client> {
-    // If no stage provided, assign default stage automatically
-    let finalStageId = insertClient.stageId;
-    
-    if (!finalStageId) {
-      // Find default stage for this photographer and project type
-      const [defaultStage] = await db.select()
-        .from(stages)
-        .where(and(
-          eq(stages.photographerId, insertClient.photographerId),
-          eq(stages.projectType, insertClient.projectType || 'WEDDING'),
-          eq(stages.isDefault, true)
-        ))
-        .limit(1);
-      
-      finalStageId = defaultStage?.id || null;
-    }
-    
-    // Set stageEnteredAt timestamp when assigning to any stage
-    const clientData = {
-      ...insertClient,
-      stageId: finalStageId,
-      stageEnteredAt: finalStageId ? new Date() : null
-    };
-    
-    const [client] = await db.insert(clients).values(clientData).returning();
+    // Simply create the client with basic info - project data is handled separately
+    const [client] = await db.insert(clients).values(insertClient).returning();
     return client;
   }
 
   async updateClient(id: string, clientUpdate: Partial<Client>): Promise<Client> {
-    // If stageId is being updated, set stageEnteredAt timestamp
-    const updateData = {
-      ...clientUpdate,
-      ...(clientUpdate.stageId !== undefined && {
-        stageEnteredAt: clientUpdate.stageId ? new Date() : null
-      })
-    };
-    
+    // Update basic client info only - project data is handled separately
     const [updated] = await db.update(clients)
-      .set(updateData)
+      .set(clientUpdate)
       .where(eq(clients.id, id))
       .returning();
     return updated;
