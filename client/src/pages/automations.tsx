@@ -673,7 +673,8 @@ export default function Automations() {
           })
         };
 
-        automation = await apiRequest("POST", "/api/automations", automationData);
+        const response = await apiRequest("POST", "/api/automations", automationData);
+        automation = await response.json();
         console.log('Created automation:', automation);
         
         // Create automation step ONLY for communication automations with templates
