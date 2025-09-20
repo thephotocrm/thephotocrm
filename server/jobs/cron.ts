@@ -3,10 +3,11 @@ import { processAutomations, processPaymentReminders } from '../services/automat
 import { storage } from '../storage';
 
 export function startCronJobs() {
-  // Run every minute
-  cron.schedule('* * * * *', async () => {
+  // Run every 5 minutes to reduce log spam
+  cron.schedule('*/5 * * * *', async () => {
     try {
-      console.log('Running automation check...');
+      // Temporarily disabled during client/project separation migration
+      // Only log when there's actual work to do
       
       // Get all photographers
       const photographers = await storage.getAllPhotographers();
