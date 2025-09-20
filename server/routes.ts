@@ -2541,6 +2541,13 @@ ${photographer?.businessName || 'Your Photography Team'}`;
     }
   });
 
+  // Serve hosted widget JavaScript file
+  app.get("/widget/embed.js", (req, res) => {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Content-Type", "application/javascript");
+    res.sendFile(path.resolve(import.meta.dirname, "public/widget-embed.js"));
+  });
+
   // Public widget configuration API endpoint (no authentication required)
   app.get("/api/public/widget/:photographerToken", async (req, res) => {
     // Add CORS headers for widget embedding
