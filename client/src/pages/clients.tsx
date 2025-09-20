@@ -28,7 +28,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-import { type ClientWithStage } from "@shared/schema";
+import { type ClientWithProjects } from "@shared/schema";
 
 export default function Clients() {
   const { user, loading } = useAuth();
@@ -44,7 +44,7 @@ export default function Clients() {
   const [searchTerm, setSearchTerm] = useState("");
 
   // All hooks must be called before any early returns
-  const { data: clients, isLoading } = useQuery<ClientWithStage[]>({
+  const { data: clients, isLoading } = useQuery<ClientWithProjects[]>({
     queryKey: ["/api/clients"],
     enabled: !!user
   });
@@ -89,7 +89,7 @@ export default function Clients() {
     });
   };
 
-  const filteredClients = clients?.filter((client: ClientWithStage) =>
+  const filteredClients = clients?.filter((client: ClientWithProjects) =>
     `${client.firstName} ${client.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
     client.email?.toLowerCase().includes(searchTerm.toLowerCase())
   ) || [];
@@ -232,14 +232,14 @@ export default function Clients() {
                     <TableRow>
                       <TableHead>Name</TableHead>
                       <TableHead>Contact</TableHead>
-                      <TableHead>Stage</TableHead>
-                      <TableHead>Projects</TableHead>
+                      <TableHead>Active Projects</TableHead>
+                      <TableHead>Latest Project</TableHead>
                       <TableHead>Created</TableHead>
                       <TableHead>Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredClients.map((client: ClientWithStage) => (
+                    {filteredClients.map((client: ClientWithProjects) => (
                       <TableRow key={client.id} data-testid={`client-row-${client.id}`}>
                         <TableCell className="font-medium">
                           {client.firstName} {client.lastName}
@@ -261,16 +261,26 @@ export default function Clients() {
                           </div>
                         </TableCell>
                         <TableCell>
-                          {client.stage?.id ? (
-                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium" style={{backgroundColor: `${client.stage.color}20`, color: client.stage.color}}>
-                              {client.stage.name}
-                            </span>
-                          ) : (
-                            <span className="text-muted-foreground">No stage</span>
-                          )}
+                          <span className="text-sm font-medium">
+                            {client.projects?.length || 0} {(client.projects?.length || 0) === 1 ? 'project' : 'projects'}
+                          </span>
                         </TableCell>
                         <TableCell>
-                          <span className="text-muted-foreground">View Projects</span>
+                          {client.projects && client.projects.length > 0 ? (
+                            <div className="space-y-1">
+                              <div className="text-sm font-medium">
+                                {client.projects[0].projectType}
+                              </div>
+                              {client.projects[0].eventDate && (
+                                <div className="text-xs text-muted-foreground flex items-center">
+                                  <Calendar className="w-3 h-3 mr-1" />
+                                  {new Date(client.projects[0].eventDate).toLocaleDateString()}
+                                </div>
+                              )}
+                            </div>
+                          ) : (
+                            <span className="text-muted-foreground">No projects</span>
+                          )}
                         </TableCell>
                         <TableCell>
                           {new Date(client.createdAt).toLocaleDateString()}

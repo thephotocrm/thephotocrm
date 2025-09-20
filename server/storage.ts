@@ -33,7 +33,7 @@ export interface IStorage {
   updatePhotographer(id: string, photographer: Partial<Photographer>): Promise<Photographer>;
   
   // Clients
-  getClientsByPhotographer(photographerId: string): Promise<ClientWithProjects[]>;
+  getClientsByPhotographer(photographerId: string, projectType?: string): Promise<ClientWithProjects[]>;
   getClient(id: string): Promise<ClientWithProjects | undefined>;
   createClient(client: InsertClient): Promise<Client>;
   updateClient(id: string, client: Partial<Client>): Promise<Client>;
@@ -191,60 +191,29 @@ export class DatabaseStorage implements IStorage {
     return updated;
   }
 
-  async getClientsByPhotographer(photographerId: string, projectType?: string): Promise<ClientWithStage[]> {
-    const rows = await db.select({
-      id: clients.id,
-      firstName: clients.firstName,
-      lastName: clients.lastName,
-      email: clients.email,
-      phone: clients.phone,
-      eventDate: projects.eventDate,
-      projectType: projects.projectType,
-      leadSource: projects.leadSource,
-      createdAt: clients.createdAt,
-      stageId: projects.stageId,
-      stageData: {
-        id: stages.id,
-        name: stages.name,
-        color: stages.color,
-        isDefault: stages.isDefault
-      }
-    })
+  async getClientsByPhotographer(photographerId: string, projectType?: string): Promise<ClientWithProjects[]> {
+    // First get all clients for this photographer
+    const clientRows = await db.select()
       .from(clients)
-      .leftJoin(projects, eq(clients.id, projects.clientId))
-      .leftJoin(stages, eq(projects.stageId, stages.id))
-      .where(projectType ? 
-        and(eq(clients.photographerId, photographerId), eq(projects.projectType, projectType)) :
-        eq(clients.photographerId, photographerId)
-      )
+      .where(eq(clients.photographerId, photographerId))
       .orderBy(desc(clients.createdAt));
-      
-    return rows.map(row => ({
-      ...row,
-      stage: row.stageData?.id ? {
-        id: row.stageData.id,
-        name: row.stageData.name,
-        color: row.stageData.color || "#3b82f6", // Use stage color from DB
-        isDefault: row.stageData.isDefault
-      } : null
-    }));
-  }
 
-  async getClient(id: string): Promise<ClientWithStage | undefined> {
-    const [row] = await db.select({
-      id: clients.id,
-      firstName: clients.firstName,
-      lastName: clients.lastName,
-      email: clients.email,
-      phone: clients.phone,
-      notes: clients.notes,
-      createdAt: clients.createdAt,
-      photographerId: clients.photographerId,
-      eventDate: projects.eventDate,
+    // Then get all projects with stages for these clients
+    const clientIds = clientRows.map(c => c.id);
+    
+    if (clientIds.length === 0) {
+      return [];
+    }
+
+    const projectRows = await db.select({
+      id: projects.id,
+      clientId: projects.clientId,
+      title: projects.title,
       projectType: projects.projectType,
       leadSource: projects.leadSource,
-      smsOptIn: projects.smsOptIn,
-      emailOptIn: projects.emailOptIn,
+      eventDate: projects.eventDate,
+      status: projects.status,
+      createdAt: projects.createdAt,
       stageId: projects.stageId,
       stageEnteredAt: projects.stageEnteredAt,
       stageData: {
@@ -254,21 +223,84 @@ export class DatabaseStorage implements IStorage {
         isDefault: stages.isDefault
       }
     })
-      .from(clients)
-      .leftJoin(projects, eq(clients.id, projects.clientId))
+      .from(projects)
       .leftJoin(stages, eq(projects.stageId, stages.id))
+      .where(projectType ? 
+        and(inArray(projects.clientId, clientIds), eq(projects.projectType, projectType)) :
+        inArray(projects.clientId, clientIds)
+      )
+      .orderBy(desc(projects.createdAt));
+
+    // Group projects by client and create final result
+    const projectsByClient = projectRows.reduce((acc, project) => {
+      if (!acc[project.clientId]) {
+        acc[project.clientId] = [];
+      }
+      
+      acc[project.clientId].push({
+        id: project.id,
+        clientId: project.clientId,
+        title: project.title,
+        projectType: project.projectType,
+        leadSource: project.leadSource,
+        eventDate: project.eventDate,
+        status: project.status,
+        createdAt: project.createdAt,
+        stageId: project.stageId,
+        stageEnteredAt: project.stageEnteredAt,
+        photographerId: photographerId, // We know this from the query
+        smsOptIn: false, // Default values - these are on projects now
+        emailOptIn: true,
+        notes: null
+      });
+      
+      return acc;
+    }, {} as Record<string, any[]>);
+
+    // Sort each client's projects by creation date (newest first) to guarantee latest project is first
+    Object.keys(projectsByClient).forEach(clientId => {
+      projectsByClient[clientId].sort((a, b) => 
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
+    });
+
+    return clientRows.map(client => ({
+      ...client,
+      projects: projectsByClient[client.id] || []
+    }));
+  }
+
+  async getClient(id: string): Promise<ClientWithProjects | undefined> {
+    // First get the client
+    const [client] = await db.select()
+      .from(clients)
       .where(eq(clients.id, id));
       
-    if (!row) return undefined;
+    if (!client) return undefined;
+
+    // Then get all projects for this client
+    const projectRows = await db.select({
+      id: projects.id,
+      title: projects.title,
+      projectType: projects.projectType,
+      leadSource: projects.leadSource,
+      eventDate: projects.eventDate,
+      status: projects.status,
+      createdAt: projects.createdAt,
+      stageId: projects.stageId,
+      stageEnteredAt: projects.stageEnteredAt,
+      photographerId: projects.photographerId,
+      smsOptIn: projects.smsOptIn,
+      emailOptIn: projects.emailOptIn,
+      notes: projects.notes
+    })
+      .from(projects)
+      .where(eq(projects.clientId, id))
+      .orderBy(desc(projects.createdAt));
     
     return {
-      ...row,
-      stage: row.stageData?.id ? {
-        id: row.stageData.id,
-        name: row.stageData.name,
-        color: row.stageData.color || "#3b82f6", // Use stage color from DB
-        isDefault: row.stageData.isDefault
-      } : null
+      ...client,
+      projects: projectRows
     };
   }
 

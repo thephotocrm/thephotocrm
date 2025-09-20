@@ -27,7 +27,7 @@ import {
   Plus,
   Trash2
 } from "lucide-react";
-import { type ClientWithStage, type Estimate, type Message, type TimelineEvent, type Stage } from "@shared/schema";
+import { type ClientWithProjects, type Estimate, type Message, type TimelineEvent, type Stage } from "@shared/schema";
 import { useState } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -47,10 +47,8 @@ export default function ClientDetail() {
 
   const [newMessage, setNewMessage] = useState("");
   const [showMessageForm, setShowMessageForm] = useState(false);
-  const [showStageDialog, setShowStageDialog] = useState(false);
-  const [selectedStage, setSelectedStage] = useState("");
 
-  const { data: client, isLoading } = useQuery<ClientWithStage>({
+  const { data: client, isLoading } = useQuery<ClientWithProjects>({
     queryKey: ["/api/clients", clientId],
     enabled: !!user && !!clientId
   });
@@ -75,31 +73,6 @@ export default function ClientDetail() {
     enabled: !!user
   });
 
-  const assignStageMutation = useMutation({
-    mutationFn: async ({ stageId }: { stageId: string }) => {
-      return apiRequest(`/api/clients/${clientId}/stage`, {
-        method: "PUT",
-        body: { stageId }
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/clients", clientId] });
-      queryClient.invalidateQueries({ queryKey: ["/api/clients"] });
-      toast({
-        title: "Success",
-        description: "Client stage updated successfully"
-      });
-      setShowStageDialog(false);
-    },
-    onError: (error) => {
-      console.error("Assign stage error:", error);
-      toast({
-        title: "Error",
-        description: "Failed to assign stage",
-        variant: "destructive"
-      });
-    }
-  });
 
   const sendLoginLinkMutation = useMutation({
     mutationFn: async () => {
@@ -417,33 +390,55 @@ export default function ClientDetail() {
               </CardContent>
             </Card>
 
-            {/* Current Stage */}
+            {/* Projects */}
             <Card>
               <CardHeader>
-                <CardTitle>Current Stage</CardTitle>
+                <CardTitle>Projects</CardTitle>
               </CardHeader>
               <CardContent>
-                {client.stage?.id ? (
-                  <div className="space-y-4">
-                    <Badge 
-                      className="text-sm px-3 py-1" 
-                      style={{backgroundColor: `${client.stage.color}20`, color: client.stage.color, borderColor: client.stage.color}}
-                      data-testid="badge-current-stage"
-                    >
-                      {client.stage.name}
-                    </Badge>
+                {client.projects && client.projects.length > 0 ? (
+                  <div className="space-y-3">
+                    {client.projects.map((project) => {
+                      const stage = stages.find(s => s.id === project.stageId);
+                      return (
+                        <div key={project.id} className="flex items-center justify-between p-3 border rounded-lg" data-testid={`project-${project.id}`}>
+                          <div className="space-y-1">
+                            <p className="font-medium text-sm">{project.title}</p>
+                            <p className="text-xs text-muted-foreground">{project.projectType}</p>
+                            {project.eventDate && (
+                              <p className="text-xs text-muted-foreground">
+                                {formatDate(project.eventDate)}
+                              </p>
+                            )}
+                          </div>
+                          {stage ? (
+                            <Badge 
+                              className="text-xs px-2 py-1" 
+                              style={{backgroundColor: `${stage.color}20`, color: stage.color, borderColor: stage.color}}
+                              data-testid={`badge-project-stage-${project.id}`}
+                            >
+                              {stage.name}
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline" className="text-xs px-2 py-1">
+                              No Stage
+                            </Badge>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 ) : (
                   <div className="text-center py-4">
-                    <p className="text-muted-foreground">No stage assigned</p>
+                    <p className="text-muted-foreground">No projects yet</p>
                     <Button 
                       variant="outline" 
                       size="sm" 
                       className="mt-2" 
-                      onClick={() => setShowStageDialog(true)}
-                      data-testid="button-assign-stage"
+                      onClick={() => setLocation(`/clients/new?clientId=${clientId}`)}
+                      data-testid="button-add-project"
                     >
-                      Assign Stage
+                      Add Project
                     </Button>
                   </div>
                 )}
@@ -489,50 +484,6 @@ export default function ClientDetail() {
             </Card>
           </div>
 
-          {/* Assign Stage Dialog */}
-          <Dialog open={showStageDialog} onOpenChange={setShowStageDialog}>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Assign Stage to {client?.firstName} {client?.lastName}</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4">
-                <Select value={selectedStage} onValueChange={setSelectedStage}>
-                  <SelectTrigger data-testid="select-stage">
-                    <SelectValue placeholder="Select a stage" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {stages.map((stage) => (
-                      <SelectItem key={stage.id} value={stage.id} data-testid={`option-stage-${stage.id}`}>
-                        <div className="flex items-center space-x-2">
-                          <div 
-                            className="w-3 h-3 rounded-full" 
-                            style={{ backgroundColor: stage.color }}
-                          />
-                          <span>{stage.name}</span>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <div className="flex justify-end space-x-2">
-                  <Button 
-                    variant="outline" 
-                    onClick={() => setShowStageDialog(false)}
-                    data-testid="button-cancel-stage"
-                  >
-                    Cancel
-                  </Button>
-                  <Button 
-                    onClick={() => selectedStage && assignStageMutation.mutate({ stageId: selectedStage })}
-                    disabled={!selectedStage || assignStageMutation.isPending}
-                    data-testid="button-confirm-stage"
-                  >
-                    {assignStageMutation.isPending ? 'Assigning...' : 'Assign Stage'}
-                  </Button>
-                </div>
-              </div>
-            </DialogContent>
-          </Dialog>
 
           {/* Proposals Section */}
           <Card>
