@@ -477,15 +477,15 @@ export default function Automations() {
     return createAutomationFormSchema.extend({
       // Communication automation fields
       templateId: z.string().optional(),
-      delayMinutes: z.number().min(0).default(0),
-      delayHours: z.number().min(0).default(0),
-      delayDays: z.number().min(0).default(0),
+      delayMinutes: z.coerce.number().min(0).default(0),
+      delayHours: z.coerce.number().min(0).default(0),
+      delayDays: z.coerce.number().min(0).default(0),
       questionnaireTemplateId: z.string().optional(), // New field for questionnaire assignments
       // Stage change automation fields
       triggerType: z.string().optional(),
       targetStageId: z.string().optional(),
       // Countdown automation fields
-      daysBefore: z.number().min(0).default(7),
+      daysBefore: z.coerce.number().min(0).default(7),
       eventType: z.string().optional(),
       stageCondition: z.string().optional() // Optional stage filter for countdown automations
     }).refine(
@@ -625,22 +625,31 @@ export default function Automations() {
   // Create automation mutation - atomic with rollback
   const createAutomationMutation = useMutation({
     mutationFn: async (data: ExtendedFormData) => {
-      // Validate template for communication automations only
+      // Validate template or questionnaire for communication automations only
       if (data.automationType === 'COMMUNICATION') {
-        if (!data.templateId || data.templateId === "unavailable") {
-          throw new Error("Template selection is required for communication automation creation");
+        // Either template or questionnaire must be provided
+        if ((!data.templateId || data.templateId === "unavailable") && (!data.questionnaireTemplateId || data.questionnaireTemplateId === "unavailable")) {
+          throw new Error("Either a message template or questionnaire assignment is required for communication automation creation");
         }
 
-        // Validate templates are available for selected channel
-        const channelTemplates = templates.filter((t: any) => t.channel === data.channel);
-        if (channelTemplates.length === 0) {
-          throw new Error(`No ${data.channel.toLowerCase()} templates available. Please create templates first.`);
+        // If template is provided, validate it
+        if (data.templateId && data.templateId !== "unavailable") {
+          // Validate templates are available for selected channel
+          const channelTemplates = templates.filter((t: any) => t.channel === data.channel);
+          if (channelTemplates.length === 0) {
+            throw new Error(`No ${data.channel.toLowerCase()} templates available. Please create templates first.`);
+          }
+
+          // Validate selected template exists
+          const selectedTemplate = channelTemplates.find((t: any) => t.id === data.templateId);
+          if (!selectedTemplate) {
+            throw new Error("Selected template is not valid");
+          }
         }
 
-        // Validate selected template exists
-        const selectedTemplate = channelTemplates.find((t: any) => t.id === data.templateId);
-        if (!selectedTemplate) {
-          throw new Error("Selected template is not valid");
+        // If questionnaire is provided without template, skip channel validation
+        if (data.questionnaireTemplateId && !data.templateId) {
+          // Questionnaire-only communication, no channel validation needed
         }
       }
 
@@ -655,20 +664,29 @@ export default function Automations() {
           automationType: data.automationType,
           // Communication automation fields
           ...(data.automationType === 'COMMUNICATION' && {
-            channel: data.channel
+            channel: data.channel,
+            templateId: data.templateId || null,
+            questionnaireTemplateId: data.questionnaireTemplateId || null
           }),
           // Pipeline automation fields
           ...(data.automationType === 'STAGE_CHANGE' && {
             triggerType: data.triggerType,
             targetStageId: data.targetStageId
+          }),
+          // Countdown automation fields
+          ...(data.automationType === 'COUNTDOWN' && {
+            daysBefore: data.daysBefore,
+            eventType: data.eventType,
+            stageCondition: data.stageCondition || null,
+            channel: data.channel,
+            templateId: data.templateId
           })
         };
 
-        const automationResponse = await apiRequest("POST", "/api/automations", automationData);
-        automation = await automationResponse.json();
+        automation = await apiRequest("POST", "/api/automations", automationData);
         
-        // Create automation step ONLY for communication automations
-        if (data.automationType === 'COMMUNICATION') {
+        // Create automation step ONLY for communication automations with templates
+        if (data.automationType === 'COMMUNICATION' && data.templateId) {
           // Calculate total delay minutes
           const totalDelayMinutes = timingMode === 'immediate' ? 0 : 
             (data.delayDays * 24 * 60) + (data.delayHours * 60) + data.delayMinutes;
@@ -718,7 +736,8 @@ export default function Automations() {
       ...(automationType === 'COMMUNICATION' && {
         stageId: (data.stageId && data.stageId !== 'global') ? data.stageId : null,
         channel: data.channel,
-        templateId: data.templateId
+        templateId: data.templateId,
+        questionnaireTemplateId: data.questionnaireTemplateId || null
       }),
       // Pipeline automation fields
       ...(automationType === 'STAGE_CHANGE' && {
@@ -729,7 +748,7 @@ export default function Automations() {
       ...(automationType === 'COUNTDOWN' && {
         daysBefore: data.daysBefore,
         eventType: data.eventType,
-        stageCondition: data.stageCondition,
+        stageCondition: data.stageCondition || null,
         channel: data.channel,
         templateId: data.templateId
       })
