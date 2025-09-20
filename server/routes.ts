@@ -316,6 +316,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.delete("/api/clients/:id", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      // Verify client belongs to this photographer
+      const existingClient = await storage.getClient(req.params.id);
+      if (!existingClient || existingClient.photographerId !== req.user!.photographerId!) {
+        return res.status(404).json({ message: "Client not found" });
+      }
+      
+      // Delete the client and all related data (cascading delete)
+      await storage.deleteClient(req.params.id);
+      
+      res.json({ 
+        message: "Client and all related data deleted successfully",
+        deletedClientId: req.params.id
+      });
+    } catch (error) {
+      console.error('Delete client error:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   app.put("/api/clients/:id/stage", authenticateToken, requirePhotographer, async (req, res) => {
     try {
       const { stageId } = req.body;

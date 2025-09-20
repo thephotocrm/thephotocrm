@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Search, Mail, Phone, Calendar } from "lucide-react";
+import { Plus, Search, Mail, Phone, Calendar, Trash2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -42,6 +42,8 @@ export default function Clients() {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [clientToDelete, setClientToDelete] = useState<ClientWithProjects | null>(null);
 
   // All hooks must be called before any early returns
   const { data: clients, isLoading } = useQuery<ClientWithProjects[]>({
@@ -71,6 +73,28 @@ export default function Clients() {
     }
   });
 
+  const deleteClientMutation = useMutation({
+    mutationFn: async (clientId: string) => {
+      await apiRequest("DELETE", `/api/clients/${clientId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/clients"] });
+      setDeleteDialogOpen(false);
+      setClientToDelete(null);
+      toast({
+        title: "Client deleted",
+        description: "Client and all related data have been permanently deleted.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete client. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
   const resetForm = () => {
     setFirstName("");
     setLastName("");
@@ -87,6 +111,17 @@ export default function Clients() {
       email: email || undefined,
       phone: phone || undefined
     });
+  };
+
+  const handleDeleteClick = (client: ClientWithProjects) => {
+    setClientToDelete(client);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = () => {
+    if (clientToDelete) {
+      deleteClientMutation.mutate(clientToDelete.id);
+    }
   };
 
   const filteredClients = clients?.filter((client: ClientWithProjects) =>
@@ -286,14 +321,25 @@ export default function Clients() {
                           {new Date(client.createdAt).toLocaleDateString()}
                         </TableCell>
                         <TableCell>
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            onClick={() => setLocation(`/clients/${client.id}`)}
-                            data-testid={`button-view-client-${client.id}`}
-                          >
-                            View
-                          </Button>
+                          <div className="flex gap-2">
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              onClick={() => setLocation(`/clients/${client.id}`)}
+                              data-testid={`button-view-client-${client.id}`}
+                            >
+                              View
+                            </Button>
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              onClick={() => handleDeleteClick(client)}
+                              className="text-destructive hover:text-destructive"
+                              data-testid={`button-delete-client-${client.id}`}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -304,6 +350,48 @@ export default function Clients() {
           </Card>
         </div>
       </SidebarInset>
+      
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Client</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete {clientToDelete?.firstName} {clientToDelete?.lastName}? 
+              This will permanently delete the client and all related data including:
+            </DialogDescription>
+          </DialogHeader>
+          <div className="my-4">
+            <ul className="list-disc pl-6 space-y-1 text-sm text-muted-foreground">
+              <li>All projects for this client</li>
+              <li>All estimates and proposals</li>
+              <li>All bookings and appointments</li>
+              <li>All messages and communication history</li>
+              <li>All payment records</li>
+            </ul>
+            <p className="mt-4 text-sm font-medium text-destructive">
+              This action cannot be undone.
+            </p>
+          </div>
+          <div className="flex gap-3 justify-end">
+            <Button
+              variant="outline"
+              onClick={() => setDeleteDialogOpen(false)}
+              data-testid="button-cancel-delete"
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDeleteConfirm}
+              disabled={deleteClientMutation.isPending}
+              data-testid="button-confirm-delete"
+            >
+              {deleteClientMutation.isPending ? "Deleting..." : "Delete Client"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </SidebarProvider>
   );
 }

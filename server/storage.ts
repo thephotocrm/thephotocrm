@@ -40,6 +40,7 @@ export interface IStorage {
   getClient(id: string): Promise<ClientWithProjects | undefined>;
   createClient(client: InsertClient): Promise<Client>;
   updateClient(id: string, client: Partial<Client>): Promise<Client>;
+  deleteClient(id: string): Promise<void>;
   
   // Projects
   getProjectsByPhotographer(photographerId: string, projectType?: string): Promise<ProjectWithClientAndStage[]>;
@@ -346,6 +347,81 @@ export class DatabaseStorage implements IStorage {
       .where(eq(clients.id, id))
       .returning();
     return updated;
+  }
+
+  async deleteClient(id: string): Promise<void> {
+    // Atomic cascading delete - remove all related data in a transaction
+    await db.transaction(async (tx) => {
+      // Get all projects for this client
+      const clientProjects = await tx.select({ id: projects.id })
+        .from(projects)
+        .where(eq(projects.clientId, id));
+      
+      const projectIds = clientProjects.map(p => p.id);
+      
+      if (projectIds.length > 0) {
+        // Get all estimates for these projects
+        const projectEstimates = await tx.select({ id: estimates.id })
+          .from(estimates)
+          .where(inArray(estimates.projectId, projectIds));
+        
+        const estimateIds = projectEstimates.map(e => e.id);
+        
+        if (estimateIds.length > 0) {
+          // Delete estimate items and payments (batched)
+          await tx.delete(estimateItems)
+            .where(inArray(estimateItems.estimateId, estimateIds));
+          
+          await tx.delete(estimatePayments)
+            .where(inArray(estimatePayments.estimateId, estimateIds));
+        }
+        
+        // Delete estimates (batched)
+        await tx.delete(estimates)
+          .where(inArray(estimates.projectId, projectIds));
+        
+        // Delete bookings related to these projects (batched)
+        await tx.delete(bookings)
+          .where(inArray(bookings.projectId, projectIds));
+        
+        // Delete project-related data (batched)
+        await tx.delete(projectChecklistItems)
+          .where(inArray(projectChecklistItems.projectId, projectIds));
+        
+        await tx.delete(projectQuestionnaires)
+          .where(inArray(projectQuestionnaires.projectId, projectIds));
+        
+        await tx.delete(emailLogs)
+          .where(inArray(emailLogs.projectId, projectIds));
+        
+        await tx.delete(smsLogs)
+          .where(inArray(smsLogs.projectId, projectIds));
+        
+        // Delete project activity logs
+        await tx.delete(projectActivityLog)
+          .where(inArray(projectActivityLog.projectId, projectIds));
+        
+        // Delete photographer earnings related to these projects
+        await tx.delete(photographerEarnings)
+          .where(inArray(photographerEarnings.projectId, projectIds));
+        
+        // Delete projects (batched)
+        await tx.delete(projects)
+          .where(inArray(projects.id, projectIds));
+      }
+      
+      // Delete messages directly related to client
+      await tx.delete(messages)
+        .where(eq(messages.clientId, id));
+      
+      // Delete client portal tokens
+      await tx.delete(clientPortalTokens)
+        .where(eq(clientPortalTokens.clientId, id));
+      
+      // Finally delete the client
+      await tx.delete(clients)
+        .where(eq(clients.id, id));
+    });
   }
 
   async getStagesByPhotographer(photographerId: string, projectType?: string): Promise<Stage[]> {
