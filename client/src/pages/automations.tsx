@@ -665,8 +665,8 @@ export default function Automations() {
           // Communication automation fields
           ...(data.automationType === 'COMMUNICATION' && {
             channel: data.channel,
-            templateId: data.templateId || null,
-            questionnaireTemplateId: data.questionnaireTemplateId || null
+            templateId: data.templateId && data.templateId !== "unavailable" ? data.templateId : null,
+            questionnaireTemplateId: data.questionnaireTemplateId && data.questionnaireTemplateId !== "unavailable" && data.questionnaireTemplateId !== "none" ? data.questionnaireTemplateId : null
           }),
           // Pipeline automation fields
           ...(data.automationType === 'STAGE_CHANGE' && {
@@ -677,7 +677,7 @@ export default function Automations() {
           ...(data.automationType === 'COUNTDOWN' && {
             daysBefore: data.daysBefore,
             eventType: data.eventType,
-            stageCondition: data.stageCondition || null,
+            stageCondition: data.stageCondition && data.stageCondition !== "none" ? data.stageCondition : null,
             channel: data.channel,
             templateId: data.templateId
           })
@@ -961,7 +961,7 @@ export default function Automations() {
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="">No questionnaire assignment</SelectItem>
+                              <SelectItem value="none">No questionnaire assignment</SelectItem>
                               {questionnaireTemplates?.map((questionnaire: any) => (
                                 <SelectItem key={questionnaire.id} value={questionnaire.id}>
                                   📋 {questionnaire.name}
@@ -1244,7 +1244,7 @@ export default function Automations() {
                                   </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
-                                  <SelectItem value="">No stage requirement</SelectItem>
+                                  <SelectItem value="none">No stage requirement</SelectItem>
                                   {stages?.map((stage: any) => (
                                     <SelectItem key={stage.id} value={stage.id}>
                                       Only if in "{stage.name}" stage
