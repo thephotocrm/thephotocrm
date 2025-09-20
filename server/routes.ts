@@ -2541,6 +2541,53 @@ ${photographer?.businessName || 'Your Photography Team'}`;
     }
   });
 
+  // Public widget configuration API endpoint (no authentication required)
+  app.get("/api/public/widget/:photographerToken", async (req, res) => {
+    // Add CORS headers for widget embedding
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Methods", "GET, OPTIONS");
+    res.header("Access-Control-Allow-Headers", "Content-Type");
+
+    try {
+      const { photographerToken } = req.params;
+      
+      // Find photographer by public token
+      const photographer = await storage.getPhotographerByPublicToken(photographerToken);
+      if (!photographer) {
+        return res.status(404).json({ 
+          success: false,
+          message: "Invalid photographer token" 
+        });
+      }
+
+      // Return photographer's widget configuration
+      res.json({
+        success: true,
+        config: {
+          businessName: photographer.businessName,
+          primaryColor: photographer.brandPrimary || "#3b82f6",
+          backgroundColor: "#ffffff",
+          // Default widget configuration - in the future this could be stored per photographer
+          title: "Get In Touch",
+          description: "Let's discuss your photography needs",
+          projectTypes: ["WEDDING", "ENGAGEMENT", "PORTRAIT", "FAMILY", "MATERNITY", "NEWBORN", "EVENT", "COMMERCIAL"],
+          showPhone: true,
+          showMessage: true,
+          showEventDate: true,
+          buttonText: "Send Inquiry",
+          successMessage: "Thank you! We'll be in touch soon."
+        },
+        apiEndpoint: `/api/public/lead/${photographerToken}`
+      });
+    } catch (error) {
+      console.error("Error fetching widget config:", error);
+      res.status(500).json({ 
+        success: false,
+        message: "Failed to fetch widget configuration" 
+      });
+    }
+  });
+
   // Add explicit route handler for public booking pages to serve the React app
   app.get("/public/booking/:token", async (req, res, next) => {
     if (app.get("env") === "development") {
