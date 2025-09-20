@@ -202,7 +202,7 @@ export default function WidgetGenerator() {
             '<label style="display: flex; align-items: center; cursor: pointer;">' +
               '<input type="checkbox" name="communicationOptIn" checked style="margin-right: 8px;" />' +
               '<span style="font-size: 13px; color: #555;">' +
-                'I consent to receive communications about my project' +
+                'i agree to the privacy policy and agree to receive text, calls, or emails about my project' +
               '</span>' +
             '</label>' +
           '</div>' +
@@ -455,7 +455,7 @@ export default function WidgetGenerator() {
               id="preview-communication"
             />
             <label htmlFor="preview-communication" className="text-sm text-gray-600 leading-tight">
-              I consent to receive communications about my project
+              i agree to the privacy policy and agree to receive text, calls, or emails about my project
             </label>
           </div>
           <p className="text-xs text-gray-500 mt-2 leading-tight">
