@@ -27,6 +27,7 @@ interface WidgetConfig {
   backgroundColor: string;
   buttonText: string;
   successMessage: string;
+  redirectUrl: string;
 }
 
 export default function WidgetGenerator() {
@@ -44,7 +45,8 @@ export default function WidgetGenerator() {
     primaryColor: "#3b82f6",
     backgroundColor: "#ffffff",
     buttonText: "Send Inquiry",
-    successMessage: "Thank you! We'll be in touch soon."
+    successMessage: "Thank you! We'll be in touch soon.",
+    redirectUrl: ""
   });
 
   const [activeTab, setActiveTab] = useState<"customize" | "preview" | "code">("customize");
@@ -328,6 +330,29 @@ export default function WidgetGenerator() {
                           onChange={(e) => updateConfig("buttonText", e.target.value)}
                           data-testid="input-button-text"
                         />
+                      </div>
+                      <div>
+                        <Label htmlFor="successMessage">Success Message</Label>
+                        <Input
+                          id="successMessage"
+                          value={config.successMessage}
+                          onChange={(e) => updateConfig("successMessage", e.target.value)}
+                          data-testid="input-success-message"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="redirectUrl">Success Redirect URL (Optional)</Label>
+                        <Input
+                          id="redirectUrl"
+                          type="url"
+                          value={config.redirectUrl}
+                          onChange={(e) => updateConfig("redirectUrl", e.target.value)}
+                          placeholder="https://example.com/thank-you"
+                          data-testid="input-redirect-url"
+                        />
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Leave empty to show success message only. If provided, users will be redirected after successful submission.
+                        </p>
                       </div>
                     </div>
 
