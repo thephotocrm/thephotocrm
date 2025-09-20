@@ -106,7 +106,7 @@ export default function WidgetGenerator() {
   var config = ${widgetData};
   var token = "${photographer.publicToken}";
   var script = document.createElement('script');
-  script.src = 'https://widget.lazyphotog.com/embed.js';
+  script.src = 'https://widget.thephotocrm.com/embed.js';
   script.setAttribute('data-config', JSON.stringify(config));
   script.setAttribute('data-token', token);
   document.head.appendChild(script);

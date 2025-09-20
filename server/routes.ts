@@ -782,7 +782,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
           const photographer = await storage.getPhotographer(req.user!.photographerId!);
           
           if (client && photographer) {
-            const proposalUrl = `${process.env.VITE_APP_URL || 'https://lens-leads-crm-austinpacholek2.replit.app'}/public/estimates/${estimate.token}`;
+            const proposalUrl = `${process.env.VITE_APP_URL || 'https://thephotocrm.com'}/public/estimates/${estimate.token}`;
             
             // Email notification
             if (client.email && client.emailOptIn) {
@@ -948,7 +948,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
           const photographer = await storage.getPhotographer(req.user!.photographerId!);
           
           if (client && photographer) {
-            const proposalUrl = `${process.env.VITE_APP_URL || 'https://your-domain.replit.app'}/public/estimates/${estimate.token}`;
+            const proposalUrl = `${process.env.VITE_APP_URL || 'https://thephotocrm.com'}/public/estimates/${estimate.token}`;
             
             // Email notification
             if (client.email && client.emailOptIn) {
@@ -1067,7 +1067,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
           const photographer = await storage.getPhotographer(req.user!.photographerId!);
           
           if (client && photographer) {
-            const proposalUrl = `${process.env.VITE_APP_URL || 'https://your-domain.replit.app'}/public/proposals/${proposal.token}`;
+            const proposalUrl = `${process.env.VITE_APP_URL || 'https://thephotocrm.com'}/public/proposals/${proposal.token}`;
             
             // Email notification
             if (client.email && client.emailOptIn) {
@@ -1152,7 +1152,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
           const photographer = await storage.getPhotographer(req.user!.photographerId!);
           
           if (client && photographer) {
-            const proposalUrl = `${process.env.VITE_APP_URL || 'https://lens-leads-crm-austinpacholek2.replit.app'}/public/proposals/${proposal.token}`;
+            const proposalUrl = `${process.env.VITE_APP_URL || 'https://thephotocrm.com'}/public/proposals/${proposal.token}`;
             
             // Email notification
             if (client.email && client.emailOptIn) {
@@ -1296,8 +1296,8 @@ ${photographer?.businessName || 'Your Photography Team'}`;
 
       const amount = mode === "DEPOSIT" ? (proposal.depositCents || 0) : (proposal.totalCents || 0);
       
-      const successUrl = `${process.env.APP_BASE_URL || 'https://lens-leads-crm-austinpacholek2.replit.app'}/payment-success?proposal=${req.params.token}`;
-      const cancelUrl = `${process.env.APP_BASE_URL || 'https://lens-leads-crm-austinpacholek2.replit.app'}/public/proposals/${req.params.token}`;
+      const successUrl = `${process.env.APP_BASE_URL || 'https://thephotocrm.com'}/payment-success?proposal=${req.params.token}`;
+      const cancelUrl = `${process.env.APP_BASE_URL || 'https://thephotocrm.com'}/public/proposals/${req.params.token}`;
 
       const checkoutUrl = await createCheckoutSession({
         amountCents: amount,
