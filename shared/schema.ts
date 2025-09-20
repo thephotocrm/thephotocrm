@@ -201,6 +201,38 @@ export const smsLogs = pgTable("sms_logs", {
   deliveredAt: timestamp("delivered_at")
 });
 
+// Bulletproof automation execution tracking to prevent duplicates
+export const automationExecutions = pgTable("automation_executions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  projectId: varchar("project_id").notNull().references(() => projects.id),
+  automationId: varchar("automation_id").notNull().references(() => automations.id),
+  automationType: text("automation_type").notNull(), // COMMUNICATION, STAGE_CHANGE, COUNTDOWN
+  // For communication automations
+  automationStepId: varchar("automation_step_id").references(() => automationSteps.id),
+  // For stage change automations  
+  triggerType: text("trigger_type"), // DEPOSIT_PAID, FULL_PAYMENT_MADE, etc.
+  // For countdown automations
+  eventDate: timestamp("event_date"), // The event date this countdown was for
+  daysBefore: integer("days_before"), // How many days before event this was sent
+  // Execution details
+  executedAt: timestamp("executed_at").defaultNow(),
+  channel: text("channel"), // EMAIL, SMS
+  status: text("status").notNull().default("SUCCESS") // SUCCESS, FAILED
+}, (table) => ({
+  // Unique constraint for communication automations: one execution per project+step
+  communicationUniqueIdx: unique("automation_executions_communication_unique").on(
+    table.projectId, table.automationStepId
+  ),
+  // Unique constraint for stage change automations: one execution per project+automation+trigger
+  stageChangeUniqueIdx: unique("automation_executions_stage_change_unique").on(
+    table.projectId, table.automationId, table.triggerType
+  ),
+  // Unique constraint for countdown automations: one execution per project+automation+event+days
+  countdownUniqueIdx: unique("automation_executions_countdown_unique").on(
+    table.projectId, table.automationId, table.eventDate, table.daysBefore
+  )
+}));
+
 export const photographerLinks = pgTable("photographer_links", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   photographerId: varchar("photographer_id").notNull().references(() => photographers.id),
@@ -705,6 +737,11 @@ export const insertAutomationStepSchema = createInsertSchema(automationSteps).om
   id: true
 });
 
+export const insertAutomationExecutionSchema = createInsertSchema(automationExecutions).omit({
+  id: true,
+  executedAt: true
+});
+
 export const insertPackageSchema = createInsertSchema(packages).omit({
   id: true,
   createdAt: true
@@ -808,6 +845,8 @@ export type Automation = typeof automations.$inferSelect;
 export type InsertAutomation = z.infer<typeof insertAutomationSchema>;
 export type AutomationStep = typeof automationSteps.$inferSelect;
 export type InsertAutomationStep = z.infer<typeof insertAutomationStepSchema>;
+export type AutomationExecution = typeof automationExecutions.$inferSelect;
+export type InsertAutomationExecution = z.infer<typeof insertAutomationExecutionSchema>;
 export type Package = typeof packages.$inferSelect;
 export type InsertPackage = z.infer<typeof insertPackageSchema>;
 export type Estimate = typeof estimates.$inferSelect;
