@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -526,6 +526,7 @@ export default function Automations() {
       stageId: "",
       channel: "EMAIL",
       enabled: true,
+      automationType: "COMMUNICATION",
       templateId: "",
       delayMinutes: 0,
       delayHours: 0,
@@ -542,6 +543,9 @@ export default function Automations() {
   // Update form values when automation type changes
   useEffect(() => {
     form.clearErrors();
+    // Sync automation type with form
+    form.setValue('automationType', automationType);
+    
     // Reset fields that don't apply to the new automation type
     if (automationType === 'COMMUNICATION') {
       form.setValue('triggerType', '');
