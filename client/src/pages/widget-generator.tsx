@@ -100,44 +100,470 @@ export default function WidgetGenerator() {
       return "";
     }
 
-    // Escape JSON to prevent script injection
-    const widgetData = JSON.stringify(config).replace(/</g, '\\u003c').replace(/>/g, '\\u003e');
+    // Create lightweight embed code that uses hosted widget JavaScript
+    const configJson = JSON.stringify(config).replace(/"/g, '&quot;');
+    const baseUrl = window.location.origin; // Use current domain (works in dev and production)
+    
     return `<!-- Photo CRM Lead Capture Widget -->
 <div class="photo-crm-widget"></div>
-<script>
-(function() {
-  var config = ${widgetData};
-  var token = "${photographer.publicToken}";
-  var apiUrl = "https://thephotocrm.com/api/public/lead/" + token;
-  
-  // HTML escape function to prevent XSS
-  function escapeHtml(text) {
-    var map = {
-      '&': '&amp;',
-      '<': '&lt;',
-      '>': '&gt;',
-      '"': '&quot;',
-      "'": '&#039;'
-    };
-    return text.replace(/[&<>"']/g, function(m) { return map[m]; });
-  }
-  
-  // Color validation function to prevent CSS injection
-  function validateColor(color) {
-    if (!color) return null;
-    // Allow hex colors (#fff, #ffffff) and named colors
-    var hexRegex = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/;
-    var rgbRegex = /^rgb\\s*\\(\\s*([0-9]{1,3})\\s*,\\s*([0-9]{1,3})\\s*,\\s*([0-9]{1,3})\\s*\\)$/;
-    var rgbaRegex = /^rgba\\s*\\(\\s*([0-9]{1,3})\\s*,\\s*([0-9]{1,3})\\s*,\\s*([0-9]{1,3})\\s*,\\s*([0-1]?(?:\\.[0-9]+)?)\\s*\\)$/;
-    var namedColors = ['red', 'blue', 'green', 'yellow', 'orange', 'purple', 'pink', 'black', 'white', 'gray', 'grey'];
-    
-    if (hexRegex.test(color) || rgbRegex.test(color) || rgbaRegex.test(color) || namedColors.indexOf(color.toLowerCase()) >= 0) {
-      return color;
+<script 
+  src="${baseUrl}/widget/embed.js" 
+  data-photographer-token="${photographer.publicToken}"
+  data-config="${configJson}"
+  defer>
+</script>`;
+  };
+
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      toast({
+        title: "Copied!",
+        description: "Embed code copied to clipboard",
+      });
+    } catch (err) {
+      toast({
+        title: "Error",
+        description: "Failed to copy to clipboard",
+        variant: "destructive"
+      });
     }
-    return null;
-  }
-  
-  function createWidget() {
+  };
+
+  const renderWidgetPreview = () => (
+    <div 
+      className="max-w-md mx-auto p-6 rounded-lg shadow-lg border"
+      style={{ 
+        backgroundColor: config.backgroundColor,
+        borderColor: config.primaryColor + "33"
+      }}
+    >
+      <div className="text-center mb-6">
+        <h3 className="text-xl font-semibold mb-2" style={{ color: config.primaryColor }}>
+          {config.title}
+        </h3>
+        <p className="text-gray-600">{config.description}</p>
+      </div>
+      
+      <form className="space-y-4">
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium mb-1">First Name *</label>
+            <input 
+              type="text" 
+              className="w-full p-2 border rounded-md" 
+              placeholder="John"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Last Name *</label>
+            <input 
+              type="text" 
+              className="w-full p-2 border rounded-md" 
+              placeholder="Doe"
+            />
+          </div>
+        </div>
+        
+        <div>
+          <label className="block text-sm font-medium mb-1">Email *</label>
+          <input 
+            type="email" 
+            className="w-full p-2 border rounded-md" 
+            placeholder="john@example.com"
+          />
+        </div>
+        
+        {config.showPhone && (
+          <div>
+            <label className="block text-sm font-medium mb-1">Phone</label>
+            <input 
+              type="tel" 
+              className="w-full p-2 border rounded-md" 
+              placeholder="(555) 123-4567"
+            />
+          </div>
+        )}
+        
+        <div>
+          <label className="block text-sm font-medium mb-1">Project Type *</label>
+          <select className="w-full p-2 border rounded-md">
+            {config.projectTypes.map(type => (
+              <option key={type} value={type}>
+                {type.charAt(0) + type.slice(1).toLowerCase()}
+              </option>
+            ))}
+          </select>
+        </div>
+        
+        {config.showEventDate && (
+          <div>
+            <label className="block text-sm font-medium mb-1">Event Date</label>
+            <input 
+              type="date" 
+              className="w-full p-2 border rounded-md"
+            />
+          </div>
+        )}
+        
+        {config.showMessage && (
+          <div>
+            <label className="block text-sm font-medium mb-1">Message</label>
+            <textarea 
+              className="w-full p-2 border rounded-md" 
+              rows={3}
+              placeholder="Tell us about your photography needs..."
+            />
+          </div>
+        )}
+
+        {/* Communication Preferences */}
+        <div className="bg-gray-50 p-4 rounded-md border border-gray-200">
+          <div className="flex items-start space-x-2">
+            <input 
+              type="checkbox" 
+              defaultChecked 
+              className="mt-1" 
+              id="preview-communication"
+            />
+            <label htmlFor="preview-communication" className="text-sm text-gray-600 leading-tight">
+              I agree to the privacy policy and agree to receive text, calls, or emails about my project
+            </label>
+          </div>
+          <p className="text-xs text-gray-500 mt-2 leading-tight">
+            Your contact information will only be used for photography services and communications. 
+            We will never share your information with third parties. You can opt out at any time.
+          </p>
+        </div>
+        
+        <button 
+          type="submit" 
+          className="w-full py-3 px-4 rounded-md text-white font-semibold"
+          style={{ backgroundColor: config.primaryColor }}
+        >
+          {config.buttonText}
+        </button>
+      </form>
+    </div>
+  );
+
+  return (
+    <SidebarProvider>
+      <AppSidebar />
+      <SidebarInset>
+        {/* Header */}
+        <header className="bg-card border-b border-border px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <SidebarTrigger data-testid="button-menu-toggle" />
+              <div>
+                <h1 className="text-2xl font-semibold">Widget Generator</h1>
+                <p className="text-muted-foreground">Create an embeddable lead capture form for your website</p>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        {/* Main Content */}
+        <div className="p-6 max-w-7xl mx-auto">
+          {/* Tab Navigation */}
+          <div className="flex space-x-1 mb-6 p-1 bg-muted rounded-lg max-w-md">
+            <button
+              onClick={() => setActiveTab("customize")}
+              className={`flex-1 flex items-center justify-center space-x-2 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+                activeTab === "customize" 
+                  ? "bg-background text-foreground shadow-sm" 
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+              data-testid="tab-customize"
+            >
+              <Settings className="w-4 h-4" />
+              <span>Customize</span>
+            </button>
+            <button
+              onClick={() => setActiveTab("preview")}
+              className={`flex-1 flex items-center justify-center space-x-2 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+                activeTab === "preview" 
+                  ? "bg-background text-foreground shadow-sm" 
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+              data-testid="tab-preview"
+            >
+              <Eye className="w-4 h-4" />
+              <span>Preview</span>
+            </button>
+            <button
+              onClick={() => setActiveTab("code")}
+              className={`flex-1 flex items-center justify-center space-x-2 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+                activeTab === "code" 
+                  ? "bg-background text-foreground shadow-sm" 
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+              data-testid="tab-code"
+            >
+              <Code className="w-4 h-4" />
+              <span>Code</span>
+            </button>
+          </div>
+
+          {/* Tab Content */}
+          {activeTab === "customize" && (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* Configuration Panel */}
+              <div className="space-y-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Basic Settings</CardTitle>
+                    <CardDescription>
+                      Customize the appearance and content of your widget
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div>
+                      <Label htmlFor="title">Widget Title</Label>
+                      <Input
+                        id="title"
+                        value={config.title}
+                        onChange={(e) => updateConfig("title", e.target.value)}
+                        placeholder="Get In Touch"
+                        data-testid="input-title"
+                      />
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="description">Description</Label>
+                      <Input
+                        id="description"
+                        value={config.description}
+                        onChange={(e) => updateConfig("description", e.target.value)}
+                        placeholder="Let's discuss your photography needs"
+                        data-testid="input-description"
+                      />
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="buttonText">Button Text</Label>
+                      <Input
+                        id="buttonText"
+                        value={config.buttonText}
+                        onChange={(e) => updateConfig("buttonText", e.target.value)}
+                        placeholder="Send Inquiry"
+                        data-testid="input-button-text"
+                      />
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="successMessage">Success Message</Label>
+                      <Input
+                        id="successMessage"
+                        value={config.successMessage}
+                        onChange={(e) => updateConfig("successMessage", e.target.value)}
+                        placeholder="Thank you! We'll be in touch soon."
+                        data-testid="input-success-message"
+                      />
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="redirectUrl">Redirect URL (Optional)</Label>
+                      <Input
+                        id="redirectUrl"
+                        value={config.redirectUrl || ""}
+                        onChange={(e) => updateConfig("redirectUrl", e.target.value)}
+                        placeholder="https://yoursite.com/thank-you"
+                        data-testid="input-redirect-url"
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Colors</CardTitle>
+                    <CardDescription>
+                      Customize the color scheme to match your brand
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div>
+                      <Label htmlFor="primaryColor">Primary Color</Label>
+                      <Input
+                        id="primaryColor"
+                        type="color"
+                        value={config.primaryColor}
+                        onChange={(e) => updateConfig("primaryColor", e.target.value)}
+                        data-testid="input-primary-color"
+                      />
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="backgroundColor">Background Color</Label>
+                      <Input
+                        id="backgroundColor"
+                        type="color"
+                        value={config.backgroundColor}
+                        onChange={(e) => updateConfig("backgroundColor", e.target.value)}
+                        data-testid="input-background-color"
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Form Fields</CardTitle>
+                    <CardDescription>
+                      Choose which fields to show in your form
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        id="showPhone"
+                        checked={config.showPhone}
+                        onChange={(e) => updateConfig("showPhone", e.target.checked)}
+                        data-testid="checkbox-show-phone"
+                      />
+                      <Label htmlFor="showPhone">Show Phone Field</Label>
+                    </div>
+                    
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        id="showEventDate"
+                        checked={config.showEventDate}
+                        onChange={(e) => updateConfig("showEventDate", e.target.checked)}
+                        data-testid="checkbox-show-event-date"
+                      />
+                      <Label htmlFor="showEventDate">Show Event Date Field</Label>
+                    </div>
+                    
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        id="showMessage"
+                        checked={config.showMessage}
+                        onChange={(e) => updateConfig("showMessage", e.target.checked)}
+                        data-testid="checkbox-show-message"
+                      />
+                      <Label htmlFor="showMessage">Show Message Field</Label>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Project Types</CardTitle>
+                    <CardDescription>
+                      Select which project types to offer in your form
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-2 gap-2">
+                      {availableProjectTypes.map(type => (
+                        <div key={type} className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            id={`projectType-${type}`}
+                            checked={config.projectTypes.includes(type)}
+                            onChange={() => toggleProjectType(type)}
+                            data-testid={`checkbox-project-type-${type.toLowerCase()}`}
+                          />
+                          <Label htmlFor={`projectType-${type}`}>
+                            {type.charAt(0) + type.slice(1).toLowerCase()}
+                          </Label>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Preview Panel */}
+              <div className="lg:sticky lg:top-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Preview</CardTitle>
+                    <CardDescription>
+                      See how your widget will look on your website
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {renderWidgetPreview()}
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          )}
+
+          {activeTab === "preview" && (
+            <div className="max-w-2xl mx-auto">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Widget Preview</CardTitle>
+                  <CardDescription>
+                    This is how your widget will appear on your website
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {renderWidgetPreview()}
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {activeTab === "code" && (
+            <div className="max-w-4xl mx-auto">
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle className="flex items-center space-x-2">
+                        <div className="flex items-center space-x-2">
+                          <Code className="w-5 h-5" />
+                          <span>Embed Code</span>
+                        </div>
+                        <Button
+                          onClick={() => copyToClipboard(generateEmbedCode())}
+                          size="sm"
+                          data-testid="button-copy-code"
+                        >
+                          <Copy className="w-4 h-4 mr-2" />
+                          Copy Code
+                        </Button>
+                      </CardTitle>
+                    </div>
+                  </div>
+                  <CardDescription>
+                    Copy and paste this code into your website where you want the lead capture form to appear:
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="relative">
+                    <pre className="bg-muted p-4 rounded-md overflow-x-auto text-xs">
+                      <code>{generateEmbedCode()}</code>
+                    </pre>
+                  </div>
+                  <div className="bg-blue-50 dark:bg-blue-950 p-4 rounded-md border border-blue-200 dark:border-blue-800 mt-4">
+                    <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">
+                      Installation Instructions:
+                    </h4>
+                    <ol className="list-decimal list-inside space-y-1 text-sm text-blue-800 dark:text-blue-200">
+                      <li>Copy the embed code above</li>
+                      <li>Paste it into your website's HTML where you want the form to appear</li>
+                      <li>The form will automatically load and be ready to receive inquiries</li>
+                      <li>All submissions will appear in your CRM dashboard</li>
+                    </ol>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+        </div>
+      </SidebarInset>
+    </SidebarProvider>
+  );
+}
     var containers = document.querySelectorAll('.photo-crm-widget');
     containers.forEach(function(container, i) {
       if (container.getAttribute('data-photo-crm-initialized')) return;
