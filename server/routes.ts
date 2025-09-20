@@ -8,7 +8,7 @@ import { authenticateToken, requirePhotographer, requireRole } from "./middlewar
 import { hashPassword, authenticateUser, generateToken } from "./services/auth";
 import { sendEmail } from "./services/email";
 import { sendSms } from "./services/sms";
-import { createPaymentIntent, createCheckoutSession, handleWebhook } from "./services/stripe";
+import { createPaymentIntent, createCheckoutSession, createConnectCheckoutSession, calculatePlatformFee, handleWebhook, stripe } from "./services/stripe";
 import { googleCalendarService } from "./services/calendar";
 import { insertUserSchema, insertPhotographerSchema, insertClientSchema, insertStageSchema, 
          insertTemplateSchema, insertAutomationSchema, validateAutomationSchema, insertAutomationStepSchema, insertPackageSchema, 
@@ -20,13 +20,6 @@ import { z } from "zod";
 import { startCronJobs } from "./jobs/cron";
 import path from "path";
 
-if (!process.env.STRIPE_SECRET_KEY) {
-  throw new Error('Missing required Stripe secret: STRIPE_SECRET_KEY');
-}
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: "2023-10-16",
-});
 
 export async function registerRoutes(app: Express): Promise<Server> {
   app.use(cookieParser());
@@ -968,15 +961,42 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       const successUrl = `${process.env.APP_BASE_URL}/payment-success?proposal=${req.params.token}`;
       const cancelUrl = `${process.env.APP_BASE_URL}/public/proposals/${req.params.token}`;
 
-      const checkoutUrl = await createCheckoutSession({
-        amountCents: amount,
-        successUrl,
-        cancelUrl,
-        metadata: {
-          proposalId: estimate.id,
-          paymentType: mode
-        }
-      });
+      // Get photographer to check for Stripe Connect account
+      const photographer = await storage.getPhotographer(estimate.photographerId);
+      
+      let checkoutUrl: string;
+      
+      if (photographer?.stripeConnectAccountId && photographer.payoutEnabled) {
+        // Use Stripe Connect for connected photographers
+        const platformFeeCents = calculatePlatformFee(amount);
+        
+        checkoutUrl = await createConnectCheckoutSession({
+          amountCents: amount,
+          connectedAccountId: photographer.stripeConnectAccountId,
+          platformFeeCents,
+          successUrl,
+          cancelUrl,
+          productName: estimate.title,
+          metadata: {
+            estimateId: estimate.id,
+            paymentType: mode,
+            photographerId: estimate.photographerId,
+            platformFeeCents: platformFeeCents.toString()
+          }
+        });
+      } else {
+        // Fallback to standard checkout for non-connected accounts
+        checkoutUrl = await createCheckoutSession({
+          amountCents: amount,
+          successUrl,
+          cancelUrl,
+          metadata: {
+            estimateId: estimate.id,
+            paymentType: mode,
+            photographerId: estimate.photographerId
+          }
+        });
+      }
 
       res.json({ url: checkoutUrl });
     } catch (error: any) {
@@ -1600,9 +1620,68 @@ ${photographer?.businessName || 'Your Photography Team'}`;
           const session = event.data.object as Stripe.Checkout.Session;
           const metadata = session.metadata;
           
-          if (metadata?.estimateId) {
+          if (metadata?.estimateId && metadata?.photographerId) {
             const status = metadata.paymentType === "FULL" ? "PAID_FULL" : "PAID_PARTIAL";
             await storage.updateEstimate(metadata.estimateId, { status });
+
+            const totalAmountCents = session.amount_total || 0;
+            const paymentIntentId = session.payment_intent as string;
+
+            // Create estimate payment record (idempotent by payment intent ID)
+            try {
+              const estimatePayment = await storage.createEstimatePayment({
+                estimateId: metadata.estimateId,
+                amountCents: totalAmountCents,
+                method: 'stripe',
+                status: 'completed',
+                stripeSessionId: session.id,
+                stripePaymentIntentId: paymentIntentId,
+                completedAt: new Date()
+              });
+
+              // Get authoritative values from PaymentIntent with proper expansions
+              const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId, {
+                expand: ['latest_charge', 'charges.data.balance_transaction']
+              });
+              
+              const actualAmountCents = paymentIntent.amount_received || paymentIntent.amount;
+              
+              let platformFeeCents = 0;
+              let photographerEarningsCents = actualAmountCents;
+              let earningStatus = 'available';
+
+              // For Connect payments, get actual platform fee from Stripe
+              if (paymentIntent.application_fee_amount) {
+                platformFeeCents = paymentIntent.application_fee_amount;
+                photographerEarningsCents = actualAmountCents - platformFeeCents;
+                earningStatus = 'available'; // Connect accounts can receive payouts
+              } else {
+                // For standard (non-Connect) payments, calculate our platform fee
+                platformFeeCents = calculatePlatformFee(actualAmountCents);
+                photographerEarningsCents = actualAmountCents - platformFeeCents;
+                earningStatus = 'unconnected_pending'; // Cannot payout until Connect account setup
+              }
+
+              // Create earnings record for all payments
+              const estimate = await storage.getEstimate(metadata.estimateId);
+              await storage.createEarnings({
+                photographerId: metadata.photographerId,
+                projectId: estimate?.projectId || '',
+                estimatePaymentId: estimatePayment.id,
+                paymentIntentId,
+                totalAmountCents: actualAmountCents,
+                platformFeeCents,
+                photographerEarningsCents,
+                currency: 'USD',
+                status: earningStatus
+              });
+
+            } catch (error: any) {
+              // If payment already exists (duplicate webhook), skip creation
+              if (!error.message?.includes('unique constraint')) {
+                throw error;
+              }
+            }
           }
           break;
 
