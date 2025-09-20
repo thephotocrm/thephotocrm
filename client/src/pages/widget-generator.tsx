@@ -100,18 +100,230 @@ export default function WidgetGenerator() {
       return "";
     }
 
-    const widgetData = JSON.stringify(config);
-    return `<!-- Lazy Photog Lead Capture Widget -->
-<div id="lazy-photog-widget"></div>
+    // Escape JSON to prevent script injection
+    const widgetData = JSON.stringify(config).replace(/</g, '\\u003c').replace(/>/g, '\\u003e');
+    return `<!-- Photo CRM Lead Capture Widget -->
+<div class="photo-crm-widget"></div>
 <script>
 (function() {
   var config = ${widgetData};
   var token = "${photographer.publicToken}";
-  var script = document.createElement('script');
-  script.src = 'https://widget.thephotocrm.com/embed.js';
-  script.setAttribute('data-config', JSON.stringify(config));
-  script.setAttribute('data-token', token);
-  document.head.appendChild(script);
+  var apiUrl = "https://thephotocrm.com/api/public/lead/" + token;
+  
+  // HTML escape function to prevent XSS
+  function escapeHtml(text) {
+    var map = {
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#039;'
+    };
+    return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+  }
+  
+  // Color validation function to prevent CSS injection
+  function validateColor(color) {
+    if (!color) return null;
+    // Allow hex colors (#fff, #ffffff) and named colors
+    var hexRegex = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/;
+    var rgbRegex = /^rgb\\s*\\(\\s*([0-9]{1,3})\\s*,\\s*([0-9]{1,3})\\s*,\\s*([0-9]{1,3})\\s*\\)$/;
+    var rgbaRegex = /^rgba\\s*\\(\\s*([0-9]{1,3})\\s*,\\s*([0-9]{1,3})\\s*,\\s*([0-9]{1,3})\\s*,\\s*([0-1]?(?:\\.[0-9]+)?)\\s*\\)$/;
+    var namedColors = ['red', 'blue', 'green', 'yellow', 'orange', 'purple', 'pink', 'black', 'white', 'gray', 'grey'];
+    
+    if (hexRegex.test(color) || rgbRegex.test(color) || rgbaRegex.test(color) || namedColors.indexOf(color.toLowerCase()) >= 0) {
+      return color;
+    }
+    return null;
+  }
+  
+  function createWidget() {
+    var containers = document.querySelectorAll('.photo-crm-widget');
+    containers.forEach(function(container, i) {
+      if (container.getAttribute('data-photo-crm-initialized')) return;
+      container.setAttribute('data-photo-crm-initialized', 'true');
+      
+      // Create widget container with validated colors
+      var widget = document.createElement('div');
+      widget.style.cssText = 'max-width: 400px; padding: 24px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);';
+      widget.style.backgroundColor = validateColor(config.backgroundColor) || '#ffffff';
+      widget.style.borderColor = validateColor(config.primaryColor) || '#3b82f6';
+      widget.style.borderWidth = '1px';
+      widget.style.borderStyle = 'solid';
+      
+      // Create header
+      var header = document.createElement('div');
+      header.style.cssText = 'text-align: center; margin-bottom: 24px;';
+      
+      var title = document.createElement('h3');
+      title.style.cssText = 'font-size: 20px; font-weight: 600; margin-bottom: 8px;';
+      title.style.color = validateColor(config.primaryColor) || '#3b82f6';
+      title.textContent = config.title;
+      
+      var description = document.createElement('p');
+      description.style.cssText = 'color: #666; margin: 0;';
+      description.textContent = config.description;
+      
+      header.appendChild(title);
+      header.appendChild(description);
+      
+      // Create form
+      var form = document.createElement('form');
+      form.style.cssText = 'display: flex; flex-direction: column; gap: 16px;';
+      form.id = 'photo-crm-form-' + i;
+      
+      // Create form HTML with escaped content
+      var formHtml = 
+        '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">' +
+          '<div>' +
+            '<label style="display: block; font-size: 14px; font-weight: 500; margin-bottom: 4px;">First Name *</label>' +
+            '<input type="text" name="firstName" required style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px;" />' +
+          '</div>' +
+          '<div>' +
+            '<label style="display: block; font-size: 14px; font-weight: 500; margin-bottom: 4px;">Last Name *</label>' +
+            '<input type="text" name="lastName" required style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px;" />' +
+          '</div>' +
+        '</div>' +
+        '<div>' +
+          '<label style="display: block; font-size: 14px; font-weight: 500; margin-bottom: 4px;">Email *</label>' +
+          '<input type="email" name="email" required style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px;" />' +
+        '</div>' +
+        (config.showPhone ? '<div><label style="display: block; font-size: 14px; font-weight: 500; margin-bottom: 4px;">Phone</label><input type="tel" name="phone" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px;" /></div>' : '') +
+        '<div>' +
+          '<label style="display: block; font-size: 14px; font-weight: 500; margin-bottom: 4px;">Project Type *</label>' +
+          '<select name="projectType" required style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px;">' +
+            config.projectTypes.map(function(type) { return '<option value="' + escapeHtml(type) + '">' + escapeHtml(type.charAt(0) + type.slice(1).toLowerCase()) + '</option>'; }).join('') +
+          '</select>' +
+        '</div>' +
+        (config.showEventDate ? '<div><label style="display: block; font-size: 14px; font-weight: 500; margin-bottom: 4px;">Event Date</label><input type="date" name="eventDate" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px;" /></div>' : '') +
+        (config.showMessage ? '<div><label style="display: block; font-size: 14px; font-weight: 500; margin-bottom: 4px;">Message</label><textarea name="message" rows="3" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; resize: vertical;" placeholder="Tell us about your photography needs..."></textarea></div>' : '') +
+        '<button type="submit" style="width: 100%; padding: 12px; border: none; border-radius: 4px; color: white; font-size: 16px; font-weight: 600; cursor: pointer;">' + escapeHtml(config.buttonText) + '</button>';
+      
+      form.innerHTML = formHtml;
+      
+      // Apply validated colors to button after creation
+      var submitButton = form.querySelector('button[type="submit"]');
+      if (submitButton) {
+        submitButton.style.backgroundColor = validateColor(config.primaryColor) || '#3b82f6';
+      }
+      
+      // Assemble widget
+      widget.appendChild(header);
+      widget.appendChild(form);
+      container.appendChild(widget);
+      
+      // Add form submission handler
+      form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        var formData = new FormData(form);
+        var data = {
+          firstName: formData.get('firstName'),
+          lastName: formData.get('lastName'),
+          email: formData.get('email'),
+          phone: formData.get('phone') || '',
+          message: formData.get('message') || '',
+          projectType: formData.get('projectType'),
+          eventDate: formData.get('eventDate') || '',
+          emailOptIn: true,
+          smsOptIn: false,
+          redirectUrl: config.redirectUrl || ''
+        };
+        
+        // Validate redirect URL on client side for additional security
+        if (data.redirectUrl && !(data.redirectUrl.match(/^https?:\\/\\//) || data.redirectUrl.match(/^\\//))) {
+          data.redirectUrl = '';
+        }
+        if (data.redirectUrl && data.redirectUrl.match(/^(javascript:|data:|intent:|vbscript:|mailto:|tel:|ftp:)/i)) {
+          data.redirectUrl = '';
+        }
+        
+        // Show loading state
+        var submitBtn = form.querySelector('button[type="submit"]');
+        var originalText = submitBtn.textContent;
+        submitBtn.textContent = 'Submitting...';
+        submitBtn.disabled = true;
+        
+        // Submit form
+        fetch(apiUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(data)
+        })
+        .then(function(response) {
+          return response.json();
+        })
+        .then(function(result) {
+          if (result.success) {
+            // Create success UI safely without innerHTML injection
+            var successContainer = document.createElement('div');
+            successContainer.style.cssText = 'text-align: center; padding: 24px; border-radius: 8px; border: 1px solid #4ade80;';
+            successContainer.style.backgroundColor = validateColor(config.backgroundColor) || '#ffffff';
+            
+            var successIcon = document.createElement('div');
+            successIcon.style.cssText = 'color: #16a34a; font-weight: 600; margin-bottom: 8px;';
+            successIcon.textContent = '✓ ' + config.successMessage;
+            
+            successContainer.appendChild(successIcon);
+            
+            // Handle successful submission
+            if (result.redirectUrl && result.redirectUrl.trim() !== '') {
+              var redirectText = document.createElement('div');
+              redirectText.style.cssText = 'color: #666; font-size: 14px;';
+              redirectText.textContent = 'Redirecting...';
+              successContainer.appendChild(redirectText);
+              
+              container.innerHTML = '';
+              container.appendChild(successContainer);
+              
+              setTimeout(function() {
+                // Final validation before redirect for defense-in-depth
+                if (result.redirectUrl && 
+                    (result.redirectUrl.match(/^https?:\\/\\//) || result.redirectUrl.match(/^\\//)) &&
+                    !result.redirectUrl.match(/^(javascript:|data:|intent:|vbscript:|mailto:|tel:|ftp:)/i)) {
+                  window.location.href = result.redirectUrl;
+                } else {
+                  console.warn('Invalid redirect URL blocked:', result.redirectUrl);
+                }
+              }, 2000);
+            } else {
+              container.innerHTML = '';
+              container.appendChild(successContainer);
+            }
+          } else {
+            throw new Error(result.message || 'Submission failed');
+          }
+        })
+        .catch(function(error) {
+          console.error('Form submission error:', error);
+          
+          // Reset form and show error
+          submitBtn.textContent = originalText;
+          submitBtn.disabled = false;
+          
+          var errorDiv = document.createElement('div');
+          errorDiv.style.cssText = 'background-color: #fef2f2; border: 1px solid #fca5a5; color: #dc2626; padding: 12px; border-radius: 4px; margin-top: 16px; font-size: 14px;';
+          errorDiv.textContent = 'Sorry, there was an error submitting your request. Please try again.';
+          
+          // Remove any existing error messages
+          var existingError = form.querySelector('.error-message');
+          if (existingError) existingError.remove();
+          
+          errorDiv.className = 'error-message';
+          form.appendChild(errorDiv);
+        });
+      });
+    });
+  }
+  
+  // Initialize widget when DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', createWidget);
+  } else {
+    createWidget();
+  }
 })();
 </script>`;
   };

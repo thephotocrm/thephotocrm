@@ -2282,7 +2282,11 @@ ${photographer?.businessName || 'Your Photography Team'}`;
         eventDate: z.string().optional().refine(val => !val || !isNaN(Date.parse(val)), "Invalid date format"),
         emailOptIn: z.boolean().default(true),
         smsOptIn: z.boolean().default(false),
-        redirectUrl: z.string().url().optional().or(z.literal(''))
+        redirectUrl: z.union([
+          z.string().regex(/^https?:\/\//, "Must be http or https URL"), // Only http/https URLs
+          z.string().regex(/^\/[^\/].*/, "Must be absolute path starting with /"), // Relative paths only
+          z.literal('')
+        ]).optional().transform(val => val === '' ? undefined : val)
       });
       
       const leadData = publicLeadSchema.parse(req.body);
