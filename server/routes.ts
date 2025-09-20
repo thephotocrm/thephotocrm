@@ -2281,7 +2281,8 @@ ${photographer?.businessName || 'Your Photography Team'}`;
         projectType: z.enum(['WEDDING', 'ENGAGEMENT', 'PROPOSAL', 'CORPORATE', 'PORTRAIT', 'FAMILY', 'MATERNITY', 'NEWBORN', 'EVENT', 'COMMERCIAL', 'OTHER']),
         eventDate: z.string().optional().refine(val => !val || !isNaN(Date.parse(val)), "Invalid date format"),
         emailOptIn: z.boolean().default(true),
-        smsOptIn: z.boolean().default(false)
+        smsOptIn: z.boolean().default(false),
+        redirectUrl: z.string().url().optional().or(z.literal(''))
       });
       
       const leadData = publicLeadSchema.parse(req.body);
@@ -2315,7 +2316,8 @@ ${photographer?.businessName || 'Your Photography Team'}`;
         success: true, 
         message: "Lead submitted successfully",
         clientId: client.id,
-        projectId: project.id 
+        projectId: project.id,
+        redirectUrl: leadData.redirectUrl || null
       });
       
     } catch (error: any) {
