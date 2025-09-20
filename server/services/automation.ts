@@ -289,6 +289,7 @@ async function processAutomationStep(client: any, step: any, automation: any): P
 
     // Log the attempt
     await db.insert(emailLogs).values({
+      clientId: client.clientId,
       projectId: client.id,
       automationStepId: step.id,
       status: success ? 'sent' : 'failed',
@@ -305,6 +306,7 @@ async function processAutomationStep(client: any, step: any, automation: any): P
 
     // Log the attempt
     await db.insert(smsLogs).values({
+      clientId: client.clientId,
       projectId: client.id,
       automationStepId: step.id,
       status: result.success ? 'sent' : 'failed',
@@ -692,6 +694,7 @@ async function sendCountdownMessage(project: any, automation: any, photographerI
 
     // Log the attempt - use null for automationStepId since countdown automations don't have steps
     await db.insert(emailLogs).values({
+      clientId: project.clientId,
       projectId: project.id,
       automationStepId: null,
       status: success ? 'sent' : 'failed',
@@ -712,6 +715,7 @@ async function sendCountdownMessage(project: any, automation: any, photographerI
 
     // Log the attempt - use null for automationStepId since countdown automations don't have steps
     await db.insert(smsLogs).values({
+      clientId: project.clientId,
       projectId: project.id,
       automationStepId: null,
       status: result.success ? 'sent' : 'failed',

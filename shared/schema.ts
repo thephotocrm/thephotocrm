@@ -179,7 +179,8 @@ export const automationSteps = pgTable("automation_steps", {
 
 export const emailLogs = pgTable("email_logs", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  projectId: varchar("project_id").notNull().references(() => projects.id),
+  clientId: varchar("client_id").notNull().references(() => clients.id),
+  projectId: varchar("project_id").references(() => projects.id),
   automationStepId: varchar("automation_step_id").references(() => automationSteps.id),
   status: text("status").notNull(),
   providerId: text("provider_id"),
@@ -191,7 +192,8 @@ export const emailLogs = pgTable("email_logs", {
 
 export const smsLogs = pgTable("sms_logs", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  projectId: varchar("project_id").notNull().references(() => projects.id),
+  clientId: varchar("client_id").notNull().references(() => clients.id),
+  projectId: varchar("project_id").references(() => projects.id),
   automationStepId: varchar("automation_step_id").references(() => automationSteps.id),
   status: text("status").notNull(),
   providerId: text("provider_id"),
