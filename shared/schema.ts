@@ -151,7 +151,11 @@ export const automations = pgTable("automations", {
   targetStageId: varchar("target_stage_id").references(() => stages.id),
   // Countdown automation fields
   daysBefore: integer("days_before"), // Days before event date to send countdown message
+  eventType: text("event_type"), // event_date, session_date, delivery_date, etc. - which project date field to use
+  stageCondition: varchar("stage_condition").references(() => stages.id), // Optional stage filter for countdown automations
   templateId: varchar("template_id").references(() => templates.id), // Template for countdown automations
+  // Questionnaire assignment fields (for communication automations)
+  questionnaireTemplateId: varchar("questionnaire_template_id").references(() => questionnaireTemplates.id),
   enabled: boolean("enabled").default(true)
 });
 
@@ -631,16 +635,17 @@ export const insertAutomationSchema = createInsertSchema(automations).omit({
 export const validateAutomationSchema = insertAutomationSchema.refine(
   (data) => {
     if (data.automationType === 'COMMUNICATION') {
-      // Communication automations require stageId and channel
-      return data.stageId !== undefined && data.channel !== undefined;
+      // Communication automations require stageId and either channel (for messaging) or questionnaireTemplateId (for questionnaire assignment)
+      return data.stageId !== undefined && (data.channel !== undefined || data.questionnaireTemplateId !== undefined);
     }
     if (data.automationType === 'STAGE_CHANGE') {
       // Pipeline automations require triggerType and targetStageId
       return data.triggerType !== undefined && data.targetStageId !== undefined;
     }
     if (data.automationType === 'COUNTDOWN') {
-      // Countdown automations require daysBefore, channel, and templateId
-      return data.daysBefore !== undefined && data.channel !== undefined && data.templateId !== undefined;
+      // Countdown automations require daysBefore, eventType, and templateId
+      // stageCondition is optional for filtering
+      return data.daysBefore !== undefined && data.eventType !== undefined && data.templateId !== undefined;
     }
     return true;
   },
