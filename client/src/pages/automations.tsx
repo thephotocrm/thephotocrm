@@ -470,34 +470,47 @@ export default function Automations() {
   const [selectedStage, setSelectedStage] = useState<any>(null);
   const [timingMode, setTimingMode] = useState<'immediate' | 'delayed'>('immediate');
   const [activeProjectType, setActiveProjectType] = useState<string>('WEDDING');
-  const [automationType, setAutomationType] = useState<'COMMUNICATION' | 'STAGE_CHANGE'>('COMMUNICATION');
+  const [automationType, setAutomationType] = useState<'COMMUNICATION' | 'STAGE_CHANGE' | 'COUNTDOWN'>('COMMUNICATION');
 
   // Dynamic schema function that updates based on automation type
-  const createExtendedFormSchema = (type: 'COMMUNICATION' | 'STAGE_CHANGE') => {
+  const createExtendedFormSchema = (type: 'COMMUNICATION' | 'STAGE_CHANGE' | 'COUNTDOWN') => {
     return createAutomationFormSchema.extend({
       // Communication automation fields
       templateId: z.string().optional(),
       delayMinutes: z.number().min(0).default(0),
       delayHours: z.number().min(0).default(0),
       delayDays: z.number().min(0).default(0),
-      // Pipeline automation fields
+      questionnaireTemplateId: z.string().optional(), // New field for questionnaire assignments
+      // Stage change automation fields
       triggerType: z.string().optional(),
-      targetStageId: z.string().optional()
+      targetStageId: z.string().optional(),
+      // Countdown automation fields
+      daysBefore: z.number().min(0).default(7),
+      eventType: z.string().optional(),
+      stageCondition: z.string().optional() // Optional stage filter for countdown automations
     }).refine(
       (data) => {
         if (type === 'COMMUNICATION') {
-          return data.templateId && data.templateId.length > 0;
+          // Communication automations require either a template (for messaging) or questionnaire (for assignment)
+          return (data.templateId && data.templateId.length > 0) || 
+                 (data.questionnaireTemplateId && data.questionnaireTemplateId.length > 0);
         }
         if (type === 'STAGE_CHANGE') {
           return data.triggerType && data.targetStageId;
+        }
+        if (type === 'COUNTDOWN') {
+          return data.templateId && data.templateId.length > 0 &&
+                 data.eventType && data.eventType.length > 0;
         }
         return true;
       },
       {
         message: type === 'COMMUNICATION' 
-          ? "Template selection is required for communication automations"
-          : "Both trigger type and target stage are required for pipeline automations",
-        path: type === 'COMMUNICATION' ? ["templateId"] : ["triggerType"]
+          ? "Please select a template or questionnaire for the communication automation"
+          : type === 'STAGE_CHANGE'
+          ? "Both trigger type and target stage are required for pipeline automations"
+          : "Please select a template and event type for the countdown automation",
+        path: type === 'COMMUNICATION' ? ["templateId"] : type === 'STAGE_CHANGE' ? ["triggerType"] : ["templateId"]
       }
     );
   };
@@ -518,8 +531,12 @@ export default function Automations() {
       delayMinutes: 0,
       delayHours: 0,
       delayDays: 0,
+      questionnaireTemplateId: "",
       triggerType: "",
-      targetStageId: ""
+      targetStageId: "",
+      daysBefore: 7,
+      eventType: "event_date",
+      stageCondition: ""
     }
   });
 
@@ -530,11 +547,26 @@ export default function Automations() {
     if (automationType === 'COMMUNICATION') {
       form.setValue('triggerType', '');
       form.setValue('targetStageId', '');
-    } else {
+      form.setValue('daysBefore', 7);
+      form.setValue('eventType', 'event_date');
+      form.setValue('stageCondition', '');
+    } else if (automationType === 'STAGE_CHANGE') {
       form.setValue('templateId', '');
       form.setValue('delayMinutes', 0);
       form.setValue('delayHours', 0);
       form.setValue('delayDays', 0);
+      form.setValue('questionnaireTemplateId', '');
+      form.setValue('daysBefore', 7);
+      form.setValue('eventType', 'event_date');
+      form.setValue('stageCondition', '');
+    } else if (automationType === 'COUNTDOWN') {
+      form.setValue('delayMinutes', 0);
+      form.setValue('delayHours', 0);
+      form.setValue('delayDays', 0);
+      form.setValue('questionnaireTemplateId', '');
+      form.setValue('triggerType', '');
+      form.setValue('targetStageId', '');
+      form.setValue('stageId', ''); // Reset stage for countdown automations
     }
   }, [automationType, form]);
 
@@ -567,6 +599,12 @@ export default function Automations() {
   const { data: templates = [] } = useQuery<any[]>({
     queryKey: ["/api/templates", activeProjectType],
     queryFn: () => fetch(`/api/templates?projectType=${activeProjectType}`).then(res => res.json()),
+    enabled: !!user
+  });
+
+  const { data: questionnaireTemplates = [] } = useQuery<any[]>({
+    queryKey: ["/api/questionnaire-templates"],
+    queryFn: () => fetch(`/api/questionnaire-templates`).then(res => res.json()),
     enabled: !!user
   });
 

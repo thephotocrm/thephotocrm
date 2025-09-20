@@ -2,7 +2,7 @@ import { storage } from '../storage';
 import { sendEmail, renderTemplate } from './email';
 import { sendSms, renderSmsTemplate } from './sms';
 import { db } from '../db';
-import { clients, automations, automationSteps, stages, templates, emailLogs, smsLogs, photographers, estimates, projects, bookings } from '@shared/schema';
+import { clients, automations, automationSteps, stages, templates, emailLogs, smsLogs, photographers, estimates, estimatePayments, projects, bookings, projectQuestionnaires } from '@shared/schema';
 import { eq, and, gte, lte } from 'drizzle-orm';
 
 // Helper function to get date in photographer's timezone
@@ -64,7 +64,7 @@ export async function processAutomations(photographerId: string): Promise<void> 
 }
 
 async function processCommunicationAutomation(automation: any, photographerId: string): Promise<void> {
-  // Get automation steps
+  // Get automation steps for communication (email/SMS)
   const steps = await db
     .select()
     .from(automationSteps)
@@ -74,7 +74,7 @@ async function processCommunicationAutomation(automation: any, photographerId: s
     ))
     .orderBy(automationSteps.stepIndex);
 
-  // Get projects in this stage (changed from clients to projects)
+  // Get projects in this stage
   const projectsInStage = await db
     .select({
       id: projects.id,
@@ -83,7 +83,7 @@ async function processCommunicationAutomation(automation: any, photographerId: s
       eventDate: projects.eventDate,
       smsOptIn: projects.smsOptIn,
       emailOptIn: projects.emailOptIn,
-      photographerId: projects.photographerId, // Add missing photographerId
+      photographerId: projects.photographerId,
       // Client details
       firstName: clients.firstName,
       lastName: clients.lastName,
@@ -100,8 +100,14 @@ async function processCommunicationAutomation(automation: any, photographerId: s
   console.log(`Communication automation "${automation.name}" (${automation.id}) - found ${projectsInStage.length} projects in stage`);
 
   for (const project of projectsInStage) {
+    // Process communication steps (email/SMS)
     for (const step of steps) {
       await processAutomationStep(project, step, automation);
+    }
+    
+    // Process questionnaire assignment if configured
+    if (automation.questionnaireTemplateId) {
+      await processQuestionnaireAssignment(project, automation, photographerId);
     }
   }
 }
@@ -221,7 +227,10 @@ async function processAutomationStep(client: any, step: any, automation: any): P
   const [template] = await db
     .select()
     .from(templates)
-    .where(eq(templates.id, step.templateId));
+    .where(and(
+      eq(templates.id, step.templateId),
+      eq(templates.photographerId, client.photographerId)
+    ));
 
   if (!template) {
     console.log(`📝 Template not found for ${client.firstName} ${client.lastName}, templateId: ${step.templateId}`);
@@ -334,29 +343,69 @@ async function checkTriggerCondition(triggerType: string, project: any, photogra
 }
 
 async function checkDepositPaid(projectId: string): Promise<boolean> {
-  // Check if project has estimates with deposit payments
-  const paidEstimates = await db
-    .select()
+  // Check if project has estimates with completed deposit payments
+  const estimatesWithDeposit = await db
+    .select({
+      id: estimates.id,
+      depositCents: estimates.depositCents
+    })
     .from(estimates)
     .where(and(
       eq(estimates.projectId, projectId),
-      eq(estimates.status, 'SIGNED'),
-      eq(estimates.depositPaid, true)
+      eq(estimates.status, 'SIGNED')
     ));
-  return paidEstimates.length > 0;
+
+  for (const estimate of estimatesWithDeposit) {
+    if (!estimate.depositCents || estimate.depositCents <= 0) continue;
+    
+    // Check if there's a completed payment for at least the deposit amount
+    const completedPayments = await db
+      .select()
+      .from(estimatePayments)
+      .where(and(
+        eq(estimatePayments.estimateId, estimate.id),
+        eq(estimatePayments.status, 'completed')
+      ));
+    
+    const totalPaid = completedPayments.reduce((sum, payment) => sum + payment.amountCents, 0);
+    if (totalPaid >= estimate.depositCents) {
+      return true;
+    }
+  }
+  return false;
 }
 
 async function checkFullPaymentMade(projectId: string): Promise<boolean> {
-  // Check if project has estimates with full payments
-  const fullyPaidEstimates = await db
-    .select()
+  // Check if project has estimates with full payments completed
+  const signedEstimates = await db
+    .select({
+      id: estimates.id,
+      totalCents: estimates.totalCents
+    })
     .from(estimates)
     .where(and(
       eq(estimates.projectId, projectId),
-      eq(estimates.status, 'SIGNED'),
-      eq(estimates.fullPaid, true)
+      eq(estimates.status, 'SIGNED')
     ));
-  return fullyPaidEstimates.length > 0;
+
+  for (const estimate of signedEstimates) {
+    if (!estimate.totalCents || estimate.totalCents <= 0) continue;
+    
+    // Check if there's a completed payment for the full amount
+    const completedPayments = await db
+      .select()
+      .from(estimatePayments)
+      .where(and(
+        eq(estimatePayments.estimateId, estimate.id),
+        eq(estimatePayments.status, 'completed')
+      ));
+    
+    const totalPaid = completedPayments.reduce((sum, payment) => sum + payment.amountCents, 0);
+    if (totalPaid >= estimate.totalCents) {
+      return true;
+    }
+  }
+  return false;
 }
 
 async function checkProjectBooked(project: any): Promise<boolean> {
@@ -398,8 +447,8 @@ async function checkProjectDelivered(project: any): Promise<boolean> {
 }
 
 async function checkClientOnboarded(project: any): Promise<boolean> {
-  // Check if client has email/phone and has opted in
-  return !!(project.email && (project.emailOptIn || project.smsOptIn));
+  // Check if client has email/phone and has opted in (using project-level opt-in flags)
+  return !!(project.emailOptIn || project.smsOptIn);
 }
 
 async function checkAppointmentBooked(project: any): Promise<boolean> {
@@ -415,7 +464,7 @@ async function checkAppointmentBooked(project: any): Promise<boolean> {
 }
 
 async function processCountdownAutomation(automation: any, photographerId: string): Promise<void> {
-  console.log(`Processing countdown automation: ${automation.name} (${automation.daysBefore} days before event)`);
+  console.log(`Processing countdown automation: ${automation.name} (${automation.daysBefore} days before ${automation.eventType || 'event'})`);
   
   // Validate daysBefore is a non-negative integer (allow 0 for same-day triggers)
   if (automation.daysBefore == null || automation.daysBefore < 0 || !Number.isInteger(automation.daysBefore)) {
@@ -423,18 +472,32 @@ async function processCountdownAutomation(automation: any, photographerId: strin
     return;
   }
 
-  // Validate required fields
-  if (!automation.channel || !automation.templateId) {
-    console.log(`❌ Missing required fields for countdown automation ${automation.name}: channel=${automation.channel}, templateId=${automation.templateId}`);
+  // Validate required fields for new countdown automation structure
+  if (!automation.eventType || !automation.templateId) {
+    console.log(`❌ Missing required fields for countdown automation ${automation.name}: eventType=${automation.eventType}, templateId=${automation.templateId}`);
     return;
   }
   
-  // Get all active projects for this photographer with event dates, filtered by project type
+  // Build query for active projects based on eventType and optional stage condition
+  let whereConditions = [
+    eq(projects.photographerId, photographerId),
+    eq(projects.projectType, automation.projectType),
+    eq(projects.status, 'ACTIVE')
+  ];
+
+  // Add stage condition if specified (for conditional event countdown automations)
+  if (automation.stageCondition) {
+    whereConditions.push(eq(projects.stageId, automation.stageCondition));
+    console.log(`Filtering by stage condition: ${automation.stageCondition}`);
+  }
+
+  // Get all active projects for this photographer with event dates
   const activeProjects = await db
     .select({
       id: projects.id,
       clientId: projects.clientId,
       eventDate: projects.eventDate,
+      stageId: projects.stageId,
       smsOptIn: projects.smsOptIn,
       emailOptIn: projects.emailOptIn,
       photographerId: projects.photographerId,
@@ -446,13 +509,9 @@ async function processCountdownAutomation(automation: any, photographerId: strin
     })
     .from(projects)
     .innerJoin(clients, eq(projects.clientId, clients.id))
-    .where(and(
-      eq(projects.photographerId, photographerId),
-      eq(projects.projectType, automation.projectType), // Filter by project type
-      eq(projects.status, 'ACTIVE')
-    ));
+    .where(and(...whereConditions));
 
-  console.log(`Found ${activeProjects.length} active projects to check for countdown automation`);
+  console.log(`Found ${activeProjects.length} active projects to check for countdown automation (stage filter: ${automation.stageCondition || 'none'})`);
 
   // Get photographer info for timezone
   const [photographer] = await db
@@ -468,12 +527,28 @@ async function processCountdownAutomation(automation: any, photographerId: strin
   const today = new Date(todayParts.year, todayParts.month, todayParts.day);
 
   for (const project of activeProjects) {
-    if (!project.eventDate) {
-      continue; // Skip projects without event dates
+    // Get the relevant event date based on eventType
+    let eventDate: Date | null = null;
+    switch (automation.eventType) {
+      case 'event_date':
+      default:
+        eventDate = project.eventDate;
+        break;
+      // Future support for other event types:
+      // case 'session_date':
+      //   eventDate = project.sessionDate;
+      //   break;
+      // case 'delivery_date':
+      //   eventDate = project.deliveryDate;
+      //   break;
+    }
+
+    if (!eventDate) {
+      continue; // Skip projects without the relevant event date
     }
 
     // Convert event date to photographer's timezone using proper timezone handling
-    const eventDateParts = getDateInTimezone(new Date(project.eventDate), timezone);
+    const eventDateParts = getDateInTimezone(new Date(eventDate), timezone);
     const eventDateOnly = new Date(eventDateParts.year, eventDateParts.month, eventDateParts.day);
     
     // Calculate target date (X days before event) in photographer's timezone
@@ -482,7 +557,7 @@ async function processCountdownAutomation(automation: any, photographerId: strin
     
     // Check if today is the target date
     if (today.getTime() === targetDate.getTime()) {
-      console.log(`🎯 Countdown trigger for project ${project.id}: ${automation.daysBefore} days before ${eventDateOnly.toLocaleDateString()} (timezone: ${timezone})`);
+      console.log(`🎯 Countdown trigger for project ${project.id}: ${automation.daysBefore} days before ${eventDateOnly.toLocaleDateString()} (${automation.eventType}, timezone: ${timezone})`);
       
       await sendCountdownMessage(project, automation, photographerId);
     }
@@ -510,13 +585,17 @@ async function sendCountdownMessage(project: any, automation: any, photographerI
     
   const timezone = photographer?.timezone || 'UTC';
   
-  // Calculate today in photographer's timezone
+  // Calculate today in photographer's timezone using proper timezone handling
   const now = new Date();
-  const todayInTz = new Date(now.toLocaleString("en-CA", { timeZone: timezone }));
-  const startOfDay = new Date(todayInTz.getFullYear(), todayInTz.getMonth(), todayInTz.getDate());
+  const todayParts = getDateInTimezone(now, timezone);
+  const startOfDay = new Date(todayParts.year, todayParts.month, todayParts.day);
   const endOfDay = new Date(startOfDay.getTime() + 24 * 60 * 60 * 1000);
 
-  // Check if message already sent for this countdown period using automation ID as reference
+  // Calculate event date to create unique identifier for this countdown window
+  const eventDateParts = getDateInTimezone(new Date(project.eventDate), timezone);
+  const eventDateKey = `${eventDateParts.year}-${eventDateParts.month}-${eventDateParts.day}`;
+  
+  // Check if message already sent for this specific countdown automation + event date combination
   const logTableName = automation.channel === 'EMAIL' ? emailLogs : smsLogs;
   const existingLogs = await db
     .select()
@@ -534,15 +613,18 @@ async function sendCountdownMessage(project: any, automation: any, photographerI
   );
   
   if (todaysSuccessfulLogs.length > 0) {
-    console.log(`🚫 Already sent countdown message today for ${project.firstName} ${project.lastName}`);
+    console.log(`🚫 Already sent countdown message today for ${project.firstName} ${project.lastName} (event: ${eventDateKey})`);
     return;
   }
 
-  // Get template using templateId from automation
+  // Get template using templateId from automation (scoped by photographer for security)
   const [template] = await db
     .select()
     .from(templates)
-    .where(eq(templates.id, automation.templateId));
+    .where(and(
+      eq(templates.id, automation.templateId),
+      eq(templates.photographerId, photographerId)
+    ));
 
   if (!template) {
     console.log(`📝 Template not found for countdown automation, templateId: ${automation.templateId}`);
@@ -569,8 +651,8 @@ async function sendCountdownMessage(project: any, automation: any, photographerI
   const eventDateParts = getDateInTimezone(new Date(project.eventDate), timezone);
   const eventDateInTz = new Date(eventDateParts.year, eventDateParts.month, eventDateParts.day);
   const todayParts = getDateInTimezone(new Date(), timezone);
-  const todayInTz = new Date(todayParts.year, todayParts.month, todayParts.day);
-  const daysRemaining = Math.ceil((eventDateInTz.getTime() - todayInTz.getTime()) / (1000 * 60 * 60 * 24));
+  const todayDateInTz = new Date(todayParts.year, todayParts.month, todayParts.day);
+  const daysRemaining = Math.ceil((eventDateInTz.getTime() - todayDateInTz.getTime()) / (1000 * 60 * 60 * 24));
     
   // Prepare variables for template rendering
   const variables = {
@@ -656,6 +738,47 @@ async function moveProjectToStage(projectId: string, targetStageId: string): Pro
     console.log(`✅ Successfully moved project ${projectId} to stage ${targetStageId}`);
   } catch (error) {
     console.error(`❌ Failed to move project ${projectId} to stage ${targetStageId}:`, error);
+  }
+}
+
+async function processQuestionnaireAssignment(project: any, automation: any, photographerId: string): Promise<void> {
+  console.log(`Processing questionnaire assignment for ${project.firstName} ${project.lastName} (automation: ${automation.name})`);
+  
+  if (!automation.questionnaireTemplateId) {
+    console.log(`❌ No questionnaire template ID for automation ${automation.name}`);
+    return;
+  }
+
+  if (!project.stageEnteredAt) {
+    console.log(`❌ No stageEnteredAt date for project ${project.id}, skipping questionnaire assignment`);
+    return;
+  }
+
+  // Check if questionnaire has already been assigned for this project and template
+  const existingAssignments = await db
+    .select()
+    .from(projectQuestionnaires)
+    .where(and(
+      eq(projectQuestionnaires.projectId, project.id),
+      eq(projectQuestionnaires.templateId, automation.questionnaireTemplateId)
+    ));
+
+  if (existingAssignments.length > 0) {
+    console.log(`🚫 Questionnaire already assigned to ${project.firstName} ${project.lastName} for this template`);
+    return;
+  }
+
+  // Create questionnaire assignment
+  try {
+    await db.insert(projectQuestionnaires).values({
+      projectId: project.id,
+      templateId: automation.questionnaireTemplateId,
+      status: 'PENDING'
+    });
+
+    console.log(`📋 Successfully assigned questionnaire to ${project.firstName} ${project.lastName}`);
+  } catch (error) {
+    console.error(`❌ Failed to assign questionnaire to ${project.firstName} ${project.lastName}:`, error);
   }
 }
 
