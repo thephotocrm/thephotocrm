@@ -24,11 +24,30 @@ import path from "path";
 export async function registerRoutes(app: Express): Promise<Server> {
   app.use(cookieParser());
 
-  // CORS configuration for authenticated API routes
+  // CORS configuration for authenticated API routes  
   app.use((req, res, next) => {
-    // Allow credentials and set proper origin
-    res.header("Access-Control-Allow-Credentials", "true");
-    res.header("Access-Control-Allow-Origin", req.headers.origin);
+    // Only allow credentials for same-origin requests to prevent CSRF
+    const origin = req.headers.origin;
+    const isPublicRoute = req.path.startsWith('/api/public/');
+    
+    if (isPublicRoute) {
+      // Public routes handled by specific middleware, skip global CORS
+      return next();
+    }
+    
+    // For authenticated routes, only allow credentials from same origin
+    const host = req.get('host');
+    const isSameOrigin = !origin || origin === `${req.protocol}://${host}`;
+    
+    if (isSameOrigin) {
+      res.header("Access-Control-Allow-Credentials", "true");
+      res.header("Access-Control-Allow-Origin", origin || `${req.protocol}://${host}`);
+    } else {
+      // Cross-origin requests to authenticated routes - no credentials
+      res.header("Access-Control-Allow-Credentials", "false");  
+      res.header("Access-Control-Allow-Origin", "*");
+    }
+    
     res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
     res.header("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With");
     
@@ -2445,20 +2464,26 @@ ${photographer?.businessName || 'Your Photography Team'}`;
     }
   });
 
-  // Public widget API CORS preflight handler
-  app.options("/api/public/lead/:photographerToken", (req, res) => {
-    res.header("Access-Control-Allow-Origin", "*");
-    res.header("Access-Control-Allow-Methods", "POST, OPTIONS");
+  // Dedicated CORS middleware for public endpoints
+  const publicCorsMiddleware = (req: any, res: any, next: any) => {
+    const origin = req.headers.origin;
+    res.header("Access-Control-Allow-Origin", origin || "*");
+    res.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
     res.header("Access-Control-Allow-Headers", "Content-Type");
-    res.status(200).end();
-  });
+    res.header("Vary", "Origin");
+    
+    if (req.method === 'OPTIONS') {
+      return res.status(204).end();
+    }
+    next();
+  };
+
+  // Apply CORS middleware to all public routes
+  app.use("/api/public/*", publicCorsMiddleware);
 
   // Public widget API endpoint (no authentication required)
   app.post("/api/public/lead/:photographerToken", async (req, res) => {
-    // Add CORS headers for widget embedding
-    res.header("Access-Control-Allow-Origin", "*");
-    res.header("Access-Control-Allow-Methods", "POST, OPTIONS");
-    res.header("Access-Control-Allow-Headers", "Content-Type");
+    // CORS headers handled by middleware
 
     try {
       const { photographerToken } = req.params;
@@ -2548,12 +2573,9 @@ ${photographer?.businessName || 'Your Photography Team'}`;
     res.sendFile(path.resolve(import.meta.dirname, "public/widget-embed.js"));
   });
 
-  // Public widget configuration API endpoint (no authentication required)
+  // Public widget configuration API endpoint (no authentication required) 
   app.get("/api/public/widget/:photographerToken", async (req, res) => {
-    // Add CORS headers for widget embedding
-    res.header("Access-Control-Allow-Origin", "*");
-    res.header("Access-Control-Allow-Methods", "GET, OPTIONS");
-    res.header("Access-Control-Allow-Headers", "Content-Type");
+    // CORS headers handled by middleware
 
     try {
       const { photographerToken } = req.params;
@@ -2567,7 +2589,9 @@ ${photographer?.businessName || 'Your Photography Team'}`;
         });
       }
 
-      // Return photographer's widget configuration
+      // Return photographer's widget configuration with absolute API URL
+      const baseUrl = `${req.protocol}://${req.get('host')}`;
+      
       res.json({
         success: true,
         config: {
@@ -2584,7 +2608,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
           buttonText: "Send Inquiry",
           successMessage: "Thank you! We'll be in touch soon."
         },
-        apiEndpoint: `/api/public/lead/${photographerToken}`
+        apiEndpoint: `${baseUrl}/api/public/lead/${photographerToken}`
       });
     } catch (error) {
       console.error("Error fetching widget config:", error);
