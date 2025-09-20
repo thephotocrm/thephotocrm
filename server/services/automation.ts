@@ -2,8 +2,78 @@ import { storage } from '../storage';
 import { sendEmail, renderTemplate } from './email';
 import { sendSms, renderSmsTemplate } from './sms';
 import { db } from '../db';
-import { clients, automations, automationSteps, stages, templates, emailLogs, smsLogs, photographers, estimates, estimatePayments, projects, bookings, projectQuestionnaires } from '@shared/schema';
+import { clients, automations, automationSteps, stages, templates, emailLogs, smsLogs, automationExecutions, photographers, estimates, estimatePayments, projects, bookings, projectQuestionnaires } from '@shared/schema';
 import { eq, and, gte, lte } from 'drizzle-orm';
+
+// Bulletproof automation execution tracking with reservation pattern
+async function reserveAutomationExecution(
+  projectId: string, 
+  automationId: string, 
+  automationType: string,
+  channel: string,
+  stepId?: string,
+  triggerType?: string,
+  eventDate?: Date,
+  daysBefore?: number,
+  timezone?: string
+): Promise<{ canExecute: boolean; executionId: string | null }> {
+  try {
+    const executionData: any = {
+      projectId,
+      automationId,
+      automationType,
+      channel,
+      status: 'PENDING'
+    };
+
+    // Add specific fields based on automation type
+    if (automationType === 'COMMUNICATION' && stepId) {
+      executionData.automationStepId = stepId;
+    } else if (automationType === 'STAGE_CHANGE' && triggerType) {
+      executionData.triggerType = triggerType;
+    } else if (automationType === 'COUNTDOWN' && eventDate && daysBefore !== undefined) {
+      // Normalize countdown to date-only key using photographer's timezone to prevent timezone/precision issues
+      const photographerTimezone = timezone || 'UTC';
+      const eventDateKey = normalizeEventDateKey(eventDate, photographerTimezone);
+      executionData.eventDate = new Date(eventDateKey + 'T00:00:00.000Z');
+      executionData.daysBefore = daysBefore;
+    }
+
+    // Try to insert reservation record - this is the atomic reservation
+    const result = await db.insert(automationExecutions).values(executionData).returning({ id: automationExecutions.id });
+    
+    console.log(`🔒 Automation execution reserved: ${automationType} for project ${projectId}`);
+    return { canExecute: true, executionId: result[0].id };
+  } catch (error) {
+    // If it's a unique constraint violation, automation already reserved/executed
+    if (error?.code === '23505') {
+      console.log(`🚫 Automation execution already reserved/completed (bulletproof prevention): ${automationType} for project ${projectId}`);
+      return { canExecute: false, executionId: null };
+    } else {
+      console.error('Error reserving automation execution:', error);
+      // On error, prevent execution to avoid duplicates (fail-safe approach)
+      return { canExecute: false, executionId: null };
+    }
+  }
+}
+
+async function updateExecutionStatus(executionId: string, status: 'SUCCESS' | 'FAILED'): Promise<void> {
+  try {
+    await db
+      .update(automationExecutions)
+      .set({ status })
+      .where(eq(automationExecutions.id, executionId));
+    console.log(`✅ Updated execution status to ${status} for execution ${executionId}`);
+  } catch (error) {
+    console.error('Error updating execution status:', error);
+  }
+}
+
+// Helper function to normalize event date to YYYY-MM-DD format in photographer's timezone
+function normalizeEventDateKey(eventDate: Date, timezone: string = 'UTC'): string {
+  const dateInTz = getDateInTimezone(eventDate, timezone);
+  return `${dateInTz.year}-${String(dateInTz.month + 1).padStart(2, '0')}-${String(dateInTz.day).padStart(2, '0')}`;
+}
 
 // Helper function to get date in photographer's timezone
 function getDateInTimezone(date: Date, timezone: string): { year: number, month: number, day: number } {
@@ -130,11 +200,41 @@ async function processStageChangeAutomation(automation: any, photographerId: str
 
   for (const projectRow of activeProjects) {
     const project = projectRow.projects;
+    
+    // First check if trigger condition is met (don't reserve if not triggered)
     const shouldTrigger = await checkTriggerCondition(automation.triggerType, project, photographerId);
     
-    if (shouldTrigger) {
+    if (!shouldTrigger) {
+      // Trigger condition not met, skip without reserving to allow future retries
+      continue;
+    }
+    
+    // 🔒 BULLETPROOF DUPLICATE PREVENTION - Reserve stage change execution atomically (ONLY after trigger confirmed)
+    const reservation = await reserveAutomationExecution(
+      project.id, // projectId
+      automation.id, // automationId
+      'STAGE_CHANGE', // automationType
+      'SYSTEM', // channel (stage changes are system actions)
+      undefined, // stepId (not used for stage change)
+      automation.triggerType // triggerType
+    );
+    
+    if (!reservation.canExecute) {
+      console.log(`🔒 Stage change automation already reserved/executed for project ${project.id} (trigger: ${automation.triggerType}), prevented duplicate`);
+      continue;
+    }
+    
+    // 🔒 BULLETPROOF ERROR HANDLING - Wrap stage change execution to prevent PENDING reservations on errors
+    try {
+      // Execute the stage change
       console.log(`✅ Trigger "${automation.triggerType}" matched for project ${project.id}, moving to stage ${automation.targetStageId}`);
       await moveProjectToStage(project.id, automation.targetStageId!);
+      // 🔒 BULLETPROOF EXECUTION TRACKING - Update stage change reservation status  
+      await updateExecutionStatus(reservation.executionId!, 'SUCCESS');
+    } catch (error) {
+      console.error(`❌ Error executing stage change for project ${project.id}:`, error);
+      // 🔒 BULLETPROOF ERROR HANDLING - Mark reservation as FAILED on any error to prevent PENDING state
+      await updateExecutionStatus(reservation.executionId!, 'FAILED');
     }
   }
 }
@@ -175,52 +275,31 @@ async function processAutomationStep(client: any, step: any, automation: any): P
     }
   }
 
-  // Check if automation already attempted for this specific stage entry
-  // We need to check all logs (including failed attempts) and determine if any were created after stageEnteredAt
-  // Since failed attempts have NULL sentAt, we'll use a heuristic: assume logs are created chronologically
-  // and compare the most recent log's sentAt (if available) or simply count recent logs as a proxy
-  const existingLogs = automation.channel === 'EMAIL' 
-    ? await db.select({ 
-        id: emailLogs.id, 
-        status: emailLogs.status, 
-        sentAt: emailLogs.sentAt 
-      }).from(emailLogs).where(and(
-        eq(emailLogs.projectId, client.id),
-        eq(emailLogs.automationStepId, step.id)
-      )).orderBy(emailLogs.id) // Order by ID as proxy for creation time
-    : await db.select({ 
-        id: smsLogs.id, 
-        status: smsLogs.status, 
-        sentAt: smsLogs.sentAt 
-      }).from(smsLogs).where(and(
-        eq(smsLogs.projectId, client.id),
-        eq(smsLogs.automationStepId, step.id)
-      )).orderBy(smsLogs.id); // Order by ID as proxy for creation time
-
-  // Simple approach: if there are any existing logs, check if the most recent successful one
-  // was after stageEnteredAt. This allows re-attempts after failures but prevents duplicate successes.
-  const recentSuccessfulAttempts = existingLogs.filter(log => 
-    log.status === 'sent' && log.sentAt && new Date(log.sentAt) >= stageEnteredAt
-  );
+  // 🔒 BULLETPROOF PRECONDITION CHECKS - Validate ALL conditions BEFORE reserving execution
   
-  if (recentSuccessfulAttempts.length > 0) {
-    console.log(`🚫 Already successfully sent for ${client.firstName} ${client.lastName} since stage entry, skipping`);
-    return;
-  }
-
-  // Check consent
+  // Check consent FIRST (before any reservation)
   if (automation.channel === 'EMAIL' && !client.emailOptIn) {
-    console.log(`📧 Email opt-in missing for ${client.firstName} ${client.lastName}`);
+    console.log(`📧 Email opt-in missing for ${client.firstName} ${client.lastName}, skipping (no reservation)`);
     return;
   }
   if (automation.channel === 'SMS' && !client.smsOptIn) {
-    console.log(`📱 SMS opt-in missing for ${client.firstName} ${client.lastName}`);
+    console.log(`📱 SMS opt-in missing for ${client.firstName} ${client.lastName}, skipping (no reservation)`);
     return;
   }
 
-  // Get template
+  // Check contact info EARLY (before reservation)
+  if (automation.channel === 'EMAIL' && !client.email) {
+    console.log(`📧 No email address for ${client.firstName} ${client.lastName}, skipping (no reservation)`);
+    return;
+  }
+  if (automation.channel === 'SMS' && !client.phone) {
+    console.log(`📱 No phone number for ${client.firstName} ${client.lastName}, skipping (no reservation)`);
+    return;
+  }
+
+  // Check template exists BEFORE reservation
   if (!step.templateId) {
-    console.log(`📝 No template ID for ${client.firstName} ${client.lastName}`);
+    console.log(`📝 No template ID for ${client.firstName} ${client.lastName}, skipping (no reservation)`);
     return;
   }
   
@@ -233,13 +312,27 @@ async function processAutomationStep(client: any, step: any, automation: any): P
     ));
 
   if (!template) {
-    console.log(`📝 Template not found for ${client.firstName} ${client.lastName}, templateId: ${step.templateId}`);
+    console.log(`📝 Template not found for ${client.firstName} ${client.lastName}, templateId: ${step.templateId}, skipping (no reservation)`);
     return;
   }
 
-  // Validate that template channel matches automation channel
+  // Validate template-channel match BEFORE reservation
   if (template.channel !== automation.channel) {
-    console.log(`❌ Template channel mismatch for automation ${automation.name}: template=${template.channel}, automation=${automation.channel}`);
+    console.log(`❌ Template channel mismatch for automation ${automation.name}: template=${template.channel}, automation=${automation.channel}, skipping (no reservation)`);
+    return;
+  }
+
+  // 🔒 BULLETPROOF DUPLICATE PREVENTION - Reserve execution atomically (ONLY after ALL preconditions pass)
+  const reservation = await reserveAutomationExecution(
+    client.id, // projectId
+    automation.id, // automationId
+    'COMMUNICATION', // automationType
+    automation.channel, // channel
+    step.id // stepId
+  );
+  
+  if (!reservation.canExecute) {
+    console.log(`🔒 Automation already reserved/executed for ${client.firstName} ${client.lastName}, prevented duplicate (bulletproof reservation)`);
     return;
   }
 
@@ -261,8 +354,10 @@ async function processAutomationStep(client: any, step: any, automation: any): P
     weddingDate: client.eventDate ? new Date(client.eventDate).toLocaleDateString() : 'Not set' // Backward compatibility
   };
 
-  // Send message
-  if (automation.channel === 'EMAIL' && client.email) {
+  // 🔒 BULLETPROOF ERROR HANDLING - Wrap all send operations to prevent PENDING reservations on errors
+  try {
+    // Send message
+    if (automation.channel === 'EMAIL' && client.email) {
     const subject = renderTemplate(template.subject || '', variables);
     const htmlBody = renderTemplate(template.htmlBody || '', variables);
     const textBody = renderTemplate(template.textBody || '', variables);
@@ -296,7 +391,10 @@ async function processAutomationStep(client: any, step: any, automation: any): P
       sentAt: success ? now : null
     });
 
-  } else if (automation.channel === 'SMS' && client.phone) {
+      // 🔒 BULLETPROOF EXECUTION TRACKING - Update reservation status
+      await updateExecutionStatus(reservation.executionId!, success ? 'SUCCESS' : 'FAILED');
+
+    } else if (automation.channel === 'SMS' && client.phone) {
     const body = renderSmsTemplate(template.textBody || '', variables);
 
     const result = await sendSms({
@@ -313,6 +411,14 @@ async function processAutomationStep(client: any, step: any, automation: any): P
       providerId: result.sid,
       sentAt: result.success ? now : null
     });
+
+      // 🔒 BULLETPROOF EXECUTION TRACKING - Update reservation status
+      await updateExecutionStatus(reservation.executionId!, result.success ? 'SUCCESS' : 'FAILED');
+    }
+  } catch (error) {
+    console.error(`❌ Error sending communication message to ${client.firstName} ${client.lastName}:`, error);
+    // 🔒 BULLETPROOF ERROR HANDLING - Mark reservation as FAILED on any error to prevent PENDING state
+    await updateExecutionStatus(reservation.executionId!, 'FAILED');
   }
 }
 
@@ -569,13 +675,25 @@ async function processCountdownAutomation(automation: any, photographerId: strin
 async function sendCountdownMessage(project: any, automation: any, photographerId: string): Promise<void> {
   console.log(`Sending countdown message to ${project.firstName} ${project.lastName}`);
   
-  // Check consent
+  // 🔒 BULLETPROOF PRECONDITION CHECKS - Validate ALL conditions BEFORE reserving execution
+  
+  // Check consent FIRST (before any reservation)
   if (automation.channel === 'EMAIL' && !project.emailOptIn) {
-    console.log(`📧 Email opt-in missing for ${project.firstName} ${project.lastName}`);
+    console.log(`📧 Email opt-in missing for ${project.firstName} ${project.lastName}, skipping (no reservation)`);
     return;
   }
   if (automation.channel === 'SMS' && !project.smsOptIn) {
-    console.log(`📱 SMS opt-in missing for ${project.firstName} ${project.lastName}`);
+    console.log(`📱 SMS opt-in missing for ${project.firstName} ${project.lastName}, skipping (no reservation)`);
+    return;
+  }
+
+  // Check contact info EARLY (before reservation)
+  if (automation.channel === 'EMAIL' && !project.email) {
+    console.log(`📧 No email address for ${project.firstName} ${project.lastName}, skipping (no reservation)`);
+    return;
+  }
+  if (automation.channel === 'SMS' && !project.phone) {
+    console.log(`📱 No phone number for ${project.firstName} ${project.lastName}, skipping (no reservation)`);
     return;
   }
 
@@ -586,6 +704,31 @@ async function sendCountdownMessage(project: any, automation: any, photographerI
     .where(eq(photographers.id, photographerId));
     
   const timezone = photographer?.timezone || 'UTC';
+
+  // Check template exists BEFORE reservation
+  if (!automation.templateId) {
+    console.log(`📝 No template ID for countdown automation ${automation.name}, skipping (no reservation)`);
+    return;
+  }
+  
+  const [template] = await db
+    .select()
+    .from(templates)
+    .where(and(
+      eq(templates.id, automation.templateId),
+      eq(templates.photographerId, photographerId)
+    ));
+
+  if (!template) {
+    console.log(`📝 Template not found for countdown automation, templateId: ${automation.templateId}, skipping (no reservation)`);
+    return;
+  }
+
+  // Validate template-channel match BEFORE reservation
+  if (template.channel !== automation.channel) {
+    console.log(`❌ Template channel mismatch for countdown automation ${automation.name}: template=${template.channel}, automation=${automation.channel}, skipping (no reservation)`);
+    return;
+  }
   
   // Calculate today in photographer's timezone using proper timezone handling
   const now = new Date();
@@ -597,55 +740,22 @@ async function sendCountdownMessage(project: any, automation: any, photographerI
   const eventDateParts = getDateInTimezone(new Date(project.eventDate), timezone);
   const eventDateKey = `${eventDateParts.year}-${eventDateParts.month}-${eventDateParts.day}`;
   
-  // Check if message already sent for this specific countdown automation + event date combination
-  const logTableName = automation.channel === 'EMAIL' ? emailLogs : smsLogs;
-  const existingLogs = await db
-    .select()
-    .from(logTableName)
-    .where(and(
-      eq(logTableName.projectId, project.id),
-      eq(logTableName.automationStepId, automation.id) // Use automation.id as reference
-    ));
-  
-  const todaysSuccessfulLogs = existingLogs.filter(log => 
-    log.status === 'sent' && 
-    log.sentAt &&
-    new Date(log.sentAt) >= startOfDay && 
-    new Date(log.sentAt) < endOfDay
+  // 🔒 BULLETPROOF DUPLICATE PREVENTION - Reserve countdown execution atomically (ONLY after ALL preconditions pass)
+  const eventDateForTracking = new Date(project.eventDate); // FIX: Use project.eventDate directly instead of undefined eventDateInTz
+  const reservation = await reserveAutomationExecution(
+    project.id, // projectId
+    automation.id, // automationId
+    'COUNTDOWN', // automationType
+    automation.channel, // channel
+    undefined, // stepId (not used for countdown)
+    undefined, // triggerType (not used for countdown)
+    eventDateForTracking, // eventDate
+    automation.daysBefore, // daysBefore
+    timezone // photographer's timezone for proper normalization
   );
   
-  if (todaysSuccessfulLogs.length > 0) {
-    console.log(`🚫 Already sent countdown message today for ${project.firstName} ${project.lastName} (event: ${eventDateKey})`);
-    return;
-  }
-
-  // Get template using templateId from automation (scoped by photographer for security)
-  const [template] = await db
-    .select()
-    .from(templates)
-    .where(and(
-      eq(templates.id, automation.templateId),
-      eq(templates.photographerId, photographerId)
-    ));
-
-  if (!template) {
-    console.log(`📝 Template not found for countdown automation, templateId: ${automation.templateId}`);
-    return;
-  }
-
-  // Validate that template channel matches automation channel
-  if (template.channel !== automation.channel) {
-    console.log(`❌ Template channel mismatch for countdown automation ${automation.name}: template=${template.channel}, automation=${automation.channel}`);
-    return;
-  }
-
-  // Check contact information and consent
-  if (automation.channel === 'EMAIL' && (!project.email || !project.emailOptIn)) {
-    console.log(`📧 Email not available or opt-in missing for ${project.firstName} ${project.lastName}`);
-    return;
-  }
-  if (automation.channel === 'SMS' && (!project.phone || !project.smsOptIn)) {
-    console.log(`📱 Phone not available or SMS opt-in missing for ${project.firstName} ${project.lastName}`);
+  if (!reservation.canExecute) {
+    console.log(`🔒 Countdown automation already reserved/executed for ${project.firstName} ${project.lastName} (event: ${eventDateKey}), prevented duplicate (bulletproof reservation)`);
     return;
   }
 
@@ -668,8 +778,10 @@ async function sendCountdownMessage(project: any, automation: any, photographerI
     daysBefore: automation.daysBefore.toString()
   };
 
-  // Send message
-  if (automation.channel === 'EMAIL' && project.email) {
+  // 🔒 BULLETPROOF ERROR HANDLING - Wrap send operations to prevent PENDING reservations on errors
+  try {
+    // Send message
+    if (automation.channel === 'EMAIL' && project.email) {
     const subject = renderTemplate(template.subject || '', variables);
     const htmlBody = renderTemplate(template.htmlBody || '', variables);
     const textBody = renderTemplate(template.textBody || '', variables);
@@ -701,7 +813,10 @@ async function sendCountdownMessage(project: any, automation: any, photographerI
       sentAt: success ? new Date() : null
     });
 
-  } else if (automation.channel === 'SMS' && project.phone) {
+      // 🔒 BULLETPROOF EXECUTION TRACKING - Update countdown reservation status
+      await updateExecutionStatus(reservation.executionId!, success ? 'SUCCESS' : 'FAILED');
+
+    } else if (automation.channel === 'SMS' && project.phone) {
     const body = renderSmsTemplate(template.textBody || '', variables);
 
     console.log(`📱 Sending countdown SMS to ${project.firstName} ${project.lastName} (${project.phone})...`);
@@ -722,6 +837,14 @@ async function sendCountdownMessage(project: any, automation: any, photographerI
       providerId: result.sid,
       sentAt: result.success ? new Date() : null
     });
+
+      // 🔒 BULLETPROOF EXECUTION TRACKING - Update countdown reservation status
+      await updateExecutionStatus(reservation.executionId!, result.success ? 'SUCCESS' : 'FAILED');
+    }
+  } catch (error) {
+    console.error(`❌ Error sending countdown message to ${project.firstName} ${project.lastName}:`, error);
+    // 🔒 BULLETPROOF ERROR HANDLING - Mark reservation as FAILED on any error to prevent PENDING state
+    await updateExecutionStatus(reservation.executionId!, 'FAILED');
   }
 }
 
