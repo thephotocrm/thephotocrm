@@ -128,7 +128,7 @@ export const projects = pgTable("projects", {
   stageId: varchar("stage_id").references(() => stages.id),
   stageEnteredAt: timestamp("stage_entered_at"),
   status: text("status").default("ACTIVE"), // ACTIVE, COMPLETED, CANCELLED
-  smsOptIn: boolean("sms_opt_in").default(false),
+  smsOptIn: boolean("sms_opt_in").default(true),
   emailOptIn: boolean("email_opt_in").default(true),
   createdAt: timestamp("created_at").defaultNow()
 });

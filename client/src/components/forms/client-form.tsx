@@ -156,8 +156,13 @@ export default function ClientForm({
         />
 
         {/* Communication Preferences */}
-        <div className="space-y-3">
-          <Label className="text-sm font-medium">Communication Preferences</Label>
+        <div className="space-y-4">
+          <div>
+            <Label className="text-sm font-medium">Communication Preferences</Label>
+            <p className="text-xs text-muted-foreground mt-1">
+              Choose how you'd like to receive updates about your project. You can update these preferences at any time.
+            </p>
+          </div>
           
           <FormField
             control={form.control}
@@ -176,7 +181,7 @@ export default function ClientForm({
                     Email communications
                   </FormLabel>
                   <p className="text-xs text-muted-foreground">
-                    Receive updates and communications via email
+                    Receive project updates, appointment reminders, and important notifications via email
                   </p>
                 </div>
               </FormItem>
@@ -200,12 +205,21 @@ export default function ClientForm({
                     SMS notifications
                   </FormLabel>
                   <p className="text-xs text-muted-foreground">
-                    Receive important updates via text message
+                    Receive important updates and reminders via text message. Message and data rates may apply. 
+                    You can reply STOP to opt out at any time.
                   </p>
                 </div>
               </FormItem>
             )}
           />
+
+          <div className="bg-muted/50 p-3 rounded-md">
+            <p className="text-xs text-muted-foreground">
+              <strong>Privacy Notice:</strong> Your contact information will only be used for photography services and communications. 
+              We respect your privacy and will never share your information with third parties. 
+              You may opt out of any communications at any time.
+            </p>
+          </div>
         </div>
 
         <Button 
