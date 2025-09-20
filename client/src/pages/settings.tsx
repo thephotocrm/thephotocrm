@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Settings as SettingsIcon, User, Palette, Mail, Clock, Shield, Calendar, CheckCircle, XCircle, ExternalLink } from "lucide-react";
+import { Settings as SettingsIcon, User, Palette, Mail, Clock, Shield, Calendar, CheckCircle, XCircle, ExternalLink, CreditCard, AlertCircle } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -61,6 +61,210 @@ export default function Settings() {
   const [emailFromName, setEmailFromName] = useState((photographer as any)?.emailFromName || "");
   const [emailFromAddr, setEmailFromAddr] = useState((photographer as any)?.emailFromAddr || "");
   const [timezone, setTimezone] = useState((photographer as any)?.timezone || "America/New_York");
+
+  // Stripe Connect integration component
+  function StripeConnectIntegration() {
+    const { data: stripeStatus, refetch: refetchStripeStatus } = useQuery({
+      queryKey: ["/api/stripe-connect/account-status"],
+      enabled: !!user
+    });
+
+    const createAccountMutation = useMutation({
+      mutationFn: async () => {
+        await apiRequest("POST", "/api/stripe-connect/create-account");
+      },
+      onSuccess: () => {
+        refetchStripeStatus();
+        toast({
+          title: "Stripe Account Created",
+          description: "Your Stripe Connect account has been created. Complete onboarding to start receiving payments.",
+        });
+      },
+      onError: (error: any) => {
+        toast({
+          title: "Account Creation Failed",
+          description: error.message || "Failed to create Stripe account. Please try again.",
+          variant: "destructive"
+        });
+      }
+    });
+
+    const createOnboardingLinkMutation = useMutation({
+      mutationFn: async () => {
+        const response = await apiRequest("POST", "/api/stripe-connect/create-onboarding-link", {
+          returnUrl: `${window.location.origin}/settings?tab=integrations&stripe=success`,
+          refreshUrl: `${window.location.origin}/settings?tab=integrations&stripe=refresh`
+        });
+        return response;
+      },
+      onSuccess: (data: any) => {
+        if (data.url) {
+          window.open(data.url, '_blank', 'width=800,height=700');
+          // Poll for connection status after opening onboarding window
+          const pollInterval = setInterval(async () => {
+            const result = await refetchStripeStatus();
+            if ((result.data as any)?.onboardingCompleted) {
+              clearInterval(pollInterval);
+              toast({
+                title: "Stripe Connected!",
+                description: "Your Stripe account is ready to receive payments.",
+              });
+            }
+          }, 3000);
+          
+          // Stop polling after 10 minutes
+          setTimeout(() => clearInterval(pollInterval), 10 * 60 * 1000);
+        }
+      },
+      onError: (error: any) => {
+        toast({
+          title: "Onboarding Failed",
+          description: error.message || "Failed to start onboarding. Please try again.",
+          variant: "destructive"
+        });
+      }
+    });
+
+    const hasAccount = (stripeStatus as any)?.hasAccount;
+    const onboardingCompleted = (stripeStatus as any)?.onboardingCompleted;
+    const payoutEnabled = (stripeStatus as any)?.payoutEnabled;
+    const accountStatus = (stripeStatus as any)?.status;
+
+    const getStatusDisplay = () => {
+      if (!hasAccount) {
+        return { icon: XCircle, text: "Not Connected", color: "text-gray-500" };
+      }
+      if (onboardingCompleted && payoutEnabled) {
+        return { icon: CheckCircle, text: "Active", color: "text-green-600" };
+      }
+      if (hasAccount && !onboardingCompleted) {
+        return { icon: AlertCircle, text: "Setup Required", color: "text-yellow-600" };
+      }
+      return { icon: XCircle, text: "Incomplete", color: "text-red-600" };
+    };
+
+    const status = getStatusDisplay();
+    const StatusIcon = status.icon;
+
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center justify-between p-4 border border-border rounded-lg">
+          <div className="flex items-center space-x-3">
+            <CreditCard className="w-8 h-8 text-primary" />
+            <div>
+              <h3 className="font-medium">Stripe Connect</h3>
+              <p className="text-sm text-muted-foreground">
+                Accept payments and receive instant payouts to your bank account
+              </p>
+              {hasAccount && accountStatus && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  Account status: {accountStatus}
+                </p>
+              )}
+            </div>
+          </div>
+          <div className="flex items-center space-x-3">
+            <div className={`flex items-center ${status.color}`}>
+              <StatusIcon className="w-4 h-4 mr-1" />
+              <span className="text-sm font-medium">{status.text}</span>
+            </div>
+            {!hasAccount ? (
+              <Button
+                onClick={() => createAccountMutation.mutate()}
+                disabled={createAccountMutation.isPending}
+                data-testid="button-create-stripe-account"
+                className="flex items-center"
+              >
+                {createAccountMutation.isPending ? (
+                  "Creating..."
+                ) : (
+                  <>
+                    Connect Stripe
+                    <ExternalLink className="w-4 h-4 ml-1" />
+                  </>
+                )}
+              </Button>
+            ) : !onboardingCompleted ? (
+              <Button
+                onClick={() => createOnboardingLinkMutation.mutate()}
+                disabled={createOnboardingLinkMutation.isPending}
+                data-testid="button-complete-stripe-onboarding"
+                className="flex items-center"
+              >
+                {createOnboardingLinkMutation.isPending ? (
+                  "Opening..."
+                ) : (
+                  <>
+                    Complete Setup
+                    <ExternalLink className="w-4 h-4 ml-1" />
+                  </>
+                )}
+              </Button>
+            ) : (
+              <Button
+                variant="outline"
+                onClick={() => createOnboardingLinkMutation.mutate()}
+                disabled={createOnboardingLinkMutation.isPending}
+                data-testid="button-manage-stripe-account"
+                className="flex items-center"
+              >
+                {createOnboardingLinkMutation.isPending ? (
+                  "Opening..."
+                ) : (
+                  <>
+                    Manage Account
+                    <ExternalLink className="w-4 h-4 ml-1" />
+                  </>
+                )}
+              </Button>
+            )}
+          </div>
+        </div>
+        
+        {onboardingCompleted && payoutEnabled && (
+          <div className="p-3 bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded-lg">
+            <div className="flex items-start space-x-2">
+              <CheckCircle className="w-4 h-4 text-green-600 mt-0.5" />
+              <div className="text-sm">
+                <p className="font-medium text-green-800 dark:text-green-200">Payments enabled</p>
+                <p className="text-green-700 dark:text-green-300 mt-1">
+                  You can now accept payments and receive instant payouts. Visit your earnings page to request payouts.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        {hasAccount && !onboardingCompleted && (
+          <div className="p-3 bg-yellow-50 dark:bg-yellow-950 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+            <div className="flex items-start space-x-2">
+              <AlertCircle className="w-4 h-4 text-yellow-600 mt-0.5" />
+              <div className="text-sm">
+                <p className="font-medium text-yellow-800 dark:text-yellow-200">Setup required</p>
+                <p className="text-yellow-700 dark:text-yellow-300 mt-1">
+                  Complete your Stripe onboarding to start accepting payments and receiving payouts
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        {!hasAccount && (
+          <div className="p-3 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg">
+            <div className="flex items-start space-x-2">
+              <CreditCard className="w-4 h-4 text-blue-600 mt-0.5" />
+              <div className="text-sm">
+                <p className="font-medium text-blue-800 dark:text-blue-200">Connect Stripe for payments</p>
+                <p className="text-blue-700 dark:text-blue-300 mt-1">
+                  Create a Stripe Connect account to accept client payments and receive instant payouts (within minutes for a 1% fee)
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
 
   // Google Calendar integration component
   function GoogleCalendarIntegration() {
@@ -597,14 +801,25 @@ export default function Settings() {
             </TabsContent>
 
             <TabsContent value="integrations">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Calendar Integration</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <GoogleCalendarIntegration />
-                </CardContent>
-              </Card>
+              <div className="space-y-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Payment Processing</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <StripeConnectIntegration />
+                  </CardContent>
+                </Card>
+                
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Calendar Integration</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <GoogleCalendarIntegration />
+                  </CardContent>
+                </Card>
+              </div>
             </TabsContent>
           </Tabs>
         </div>
