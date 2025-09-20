@@ -17,7 +17,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Zap, Clock, Mail, Smartphone, Settings, Edit2, ArrowRight } from "lucide-react";
+import { Plus, Zap, Clock, Mail, Smartphone, Settings, Edit2, ArrowRight, Calendar } from "lucide-react";
 import { insertAutomationSchema, projectTypeEnum, automationTypeEnum, triggerTypeEnum } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -724,6 +724,14 @@ export default function Automations() {
       ...(automationType === 'STAGE_CHANGE' && {
         triggerType: data.triggerType,
         targetStageId: data.targetStageId
+      }),
+      // Countdown automation fields
+      ...(automationType === 'COUNTDOWN' && {
+        daysBefore: data.daysBefore,
+        eventType: data.eventType,
+        stageCondition: data.stageCondition,
+        channel: data.channel,
+        templateId: data.templateId
       })
     };
 
@@ -912,6 +920,37 @@ export default function Automations() {
                               {templates.filter((t: any) => t.channel === form.watch('channel')).length === 0 && (
                                 <SelectItem value="unavailable" disabled>
                                   No {form.watch('channel').toLowerCase()} templates available - create templates first
+                                </SelectItem>
+                              )}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="questionnaireTemplateId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Questionnaire Assignment (Optional)</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value || ""}>
+                            <FormControl>
+                              <SelectTrigger data-testid="select-questionnaire">
+                                <SelectValue placeholder="Optionally assign a questionnaire" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="">No questionnaire assignment</SelectItem>
+                              {questionnaireTemplates?.map((questionnaire: any) => (
+                                <SelectItem key={questionnaire.id} value={questionnaire.id}>
+                                  📋 {questionnaire.name}
+                                </SelectItem>
+                              ))}
+                              {questionnaireTemplates?.length === 0 && (
+                                <SelectItem value="unavailable" disabled>
+                                  No questionnaire templates available - create questionnaires first
                                 </SelectItem>
                               )}
                             </SelectContent>
@@ -1148,6 +1187,56 @@ export default function Automations() {
                             </FormItem>
                           )}
                         />
+
+                        <FormField
+                          control={form.control}
+                          name="eventType"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Event Type</FormLabel>
+                              <Select onValueChange={field.onChange} value={field.value}>
+                                <FormControl>
+                                  <SelectTrigger data-testid="select-event-type">
+                                    <SelectValue placeholder="Select event type to count down from" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="event_date">📅 Event Date</SelectItem>
+                                  <SelectItem value="consultation_date">💬 Consultation Date</SelectItem>
+                                  <SelectItem value="delivery_date">📦 Delivery Date</SelectItem>
+                                  <SelectItem value="booking_date">📋 Booking Date</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="stageCondition"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Stage Condition (Optional)</FormLabel>
+                              <Select onValueChange={field.onChange} value={field.value || ""}>
+                                <FormControl>
+                                  <SelectTrigger data-testid="select-stage-condition">
+                                    <SelectValue placeholder="Only send if client is in this stage" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="">No stage requirement</SelectItem>
+                                  {stages?.map((stage: any) => (
+                                    <SelectItem key={stage.id} value={stage.id}>
+                                      Only if in "{stage.name}" stage
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
                       </>
                     )}
 
@@ -1303,82 +1392,111 @@ export default function Automations() {
                   </Card>
                 </div>
 
-                {/* Automation Rules by Stage */}
-                <div className="space-y-6">
-                  {stagesError ? (
-                    <Card>
-                      <CardContent className="text-center py-8">
-                        <p className="text-muted-foreground">Failed to load stages. Please try refreshing the page.</p>
-                      </CardContent>
-                    </Card>
-                  ) : stagesLoading ? (
-                    <Card>
-                      <CardContent className="text-center py-8">
-                        <p className="text-muted-foreground">Loading stages...</p>
-                      </CardContent>
-                    </Card>
-                  ) : Array.isArray(stages) && stages?.map((stage: any) => (
-                    <Card key={stage.id}>
-                      <CardHeader>
-                        <div className="flex items-center justify-between">
+                {/* Two-Level Automation Architecture */}
+                <div className="space-y-8">
+                  {/* Stage-Based Automations Section */}
+                  <Card>
+                    <CardHeader>
+                      <div className="flex items-center justify-between">
+                        <div>
                           <CardTitle className="flex items-center">
-                            <div className="w-3 h-3 bg-primary rounded-full mr-3"></div>
-                            {stage.name} Stage
+                            <Settings className="w-5 h-5 mr-3 text-blue-500" />
+                            Stage-Based Automations
                           </CardTitle>
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            data-testid={`button-manage-${stage.name.toLowerCase().replace(/\s+/g, '-')}`}
-                            onClick={() => {
-                              setSelectedStage(stage);
-                              setManageRulesDialogOpen(true);
-                            }}
-                          >
-                            <Settings className="w-4 h-4 mr-2" />
-                            Manage Rules
-                          </Button>
+                          <p className="text-sm text-muted-foreground mt-1">
+                            Triggered when clients enter specific pipeline stages
+                          </p>
                         </div>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-4">
-                          {/* Real automation rules with edit buttons */}
-                          {(() => {
-                            const stageAutomations = (automations ?? []).filter((a: any) => a.stageId === stage.id);
-                            return stageAutomations.length === 0 ? (
-                              <p className="text-muted-foreground text-center py-4">
-                                No automation rules configured for this stage yet.
-                              </p>
-                            ) : (
-                              stageAutomations.map((automation: any) => (
-                                automation.automationType === 'COMMUNICATION' ? (
-                                  <AutomationStepManager key={automation.id} automation={automation} onDelete={handleDeleteAutomation} />
-                                ) : (
-                                  <StageChangeAutomationCard key={automation.id} automation={automation} onDelete={handleDeleteAutomation} />
-                                )
-                              ))
-                            );
-                          })()}
+                        <Button 
+                          onClick={() => {
+                            setAutomationType('COMMUNICATION');
+                            setCreateDialogOpen(true);
+                          }}
+                          data-testid="button-add-stage-automation"
+                        >
+                          <Plus className="w-4 h-4 mr-2" />
+                          Add Stage Automation
+                        </Button>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-4">
+                        {(() => {
+                          const stageBasedAutomations = (automations ?? []).filter((a: any) => 
+                            a.automationType === 'COMMUNICATION' || a.automationType === 'STAGE_CHANGE'
+                          );
                           
-                          {/* Add Automation button for this stage */}
-                          <div className="pt-4 border-t">
-                            <Button 
-                              variant="outline" 
-                              className="w-full"
-                              onClick={() => {
-                                // Pre-populate the stage in the form
-                                form.setValue('stageId', stage.id);
-                                setCreateDialogOpen(true);
-                              }}
-                              data-testid={`button-add-automation-${stage.id}`}
-                            >
-                              <Plus className="w-4 h-4 mr-2" />
-                              Add Automation for {stage.name} Stage
-                            </Button>
-                          </div>
+                          if (stageBasedAutomations.length === 0) {
+                            return (
+                              <div className="text-center py-8">
+                                <Settings className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                                <p className="text-muted-foreground">No stage-based automations configured yet.</p>
+                                <p className="text-sm text-muted-foreground">Create automations that trigger when clients move to specific stages.</p>
+                              </div>
+                            );
+                          }
+                          
+                          return stageBasedAutomations.map((automation: any) => (
+                            automation.automationType === 'COMMUNICATION' ? (
+                              <AutomationStepManager key={automation.id} automation={automation} onDelete={handleDeleteAutomation} />
+                            ) : (
+                              <StageChangeAutomationCard key={automation.id} automation={automation} onDelete={handleDeleteAutomation} />
+                            )
+                          ));
+                        })()}
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Event Countdown Automations Section */}
+                  <Card>
+                    <CardHeader>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <CardTitle className="flex items-center">
+                            <Calendar className="w-5 h-5 mr-3 text-green-500" />
+                            Event Countdown Automations
+                          </CardTitle>
+                          <p className="text-sm text-muted-foreground mt-1">
+                            Triggered by days remaining until event dates
+                          </p>
                         </div>
-                      </CardContent>
-                    </Card>
-                  ))}
+                        <Button 
+                          onClick={() => {
+                            setAutomationType('COUNTDOWN');
+                            setCreateDialogOpen(true);
+                          }}
+                          data-testid="button-add-countdown-automation"
+                        >
+                          <Plus className="w-4 h-4 mr-2" />
+                          Add Countdown Automation
+                        </Button>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-4">
+                        {(() => {
+                          const countdownAutomations = (automations ?? []).filter((a: any) => 
+                            a.automationType === 'COUNTDOWN'
+                          );
+                          
+                          if (countdownAutomations.length === 0) {
+                            return (
+                              <div className="text-center py-8">
+                                <Calendar className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                                <p className="text-muted-foreground">No countdown automations configured yet.</p>
+                                <p className="text-sm text-muted-foreground">Create time-based reminders leading up to event dates.</p>
+                              </div>
+                            );
+                          }
+                          
+                          return countdownAutomations.map((automation: any) => (
+                            <AutomationStepManager key={automation.id} automation={automation} onDelete={handleDeleteAutomation} />
+                          ));
+                        })()}
+                      </div>
+                    </CardContent>
+                  </Card>
                 </div>
               </TabsContent>
             ))}
