@@ -20,6 +20,7 @@ import WidgetGenerator from "@/pages/widget-generator";
 import Questionnaires from "@/pages/questionnaires";
 import Scheduling from "@/pages/scheduling";
 import Reports from "@/pages/reports";
+import Earnings from "@/pages/earnings";
 import Settings from "@/pages/settings";
 import Checkout from "@/pages/checkout";
 import ClientPortal from "@/pages/client-portal";
@@ -46,6 +47,7 @@ function Router() {
       <Route path="/questionnaires" component={Questionnaires} />
       <Route path="/scheduling" component={Scheduling} />
       <Route path="/reports" component={Reports} />
+      <Route path="/earnings" component={Earnings} />
       <Route path="/settings" component={Settings} />
       <Route path="/checkout" component={Checkout} />
       <Route path="/client-portal" component={ClientPortal} />

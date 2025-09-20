@@ -12,6 +12,7 @@ import {
   MessageSquare, 
   Zap, 
   BarChart3, 
+  DollarSign,
   Settings,
   LogOut,
   Code
@@ -46,7 +47,8 @@ export function AppSidebar() {
     { name: "Scheduling", href: "/scheduling", icon: Calendar },
     { name: "Templates", href: "/templates", icon: MessageSquare },
     { name: "Automations", href: "/automations", icon: Zap },
-    { name: "Reports", href: "/reports", icon: BarChart3 }
+    { name: "Reports", href: "/reports", icon: BarChart3 },
+    { name: "Earnings", href: "/earnings", icon: DollarSign }
   ];
 
   const handleLogout = async () => {
