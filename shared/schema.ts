@@ -977,6 +977,18 @@ export type InsertPhotographerEarnings = z.infer<typeof insertPhotographerEarnin
 export type PhotographerPayouts = typeof photographerPayouts.$inferSelect;
 export type InsertPhotographerPayouts = z.infer<typeof insertPhotographerPayoutsSchema>;
 
+// Stripe Connect request validation schemas
+export const createOnboardingLinkSchema = z.object({
+  returnUrl: z.string().url().optional(),
+  refreshUrl: z.string().url().optional()
+});
+
+export const createPayoutSchema = z.object({
+  amountCents: z.number().int().positive(),
+  currency: z.string().length(3).default('USD'),
+  method: z.enum(['standard', 'instant']).default('standard')
+});
+
 // Proposal type aliases (for terminology migration from "Estimate" to "Proposal")
 // These aliases enable gradual UI/API migration while maintaining backend consistency
 export type Proposal = Estimate;

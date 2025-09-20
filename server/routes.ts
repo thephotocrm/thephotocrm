@@ -15,7 +15,7 @@ import { insertUserSchema, insertPhotographerSchema, insertClientSchema, insertS
          insertEstimateSchema, insertMessageSchema, insertBookingSchema, updateBookingSchema, 
          bookingConfirmationSchema, sanitizedBookingSchema, insertQuestionnaireTemplateSchema, insertQuestionnaireQuestionSchema, 
          insertAvailabilitySlotSchema, updateAvailabilitySlotSchema, emailLogs, smsLogs, projectActivityLog,
-         projectTypeEnum } from "@shared/schema";
+         projectTypeEnum, createOnboardingLinkSchema, createPayoutSchema } from "@shared/schema";
 import { z } from "zod";
 import { startCronJobs } from "./jobs/cron";
 import path from "path";
@@ -25,7 +25,7 @@ if (!process.env.STRIPE_SECRET_KEY) {
 }
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: "2025-08-27.basil",
+  apiVersion: "2023-10-16",
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -1605,6 +1605,45 @@ ${photographer?.businessName || 'Your Photography Team'}`;
             await storage.updateEstimate(metadata.estimateId, { status });
           }
           break;
+
+        case 'account.updated':
+          const account = event.data.object as Stripe.Account;
+          const photographerId = account.metadata?.photographer_id;
+          
+          if (photographerId) {
+            const payoutEnabled = account.payouts_enabled;
+            const onboardingCompleted = account.details_submitted && 
+                                         account.charges_enabled && 
+                                         account.payouts_enabled;
+
+            await storage.updatePhotographer(photographerId, {
+              payoutEnabled,
+              onboardingCompleted,
+              stripeAccountStatus: onboardingCompleted ? 'active' : 'pending',
+              stripeOnboardingCompletedAt: onboardingCompleted ? new Date() : null
+            });
+          }
+          break;
+
+        case 'payout.created':
+        case 'payout.paid':
+        case 'payout.failed':
+        case 'payout.canceled':
+          const payout = event.data.object as Stripe.Payout;
+          const existingPayout = await storage.getPayoutByStripePayoutId(payout.id);
+          
+          if (existingPayout) {
+            let status = 'pending';
+            if (event.type === 'payout.paid') status = 'paid';
+            else if (event.type === 'payout.failed') status = 'failed';
+            else if (event.type === 'payout.canceled') status = 'cancelled';
+
+            await storage.updatePayout(existingPayout.id, {
+              status,
+              arrivalDate: payout.arrival_date ? new Date(payout.arrival_date * 1000) : null
+            });
+          }
+          break;
       }
 
       res.json({ received: true });
@@ -2424,6 +2463,309 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       // In production, serve the index.html file
       const distPath = path.resolve(import.meta.dirname, "public");
       res.sendFile(path.resolve(distPath, "index.html"));
+    }
+  });
+
+  // Stripe Connect API endpoints
+  app.post("/api/stripe-connect/create-account", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      const photographer = await storage.getPhotographer(req.user!.photographerId!);
+      if (!photographer) {
+        return res.status(404).json({ message: "Photographer not found" });
+      }
+
+      // Check if account already exists
+      if (photographer.stripeConnectAccountId) {
+        return res.status(400).json({ 
+          message: "Stripe Connect account already exists",
+          accountId: photographer.stripeConnectAccountId 
+        });
+      }
+
+      // Create Stripe Connect Express account (allows programmatic payouts)
+      const account = await stripe.accounts.create({
+        type: 'express',
+        country: 'US',
+        business_type: 'individual',
+        metadata: {
+          photographer_id: photographer.id
+        }
+      });
+
+      // Update photographer with account ID
+      await storage.updatePhotographer(photographer.id, {
+        stripeConnectAccountId: account.id,
+        stripeAccountStatus: 'pending'
+      });
+
+      res.json({
+        accountId: account.id,
+        status: 'pending',
+        message: "Stripe Connect account created successfully"
+      });
+
+    } catch (error: any) {
+      console.error('Stripe Connect account creation error:', error);
+      res.status(500).json({ 
+        message: "Failed to create Stripe Connect account",
+        error: error.message 
+      });
+    }
+  });
+
+  app.post("/api/stripe-connect/create-onboarding-link", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      // Validate request body
+      const validatedData = createOnboardingLinkSchema.parse(req.body);
+      
+      const photographer = await storage.getPhotographer(req.user!.photographerId!);
+      if (!photographer) {
+        return res.status(404).json({ message: "Photographer not found" });
+      }
+
+      if (!photographer.stripeConnectAccountId) {
+        return res.status(400).json({ 
+          message: "No Stripe Connect account found. Create an account first." 
+        });
+      }
+
+      const { returnUrl, refreshUrl } = validatedData;
+
+      // Create onboarding link
+      const accountLink = await stripe.accountLinks.create({
+        account: photographer.stripeConnectAccountId,
+        refresh_url: refreshUrl || `${req.protocol}://${req.get('host')}/earnings`,
+        return_url: returnUrl || `${req.protocol}://${req.get('host')}/earnings?onboarding=success`,
+        type: 'account_onboarding',
+      });
+
+      res.json({
+        url: accountLink.url,
+        expiresAt: accountLink.expires_at
+      });
+
+    } catch (error: any) {
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ 
+          message: "Invalid request data", 
+          errors: error.errors 
+        });
+      }
+      console.error('Stripe Connect onboarding link error:', error);
+      res.status(500).json({ 
+        message: "Failed to create onboarding link",
+        error: error.message 
+      });
+    }
+  });
+
+  app.get("/api/stripe-connect/account-status", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      const photographer = await storage.getPhotographer(req.user!.photographerId!);
+      if (!photographer) {
+        return res.status(404).json({ message: "Photographer not found" });
+      }
+
+      if (!photographer.stripeConnectAccountId) {
+        return res.json({
+          hasAccount: false,
+          status: null,
+          payoutEnabled: false,
+          onboardingCompleted: false
+        });
+      }
+
+      // Get account details from Stripe
+      const account = await stripe.accounts.retrieve(photographer.stripeConnectAccountId);
+      
+      const payoutEnabled = account.payouts_enabled;
+      const onboardingCompleted = account.details_submitted && 
+                                   account.charges_enabled && 
+                                   account.payouts_enabled;
+
+      // Update local status if changed
+      if (photographer.payoutEnabled !== payoutEnabled || 
+          photographer.onboardingCompleted !== onboardingCompleted) {
+        await storage.updatePhotographer(photographer.id, {
+          payoutEnabled,
+          onboardingCompleted,
+          stripeAccountStatus: onboardingCompleted ? 'active' : 'pending',
+          stripeOnboardingCompletedAt: onboardingCompleted && !photographer.stripeOnboardingCompletedAt ? 
+                                      new Date() : photographer.stripeOnboardingCompletedAt
+        });
+      }
+
+      res.json({
+        hasAccount: true,
+        accountId: photographer.stripeConnectAccountId,
+        status: onboardingCompleted ? 'active' : 'pending',
+        payoutEnabled,
+        onboardingCompleted,
+        chargesEnabled: account.charges_enabled,
+        detailsSubmitted: account.details_submitted,
+        requirements: account.requirements
+      });
+
+    } catch (error: any) {
+      console.error('Stripe Connect account status error:', error);
+      res.status(500).json({ 
+        message: "Failed to get account status",
+        error: error.message 
+      });
+    }
+  });
+
+  app.get("/api/stripe-connect/balance", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      const photographer = await storage.getPhotographer(req.user!.photographerId!);
+      if (!photographer) {
+        return res.status(404).json({ message: "Photographer not found" });
+      }
+
+      const currency = req.query.currency as string || 'USD';
+      const balance = await storage.getPhotographerBalance(photographer.id, currency);
+
+      res.json({
+        availableCents: balance.availableCents,
+        pendingCents: balance.pendingCents,
+        currency
+      });
+
+    } catch (error: any) {
+      console.error('Balance retrieval error:', error);
+      res.status(500).json({ 
+        message: "Failed to get balance",
+        error: error.message 
+      });
+    }
+  });
+
+  app.post("/api/stripe-connect/create-payout", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      // Validate request body
+      const validatedData = createPayoutSchema.parse(req.body);
+      
+      const photographer = await storage.getPhotographer(req.user!.photographerId!);
+      if (!photographer) {
+        return res.status(404).json({ message: "Photographer not found" });
+      }
+
+      if (!photographer.stripeConnectAccountId || !photographer.payoutEnabled) {
+        return res.status(400).json({ 
+          message: "Stripe Connect account not ready for payouts" 
+        });
+      }
+
+      const { amountCents, currency, method } = validatedData;
+
+      // Check available balance
+      const balance = await storage.getPhotographerBalance(photographer.id, currency);
+      if (amountCents > balance.availableCents) {
+        return res.status(400).json({ 
+          message: "Insufficient balance for payout",
+          availableCents: balance.availableCents,
+          requestedCents: amountCents
+        });
+      }
+
+      // Calculate fees for instant payouts
+      const isInstant = method === 'instant';
+      const feeCents = isInstant ? Math.round(amountCents * 0.01) : 0; // 1% fee for instant payouts
+
+      // Generate idempotency key to prevent duplicate payouts
+      const idempotencyKey = `payout-${photographer.id}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
+      // Create payout in Stripe
+      const payout = await stripe.payouts.create({
+        amount: amountCents,
+        currency: currency.toLowerCase(),
+        method: isInstant ? 'instant' : 'standard',
+        metadata: {
+          photographer_id: photographer.id
+        }
+      }, {
+        stripeAccount: photographer.stripeConnectAccountId,
+        idempotencyKey
+      });
+
+      // Store payout record
+      const payoutRecord = await storage.createPayout({
+        photographerId: photographer.id,
+        stripePayoutId: payout.id,
+        amountCents,
+        currency,
+        status: 'pending',
+        isInstant,
+        feeCents,
+        method,
+        stripeCreatedAt: new Date(payout.created * 1000),
+        arrivalDate: payout.arrival_date ? new Date(payout.arrival_date * 1000) : null
+      });
+
+      res.json({
+        payoutId: payoutRecord.id,
+        stripePayoutId: payout.id,
+        amountCents,
+        currency,
+        status: 'pending',
+        isInstant,
+        feeCents,
+        arrivalDate: payoutRecord.arrivalDate,
+        message: isInstant ? 
+          "Instant payout initiated - funds typically arrive within minutes" :
+          "Standard payout initiated - funds typically arrive within 2 business days"
+      });
+
+    } catch (error: any) {
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ 
+          message: "Invalid request data", 
+          errors: error.errors 
+        });
+      }
+      console.error('Payout creation error:', error);
+      res.status(500).json({ 
+        message: "Failed to create payout",
+        error: error.message 
+      });
+    }
+  });
+
+  app.get("/api/stripe-connect/earnings", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      const photographer = await storage.getPhotographer(req.user!.photographerId!);
+      if (!photographer) {
+        return res.status(404).json({ message: "Photographer not found" });
+      }
+
+      const earnings = await storage.getEarningsByPhotographer(photographer.id);
+      res.json(earnings);
+
+    } catch (error: any) {
+      console.error('Earnings retrieval error:', error);
+      res.status(500).json({ 
+        message: "Failed to get earnings",
+        error: error.message 
+      });
+    }
+  });
+
+  app.get("/api/stripe-connect/payouts", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      const photographer = await storage.getPhotographer(req.user!.photographerId!);
+      if (!photographer) {
+        return res.status(404).json({ message: "Photographer not found" });
+      }
+
+      const payouts = await storage.getPayoutsByPhotographer(photographer.id);
+      res.json(payouts);
+
+    } catch (error: any) {
+      console.error('Payouts retrieval error:', error);
+      res.status(500).json({ 
+        message: "Failed to get payouts",
+        error: error.message 
+      });
     }
   });
 
