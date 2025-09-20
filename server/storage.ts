@@ -3,12 +3,15 @@ import {
   emailLogs, smsLogs, photographerLinks, checklistTemplateItems, projectChecklistItems,
   packages, packageItems, questionnaireTemplates, questionnaireQuestions, projectQuestionnaires,
   availabilitySlots, bookings, estimates, estimateItems, estimatePayments,
+  photographerEarnings, photographerPayouts,
   messages, projectActivityLog, clientPortalTokens,
   type User, type InsertUser, type Photographer, type InsertPhotographer,
   type Client, type InsertClient, type Project, type InsertProject, type ProjectWithClientAndStage, type ClientWithProjects, type Stage, type InsertStage,
   type Template, type InsertTemplate, type Automation, type InsertAutomation,
   type AutomationStep, type InsertAutomationStep, type Package, type InsertPackage,
   type Estimate, type InsertEstimate, type EstimateItem, type EstimateWithProject, type EstimateWithRelations,
+  type PhotographerEarnings, type InsertPhotographerEarnings,
+  type PhotographerPayouts, type InsertPhotographerPayouts,
   type QuestionnaireTemplate, type InsertQuestionnaireTemplate,
   type QuestionnaireQuestion, type InsertQuestionnaireQuestion,
   type Message, type InsertMessage, type ProjectActivityLog, type TimelineEvent, type ClientPortalToken, type InsertClientPortalToken,
@@ -147,6 +150,31 @@ export interface IStorage {
   clearGoogleCalendarCredentials(photographerId: string): Promise<void>;
   hasValidGoogleCalendarCredentials(photographerId: string): Promise<boolean>;
   storeGoogleCalendarId(photographerId: string, calendarId: string): Promise<void>;
+
+  // Stripe Connect Integration
+  updatePhotographerStripeAccount(photographerId: string, stripeData: {
+    stripeConnectAccountId?: string;
+    stripeAccountStatus?: string;
+    payoutEnabled?: boolean;
+    onboardingCompleted?: boolean;
+    stripeOnboardingCompletedAt?: Date;
+    platformFeePercent?: number;
+  }): Promise<void>;
+  
+  // Photographer Earnings
+  getEarningsByPhotographer(photographerId: string): Promise<PhotographerEarnings[]>;
+  getEarningsByProject(projectId: string): Promise<PhotographerEarnings[]>;
+  getEarningsByPaymentIntentId(paymentIntentId: string): Promise<PhotographerEarnings | undefined>;
+  getEarningsByTransferId(transferId: string): Promise<PhotographerEarnings | undefined>;
+  createEarnings(earnings: InsertPhotographerEarnings): Promise<PhotographerEarnings>;
+  updateEarnings(id: string, earnings: Partial<PhotographerEarnings>): Promise<PhotographerEarnings>;
+  
+  // Photographer Payouts
+  getPayoutsByPhotographer(photographerId: string): Promise<PhotographerPayouts[]>;
+  getPayoutByStripePayoutId(stripePayoutId: string): Promise<PhotographerPayouts | undefined>;
+  createPayout(payout: InsertPhotographerPayouts): Promise<PhotographerPayouts>;
+  updatePayout(id: string, payout: Partial<PhotographerPayouts>): Promise<PhotographerPayouts>;
+  getPhotographerBalance(photographerId: string, currency?: string): Promise<{ availableCents: number; pendingCents: number }>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1401,6 +1429,137 @@ export class DatabaseStorage implements IStorage {
     // TODO: In the future, we could filter timeline events specifically related to this project
     // For now, return all client history as it's project-scoped in the new architecture
     return clientHistory;
+  }
+
+  // Stripe Connect Integration methods
+  async updatePhotographerStripeAccount(photographerId: string, stripeData: {
+    stripeConnectAccountId?: string;
+    stripeAccountStatus?: string;
+    payoutEnabled?: boolean;
+    onboardingCompleted?: boolean;
+    stripeOnboardingCompletedAt?: Date;
+    platformFeePercent?: number;
+  }): Promise<void> {
+    await db.update(photographers)
+      .set(stripeData)
+      .where(eq(photographers.id, photographerId));
+  }
+
+  // Photographer Earnings methods
+  async getEarningsByPhotographer(photographerId: string): Promise<PhotographerEarnings[]> {
+    return await db.select()
+      .from(photographerEarnings)
+      .where(eq(photographerEarnings.photographerId, photographerId))
+      .orderBy(desc(photographerEarnings.createdAt));
+  }
+
+  async getEarningsByProject(projectId: string): Promise<PhotographerEarnings[]> {
+    return await db.select()
+      .from(photographerEarnings)
+      .where(eq(photographerEarnings.projectId, projectId))
+      .orderBy(desc(photographerEarnings.createdAt));
+  }
+
+  async getEarningsByPaymentIntentId(paymentIntentId: string): Promise<PhotographerEarnings | undefined> {
+    const [earnings] = await db.select()
+      .from(photographerEarnings)
+      .where(eq(photographerEarnings.paymentIntentId, paymentIntentId))
+      .limit(1);
+    return earnings || undefined;
+  }
+
+  async getEarningsByTransferId(transferId: string): Promise<PhotographerEarnings | undefined> {
+    const [earnings] = await db.select()
+      .from(photographerEarnings)
+      .where(eq(photographerEarnings.transferId, transferId))
+      .limit(1);
+    return earnings || undefined;
+  }
+
+  async createEarnings(earnings: InsertPhotographerEarnings): Promise<PhotographerEarnings> {
+    const [created] = await db.insert(photographerEarnings).values(earnings).returning();
+    return created;
+  }
+
+  async updateEarnings(id: string, earnings: Partial<PhotographerEarnings>): Promise<PhotographerEarnings> {
+    const [updated] = await db.update(photographerEarnings)
+      .set(earnings)
+      .where(eq(photographerEarnings.id, id))
+      .returning();
+    return updated;
+  }
+
+  // Photographer Payouts methods
+  async getPayoutsByPhotographer(photographerId: string): Promise<PhotographerPayouts[]> {
+    return await db.select()
+      .from(photographerPayouts)
+      .where(eq(photographerPayouts.photographerId, photographerId))
+      .orderBy(desc(photographerPayouts.createdAt));
+  }
+
+  async getPayoutByStripePayoutId(stripePayoutId: string): Promise<PhotographerPayouts | undefined> {
+    const [payout] = await db.select()
+      .from(photographerPayouts)
+      .where(eq(photographerPayouts.stripePayoutId, stripePayoutId))
+      .limit(1);
+    return payout || undefined;
+  }
+
+  async createPayout(payout: InsertPhotographerPayouts): Promise<PhotographerPayouts> {
+    const [created] = await db.insert(photographerPayouts).values(payout).returning();
+    return created;
+  }
+
+  async updatePayout(id: string, payout: Partial<PhotographerPayouts>): Promise<PhotographerPayouts> {
+    const [updated] = await db.update(photographerPayouts)
+      .set(payout)
+      .where(eq(photographerPayouts.id, id))
+      .returning();
+    return updated;
+  }
+
+  async getPhotographerBalance(photographerId: string, currency: string = 'USD'): Promise<{ availableCents: number; pendingCents: number }> {
+    // Get all earnings for this photographer in the specified currency
+    const earnings = await db.select()
+      .from(photographerEarnings)
+      .where(and(
+        eq(photographerEarnings.photographerId, photographerId),
+        eq(photographerEarnings.currency, currency)
+      ));
+
+    // Calculate pending earnings (not yet transferred to Stripe Connect account)
+    const pendingCents = earnings
+      .filter(earning => earning.status === 'pending')
+      .reduce((sum, earning) => sum + earning.photographerEarningsCents, 0);
+
+    // Calculate total transferred earnings (available for payout)
+    const transferredEarnings = earnings
+      .filter(earning => earning.status === 'transferred')
+      .reduce((sum, earning) => sum + earning.photographerEarningsCents, 0);
+
+    // Get all payouts for this photographer in the specified currency
+    const payouts = await db.select()
+      .from(photographerPayouts)
+      .where(and(
+        eq(photographerPayouts.photographerId, photographerId),
+        eq(photographerPayouts.currency, currency)
+      ));
+
+    // Calculate total amount already paid out or pending payout
+    // We subtract both 'paid' and 'pending' payouts to get true available balance
+    // Exclude 'failed' and 'cancelled' payouts as they don't affect available balance
+    const allocatedCents = payouts
+      .filter(payout => payout.status === 'paid' || payout.status === 'pending')
+      .reduce((sum, payout) => sum + payout.amountCents, 0);
+
+    // Available balance = transferred earnings minus already allocated payouts
+    // This represents what the photographer can actually request for payout
+    const availableCents = Math.max(0, transferredEarnings - allocatedCents);
+
+    return {
+      availableCents,
+      pendingCents
+    };
   }
 }
 

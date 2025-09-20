@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, integer, boolean, timestamp, json, uuid } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, integer, boolean, timestamp, json, uuid, index, unique } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -75,6 +75,13 @@ export const photographers = pgTable("photographers", {
   googleCalendarScope: text("google_calendar_scope"),
   googleCalendarConnectedAt: timestamp("google_calendar_connected_at"),
   googleCalendarId: text("google_calendar_id"), // Dedicated business calendar ID
+  // Stripe Connect Integration
+  stripeConnectAccountId: text("stripe_connect_account_id"),
+  stripeAccountStatus: text("stripe_account_status"), // pending, active, restricted, rejected
+  payoutEnabled: boolean("payout_enabled").default(false),
+  onboardingCompleted: boolean("onboarding_completed").default(false),
+  stripeOnboardingCompletedAt: timestamp("stripe_onboarding_completed_at"),
+  platformFeePercent: integer("platform_fee_percent").default(500), // 5.00% default platform fee
   createdAt: timestamp("created_at").defaultNow()
 });
 
@@ -339,6 +346,44 @@ export const estimatePayments = pgTable("estimate_payments", {
   createdAt: timestamp("created_at").defaultNow(),
   completedAt: timestamp("completed_at")
 });
+
+export const photographerEarnings = pgTable("photographer_earnings", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  photographerId: varchar("photographer_id").notNull().references(() => photographers.id),
+  projectId: varchar("project_id").notNull().references(() => projects.id),
+  estimatePaymentId: varchar("estimate_payment_id").references(() => estimatePayments.id),
+  paymentIntentId: text("payment_intent_id").unique(), // Stripe Connect Payment Intent ID (unique)
+  transferId: text("transfer_id").unique(), // Stripe Connect Transfer ID (unique)
+  totalAmountCents: integer("total_amount_cents").notNull(), // Original payment amount
+  platformFeeCents: integer("platform_fee_cents").notNull(), // Platform commission
+  photographerEarningsCents: integer("photographer_earnings_cents").notNull(), // Amount photographer receives
+  currency: text("currency").default("USD").notNull(), // Currency for the earning
+  status: text("status").notNull().default("pending"), // pending, transferred, failed
+  transferredAt: timestamp("transferred_at"),
+  createdAt: timestamp("created_at").defaultNow()
+}, (table) => ({
+  // Composite indexes for performance
+  photographerStatusIdx: index("photographer_earnings_photographer_status_idx").on(table.photographerId, table.status),
+  uniqueEstimatePaymentIdx: unique("photographer_earnings_estimate_payment_unique").on(table.estimatePaymentId)
+}));
+
+export const photographerPayouts = pgTable("photographer_payouts", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  photographerId: varchar("photographer_id").notNull().references(() => photographers.id),
+  stripePayoutId: text("stripe_payout_id").unique(), // Stripe payout ID (unique)
+  amountCents: integer("amount_cents").notNull(),
+  currency: text("currency").default("USD").notNull(),
+  status: text("status").notNull().default("pending"), // pending, paid, failed, cancelled
+  isInstant: boolean("is_instant").default(false), // Whether this was an instant payout (1% fee)
+  feeCents: integer("fee_cents").default(0), // Instant payout fee if applicable
+  method: text("method").default("standard"), // standard, instant
+  stripeCreatedAt: timestamp("stripe_created_at"),
+  arrivalDate: timestamp("arrival_date"), // Expected arrival date
+  createdAt: timestamp("created_at").defaultNow()
+}, (table) => ({
+  // Composite indexes for performance
+  photographerStatusIdx: index("photographer_payouts_photographer_status_idx").on(table.photographerId, table.status)
+}));
 
 export const messages = pgTable("messages", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -913,6 +958,24 @@ export type TimelineEvent =
       sentByPhotographer: boolean;
       createdAt: Date;
     };
+
+// Insert schemas for new Stripe Connect tables
+export const insertPhotographerEarningsSchema = createInsertSchema(photographerEarnings).omit({
+  id: true,
+  createdAt: true
+});
+
+export const insertPhotographerPayoutsSchema = createInsertSchema(photographerPayouts).omit({
+  id: true,
+  createdAt: true
+});
+
+// Types for new Stripe Connect tables
+export type PhotographerEarnings = typeof photographerEarnings.$inferSelect;
+export type InsertPhotographerEarnings = z.infer<typeof insertPhotographerEarningsSchema>;
+
+export type PhotographerPayouts = typeof photographerPayouts.$inferSelect;
+export type InsertPhotographerPayouts = z.infer<typeof insertPhotographerPayoutsSchema>;
 
 // Proposal type aliases (for terminology migration from "Estimate" to "Proposal")
 // These aliases enable gradual UI/API migration while maintaining backend consistency
