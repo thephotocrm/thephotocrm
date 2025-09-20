@@ -93,7 +93,9 @@ export default function ProjectDetail() {
     }).format(cents / 100);
   };
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status: string | null | undefined) => {
+    if (!status) return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300';
+    
     switch (status.toLowerCase()) {
       case 'active': return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
       case 'completed': return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300';
@@ -102,7 +104,9 @@ export default function ProjectDetail() {
     }
   };
 
-  const getEstimateStatusColor = (status: string) => {
+  const getEstimateStatusColor = (status: string | null | undefined) => {
+    if (!status) return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300';
+    
     switch (status.toLowerCase()) {
       case 'draft': return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300';
       case 'sent': return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300';
@@ -114,13 +118,16 @@ export default function ProjectDetail() {
     }
   };
 
-  const formatEstimateStatus = (status: string) => {
+  const formatEstimateStatus = (status: string | null | undefined) => {
+    if (!status) return 'Unknown';
+    
     return status.toLowerCase().split('_').map(word => 
       word.charAt(0).toUpperCase() + word.slice(1)
     ).join(' ');
   };
 
-  const getProjectTypeLabel = (type: string) => {
+  const getProjectTypeLabel = (type: string | null | undefined) => {
+    if (!type) return 'Unknown';
     return type.charAt(0) + type.slice(1).toLowerCase();
   };
 
