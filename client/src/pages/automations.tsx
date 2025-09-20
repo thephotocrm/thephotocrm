@@ -674,9 +674,10 @@ export default function Automations() {
         };
 
         automation = await apiRequest("POST", "/api/automations", automationData);
+        console.log('Created automation:', automation);
         
         // Create automation step ONLY for communication automations with templates
-        if (data.automationType === 'COMMUNICATION' && data.templateId) {
+        if (data.automationType === 'COMMUNICATION' && data.templateId && automation?.id) {
           // Calculate total delay minutes
           const totalDelayMinutes = timingMode === 'immediate' ? 0 : 
             (data.delayDays * 24 * 60) + (data.delayHours * 60) + data.delayMinutes;
@@ -712,7 +713,13 @@ export default function Automations() {
     },
     onError: (error: any) => {
       console.error('Create automation error:', error);
-      toast({ title: "Failed to create automation", variant: "destructive" });
+      console.error('Error message:', error?.message);
+      console.error('Error stack:', error?.stack);
+      toast({ 
+        title: "Failed to create automation", 
+        description: error?.message || "Unknown error occurred",
+        variant: "destructive" 
+      });
     }
   });
 
