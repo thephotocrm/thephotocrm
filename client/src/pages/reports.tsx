@@ -71,10 +71,10 @@ export default function Reports() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold" data-testid="metric-total-revenue">
-                  ${reportData?.revenueYTD?.toLocaleString() || '127,500'}
+                  ${reportData?.revenueYTD?.toLocaleString() || '0'}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  <span className="text-green-600">+18%</span> vs last year
+                  Year-to-date revenue from completed projects
                 </p>
               </CardContent>
             </Card>
@@ -86,25 +86,25 @@ export default function Reports() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold" data-testid="metric-total-clients">
-                  {reportData?.totalClients || 47}
+                  {reportData?.totalProjects || 0}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  <span className="text-green-600">+12%</span> from last month
+                  Total active projects across all types
                 </p>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Conversion Rate</CardTitle>
+                <CardTitle className="text-sm font-medium">Projects This Month</CardTitle>
                 <TrendingUp className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold" data-testid="metric-conversion-rate">
-                  {reportData?.conversionRate || 25}%
+                  {reportData?.bookedThisMonth || 0}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  <span className="text-green-600">+3%</span> from last month
+                  New projects created this month
                 </p>
               </CardContent>
             </Card>
@@ -116,9 +116,9 @@ export default function Reports() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold" data-testid="metric-outstanding-balance">
-                  ${reportData?.outstandingBalance?.toLocaleString() || '23,400'}
+                  ${reportData?.outstandingBalance?.toLocaleString() || '0'}
                 </div>
-                <p className="text-xs text-muted-foreground">14 clients pending</p>
+                <p className="text-xs text-muted-foreground">From signed proposals awaiting payment</p>
               </CardContent>
             </Card>
           </div>
@@ -149,69 +149,27 @@ export default function Reports() {
                 <CardTitle>Pipeline Conversion</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm">Inquiry → Consultation</span>
-                    <div className="flex items-center space-x-2">
-                      <div className="w-32 bg-muted rounded-full h-2">
-                        <div className="bg-primary h-2 rounded-full" style={{ width: '75%' }}></div>
-                      </div>
-                      <span className="text-sm font-medium">75%</span>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm">Consultation → Proposal</span>
-                    <div className="flex items-center space-x-2">
-                      <div className="w-32 bg-muted rounded-full h-2">
-                        <div className="bg-primary h-2 rounded-full" style={{ width: '85%' }}></div>
-                      </div>
-                      <span className="text-sm font-medium">85%</span>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm">Proposal → Booked</span>
-                    <div className="flex items-center space-x-2">
-                      <div className="w-32 bg-muted rounded-full h-2">
-                        <div className="bg-primary h-2 rounded-full" style={{ width: '60%' }}></div>
-                      </div>
-                      <span className="text-sm font-medium">60%</span>
-                    </div>
-                  </div>
+                <div className="text-center py-8">
+                  <TrendingUp className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                  <p className="text-muted-foreground mb-4">Pipeline analytics coming soon</p>
+                  <p className="text-sm text-muted-foreground">
+                    Track conversion rates between stages
+                  </p>
                 </div>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader>
-                <CardTitle>Top Performing Packages</CardTitle>
+                <CardTitle>Package Performance</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium">Gold Wedding Package</p>
-                      <p className="text-sm text-muted-foreground">$4,500</p>
-                    </div>
-                    <Badge variant="default">12 bookings</Badge>
-                  </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium">Silver Wedding Package</p>
-                      <p className="text-sm text-muted-foreground">$3,200</p>
-                    </div>
-                    <Badge variant="secondary">8 bookings</Badge>
-                  </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium">Platinum Wedding Package</p>
-                      <p className="text-sm text-muted-foreground">$6,800</p>
-                    </div>
-                    <Badge variant="secondary">5 bookings</Badge>
-                  </div>
+                <div className="text-center py-8">
+                  <FileText className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                  <p className="text-muted-foreground mb-4">Package analytics coming soon</p>
+                  <p className="text-sm text-muted-foreground">
+                    Track which packages perform best
+                  </p>
                 </div>
               </CardContent>
             </Card>
@@ -226,24 +184,12 @@ export default function Reports() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="text-center">
-                  <p className="text-sm font-medium text-muted-foreground">New Inquiries</p>
-                  <p className="text-3xl font-bold">24</p>
-                  <p className="text-sm text-green-600">+15% from last month</p>
-                </div>
-                
-                <div className="text-center">
-                  <p className="text-sm font-medium text-muted-foreground">Consultations Booked</p>
-                  <p className="text-3xl font-bold">18</p>
-                  <p className="text-sm text-green-600">+22% from last month</p>
-                </div>
-                
-                <div className="text-center">
-                  <p className="text-sm font-medium text-muted-foreground">Weddings Booked</p>
-                  <p className="text-3xl font-bold">8</p>
-                  <p className="text-sm text-green-600">+33% from last month</p>
-                </div>
+              <div className="text-center py-8">
+                <Calendar className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                <p className="text-muted-foreground mb-4">Monthly analytics coming soon</p>
+                <p className="text-sm text-muted-foreground">
+                  Track monthly inquiries, consultations, and bookings
+                </p>
               </div>
             </CardContent>
           </Card>
@@ -254,42 +200,12 @@ export default function Reports() {
               <CardTitle>Automation Performance</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <h3 className="font-medium mb-4">Email Automation</h3>
-                  <div className="space-y-3">
-                    <div className="flex justify-between">
-                      <span className="text-sm">Emails Sent</span>
-                      <span className="font-medium">1,247</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm">Open Rate</span>
-                      <span className="font-medium">68%</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm">Click Rate</span>
-                      <span className="font-medium">24%</span>
-                    </div>
-                  </div>
-                </div>
-                
-                <div>
-                  <h3 className="font-medium mb-4">SMS Automation</h3>
-                  <div className="space-y-3">
-                    <div className="flex justify-between">
-                      <span className="text-sm">SMS Sent</span>
-                      <span className="font-medium">432</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm">Delivery Rate</span>
-                      <span className="font-medium">97%</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm">Response Rate</span>
-                      <span className="font-medium">45%</span>
-                    </div>
-                  </div>
-                </div>
+              <div className="text-center py-8">
+                <BarChart3 className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                <p className="text-muted-foreground mb-4">Automation analytics coming soon</p>
+                <p className="text-sm text-muted-foreground">
+                  Track email and SMS automation performance
+                </p>
               </div>
             </CardContent>
           </Card>
