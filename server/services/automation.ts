@@ -647,10 +647,8 @@ async function sendCountdownMessage(project: any, automation: any, photographerI
     return;
   }
 
-  // Calculate days remaining using photographer's timezone
-  const eventDateParts = getDateInTimezone(new Date(project.eventDate), timezone);
+  // Calculate days remaining using photographer's timezone (reuse existing variables)
   const eventDateInTz = new Date(eventDateParts.year, eventDateParts.month, eventDateParts.day);
-  const todayParts = getDateInTimezone(new Date(), timezone);
   const todayDateInTz = new Date(todayParts.year, todayParts.month, todayParts.day);
   const daysRemaining = Math.ceil((eventDateInTz.getTime() - todayDateInTz.getTime()) / (1000 * 60 * 60 * 24));
     
