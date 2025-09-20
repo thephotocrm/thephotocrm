@@ -197,6 +197,13 @@ export default function WidgetGenerator() {
         '</div>' +
         (config.showEventDate ? '<div><label style="display: block; font-size: 14px; font-weight: 500; margin-bottom: 4px;">Event Date</label><input type="date" name="eventDate" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px;" /></div>' : '') +
         (config.showMessage ? '<div><label style="display: block; font-size: 14px; font-weight: 500; margin-bottom: 4px;">Message</label><textarea name="message" rows="3" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; resize: vertical;" placeholder="Tell us about your photography needs..."></textarea></div>' : '') +
+        '<div style="background-color: #f8f9fa; padding: 12px; border-radius: 4px; margin: 16px 0; border: 1px solid #e9ecef;">' +
+          '<p style="margin: 0; font-size: 12px; color: #6c757d; line-height: 1.4;">' +
+            '<strong>Communication Consent:</strong> By submitting this form, you consent to receive email and SMS communications about your photography services. ' +
+            'Message and data rates may apply for SMS. You can opt out at any time by replying STOP to SMS or unsubscribing from emails. ' +
+            'Your information will only be used for photography services and will never be shared with third parties.' +
+          '</p>' +
+        '</div>' +
         '<button type="submit" style="width: 100%; padding: 12px; border: none; border-radius: 4px; color: white; font-size: 16px; font-weight: 600; cursor: pointer;">' + escapeHtml(config.buttonText) + '</button>';
       
       form.innerHTML = formHtml;
@@ -226,7 +233,7 @@ export default function WidgetGenerator() {
           projectType: formData.get('projectType'),
           eventDate: formData.get('eventDate') || '',
           emailOptIn: true,
-          smsOptIn: false,
+          smsOptIn: true,
           redirectUrl: config.redirectUrl || ''
         };
         

@@ -2482,7 +2482,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
         projectType: z.enum(['WEDDING', 'ENGAGEMENT', 'PROPOSAL', 'CORPORATE', 'PORTRAIT', 'FAMILY', 'MATERNITY', 'NEWBORN', 'EVENT', 'COMMERCIAL', 'OTHER']),
         eventDate: z.string().optional().refine(val => !val || !isNaN(Date.parse(val)), "Invalid date format"),
         emailOptIn: z.boolean().default(true),
-        smsOptIn: z.boolean().default(false),
+        smsOptIn: z.boolean().default(true),
         redirectUrl: z.union([
           z.string().regex(/^https?:\/\//, "Must be http or https URL"), // Only http/https URLs
           z.string().regex(/^\/[^\/].*/, "Must be absolute path starting with /"), // Relative paths only
