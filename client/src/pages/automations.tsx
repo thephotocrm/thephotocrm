@@ -470,10 +470,10 @@ export default function Automations() {
   const [selectedStage, setSelectedStage] = useState<any>(null);
   const [timingMode, setTimingMode] = useState<'immediate' | 'delayed'>('immediate');
   const [activeProjectType, setActiveProjectType] = useState<string>('WEDDING');
-  const [automationType, setAutomationType] = useState<'COMMUNICATION' | 'STAGE_CHANGE' | 'COUNTDOWN'>('COMMUNICATION');
+  const [automationType, setAutomationType] = useState<'COMMUNICATION' | 'STAGE_CHANGE'>('COMMUNICATION');
 
   // Dynamic schema function that updates based on automation type
-  const createExtendedFormSchema = (type: 'COMMUNICATION' | 'STAGE_CHANGE' | 'COUNTDOWN') => {
+  const createExtendedFormSchema = (type: 'COMMUNICATION' | 'STAGE_CHANGE') => {
     return createAutomationFormSchema.extend({
       // Communication automation fields
       templateId: z.string().optional(),
@@ -483,11 +483,7 @@ export default function Automations() {
       questionnaireTemplateId: z.string().optional(), // New field for questionnaire assignments
       // Stage change automation fields
       triggerType: z.string().optional(),
-      targetStageId: z.string().optional(),
-      // Countdown automation fields
-      daysBefore: z.coerce.number().min(0).default(7),
-      eventType: z.string().optional(),
-      stageCondition: z.string().optional() // Optional stage filter for countdown automations
+      targetStageId: z.string().optional()
     }).refine(
       (data) => {
         if (type === 'COMMUNICATION') {
@@ -498,19 +494,13 @@ export default function Automations() {
         if (type === 'STAGE_CHANGE') {
           return data.triggerType && data.targetStageId;
         }
-        if (type === 'COUNTDOWN') {
-          return data.templateId && data.templateId.length > 0 &&
-                 data.eventType && data.eventType.length > 0;
-        }
         return true;
       },
       {
         message: type === 'COMMUNICATION' 
           ? "Please select a template or questionnaire for the communication automation"
-          : type === 'STAGE_CHANGE'
-          ? "Both trigger type and target stage are required for pipeline automations"
-          : "Please select a template and event type for the countdown automation",
-        path: type === 'COMMUNICATION' ? ["templateId"] : type === 'STAGE_CHANGE' ? ["triggerType"] : ["templateId"]
+          : "Both trigger type and target stage are required for pipeline automations",
+        path: type === 'COMMUNICATION' ? ["templateId"] : ["triggerType"]
       }
     );
   };
@@ -823,7 +813,7 @@ export default function Automations() {
                     {/* Automation Type Selector */}
                     <div className="space-y-3">
                       <FormLabel>Automation Type</FormLabel>
-                      <div className="grid grid-cols-3 gap-2">
+                      <div className="grid grid-cols-2 gap-2">
                         <Button
                           type="button"
                           variant={automationType === 'COMMUNICATION' ? 'default' : 'outline'}
@@ -844,23 +834,11 @@ export default function Automations() {
                           <ArrowRight className="mr-2 h-4 w-4" />
                           Pipeline Stage
                         </Button>
-                        <Button
-                          type="button"
-                          variant={automationType === 'COUNTDOWN' ? 'default' : 'outline'}
-                          className="w-full justify-start"
-                          onClick={() => setAutomationType('COUNTDOWN')}
-                          data-testid="button-automation-countdown"
-                        >
-                          <Clock className="mr-2 h-4 w-4" />
-                          Countdown
-                        </Button>
                       </div>
                       <p className="text-xs text-muted-foreground">
                         {automationType === 'COMMUNICATION' 
                           ? 'Send automated emails and SMS to clients when they enter specific stages'
-                          : automationType === 'STAGE_CHANGE'
-                          ? 'Automatically move clients through pipeline stages based on business triggers'
-                          : 'Send automated reminders X days before the event date'
+                          : 'Automatically move clients through pipeline stages based on business triggers'
                         }
                       </p>
                     </div>
@@ -1127,137 +1105,6 @@ export default function Automations() {
                       </>
                     )}
 
-                    {/* Countdown Automation Fields */}
-                    {automationType === 'COUNTDOWN' && (
-                      <>
-                        <FormField
-                          control={form.control}
-                          name="daysBefore"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Days Before Event</FormLabel>
-                              <FormControl>
-                                <Input 
-                                  type="number" 
-                                  min="1" 
-                                  max="365"
-                                  placeholder="e.g., 7, 14, 30"
-                                  data-testid="input-days-before"
-                                  {...field} 
-                                  onChange={(e) => field.onChange(parseInt(e.target.value) || '')}
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-
-                        <FormField
-                          control={form.control}
-                          name="channel"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Communication Channel</FormLabel>
-                              <Select onValueChange={field.onChange} value={field.value}>
-                                <FormControl>
-                                  <SelectTrigger data-testid="select-channel-countdown">
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  <SelectItem value="EMAIL">📧 Email</SelectItem>
-                                  <SelectItem value="SMS">📱 SMS</SelectItem>
-                                </SelectContent>
-                              </Select>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-
-                        <FormField
-                          control={form.control}
-                          name="templateId"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Message Template</FormLabel>
-                              <Select onValueChange={field.onChange} value={field.value}>
-                                <FormControl>
-                                  <SelectTrigger data-testid="select-template-countdown">
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  {templates.filter((t: any) => t.channel === form.watch('channel')).length === 0 ? (
-                                    <SelectItem value="unavailable" disabled>
-                                      No {form.watch('channel')?.toLowerCase()} templates available
-                                    </SelectItem>
-                                  ) : (
-                                    templates
-                                      .filter((t: any) => t.channel === form.watch('channel'))
-                                      .map((template: any) => (
-                                        <SelectItem key={template.id} value={template.id}>
-                                          {template.name}
-                                        </SelectItem>
-                                      ))
-                                  )}
-                                </SelectContent>
-                              </Select>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-
-                        <FormField
-                          control={form.control}
-                          name="eventType"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Event Type</FormLabel>
-                              <Select onValueChange={field.onChange} value={field.value}>
-                                <FormControl>
-                                  <SelectTrigger data-testid="select-event-type">
-                                    <SelectValue placeholder="Select event type to count down from" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  <SelectItem value="event_date">📅 Event Date</SelectItem>
-                                  <SelectItem value="consultation_date">💬 Consultation Date</SelectItem>
-                                  <SelectItem value="delivery_date">📦 Delivery Date</SelectItem>
-                                  <SelectItem value="booking_date">📋 Booking Date</SelectItem>
-                                </SelectContent>
-                              </Select>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-
-                        <FormField
-                          control={form.control}
-                          name="stageCondition"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Stage Condition (Optional)</FormLabel>
-                              <Select onValueChange={field.onChange} value={field.value || ""}>
-                                <FormControl>
-                                  <SelectTrigger data-testid="select-stage-condition">
-                                    <SelectValue placeholder="Only send if client is in this stage" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  <SelectItem value="none">No stage requirement</SelectItem>
-                                  {stages?.map((stage: any) => (
-                                    <SelectItem key={stage.id} value={stage.id}>
-                                      Only if in "{stage.name}" stage
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </>
-                    )}
 
                     <div className="flex justify-end space-x-2 pt-4">
                       <Button
