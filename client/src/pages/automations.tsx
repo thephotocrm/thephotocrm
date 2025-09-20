@@ -1304,7 +1304,7 @@ export default function Automations() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="">Any stage (no condition)</SelectItem>
+                          <SelectItem value="none">Any stage (no condition)</SelectItem>
                           {stages?.map((stage: any) => (
                             <SelectItem key={stage.id} value={stage.id}>
                               Only if in: {stage.name}
