@@ -1598,16 +1598,48 @@ ${photographer?.businessName || 'Your Photography Team'}`;
   // Reports
   app.get("/api/reports/summary", authenticateToken, requirePhotographer, async (req, res) => {
     try {
-      // This would need to be implemented with proper queries
-      // For now, return placeholder data
+      const photographerId = req.user!.photographerId!;
+      
+      // Get total projects (replaces totalClients in UI)
+      const totalProjects = await storage.getProjectsByPhotographer(photographerId);
+      
+      // Get projects booked this month
+      const currentMonth = new Date();
+      currentMonth.setDate(1);
+      currentMonth.setHours(0, 0, 0, 0);
+      
+      const allProjects = await storage.getProjectsByPhotographer(photographerId);
+      const bookedThisMonth = allProjects.filter(project => 
+        new Date(project.createdAt) >= currentMonth
+      ).length;
+      
+      // Get all estimates for this photographer  
+      const allEstimates = await storage.getProposalsByPhotographer(photographerId);
+      
+      // Calculate revenue YTD from paid estimates
+      const currentYear = new Date().getFullYear();
+      const yearStart = new Date(currentYear, 0, 1);
+      
+      const revenueYTD = allEstimates
+        .filter(estimate => 
+          estimate.status === 'PAID' && 
+          new Date(estimate.createdAt) >= yearStart
+        )
+        .reduce((sum, estimate) => sum + (estimate.totalCents || 0), 0);
+      
+      // Get outstanding balance from signed but unpaid estimates
+      const outstandingBalance = allEstimates
+        .filter(estimate => estimate.status === 'SIGNED')
+        .reduce((sum, estimate) => sum + (estimate.totalCents || 0), 0);
+      
       res.json({
-        totalClients: 47,
-        bookedThisMonth: 8,
-        revenueYTD: 127500,
-        outstandingBalance: 23400,
-        conversionRate: 25
+        totalProjects: totalProjects.length,
+        bookedThisMonth: bookedThisMonth,
+        revenueYTD: Math.round(revenueYTD / 100), // Convert cents to dollars
+        outstandingBalance: Math.round(outstandingBalance / 100) // Convert cents to dollars
       });
     } catch (error) {
+      console.error("Reports summary error:", error);
       res.status(500).json({ message: "Internal server error" });
     }
   });

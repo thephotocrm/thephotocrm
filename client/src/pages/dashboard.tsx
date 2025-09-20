@@ -118,7 +118,7 @@ export default function Dashboard() {
                   {(stats as any)?.totalProjects || 0}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  <span className="text-green-600">+12%</span> from last month
+                  Active projects across all types
                 </p>
               </CardContent>
             </Card>
@@ -133,7 +133,7 @@ export default function Dashboard() {
                   {(stats as any)?.bookedThisMonth || 0}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  <span className="text-green-600">+25%</span> conversion rate
+                  Projects created this month
                 </p>
               </CardContent>
             </Card>
@@ -148,7 +148,7 @@ export default function Dashboard() {
                   ${(stats as any)?.revenueYTD?.toLocaleString() || '0'}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  <span className="text-green-600">+18%</span> vs last year
+                  Revenue from completed projects
                 </p>
               </CardContent>
             </Card>
@@ -163,7 +163,7 @@ export default function Dashboard() {
                   ${(stats as any)?.outstandingBalance?.toLocaleString() || '0'}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  14 clients pending payment
+                  From signed proposals awaiting payment
                 </p>
               </CardContent>
             </Card>
