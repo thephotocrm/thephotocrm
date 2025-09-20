@@ -198,20 +198,11 @@ export default function WidgetGenerator() {
         (config.showEventDate ? '<div><label style="display: block; font-size: 14px; font-weight: 500; margin-bottom: 4px;">Event Date</label><input type="date" name="eventDate" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px;" /></div>' : '') +
         (config.showMessage ? '<div><label style="display: block; font-size: 14px; font-weight: 500; margin-bottom: 4px;">Message</label><textarea name="message" rows="3" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; resize: vertical;" placeholder="Tell us about your photography needs..."></textarea></div>' : '') +
         '<div style="background-color: #f8f9fa; padding: 16px; border-radius: 4px; margin: 16px 0; border: 1px solid #e9ecef;">' +
-          '<h4 style="margin: 0 0 12px 0; font-size: 14px; font-weight: 600; color: #333;">Communication Preferences</h4>' +
           '<div style="margin-bottom: 12px;">' +
             '<label style="display: flex; align-items: center; cursor: pointer;">' +
-              '<input type="checkbox" name="emailOptIn" checked style="margin-right: 8px;" />' +
+              '<input type="checkbox" name="communicationOptIn" checked style="margin-right: 8px;" />' +
               '<span style="font-size: 13px; color: #555;">' +
-                'Yes, send me email updates about my project, including appointment reminders and important notifications' +
-              '</span>' +
-            '</label>' +
-          '</div>' +
-          '<div style="margin-bottom: 12px;">' +
-            '<label style="display: flex; align-items: center; cursor: pointer;">' +
-              '<input type="checkbox" name="smsOptIn" checked style="margin-right: 8px;" />' +
-              '<span style="font-size: 13px; color: #555;">' +
-                'Yes, send me text message updates about my project (message and data rates may apply, reply STOP to opt out)' +
+                'I consent to receive communications about my project' +
               '</span>' +
             '</label>' +
           '</div>' +
@@ -248,8 +239,8 @@ export default function WidgetGenerator() {
           message: formData.get('message') || '',
           projectType: formData.get('projectType'),
           eventDate: formData.get('eventDate') || '',
-          emailOptIn: formData.get('emailOptIn') === 'on',
-          smsOptIn: formData.get('smsOptIn') === 'on',
+          emailOptIn: formData.get('communicationOptIn') === 'on',
+          smsOptIn: formData.get('communicationOptIn') === 'on',
           redirectUrl: config.redirectUrl || ''
         };
         
@@ -456,35 +447,21 @@ export default function WidgetGenerator() {
 
         {/* Communication Preferences */}
         <div className="bg-gray-50 p-4 rounded-md border border-gray-200">
-          <h4 className="font-semibold text-sm mb-3 text-gray-700">Communication Preferences</h4>
-          <div className="space-y-3">
-            <div className="flex items-start space-x-2">
-              <input 
-                type="checkbox" 
-                defaultChecked 
-                className="mt-1" 
-                id="preview-email"
-              />
-              <label htmlFor="preview-email" className="text-sm text-gray-600 leading-tight">
-                Yes, send me email updates about my project, including appointment reminders and important notifications
-              </label>
-            </div>
-            <div className="flex items-start space-x-2">
-              <input 
-                type="checkbox" 
-                defaultChecked 
-                className="mt-1" 
-                id="preview-sms"
-              />
-              <label htmlFor="preview-sms" className="text-sm text-gray-600 leading-tight">
-                Yes, send me text message updates about my project (message and data rates may apply, reply STOP to opt out)
-              </label>
-            </div>
-            <p className="text-xs text-gray-500 leading-tight">
-              Your contact information will only be used for photography services and communications. 
-              We will never share your information with third parties. You can opt out at any time.
-            </p>
+          <div className="flex items-start space-x-2">
+            <input 
+              type="checkbox" 
+              defaultChecked 
+              className="mt-1" 
+              id="preview-communication"
+            />
+            <label htmlFor="preview-communication" className="text-sm text-gray-600 leading-tight">
+              I consent to receive communications about my project
+            </label>
           </div>
+          <p className="text-xs text-gray-500 mt-2 leading-tight">
+            Your contact information will only be used for photography services and communications. 
+            We will never share your information with third parties. You can opt out at any time.
+          </p>
         </div>
         
         <button 
