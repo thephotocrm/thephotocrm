@@ -807,6 +807,25 @@ ${photographer?.businessName || 'Your Photography Team'}`;
     }
   });
 
+  // Get estimates by project ID
+  app.get("/api/estimates/project/:projectId", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      const { projectId } = req.params;
+      
+      // First verify the project belongs to this photographer
+      const project = await storage.getProject(projectId);
+      if (!project || project.photographerId !== req.user!.photographerId!) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      const estimates = await storage.getEstimatesByProject(projectId);
+      res.json(estimates);
+    } catch (error) {
+      console.error("Get project estimates error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   app.post("/api/estimates", authenticateToken, requirePhotographer, async (req, res) => {
     try {
       const estimateData = insertEstimateSchema.parse({

@@ -10,6 +10,7 @@ import Dashboard from "@/pages/dashboard";
 import Clients from "@/pages/clients";
 import ClientDetail from "@/pages/client-detail";
 import Projects from "@/pages/projects";
+import ProjectDetail from "@/pages/project-detail";
 import Proposals from "@/pages/proposals";
 import ProposalNew from "@/pages/proposal-new";
 import Templates from "@/pages/templates";
@@ -35,6 +36,7 @@ function Router() {
       <Route path="/clients" component={Clients} />
       <Route path="/clients/:id" component={ClientDetail} />
       <Route path="/projects" component={Projects} />
+      <Route path="/projects/:id" component={ProjectDetail} />
       <Route path="/proposals" component={Proposals} />
       <Route path="/proposals/new" component={ProposalNew} />
       <Route path="/templates" component={Templates} />

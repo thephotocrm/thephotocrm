@@ -83,6 +83,7 @@ export interface IStorage {
   
   // Estimates
   getEstimatesByPhotographer(photographerId: string): Promise<EstimateWithClient[]>;
+  getEstimatesByProject(projectId: string): Promise<EstimateWithClient[]>;
   getEstimate(id: string): Promise<EstimateWithRelations | undefined>;
   getEstimateByToken(token: string): Promise<EstimateWithRelations | undefined>;
   createEstimate(estimate: InsertEstimate): Promise<Estimate>;
@@ -473,6 +474,46 @@ export class DatabaseStorage implements IStorage {
     .from(estimates)
     .innerJoin(clients, eq(estimates.clientId, clients.id))
     .where(eq(estimates.photographerId, photographerId))
+    .orderBy(desc(estimates.createdAt));
+  }
+
+  async getEstimatesByProject(projectId: string): Promise<EstimateWithClient[]> {
+    return await db.select({
+      id: estimates.id,
+      photographerId: estimates.photographerId,
+      clientId: estimates.clientId,
+      title: estimates.title,
+      notes: estimates.notes,
+      currency: estimates.currency,
+      subtotalCents: estimates.subtotalCents,
+      discountCents: estimates.discountCents,
+      taxCents: estimates.taxCents,
+      totalCents: estimates.totalCents,
+      depositPercent: estimates.depositPercent,
+      depositCents: estimates.depositCents,
+      status: estimates.status,
+      validUntil: estimates.validUntil,
+      createdAt: estimates.createdAt,
+      sentAt: estimates.sentAt,
+      signedAt: estimates.signedAt,
+      signedByName: estimates.signedByName,
+      signedByEmail: estimates.signedByEmail,
+      signedIp: estimates.signedIp,
+      signedUserAgent: estimates.signedUserAgent,
+      signatureImageUrl: estimates.signatureImageUrl,
+      token: estimates.token,
+      client: {
+        firstName: clients.firstName,
+        lastName: clients.lastName,
+        email: clients.email,
+        eventDate: clients.eventDate,
+        projectType: clients.projectType,
+        leadSource: clients.leadSource
+      }
+    })
+    .from(estimates)
+    .innerJoin(clients, eq(estimates.clientId, clients.id))
+    .where(eq(estimates.projectId, projectId))
     .orderBy(desc(estimates.createdAt));
   }
 
