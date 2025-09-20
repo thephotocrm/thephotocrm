@@ -453,6 +453,39 @@ export default function WidgetGenerator() {
             />
           </div>
         )}
+
+        {/* Communication Preferences */}
+        <div className="bg-gray-50 p-4 rounded-md border border-gray-200">
+          <h4 className="font-semibold text-sm mb-3 text-gray-700">Communication Preferences</h4>
+          <div className="space-y-3">
+            <div className="flex items-start space-x-2">
+              <input 
+                type="checkbox" 
+                defaultChecked 
+                className="mt-1" 
+                id="preview-email"
+              />
+              <label htmlFor="preview-email" className="text-sm text-gray-600 leading-tight">
+                Yes, send me email updates about my project, including appointment reminders and important notifications
+              </label>
+            </div>
+            <div className="flex items-start space-x-2">
+              <input 
+                type="checkbox" 
+                defaultChecked 
+                className="mt-1" 
+                id="preview-sms"
+              />
+              <label htmlFor="preview-sms" className="text-sm text-gray-600 leading-tight">
+                Yes, send me text message updates about my project (message and data rates may apply, reply STOP to opt out)
+              </label>
+            </div>
+            <p className="text-xs text-gray-500 leading-tight">
+              Your contact information will only be used for photography services and communications. 
+              We will never share your information with third parties. You can opt out at any time.
+            </p>
+          </div>
+        </div>
         
         <button 
           type="submit" 
