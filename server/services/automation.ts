@@ -880,21 +880,21 @@ async function processQuestionnaireAssignment(project: any, automation: any, pho
   }
 
   // Check if questionnaire has already been assigned for this project and template
-  const existingAssignments = await db
-    .select()
-    .from(projectQuestionnaires)
-    .where(and(
-      eq(projectQuestionnaires.projectId, project.id),
-      eq(projectQuestionnaires.templateId, automation.questionnaireTemplateId)
-    ));
-
-  if (existingAssignments.length > 0) {
-    console.log(`🚫 Questionnaire already assigned to ${project.firstName} ${project.lastName} for this template`);
-    return;
-  }
-
-  // Create questionnaire assignment
   try {
+    const existingAssignments = await db
+      .select()
+      .from(projectQuestionnaires)
+      .where(and(
+        eq(projectQuestionnaires.projectId, project.id),
+        eq(projectQuestionnaires.templateId, automation.questionnaireTemplateId)
+      ));
+
+    if (existingAssignments.length > 0) {
+      console.log(`🚫 Questionnaire already assigned to ${project.firstName} ${project.lastName} for this template`);
+      return;
+    }
+
+    // Create questionnaire assignment
     await db.insert(projectQuestionnaires).values({
       projectId: project.id,
       templateId: automation.questionnaireTemplateId,
@@ -903,7 +903,12 @@ async function processQuestionnaireAssignment(project: any, automation: any, pho
 
     console.log(`📋 Successfully assigned questionnaire to ${project.firstName} ${project.lastName}`);
   } catch (error) {
-    console.error(`❌ Failed to assign questionnaire to ${project.firstName} ${project.lastName}:`, error);
+    // 🚫 BULLETPROOF ERROR HANDLING - Don't crash automation system on database schema issues
+    if (error?.code === '42703') {
+      console.log(`⚠️ Database schema issue for questionnaire assignment (${error.message}). Skipping questionnaire assignment for ${project.firstName} ${project.lastName} to prevent automation system crash.`);
+    } else {
+      console.error(`❌ Failed to assign questionnaire to ${project.firstName} ${project.lastName}:`, error);
+    }
   }
 }
 
