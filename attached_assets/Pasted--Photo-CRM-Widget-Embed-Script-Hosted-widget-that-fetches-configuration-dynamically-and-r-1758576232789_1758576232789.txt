@@ -1,0 +1,311 @@
+/**
+ * Photo CRM Widget Embed Script
+ * Hosted widget that fetches configuration dynamically and renders forms
+ */
+(function() {
+  'use strict';
+
+  // Get script configuration from attributes
+  function getScriptConfig() {
+    // Get the API base URL from the current script's src
+    var scriptSrc = document.currentScript ? document.currentScript.src : 
+                    (document.querySelector('script[src*="/widget/embed.js"]') || {}).src;
+    var apiBaseUrl = scriptSrc ? new URL(scriptSrc).origin : window.location.origin;
+    
+    // Find all widget containers and their tokens
+    var containers = document.querySelectorAll('.photo-crm-widget[data-photographer-token]');
+    if (containers.length === 0) {
+      console.error('Photo CRM Widget: No containers found with class="photo-crm-widget" and data-photographer-token attribute');
+      return null;
+    }
+    
+    // Return configs for all containers found
+    var configs = [];
+    for (var i = 0; i < containers.length; i++) {
+      var container = containers[i];
+      var token = container.getAttribute('data-photographer-token');
+      var config = container.getAttribute('data-config');
+      
+      if (token) {
+        configs.push({
+          token: token,
+          config: config ? JSON.parse(config) : {},
+          container: container,
+          apiBaseUrl: apiBaseUrl
+        });
+      }
+    }
+    
+    if (configs.length === 0) {
+      console.error('Photo CRM Widget: data-photographer-token is required on container elements');
+      return null;
+    }
+    
+    return configs;
+  }
+
+  // HTML escape function to prevent XSS
+  function escapeHtml(text) {
+    if (typeof text !== 'string') return '';
+    var map = {
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#039;'
+    };
+    return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+  }
+
+  // Color validation function to prevent CSS injection
+  function validateColor(color) {
+    if (!color) return null;
+    // Allow hex colors (#fff, #ffffff) and named colors
+    var hexRegex = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/;
+    var rgbRegex = /^rgb\s*\(\s*([0-9]{1,3})\s*,\s*([0-9]{1,3})\s*,\s*([0-9]{1,3})\s*\)$/;
+    var rgbaRegex = /^rgba\s*\(\s*([0-9]{1,3})\s*,\s*([0-9]{1,3})\s*,\s*([0-9]{1,3})\s*,\s*([0-1]?(?:\.[0-9]+)?)\s*\)$/;
+    var namedColors = ['red', 'blue', 'green', 'yellow', 'orange', 'purple', 'pink', 'black', 'white', 'gray', 'grey'];
+    
+    if (hexRegex.test(color) || rgbRegex.test(color) || rgbaRegex.test(color) || namedColors.indexOf(color.toLowerCase()) >= 0) {
+      return color;
+    }
+    return null;
+  }
+
+  // Fetch widget configuration from API
+  function fetchWidgetConfig(token, apiBaseUrl, callback) {
+    var apiUrl = apiBaseUrl + '/api/public/widget/' + token;
+    
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', apiUrl, true);
+    xhr.onreadystatechange = function() {
+      if (xhr.readyState === 4) {
+        if (xhr.status === 200) {
+          try {
+            var response = JSON.parse(xhr.responseText);
+            if (response.success) {
+              callback(null, response);
+            } else {
+              callback(new Error(response.message || 'Failed to load widget configuration'));
+            }
+          } catch (e) {
+            callback(new Error('Invalid response from server'));
+          }
+        } else {
+          callback(new Error('Failed to load widget configuration: ' + xhr.status));
+        }
+      }
+    };
+    xhr.send();
+  }
+
+  // Create and render widget
+  function createWidget(widgetConfig, userConfig, token, specificContainer) {
+    // Merge user config with default config
+    var config = Object.assign({}, widgetConfig.config, userConfig);
+    // apiEndpoint is already absolute from widgetConfig.apiEndpoint
+
+    // Use the specific container passed to us
+    var container = specificContainer;
+    if (!container || container.getAttribute('data-photo-crm-initialized')) return;
+    container.setAttribute('data-photo-crm-initialized', 'true');
+      
+      // Create widget container with validated colors
+      var widget = document.createElement('div');
+      widget.style.cssText = 'max-width: 400px; padding: 24px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);';
+      widget.style.backgroundColor = validateColor(config.backgroundColor) || '#ffffff';
+      widget.style.borderColor = validateColor(config.primaryColor) || '#3b82f6';
+      widget.style.borderWidth = '1px';
+      widget.style.borderStyle = 'solid';
+      
+      // Create header
+      var header = document.createElement('div');
+      header.style.cssText = 'text-align: center; margin-bottom: 24px;';
+      
+      var title = document.createElement('h3');
+      title.style.cssText = 'font-size: 20px; font-weight: 600; margin-bottom: 8px;';
+      title.style.color = validateColor(config.primaryColor) || '#3b82f6';
+      title.textContent = config.title;
+      
+      var description = document.createElement('p');
+      description.style.cssText = 'color: #666; margin: 0;';
+      description.textContent = config.description;
+      
+      header.appendChild(title);
+      header.appendChild(description);
+      
+      // Create form
+      var form = document.createElement('form');
+      form.style.cssText = 'display: flex; flex-direction: column; gap: 16px;';
+      form.id = 'photo-crm-form-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+      
+      // Create form HTML with escaped content
+      var formHtml = 
+        '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">' +
+          '<div>' +
+            '<label style="display: block; font-size: 14px; font-weight: 500; margin-bottom: 4px;">First Name *</label>' +
+            '<input type="text" name="firstName" required style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px;" />' +
+          '</div>' +
+          '<div>' +
+            '<label style="display: block; font-size: 14px; font-weight: 500; margin-bottom: 4px;">Last Name *</label>' +
+            '<input type="text" name="lastName" required style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px;" />' +
+          '</div>' +
+        '</div>' +
+        '<div>' +
+          '<label style="display: block; font-size: 14px; font-weight: 500; margin-bottom: 4px;">Email *</label>' +
+          '<input type="email" name="email" required style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px;" />' +
+        '</div>' +
+        (config.showPhone ? '<div><label style="display: block; font-size: 14px; font-weight: 500; margin-bottom: 4px;">Phone</label><input type="tel" name="phone" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px;" /></div>' : '') +
+        '<div>' +
+          '<label style="display: block; font-size: 14px; font-weight: 500; margin-bottom: 4px;">Project Type *</label>' +
+          '<select name="projectType" required style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px;">' +
+            config.projectTypes.map(function(type) { return '<option value="' + escapeHtml(type) + '">' + escapeHtml(type.charAt(0) + type.slice(1).toLowerCase()) + '</option>'; }).join('') +
+          '</select>' +
+        '</div>' +
+        (config.showEventDate ? '<div><label style="display: block; font-size: 14px; font-weight: 500; margin-bottom: 4px;">Event Date</label><input type="date" name="eventDate" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px;" /></div>' : '') +
+        (config.showMessage ? '<div><label style="display: block; font-size: 14px; font-weight: 500; margin-bottom: 4px;">Message</label><textarea name="message" rows="3" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; resize: vertical;" placeholder="Tell us about your photography needs..."></textarea></div>' : '') +
+        '<div style="background-color: #f8f9fa; padding: 16px; border-radius: 4px; margin: 16px 0; border: 1px solid #e9ecef;">' +
+          '<div style="margin-bottom: 12px;">' +
+            '<label style="display: flex; align-items: center; cursor: pointer;">' +
+              '<input type="checkbox" name="communicationOptIn" checked style="margin-right: 8px;" />' +
+              '<span style="font-size: 13px; color: #555;">' +
+                'I agree to the privacy policy and agree to receive text, calls, or emails about my project' +
+              '</span>' +
+            '</label>' +
+          '</div>' +
+          '<p style="margin: 8px 0 0 0; font-size: 11px; color: #6c757d; line-height: 1.3;">' +
+            'Your contact information will only be used for photography services and communications. ' +
+            'We will never share your information with third parties. You can opt out at any time.' +
+          '</p>' +
+        '</div>' +
+        '<button type="submit" style="width: 100%; padding: 12px; border: none; border-radius: 4px; color: white; font-size: 16px; font-weight: 600; cursor: pointer;">' + escapeHtml(config.buttonText) + '</button>';
+      
+      form.innerHTML = formHtml;
+      
+      // Apply validated colors to button after creation
+      var submitButton = form.querySelector('button[type="submit"]');
+      if (submitButton) {
+        submitButton.style.backgroundColor = validateColor(config.primaryColor) || '#3b82f6';
+      }
+      
+      // Assemble widget
+      widget.appendChild(header);
+      widget.appendChild(form);
+      container.appendChild(widget);
+      
+      // Add form submission handler
+      form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        var formData = new FormData(form);
+        var data = {
+          firstName: formData.get('firstName'),
+          lastName: formData.get('lastName'),
+          email: formData.get('email'),
+          phone: formData.get('phone') || '',
+          message: formData.get('message') || '',
+          projectType: formData.get('projectType'),
+          eventDate: formData.get('eventDate') || '',
+          emailOptIn: formData.get('communicationOptIn') === 'on',
+          smsOptIn: formData.get('communicationOptIn') === 'on',
+          redirectUrl: config.redirectUrl || ''
+        };
+        
+        // Validate redirect URL on client side for additional security
+        if (data.redirectUrl && !(data.redirectUrl.match(/^https?:\/\//) || data.redirectUrl.match(/^\//))) {
+          data.redirectUrl = '';
+        }
+        
+        // Disable submit button during submission
+        submitButton.disabled = true;
+        submitButton.textContent = 'Submitting...';
+        
+        // Submit form - use absolute URL from config
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', widgetConfig.apiEndpoint, true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.onreadystatechange = function() {
+          if (xhr.readyState === 4) {
+            if (xhr.status === 201) {
+              try {
+                var response = JSON.parse(xhr.responseText);
+                if (response.success) {
+                  // Handle successful submission
+                  if (data.redirectUrl) {
+                    window.location.href = data.redirectUrl;
+                  } else {
+                    // Show success message
+                    widget.innerHTML = '<div style="text-align: center; padding: 24px;"><h3 style="color: #059669; margin-bottom: 8px;">Success!</h3><p style="color: #666; margin: 0;">' + escapeHtml(config.successMessage) + '</p></div>';
+                  }
+                } else {
+                  throw new Error(response.message || 'Submission failed');
+                }
+              } catch (e) {
+                handleError('Invalid response from server');
+              }
+            } else {
+              handleError('Failed to submit form. Please try again.');
+            }
+          }
+        };
+        xhr.send(JSON.stringify(data));
+        
+        function handleError(message) {
+          // Re-enable submit button
+          submitButton.disabled = false;
+          submitButton.textContent = config.buttonText;
+          
+          // Show error message
+          var errorDiv = form.querySelector('.error-message');
+          if (errorDiv) {
+            errorDiv.remove();
+          }
+          
+          errorDiv = document.createElement('div');
+          errorDiv.className = 'error-message';
+          errorDiv.style.cssText = 'background-color: #fef2f2; border: 1px solid #fecaca; color: #dc2626; padding: 12px; border-radius: 4px; margin-top: 16px; font-size: 14px;';
+          errorDiv.textContent = message;
+          form.appendChild(errorDiv);
+        }
+      });
+    });
+  }
+
+  // Initialize widget
+  function initWidget() {
+    var scriptConfigs = getScriptConfig();
+    if (!scriptConfigs || !scriptConfigs.length) return;
+    
+    // Process each widget container
+    for (var i = 0; i < scriptConfigs.length; i++) {
+      var config = scriptConfigs[i];
+      
+      // Skip if container already processed
+      if (config.container.getAttribute('data-widget-processed') === 'true') {
+        continue;
+      }
+      
+      // Mark as processed to prevent duplicate initialization
+      config.container.setAttribute('data-widget-processed', 'true');
+      
+      // Fetch configuration and create widget
+      (function(containerConfig) {
+        fetchWidgetConfig(containerConfig.token, containerConfig.apiBaseUrl, function(error, widgetConfig) {
+          if (error) {
+            console.error('Photo CRM Widget:', error.message);
+            return;
+          }
+          
+          createWidget(widgetConfig, containerConfig.config, containerConfig.token, containerConfig.container);
+        });
+      })(config);
+    }
+  }
+
+  // Run when DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initWidget);
+  } else {
+    initWidget();
+  }
+})();
