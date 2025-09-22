@@ -1,6 +1,6 @@
 import { 
   photographers, users, clients, projects, stages, templates, automations, automationSteps,
-  emailLogs, smsLogs, photographerLinks, checklistTemplateItems, projectChecklistItems,
+  emailLogs, smsLogs, automationExecutions, photographerLinks, checklistTemplateItems, projectChecklistItems,
   packages, packageItems, questionnaireTemplates, questionnaireQuestions, projectQuestionnaires,
   availabilitySlots, bookings, estimates, estimateItems, estimatePayments,
   photographerEarnings, photographerPayouts,
@@ -413,6 +413,10 @@ export class DatabaseStorage implements IStorage {
         // Delete project activity logs
         await tx.delete(projectActivityLog)
           .where(inArray(projectActivityLog.projectId, projectIds));
+        
+        // Delete automation executions for these projects
+        await tx.delete(automationExecutions)
+          .where(inArray(automationExecutions.projectId, projectIds));
         
         // Delete photographer earnings related to these projects
         await tx.delete(photographerEarnings)
