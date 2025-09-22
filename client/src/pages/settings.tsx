@@ -34,6 +34,151 @@ export default function Settings() {
     enabled: !!user
   });
 
+  // Stripe Connect queries and mutations
+  const { data: stripeStatus, refetch: refetchStripeStatus } = useQuery({
+    queryKey: ["/api/stripe-connect/account-status"],
+    enabled: !!user
+  });
+
+  const createAccountMutation = useMutation({
+    mutationFn: async () => {
+      await apiRequest("POST", "/api/stripe-connect/create-account");
+    },
+    onSuccess: () => {
+      refetchStripeStatus();
+      toast({
+        title: "Stripe Account Created",
+        description: "Your Stripe Connect account has been created. Complete onboarding to start receiving payments.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Account Creation Failed",
+        description: error.message || "Failed to create Stripe account. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const createOnboardingLinkMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest("POST", "/api/stripe-connect/create-onboarding-link", {
+        returnUrl: `${window.location.origin}/settings?tab=integrations&stripe=success`,
+        refreshUrl: `${window.location.origin}/settings?tab=integrations&stripe=refresh`
+      });
+      return response;
+    },
+    onSuccess: (data: any) => {
+      if (data.url) {
+        window.open(data.url, '_blank', 'width=800,height=700');
+        // Poll for connection status after opening onboarding window
+        const pollInterval = setInterval(async () => {
+          const result = await refetchStripeStatus();
+          if ((result.data as any)?.onboardingCompleted) {
+            clearInterval(pollInterval);
+            toast({
+              title: "Stripe Connected!",
+              description: "Your Stripe account is ready to receive payments.",
+            });
+          }
+        }, 3000);
+        
+        // Stop polling after 10 minutes
+        setTimeout(() => clearInterval(pollInterval), 10 * 60 * 1000);
+      }
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Onboarding Failed",
+        description: error.message || "Failed to start onboarding. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Google Calendar queries and mutations
+  const { data: calendarStatus, refetch: refetchCalendarStatus } = useQuery({
+    queryKey: ["/api/calendar/status"],
+    enabled: !!user
+  });
+
+  const connectCalendarMutation = useMutation({
+    mutationFn: async () => {
+      const response = await fetch("/api/auth/google-calendar", {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error("Failed to get auth URL");
+      const data = await response.json();
+      return data;
+    },
+    onSuccess: (data) => {
+      if (data.authUrl) {
+        window.open(data.authUrl, '_blank', 'width=500,height=600');
+        // Poll for connection status after opening auth window
+        const pollInterval = setInterval(async () => {
+          const result = await refetchCalendarStatus();
+          if ((result.data as any)?.authenticated) {
+            clearInterval(pollInterval);
+            toast({
+              title: "Google Calendar Connected!",
+              description: "Your calendar integration is now active.",
+            });
+          }
+        }, 2000);
+        
+        // Stop polling after 5 minutes
+        setTimeout(() => clearInterval(pollInterval), 5 * 60 * 1000);
+      }
+    },
+    onError: () => {
+      toast({
+        title: "Connection Failed",
+        description: "Failed to connect to Google Calendar. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const disconnectCalendarMutation = useMutation({
+    mutationFn: async () => {
+      await apiRequest("POST", "/api/calendar/disconnect");
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/calendar/status"] });
+      toast({
+        title: "Calendar Disconnected",
+        description: "Your Google Calendar has been disconnected.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Disconnection Failed",
+        description: "Failed to disconnect calendar. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const updatePhotographerMutation = useMutation({
+    mutationFn: async (data: any) => {
+      await apiRequest("PUT", "/api/photographer", data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/photographer"] });
+      toast({
+        title: "Settings updated",
+        description: "Your settings have been saved successfully.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to update settings. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
   // ALL useState hooks MUST be called before any conditional returns
   const [businessName, setBusinessName] = useState("");
   const [logoUrl, setLogoUrl] = useState("");
@@ -81,388 +226,7 @@ export default function Settings() {
     );
   }
 
-  // Stripe Connect integration component
-  function StripeConnectIntegration() {
-    const { data: stripeStatus, refetch: refetchStripeStatus } = useQuery({
-      queryKey: ["/api/stripe-connect/account-status"],
-      enabled: !!user
-    });
-
-    const createAccountMutation = useMutation({
-      mutationFn: async () => {
-        await apiRequest("POST", "/api/stripe-connect/create-account");
-      },
-      onSuccess: () => {
-        refetchStripeStatus();
-        toast({
-          title: "Stripe Account Created",
-          description: "Your Stripe Connect account has been created. Complete onboarding to start receiving payments.",
-        });
-      },
-      onError: (error: any) => {
-        toast({
-          title: "Account Creation Failed",
-          description: error.message || "Failed to create Stripe account. Please try again.",
-          variant: "destructive"
-        });
-      }
-    });
-
-    const createOnboardingLinkMutation = useMutation({
-      mutationFn: async () => {
-        const response = await apiRequest("POST", "/api/stripe-connect/create-onboarding-link", {
-          returnUrl: `${window.location.origin}/settings?tab=integrations&stripe=success`,
-          refreshUrl: `${window.location.origin}/settings?tab=integrations&stripe=refresh`
-        });
-        return response;
-      },
-      onSuccess: (data: any) => {
-        if (data.url) {
-          window.open(data.url, '_blank', 'width=800,height=700');
-          // Poll for connection status after opening onboarding window
-          const pollInterval = setInterval(async () => {
-            const result = await refetchStripeStatus();
-            if ((result.data as any)?.onboardingCompleted) {
-              clearInterval(pollInterval);
-              toast({
-                title: "Stripe Connected!",
-                description: "Your Stripe account is ready to receive payments.",
-              });
-            }
-          }, 3000);
-          
-          // Stop polling after 10 minutes
-          setTimeout(() => clearInterval(pollInterval), 10 * 60 * 1000);
-        }
-      },
-      onError: (error: any) => {
-        toast({
-          title: "Onboarding Failed",
-          description: error.message || "Failed to start onboarding. Please try again.",
-          variant: "destructive"
-        });
-      }
-    });
-
-    const hasAccount = (stripeStatus as any)?.hasAccount;
-    const onboardingCompleted = (stripeStatus as any)?.onboardingCompleted;
-    const payoutEnabled = (stripeStatus as any)?.payoutEnabled;
-    const accountStatus = (stripeStatus as any)?.status;
-
-    const getStatusDisplay = () => {
-      if (!hasAccount) {
-        return { icon: XCircle, text: "Not Connected", color: "text-gray-500" };
-      }
-      if (onboardingCompleted && payoutEnabled) {
-        return { icon: CheckCircle, text: "Active", color: "text-green-600" };
-      }
-      if (hasAccount && !onboardingCompleted) {
-        return { icon: AlertCircle, text: "Setup Required", color: "text-yellow-600" };
-      }
-      return { icon: XCircle, text: "Incomplete", color: "text-red-600" };
-    };
-
-    const status = getStatusDisplay();
-    const StatusIcon = status.icon;
-
-    return (
-      <div className="space-y-4">
-        <div className="flex items-center justify-between p-4 border border-border rounded-lg">
-          <div className="flex items-center space-x-3">
-            <CreditCard className="w-8 h-8 text-primary" />
-            <div>
-              <h3 className="font-medium">Stripe Connect</h3>
-              <p className="text-sm text-muted-foreground">
-                Accept payments and receive instant payouts to your bank account
-              </p>
-              {hasAccount && accountStatus && (
-                <p className="text-xs text-muted-foreground mt-1">
-                  Account status: {accountStatus}
-                </p>
-              )}
-            </div>
-          </div>
-          <div className="flex items-center space-x-3">
-            <div className={`flex items-center ${status.color}`}>
-              <StatusIcon className="w-4 h-4 mr-1" />
-              <span className="text-sm font-medium">{status.text}</span>
-            </div>
-            {!hasAccount ? (
-              <Button
-                onClick={() => createAccountMutation.mutate()}
-                disabled={createAccountMutation.isPending}
-                data-testid="button-create-stripe-account"
-                className="flex items-center"
-              >
-                {createAccountMutation.isPending ? (
-                  "Creating..."
-                ) : (
-                  <>
-                    Connect Stripe
-                    <ExternalLink className="w-4 h-4 ml-1" />
-                  </>
-                )}
-              </Button>
-            ) : !onboardingCompleted ? (
-              <Button
-                onClick={() => createOnboardingLinkMutation.mutate()}
-                disabled={createOnboardingLinkMutation.isPending}
-                data-testid="button-complete-stripe-onboarding"
-                className="flex items-center"
-              >
-                {createOnboardingLinkMutation.isPending ? (
-                  "Opening..."
-                ) : (
-                  <>
-                    Complete Setup
-                    <ExternalLink className="w-4 h-4 ml-1" />
-                  </>
-                )}
-              </Button>
-            ) : (
-              <Button
-                variant="outline"
-                onClick={() => createOnboardingLinkMutation.mutate()}
-                disabled={createOnboardingLinkMutation.isPending}
-                data-testid="button-manage-stripe-account"
-                className="flex items-center"
-              >
-                {createOnboardingLinkMutation.isPending ? (
-                  "Opening..."
-                ) : (
-                  <>
-                    Manage Account
-                    <ExternalLink className="w-4 h-4 ml-1" />
-                  </>
-                )}
-              </Button>
-            )}
-          </div>
-        </div>
-        
-        {onboardingCompleted && payoutEnabled && (
-          <div className="p-3 bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded-lg">
-            <div className="flex items-start space-x-2">
-              <CheckCircle className="w-4 h-4 text-green-600 mt-0.5" />
-              <div className="text-sm">
-                <p className="font-medium text-green-800 dark:text-green-200">Payments enabled</p>
-                <p className="text-green-700 dark:text-green-300 mt-1">
-                  You can now accept payments and receive instant payouts. Visit your earnings page to request payouts.
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-        
-        {hasAccount && !onboardingCompleted && (
-          <div className="p-3 bg-yellow-50 dark:bg-yellow-950 border border-yellow-200 dark:border-yellow-800 rounded-lg">
-            <div className="flex items-start space-x-2">
-              <AlertCircle className="w-4 h-4 text-yellow-600 mt-0.5" />
-              <div className="text-sm">
-                <p className="font-medium text-yellow-800 dark:text-yellow-200">Setup required</p>
-                <p className="text-yellow-700 dark:text-yellow-300 mt-1">
-                  Complete your Stripe onboarding to start accepting payments and receiving payouts
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-        
-        {!hasAccount && (
-          <div className="p-3 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg">
-            <div className="flex items-start space-x-2">
-              <CreditCard className="w-4 h-4 text-blue-600 mt-0.5" />
-              <div className="text-sm">
-                <p className="font-medium text-blue-800 dark:text-blue-200">Connect Stripe for payments</p>
-                <p className="text-blue-700 dark:text-blue-300 mt-1">
-                  Create a Stripe Connect account to accept client payments and receive instant payouts (within minutes for a 1% fee)
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-    );
-  }
-
-  // Google Calendar integration component
-  function GoogleCalendarIntegration() {
-    const { data: calendarStatus, refetch: refetchStatus } = useQuery({
-      queryKey: ["/api/calendar/status"],
-      enabled: !!user
-    });
-
-    const connectMutation = useMutation({
-      mutationFn: async () => {
-        const response = await fetch("/api/auth/google-calendar", {
-          credentials: 'include'
-        });
-        if (!response.ok) throw new Error("Failed to get auth URL");
-        const data = await response.json();
-        return data;
-      },
-      onSuccess: (data) => {
-        if (data.authUrl) {
-          window.open(data.authUrl, '_blank', 'width=500,height=600');
-          // Poll for connection status after opening auth window
-          const pollInterval = setInterval(async () => {
-            const result = await refetchStatus();
-            if ((result.data as any)?.authenticated) {
-              clearInterval(pollInterval);
-              toast({
-                title: "Google Calendar Connected!",
-                description: "Your calendar integration is now active.",
-              });
-            }
-          }, 2000);
-          
-          // Stop polling after 5 minutes
-          setTimeout(() => clearInterval(pollInterval), 5 * 60 * 1000);
-        }
-      },
-      onError: () => {
-        toast({
-          title: "Connection Failed",
-          description: "Failed to connect to Google Calendar. Please try again.",
-          variant: "destructive"
-        });
-      }
-    });
-
-    const disconnectMutation = useMutation({
-      mutationFn: async () => {
-        await apiRequest("POST", "/api/calendar/disconnect");
-      },
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ["/api/calendar/status"] });
-        toast({
-          title: "Calendar Disconnected",
-          description: "Your Google Calendar has been disconnected.",
-        });
-      },
-      onError: () => {
-        toast({
-          title: "Disconnection Failed",
-          description: "Failed to disconnect calendar. Please try again.",
-          variant: "destructive"
-        });
-      }
-    });
-
-    const isConnected = (calendarStatus as any)?.authenticated;
-    const connectedEmail = (calendarStatus as any)?.email;
-
-    return (
-      <div className="space-y-4">
-        <div className="flex items-center justify-between p-4 border border-border rounded-lg">
-          <div className="flex items-center space-x-3">
-            <Calendar className="w-8 h-8 text-primary" />
-            <div>
-              <h3 className="font-medium">Google Calendar</h3>
-              <p className="text-sm text-muted-foreground">
-                Sync your bookings with Google Calendar and generate Meet links
-              </p>
-              {isConnected && connectedEmail && (
-                <p className="text-xs text-muted-foreground mt-1">
-                  Connected as: {connectedEmail}
-                </p>
-              )}
-            </div>
-          </div>
-          <div className="flex items-center space-x-3">
-            {isConnected ? (
-              <>
-                <div className="flex items-center text-green-600">
-                  <CheckCircle className="w-4 h-4 mr-1" />
-                  <span className="text-sm font-medium">Connected</span>
-                </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => disconnectMutation.mutate()}
-                  disabled={disconnectMutation.isPending}
-                  data-testid="button-disconnect-calendar"
-                >
-                  {disconnectMutation.isPending ? "Disconnecting..." : "Disconnect"}
-                </Button>
-              </>
-            ) : (
-              <>
-                <div className="flex items-center text-gray-500">
-                  <XCircle className="w-4 h-4 mr-1" />
-                  <span className="text-sm">Not Connected</span>
-                </div>
-                <Button
-                  onClick={() => connectMutation.mutate()}
-                  disabled={connectMutation.isPending}
-                  data-testid="button-connect-calendar"
-                  className="flex items-center"
-                >
-                  {connectMutation.isPending ? (
-                    "Connecting..."
-                  ) : (
-                    <>
-                      Connect
-                      <ExternalLink className="w-4 h-4 ml-1" />
-                    </>
-                  )}
-                </Button>
-              </>
-            )}
-          </div>
-        </div>
-        
-        {isConnected && (
-          <div className="p-3 bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded-lg">
-            <div className="flex items-start space-x-2">
-              <CheckCircle className="w-4 h-4 text-green-600 mt-0.5" />
-              <div className="text-sm">
-                <p className="font-medium text-green-800 dark:text-green-200">Calendar integration active</p>
-                <p className="text-green-700 dark:text-green-300 mt-1">
-                  New bookings will automatically create calendar events with Google Meet links
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-        
-        {!isConnected && (
-          <div className="p-3 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg">
-            <div className="flex items-start space-x-2">
-              <Calendar className="w-4 h-4 text-blue-600 mt-0.5" />
-              <div className="text-sm">
-                <p className="font-medium text-blue-800 dark:text-blue-200">Connect your calendar</p>
-                <p className="text-blue-700 dark:text-blue-300 mt-1">
-                  Connect Google Calendar to automatically create events and Generate Meet links for client bookings
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-    );
-  }
-
-  const updatePhotographerMutation = useMutation({
-    mutationFn: async (data: any) => {
-      await apiRequest("PUT", "/api/photographer", data);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/photographer"] });
-      toast({
-        title: "Settings updated",
-        description: "Your settings have been saved successfully.",
-      });
-    },
-    onError: () => {
-      toast({
-        title: "Error",
-        description: "Failed to update settings. Please try again.",
-        variant: "destructive"
-      });
-    }
-  });
-
+  // Handler functions
   const handleSaveProfile = () => {
     updatePhotographerMutation.mutate({
       businessName,
@@ -481,6 +245,32 @@ export default function Settings() {
       brandSecondary
     });
   };
+
+  // Stripe status helpers
+  const hasStripeAccount = (stripeStatus as any)?.hasAccount;
+  const onboardingCompleted = (stripeStatus as any)?.onboardingCompleted;
+  const payoutEnabled = (stripeStatus as any)?.payoutEnabled;
+  const accountStatus = (stripeStatus as any)?.status;
+
+  const getStripeStatusDisplay = () => {
+    if (!hasStripeAccount) {
+      return { icon: XCircle, text: "Not Connected", color: "text-gray-500" };
+    }
+    if (onboardingCompleted && payoutEnabled) {
+      return { icon: CheckCircle, text: "Active", color: "text-green-600" };
+    }
+    if (hasStripeAccount && !onboardingCompleted) {
+      return { icon: AlertCircle, text: "Setup Required", color: "text-yellow-600" };
+    }
+    return { icon: XCircle, text: "Incomplete", color: "text-red-600" };
+  };
+
+  // Calendar status helpers
+  const isCalendarConnected = (calendarStatus as any)?.authenticated;
+  const connectedEmail = (calendarStatus as any)?.email;
+
+  const stripeStatusInfo = getStripeStatusDisplay();
+  const StripeStatusIcon = stripeStatusInfo.icon;
 
   return (
     <SidebarProvider>
@@ -591,53 +381,23 @@ export default function Settings() {
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="brandPrimary">Primary Color</Label>
-                      <div className="flex items-center space-x-2">
-                        <Input
-                          id="brandPrimary"
-                          type="color"
-                          value={brandPrimary}
-                          onChange={(e) => setBrandPrimary(e.target.value)}
-                          className="w-20"
-                          data-testid="input-brand-primary"
-                        />
-                        <Input
-                          value={brandPrimary}
-                          onChange={(e) => setBrandPrimary(e.target.value)}
-                          placeholder="#3b82f6"
-                        />
-                      </div>
+                      <Input
+                        id="brandPrimary"
+                        type="color"
+                        value={brandPrimary}
+                        onChange={(e) => setBrandPrimary(e.target.value)}
+                        data-testid="input-brand-primary"
+                      />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="brandSecondary">Secondary Color</Label>
-                      <div className="flex items-center space-x-2">
-                        <Input
-                          id="brandSecondary"
-                          type="color"
-                          value={brandSecondary}
-                          onChange={(e) => setBrandSecondary(e.target.value)}
-                          className="w-20"
-                          data-testid="input-brand-secondary"
-                        />
-                        <Input
-                          value={brandSecondary}
-                          onChange={(e) => setBrandSecondary(e.target.value)}
-                          placeholder="#64748b"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="p-4 border border-border rounded-lg">
-                    <p className="text-sm font-medium mb-2">Preview</p>
-                    <div className="flex space-x-2">
-                      <div 
-                        className="w-16 h-16 rounded-lg"
-                        style={{ backgroundColor: brandPrimary }}
-                      ></div>
-                      <div 
-                        className="w-16 h-16 rounded-lg"
-                        style={{ backgroundColor: brandSecondary }}
-                      ></div>
+                      <Input
+                        id="brandSecondary"
+                        type="color"
+                        value={brandSecondary}
+                        onChange={(e) => setBrandSecondary(e.target.value)}
+                        data-testid="input-brand-secondary"
+                      />
                     </div>
                   </div>
                   
@@ -653,73 +413,308 @@ export default function Settings() {
             </TabsContent>
 
             <TabsContent value="email">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Email Settings</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="emailFromName">From Name</Label>
-                      <Input
-                        id="emailFromName"
-                        value={emailFromName}
-                        onChange={(e) => setEmailFromName(e.target.value)}
-                        placeholder="Sarah Johnson Photography"
-                        data-testid="input-email-from-name"
-                      />
+              <div className="space-y-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Email Settings</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="emailFromName">From Name</Label>
+                        <Input
+                          id="emailFromName"
+                          value={emailFromName}
+                          onChange={(e) => setEmailFromName(e.target.value)}
+                          placeholder="Your Business Name"
+                          data-testid="input-email-from-name"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="emailFromAddr">From Email</Label>
+                        <Input
+                          id="emailFromAddr"
+                          type="email"
+                          value={emailFromAddr}
+                          onChange={(e) => setEmailFromAddr(e.target.value)}
+                          placeholder="hello@yourbusiness.com"
+                          data-testid="input-email-from-addr"
+                        />
+                      </div>
                     </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="emailFromAddr">From Email</Label>
-                      <Input
-                        id="emailFromAddr"
-                        type="email"
-                        value={emailFromAddr}
-                        onChange={(e) => setEmailFromAddr(e.target.value)}
-                        placeholder="sarah@photography.com"
-                        data-testid="input-email-from-addr"
-                      />
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-4">
-                    <h3 className="font-medium">Default Consent Settings</h3>
-                    <div className="space-y-3">
+                    
+                    <div className="space-y-4 pt-4 border-t">
+                      <h3 className="text-lg font-medium">Default Opt-in Settings</h3>
+                      <p className="text-sm text-muted-foreground">
+                        These settings control the default opt-in status when clients submit your widget form without explicitly choosing opt-in preferences.
+                      </p>
+                      
                       <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm font-medium">Email Opt-in by Default</p>
-                          <p className="text-xs text-muted-foreground">New clients automatically opt-in to email communications</p>
+                        <div className="space-y-0.5">
+                          <Label htmlFor="defaultEmailOptIn">Default Email Opt-in</Label>
+                          <p className="text-sm text-muted-foreground">
+                            New clients will be opted into email communications by default
+                          </p>
                         </div>
-                        <Switch 
+                        <Switch
+                          id="defaultEmailOptIn"
                           checked={defaultEmailOptIn}
                           onCheckedChange={setDefaultEmailOptIn}
-                          data-testid="switch-email-opt-in" 
+                          data-testid="switch-default-email-opt-in"
                         />
                       </div>
                       
                       <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm font-medium">SMS Opt-in by Default</p>
-                          <p className="text-xs text-muted-foreground">New clients automatically opt-in to SMS communications</p>
+                        <div className="space-y-0.5">
+                          <Label htmlFor="defaultSmsOptIn">Default SMS Opt-in</Label>
+                          <p className="text-sm text-muted-foreground">
+                            New clients will be opted into SMS communications by default
+                          </p>
                         </div>
-                        <Switch 
+                        <Switch
+                          id="defaultSmsOptIn"
                           checked={defaultSmsOptIn}
                           onCheckedChange={setDefaultSmsOptIn}
-                          data-testid="switch-sms-opt-in" 
+                          data-testid="switch-default-sms-opt-in"
                         />
                       </div>
                     </div>
-                  </div>
-                  
-                  <Button 
-                    onClick={handleSaveProfile}
-                    disabled={updatePhotographerMutation.isPending}
-                    data-testid="button-save-email"
-                  >
-                    {updatePhotographerMutation.isPending ? "Saving..." : "Save Email Settings"}
-                  </Button>
-                </CardContent>
-              </Card>
+                    
+                    <Button 
+                      onClick={handleSaveProfile}
+                      disabled={updatePhotographerMutation.isPending}
+                      data-testid="button-save-email-settings"
+                    >
+                      {updatePhotographerMutation.isPending ? "Saving..." : "Save Email Settings"}
+                    </Button>
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="integrations">
+              <div className="space-y-6">
+                {/* Stripe Connect Integration */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Payment Processing</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between p-4 border border-border rounded-lg">
+                        <div className="flex items-center space-x-3">
+                          <CreditCard className="w-8 h-8 text-primary" />
+                          <div>
+                            <h3 className="font-medium">Stripe Connect</h3>
+                            <p className="text-sm text-muted-foreground">
+                              Accept payments and receive instant payouts to your bank account
+                            </p>
+                            {hasStripeAccount && accountStatus && (
+                              <p className="text-xs text-muted-foreground mt-1">
+                                Account status: {accountStatus}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-3">
+                          <div className={`flex items-center ${stripeStatusInfo.color}`}>
+                            <StripeStatusIcon className="w-4 h-4 mr-1" />
+                            <span className="text-sm font-medium">{stripeStatusInfo.text}</span>
+                          </div>
+                          {!hasStripeAccount ? (
+                            <Button
+                              onClick={() => createAccountMutation.mutate()}
+                              disabled={createAccountMutation.isPending}
+                              data-testid="button-create-stripe-account"
+                              className="flex items-center"
+                            >
+                              {createAccountMutation.isPending ? (
+                                "Creating..."
+                              ) : (
+                                <>
+                                  Connect Stripe
+                                  <ExternalLink className="w-4 h-4 ml-1" />
+                                </>
+                              )}
+                            </Button>
+                          ) : !onboardingCompleted ? (
+                            <Button
+                              onClick={() => createOnboardingLinkMutation.mutate()}
+                              disabled={createOnboardingLinkMutation.isPending}
+                              data-testid="button-complete-stripe-onboarding"
+                              className="flex items-center"
+                            >
+                              {createOnboardingLinkMutation.isPending ? (
+                                "Opening..."
+                              ) : (
+                                <>
+                                  Complete Setup
+                                  <ExternalLink className="w-4 h-4 ml-1" />
+                                </>
+                              )}
+                            </Button>
+                          ) : (
+                            <Button
+                              variant="outline"
+                              onClick={() => createOnboardingLinkMutation.mutate()}
+                              disabled={createOnboardingLinkMutation.isPending}
+                              data-testid="button-manage-stripe-account"
+                              className="flex items-center"
+                            >
+                              {createOnboardingLinkMutation.isPending ? (
+                                "Opening..."
+                              ) : (
+                                <>
+                                  Manage Account
+                                  <ExternalLink className="w-4 h-4 ml-1" />
+                                </>
+                              )}
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                      
+                      {onboardingCompleted && payoutEnabled && (
+                        <div className="p-3 bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded-lg">
+                          <div className="flex items-start space-x-2">
+                            <CheckCircle className="w-4 h-4 text-green-600 mt-0.5" />
+                            <div className="text-sm">
+                              <p className="font-medium text-green-800 dark:text-green-200">Payments enabled</p>
+                              <p className="text-green-700 dark:text-green-300 mt-1">
+                                You can now accept payments and receive instant payouts. Visit your earnings page to request payouts.
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {hasStripeAccount && !onboardingCompleted && (
+                        <div className="p-3 bg-yellow-50 dark:bg-yellow-950 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+                          <div className="flex items-start space-x-2">
+                            <AlertCircle className="w-4 h-4 text-yellow-600 mt-0.5" />
+                            <div className="text-sm">
+                              <p className="font-medium text-yellow-800 dark:text-yellow-200">Setup required</p>
+                              <p className="text-yellow-700 dark:text-yellow-300 mt-1">
+                                Complete your Stripe onboarding to start accepting payments and receiving payouts
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {!hasStripeAccount && (
+                        <div className="p-3 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg">
+                          <div className="flex items-start space-x-2">
+                            <CreditCard className="w-4 h-4 text-blue-600 mt-0.5" />
+                            <div className="text-sm">
+                              <p className="font-medium text-blue-800 dark:text-blue-200">Connect Stripe for payments</p>
+                              <p className="text-blue-700 dark:text-blue-300 mt-1">
+                                Create a Stripe Connect account to accept client payments and receive instant payouts (within minutes for a 1% fee)
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Google Calendar Integration */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Calendar Integration</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between p-4 border border-border rounded-lg">
+                        <div className="flex items-center space-x-3">
+                          <Calendar className="w-8 h-8 text-primary" />
+                          <div>
+                            <h3 className="font-medium">Google Calendar</h3>
+                            <p className="text-sm text-muted-foreground">
+                              Sync your bookings with Google Calendar and generate Meet links
+                            </p>
+                            {isCalendarConnected && connectedEmail && (
+                              <p className="text-xs text-muted-foreground mt-1">
+                                Connected as: {connectedEmail}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-3">
+                          {isCalendarConnected ? (
+                            <>
+                              <div className="flex items-center text-green-600">
+                                <CheckCircle className="w-4 h-4 mr-1" />
+                                <span className="text-sm font-medium">Connected</span>
+                              </div>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => disconnectCalendarMutation.mutate()}
+                                disabled={disconnectCalendarMutation.isPending}
+                                data-testid="button-disconnect-calendar"
+                              >
+                                {disconnectCalendarMutation.isPending ? "Disconnecting..." : "Disconnect"}
+                              </Button>
+                            </>
+                          ) : (
+                            <>
+                              <div className="flex items-center text-gray-500">
+                                <XCircle className="w-4 h-4 mr-1" />
+                                <span className="text-sm">Not Connected</span>
+                              </div>
+                              <Button
+                                onClick={() => connectCalendarMutation.mutate()}
+                                disabled={connectCalendarMutation.isPending}
+                                data-testid="button-connect-calendar"
+                                className="flex items-center"
+                              >
+                                {connectCalendarMutation.isPending ? (
+                                  "Connecting..."
+                                ) : (
+                                  <>
+                                    Connect
+                                    <ExternalLink className="w-4 h-4 ml-1" />
+                                  </>
+                                )}
+                              </Button>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                      
+                      {isCalendarConnected && (
+                        <div className="p-3 bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded-lg">
+                          <div className="flex items-start space-x-2">
+                            <CheckCircle className="w-4 h-4 text-green-600 mt-0.5" />
+                            <div className="text-sm">
+                              <p className="font-medium text-green-800 dark:text-green-200">Calendar integration active</p>
+                              <p className="text-green-700 dark:text-green-300 mt-1">
+                                New bookings will automatically create calendar events with Google Meet links
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {!isCalendarConnected && (
+                        <div className="p-3 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg">
+                          <div className="flex items-start space-x-2">
+                            <Calendar className="w-4 h-4 text-blue-600 mt-0.5" />
+                            <div className="text-sm">
+                              <p className="font-medium text-blue-800 dark:text-blue-200">Connect your calendar</p>
+                              <p className="text-blue-700 dark:text-blue-300 mt-1">
+                                Connect Google Calendar to automatically create events and Generate Meet links for client bookings
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
             </TabsContent>
 
             <TabsContent value="automation">
@@ -727,49 +722,8 @@ export default function Settings() {
                 <CardHeader>
                   <CardTitle>Automation Settings</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-4">
-                    <h3 className="font-medium">Global Quiet Hours</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Set default quiet hours for all automations. Messages won't be sent during these times.
-                    </p>
-                    
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label>Start Time</Label>
-                        <Select defaultValue="22">
-                          <SelectTrigger data-testid="select-quiet-start">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="20">8:00 PM</SelectItem>
-                            <SelectItem value="21">9:00 PM</SelectItem>
-                            <SelectItem value="22">10:00 PM</SelectItem>
-                            <SelectItem value="23">11:00 PM</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <Label>End Time</Label>
-                        <Select defaultValue="8">
-                          <SelectTrigger data-testid="select-quiet-end">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="6">6:00 AM</SelectItem>
-                            <SelectItem value="7">7:00 AM</SelectItem>
-                            <SelectItem value="8">8:00 AM</SelectItem>
-                            <SelectItem value="9">9:00 AM</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <Button data-testid="button-save-automation">
-                    Save Automation Settings
-                  </Button>
+                <CardContent>
+                  <p className="text-muted-foreground">Automation settings coming soon...</p>
                 </CardContent>
               </Card>
             </TabsContent>
@@ -779,76 +733,10 @@ export default function Settings() {
                 <CardHeader>
                   <CardTitle>Security Settings</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-4">
-                    <div>
-                      <h3 className="font-medium mb-2">Change Password</h3>
-                      <div className="space-y-3">
-                        <div className="space-y-2">
-                          <Label htmlFor="currentPassword">Current Password</Label>
-                          <Input
-                            id="currentPassword"
-                            type="password"
-                            data-testid="input-current-password"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="newPassword">New Password</Label>
-                          <Input
-                            id="newPassword"
-                            type="password"
-                            data-testid="input-new-password"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="confirmPassword">Confirm Password</Label>
-                          <Input
-                            id="confirmPassword"
-                            type="password"
-                            data-testid="input-confirm-password"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <Button data-testid="button-change-password">
-                      Change Password
-                    </Button>
-                  </div>
-                  
-                  <div className="border-t pt-4">
-                    <h3 className="font-medium mb-2 text-destructive">Danger Zone</h3>
-                    <p className="text-sm text-muted-foreground mb-4">
-                      These actions cannot be undone. Please be careful.
-                    </p>
-                    <Button variant="destructive" data-testid="button-delete-account">
-                      Delete Account
-                    </Button>
-                  </div>
+                <CardContent>
+                  <p className="text-muted-foreground">Security settings coming soon...</p>
                 </CardContent>
               </Card>
-            </TabsContent>
-
-            <TabsContent value="integrations">
-              <div className="space-y-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Payment Processing</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <StripeConnectIntegration />
-                  </CardContent>
-                </Card>
-                
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Calendar Integration</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <GoogleCalendarIntegration />
-                  </CardContent>
-                </Card>
-              </div>
             </TabsContent>
           </Tabs>
         </div>
