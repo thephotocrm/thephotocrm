@@ -1,0 +1,34 @@
+Content Script Bridge: Sending response back to page context: {isAllowListed: false, isProtectionEnabled: true, isScamsProtectionEnabled: true}
+injection-tss-mv3.js:1 TSS: Received response from checkDomainAndRun: {isAllowListed: false, isProtectionEnabled: true, isScamsProtectionEnabled: true}
+contacyus.js:59 Iframe element with ID 'myiframe' not found
+(anonymous) @ contacyus.js:59Understand this error
+placement-controller.min.js:286 Unrecognized feature: 'allow-top-navigation'.
+createFormIframe @ placement-controller.min.js:286
+(anonymous) @ placement-controller.min.js:209
+(anonymous) @ placement-controller.min.js:180
+(anonymous) @ placement-controller.min.js:303
+(anonymous) @ placement-controller.min.js:231
+(anonymous) @ company_branding.js:1Understand this warning
+index.html:1  GET https://rum-static.pingdom.net/pa-5d8346cd3a7031000800044b.js net::ERR_BLOCKED_BY_CLIENTUnderstand this error
+content-scripts.js:1 Content Script Bridge: Sending response back to page context: {isAllowListed: false, isProtectionEnabled: true, isScamsProtectionEnabled: true}
+injection-tss-mv3.js:1 TSS: Received response from checkDomainAndRun: {isAllowListed: false, isProtectionEnabled: true, isScamsProtectionEnabled: true}
+ErrorTracking.js:48 Datadog Browser SDK: No storage available for session. We will not send any data.
+init @ preStartRum.js:61
+(anonymous) @ rumPublicApi.js:57
+_ @ monitor.js:43
+(anonymous) @ monitor.js:37
+d @ ErrorTracking.js:48
+setupErrorTracking @ App.jsx:38
+t.listenParent @ App.jsx:44Understand this warning
+iframeResizer_v4.min.js:8 [iFrameSizer][Host page: iFrameResizer0] Ignored iFrame, already setup.
+a @ iframeResizer_v4.min.js:8
+O @ iframeResizer_v4.min.js:8
+d @ iframeResizer_v4.min.js:8
+t @ iframeResizer_v4.min.js:8
+(anonymous) @ iframeResizer_v4.min.js:8
+triggerIframeResize @ placement-controller.min.js:297
+(anonymous) @ placement-controller.min.js:355Understand this warning
+content-scripts.js:1 Content Script Bridge: Sending response back to page context: {isAllowListed: false, isProtectionEnabled: true, isScamsProtectionEnabled: true}
+content-scripts.js:1 Content Script Bridge: Sending response back to page context: {isAllowListed: false, isProtectionEnabled: true, isScamsProtectionEnabled: true}
+injection-tss-mv3.js:1 TSS: Received response from checkDomainAndRun: {isAllowListed: false, isProtectionEnabled: true, isScamsProtectionEnabled: true}
+injection-tss-mv3.js:1 TSS: Received response from checkDomainAndRun: {isAllowListed: false, isProtectionEnabled: true, isScamsProtectionEnabled: true}
