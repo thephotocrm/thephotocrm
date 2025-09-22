@@ -2590,7 +2590,9 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       }
 
       // Return photographer's widget configuration with absolute API URL
-      const baseUrl = `${req.protocol}://${req.get('host')}`;
+      // Detect if we're behind a proxy (like Replit) and use HTTPS when appropriate
+      const protocol = req.get('x-forwarded-proto') || req.protocol;
+      const baseUrl = `${protocol}://${req.get('host')}`;
       
       res.json({
         success: true,

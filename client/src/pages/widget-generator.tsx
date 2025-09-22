@@ -6,9 +6,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Copy, Settings, Eye, Code2, Smartphone } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { Sidebar, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
+import { AppSidebar } from "@/components/layout/app-sidebar";
+import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 
 interface Photographer {
   id: string;
@@ -160,59 +162,40 @@ export default function WidgetGenerator() {
 
   return (
     <SidebarProvider>
-      <Sidebar>
-        <SidebarHeader>
-          <h2 className="text-lg font-semibold">Widget Generator</h2>
-        </SidebarHeader>
-        <SidebarContent>
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton 
-                data-testid="tab-setup"
-                onClick={() => setActiveTab("setup")} 
-                isActive={activeTab === "setup"}
-              >
+      <AppSidebar />
+      <SidebarInset>
+        {/* Header */}
+        <header className="bg-card border-b border-border px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <SidebarTrigger data-testid="button-menu-toggle" />
+              <div>
+                <h1 className="text-2xl font-semibold">Widget Generator</h1>
+                <p className="text-muted-foreground">Create and customize lead capture widgets for your website</p>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <div className="p-6">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="setup" data-testid="tab-setup" className="flex items-center gap-2">
                 <Settings className="w-4 h-4" />
                 Setup & Configure
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton 
-                data-testid="tab-customize"
-                onClick={() => setActiveTab("customize")} 
-                isActive={activeTab === "customize"}
-              >
+              </TabsTrigger>
+              <TabsTrigger value="customize" data-testid="tab-customize" className="flex items-center gap-2">
                 <Eye className="w-4 h-4" />
                 Customize & Preview
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton 
-                data-testid="tab-embed"
-                onClick={() => setActiveTab("embed")} 
-                isActive={activeTab === "embed"}
-              >
+              </TabsTrigger>
+              <TabsTrigger value="embed" data-testid="tab-embed" className="flex items-center gap-2">
                 <Code2 className="w-4 h-4" />
                 Get Embed Code
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
-        </SidebarContent>
-      </Sidebar>
+              </TabsTrigger>
+            </TabsList>
 
-      <SidebarInset>
-        <div className="flex-1 space-y-6 p-6">
-          <div className="space-y-2">
-            <h1 className="text-3xl font-bold tracking-tight">Widget Generator</h1>
-            <p className="text-muted-foreground">
-              Create and customize lead capture widgets for your website.
-            </p>
-          </div>
-
-          <div className="grid gap-6">
-            {/* Setup Tab */}
-            {activeTab === "setup" && (
-              <div className="grid gap-6">
+            <TabsContent value="setup" className="space-y-6">
+              {/* Setup Tab */}
                 <Card>
                   <CardHeader>
                     <CardTitle>Widget Configuration</CardTitle>
@@ -279,11 +262,10 @@ export default function WidgetGenerator() {
                     </div>
                   </CardContent>
                 </Card>
-              </div>
-            )}
+            </TabsContent>
 
-            {/* Embed Tab */}
-            {activeTab === "embed" && (
+            <TabsContent value="embed" className="space-y-6">
+              {/* Embed Tab */}
               <Card>
                 <CardHeader>
                   <div className="flex items-center justify-between">
@@ -326,10 +308,10 @@ export default function WidgetGenerator() {
                   </div>
                 </CardContent>
               </Card>
-            )}
+            </TabsContent>
 
-            {/* Preview */}
-            {(activeTab === "customize" || activeTab === "preview") && (
+            <TabsContent value="customize" className="space-y-6">
+              {/* Preview */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center space-x-2">
@@ -343,8 +325,8 @@ export default function WidgetGenerator() {
                   </div>
                 </CardContent>
               </Card>
-            )}
-          </div>
+            </TabsContent>
+          </Tabs>
         </div>
       </SidebarInset>
     </SidebarProvider>
