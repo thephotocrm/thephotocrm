@@ -34,6 +34,33 @@ export default function Settings() {
     enabled: !!user
   });
 
+  // ALL useState hooks MUST be called before any conditional returns
+  const [businessName, setBusinessName] = useState("");
+  const [logoUrl, setLogoUrl] = useState("");
+  const [brandPrimary, setBrandPrimary] = useState("#3b82f6");
+  const [brandSecondary, setBrandSecondary] = useState("#64748b");
+  const [emailFromName, setEmailFromName] = useState("");
+  const [emailFromAddr, setEmailFromAddr] = useState("");
+  const [timezone, setTimezone] = useState("America/New_York");
+  const [defaultEmailOptIn, setDefaultEmailOptIn] = useState(true);
+  const [defaultSmsOptIn, setDefaultSmsOptIn] = useState(false);
+
+  // Update state when photographer data loads
+  useEffect(() => {
+    if (photographer) {
+      const p = photographer as any;
+      setBusinessName(p.businessName || "");
+      setLogoUrl(p.logoUrl || "");
+      setBrandPrimary(p.brandPrimary || "#3b82f6");
+      setBrandSecondary(p.brandSecondary || "#64748b");
+      setEmailFromName(p.emailFromName || "");
+      setEmailFromAddr(p.emailFromAddr || "");
+      setTimezone(p.timezone || "America/New_York");
+      setDefaultEmailOptIn(p.defaultEmailOptIn ?? true);
+      setDefaultSmsOptIn(p.defaultSmsOptIn ?? false);
+    }
+  }, [photographer]);
+
   // Redirect to login if not authenticated
   useEffect(() => {
     if (!loading && !user) {
@@ -53,14 +80,6 @@ export default function Settings() {
       </div>
     );
   }
-
-  const [businessName, setBusinessName] = useState((photographer as any)?.businessName || "");
-  const [logoUrl, setLogoUrl] = useState((photographer as any)?.logoUrl || "");
-  const [brandPrimary, setBrandPrimary] = useState((photographer as any)?.brandPrimary || "#3b82f6");
-  const [brandSecondary, setBrandSecondary] = useState((photographer as any)?.brandSecondary || "#64748b");
-  const [emailFromName, setEmailFromName] = useState((photographer as any)?.emailFromName || "");
-  const [emailFromAddr, setEmailFromAddr] = useState((photographer as any)?.emailFromAddr || "");
-  const [timezone, setTimezone] = useState((photographer as any)?.timezone || "America/New_York");
 
   // Stripe Connect integration component
   function StripeConnectIntegration() {
@@ -450,7 +469,9 @@ export default function Settings() {
       logoUrl: logoUrl || undefined,
       emailFromName: emailFromName || undefined,
       emailFromAddr: emailFromAddr || undefined,
-      timezone
+      timezone,
+      defaultEmailOptIn,
+      defaultSmsOptIn
     });
   };
 
@@ -669,7 +690,11 @@ export default function Settings() {
                           <p className="text-sm font-medium">Email Opt-in by Default</p>
                           <p className="text-xs text-muted-foreground">New clients automatically opt-in to email communications</p>
                         </div>
-                        <Switch defaultChecked data-testid="switch-email-opt-in" />
+                        <Switch 
+                          checked={defaultEmailOptIn}
+                          onCheckedChange={setDefaultEmailOptIn}
+                          data-testid="switch-email-opt-in" 
+                        />
                       </div>
                       
                       <div className="flex items-center justify-between">
@@ -677,7 +702,11 @@ export default function Settings() {
                           <p className="text-sm font-medium">SMS Opt-in by Default</p>
                           <p className="text-xs text-muted-foreground">New clients automatically opt-in to SMS communications</p>
                         </div>
-                        <Switch data-testid="switch-sms-opt-in" />
+                        <Switch 
+                          checked={defaultSmsOptIn}
+                          onCheckedChange={setDefaultSmsOptIn}
+                          data-testid="switch-sms-opt-in" 
+                        />
                       </div>
                     </div>
                   </div>

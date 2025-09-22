@@ -75,6 +75,9 @@ export const photographers = pgTable("photographers", {
   googleCalendarScope: text("google_calendar_scope"),
   googleCalendarConnectedAt: timestamp("google_calendar_connected_at"),
   googleCalendarId: text("google_calendar_id"), // Dedicated business calendar ID
+  // Default consent settings
+  defaultEmailOptIn: boolean("default_email_opt_in").default(true),
+  defaultSmsOptIn: boolean("default_sms_opt_in").default(false),
   // Stripe Connect Integration
   stripeConnectAccountId: text("stripe_connect_account_id"),
   stripeAccountStatus: text("stripe_account_status"), // pending, active, restricted, rejected

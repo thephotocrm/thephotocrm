@@ -2517,6 +2517,10 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       
       const leadData = publicLeadSchema.parse(req.body);
       
+      // Apply photographer's default opt-in settings if not explicitly provided
+      const finalEmailOptIn = leadData.emailOptIn ?? photographer.defaultEmailOptIn ?? true;
+      const finalSmsOptIn = leadData.smsOptIn ?? photographer.defaultSmsOptIn ?? false;
+      
       // NEW: Create separate client and project records
       
       // 1. Create client with pure contact information
@@ -2537,10 +2541,27 @@ ${photographer?.businessName || 'Your Photography Team'}`;
         eventDate: leadData.eventDate && !isNaN(Date.parse(leadData.eventDate)) ? new Date(leadData.eventDate) : undefined,
         leadSource: "WEBSITE_WIDGET",
         notes: leadData.message,
-        emailOptIn: leadData.emailOptIn,
-        smsOptIn: leadData.smsOptIn
+        emailOptIn: finalEmailOptIn,
+        smsOptIn: finalSmsOptIn
         // stageId will be assigned automatically by createProject method
       });
+      
+      // 3. Send welcome SMS if client opted in and has valid phone number
+      if (finalSmsOptIn && client.phone) {
+        console.log(`[WIDGET SMS] Sending welcome SMS to ${client.firstName} ${client.lastName} at ${client.phone}`);
+        const smsResult = await sendSms({
+          to: client.phone,
+          body: `Hi ${client.firstName}! Thank you for your ${leadData.projectType.toLowerCase()} inquiry with ${photographer.businessName}. We'll be in touch soon!`
+        });
+        
+        if (smsResult.success) {
+          console.log(`[WIDGET SMS] Welcome SMS sent successfully, SID: ${smsResult.sid}`);
+        } else {
+          console.error(`[WIDGET SMS] Failed to send welcome SMS: ${smsResult.error}`);
+        }
+      } else if (finalSmsOptIn && !client.phone) {
+        console.log(`[WIDGET SMS] SMS opt-in enabled but no phone number provided for ${client.firstName} ${client.lastName}`);
+      }
       
       res.status(201).json({ 
         success: true, 

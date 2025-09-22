@@ -352,6 +352,19 @@ export class DatabaseStorage implements IStorage {
   async deleteClient(id: string): Promise<void> {
     // Atomic cascading delete - remove all related data in a transaction
     await db.transaction(async (tx) => {
+      // First verify the client exists in this transaction
+      const [existingClient] = await tx.select({ id: clients.id })
+        .from(clients)
+        .where(eq(clients.id, id));
+      
+      if (!existingClient) {
+        // Client doesn't exist - this is fine, just return without error
+        console.log(`[DELETE CLIENT] Client ${id} not found, skipping delete`);
+        return;
+      }
+      
+      console.log(`[DELETE CLIENT] Starting cascading delete for client ${id}`);
+      
       // Get all projects for this client
       const clientProjects = await tx.select({ id: projects.id })
         .from(projects)
@@ -419,8 +432,10 @@ export class DatabaseStorage implements IStorage {
         .where(eq(clientPortalTokens.clientId, id));
       
       // Finally delete the client
-      await tx.delete(clients)
+      const deleteResult = await tx.delete(clients)
         .where(eq(clients.id, id));
+      
+      console.log(`[DELETE CLIENT] Successfully deleted client ${id} and all related data`);
     });
   }
 
