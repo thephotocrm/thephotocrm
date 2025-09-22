@@ -2570,7 +2570,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
   app.get("/widget/embed.js", (req, res) => {
     res.header("Access-Control-Allow-Origin", "*");
     res.header("Content-Type", "application/javascript");
-    res.sendFile(path.resolve(import.meta.dirname, "public/widget-embed.js"));
+    res.sendFile(path.resolve(process.cwd(), "server/public/widget-embed.js"));
   });
 
   // Public widget configuration API endpoint (no authentication required) 
