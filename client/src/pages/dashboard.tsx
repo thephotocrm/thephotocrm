@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/sidebar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { Users, CheckCircle, DollarSign, Clock, Search, Plus } from "lucide-react";
 
@@ -60,11 +61,17 @@ export default function Dashboard() {
       <AppSidebar />
       <SidebarInset>
         {/* Header */}
-        <header className="bg-card border-b border-border px-6 py-4">
-          <div className="flex items-center justify-between">
+        <header className="bg-card border-b border-border px-4 md:px-6 py-4 relative">
+          {/* Hamburger menu positioned absolutely at top-right */}
+          <SidebarTrigger 
+            data-testid="button-menu-toggle" 
+            className="absolute top-4 right-4 z-10 md:relative md:top-auto md:right-auto md:z-auto" 
+          />
+          
+          {/* Desktop layout - horizontal */}
+          <div className="hidden md:flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <SidebarTrigger data-testid="button-menu-toggle" />
-              <div>
+              <div className="md:ml-0">
                 <h1 className="text-2xl font-semibold">Project Pipeline</h1>
                 <p className="text-muted-foreground">Manage your {activeProjectType.toLowerCase()} photography projects through each stage</p>
               </div>
@@ -88,20 +95,67 @@ export default function Dashboard() {
               </Button>
             </div>
           </div>
+          
+          {/* Mobile layout - column */}
+          <div className="md:hidden space-y-4 pr-12">
+            {/* Title */}
+            <div>
+              <h1 className="text-xl font-semibold">Project Pipeline</h1>
+              <p className="text-sm text-muted-foreground">Manage your {activeProjectType.toLowerCase()} photography projects</p>
+            </div>
+            
+            {/* Search and Add Project stacked */}
+            <div className="space-y-3">
+              <div className="relative">
+                <Input 
+                  placeholder="Search projects..." 
+                  className="w-full pl-10"
+                  data-testid="input-search-projects"
+                />
+                <Search className="absolute left-3 top-2.5 w-5 h-5 text-muted-foreground" />
+              </div>
+              
+              <Button 
+                onClick={() => setLocation("/projects")} 
+                data-testid="button-add-project"
+                className="w-full"
+              >
+                <Plus className="w-5 h-5 mr-2" />
+                Add Project
+              </Button>
+            </div>
+          </div>
         </header>
 
         {/* Dashboard Content */}
         <div className="p-6 space-y-6">
-          {/* Project Type Tabs */}
+          {/* Project Type Selection */}
           <Tabs value={activeProjectType} onValueChange={setActiveProjectType} className="w-full">
             <div className="flex items-center justify-between mb-6">
-              <TabsList className="grid w-full grid-cols-5 max-w-3xl">
+              {/* Desktop tabs */}
+              <TabsList className="hidden md:grid w-full grid-cols-5 max-w-3xl">
                 <TabsTrigger value="WEDDING" data-testid="tab-wedding">💒 Wedding</TabsTrigger>
                 <TabsTrigger value="ENGAGEMENT" data-testid="tab-engagement">💍 Engagement</TabsTrigger>
                 <TabsTrigger value="PORTRAIT" data-testid="tab-portrait">🎭 Portrait</TabsTrigger>
                 <TabsTrigger value="CORPORATE" data-testid="tab-corporate">🏢 Corporate</TabsTrigger>
                 <TabsTrigger value="EVENT" data-testid="tab-event">🎉 Event</TabsTrigger>
               </TabsList>
+              
+              {/* Mobile dropdown */}
+              <div className="md:hidden w-full max-w-xs">
+                <Select value={activeProjectType} onValueChange={setActiveProjectType}>
+                  <SelectTrigger data-testid="select-project-type">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="WEDDING">💒 Wedding</SelectItem>
+                    <SelectItem value="ENGAGEMENT">💍 Engagement</SelectItem>
+                    <SelectItem value="PORTRAIT">🎭 Portrait</SelectItem>
+                    <SelectItem value="CORPORATE">🏢 Corporate</SelectItem>
+                    <SelectItem value="EVENT">🎉 Event</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
             {Object.keys(projectTypeEnum).map((projectType) => (
