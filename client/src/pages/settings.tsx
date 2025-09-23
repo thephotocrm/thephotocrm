@@ -552,7 +552,7 @@ export default function Settings() {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
-                      <div className="flex items-center justify-between p-4 border border-border rounded-lg">
+                      <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0 p-4 border border-border rounded-lg">
                         <div className="flex items-center space-x-3">
                           <CreditCard className="w-8 h-8 text-primary" />
                           <div>
@@ -677,7 +677,7 @@ export default function Settings() {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
-                      <div className="flex items-center justify-between p-4 border border-border rounded-lg">
+                      <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0 p-4 border border-border rounded-lg">
                         <div className="flex items-center space-x-3">
                           <Calendar className="w-8 h-8 text-primary" />
                           <div>
