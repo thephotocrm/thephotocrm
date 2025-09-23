@@ -14,7 +14,12 @@ export default function Reports() {
   const [, setLocation] = useLocation();
 
   // ALL HOOKS MUST BE CALLED BEFORE ANY CONDITIONAL LOGIC
-  const { data: reportData } = useQuery({
+  const { data: reportData } = useQuery<{
+    revenueYTD?: number;
+    totalProjects?: number;
+    bookedThisMonth?: number;
+    outstandingBalance?: number;
+  }>({
     queryKey: ["/api/reports/summary"],
     enabled: !!user
   });
