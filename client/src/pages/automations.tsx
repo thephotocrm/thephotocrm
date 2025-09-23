@@ -469,54 +469,65 @@ export default function Automations() {
   const [selectedStage, setSelectedStage] = useState<any>(null);
   const [timingMode, setTimingMode] = useState<'immediate' | 'delayed'>('immediate');
   const [activeProjectType, setActiveProjectType] = useState<string>('WEDDING');
-  const [automationType, setAutomationType] = useState<'COMMUNICATION' | 'STAGE_CHANGE'>('COMMUNICATION');
+  const [enableCommunication, setEnableCommunication] = useState(true);
+  const [enablePipeline, setEnablePipeline] = useState(false);
 
-  // Dynamic schema function that updates based on automation type
-  const createExtendedFormSchema = (type: 'COMMUNICATION' | 'STAGE_CHANGE') => {
-    return createAutomationFormSchema.extend({
-      // Communication automation fields
-      templateId: z.string().optional(),
-      delayMinutes: z.coerce.number().min(0).default(0),
-      delayHours: z.coerce.number().min(0).default(0),
-      delayDays: z.coerce.number().min(0).default(0),
-      questionnaireTemplateId: z.string().optional(), // New field for questionnaire assignments
-      // Stage change automation fields
-      triggerType: z.string().optional(),
-      targetStageId: z.string().optional()
-    }).refine(
-      (data) => {
-        if (type === 'COMMUNICATION') {
-          // Communication automations require either a template (for messaging) or questionnaire (for assignment)
-          return (data.templateId && data.templateId.length > 0) || 
-                 (data.questionnaireTemplateId && data.questionnaireTemplateId.length > 0);
-        }
-        if (type === 'STAGE_CHANGE') {
-          return data.triggerType && data.targetStageId;
-        }
-        return true;
-      },
-      {
-        message: type === 'COMMUNICATION' 
-          ? "Please select a template or questionnaire for the communication automation"
-          : "Both trigger type and target stage are required for pipeline automations",
-        path: type === 'COMMUNICATION' ? ["templateId"] : ["triggerType"]
+  // Unified form schema that supports both automation types with optional sections
+  const unifiedFormSchema = createAutomationFormSchema.extend({
+    // Optional automation type flags
+    enableCommunication: z.boolean().default(true),
+    enablePipeline: z.boolean().default(false),
+    // Communication automation fields
+    channel: z.string().default("EMAIL"),
+    templateId: z.string().optional(),
+    delayMinutes: z.coerce.number().min(0).default(0),
+    delayHours: z.coerce.number().min(0).default(0),
+    delayDays: z.coerce.number().min(0).default(0),
+    questionnaireTemplateId: z.string().optional(),
+    // Pipeline automation fields
+    triggerType: z.string().optional(),
+    targetStageId: z.string().optional()
+  }).refine(
+    (data) => {
+      // At least one automation type must be enabled
+      if (!data.enableCommunication && !data.enablePipeline) {
+        return false;
       }
-    );
-  };
-
-  // Memoize the schema to update when automation type changes
-  const extendedFormSchema = useMemo(() => createExtendedFormSchema(automationType), [automationType]);
-  type ExtendedFormData = z.infer<typeof extendedFormSchema>;
+      // If communication is enabled, require either template or questionnaire
+      if (data.enableCommunication) {
+        const hasTemplate = data.templateId && data.templateId.length > 0 && data.templateId !== "unavailable";
+        const hasQuestionnaire = data.questionnaireTemplateId && data.questionnaireTemplateId.length > 0 && data.questionnaireTemplateId !== "none" && data.questionnaireTemplateId !== "unavailable";
+        if (!hasTemplate && !hasQuestionnaire) {
+          return false;
+        }
+      }
+      // If pipeline is enabled, require trigger and target stage
+      if (data.enablePipeline) {
+        if (!data.triggerType || !data.targetStageId) {
+          return false;
+        }
+      }
+      return true;
+    },
+    {
+      message: "Please enable at least one automation type and complete all required fields",
+      path: ["enableCommunication"]
+    }
+  );
+  
+  type UnifiedFormData = z.infer<typeof unifiedFormSchema>;
 
   // Form setup
-  const form = useForm<ExtendedFormData>({
-    resolver: zodResolver(extendedFormSchema),
+  const form = useForm<UnifiedFormData>({
+    resolver: zodResolver(unifiedFormSchema),
     defaultValues: {
       name: "",
       stageId: "",
-      channel: "EMAIL",
+      channel: "EMAIL", 
       enabled: true,
-      automationType: "COMMUNICATION",
+      automationType: "COMMUNICATION", // Still needed for backend compatibility
+      enableCommunication: true,
+      enablePipeline: false,
       templateId: "",
       delayMinutes: 0,
       delayHours: 0,
@@ -527,24 +538,27 @@ export default function Automations() {
     }
   });
 
-  // Update form values when automation type changes
+  // Update form values when enable flags change
   useEffect(() => {
     form.clearErrors();
-    // Sync automation type with form
-    form.setValue('automationType', automationType);
+    // Sync enable flags with form
+    form.setValue('enableCommunication', enableCommunication);
+    form.setValue('enablePipeline', enablePipeline);
     
-    // Reset fields that don't apply to the new automation type
-    if (automationType === 'COMMUNICATION') {
-      form.setValue('triggerType', '');
-      form.setValue('targetStageId', '');
-    } else if (automationType === 'STAGE_CHANGE') {
+    // Reset fields that don't apply to disabled automation types
+    if (!enableCommunication) {
       form.setValue('templateId', '');
       form.setValue('delayMinutes', 0);
       form.setValue('delayHours', 0);
       form.setValue('delayDays', 0);
       form.setValue('questionnaireTemplateId', '');
+      form.setValue('channel', 'EMAIL');
     }
-  }, [automationType, form]);
+    if (!enablePipeline) {
+      form.setValue('triggerType', '');
+      form.setValue('targetStageId', '');
+    }
+  }, [enableCommunication, enablePipeline, form]);
 
   // ALL HOOKS MUST BE CALLED BEFORE ANY CONDITIONALS
   const { data: stages = [], isError: stagesError, isLoading: stagesLoading } = useQuery<any[]>({
@@ -598,82 +612,76 @@ export default function Automations() {
     }
   });
 
-  // Create automation mutation - atomic with rollback
+  // Create unified automation mutation - handles both automation types
   const createAutomationMutation = useMutation({
-    mutationFn: async (data: ExtendedFormData) => {
-      // Validate template or questionnaire for communication automations only
-      if (data.automationType === 'COMMUNICATION') {
-        // Either template or questionnaire must be provided
-        if ((!data.templateId || data.templateId === "unavailable") && (!data.questionnaireTemplateId || data.questionnaireTemplateId === "unavailable")) {
-          throw new Error("Either a message template or questionnaire assignment is required for communication automation creation");
-        }
-
-        // If template is provided, validate it
-        if (data.templateId && data.templateId !== "unavailable") {
-          // Validate templates are available for selected channel
-          const channelTemplates = templates.filter((t: any) => t.channel === data.channel);
-          if (channelTemplates.length === 0) {
-            throw new Error(`No ${data.channel.toLowerCase()} templates available. Please create templates first.`);
-          }
-
-          // Validate selected template exists
-          const selectedTemplate = channelTemplates.find((t: any) => t.id === data.templateId);
-          if (!selectedTemplate) {
-            throw new Error("Selected template is not valid");
-          }
-        }
-
-        // If questionnaire is provided without template, skip channel validation
-        if (data.questionnaireTemplateId && !data.templateId) {
-          // Questionnaire-only communication, no channel validation needed
-        }
-      }
-
-      let automation: any = null;
+    mutationFn: async (data: UnifiedFormData) => {
+      const createdAutomations: any[] = [];
+      
       try {
-        // Create the automation with type-specific data
-        const automationData = {
-          name: data.name,
-          stageId: (data.stageId && data.stageId !== 'global') ? data.stageId : null,
-          enabled: data.enabled,
-          projectType: activeProjectType,
-          automationType: data.automationType,
-          // Communication automation fields
-          ...(data.automationType === 'COMMUNICATION' && {
+        // Create communication automation if enabled
+        if (data.enableCommunication) {
+          // Validate communication automation data
+          if (data.templateId && data.templateId !== "unavailable") {
+            const channelTemplates = templates.filter((t: any) => t.channel === data.channel);
+            if (channelTemplates.length === 0) {
+              throw new Error(`No ${data.channel.toLowerCase()} templates available. Please create templates first.`);
+            }
+            const selectedTemplate = channelTemplates.find((t: any) => t.id === data.templateId);
+            if (!selectedTemplate) {
+              throw new Error("Selected template is not valid");
+            }
+          }
+
+          const commAutomationData = {
+            name: data.name + (data.enablePipeline ? " (Communication)" : ""),
+            stageId: (data.stageId && data.stageId !== 'global') ? data.stageId : null,
+            enabled: data.enabled,
+            projectType: activeProjectType,
+            automationType: "COMMUNICATION" as const,
             channel: data.channel,
             templateId: data.templateId && data.templateId !== "unavailable" ? data.templateId : null,
             questionnaireTemplateId: data.questionnaireTemplateId && data.questionnaireTemplateId !== "unavailable" && data.questionnaireTemplateId !== "none" ? data.questionnaireTemplateId : null
-          }),
-          // Pipeline automation fields
-          ...(data.automationType === 'STAGE_CHANGE' && {
+          };
+
+          const commResponse = await apiRequest("POST", "/api/automations", commAutomationData);
+          const commAutomation = await commResponse.json();
+          createdAutomations.push(commAutomation);
+          
+          // Create automation step for communication with templates
+          if (data.templateId && data.templateId !== "unavailable") {
+            const totalDelayMinutes = timingMode === 'immediate' ? 0 : 
+              (data.delayDays * 24 * 60) + (data.delayHours * 60) + data.delayMinutes;
+            
+            await apiRequest("POST", `/api/automations/${commAutomation.id}/steps`, {
+              stepIndex: 0,
+              delayMinutes: totalDelayMinutes,
+              templateId: data.templateId,
+              enabled: true
+            });
+          }
+        }
+
+        // Create pipeline automation if enabled
+        if (data.enablePipeline) {
+          const pipelineAutomationData = {
+            name: data.name + (data.enableCommunication ? " (Pipeline)" : ""),
+            stageId: (data.stageId && data.stageId !== 'global') ? data.stageId : null,
+            enabled: data.enabled,
+            projectType: activeProjectType,
+            automationType: "STAGE_CHANGE" as const,
             triggerType: data.triggerType,
             targetStageId: data.targetStageId
-          })
-        };
+          };
 
-        const response = await apiRequest("POST", "/api/automations", automationData);
-        automation = await response.json();
-        console.log('Created automation:', automation);
-        
-        // Create automation step ONLY for communication automations with templates
-        if (data.automationType === 'COMMUNICATION' && data.templateId && automation?.id) {
-          // Calculate total delay minutes
-          const totalDelayMinutes = timingMode === 'immediate' ? 0 : 
-            (data.delayDays * 24 * 60) + (data.delayHours * 60) + data.delayMinutes;
-          
-          // Create the first automation step with template (atomic)
-          await apiRequest("POST", `/api/automations/${automation.id}/steps`, {
-            stepIndex: 0,
-            delayMinutes: totalDelayMinutes,
-            templateId: data.templateId,
-            enabled: true
-          });
+          const pipelineResponse = await apiRequest("POST", "/api/automations", pipelineAutomationData);
+          const pipelineAutomation = await pipelineResponse.json();
+          createdAutomations.push(pipelineAutomation);
         }
         
-        return automation;
+        return createdAutomations;
       } catch (error) {
-        // Rollback: delete automation if step creation failed
-        if (automation?.id) {
+        // Rollback: delete any created automations
+        for (const automation of createdAutomations) {
           try {
             await apiRequest("DELETE", `/api/automations/${automation.id}`);
           } catch (rollbackError) {
@@ -683,12 +691,18 @@ export default function Automations() {
         throw error;
       }
     },
-    onSuccess: () => {
-      toast({ title: "Automation created successfully" });
+    onSuccess: (createdAutomations) => {
+      const count = createdAutomations.length;
+      toast({ 
+        title: `${count > 1 ? 'Automations' : 'Automation'} created successfully`,
+        description: `Created ${count} automation${count > 1 ? 's' : ''} successfully.`
+      });
       queryClient.invalidateQueries({ queryKey: ["/api/automations"] });
       setCreateDialogOpen(false);
       form.reset();
       setTimingMode('immediate');
+      setEnableCommunication(true);
+      setEnablePipeline(false);
     },
     onError: (error: any) => {
       console.error('Create automation error:', error);
@@ -702,27 +716,8 @@ export default function Automations() {
     }
   });
 
-  const handleCreateAutomation = (data: ExtendedFormData) => {
-    // Add automation type and appropriate data based on type
-    const automationData = {
-      ...data,
-      automationType,
-      projectType: activeProjectType,
-      // Communication automation fields
-      ...(automationType === 'COMMUNICATION' && {
-        stageId: (data.stageId && data.stageId !== 'global') ? data.stageId : null,
-        channel: data.channel,
-        templateId: data.templateId,
-        questionnaireTemplateId: data.questionnaireTemplateId || null
-      }),
-      // Pipeline automation fields
-      ...(automationType === 'STAGE_CHANGE' && {
-        triggerType: data.triggerType,
-        targetStageId: data.targetStageId
-      })
-    };
-
-    createAutomationMutation.mutate(automationData);
+  const handleCreateAutomation = (data: UnifiedFormData) => {
+    createAutomationMutation.mutate(data);
   };
 
   const handleDeleteAutomation = (automationId: string) => {
