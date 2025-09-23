@@ -869,17 +869,17 @@ export default function Automations() {
         
         {/* Create Automation Dialog */}
         <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-              <DialogContent className="w-[95vw] sm:max-w-2xl max-h-[92vh] p-0 overflow-hidden flex flex-col">
-                <DialogHeader className="sticky top-0 z-10 bg-background px-6 py-4 border-b">
-                  <DialogTitle>Create Automation</DialogTitle>
-                  <DialogDescription>
-                    Set up a new automated workflow for your clients
-                  </DialogDescription>
-                </DialogHeader>
-                
-                <Form {...form}>
-                  <form onSubmit={form.handleSubmit(handleCreateAutomation)} className="flex flex-col h-full">
-                    <div className="flex-1 overflow-y-auto px-6 py-4 space-y-6">
+              <DialogContent className="w-[95vw] sm:max-w-2xl max-h-[92vh] p-0 flex flex-col overflow-hidden">
+                  <DialogHeader className="sticky top-0 z-10 bg-background px-6 py-4 border-b">
+                    <DialogTitle>Create Automation</DialogTitle>
+                    <DialogDescription>
+                      Set up a new automated workflow for your clients
+                    </DialogDescription>
+                  </DialogHeader>
+                  
+                  <Form {...form}>
+                    <form onSubmit={form.handleSubmit(handleCreateAutomation)} className="flex flex-col min-h-0 flex-1">
+                      <div className="flex-1 min-h-0 overflow-y-auto px-6 py-4 space-y-6">
                     <FormField
                       control={form.control}
                       name="name"
@@ -1393,8 +1393,8 @@ export default function Automations() {
                         }
                       </Button>
                     </div>
-                  </form>
-                </Form>
+                    </form>
+                  </Form>
               </DialogContent>
             </Dialog>
 
