@@ -1643,7 +1643,6 @@ export default function Automations() {
                           </div>
                           <Button 
                             onClick={() => {
-                              setAutomationType('COMMUNICATION');
                               setCreateDialogOpen(true);
                             }}
                             data-testid="button-add-stage-automation"
