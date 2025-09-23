@@ -50,7 +50,7 @@ export default function Reports() {
               {/* Hamburger menu positioned absolutely at top-right on mobile */}
               <SidebarTrigger 
                 data-testid="button-menu-toggle" 
-                className="absolute top-4 right-4 z-10 md:relative md:top-auto md:right-auto md:z-auto" 
+                className="hidden md:inline-flex" 
               />
               <div className="pr-12 md:pr-0">
                 <h1 className="text-xl md:text-2xl font-semibold">Reports & Analytics</h1>

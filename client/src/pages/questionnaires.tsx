@@ -307,7 +307,7 @@ export default function Questionnaires() {
         <header className="bg-card border-b border-border px-4 md:px-6 py-4 relative">
           <div className="flex items-center justify-between">
             <SidebarTrigger 
-              className="absolute top-4 right-4 z-10 h-10 w-10 bg-primary/10 border border-primary/20 md:relative md:top-auto md:right-auto md:z-auto md:h-7 md:w-7 md:bg-transparent md:border-0" 
+              className="hidden md:inline-flex" 
             />
             <div className="pr-12 md:pr-0">
               <h1 className="text-xl md:text-2xl font-semibold">Questionnaires</h1>

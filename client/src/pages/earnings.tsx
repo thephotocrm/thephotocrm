@@ -196,7 +196,7 @@ export default function Earnings() {
             <div className="flex items-center space-x-4">
               <SidebarTrigger 
                 data-testid="button-menu-toggle" 
-                className="absolute top-4 right-4 z-10 h-10 w-10 bg-primary/10 border border-primary/20 md:relative md:top-auto md:right-auto md:z-auto md:h-7 md:w-7 md:bg-transparent md:border-0" 
+                className="hidden md:inline-flex" 
               />
               <div className="pr-12 md:pr-0">
                 <h1 className="text-xl md:text-2xl font-semibold">Earnings</h1>

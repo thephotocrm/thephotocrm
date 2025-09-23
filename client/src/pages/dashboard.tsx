@@ -62,7 +62,7 @@ export default function Dashboard() {
           {/* Hamburger menu positioned absolutely at top-right */}
           <SidebarTrigger 
             data-testid="button-menu-toggle" 
-            className="absolute top-4 right-4 z-10 md:relative md:top-auto md:right-auto md:z-auto" 
+            className="hidden md:inline-flex" 
           />
           
           {/* Desktop layout - horizontal */}
