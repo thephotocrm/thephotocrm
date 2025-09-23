@@ -869,8 +869,8 @@ export default function Automations() {
         
         {/* Create Automation Dialog */}
         <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-              <DialogContent className="max-w-[min(100vw-2rem,900px)] sm:max-h-[85vh] max-h-[92vh] p-0 flex flex-col">
-                <DialogHeader className="px-6 py-4 border-b">
+              <DialogContent className="w-[95vw] sm:max-w-2xl max-h-[92vh] p-0 overflow-hidden flex flex-col">
+                <DialogHeader className="sticky top-0 z-10 bg-background px-6 py-4 border-b">
                   <DialogTitle>Create Automation</DialogTitle>
                   <DialogDescription>
                     Set up a new automated workflow for your clients
@@ -1296,7 +1296,7 @@ export default function Automations() {
                     </div>
 
                     {/* Footer with Submit Buttons */}
-                    <div className="px-6 py-4 border-t bg-gray-50 dark:bg-gray-900 flex justify-end space-x-2">
+                    <div className="sticky bottom-0 bg-background px-6 py-4 border-t flex justify-end space-x-2">
                       <Button
                         type="button" 
                         variant="outline"
