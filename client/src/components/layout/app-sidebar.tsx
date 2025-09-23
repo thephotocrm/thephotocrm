@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { 
@@ -29,12 +30,21 @@ import {
   SidebarMenuItem,
   SidebarMenuSub,
   SidebarSeparator,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 
 export function AppSidebar() {
   const [location] = useLocation();
   const { user, logout } = useAuth();
+  const { openMobile, setOpenMobile, isMobile } = useSidebar();
+
+  // Auto-close mobile sidebar when navigating to different pages
+  useEffect(() => {
+    if (isMobile) {
+      setOpenMobile(false);
+    }
+  }, [location, isMobile, setOpenMobile]);
 
   const navigation = [
     { name: "Dashboard", href: "/", icon: LayoutDashboard },
