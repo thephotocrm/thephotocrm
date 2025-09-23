@@ -9,8 +9,6 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Copy, Settings, Eye, Code2, Smartphone } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { AppSidebar } from "@/components/layout/app-sidebar";
-import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 
 interface Photographer {
   id: string;
@@ -161,20 +159,15 @@ export default function WidgetGenerator() {
   }
 
   return (
-    <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset>
+    <div>
         {/* Header */}
         <header className="bg-card border-b border-border px-6 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <SidebarTrigger data-testid="button-menu-toggle" className="hidden md:inline-flex" />
-              <div>
+            <div>
                 <h1 className="text-2xl font-semibold">Widget Generator</h1>
                 <p className="text-muted-foreground">Create and customize lead capture widgets for your website</p>
               </div>
             </div>
-          </div>
         </header>
 
         <div className="p-6">
@@ -328,7 +321,6 @@ export default function WidgetGenerator() {
             </TabsContent>
           </Tabs>
         </div>
-      </SidebarInset>
-    </SidebarProvider>
+    </div>
   );
 }

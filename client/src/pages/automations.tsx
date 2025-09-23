@@ -5,9 +5,7 @@ import { useLocation } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/sidebar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { AppSidebar } from "@/components/layout/app-sidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -818,16 +816,9 @@ export default function Automations() {
   }
 
   return (
-    <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset>
+    <div>
         {/* Header */}
         <header className="bg-card border-b border-border px-4 md:px-6 py-4 relative">
-          {/* Hamburger menu positioned absolutely at top-right */}
-          <SidebarTrigger 
-            data-testid="button-menu-toggle" 
-            className="hidden md:inline-flex" 
-          />
           
           {/* Mobile layout */}
           <div className="pr-12 md:pr-0">
@@ -1698,7 +1689,6 @@ export default function Automations() {
             ))}
           </Tabs>
         </div>
-      </SidebarInset>
-    </SidebarProvider>
+    </div>
   );
 }

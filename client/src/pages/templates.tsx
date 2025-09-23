@@ -3,8 +3,6 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { useLocation } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
-import { SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/sidebar";
-import { AppSidebar } from "@/components/layout/app-sidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -128,16 +126,11 @@ export default function Templates() {
   const smsTemplates = (templates || []).filter((t: Template) => t.channel === "SMS");
 
   return (
-    <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset>
+    <div>
         {/* Header */}
         <header className="bg-card border-b border-border px-4 md:px-6 py-4 relative">
           <div className="flex items-center justify-between">
-            <SidebarTrigger 
-              className="hidden md:inline-flex" 
-            />
-            <div className="pr-12 md:pr-0">
+            <div>
               <h1 className="text-xl md:text-2xl font-semibold">Templates</h1>
               <p className="text-sm md:text-base text-muted-foreground">Create and manage email and SMS templates for automation</p>
             </div>
@@ -399,7 +392,6 @@ export default function Templates() {
             </CardContent>
           </Card>
         </div>
-      </SidebarInset>
-    </SidebarProvider>
+    </div>
   );
 }
