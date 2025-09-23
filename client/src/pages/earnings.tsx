@@ -3,8 +3,6 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { useLocation } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
-import { SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/sidebar";
-import { AppSidebar } from "@/components/layout/app-sidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -187,23 +185,13 @@ export default function Earnings() {
   const isStripeReady = stripeStatus?.onboardingCompleted && stripeStatus?.payoutEnabled;
 
   return (
-    <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset>
+    <div>
         {/* Header */}
         <header className="bg-card border-b border-border px-4 md:px-6 py-4 relative">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <SidebarTrigger 
-                data-testid="button-menu-toggle" 
-                className="hidden md:inline-flex" 
-              />
-              <div className="pr-12 md:pr-0">
+          <div>
                 <h1 className="text-xl md:text-2xl font-semibold">Earnings</h1>
                 <p className="text-sm md:text-base text-muted-foreground">Track your payments and request payouts</p>
               </div>
-            </div>
-          </div>
         </header>
 
         <div className="p-6 space-y-6">
@@ -452,7 +440,6 @@ export default function Earnings() {
             </TabsContent>
           </Tabs>
         </div>
-      </SidebarInset>
-    </SidebarProvider>
+    </div>
   );
 }
