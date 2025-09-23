@@ -6,14 +6,14 @@ export function MobileHeader() {
       <div className="flex items-center">
         <span 
           className="font-bold text-xl text-white" 
-          style={{ textShadow: '1px 1px 2px rgba(0, 0, 0, 0.8), -1px -1px 2px rgba(0, 0, 0, 0.8), 1px -1px 2px rgba(0, 0, 0, 0.8), -1px 1px 2px rgba(0, 0, 0, 0.8)' }}
+          style={{ textShadow: '1px 1px 1px rgba(0, 0, 0, 0.5)' }}
         >
           thePhotoCRM
         </span>
       </div>
       <SidebarTrigger 
         data-testid="button-mobile-menu"
-        className="h-10 w-10 bg-primary/10 hover:bg-primary/20 border border-primary/20 rounded-md"
+        className="h-10 w-10 bg-blue-500 hover:bg-blue-600 border border-blue-400 rounded-md text-white"
       />
     </div>
   );

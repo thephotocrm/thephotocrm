@@ -27,6 +27,7 @@ export default function Settings() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [activeTab, setActiveTab] = useState("profile");
 
   // ALL HOOKS MUST BE CALLED BEFORE ANY CONDITIONAL LOGIC
   const { data: photographer } = useQuery({
@@ -292,7 +293,7 @@ export default function Settings() {
         </header>
 
         <div className="p-6">
-          <Tabs defaultValue="profile" className="space-y-6">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
             {/* Desktop tabs */}
             <TabsList className="hidden md:grid w-full grid-cols-6">
               <TabsTrigger value="profile" className="flex items-center">
@@ -321,9 +322,9 @@ export default function Settings() {
               </TabsTrigger>
             </TabsList>
             
-            {/* Mobile dropdown - need to add state management */}
+            {/* Mobile dropdown */}
             <div className="md:hidden">
-              <Select defaultValue="profile">
+              <Select value={activeTab} onValueChange={setActiveTab}>
                 <SelectTrigger data-testid="select-settings-section">
                   <SelectValue />
                 </SelectTrigger>

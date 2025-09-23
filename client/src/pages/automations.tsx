@@ -1577,7 +1577,7 @@ export default function Automations() {
 
                 {/* Two-Level Automation Architecture with Tabs */}
                 <Tabs defaultValue="stage-based" className="w-full">
-                  <TabsList className="grid w-full grid-cols-2">
+                  <TabsList className="flex flex-col md:grid w-full md:grid-cols-2 h-auto md:h-10">
                     <TabsTrigger value="stage-based" className="flex items-center gap-2">
                       <Settings className="w-4 h-4" />
                       Stage-Based Automations
@@ -1592,7 +1592,7 @@ export default function Automations() {
                   <TabsContent value="stage-based" className="mt-6">
                     <Card>
                       <CardHeader>
-                        <div className="flex items-center justify-between">
+                        <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
                           <div>
                             <CardTitle className="flex items-center">
                               <Settings className="w-5 h-5 mr-3 text-blue-500" />
@@ -1608,6 +1608,7 @@ export default function Automations() {
                               setCreateDialogOpen(true);
                             }}
                             data-testid="button-add-stage-automation"
+                            className="w-full md:w-auto"
                           >
                             <Plus className="w-4 h-4 mr-2" />
                             Add Stage Automation
