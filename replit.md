@@ -52,6 +52,8 @@ Event-driven automation engine using node-cron for scheduled tasks:
 - **Time Delays**: Configurable delays (minutes/hours/days) before automation execution
 - **Template Integration**: Dynamic content rendering with variable substitution
 - **Multi-channel Support**: Both email and SMS delivery channels
+- **Unified Creation Interface**: Single modal allowing users to create communication-only, pipeline-only, or combined automations with optional section toggles
+- **Questionnaire Support**: Automated questionnaire assignments with proper step creation for both template-based and questionnaire-only communications
 
 ### Payment Processing
 Stripe integration for secure payment handling:
