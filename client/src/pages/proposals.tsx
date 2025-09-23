@@ -92,9 +92,7 @@ export default function Proposals() {
   }
 
   return (
-    <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset>
+    <div>
         {/* Header */}
         <header className="bg-card border-b border-border px-4 md:px-6 py-4 relative">
           <div className="flex items-center justify-between">
@@ -296,7 +294,6 @@ export default function Proposals() {
             </CardContent>
           </Card>
         </div>
-      </SidebarInset>
-    </SidebarProvider>
+    </div>
   );
 }

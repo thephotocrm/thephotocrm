@@ -300,9 +300,7 @@ export default function Questionnaires() {
   }
 
   return (
-    <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset>
+    <div>
         {/* Header */}
         <header className="bg-card border-b border-border px-4 md:px-6 py-4 relative">
           <div className="flex items-center justify-between">
@@ -520,9 +518,8 @@ export default function Questionnaires() {
             </CardContent>
           </Card>
         </div>
-      </SidebarInset>
 
-      {/* Enhanced Edit Template Dialog with Question Management */}
+        {/* Enhanced Edit Template Dialog with Question Management */}
       <Dialog open={!!editingTemplate} onOpenChange={() => setEditingTemplate(null)}>
         <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
@@ -694,6 +691,6 @@ export default function Questionnaires() {
           </div>
         </DialogContent>
       </Dialog>
-    </SidebarProvider>
+    </div>
   );
 }
