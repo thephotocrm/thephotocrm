@@ -3,8 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { useLocation } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
-import { SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/sidebar";
-import { AppSidebar } from "@/components/layout/app-sidebar";
+import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -154,9 +153,7 @@ export default function Projects() {
   };
 
   return (
-    <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset>
+    <div>
         {/* Header */}
         <header className="bg-card border-b border-border px-4 md:px-6 py-4 relative">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -406,7 +403,6 @@ export default function Projects() {
             </div>
           )}
         </div>
-      </SidebarInset>
-    </SidebarProvider>
+    </div>
   );
 }

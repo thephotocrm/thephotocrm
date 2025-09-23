@@ -7,8 +7,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useLocation } from "wouter";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/sidebar";
-import { AppSidebar } from "@/components/layout/app-sidebar";
+import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -337,9 +336,7 @@ export default function Scheduling() {
   }
 
   return (
-    <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset>
+    <div>
         {/* Header */}
         <header className="bg-card border-b border-border px-4 md:px-6 py-4 relative">
           <div className="flex items-center justify-between">
@@ -526,7 +523,7 @@ export default function Scheduling() {
                     Create a manual booking for clients outside the normal booking flow
                   </p>
                   <Form {...bookingForm}>
-                    <form onSubmit={bookingForm.handleSubmit(createBookingMutation.mutate)} className="space-y-4">
+                    <form onSubmit={bookingForm.handleSubmit((data) => createBookingMutation.mutate(data))} className="space-y-4">
                       <div className="grid grid-cols-2 gap-4">
                         <FormField
                           control={bookingForm.control}
@@ -1059,7 +1056,6 @@ export default function Scheduling() {
             </CardContent>
           </Card>
         </div>
-      </SidebarInset>
-    </SidebarProvider>
+    </div>
   );
 }

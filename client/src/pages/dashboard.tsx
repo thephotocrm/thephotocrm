@@ -7,10 +7,9 @@ import KanbanBoard from "@/components/kanban/kanban-board";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/sidebar";
+import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { AppSidebar } from "@/components/layout/app-sidebar";
 import { Users, CheckCircle, DollarSign, Clock, Search, Plus } from "lucide-react";
 
 export default function Dashboard() {
@@ -57,9 +56,7 @@ export default function Dashboard() {
   }
 
   return (
-    <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset>
+    <div>
         {/* Header */}
         <header className="bg-card border-b border-border px-4 md:px-6 py-4 relative">
           {/* Hamburger menu positioned absolutely at top-right */}
@@ -242,7 +239,6 @@ export default function Dashboard() {
             ))}
           </Tabs>
         </div>
-      </SidebarInset>
-    </SidebarProvider>
+    </div>
   );
 }

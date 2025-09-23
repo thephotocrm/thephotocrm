@@ -3,8 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { useLocation } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
-import { SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/sidebar";
-import { AppSidebar } from "@/components/layout/app-sidebar";
+import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -136,9 +135,7 @@ export default function Clients() {
   ) || [];
 
   return (
-    <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset>
+    <div>
         {/* Header */}
         <header className="bg-card border-b border-border px-4 md:px-6 py-4 relative">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -330,7 +327,7 @@ export default function Clients() {
                             )}
                           </TableCell>
                           <TableCell>
-                            {new Date(client.createdAt).toLocaleDateString()}
+                            {client.createdAt ? new Date(client.createdAt).toLocaleDateString() : 'N/A'}
                           </TableCell>
                           <TableCell>
                           <div className="flex gap-2">
@@ -388,7 +385,7 @@ export default function Clients() {
                                 <Eye className="w-4 h-4 mr-2" />
                                 View Details
                               </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => handleDeleteClient(client.id)}>
+                              <DropdownMenuItem onClick={() => handleDeleteClick(client)}>
                                 <Trash2 className="w-4 h-4 mr-2" />
                                 Delete Client
                               </DropdownMenuItem>
@@ -424,14 +421,14 @@ export default function Clients() {
                               Latest: {client.projects[0].projectType}
                               {client.projects[0].eventDate && (
                                 <span className="ml-2">
-                                  📅 {new Date(client.projects[0].eventDate).toLocaleDateString()}
+                                  📅 {client.projects[0].eventDate ? new Date(client.projects[0].eventDate).toLocaleDateString() : 'N/A'}
                                 </span>
                               )}
                             </div>
                           )}
                         </div>
                         <div className="text-xs text-muted-foreground">
-                          Added {new Date(client.createdAt).toLocaleDateString()}
+                          Added {client.createdAt ? new Date(client.createdAt).toLocaleDateString() : 'N/A'}
                         </div>
                       </div>
                     </div>
@@ -442,7 +439,6 @@ export default function Clients() {
             </CardContent>
           </Card>
         </div>
-      </SidebarInset>
       
       {/* Delete Confirmation Dialog */}
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
@@ -485,6 +481,6 @@ export default function Clients() {
           </div>
         </DialogContent>
       </Dialog>
-    </SidebarProvider>
+    </div>
   );
 }
