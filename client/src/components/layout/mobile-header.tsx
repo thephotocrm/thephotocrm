@@ -2,10 +2,10 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 
 export function MobileHeader() {
   return (
-    <div className="md:hidden bg-gradient-to-r from-blue-500 to-white dark:from-blue-600 dark:to-gray-800 border-b border-border px-4 py-3 flex items-center justify-between sticky top-0 z-50">
-      <div className="flex items-center">
+    <div className="md:hidden bg-gradient-to-r from-blue-500 to-white dark:from-blue-600 dark:to-gray-800 border-b border-border px-2 sm:px-4 py-2 sm:py-3 flex items-center justify-between sticky top-0 z-50 min-w-0">
+      <div className="flex items-center min-w-0 flex-1">
         <span 
-          className="font-bold text-xl text-white" 
+          className="font-bold text-sm sm:text-xl text-white truncate" 
           style={{ textShadow: '1px 1px 1px rgba(0, 0, 0, 0.5)' }}
         >
           thePhotoCRM
@@ -13,7 +13,7 @@ export function MobileHeader() {
       </div>
       <SidebarTrigger 
         data-testid="button-mobile-menu"
-        className="h-10 w-10 bg-blue-500 hover:bg-blue-600 border border-blue-400 rounded-md text-white"
+        className="h-8 w-8 sm:h-10 sm:w-10 bg-blue-500 hover:bg-blue-600 border border-blue-400 rounded-md text-white flex-shrink-0 ml-2"
       />
     </div>
   );
