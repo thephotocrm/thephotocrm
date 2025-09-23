@@ -334,7 +334,7 @@ export default function Projects() {
                 <Card key={type}>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
-                      <Badge variant="secondary" className="text-sm">
+                      <Badge variant="secondary" className="text-sm bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 border-purple-200 dark:border-purple-800">
                         {getProjectTypeLabel(type)}
                       </Badge>
                       <span className="text-muted-foreground text-sm font-normal">
@@ -345,22 +345,27 @@ export default function Projects() {
                   <CardContent>
                     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                       {(typeProjects as any[]).map((project) => (
-                        <Card key={project.id} className="border border-border/50 hover:border-border transition-colors">
-                          <CardContent className="p-4">
+                        <Card key={project.id} className="border border-border/50 hover:border-purple-200 dark:hover:border-purple-800 transition-all duration-200 hover:shadow-md bg-gradient-to-br from-white to-purple-50/30 dark:from-slate-900 dark:to-purple-950/20">
+                          <CardContent className="p-4 relative">
+                            {/* Purple accent corner */}
+                            <div className="absolute top-0 right-0 w-8 h-8 bg-gradient-to-bl from-purple-100 to-transparent dark:from-purple-900/50 dark:to-transparent rounded-bl-lg rounded-tr-lg"></div>
                             <div className="space-y-3">
                               <div>
-                                <h3 className="font-medium text-sm truncate" data-testid={`text-project-title-${project.id}`}>
-                                  {project.title}
-                                </h3>
-                                <div className="flex items-center text-xs text-muted-foreground mt-1">
-                                  <User className="w-3 h-3 mr-1" />
+                                <div className="flex items-center gap-2 mb-1">
+                                  <div className="w-2 h-2 rounded-full bg-purple-400 dark:bg-purple-500"></div>
+                                  <h3 className="font-medium text-sm truncate" data-testid={`text-project-title-${project.id}`}>
+                                    {project.title}
+                                  </h3>
+                                </div>
+                                <div className="flex items-center text-xs text-muted-foreground">
+                                  <User className="w-3 h-3 mr-1 text-purple-500 dark:text-purple-400" />
                                   {project.client?.firstName} {project.client?.lastName}
                                 </div>
                               </div>
 
                               {project.eventDate && (
-                                <div className="flex items-center text-xs text-muted-foreground">
-                                  <Calendar className="w-3 h-3 mr-1" />
+                                <div className="flex items-center text-xs text-muted-foreground bg-purple-50 dark:bg-purple-950/30 px-2 py-1 rounded-md">
+                                  <Calendar className="w-3 h-3 mr-1 text-purple-500 dark:text-purple-400" />
                                   {formatDate(project.eventDate)}
                                 </div>
                               )}
@@ -385,7 +390,7 @@ export default function Projects() {
                                 <Button 
                                   variant="outline" 
                                   size="sm" 
-                                  className="w-full text-xs"
+                                  className="w-full text-xs border-purple-200 text-purple-700 hover:bg-purple-50 hover:border-purple-300 dark:border-purple-800 dark:text-purple-300 dark:hover:bg-purple-950/50 dark:hover:border-purple-700"
                                   onClick={() => setLocation(`/projects/${project.id}`)}
                                   data-testid={`button-view-project-${project.id}`}
                                 >

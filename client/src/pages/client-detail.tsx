@@ -401,7 +401,7 @@ export default function ClientDetail() {
                     {client.projects.map((project) => {
                       const stage = stages.find(s => s.id === project.stageId);
                       return (
-                        <div key={project.id} className="flex items-center justify-between p-3 border rounded-lg" data-testid={`project-${project.id}`}>
+                        <div key={project.id} className="flex items-center justify-between p-3 border rounded-lg hover:shadow-md transition-all duration-200 bg-gradient-to-r from-white to-purple-50/30 dark:from-slate-900 dark:to-purple-950/20 hover:border-purple-200 dark:hover:border-purple-800" data-testid={`project-${project.id}`}>
                           <div className="space-y-1">
                             <p className="font-medium text-sm">{project.title}</p>
                             <p className="text-xs text-muted-foreground">{project.projectType}</p>

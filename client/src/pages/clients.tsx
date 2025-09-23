@@ -35,20 +35,9 @@ import {
 
 import { type ClientWithProjects } from "@shared/schema";
 
-// Helper functions for client card styling
-const getClientColor = (name: string) => {
-  const colors = [
-    'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-900',
-    'bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-950 dark:text-purple-300 dark:border-purple-900', 
-    'bg-green-100 text-green-700 border-green-200 dark:bg-green-950 dark:text-green-300 dark:border-green-900',
-    'bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-950 dark:text-orange-300 dark:border-orange-900',
-    'bg-pink-100 text-pink-700 border-pink-200 dark:bg-pink-950 dark:text-pink-300 dark:border-pink-900',
-    'bg-indigo-100 text-indigo-700 border-indigo-200 dark:bg-indigo-950 dark:text-indigo-300 dark:border-indigo-900',
-    'bg-teal-100 text-teal-700 border-teal-200 dark:bg-teal-950 dark:text-teal-300 dark:border-teal-900',
-    'bg-red-100 text-red-700 border-red-200 dark:bg-red-950 dark:text-red-300 dark:border-red-900'
-  ];
-  const hash = name.split('').reduce((a, b) => a + b.charCodeAt(0), 0);
-  return colors[hash % colors.length];
+// Helper function for consistent client card styling - using blue theme
+const getClientColor = () => {
+  return 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-900';
 };
 
 const getInitials = (firstName: string, lastName: string) => {
@@ -388,7 +377,7 @@ export default function Clients() {
                       {/* Client Header with Avatar */}
                       <div className="flex items-start justify-between">
                         <div className="flex items-center space-x-3">
-                          <div className={`w-10 h-10 rounded-full border flex items-center justify-center text-sm font-semibold ${getClientColor(clientName)}`}>
+                          <div className={`w-10 h-10 rounded-full border flex items-center justify-center text-sm font-semibold ${getClientColor()}`}>
                             {getInitials(client.firstName, client.lastName)}
                           </div>
                           <div>
