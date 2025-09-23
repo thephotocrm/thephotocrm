@@ -168,7 +168,7 @@ export default function WidgetGenerator() {
         <header className="bg-card border-b border-border px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <SidebarTrigger data-testid="button-menu-toggle" />
+              <SidebarTrigger data-testid="button-menu-toggle" className="hidden md:inline-flex" />
               <div>
                 <h1 className="text-2xl font-semibold">Widget Generator</h1>
                 <p className="text-muted-foreground">Create and customize lead capture widgets for your website</p>
@@ -179,16 +179,16 @@ export default function WidgetGenerator() {
 
         <div className="p-6">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="setup" data-testid="tab-setup" className="flex items-center gap-2">
+            <TabsList className="flex flex-col md:grid md:grid-cols-3 w-full gap-1 md:gap-0 h-auto md:h-10">
+              <TabsTrigger value="setup" data-testid="tab-setup" className="flex items-center gap-2 justify-start w-full md:justify-center">
                 <Settings className="w-4 h-4" />
                 Setup & Configure
               </TabsTrigger>
-              <TabsTrigger value="customize" data-testid="tab-customize" className="flex items-center gap-2">
+              <TabsTrigger value="customize" data-testid="tab-customize" className="flex items-center gap-2 justify-start w-full md:justify-center">
                 <Eye className="w-4 h-4" />
                 Customize & Preview
               </TabsTrigger>
-              <TabsTrigger value="embed" data-testid="tab-embed" className="flex items-center gap-2">
+              <TabsTrigger value="embed" data-testid="tab-embed" className="flex items-center gap-2 justify-start w-full md:justify-center">
                 <Code2 className="w-4 h-4" />
                 Get Embed Code
               </TabsTrigger>

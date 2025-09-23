@@ -343,7 +343,7 @@ export default function Scheduling() {
             <div className="flex items-center space-x-4">
               <SidebarTrigger 
                 data-testid="button-menu-toggle" 
-                className="absolute top-4 right-4 z-10 h-10 w-10 bg-primary/10 border border-primary/20 md:relative md:top-auto md:right-auto md:z-auto md:h-7 md:w-7 md:bg-transparent md:border-0" 
+                className="hidden md:inline-flex" 
               />
               <div className="pr-12 md:pr-0">
                 <h1 className="text-xl md:text-2xl font-semibold">Scheduling</h1>
@@ -351,7 +351,7 @@ export default function Scheduling() {
               </div>
             </div>
             
-            <div className="flex space-x-2">
+            <div className="flex flex-col space-y-2 md:flex-row md:space-y-0 md:space-x-2">
               <Dialog open={isAvailabilityModalOpen} onOpenChange={handleModalChange}>
                 <DialogTrigger asChild>
                   <Button variant="outline" data-testid="button-set-availability">
