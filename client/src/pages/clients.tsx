@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Search, Mail, Phone, Calendar, Trash2, Eye } from "lucide-react";
+import { Plus, Search, Mail, Phone, Calendar, Trash2, Eye, MoreHorizontal } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -19,6 +19,12 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu";
 import {
   Table,
   TableBody,
