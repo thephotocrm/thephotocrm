@@ -470,7 +470,7 @@ export default function Settings() {
                     <CardTitle>Email Settings</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="flex flex-col space-y-4 md:grid md:grid-cols-2 md:gap-4 md:space-y-0">
                       <div className="space-y-2">
                         <Label htmlFor="emailFromName">From Name</Label>
                         <Input
