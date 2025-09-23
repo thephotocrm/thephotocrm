@@ -647,17 +647,26 @@ export default function Automations() {
           const commAutomation = await commResponse.json();
           createdAutomations.push(commAutomation);
           
-          // Create automation step for communication with templates
-          if (data.templateId && data.templateId !== "unavailable") {
+          // Create automation step for communication (with templates or questionnaires)
+          const hasTemplate = data.templateId && data.templateId !== "unavailable";
+          const hasQuestionnaire = data.questionnaireTemplateId && data.questionnaireTemplateId !== "unavailable" && data.questionnaireTemplateId !== "none";
+          
+          if (hasTemplate || hasQuestionnaire) {
             const totalDelayMinutes = timingMode === 'immediate' ? 0 : 
               (data.delayDays * 24 * 60) + (data.delayHours * 60) + data.delayMinutes;
             
-            await apiRequest("POST", `/api/automations/${commAutomation.id}/steps`, {
+            const stepData: any = {
               stepIndex: 0,
               delayMinutes: totalDelayMinutes,
-              templateId: data.templateId,
               enabled: true
-            });
+            };
+            
+            // Add templateId only if we have a template (questionnaire-only steps don't need templateId)
+            if (hasTemplate) {
+              stepData.templateId = data.templateId;
+            }
+            
+            await apiRequest("POST", `/api/automations/${commAutomation.id}/steps`, stepData);
           }
         }
 
