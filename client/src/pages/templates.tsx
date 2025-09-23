@@ -314,35 +314,34 @@ export default function Templates() {
                   <p className="text-muted-foreground mb-4">No email templates created yet.</p>
                 </div>
               ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Subject</TableHead>
-                      <TableHead>Created</TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {emailTemplates.map((template: Template) => (
-                      <TableRow key={template.id} data-testid={`email-template-${template.id}`}>
-                        <TableCell className="font-medium">{template.name}</TableCell>
-                        <TableCell>{template.subject}</TableCell>
-                        <TableCell>{new Date(template.createdAt).toLocaleDateString()}</TableCell>
-                        <TableCell>
-                          <div className="flex items-center space-x-2">
-                            <Button variant="outline" size="sm" data-testid={`button-edit-${template.id}`}>
-                              <Edit className="w-3 h-3" />
-                            </Button>
-                            <Button variant="outline" size="sm" data-testid={`button-delete-${template.id}`}>
-                              <Trash2 className="w-3 h-3" />
-                            </Button>
+                <div className="space-y-4">
+                  {emailTemplates.map((template: Template) => (
+                    <Card key={template.id} className="border border-border/50 hover:border-border transition-colors" data-testid={`email-template-${template.id}`}>
+                      <CardContent className="p-4">
+                        <div className="flex flex-col space-y-3">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1 min-w-0">
+                              <h3 className="font-medium text-base truncate">{template.name}</h3>
+                              <p className="text-sm text-muted-foreground mt-1">{template.subject}</p>
+                            </div>
+                            <div className="flex items-center space-x-2 ml-4">
+                              <Button variant="outline" size="sm" data-testid={`button-edit-${template.id}`}>
+                                <Edit className="w-3 h-3" />
+                              </Button>
+                              <Button variant="outline" size="sm" data-testid={`button-delete-${template.id}`}>
+                                <Trash2 className="w-3 h-3" />
+                              </Button>
+                            </div>
                           </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                          <div className="flex items-center text-xs text-muted-foreground">
+                            <Mail className="w-3 h-3 mr-1" />
+                            Created {new Date(template.createdAt).toLocaleDateString()}
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
               )}
             </CardContent>
           </Card>
@@ -366,37 +365,36 @@ export default function Templates() {
                   <p className="text-muted-foreground mb-4">No SMS templates created yet.</p>
                 </div>
               ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Message Preview</TableHead>
-                      <TableHead>Created</TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {smsTemplates.map((template: Template) => (
-                      <TableRow key={template.id} data-testid={`sms-template-${template.id}`}>
-                        <TableCell className="font-medium">{template.name}</TableCell>
-                        <TableCell className="max-w-xs truncate">
-                          {template.textBody}
-                        </TableCell>
-                        <TableCell>{new Date(template.createdAt).toLocaleDateString()}</TableCell>
-                        <TableCell>
-                          <div className="flex items-center space-x-2">
-                            <Button variant="outline" size="sm" data-testid={`button-edit-${template.id}`}>
-                              <Edit className="w-3 h-3" />
-                            </Button>
-                            <Button variant="outline" size="sm" data-testid={`button-delete-${template.id}`}>
-                              <Trash2 className="w-3 h-3" />
-                            </Button>
+                <div className="space-y-4">
+                  {smsTemplates.map((template: Template) => (
+                    <Card key={template.id} className="border border-border/50 hover:border-border transition-colors" data-testid={`sms-template-${template.id}`}>
+                      <CardContent className="p-4">
+                        <div className="flex flex-col space-y-3">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1 min-w-0">
+                              <h3 className="font-medium text-base truncate">{template.name}</h3>
+                              <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
+                                {template.textBody}
+                              </p>
+                            </div>
+                            <div className="flex items-center space-x-2 ml-4">
+                              <Button variant="outline" size="sm" data-testid={`button-edit-${template.id}`}>
+                                <Edit className="w-3 h-3" />
+                              </Button>
+                              <Button variant="outline" size="sm" data-testid={`button-delete-${template.id}`}>
+                                <Trash2 className="w-3 h-3" />
+                              </Button>
+                            </div>
                           </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                          <div className="flex items-center text-xs text-muted-foreground">
+                            <Smartphone className="w-3 h-3 mr-1" />
+                            Created {new Date(template.createdAt).toLocaleDateString()}
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
               )}
             </CardContent>
           </Card>
