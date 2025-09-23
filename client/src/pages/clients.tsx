@@ -35,6 +35,28 @@ import {
 
 import { type ClientWithProjects } from "@shared/schema";
 
+// Helper functions for client card styling
+const getClientColor = (name: string) => {
+  const colors = [
+    'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-900',
+    'bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-950 dark:text-purple-300 dark:border-purple-900', 
+    'bg-green-100 text-green-700 border-green-200 dark:bg-green-950 dark:text-green-300 dark:border-green-900',
+    'bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-950 dark:text-orange-300 dark:border-orange-900',
+    'bg-pink-100 text-pink-700 border-pink-200 dark:bg-pink-950 dark:text-pink-300 dark:border-pink-900',
+    'bg-indigo-100 text-indigo-700 border-indigo-200 dark:bg-indigo-950 dark:text-indigo-300 dark:border-indigo-900',
+    'bg-teal-100 text-teal-700 border-teal-200 dark:bg-teal-950 dark:text-teal-300 dark:border-teal-900',
+    'bg-red-100 text-red-700 border-red-200 dark:bg-red-950 dark:text-red-300 dark:border-red-900'
+  ];
+  const hash = name.split('').reduce((a, b) => a + b.charCodeAt(0), 0);
+  return colors[hash % colors.length];
+};
+
+const getInitials = (firstName: string, lastName: string) => {
+  const firstInitial = firstName?.charAt(0) || '';
+  const lastInitial = lastName?.charAt(0) || '';
+  return firstInitial && lastInitial ? `${firstInitial}${lastInitial}`.toUpperCase() : firstInitial.toUpperCase() || '?';
+};
+
 export default function Clients() {
   const { user, loading } = useAuth();
   const [, setLocation] = useLocation();
@@ -358,25 +380,41 @@ export default function Clients() {
                 
                 {/* Mobile Card View */}
                 <div className="md:hidden space-y-4">
-                  {filteredClients.map((client: ClientWithProjects) => (
-                    <div key={client.id} className="border rounded-lg p-4 space-y-3" data-testid={`client-card-${client.id}`}>
-                      {/* Client Name */}
+                  {filteredClients.map((client: ClientWithProjects) => {
+                    const clientName = `${client.firstName} ${client.lastName}`;
+                    
+                    return (
+                    <div key={client.id} className="border dark:border-border rounded-lg p-4 space-y-3 hover:shadow-md dark:hover:shadow-lg transition-shadow duration-200 bg-gradient-to-br from-white to-gray-50/50 dark:from-slate-900 dark:to-slate-800/50" data-testid={`client-card-${client.id}`}>
+                      {/* Client Header with Avatar */}
                       <div className="flex items-start justify-between">
-                        <h3 className="font-medium text-lg">
-                          {client.firstName} {client.lastName}
-                        </h3>
+                        <div className="flex items-center space-x-3">
+                          <div className={`w-10 h-10 rounded-full border flex items-center justify-center text-sm font-semibold ${getClientColor(clientName)}`}>
+                            {getInitials(client.firstName, client.lastName)}
+                          </div>
+                          <div>
+                            <h3 className="font-medium text-lg">
+                              {client.firstName} {client.lastName}
+                            </h3>
+                            {client.projects && client.projects.length > 0 && (
+                              <div className="text-xs text-muted-foreground">
+                                Latest: {client.projects[0].projectType}
+                              </div>
+                            )}
+                          </div>
+                        </div>
                         <div className="flex gap-2">
                           <Button
                             variant="ghost"
                             size="sm"
                             onClick={() => setLocation(`/clients/${client.id}`)}
                             data-testid={`button-view-client-${client.id}`}
+                            aria-label={`View ${clientName} details`}
                           >
                             <Eye className="w-4 h-4" />
                           </Button>
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="sm" data-testid={`button-client-actions-${client.id}`}>
+                              <Button variant="ghost" size="sm" data-testid={`button-client-actions-${client.id}`} aria-label={`More actions for ${clientName}`}>
                                 <MoreHorizontal className="w-4 h-4" />
                               </Button>
                             </DropdownMenuTrigger>
@@ -410,20 +448,20 @@ export default function Clients() {
                         )}
                       </div>
                       
-                      {/* Project Info */}
+                      {/* Project Info with Visual Indicators */}
                       <div className="flex justify-between items-center pt-2 border-t">
-                        <div>
-                          <div className="text-sm font-medium">
+                        <div className="flex items-center space-x-2">
+                          <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                            (client.projects?.length || 0) > 0 
+                              ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300' 
+                              : 'bg-gray-100 text-gray-600 dark:bg-slate-800 dark:text-slate-300'
+                          }`}>
                             {client.projects?.length || 0} {(client.projects?.length || 0) === 1 ? 'project' : 'projects'}
                           </div>
-                          {client.projects && client.projects.length > 0 && (
-                            <div className="text-xs text-muted-foreground">
-                              Latest: {client.projects[0].projectType}
-                              {client.projects[0].eventDate && (
-                                <span className="ml-2">
-                                  📅 {client.projects[0].eventDate ? new Date(client.projects[0].eventDate).toLocaleDateString() : 'N/A'}
-                                </span>
-                              )}
+                          {client.projects && client.projects.length > 0 && client.projects[0].eventDate && (
+                            <div className="text-xs text-muted-foreground flex items-center">
+                              <Calendar className="w-3 h-3 mr-1" />
+                              {new Date(client.projects[0].eventDate).toLocaleDateString()}
                             </div>
                           )}
                         </div>
@@ -432,7 +470,8 @@ export default function Clients() {
                         </div>
                       </div>
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
                 </div>
               )}
