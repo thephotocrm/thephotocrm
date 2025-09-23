@@ -155,7 +155,7 @@ export default function Clients() {
                 data-testid="button-menu-toggle" 
                 className="hidden md:inline-flex shrink-0" 
               />
-              <div className="min-w-0 pr-12 md:pr-0">
+              <div className="min-w-0">
                 <h1 className="text-xl md:text-2xl font-semibold truncate">Clients</h1>
                 <p className="text-sm md:text-base text-muted-foreground hidden sm:block">Manage your photography clients</p>
               </div>
@@ -247,7 +247,7 @@ export default function Clients() {
           </div>
         </header>
 
-        <div className="p-6">
+        <div className="p-3 sm:p-6">
           {/* Search */}
           <div className="mb-6">
             <div className="flex flex-wrap items-center gap-2">

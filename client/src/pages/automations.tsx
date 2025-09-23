@@ -821,7 +821,7 @@ export default function Automations() {
         <header className="bg-card border-b border-border px-4 md:px-6 py-4 relative">
           
           {/* Mobile layout */}
-          <div className="pr-12 md:pr-0">
+          <div>
             <h1 className="text-xl md:text-2xl font-semibold">Automations</h1>
             <p className="text-sm md:text-base text-muted-foreground">Set up automated email and SMS workflows for each stage</p>
           </div>
@@ -1478,7 +1478,7 @@ export default function Automations() {
           </DialogContent>
         </Dialog>
 
-        <div className="p-6 space-y-6">
+        <div className="p-3 sm:p-6 space-y-6">
           {/* Project Type Selection */}
           <Tabs value={activeProjectType} onValueChange={setActiveProjectType} className="w-full">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">

@@ -94,7 +94,7 @@ export default function Dashboard() {
           </div>
           
           {/* Mobile layout - column */}
-          <div className="md:hidden space-y-4 pr-12">
+          <div className="md:hidden space-y-4">
             {/* Title */}
             <div>
               <h1 className="text-xl font-semibold">Project Pipeline</h1>
@@ -125,7 +125,7 @@ export default function Dashboard() {
         </header>
 
         {/* Dashboard Content */}
-        <div className="p-6 space-y-6">
+        <div className="p-3 sm:p-6 space-y-6">
           {/* Project Type Selection */}
           <Tabs value={activeProjectType} onValueChange={setActiveProjectType} className="w-full">
             <div className="flex items-center justify-between mb-6">

@@ -162,7 +162,7 @@ export default function Projects() {
                 data-testid="button-menu-toggle" 
                 className="hidden md:inline-flex shrink-0" 
               />
-              <div className="min-w-0 pr-12 md:pr-0">
+              <div className="min-w-0">
                 <h1 className="text-xl md:text-2xl font-semibold truncate">Projects</h1>
                 <p className="text-sm md:text-base text-muted-foreground hidden sm:block">Manage your photography projects</p>
               </div>
@@ -276,7 +276,7 @@ export default function Projects() {
           </div>
         </header>
 
-        <div className="p-6">
+        <div className="p-3 sm:p-6">
           {/* Search and Filter */}
           <div className="mb-6 flex flex-col sm:flex-row gap-4">
             <div className="relative flex-1">

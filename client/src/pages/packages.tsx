@@ -130,7 +130,7 @@ export default function Packages() {
                 data-testid="button-menu-toggle" 
                 className="hidden md:inline-flex" 
               />
-              <div className="pr-12 md:pr-0">
+              <div>
                 <h1 className="text-xl md:text-2xl font-semibold">Packages</h1>
                 <p className="text-sm md:text-base text-muted-foreground">Create pricing packages to quickly import into estimates</p>
               </div>

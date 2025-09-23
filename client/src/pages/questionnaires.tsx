@@ -307,7 +307,7 @@ export default function Questionnaires() {
             <SidebarTrigger 
               className="hidden md:inline-flex" 
             />
-            <div className="pr-12 md:pr-0">
+            <div>
               <h1 className="text-xl md:text-2xl font-semibold">Questionnaires</h1>
               <p className="text-sm md:text-base text-muted-foreground">Create questionnaires and assign them to clients</p>
             </div>

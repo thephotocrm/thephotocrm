@@ -258,7 +258,7 @@ export default function Templates() {
           </div>
         </header>
 
-        <div className="p-6 space-y-6">
+        <div className="p-3 sm:p-6 space-y-6">
           {/* Stats Cards */}
           <div className="hidden md:grid md:grid-cols-2 gap-6">
             <Card>

@@ -59,7 +59,7 @@ export default function Reports() {
           </div>
         </header>
 
-        <div className="p-6 space-y-6">
+        <div className="p-3 sm:p-6 space-y-6">
           {/* Key Metrics */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <Card>

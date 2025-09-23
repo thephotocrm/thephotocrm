@@ -281,7 +281,7 @@ export default function Settings() {
           </div>
         </header>
 
-        <div className="p-6">
+        <div className="p-3 sm:p-6">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
             {/* Desktop tabs */}
             <TabsList className="hidden md:grid w-full grid-cols-6">

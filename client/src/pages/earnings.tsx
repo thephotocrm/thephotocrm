@@ -90,43 +90,29 @@ export default function Earnings() {
   const [payoutAmount, setPayoutAmount] = useState("");
   const [payoutMethod, setPayoutMethod] = useState("standard");
 
-  // Redirect to login if not authenticated
-  if (!loading && !user) {
-    setLocation("/login");
-    return null;
-  }
-
-  // Prevent flash of protected content
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
-      </div>
-    );
-  }
-
+  // All hooks must be called before any conditional returns
   // Fetch balance data
   const { data: balance, isLoading: balanceLoading } = useQuery({
     queryKey: ["/api/stripe-connect/balance"],
-    enabled: !!user
+    enabled: !!user && !loading
   });
 
   // Fetch earnings history
   const { data: earnings, isLoading: earningsLoading } = useQuery({
     queryKey: ["/api/stripe-connect/earnings"],
-    enabled: !!user
+    enabled: !!user && !loading
   });
 
   // Fetch payout history
   const { data: payouts, isLoading: payoutsLoading } = useQuery({
     queryKey: ["/api/stripe-connect/payouts"],
-    enabled: !!user
+    enabled: !!user && !loading
   });
 
   // Fetch Stripe Connect status
   const { data: stripeStatus } = useQuery({
     queryKey: ["/api/stripe-connect/account-status"],
-    enabled: !!user
+    enabled: !!user && !loading
   });
 
   // Create payout mutation
@@ -152,6 +138,22 @@ export default function Earnings() {
       });
     }
   });
+
+  // Conditional returns after all hooks
+  // Redirect to login if not authenticated
+  if (!loading && !user) {
+    setLocation("/login");
+    return null;
+  }
+
+  // Prevent flash of protected content
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
+      </div>
+    );
+  }
 
   const handleCreatePayout = () => {
     const amount = parseFloat(payoutAmount);
@@ -194,7 +196,7 @@ export default function Earnings() {
               </div>
         </header>
 
-        <div className="p-6 space-y-6">
+        <div className="p-3 sm:p-6 space-y-6">
           {/* Stripe Connection Status */}
           {!isStripeReady && (
             <Card className="border-yellow-200 bg-yellow-50 dark:bg-yellow-950 dark:border-yellow-800">
