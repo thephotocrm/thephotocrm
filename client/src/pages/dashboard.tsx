@@ -226,8 +226,8 @@ export default function Dashboard() {
                     <div className="flex items-center justify-between">
                       <CardTitle>Project Pipeline</CardTitle>
                       <div className="flex space-x-2">
-                        <Button variant="outline" size="sm">Manage Stages</Button>
-                        <Button variant="outline" size="sm">Automation Rules</Button>
+                        <Button variant="outline" size="sm" disabled>Manage Stages (Coming Soon)</Button>
+                        <Button variant="outline" size="sm" onClick={() => setLocation("/automations")} data-testid="button-automation-rules">Automation Rules</Button>
                       </div>
                     </div>
                   </CardHeader>
