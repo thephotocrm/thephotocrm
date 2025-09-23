@@ -15,7 +15,8 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDes
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Zap, Clock, Mail, Smartphone, Settings, Edit2, ArrowRight, Calendar } from "lucide-react";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Plus, Zap, Clock, Mail, Smartphone, Settings, Edit2, ArrowRight, Calendar, Users, AlertCircle } from "lucide-react";
 import { insertAutomationSchema, projectTypeEnum, automationTypeEnum, triggerTypeEnum } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -474,6 +475,10 @@ export default function Automations() {
 
   // Unified form schema that supports both automation types with optional sections
   const unifiedFormSchema = createAutomationFormSchema.extend({
+    // Unified trigger settings
+    triggerMode: z.enum(['STAGE', 'BUSINESS']).default('STAGE'),
+    triggerStageId: z.string().optional(), // For stage-based triggers
+    triggerEvent: z.string().optional(), // For business event triggers
     // Optional automation type flags
     enableCommunication: z.boolean().default(true),
     enablePipeline: z.boolean().default(false),
@@ -484,14 +489,23 @@ export default function Automations() {
     delayHours: z.coerce.number().min(0).default(0),
     delayDays: z.coerce.number().min(0).default(0),
     questionnaireTemplateId: z.string().optional(),
-    // Pipeline automation fields
-    triggerType: z.string().optional(),
+    // Pipeline automation fields (simplified - only target stage)
     targetStageId: z.string().optional()
   }).refine(
     (data) => {
       // At least one automation type must be enabled
       if (!data.enableCommunication && !data.enablePipeline) {
         return false;
+      }
+      // Validate trigger settings
+      if (data.triggerMode === 'STAGE') {
+        if (!data.triggerStageId) {
+          return false;
+        }
+      } else if (data.triggerMode === 'BUSINESS') {
+        if (!data.triggerEvent) {
+          return false;
+        }
       }
       // If communication is enabled, require either template or questionnaire
       if (data.enableCommunication) {
@@ -501,9 +515,9 @@ export default function Automations() {
           return false;
         }
       }
-      // If pipeline is enabled, require trigger and target stage
+      // If pipeline is enabled, require target stage
       if (data.enablePipeline) {
-        if (!data.triggerType || !data.targetStageId) {
+        if (!data.targetStageId) {
           return false;
         }
       }
@@ -522,7 +536,10 @@ export default function Automations() {
     resolver: zodResolver(unifiedFormSchema),
     defaultValues: {
       name: "",
-      stageId: "",
+      stageId: "", // Legacy field for backend compatibility
+      triggerMode: "STAGE" as const,
+      triggerStageId: "",
+      triggerEvent: "",
       channel: "EMAIL", 
       enabled: true,
       automationType: "COMMUNICATION", // Still needed for backend compatibility
@@ -533,7 +550,6 @@ export default function Automations() {
       delayHours: 0,
       delayDays: 0,
       questionnaireTemplateId: "",
-      triggerType: "",
       targetStageId: ""
     }
   });
@@ -555,7 +571,6 @@ export default function Automations() {
       form.setValue('channel', 'EMAIL');
     }
     if (!enablePipeline) {
-      form.setValue('triggerType', '');
       form.setValue('targetStageId', '');
     }
   }, [enableCommunication, enablePipeline, form]);
@@ -620,6 +635,11 @@ export default function Automations() {
       try {
         // Create communication automation if enabled
         if (data.enableCommunication) {
+          // Phase 1: Only allow stage-based triggers for communication
+          if (data.triggerMode === 'BUSINESS') {
+            throw new Error("Business event triggers for communication automations are coming soon. Please use stage-based triggers for now.");
+          }
+
           // Validate communication automation data
           if (data.templateId && data.templateId !== "unavailable") {
             const channelTemplates = templates.filter((t: any) => t.channel === data.channel);
@@ -632,9 +652,14 @@ export default function Automations() {
             }
           }
 
+          // Map unified trigger to communication automation format
+          const stageId = data.triggerMode === 'STAGE' 
+            ? (data.triggerStageId && data.triggerStageId !== 'global' ? data.triggerStageId : null)
+            : null;
+
           const commAutomationData = {
             name: data.name + (data.enablePipeline ? " (Communication)" : ""),
-            stageId: (data.stageId && data.stageId !== 'global') ? data.stageId : null,
+            stageId: stageId,
             enabled: data.enabled,
             projectType: activeProjectType,
             automationType: "COMMUNICATION" as const,
@@ -672,13 +697,24 @@ export default function Automations() {
 
         // Create pipeline automation if enabled
         if (data.enablePipeline) {
+          // Phase 1: Only support business event triggers for pipeline automations
+          if (data.triggerMode === 'STAGE') {
+            throw new Error("Stage-based pipeline automations are coming soon. Please use business event triggers for pipeline automations for now.");
+          }
+
+          // Map business event trigger to pipeline automation format
+          const triggerType = data.triggerEvent || '';
+          if (!triggerType) {
+            throw new Error("Business event trigger is required for pipeline automations");
+          }
+
           const pipelineAutomationData = {
             name: data.name + (data.enableCommunication ? " (Pipeline)" : ""),
-            stageId: (data.stageId && data.stageId !== 'global') ? data.stageId : null,
+            stageId: null, // Pipeline automations don't use stageId
             enabled: data.enabled,
             projectType: activeProjectType,
             automationType: "STAGE_CHANGE" as const,
-            triggerType: data.triggerType,
+            triggerType: triggerType,
             targetStageId: data.targetStageId
           };
 
@@ -833,8 +869,8 @@ export default function Automations() {
         
         {/* Create Automation Dialog */}
         <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-              <DialogContent className="sm:max-w-md">
-                <DialogHeader>
+              <DialogContent className="max-w-[min(100vw-2rem,900px)] sm:max-h-[85vh] max-h-[92vh] p-0 flex flex-col">
+                <DialogHeader className="px-6 py-4 border-b">
                   <DialogTitle>Create Automation</DialogTitle>
                   <DialogDescription>
                     Set up a new automated workflow for your clients
@@ -842,7 +878,8 @@ export default function Automations() {
                 </DialogHeader>
                 
                 <Form {...form}>
-                  <form onSubmit={form.handleSubmit(handleCreateAutomation)} className="space-y-4">
+                  <form onSubmit={form.handleSubmit(handleCreateAutomation)} className="flex flex-col h-full">
+                    <div className="flex-1 overflow-y-auto px-6 py-4 space-y-6">
                     <FormField
                       control={form.control}
                       name="name"
@@ -861,35 +898,116 @@ export default function Automations() {
                       )}
                     />
 
-                    {/* Trigger Stage - Common Field */}
-                    <FormField
-                      control={form.control}
-                      name="stageId"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Trigger Stage (Optional)</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value || ""}>
+                    {/* Unified Trigger Section */}
+                    <div className="space-y-4 p-4 border rounded-lg bg-amber-50/50 dark:bg-amber-950/20">
+                      <div className="flex items-center space-x-2">
+                        <Settings className="h-4 w-4 text-amber-600" />
+                        <Label className="font-medium text-amber-900 dark:text-amber-100">Automation Trigger</Label>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Choose what will trigger this automation to run
+                      </p>
+
+                      {/* Trigger Mode Radio Buttons */}
+                      <FormField
+                        control={form.control}
+                        name="triggerMode"
+                        render={({ field }) => (
+                          <FormItem className="space-y-3">
                             <FormControl>
-                              <SelectTrigger data-testid="select-stage">
-                                <SelectValue placeholder="Select a stage or leave empty for global" />
-                              </SelectTrigger>
+                              <RadioGroup
+                                onValueChange={field.onChange}
+                                value={field.value}
+                                className="flex flex-col space-y-2"
+                                data-testid="radio-trigger-mode"
+                              >
+                                <div className="flex items-center space-x-2">
+                                  <RadioGroupItem value="STAGE" id="trigger-stage" data-testid="radio-trigger-stage" />
+                                  <Label htmlFor="trigger-stage" className="flex items-center space-x-2 cursor-pointer">
+                                    <Users className="h-4 w-4" />
+                                    <span>Stage-based - When client enters a specific stage</span>
+                                  </Label>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                  <RadioGroupItem value="BUSINESS" id="trigger-business" data-testid="radio-trigger-business" />
+                                  <Label htmlFor="trigger-business" className="flex items-center space-x-2 cursor-pointer">
+                                    <Zap className="h-4 w-4" />
+                                    <span>Business Event - When specific actions occur</span>
+                                  </Label>
+                                </div>
+                              </RadioGroup>
                             </FormControl>
-                            <SelectContent>
-                              <SelectItem value="global">No specific stage (Global)</SelectItem>
-                              {stages?.map((stage: any) => (
-                                <SelectItem key={stage.id} value={stage.id}>
-                                  {stage.name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormDescription>
-                            Select a stage to trigger this automation, or leave global for all stages
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      {/* Stage-based Trigger Fields */}
+                      {form.watch('triggerMode') === 'STAGE' && (
+                        <FormField
+                          control={form.control}
+                          name="triggerStageId"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Trigger Stage</FormLabel>
+                              <Select onValueChange={field.onChange} value={field.value || ""}>
+                                <FormControl>
+                                  <SelectTrigger data-testid="select-trigger-stage">
+                                    <SelectValue placeholder="Select the stage that triggers this automation" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="global">All Stages (Global trigger)</SelectItem>
+                                  {stages?.map((stage: any) => (
+                                    <SelectItem key={stage.id} value={stage.id}>
+                                      {stage.name}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <FormDescription>
+                                Automation triggers when a client is moved to this stage
+                              </FormDescription>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
                       )}
-                    />
+
+                      {/* Business Event Trigger Fields */}
+                      {form.watch('triggerMode') === 'BUSINESS' && (
+                        <FormField
+                          control={form.control}
+                          name="triggerEvent"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Business Event</FormLabel>
+                              <Select onValueChange={field.onChange} value={field.value || ""}>
+                                <FormControl>
+                                  <SelectTrigger data-testid="select-trigger-event">
+                                    <SelectValue placeholder="Select the business event that triggers this automation" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="DEPOSIT_PAID">💳 Deposit Payment Received</SelectItem>
+                                  <SelectItem value="FULL_PAYMENT_MADE">✅ Full Payment Completed</SelectItem>
+                                  <SelectItem value="PROJECT_BOOKED">📋 Project Booked/Contract Signed</SelectItem>
+                                  <SelectItem value="ESTIMATE_ACCEPTED">📄 Estimate Accepted</SelectItem>
+                                  <SelectItem value="EVENT_DATE_REACHED">📅 Event Date Reached</SelectItem>
+                                  <SelectItem value="PROJECT_DELIVERED">📦 Project Delivered</SelectItem>
+                                  <SelectItem value="CLIENT_ONBOARDED">🎯 Client Onboarded</SelectItem>
+                                  <SelectItem value="APPOINTMENT_BOOKED">📅 Appointment Booked</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <FormDescription>
+                                Automation triggers when this business event occurs for any client
+                              </FormDescription>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      )}
+                    </div>
 
                     {/* Automation Actions Section */}
                     <div className="space-y-4">
@@ -930,6 +1048,27 @@ export default function Automations() {
                         </div>
                       </div>
                     </div>
+
+                    {/* Current Limitations Info */}
+                    {(enableCommunication && form.watch('triggerMode') === 'BUSINESS') || (enablePipeline && form.watch('triggerMode') === 'STAGE') ? (
+                      <div className="p-3 bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+                        <div className="flex items-start space-x-2">
+                          <AlertCircle className="h-4 w-4 text-yellow-600 mt-0.5 flex-shrink-0" />
+                          <div className="text-sm text-yellow-800 dark:text-yellow-200">
+                            <p className="font-medium mb-1">Current Limitations:</p>
+                            <ul className="text-xs space-y-1">
+                              {enableCommunication && form.watch('triggerMode') === 'BUSINESS' && (
+                                <li>• Business event triggers for communication are coming soon</li>
+                              )}
+                              {enablePipeline && form.watch('triggerMode') === 'STAGE' && (
+                                <li>• Stage-based triggers for pipeline actions are coming soon</li>
+                              )}
+                            </ul>
+                            <p className="text-xs mt-2 opacity-75">Currently supported: Stage triggers for communication, Business events for pipeline</p>
+                          </div>
+                        </div>
+                      </div>
+                    ) : null}
 
                     {/* Communication Automation Fields */}
                     {enableCommunication && (
@@ -1114,40 +1253,16 @@ export default function Automations() {
                       </div>
                     )}
 
-                    {/* Pipeline Stage Change Automation Fields */}
+                    {/* Pipeline Action Fields - Simplified */}
                     {enablePipeline && (
                       <div className="space-y-4 p-4 border rounded-lg bg-green-50/50 dark:bg-green-950/20">
                         <div className="flex items-center space-x-2">
                           <ArrowRight className="h-4 w-4 text-green-600" />
-                          <Label className="font-medium text-green-900 dark:text-green-100">Pipeline Settings</Label>
+                          <Label className="font-medium text-green-900 dark:text-green-100">Pipeline Action</Label>
                         </div>
-                        <FormField
-                          control={form.control}
-                          name="triggerType"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Business Trigger</FormLabel>
-                              <Select onValueChange={field.onChange} value={field.value || ""}>
-                                <FormControl>
-                                  <SelectTrigger data-testid="select-trigger">
-                                    <SelectValue placeholder="Select when this automation should trigger" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  <SelectItem value="DEPOSIT_PAID">💳 Deposit Payment Received</SelectItem>
-                                  <SelectItem value="FULL_PAYMENT_MADE">✅ Full Payment Completed</SelectItem>
-                                  <SelectItem value="PROJECT_BOOKED">📋 Project Booked/Contract Signed</SelectItem>
-                                  <SelectItem value="ESTIMATE_ACCEPTED">📄 Estimate Accepted</SelectItem>
-                                  <SelectItem value="EVENT_DATE_REACHED">📅 Event Date Reached</SelectItem>
-                                  <SelectItem value="PROJECT_DELIVERED">📦 Project Delivered</SelectItem>
-                                  <SelectItem value="CLIENT_ONBOARDED">🎯 Client Onboarded</SelectItem>
-                                  <SelectItem value="APPOINTMENT_BOOKED">📅 Appointment Booked</SelectItem>
-                                </SelectContent>
-                              </Select>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
+                        <p className="text-xs text-muted-foreground">
+                          Configure what stage the project should move to when this automation triggers
+                        </p>
 
                         <FormField
                           control={form.control}
@@ -1169,14 +1284,19 @@ export default function Automations() {
                                   ))}
                                 </SelectContent>
                               </Select>
+                              <FormDescription>
+                                Projects will automatically move to this stage when the automation triggers
+                              </FormDescription>
                               <FormMessage />
                             </FormItem>
                           )}
                         />
                       </div>
                     )}
+                    </div>
 
-                    <div className="flex justify-end space-x-2 pt-4">
+                    {/* Footer with Submit Buttons */}
+                    <div className="px-6 py-4 border-t bg-gray-50 dark:bg-gray-900 flex justify-end space-x-2">
                       <Button
                         type="button" 
                         variant="outline"
@@ -1195,6 +1315,18 @@ export default function Automations() {
                               return true;
                             }
                             
+                            // Validate unified trigger settings
+                            const triggerMode = form.watch('triggerMode');
+                            if (triggerMode === 'STAGE') {
+                              if (!form.watch('triggerStageId')) {
+                                return true;
+                              }
+                            } else if (triggerMode === 'BUSINESS') {
+                              if (!form.watch('triggerEvent')) {
+                                return true;
+                              }
+                            }
+                            
                             // Validate communication fields if enabled
                             if (enableCommunication) {
                               const hasTemplate = form.watch('templateId') && form.watch('templateId') !== 'unavailable';
@@ -1206,7 +1338,7 @@ export default function Automations() {
                             
                             // Validate pipeline fields if enabled
                             if (enablePipeline) {
-                              if (!form.watch('triggerType') || !form.watch('targetStageId')) {
+                              if (!form.watch('targetStageId')) {
                                 return true;
                               }
                             }
@@ -1224,6 +1356,18 @@ export default function Automations() {
                                 return "Enable at least one action";
                               }
                               
+                              // Validate unified trigger settings
+                              const triggerMode = form.watch('triggerMode');
+                              if (triggerMode === 'STAGE') {
+                                if (!form.watch('triggerStageId')) {
+                                  return "Select trigger stage";
+                                }
+                              } else if (triggerMode === 'BUSINESS') {
+                                if (!form.watch('triggerEvent')) {
+                                  return "Select business event";
+                                }
+                              }
+                              
                               // Validate communication fields if enabled
                               if (enableCommunication) {
                                 const hasTemplate = form.watch('templateId') && form.watch('templateId') !== 'unavailable';
@@ -1235,8 +1379,8 @@ export default function Automations() {
                               
                               // Validate pipeline fields if enabled
                               if (enablePipeline) {
-                                if (!form.watch('triggerType') || !form.watch('targetStageId')) {
-                                  return "Complete pipeline fields";
+                                if (!form.watch('targetStageId')) {
+                                  return "Select target stage";
                                 }
                               }
                               
