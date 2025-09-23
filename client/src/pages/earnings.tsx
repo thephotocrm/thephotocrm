@@ -191,13 +191,16 @@ export default function Earnings() {
       <AppSidebar />
       <SidebarInset>
         {/* Header */}
-        <header className="bg-card border-b border-border px-6 py-4">
+        <header className="bg-card border-b border-border px-4 md:px-6 py-4 relative">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <SidebarTrigger data-testid="button-menu-toggle" />
-              <div>
-                <h1 className="text-2xl font-semibold">Earnings</h1>
-                <p className="text-muted-foreground">Track your payments and request payouts</p>
+              <SidebarTrigger 
+                data-testid="button-menu-toggle" 
+                className="absolute top-4 right-4 z-10 h-10 w-10 bg-primary/10 border border-primary/20 md:relative md:top-auto md:right-auto md:z-auto md:h-7 md:w-7 md:bg-transparent md:border-0" 
+              />
+              <div className="pr-12 md:pr-0">
+                <h1 className="text-xl md:text-2xl font-semibold">Earnings</h1>
+                <p className="text-sm md:text-base text-muted-foreground">Track your payments and request payouts</p>
               </div>
             </div>
           </div>
