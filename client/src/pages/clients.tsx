@@ -134,13 +134,16 @@ export default function Clients() {
       <AppSidebar />
       <SidebarInset>
         {/* Header */}
-        <header className="bg-card border-b border-border px-6 py-4">
+        <header className="bg-card border-b border-border px-4 md:px-6 py-4 relative">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-3 min-w-0 flex-1">
-              <SidebarTrigger data-testid="button-menu-toggle" className="shrink-0" />
-              <div className="min-w-0">
-                <h1 className="text-2xl font-semibold truncate">Clients</h1>
-                <p className="text-muted-foreground hidden sm:block">Manage your photography clients</p>
+              <SidebarTrigger 
+                data-testid="button-menu-toggle" 
+                className="absolute top-4 right-4 z-10 md:relative md:top-auto md:right-auto md:z-auto shrink-0" 
+              />
+              <div className="min-w-0 pr-12 md:pr-0">
+                <h1 className="text-xl md:text-2xl font-semibold truncate">Clients</h1>
+                <p className="text-sm md:text-base text-muted-foreground hidden sm:block">Manage your photography clients</p>
               </div>
             </div>
             
@@ -262,65 +265,68 @@ export default function Clients() {
                   <p className="text-muted-foreground">No clients found.</p>
                 </div>
               ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Contact</TableHead>
-                      <TableHead>Active Projects</TableHead>
-                      <TableHead>Latest Project</TableHead>
-                      <TableHead>Created</TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredClients.map((client: ClientWithProjects) => (
-                      <TableRow key={client.id} data-testid={`client-row-${client.id}`}>
-                        <TableCell className="font-medium">
-                          {client.firstName} {client.lastName}
-                        </TableCell>
-                        <TableCell>
-                          <div className="space-y-1">
-                            {client.email && (
-                              <div className="flex items-center text-sm">
-                                <Mail className="w-3 h-3 mr-1" />
-                                {client.email}
-                              </div>
-                            )}
-                            {client.phone && (
-                              <div className="flex items-center text-sm">
-                                <Phone className="w-3 h-3 mr-1" />
-                                {client.phone}
-                              </div>
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <span className="text-sm font-medium">
-                            {client.projects?.length || 0} {(client.projects?.length || 0) === 1 ? 'project' : 'projects'}
-                          </span>
-                        </TableCell>
-                        <TableCell>
-                          {client.projects && client.projects.length > 0 ? (
+                <div>
+                {/* Desktop Table View */}
+                <div className="hidden md:block">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Name</TableHead>
+                        <TableHead>Contact</TableHead>
+                        <TableHead>Active Projects</TableHead>
+                        <TableHead>Latest Project</TableHead>
+                        <TableHead>Created</TableHead>
+                        <TableHead>Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredClients.map((client: ClientWithProjects) => (
+                        <TableRow key={client.id} data-testid={`client-row-${client.id}`}>
+                          <TableCell className="font-medium">
+                            {client.firstName} {client.lastName}
+                          </TableCell>
+                          <TableCell>
                             <div className="space-y-1">
-                              <div className="text-sm font-medium">
-                                {client.projects[0].projectType}
-                              </div>
-                              {client.projects[0].eventDate && (
-                                <div className="text-xs text-muted-foreground flex items-center">
-                                  <Calendar className="w-3 h-3 mr-1" />
-                                  {new Date(client.projects[0].eventDate).toLocaleDateString()}
+                              {client.email && (
+                                <div className="flex items-center text-sm">
+                                  <Mail className="w-3 h-3 mr-1" />
+                                  {client.email}
+                                </div>
+                              )}
+                              {client.phone && (
+                                <div className="flex items-center text-sm">
+                                  <Phone className="w-3 h-3 mr-1" />
+                                  {client.phone}
                                 </div>
                               )}
                             </div>
-                          ) : (
-                            <span className="text-muted-foreground">No projects</span>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          {new Date(client.createdAt).toLocaleDateString()}
-                        </TableCell>
-                        <TableCell>
+                          </TableCell>
+                          <TableCell>
+                            <span className="text-sm font-medium">
+                              {client.projects?.length || 0} {(client.projects?.length || 0) === 1 ? 'project' : 'projects'}
+                            </span>
+                          </TableCell>
+                          <TableCell>
+                            {client.projects && client.projects.length > 0 ? (
+                              <div className="space-y-1">
+                                <div className="text-sm font-medium">
+                                  {client.projects[0].projectType}
+                                </div>
+                                {client.projects[0].eventDate && (
+                                  <div className="text-xs text-muted-foreground flex items-center">
+                                    <Calendar className="w-3 h-3 mr-1" />
+                                    {new Date(client.projects[0].eventDate).toLocaleDateString()}
+                                  </div>
+                                )}
+                              </div>
+                            ) : (
+                              <span className="text-muted-foreground">No projects</span>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            {new Date(client.createdAt).toLocaleDateString()}
+                          </TableCell>
+                          <TableCell>
                           <div className="flex gap-2">
                             <Button 
                               variant="outline" 
@@ -340,11 +346,92 @@ export default function Clients() {
                               <Trash2 className="w-4 h-4" />
                             </Button>
                           </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+                
+                {/* Mobile Card View */}
+                <div className="md:hidden space-y-4">
+                  {filteredClients.map((client: ClientWithProjects) => (
+                    <div key={client.id} className="border rounded-lg p-4 space-y-3" data-testid={`client-card-${client.id}`}>
+                      {/* Client Name */}
+                      <div className="flex items-start justify-between">
+                        <h3 className="font-medium text-lg">
+                          {client.firstName} {client.lastName}
+                        </h3>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setLocation(`/clients/${client.id}`)}
+                            data-testid={`button-view-client-${client.id}`}
+                          >
+                            <Eye className="w-4 h-4" />
+                          </Button>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="sm" data-testid={`button-client-actions-${client.id}`}>
+                                <MoreHorizontal className="w-4 h-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => setLocation(`/clients/${client.id}`)}>
+                                <Eye className="w-4 h-4 mr-2" />
+                                View Details
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleDeleteClient(client.id)}>
+                                <Trash2 className="w-4 h-4 mr-2" />
+                                Delete Client
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
+                      </div>
+                      
+                      {/* Contact Info */}
+                      <div className="space-y-2">
+                        {client.email && (
+                          <div className="flex items-center text-sm text-muted-foreground">
+                            <Mail className="w-4 h-4 mr-2" />
+                            {client.email}
+                          </div>
+                        )}
+                        {client.phone && (
+                          <div className="flex items-center text-sm text-muted-foreground">
+                            <Phone className="w-4 h-4 mr-2" />
+                            {client.phone}
+                          </div>
+                        )}
+                      </div>
+                      
+                      {/* Project Info */}
+                      <div className="flex justify-between items-center pt-2 border-t">
+                        <div>
+                          <div className="text-sm font-medium">
+                            {client.projects?.length || 0} {(client.projects?.length || 0) === 1 ? 'project' : 'projects'}
+                          </div>
+                          {client.projects && client.projects.length > 0 && (
+                            <div className="text-xs text-muted-foreground">
+                              Latest: {client.projects[0].projectType}
+                              {client.projects[0].eventDate && (
+                                <span className="ml-2">
+                                  📅 {new Date(client.projects[0].eventDate).toLocaleDateString()}
+                                </span>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          Added {new Date(client.createdAt).toLocaleDateString()}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                </div>
               )}
             </CardContent>
           </Card>

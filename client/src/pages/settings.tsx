@@ -277,21 +277,24 @@ export default function Settings() {
       <AppSidebar />
       <SidebarInset>
         {/* Header */}
-        <header className="bg-card border-b border-border px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <SidebarTrigger data-testid="button-menu-toggle" />
-              <div>
-                <h1 className="text-2xl font-semibold">Settings</h1>
-                <p className="text-muted-foreground">Manage your account and business preferences</p>
-              </div>
-            </div>
+        <header className="bg-card border-b border-border px-4 md:px-6 py-4 relative">
+          {/* Hamburger menu positioned absolutely at top-right */}
+          <SidebarTrigger 
+            data-testid="button-menu-toggle" 
+            className="absolute top-4 right-4 z-10 md:relative md:top-auto md:right-auto md:z-auto" 
+          />
+          
+          {/* Mobile layout */}
+          <div className="pr-12 md:pr-0">
+            <h1 className="text-xl md:text-2xl font-semibold">Settings</h1>
+            <p className="text-sm md:text-base text-muted-foreground">Manage your account and business preferences</p>
           </div>
         </header>
 
         <div className="p-6">
           <Tabs defaultValue="profile" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-6">
+            {/* Desktop tabs */}
+            <TabsList className="hidden md:grid w-full grid-cols-6">
               <TabsTrigger value="profile" className="flex items-center">
                 <User className="w-4 h-4 mr-2" />
                 Profile
@@ -317,6 +320,53 @@ export default function Settings() {
                 Integrations
               </TabsTrigger>
             </TabsList>
+            
+            {/* Mobile dropdown - need to add state management */}
+            <div className="md:hidden">
+              <Select defaultValue="profile">
+                <SelectTrigger data-testid="select-settings-section">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="profile">
+                    <div className="flex items-center">
+                      <User className="w-4 h-4 mr-2" />
+                      Profile
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="branding">
+                    <div className="flex items-center">
+                      <Palette className="w-4 h-4 mr-2" />
+                      Branding
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="email">
+                    <div className="flex items-center">
+                      <Mail className="w-4 h-4 mr-2" />
+                      Email
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="automation">
+                    <div className="flex items-center">
+                      <Clock className="w-4 h-4 mr-2" />
+                      Automation
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="security">
+                    <div className="flex items-center">
+                      <Shield className="w-4 h-4 mr-2" />
+                      Security
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="integrations">
+                    <div className="flex items-center">
+                      <Calendar className="w-4 h-4 mr-2" />
+                      Integrations
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
             <TabsContent value="profile">
               <Card>

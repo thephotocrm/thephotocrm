@@ -822,13 +822,17 @@ export default function Automations() {
       <AppSidebar />
       <SidebarInset>
         {/* Header */}
-        <header className="bg-card border-b border-border px-6 py-4">
-          <div className="flex items-center space-x-4">
-            <SidebarTrigger data-testid="button-menu-toggle" />
-            <div>
-              <h1 className="text-2xl font-semibold">Automations</h1>
-              <p className="text-muted-foreground">Set up automated email and SMS workflows for each stage</p>
-            </div>
+        <header className="bg-card border-b border-border px-4 md:px-6 py-4 relative">
+          {/* Hamburger menu positioned absolutely at top-right */}
+          <SidebarTrigger 
+            data-testid="button-menu-toggle" 
+            className="absolute top-4 right-4 z-10 md:relative md:top-auto md:right-auto md:z-auto" 
+          />
+          
+          {/* Mobile layout */}
+          <div className="pr-12 md:pr-0">
+            <h1 className="text-xl md:text-2xl font-semibold">Automations</h1>
+            <p className="text-sm md:text-base text-muted-foreground">Set up automated email and SMS workflows for each stage</p>
           </div>
         </header>
         
@@ -1484,19 +1488,47 @@ export default function Automations() {
         </Dialog>
 
         <div className="p-6 space-y-6">
-          {/* Project Type Tabs */}
+          {/* Project Type Selection */}
           <Tabs value={activeProjectType} onValueChange={setActiveProjectType} className="w-full">
-            <div className="flex items-center justify-between mb-6">
-              <TabsList className="grid w-full grid-cols-5 max-w-3xl">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+              {/* Desktop tabs */}
+              <TabsList className="hidden md:grid w-full grid-cols-5 max-w-3xl">
                 <TabsTrigger value="WEDDING" data-testid="tab-wedding">💒 Wedding</TabsTrigger>
                 <TabsTrigger value="ENGAGEMENT" data-testid="tab-engagement">💍 Engagement</TabsTrigger>
                 <TabsTrigger value="PORTRAIT" data-testid="tab-portrait">🎭 Portrait</TabsTrigger>
                 <TabsTrigger value="CORPORATE" data-testid="tab-corporate">🏢 Corporate</TabsTrigger>
                 <TabsTrigger value="EVENT" data-testid="tab-event">🎉 Event</TabsTrigger>
               </TabsList>
+              
+              {/* Mobile dropdown and button */}
+              <div className="flex flex-col sm:flex-row gap-4 md:hidden w-full">
+                <Select value={activeProjectType} onValueChange={setActiveProjectType}>
+                  <SelectTrigger className="w-full sm:max-w-xs" data-testid="select-project-type">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="WEDDING">💒 Wedding</SelectItem>
+                    <SelectItem value="ENGAGEMENT">💍 Engagement</SelectItem>
+                    <SelectItem value="PORTRAIT">🎭 Portrait</SelectItem>
+                    <SelectItem value="CORPORATE">🏢 Corporate</SelectItem>
+                    <SelectItem value="EVENT">🎉 Event</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Button
+                  onClick={() => setCreateDialogOpen(true)}
+                  data-testid="button-create-automation"
+                  className="w-full sm:w-auto"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  New Automation
+                </Button>
+              </div>
+              
+              {/* Desktop button */}
               <Button
                 onClick={() => setCreateDialogOpen(true)}
                 data-testid="button-create-automation"
+                className="hidden md:flex"
               >
                 <Plus className="w-4 h-4 mr-2" />
                 New Automation
