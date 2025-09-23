@@ -832,7 +832,7 @@ export default function Automations() {
                   </DialogDescription>
                 </DialogHeader>
                 
-                <Form key={automationType} {...form}>
+                <Form {...form}>
                   <form onSubmit={form.handleSubmit(handleCreateAutomation)} className="space-y-4">
                     <FormField
                       control={form.control}
@@ -852,45 +852,10 @@ export default function Automations() {
                       )}
                     />
 
-                    {/* Automation Type Selector */}
-                    <div className="space-y-3">
-                      <FormLabel>Automation Type</FormLabel>
-                      <div className="grid grid-cols-2 gap-2">
-                        <Button
-                          type="button"
-                          variant={automationType === 'COMMUNICATION' ? 'default' : 'outline'}
-                          className="w-full justify-start"
-                          onClick={() => setAutomationType('COMMUNICATION')}
-                          data-testid="button-automation-communication"
-                        >
-                          <Mail className="mr-2 h-4 w-4" />
-                          Communication
-                        </Button>
-                        <Button
-                          type="button"
-                          variant={automationType === 'STAGE_CHANGE' ? 'default' : 'outline'}
-                          className="w-full justify-start"
-                          onClick={() => setAutomationType('STAGE_CHANGE')}
-                          data-testid="button-automation-pipeline"
-                        >
-                          <ArrowRight className="mr-2 h-4 w-4" />
-                          Pipeline Stage
-                        </Button>
-                      </div>
-                      <p className="text-xs text-muted-foreground">
-                        {automationType === 'COMMUNICATION' 
-                          ? 'Send automated emails and SMS to clients when they enter specific stages'
-                          : 'Automatically move clients through pipeline stages based on business triggers'
-                        }
-                      </p>
-                    </div>
-
-                    {/* Communication Automation Fields */}
-                    {automationType === 'COMMUNICATION' && (
-                      <>
-                        <FormField
-                          control={form.control}
-                          name="stageId"
+                    {/* Trigger Stage - Common Field */}
+                    <FormField
+                      control={form.control}
+                      name="stageId"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Trigger Stage (Optional)</FormLabel>
@@ -909,10 +874,61 @@ export default function Automations() {
                               ))}
                             </SelectContent>
                           </Select>
+                          <FormDescription>
+                            Select a stage to trigger this automation, or leave global for all stages
+                          </FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
+
+                    {/* Automation Actions Section */}
+                    <div className="space-y-4">
+                      <FormLabel>Automation Actions</FormLabel>
+                      <p className="text-xs text-muted-foreground">
+                        Choose which actions this automation should perform. You can enable both types for comprehensive workflows.
+                      </p>
+                      
+                      {/* Communication Actions Toggle */}
+                      <div className="flex items-center space-x-2 p-3 border rounded-lg">
+                        <Switch
+                          checked={enableCommunication}
+                          onCheckedChange={setEnableCommunication}
+                          data-testid="switch-enable-communication"
+                        />
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-2">
+                            <Mail className="h-4 w-4" />
+                            <Label className="font-medium">Send Communication</Label>
+                          </div>
+                          <p className="text-xs text-muted-foreground">Send automated emails, SMS, or assign questionnaires</p>
+                        </div>
+                      </div>
+
+                      {/* Pipeline Actions Toggle */}
+                      <div className="flex items-center space-x-2 p-3 border rounded-lg">
+                        <Switch
+                          checked={enablePipeline}
+                          onCheckedChange={setEnablePipeline}
+                          data-testid="switch-enable-pipeline"
+                        />
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-2">
+                            <ArrowRight className="h-4 w-4" />
+                            <Label className="font-medium">Move Through Pipeline</Label>
+                          </div>
+                          <p className="text-xs text-muted-foreground">Automatically move projects to different stages</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Communication Automation Fields */}
+                    {enableCommunication && (
+                      <div className="space-y-4 p-4 border rounded-lg bg-blue-50/50 dark:bg-blue-950/20">
+                        <div className="flex items-center space-x-2">
+                          <Mail className="h-4 w-4 text-blue-600" />
+                          <Label className="font-medium text-blue-900 dark:text-blue-100">Communication Settings</Label>
+                        </div>
 
                     <FormField
                       control={form.control}
@@ -1086,12 +1102,16 @@ export default function Automations() {
                         </div>
                       )}
                     </div>
-                      </>
+                      </div>
                     )}
 
                     {/* Pipeline Stage Change Automation Fields */}
-                    {automationType === 'STAGE_CHANGE' && (
-                      <>
+                    {enablePipeline && (
+                      <div className="space-y-4 p-4 border rounded-lg bg-green-50/50 dark:bg-green-950/20">
+                        <div className="flex items-center space-x-2">
+                          <ArrowRight className="h-4 w-4 text-green-600" />
+                          <Label className="font-medium text-green-900 dark:text-green-100">Pipeline Settings</Label>
+                        </div>
                         <FormField
                           control={form.control}
                           name="triggerType"
@@ -1144,9 +1164,8 @@ export default function Automations() {
                             </FormItem>
                           )}
                         />
-                      </>
+                      </div>
                     )}
-
 
                     <div className="flex justify-end space-x-2 pt-4">
                       <Button
@@ -1162,15 +1181,27 @@ export default function Automations() {
                         disabled={
                           createAutomationMutation.isPending ||
                           (() => {
-                            // Different validation for different automation types
-                            if (automationType === 'COMMUNICATION') {
+                            // At least one automation type must be enabled
+                            if (!enableCommunication && !enablePipeline) {
+                              return true;
+                            }
+                            
+                            // Validate communication fields if enabled
+                            if (enableCommunication) {
                               const hasTemplate = form.watch('templateId') && form.watch('templateId') !== 'unavailable';
                               const hasQuestionnaire = form.watch('questionnaireTemplateId') && form.watch('questionnaireTemplateId') !== 'unavailable' && form.watch('questionnaireTemplateId') !== 'none';
-                              return !hasTemplate && !hasQuestionnaire;
+                              if (!hasTemplate && !hasQuestionnaire) {
+                                return true;
+                              }
                             }
-                            if (automationType === 'STAGE_CHANGE') {
-                              return !form.watch('triggerType') || !form.watch('targetStageId');
+                            
+                            // Validate pipeline fields if enabled
+                            if (enablePipeline) {
+                              if (!form.watch('triggerType') || !form.watch('targetStageId')) {
+                                return true;
+                              }
                             }
+                            
                             return false;
                           })()
                         }
@@ -1179,19 +1210,32 @@ export default function Automations() {
                         {createAutomationMutation.isPending 
                           ? "Creating..." 
                           : (() => {
-                              if (automationType === 'COMMUNICATION') {
+                              // At least one automation type must be enabled
+                              if (!enableCommunication && !enablePipeline) {
+                                return "Enable at least one action";
+                              }
+                              
+                              // Validate communication fields if enabled
+                              if (enableCommunication) {
                                 const hasTemplate = form.watch('templateId') && form.watch('templateId') !== 'unavailable';
                                 const hasQuestionnaire = form.watch('questionnaireTemplateId') && form.watch('questionnaireTemplateId') !== 'unavailable' && form.watch('questionnaireTemplateId') !== 'none';
                                 if (!hasTemplate && !hasQuestionnaire) {
                                   return "Select template or questionnaire";
                                 }
                               }
-                              if (automationType === 'STAGE_CHANGE') {
+                              
+                              // Validate pipeline fields if enabled
+                              if (enablePipeline) {
                                 if (!form.watch('triggerType') || !form.watch('targetStageId')) {
-                                  return "Complete all fields";
+                                  return "Complete pipeline fields";
                                 }
                               }
-                              return "Create Stage Automation";
+                              
+                              const actions = [];
+                              if (enableCommunication) actions.push("Communication");
+                              if (enablePipeline) actions.push("Pipeline");
+                              
+                              return `Create ${actions.join(" + ")} Automation${actions.length > 1 ? "s" : ""}`;
                             })()
                         }
                       </Button>
