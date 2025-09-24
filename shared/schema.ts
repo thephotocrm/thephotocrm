@@ -828,15 +828,33 @@ export const sanitizedBookingSchema = z.object({
 });
 
 // Availability slot schemas
-export const insertAvailabilitySlotSchema = createInsertSchema(availabilitySlots).omit({
-  id: true
-}).extend({
-  startAt: z.string().transform((val) => new Date(val)),
-  endAt: z.string().transform((val) => new Date(val))
-});
+export const insertAvailabilitySlotSchema = z.discriminatedUnion("isRecurring", [
+  // Single availability slot
+  createInsertSchema(availabilitySlots).omit({ id: true }).extend({
+    isRecurring: z.literal(false),
+    startAt: z.string().transform((val) => new Date(val)),
+    endAt: z.string().transform((val) => new Date(val))
+  }),
+  // Weekly recurring pattern  
+  createInsertSchema(availabilitySlots).omit({ id: true, startAt: true, endAt: true }).extend({
+    isRecurring: z.literal(true),
+    recurrencePattern: z.literal("WEEKLY"),
+    startTime: z.string().min(1, "Start time is required"),
+    endTime: z.string().min(1, "End time is required"),
+    weeklyDays: z.array(z.enum(["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"])).min(1, "Select at least one day")
+  })
+]);
 
-export const updateAvailabilitySlotSchema = insertAvailabilitySlotSchema.partial().omit({
-  photographerId: true
+export const updateAvailabilitySlotSchema = z.object({
+  title: z.string().optional(),
+  description: z.string().optional(),
+  startAt: z.string().transform((val) => new Date(val)).optional(),
+  endAt: z.string().transform((val) => new Date(val)).optional(),
+  isRecurring: z.boolean().optional(),
+  recurrencePattern: z.enum(["WEEKLY"]).nullable().optional(),
+  startTime: z.string().optional(),
+  endTime: z.string().optional(),
+  weeklyDays: z.array(z.enum(["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"])).optional()
 });
 
 // Type exports

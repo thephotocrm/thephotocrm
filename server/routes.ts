@@ -2085,14 +2085,109 @@ ${photographer?.businessName || 'Your Photography Team'}`;
     try {
       // Validate and transform the request body
       const slotData = insertAvailabilitySlotSchema.parse(req.body);
+      const photographerId = req.user!.photographerId!;
       
-      // Add photographer ID
-      const slot = await storage.createAvailabilitySlot({
-        ...slotData,
-        photographerId: req.user!.photographerId!
-      });
-      
-      res.status(201).json(slot);
+      // Handle weekly recurring patterns
+      if (slotData.isRecurring && slotData.recurrencePattern === "WEEKLY") {
+        // Validate required fields for recurring pattern
+        if (!slotData.startTime || !slotData.endTime || !slotData.weeklyDays || slotData.weeklyDays.length === 0) {
+          return res.status(400).json({ message: "startTime, endTime, and weeklyDays are required for weekly recurring patterns" });
+        }
+        const createdSlots = [];
+        const weekDayMap = {
+          "SUNDAY": 0, "MONDAY": 1, "TUESDAY": 2, "WEDNESDAY": 3,
+          "THURSDAY": 4, "FRIDAY": 5, "SATURDAY": 6
+        };
+        
+        // Generate slots for next 12 weeks (3 months)
+        const currentDate = new Date();
+        const endDate = new Date();
+        endDate.setDate(currentDate.getDate() + (12 * 7)); // 12 weeks from now
+        
+        // Get existing slots to prevent duplicates
+        let existingSlots = await storage.getAvailabilitySlotsByPhotographer(photographerId);
+        
+        for (const dayName of slotData.weeklyDays) {
+          const targetDayOfWeek = weekDayMap[dayName as keyof typeof weekDayMap];
+          
+          // Find the next occurrence of this day of week (including today if time hasn't passed)
+          let nextOccurrence = new Date(currentDate);
+          const daysUntilTarget = (targetDayOfWeek + 7 - currentDate.getDay()) % 7;
+          
+          // If it's today and the time hasn't passed yet, include today
+          if (daysUntilTarget === 0) {
+            const [startHour, startMinute] = slotData.startTime.split(':').map(Number);
+            const todaySlotTime = new Date(currentDate);
+            todaySlotTime.setHours(startHour, startMinute, 0, 0);
+            
+            if (todaySlotTime > currentDate) {
+              // Time hasn't passed today, include today
+              nextOccurrence = new Date(currentDate);
+            } else {
+              // Time has passed today, start from next week
+              nextOccurrence.setDate(currentDate.getDate() + 7);
+            }
+          } else {
+            nextOccurrence.setDate(currentDate.getDate() + daysUntilTarget);
+          }
+          
+          // Generate weekly slots until end date
+          while (nextOccurrence <= endDate) {
+            const startAt = new Date(nextOccurrence);
+            const [startHour, startMinute] = slotData.startTime.split(':').map(Number);
+            startAt.setHours(startHour, startMinute, 0, 0);
+            
+            const endAt = new Date(nextOccurrence);
+            const [endHour, endMinute] = slotData.endTime.split(':').map(Number);
+            endAt.setHours(endHour, endMinute, 0, 0);
+            
+            // Check for duplicate slots (same photographer, time, and not booked)
+            const isDuplicate = existingSlots.some(existing => 
+              existing.photographerId === photographerId &&
+              Math.abs(new Date(existing.startAt).getTime() - startAt.getTime()) < 60000 && // Within 1 minute
+              !existing.isBooked
+            );
+            
+            if (!isDuplicate) {
+              const weeklySlot = await storage.createAvailabilitySlot({
+                photographerId,
+                title: slotData.title,
+                description: slotData.description,
+                startAt: startAt.toISOString(),
+                endAt: endAt.toISOString(),
+                isRecurring: true,
+                recurrencePattern: "WEEKLY"
+              });
+              
+              createdSlots.push(weeklySlot);
+              
+              // Add to existing slots array to prevent duplicates in subsequent iterations
+              existingSlots.push(weeklySlot);
+            }
+            
+            // Move to next week
+            nextOccurrence.setDate(nextOccurrence.getDate() + 7);
+          }
+        }
+        
+        res.status(201).json({ 
+          message: `Created ${createdSlots.length} recurring availability slots`,
+          slots: createdSlots.slice(0, 5), // Return first 5 for preview
+          totalCreated: createdSlots.length
+        });
+      } else {
+        // Handle single slot creation
+        if (!slotData.startAt || !slotData.endAt) {
+          return res.status(400).json({ message: "startAt and endAt are required for single availability slots" });
+        }
+        
+        const slot = await storage.createAvailabilitySlot({
+          ...slotData,
+          photographerId
+        });
+        
+        res.status(201).json(slot);
+      }
     } catch (error: any) {
       if (error.name === 'ZodError') {
         return res.status(400).json({ message: "Invalid availability data", errors: error.errors });
