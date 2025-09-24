@@ -820,34 +820,54 @@ export default function Automations() {
                   
                   <Form {...form}>
                     <form onSubmit={form.handleSubmit(handleCreateAutomation)} className="flex flex-col min-h-0 flex-1">
-                      <div className="flex-1 min-h-0 overflow-y-auto px-6 py-4 space-y-6">
-                    <FormField
-                      control={form.control}
-                      name="name"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Automation Name</FormLabel>
-                          <FormControl>
-                            <Input 
-                              placeholder="e.g., Welcome Email, Follow-up SMS"
-                              data-testid="input-automation-name"
-                              {...field} 
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    {/* Unified Trigger Section */}
-                    <div className="space-y-4 p-4 border rounded-lg bg-amber-50/50 dark:bg-amber-950/20">
-                      <div className="flex items-center space-x-2">
-                        <Settings className="h-4 w-4 text-amber-600" />
-                        <Label className="font-medium text-amber-900 dark:text-amber-100">When should this happen?</Label>
+                      <div className="flex-1 min-h-0 overflow-y-auto px-6 py-4 space-y-8">
+                    
+                    {/* Step 1: Basic Information */}
+                    <div className="space-y-4">
+                      <div className="flex items-center space-x-3">
+                        <div className="flex items-center justify-center w-8 h-8 bg-primary text-primary-foreground rounded-full text-sm font-semibold">
+                          1
+                        </div>
+                        <div>
+                          <h3 className="text-lg font-semibold">Basic Information</h3>
+                          <p className="text-sm text-muted-foreground">Give your automation a descriptive name</p>
+                        </div>
                       </div>
-                      <p className="text-xs text-muted-foreground">
-                        Choose what event will start this automation
-                      </p>
+                      
+                      <div className="ml-11 p-4 border rounded-lg bg-card">
+                        <FormField
+                          control={form.control}
+                          name="name"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Automation Name</FormLabel>
+                              <FormControl>
+                                <Input 
+                                  placeholder="e.g., Welcome Email, Follow-up SMS"
+                                  data-testid="input-automation-name"
+                                  {...field} 
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Step 2: When (Trigger) */}
+                    <div className="space-y-4">
+                      <div className="flex items-center space-x-3">
+                        <div className="flex items-center justify-center w-8 h-8 bg-primary text-primary-foreground rounded-full text-sm font-semibold">
+                          2
+                        </div>
+                        <div>
+                          <h3 className="text-lg font-semibold">When should this happen?</h3>
+                          <p className="text-sm text-muted-foreground">Choose what event will start this automation</p>
+                        </div>
+                      </div>
+                      
+                      <div className="ml-11 space-y-4 p-4 border rounded-lg bg-amber-50/50 dark:bg-amber-950/20">
 
                       {/* Trigger Mode Radio Buttons */}
                       <FormField
@@ -1042,14 +1062,22 @@ export default function Automations() {
                           />
                         </div>
                       )}
+                      </div>
                     </div>
 
-                    {/* Automation Actions Section */}
+                    {/* Step 3: What Actions */}
                     <div className="space-y-4">
-                      <FormLabel>What should happen?</FormLabel>
-                      <p className="text-xs text-muted-foreground">
-                        Choose what actions this automation should take. You can pick both options if needed.
-                      </p>
+                      <div className="flex items-center space-x-3">
+                        <div className="flex items-center justify-center w-8 h-8 bg-primary text-primary-foreground rounded-full text-sm font-semibold">
+                          3
+                        </div>
+                        <div>
+                          <h3 className="text-lg font-semibold">What should happen?</h3>
+                          <p className="text-sm text-muted-foreground">Choose what actions this automation should take</p>
+                        </div>
+                      </div>
+                      
+                      <div className="ml-11 space-y-4">
                       
                       {/* Communication Actions Toggle */}
                       <div className="flex items-center space-x-2 p-3 border rounded-lg">
@@ -1328,6 +1356,8 @@ export default function Automations() {
                         />
                       </div>
                     )}
+                      </div>
+                    </div>
 
                     {/* Footer with Submit Buttons */}
                     <div className="sticky bottom-0 bg-background px-6 py-4 border-t flex justify-end space-x-2">
@@ -1427,7 +1457,6 @@ export default function Automations() {
                         }
                       </Button>
                     </div>
-                      </div>
                     </form>
                   </Form>
               </DialogContent>
