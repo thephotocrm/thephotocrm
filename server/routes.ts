@@ -9,7 +9,7 @@ import { hashPassword, authenticateUser, generateToken } from "./services/auth";
 import { sendEmail } from "./services/email";
 import { sendSms } from "./services/sms";
 import { createPaymentIntent, createCheckoutSession, createConnectCheckoutSession, calculatePlatformFee, handleWebhook, stripe } from "./services/stripe";
-import { googleCalendarService } from "./services/calendar";
+import { googleCalendarService, createBookingCalendarEvent } from "./services/calendar";
 import { insertUserSchema, insertPhotographerSchema, insertClientSchema, insertStageSchema, 
          insertTemplateSchema, insertAutomationSchema, validateAutomationSchema, insertAutomationStepSchema, insertPackageSchema, 
          insertEstimateSchema, insertMessageSchema, insertBookingSchema, updateBookingSchema, 
@@ -2752,25 +2752,24 @@ ${photographer?.businessName || 'Your Photography Team'}`;
 
       // Create calendar event if Google Calendar is connected
       try {
-        if (photographer.googleCalendarAccessToken) {
-          const calendarResult = await googleCalendarService.createBookingCalendarEvent(
-            photographer,
-            {
-              summary: slot.title,
-              description: `Booking with ${clientName}\nEmail: ${clientEmail}\nPhone: ${clientPhone || 'Not provided'}\n\n${bookingNotes || ''}`,
-              startTime: new Date(slot.startAt),
-              endTime: new Date(slot.endAt),
-              attendeeEmails: [clientEmail],
-              timeZone: photographer.timezone
-            }
-          );
-
-          if (calendarResult.success && calendarResult.eventId) {
-            await storage.updateBooking(booking.id, {
-              googleCalendarEventId: calendarResult.eventId,
-              googleMeetLink: calendarResult.googleMeetLink
-            });
+        const calendarResult = await createBookingCalendarEvent(
+          photographer.id,
+          {
+            title: slot.title,
+            description: `Booking with ${clientName}\nEmail: ${clientEmail}\nPhone: ${clientPhone || 'Not provided'}\n\n${bookingNotes || ''}`,
+            startTime: new Date(slot.startAt),
+            endTime: new Date(slot.endAt),
+            clientEmail: clientEmail,
+            clientName: clientName,
+            timeZone: photographer.timezone
           }
+        );
+
+        if (calendarResult.success && calendarResult.eventId) {
+          await storage.updateBooking(booking.id, {
+            googleCalendarEventId: calendarResult.eventId,
+            googleMeetLink: calendarResult.googleMeetLink
+          });
         }
       } catch (calendarError) {
         console.error("Failed to create calendar event:", calendarError);

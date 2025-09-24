@@ -1063,9 +1063,41 @@ export default function Scheduling() {
                 
                 <div className="bg-muted p-4 rounded-lg">
                   <p className="text-sm font-medium mb-2">Your booking link:</p>
-                  <code className="text-sm bg-background px-2 py-1 rounded">
-                    https://lazyphotog.com/book/your-studio
-                  </code>
+                  {photographer?.publicToken ? (
+                    <div className="space-y-2">
+                      <code className="text-sm bg-background px-2 py-1 rounded block break-all">
+                        {window.location.origin}/public/booking/calendar/{photographer.publicToken}
+                      </code>
+                      <div className="flex space-x-2">
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => {
+                            navigator.clipboard.writeText(`${window.location.origin}/public/booking/calendar/${photographer.publicToken}`);
+                            toast({
+                              title: "Copied!",
+                              description: "Booking link copied to clipboard"
+                            });
+                          }}
+                          data-testid="button-copy-booking-link"
+                        >
+                          Copy Link
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => window.open(`/public/booking/calendar/${photographer.publicToken}`, '_blank')}
+                          data-testid="button-preview-booking-calendar"
+                        >
+                          Preview Calendar
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-sm text-muted-foreground">
+                      Loading booking link...
+                    </div>
+                  )}
                 </div>
               </div>
             </CardContent>
