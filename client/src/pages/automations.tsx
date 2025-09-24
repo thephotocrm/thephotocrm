@@ -472,6 +472,16 @@ export default function Automations() {
   const [enableCommunication, setEnableCommunication] = useState(true);
   const [enablePipeline, setEnablePipeline] = useState(false);
 
+  // Reset modal state when dialog opens
+  useEffect(() => {
+    if (createDialogOpen) {
+      // Reset toggle states to default
+      setEnableCommunication(true);
+      setEnablePipeline(false);
+      setTimingMode('immediate');
+    }
+  }, [createDialogOpen]);
+
   // Unified form schema that supports all three automation types with optional sections
   const unifiedFormSchema = createAutomationFormSchema.extend({
     // Unified trigger settings
@@ -1107,7 +1117,12 @@ export default function Automations() {
                             <ArrowRight className="h-4 w-4" />
                             <Label className="font-medium">Move Projects</Label>
                           </div>
-                          <p className="text-xs text-muted-foreground">Move projects to the next stage automatically</p>
+                          <p className="text-xs text-muted-foreground">
+                            {enablePipeline 
+                              ? "Move projects to the next stage automatically" 
+                              : "Automatically move projects through your pipeline"
+                            }
+                          </p>
                         </div>
                       </div>
                     </div>
