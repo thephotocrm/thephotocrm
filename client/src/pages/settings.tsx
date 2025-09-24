@@ -109,34 +109,58 @@ export default function Settings() {
       if (!response.ok) throw new Error("Failed to get auth URL");
       const data = await response.json();
       return data;
-    },
-    onSuccess: (data) => {
-      if (data.authUrl) {
-        window.open(data.authUrl, '_blank', 'width=500,height=600');
-        // Poll for connection status after opening auth window
-        const pollInterval = setInterval(async () => {
-          const result = await refetchCalendarStatus();
-          if ((result.data as any)?.authenticated) {
-            clearInterval(pollInterval);
-            toast({
-              title: "Google Calendar Connected!",
-              description: "Your calendar integration is now active.",
-            });
-          }
-        }, 2000);
-        
-        // Stop polling after 5 minutes
-        setTimeout(() => clearInterval(pollInterval), 5 * 60 * 1000);
-      }
-    },
-    onError: () => {
-      toast({
-        title: "Connection Failed",
-        description: "Failed to connect to Google Calendar. Please try again.",
-        variant: "destructive"
-      });
     }
   });
+
+  // Mobile-friendly connect function that pre-opens popup
+  const handleConnectCalendar = () => {
+    // Pre-open popup synchronously from user click (works on mobile)
+    const popup = window.open('', '_blank', 'width=500,height=600');
+    
+    connectCalendarMutation.mutate(undefined, {
+      onSuccess: (data) => {
+        if (data.authUrl && popup) {
+          // Set URL on pre-opened popup (mobile-safe)
+          popup.location.href = data.authUrl;
+          
+          // Poll for connection status after opening auth window
+          const pollInterval = setInterval(async () => {
+            const result = await refetchCalendarStatus();
+            if ((result.data as any)?.authenticated) {
+              clearInterval(pollInterval);
+              if (popup && !popup.closed) {
+                popup.close();
+              }
+              toast({
+                title: "Google Calendar Connected!",
+                description: "Your calendar integration is now active.",
+              });
+            }
+          }, 2000);
+          
+          // Stop polling after 5 minutes
+          setTimeout(() => {
+            clearInterval(pollInterval);
+            if (popup && !popup.closed) {
+              popup.close();
+            }
+          }, 5 * 60 * 1000);
+        } else if (popup) {
+          popup.close();
+        }
+      },
+      onError: () => {
+        if (popup && !popup.closed) {
+          popup.close();
+        }
+        toast({
+          title: "Connection Failed",
+          description: "Failed to connect to Google Calendar. Please try again.",
+          variant: "destructive"
+        });
+      }
+    });
+  };
 
   const disconnectCalendarMutation = useMutation({
     mutationFn: async () => {
@@ -705,7 +729,7 @@ export default function Settings() {
                                 <span className="text-sm">Not Connected</span>
                               </div>
                               <Button
-                                onClick={() => connectCalendarMutation.mutate()}
+                                onClick={handleConnectCalendar}
                                 disabled={connectCalendarMutation.isPending}
                                 data-testid="button-connect-calendar"
                                 className="flex items-center"
