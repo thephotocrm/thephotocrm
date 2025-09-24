@@ -160,7 +160,10 @@ export const automations = pgTable("automations", {
   triggerType: text("trigger_type"), // DEPOSIT_PAID, FULL_PAYMENT_MADE, PROJECT_BOOKED, APPOINTMENT_BOOKED, etc.
   targetStageId: varchar("target_stage_id").references(() => stages.id),
   // Countdown automation fields
-  daysBefore: integer("days_before"), // Days before event date to send countdown message
+  daysBefore: integer("days_before"), // Days before/after event date to send countdown message
+  triggerTiming: text("trigger_timing").default("BEFORE"), // BEFORE or AFTER the event
+  triggerHour: integer("trigger_hour").default(9), // Hour of day (0-23) when to trigger
+  triggerMinute: integer("trigger_minute").default(0), // Minute (0-59) when to trigger
   eventType: text("event_type"), // event_date, session_date, delivery_date, etc. - which project date field to use
   stageCondition: varchar("stage_condition").references(() => stages.id), // Optional stage filter for countdown automations
   templateId: varchar("template_id").references(() => templates.id), // Template for countdown automations
