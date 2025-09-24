@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
@@ -16,7 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Plus, Zap, Clock, Mail, Smartphone, Settings, Edit2, ArrowRight, Calendar, Users, AlertCircle } from "lucide-react";
+import { Plus, Zap, Clock, Mail, Smartphone, Settings, Edit2, ArrowRight, Calendar, Users, AlertCircle, Trash2 } from "lucide-react";
 import { insertAutomationSchema, projectTypeEnum, automationTypeEnum, triggerTypeEnum } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -465,7 +465,6 @@ export default function Automations() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
-  const [countdownDialogOpen, setCountdownDialogOpen] = useState(false);
   const [manageRulesDialogOpen, setManageRulesDialogOpen] = useState(false);
   const [selectedStage, setSelectedStage] = useState<any>(null);
   const [timingMode, setTimingMode] = useState<'immediate' | 'delayed'>('immediate');
@@ -473,12 +472,16 @@ export default function Automations() {
   const [enableCommunication, setEnableCommunication] = useState(true);
   const [enablePipeline, setEnablePipeline] = useState(false);
 
-  // Unified form schema that supports both automation types with optional sections
+  // Unified form schema that supports all three automation types with optional sections
   const unifiedFormSchema = createAutomationFormSchema.extend({
     // Unified trigger settings
-    triggerMode: z.enum(['STAGE', 'BUSINESS']).default('STAGE'),
+    triggerMode: z.enum(['STAGE', 'BUSINESS', 'TIME']).default('STAGE'),
     triggerStageId: z.string().optional(), // For stage-based triggers
     triggerEvent: z.string().optional(), // For business event triggers
+    // Time-based trigger fields
+    daysBefore: z.coerce.number().min(1).max(365).optional(),
+    eventType: z.string().optional(),
+    stageCondition: z.string().optional(),
     // Optional automation type flags
     enableCommunication: z.boolean().default(true),
     enablePipeline: z.boolean().default(false),
@@ -504,6 +507,10 @@ export default function Automations() {
         }
       } else if (data.triggerMode === 'BUSINESS') {
         if (!data.triggerEvent) {
+          return false;
+        }
+      } else if (data.triggerMode === 'TIME') {
+        if (!data.daysBefore || !data.eventType) {
           return false;
         }
       }
@@ -540,6 +547,9 @@ export default function Automations() {
       triggerMode: "STAGE" as const,
       triggerStageId: "",
       triggerEvent: "",
+      daysBefore: 7,
+      eventType: "placeholder",
+      stageCondition: "all",
       channel: "EMAIL", 
       enabled: true,
       automationType: "COMMUNICATION", // Still needed for backend compatibility
@@ -769,77 +779,8 @@ export default function Automations() {
     deleteAutomationMutation.mutate(automationId);
   };
 
-  // Countdown automation form schema and setup
-  const countdownFormSchema = createAutomationFormSchema.extend({
-    daysBefore: z.coerce.number().min(1, "Must be at least 1 day").max(365, "Cannot exceed 365 days").default(7),
-    eventType: z.string().min(1, "Event type is required"),
-    stageCondition: z.string().optional(),
-    templateId: z.string().min(1, "Template is required")
-  });
-  type CountdownFormData = z.infer<typeof countdownFormSchema>;
 
-  // Countdown form instance
-  const countdownForm = useForm<CountdownFormData>({
-    resolver: zodResolver(countdownFormSchema),
-    defaultValues: {
-      name: "",
-      enabled: true,
-      automationType: "COUNTDOWN",
-      channel: "EMAIL",
-      daysBefore: 7,
-      eventType: "",
-      stageCondition: "",
-      templateId: ""
-    }
-  });
 
-  // Countdown automation creation mutation
-  const createCountdownAutomationMutation = useMutation({
-    mutationFn: async (data: CountdownFormData) => {
-      // Validate templates are available for selected channel
-      const channelTemplates = templates.filter((t: any) => t.channel === data.channel);
-      if (channelTemplates.length === 0) {
-        throw new Error(`No ${data.channel?.toLowerCase() || 'selected'} templates available. Please create templates first.`);
-      }
-
-      // Validate selected template exists
-      const selectedTemplate = channelTemplates.find((t: any) => t.id === data.templateId);
-      if (!selectedTemplate) {
-        throw new Error("Selected template is not valid");
-      }
-
-      const automationData = {
-        ...data,
-        automationType: "COUNTDOWN" as const,
-        projectType: activeProjectType,
-        // Set stage condition to null if empty string
-        stageCondition: data.stageCondition || null
-      };
-
-      const response = await apiRequest("POST", "/api/automations", automationData);
-      const automation = await response.json();
-      console.log('Created countdown automation:', automation);
-      return automation;
-    },
-    onSuccess: () => {
-      toast({ title: "Countdown automation created successfully" });
-      queryClient.invalidateQueries({ queryKey: ["/api/automations"] });
-      setCountdownDialogOpen(false);
-      countdownForm.reset();
-    },
-    onError: (error: any) => {
-      console.error('Create countdown automation error:', error);
-      toast({ 
-        title: "Failed to create countdown automation", 
-        description: error?.message || "Unknown error occurred",
-        variant: "destructive" 
-      });
-    }
-  });
-
-  const handleCreateCountdownAutomation = (data: CountdownFormData) => {
-    createCountdownAutomationMutation.mutate(data);
-  };
 
   // Redirect to login if not authenticated
   if (!loading && !user) {
@@ -935,6 +876,13 @@ export default function Automations() {
                                     <span>Business Event - When specific actions occur</span>
                                   </Label>
                                 </div>
+                                <div className="flex items-center space-x-2">
+                                  <RadioGroupItem value="TIME" id="trigger-time" data-testid="radio-trigger-time" />
+                                  <Label htmlFor="trigger-time" className="flex items-center space-x-2 cursor-pointer">
+                                    <Clock className="h-4 w-4" />
+                                    <span>Time-based - Days before event dates</span>
+                                  </Label>
+                                </div>
                               </RadioGroup>
                             </FormControl>
                             <FormMessage />
@@ -1006,6 +954,93 @@ export default function Automations() {
                             </FormItem>
                           )}
                         />
+                      )}
+
+                      {/* Time-based Trigger Fields */}
+                      {form.watch('triggerMode') === 'TIME' && (
+                        <div className="space-y-4">
+                          <FormField
+                            control={form.control}
+                            name="daysBefore"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Days Before Event</FormLabel>
+                                <FormControl>
+                                  <Input 
+                                    type="number"
+                                    min="1"
+                                    max="365"
+                                    placeholder="e.g., 7"
+                                    data-testid="input-days-before"
+                                    {...field}
+                                    onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                                  />
+                                </FormControl>
+                                <FormDescription>
+                                  How many days before the event should this automation trigger?
+                                </FormDescription>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={form.control}
+                            name="eventType"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Event Type</FormLabel>
+                                <Select onValueChange={field.onChange} value={field.value || ""}>
+                                  <FormControl>
+                                    <SelectTrigger data-testid="select-event-type">
+                                      <SelectValue placeholder="Select which event date to count from" />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    <SelectItem value="placeholder" disabled>Select an event type...</SelectItem>
+                                    <SelectItem value="EVENT_DATE">📅 Event Date</SelectItem>
+                                    <SelectItem value="DELIVERY_DATE">📦 Delivery Date</SelectItem>
+                                    <SelectItem value="CONSULTATION_DATE">💬 Consultation Date</SelectItem>
+                                    <SelectItem value="SHOOT_DATE">📸 Shoot Date</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                                <FormDescription>
+                                  The automation will trigger based on this date field
+                                </FormDescription>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={form.control}
+                            name="stageCondition"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Stage Condition (Optional)</FormLabel>
+                                <Select onValueChange={field.onChange} value={field.value || ""}>
+                                  <FormControl>
+                                    <SelectTrigger data-testid="select-stage-condition">
+                                      <SelectValue placeholder="Only trigger for clients in specific stage (optional)" />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    <SelectItem value="all">All Stages</SelectItem>
+                                    {stages?.map((stage: any) => (
+                                      <SelectItem key={stage.id} value={stage.id}>
+                                        {stage.name}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                                <FormDescription>
+                                  Optional: Only trigger for clients currently in this stage
+                                </FormDescription>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
                       )}
                     </div>
 
@@ -1250,7 +1285,7 @@ export default function Automations() {
                         </div>
                       )}
                     </div>
-                      </div>
+                        </div>
                     )}
 
                     {/* Pipeline Action Fields - Simplified */}
@@ -1293,7 +1328,6 @@ export default function Automations() {
                         />
                       </div>
                     )}
-                    </div>
 
                     {/* Footer with Submit Buttons */}
                     <div className="sticky bottom-0 bg-background px-6 py-4 border-t flex justify-end space-x-2">
@@ -1393,222 +1427,13 @@ export default function Automations() {
                         }
                       </Button>
                     </div>
+                      </div>
                     </form>
                   </Form>
               </DialogContent>
             </Dialog>
 
-        {/* Countdown Automation Dialog */}
-        <Dialog open={countdownDialogOpen} onOpenChange={setCountdownDialogOpen}>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle>Create Event Countdown Automation</DialogTitle>
-              <DialogDescription>
-                Set up time-based messaging leading up to event dates
-              </DialogDescription>
-            </DialogHeader>
-            
-            <Form {...countdownForm}>
-              <form onSubmit={countdownForm.handleSubmit(handleCreateCountdownAutomation)} className="space-y-4">
-                <FormField
-                  control={countdownForm.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Automation Name</FormLabel>
-                      <FormControl>
-                        <Input 
-                          placeholder="e.g., Event Reminder - 7 days before"
-                          data-testid="input-countdown-name"
-                          {...field} 
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
 
-                <FormField
-                  control={countdownForm.control}
-                  name="daysBefore"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Days Before Event</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          min="1"
-                          max="365"
-                          placeholder="7"
-                          data-testid="input-days-before"
-                          {...field}
-                          onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                        />
-                      </FormControl>
-                      <FormDescription>
-                        How many days before the event should this trigger?
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={countdownForm.control}
-                  name="eventType"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Event Type</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value || ""}>
-                        <FormControl>
-                          <SelectTrigger data-testid="select-countdown-event-type">
-                            <SelectValue placeholder="Select event type" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="event_date">📅 Event Date</SelectItem>
-                          <SelectItem value="delivery_date">📦 Delivery Date</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormDescription>
-                        Which date field should trigger this countdown?
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={countdownForm.control}
-                  name="stageCondition"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Stage Condition (Optional)</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value || ""}>
-                        <FormControl>
-                          <SelectTrigger data-testid="select-countdown-stage-condition">
-                            <SelectValue placeholder="Any stage (no condition)" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="none">Any stage (no condition)</SelectItem>
-                          {stages?.map((stage: any) => (
-                            <SelectItem key={stage.id} value={stage.id}>
-                              Only if in: {stage.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormDescription>
-                        Only trigger if the client is in a specific stage
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={countdownForm.control}
-                  name="channel"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Communication Channel</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value || "EMAIL"}>
-                        <FormControl>
-                          <SelectTrigger data-testid="select-countdown-channel">
-                            <SelectValue placeholder="Select channel" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="EMAIL">📧 Email</SelectItem>
-                          <SelectItem value="SMS">📱 SMS</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={countdownForm.control}
-                  name="templateId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Message Template</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value || ""}>
-                        <FormControl>
-                          <SelectTrigger data-testid="select-countdown-template">
-                            <SelectValue placeholder="Select template" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {templates.filter((t: any) => t.channel === countdownForm.watch('channel')).length > 0 ? (
-                            templates
-                              .filter((t: any) => t.channel === countdownForm.watch('channel'))
-                              .map((template: any) => (
-                                <SelectItem key={template.id} value={template.id}>
-                                  {template.name}
-                                </SelectItem>
-                              ))
-                          ) : (
-                            <SelectItem value="unavailable" disabled>
-                              No {countdownForm.watch('channel')?.toLowerCase()} templates available
-                            </SelectItem>
-                          )}
-                        </SelectContent>
-                      </Select>
-                      <FormDescription>
-                        Template to send before the event date
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <div className="flex justify-end space-x-2 pt-4">
-                  <Button
-                    type="button" 
-                    variant="outline"
-                    onClick={() => setCountdownDialogOpen(false)}
-                    data-testid="button-cancel-countdown"
-                  >
-                    Cancel
-                  </Button>
-                  <Button 
-                    type="submit" 
-                    disabled={
-                      createCountdownAutomationMutation.isPending ||
-                      !countdownForm.watch('name')?.trim() ||
-                      !countdownForm.watch('daysBefore') ||
-                      !countdownForm.watch('eventType') ||
-                      !countdownForm.watch('templateId') ||
-                      countdownForm.watch('templateId') === 'unavailable'
-                    }
-                    data-testid="button-submit-countdown"
-                  >
-                    {createCountdownAutomationMutation.isPending 
-                      ? "Creating..." 
-                      : (() => {
-                          const templatesForChannel = templates.filter((t: any) => t.channel === countdownForm.watch('channel'));
-                          if (templatesForChannel.length === 0) {
-                            return `Create ${countdownForm.watch('channel')?.toLowerCase()} templates first`;
-                          }
-                          if (!countdownForm.watch('name')?.trim() || 
-                              !countdownForm.watch('daysBefore') || 
-                              !countdownForm.watch('eventType') || 
-                              !countdownForm.watch('templateId') ||
-                              countdownForm.watch('templateId') === 'unavailable') {
-                            return "Complete all fields";
-                          }
-                          return "Create Countdown Automation";
-                        })()
-                    }
-                  </Button>
-                </div>
-              </form>
-            </Form>
-          </DialogContent>
-        </Dialog>
 
         {/* Manage Rules Modal */}
         <Dialog open={manageRulesDialogOpen} onOpenChange={setManageRulesDialogOpen}>
@@ -1730,7 +1555,7 @@ export default function Automations() {
               </Button>
             </div>
 
-            {activeProjectType && (
+{activeProjectType && (
               <div className="space-y-6">
                 {/* Stats Cards */}
                 <div className="hidden md:grid md:grid-cols-3 gap-6">
@@ -1770,65 +1595,99 @@ export default function Automations() {
                   </Card>
                 </div>
 
-                {/* Unified Automation Interface */}
+                {/* Automation List */}
                 <Card>
                   <CardHeader>
-                    <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
-                      <div>
-                        <CardTitle className="flex items-center">
-                          <Zap className="w-5 h-5 mr-3 text-blue-500" />
-                          All Automations
-                        </CardTitle>
-                        <p className="text-sm text-muted-foreground mt-1">
-                          Automate your workflow with stage triggers, business events, and time-based actions
-                        </p>
-                      </div>
-                      <Button 
-                        onClick={() => {
-                          setCreateDialogOpen(true);
-                        }}
-                        data-testid="button-add-automation"
-                        className="w-full md:w-auto"
-                      >
-                        <Plus className="w-4 h-4 mr-2" />
-                        Add Automation
-                      </Button>
-                    </div>
+                    <CardTitle className="flex items-center gap-2">
+                      <Zap className="h-5 w-5" />
+                      {activeProjectType.charAt(0) + activeProjectType.slice(1).toLowerCase()} Automations
+                    </CardTitle>
+                    <CardDescription>
+                      Automated workflows for {activeProjectType.toLowerCase()} projects
+                    </CardDescription>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
-                      {(() => {
-                        // Get all automations and group them
-                        const allAutomations = automations ?? [];
-                        
-                        if (allAutomations.length === 0) {
-                          return (
-                            <div className="text-center py-8">
-                              <Zap className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                              <p className="text-muted-foreground">No automations configured yet.</p>
-                              <p className="text-sm text-muted-foreground">Create workflows that trigger automatically based on stages, events, or time.</p>
+                      {automations === undefined ? (
+                        <div className="text-center py-8">
+                          <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto" />
+                          <p className="text-muted-foreground mt-2">Loading automations...</p>
+                        </div>
+                      ) : automations.length === 0 ? (
+                        <div className="text-center py-8">
+                          <Zap className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                          <h3 className="text-lg font-semibold mb-2">No automations yet</h3>
+                          <p className="text-muted-foreground mb-4">
+                            Create your first automation to streamline your workflow
+                          </p>
+                          <Button 
+                            onClick={() => setCreateDialogOpen(true)}
+                            data-testid="button-create-first-automation"
+                          >
+                            <Plus className="w-4 h-4 mr-2" />
+                            Create First Automation
+                          </Button>
+                        </div>
+                      ) : (
+                        automations.map((automation: any) => (
+                          <div
+                            key={automation.id}
+                            className="flex items-center justify-between p-4 border rounded-lg bg-card hover:bg-accent/50 transition-colors"
+                          >
+                            <div className="flex items-center space-x-3">
+                              <div className={`p-2 rounded-full ${automation.enabled ? 'bg-green-100 text-green-600 dark:bg-green-900 dark:text-green-400' : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'}`}>
+                                {automation.automationType === 'COMMUNICATION' ? <Mail className="h-4 w-4" /> : <ArrowRight className="h-4 w-4" />}
+                              </div>
+                              <div>
+                                <div className="flex items-center gap-2">
+                                  <p className="font-medium">{automation.name}</p>
+                                  <Badge 
+                                    variant="outline" 
+                                    className={`text-xs ${
+                                      automation.triggerMode === 'STAGE' ? 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950 dark:text-blue-300' :
+                                      automation.triggerMode === 'BUSINESS' ? 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-950 dark:text-purple-300' :
+                                      'bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-950 dark:text-orange-300'
+                                    }`}
+                                  >
+                                    {automation.triggerMode === 'STAGE' ? 'Stage-based' : 
+                                     automation.triggerMode === 'BUSINESS' ? 'Business Event' : 'Time-based'}
+                                  </Badge>
+                                  <Badge variant={automation.automationType === 'COMMUNICATION' ? 'default' : 'secondary'}>
+                                    {automation.automationType === 'COMMUNICATION' ? 'Communication' : 'Pipeline'}
+                                  </Badge>
+                                </div>
+                                <p className="text-sm text-muted-foreground">
+                                  {automation.triggerMode === 'STAGE' && automation.stageName ? 
+                                    `Triggers when clients enter "${automation.stageName}" stage` :
+                                   automation.triggerMode === 'BUSINESS' && automation.triggerEvent ?
+                                    `Triggers on ${automation.triggerEvent.replace(/_/g, ' ').toLowerCase()}` :
+                                   automation.triggerMode === 'TIME' ?
+                                    `Time-based trigger after ${automation.delayAmount} ${automation.delayUnit}` :
+                                    'Custom trigger conditions'
+                                  }
+                                </p>
+                              </div>
                             </div>
-                          );
-                        }
-                        
-                        return allAutomations.map((automation: any) => {
-                          // Add trigger type badge to each automation
-                          const automationWithBadge = {
-                            ...automation,
-                            triggerTypeBadge: automation.automationType === 'COUNTDOWN' ? 'Time-based' : 
-                                             automation.automationType === 'STAGE_CHANGE' ? 'Business Event' : 'Stage Trigger'
-                          };
-                          
-                          if (automation.automationType === 'COMMUNICATION') {
-                            return <AutomationStepManager key={automation.id} automation={automationWithBadge} onDelete={handleDeleteAutomation} />;
-                          } else if (automation.automationType === 'STAGE_CHANGE') {
-                            return <StageChangeAutomationCard key={automation.id} automation={automationWithBadge} onDelete={handleDeleteAutomation} />;
-                          } else if (automation.automationType === 'COUNTDOWN') {
-                            return <AutomationStepManager key={automation.id} automation={automationWithBadge} onDelete={handleDeleteAutomation} />;
-                          }
-                          return null;
-                        });
-                      })()}
+                            <div className="flex items-center space-x-2">
+                              <Switch
+                                checked={automation.enabled}
+                                onCheckedChange={(enabled) => {
+                                  // Handle enable/disable toggle
+                                }}
+                                data-testid={`switch-automation-${automation.id}`}
+                              />
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleDeleteAutomation(automation.id)}
+                                data-testid={`button-delete-automation-${automation.id}`}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        ))
+                      )}
                     </div>
                   </CardContent>
                 </Card>
@@ -1836,6 +1695,7 @@ export default function Automations() {
             )}
           </div>
         </div>
+      </div>
     </div>
   );
 }
