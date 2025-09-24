@@ -20,7 +20,7 @@ import {
   type Booking, type InsertBooking
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, asc, inArray, gte, lte } from "drizzle-orm";
+import { eq, and, desc, asc, inArray, gte, lte, gt } from "drizzle-orm";
 
 export interface IStorage {
   // Users
