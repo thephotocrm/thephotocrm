@@ -1066,14 +1066,14 @@ export default function Scheduling() {
                   {photographer?.publicToken ? (
                     <div className="space-y-2">
                       <code className="text-sm bg-background px-2 py-1 rounded block break-all">
-                        {window.location.origin}/public/booking/calendar/{photographer.publicToken}
+                        https://thephotocrm.com/public/booking/calendar/{photographer.publicToken}
                       </code>
                       <div className="flex space-x-2">
                         <Button 
                           size="sm" 
                           variant="outline"
                           onClick={() => {
-                            navigator.clipboard.writeText(`${window.location.origin}/public/booking/calendar/${photographer.publicToken}`);
+                            navigator.clipboard.writeText(`https://thephotocrm.com/public/booking/calendar/${photographer.publicToken}`);
                             toast({
                               title: "Copied!",
                               description: "Booking link copied to clipboard"
@@ -1086,7 +1086,7 @@ export default function Scheduling() {
                         <Button 
                           size="sm" 
                           variant="outline"
-                          onClick={() => window.open(`/public/booking/calendar/${photographer.publicToken}`, '_blank')}
+                          onClick={() => window.open(`https://thephotocrm.com/public/booking/calendar/${photographer.publicToken}`, '_blank')}
                           data-testid="button-preview-booking-calendar"
                         >
                           Preview Calendar
