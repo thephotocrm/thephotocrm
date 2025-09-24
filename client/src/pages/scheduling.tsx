@@ -151,7 +151,8 @@ export default function Scheduling() {
       title: "",
       description: "",
       isRecurring: false,
-      recurrencePattern: "WEEKLY"
+      recurrencePattern: "WEEKLY",
+      weeklyDays: []
     }
   });
 
@@ -185,10 +186,13 @@ export default function Scheduling() {
         photographerId: user.id,
         title: data.title,
         description: data.description || null,
-        startAt: new Date(`${data.date}T${data.startTime}`).toISOString(),
-        endAt: new Date(`${data.date}T${data.endTime}`).toISOString(),
+        startAt: data.date ? new Date(`${data.date}T${data.startTime}`).toISOString() : null,
+        endAt: data.date ? new Date(`${data.date}T${data.endTime}`).toISOString() : null,
+        startTime: data.startTime,
+        endTime: data.endTime,
         isRecurring: data.isRecurring,
-        recurrencePattern: data.isRecurring ? data.recurrencePattern : null
+        recurrencePattern: data.isRecurring ? data.recurrencePattern : null,
+        weeklyDays: data.isRecurring && data.recurrencePattern === "WEEKLY" ? data.weeklyDays : null
       };
       
       return apiRequest("POST", "/api/availability", slotData);
@@ -222,10 +226,13 @@ export default function Scheduling() {
         photographerId: user.id,
         title: data.title,
         description: data.description || null,
-        startAt: new Date(`${data.date}T${data.startTime}`).toISOString(),
-        endAt: new Date(`${data.date}T${data.endTime}`).toISOString(),
+        startAt: data.date ? new Date(`${data.date}T${data.startTime}`).toISOString() : null,
+        endAt: data.date ? new Date(`${data.date}T${data.endTime}`).toISOString() : null,
+        startTime: data.startTime,
+        endTime: data.endTime,
         isRecurring: data.isRecurring,
-        recurrencePattern: data.isRecurring ? data.recurrencePattern : null
+        recurrencePattern: data.isRecurring ? data.recurrencePattern : null,
+        weeklyDays: data.isRecurring && data.recurrencePattern === "WEEKLY" ? data.weeklyDays : null
       };
       
       return apiRequest("PUT", `/api/availability/${data.id}`, slotData);
