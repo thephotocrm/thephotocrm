@@ -2153,8 +2153,8 @@ ${photographer?.businessName || 'Your Photography Team'}`;
                 photographerId,
                 title: slotData.title,
                 description: slotData.description,
-                startAt: startAt.toISOString(),
-                endAt: endAt.toISOString(),
+                startAt: startAt,
+                endAt: endAt,
                 isRecurring: true,
                 recurrencePattern: "WEEKLY"
               });
