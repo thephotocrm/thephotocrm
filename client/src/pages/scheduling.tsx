@@ -21,13 +21,14 @@ import { Calendar, Clock, Users, CheckCircle, Plus, CalendarDays, X } from "luci
 
 // Form schema for availability slots
 const availabilitySchema = z.object({
-  date: z.string().min(1, "Date is required"),
+  date: z.string().optional(), // Optional when recurring
   startTime: z.string().min(1, "Start time is required"),
   endTime: z.string().min(1, "End time is required"),
   title: z.string().min(1, "Title is required"),
   description: z.string().optional(),
   isRecurring: z.boolean().default(false),
-  recurrencePattern: z.enum(["WEEKLY", "DAILY"]).optional()
+  recurrencePattern: z.enum(["WEEKLY", "DAILY"]).optional(),
+  weeklyDays: z.array(z.enum(["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"])).optional()
 }).refine((data) => {
   // Validate that end time is after start time
   if (data.startTime && data.endTime) {
@@ -37,6 +38,24 @@ const availabilitySchema = z.object({
 }, {
   message: "End time must be after start time",
   path: ["endTime"]
+}).refine((data) => {
+  // If not recurring, require date
+  if (!data.isRecurring && !data.date) {
+    return false;
+  }
+  return true;
+}, {
+  message: "Date is required for one-time availability",
+  path: ["date"]
+}).refine((data) => {
+  // If recurring weekly, require weeklyDays
+  if (data.isRecurring && data.recurrencePattern === "WEEKLY" && (!data.weeklyDays || data.weeklyDays.length === 0)) {
+    return false;
+  }
+  return true;
+}, {
+  message: "Please select at least one day of the week",
+  path: ["weeklyDays"]
 }).refine((data) => {
   // If recurring is enabled, require recurrence pattern
   if (data.isRecurring && !data.recurrencePattern) {
@@ -397,19 +416,21 @@ export default function Scheduling() {
                         )}
                       />
                       
-                      <FormField
-                        control={availabilityForm.control}
-                        name="date"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Date</FormLabel>
-                            <FormControl>
-                              <Input type="date" data-testid="input-availability-date" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+                      {!availabilityForm.watch("isRecurring") && (
+                        <FormField
+                          control={availabilityForm.control}
+                          name="date"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Date</FormLabel>
+                              <FormControl>
+                                <Input type="date" data-testid="input-availability-date" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      )}
                       
                       <div className="grid grid-cols-2 gap-4">
                         <FormField
@@ -476,27 +497,81 @@ export default function Scheduling() {
                       />
                       
                       {availabilityForm.watch("isRecurring") && (
-                        <FormField
-                          control={availabilityForm.control}
-                          name="recurrencePattern"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Recurrence Pattern</FormLabel>
-                              <Select onValueChange={field.onChange} value={field.value} data-testid="select-availability-recurrence">
-                                <FormControl>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Select pattern" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  <SelectItem value="WEEKLY">Weekly</SelectItem>
-                                  <SelectItem value="DAILY">Daily</SelectItem>
-                                </SelectContent>
-                              </Select>
-                              <FormMessage />
-                            </FormItem>
+                        <>
+                          <FormField
+                            control={availabilityForm.control}
+                            name="recurrencePattern"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Recurrence Pattern</FormLabel>
+                                <Select onValueChange={field.onChange} value={field.value} data-testid="select-availability-recurrence">
+                                  <FormControl>
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="Select pattern" />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    <SelectItem value="WEEKLY">Weekly</SelectItem>
+                                    <SelectItem value="DAILY">Daily</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          
+                          {availabilityForm.watch("recurrencePattern") === "WEEKLY" && (
+                            <FormField
+                              control={availabilityForm.control}
+                              name="weeklyDays"
+                              render={({ field }) => {
+                                const days = [
+                                  { value: "MONDAY", label: "Monday" },
+                                  { value: "TUESDAY", label: "Tuesday" },
+                                  { value: "WEDNESDAY", label: "Wednesday" },
+                                  { value: "THURSDAY", label: "Thursday" },
+                                  { value: "FRIDAY", label: "Friday" },
+                                  { value: "SATURDAY", label: "Saturday" },
+                                  { value: "SUNDAY", label: "Sunday" }
+                                ];
+                                
+                                const selectedDays = field.value || [];
+                                
+                                return (
+                                  <FormItem>
+                                    <FormLabel>Days of the Week</FormLabel>
+                                    <div className="grid grid-cols-2 gap-2">
+                                      {days.map((day) => (
+                                        <div key={day.value} className="flex items-center space-x-2">
+                                          <input
+                                            type="checkbox"
+                                            id={`day-${day.value}`}
+                                            checked={selectedDays.includes(day.value)}
+                                            onChange={(e) => {
+                                              let newDays = [...selectedDays];
+                                              if (e.target.checked) {
+                                                newDays.push(day.value);
+                                              } else {
+                                                newDays = newDays.filter(d => d !== day.value);
+                                              }
+                                              field.onChange(newDays);
+                                            }}
+                                            data-testid={`checkbox-day-${day.value.toLowerCase()}`}
+                                            className="w-4 h-4"
+                                          />
+                                          <label htmlFor={`day-${day.value}`} className="text-sm font-medium">
+                                            {day.label}
+                                          </label>
+                                        </div>
+                                      ))}
+                                    </div>
+                                    <FormMessage />
+                                  </FormItem>
+                                );
+                              }}
+                            />
                           )}
-                        />
+                        </>
                       )}
                       
                       <div className="flex justify-end space-x-2">
