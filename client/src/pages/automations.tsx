@@ -814,7 +814,7 @@ export default function Automations() {
                   <DialogHeader className="sticky top-0 z-10 bg-background px-6 py-4 border-b">
                     <DialogTitle>Create Automation</DialogTitle>
                     <DialogDescription>
-                      Set up a new automated workflow for your clients
+                      Save time by automating routine tasks for your clients
                     </DialogDescription>
                   </DialogHeader>
                   
@@ -843,10 +843,10 @@ export default function Automations() {
                     <div className="space-y-4 p-4 border rounded-lg bg-amber-50/50 dark:bg-amber-950/20">
                       <div className="flex items-center space-x-2">
                         <Settings className="h-4 w-4 text-amber-600" />
-                        <Label className="font-medium text-amber-900 dark:text-amber-100">Automation Trigger</Label>
+                        <Label className="font-medium text-amber-900 dark:text-amber-100">When should this happen?</Label>
                       </div>
                       <p className="text-xs text-muted-foreground">
-                        Choose what will trigger this automation to run
+                        Choose what event will start this automation
                       </p>
 
                       {/* Trigger Mode Radio Buttons */}
@@ -866,21 +866,21 @@ export default function Automations() {
                                   <RadioGroupItem value="STAGE" id="trigger-stage" data-testid="radio-trigger-stage" />
                                   <Label htmlFor="trigger-stage" className="flex items-center space-x-2 cursor-pointer">
                                     <Users className="h-4 w-4" />
-                                    <span>Stage-based - When client enters a specific stage</span>
+                                    <span>When a client enters a stage</span>
                                   </Label>
                                 </div>
                                 <div className="flex items-center space-x-2">
                                   <RadioGroupItem value="BUSINESS" id="trigger-business" data-testid="radio-trigger-business" />
                                   <Label htmlFor="trigger-business" className="flex items-center space-x-2 cursor-pointer">
                                     <Zap className="h-4 w-4" />
-                                    <span>Business Event - When specific actions occur</span>
+                                    <span>When a business event happens</span>
                                   </Label>
                                 </div>
                                 <div className="flex items-center space-x-2">
                                   <RadioGroupItem value="TIME" id="trigger-time" data-testid="radio-trigger-time" />
                                   <Label htmlFor="trigger-time" className="flex items-center space-x-2 cursor-pointer">
                                     <Clock className="h-4 w-4" />
-                                    <span>Time-based - Days before event dates</span>
+                                    <span>Before an event date</span>
                                   </Label>
                                 </div>
                               </RadioGroup>
@@ -897,11 +897,11 @@ export default function Automations() {
                           name="triggerStageId"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Trigger Stage</FormLabel>
+                              <FormLabel>Which stage triggers this?</FormLabel>
                               <Select onValueChange={field.onChange} value={field.value || ""}>
                                 <FormControl>
                                   <SelectTrigger data-testid="select-trigger-stage">
-                                    <SelectValue placeholder="Select the stage that triggers this automation" />
+                                    <SelectValue placeholder="Select the stage that triggers this" />
                                   </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
@@ -914,7 +914,7 @@ export default function Automations() {
                                 </SelectContent>
                               </Select>
                               <FormDescription>
-                                Automation triggers when a client is moved to this stage
+                                The automation starts when a client moves into this stage
                               </FormDescription>
                               <FormMessage />
                             </FormItem>
@@ -929,11 +929,11 @@ export default function Automations() {
                           name="triggerEvent"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Business Event</FormLabel>
+                              <FormLabel>Which business event?</FormLabel>
                               <Select onValueChange={field.onChange} value={field.value || ""}>
                                 <FormControl>
                                   <SelectTrigger data-testid="select-trigger-event">
-                                    <SelectValue placeholder="Select the business event that triggers this automation" />
+                                    <SelectValue placeholder="Select the business event" />
                                   </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
@@ -948,7 +948,7 @@ export default function Automations() {
                                 </SelectContent>
                               </Select>
                               <FormDescription>
-                                Automation triggers when this business event occurs for any client
+                                The automation starts when this happens in your business
                               </FormDescription>
                               <FormMessage />
                             </FormItem>
@@ -964,7 +964,7 @@ export default function Automations() {
                             name="daysBefore"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>Days Before Event</FormLabel>
+                                <FormLabel>How many days before?</FormLabel>
                                 <FormControl>
                                   <Input 
                                     type="number"
@@ -977,7 +977,7 @@ export default function Automations() {
                                   />
                                 </FormControl>
                                 <FormDescription>
-                                  How many days before the event should this automation trigger?
+                                  Enter the number of days before the event date
                                 </FormDescription>
                                 <FormMessage />
                               </FormItem>
@@ -989,11 +989,11 @@ export default function Automations() {
                             name="eventType"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>Event Type</FormLabel>
+                                <FormLabel>Based on which date?</FormLabel>
                                 <Select onValueChange={field.onChange} value={field.value || ""}>
                                   <FormControl>
                                     <SelectTrigger data-testid="select-event-type">
-                                      <SelectValue placeholder="Select which event date to count from" />
+                                      <SelectValue placeholder="Choose which date to count from" />
                                     </SelectTrigger>
                                   </FormControl>
                                   <SelectContent>
@@ -1005,7 +1005,7 @@ export default function Automations() {
                                   </SelectContent>
                                 </Select>
                                 <FormDescription>
-                                  The automation will trigger based on this date field
+                                  The automation will count days from this date
                                 </FormDescription>
                                 <FormMessage />
                               </FormItem>
@@ -1017,11 +1017,11 @@ export default function Automations() {
                             name="stageCondition"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>Stage Condition (Optional)</FormLabel>
+                                <FormLabel>Only for clients in (Optional)</FormLabel>
                                 <Select onValueChange={field.onChange} value={field.value || ""}>
                                   <FormControl>
                                     <SelectTrigger data-testid="select-stage-condition">
-                                      <SelectValue placeholder="Only trigger for clients in specific stage (optional)" />
+                                      <SelectValue placeholder="Leave blank for all clients, or choose a stage" />
                                     </SelectTrigger>
                                   </FormControl>
                                   <SelectContent>
@@ -1034,7 +1034,7 @@ export default function Automations() {
                                   </SelectContent>
                                 </Select>
                                 <FormDescription>
-                                  Optional: Only trigger for clients currently in this stage
+                                  Leave blank to include all clients, or pick a specific stage
                                 </FormDescription>
                                 <FormMessage />
                               </FormItem>
@@ -1046,9 +1046,9 @@ export default function Automations() {
 
                     {/* Automation Actions Section */}
                     <div className="space-y-4">
-                      <FormLabel>Automation Actions</FormLabel>
+                      <FormLabel>What should happen?</FormLabel>
                       <p className="text-xs text-muted-foreground">
-                        Choose which actions this automation should perform. You can enable both types for comprehensive workflows.
+                        Choose what actions this automation should take. You can pick both options if needed.
                       </p>
                       
                       {/* Communication Actions Toggle */}
@@ -1061,9 +1061,9 @@ export default function Automations() {
                         <div className="flex-1">
                           <div className="flex items-center space-x-2">
                             <Mail className="h-4 w-4" />
-                            <Label className="font-medium">Send Communication</Label>
+                            <Label className="font-medium">Send Messages</Label>
                           </div>
-                          <p className="text-xs text-muted-foreground">Send automated emails, SMS, or assign questionnaires</p>
+                          <p className="text-xs text-muted-foreground">Send emails, texts, or assign forms to clients</p>
                         </div>
                       </div>
 
@@ -1077,9 +1077,9 @@ export default function Automations() {
                         <div className="flex-1">
                           <div className="flex items-center space-x-2">
                             <ArrowRight className="h-4 w-4" />
-                            <Label className="font-medium">Move Through Pipeline</Label>
+                            <Label className="font-medium">Move Projects</Label>
                           </div>
-                          <p className="text-xs text-muted-foreground">Automatically move projects to different stages</p>
+                          <p className="text-xs text-muted-foreground">Move projects to the next stage automatically</p>
                         </div>
                       </div>
                     </div>
@@ -1110,7 +1110,7 @@ export default function Automations() {
                       <div className="space-y-4 p-4 border rounded-lg bg-blue-50/50 dark:bg-blue-950/20">
                         <div className="flex items-center space-x-2">
                           <Mail className="h-4 w-4 text-blue-600" />
-                          <Label className="font-medium text-blue-900 dark:text-blue-100">Communication Settings</Label>
+                          <Label className="font-medium text-blue-900 dark:text-blue-100">Message Settings</Label>
                         </div>
 
                     <FormField
@@ -1118,7 +1118,7 @@ export default function Automations() {
                       name="channel"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Communication Channel</FormLabel>
+                          <FormLabel>Contact method</FormLabel>
                           <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
                               <SelectTrigger data-testid="select-channel">
@@ -1140,11 +1140,11 @@ export default function Automations() {
                       name="templateId"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Message Template</FormLabel>
+                          <FormLabel>What to send</FormLabel>
                           <Select onValueChange={field.onChange} value={field.value || ""}>
                             <FormControl>
                               <SelectTrigger data-testid="select-template">
-                                <SelectValue placeholder="Select a template" />
+                                <SelectValue placeholder="Choose a message template" />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
@@ -1172,15 +1172,15 @@ export default function Automations() {
                       name="questionnaireTemplateId"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Questionnaire Assignment (Optional)</FormLabel>
+                          <FormLabel>Forms to send (Optional)</FormLabel>
                           <Select onValueChange={field.onChange} value={field.value || ""}>
                             <FormControl>
                               <SelectTrigger data-testid="select-questionnaire">
-                                <SelectValue placeholder="Optionally assign a questionnaire" />
+                                <SelectValue placeholder="Choose a form to send (optional)" />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="none">No questionnaire assignment</SelectItem>
+                              <SelectItem value="none">No forms to send</SelectItem>
                               {questionnaireTemplates?.map((questionnaire: any) => (
                                 <SelectItem key={questionnaire.id} value={questionnaire.id}>
                                   📋 {questionnaire.name}
