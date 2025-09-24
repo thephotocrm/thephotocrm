@@ -116,6 +116,11 @@ export default function Scheduling() {
     queryKey: ["/api/clients"],
     enabled: !!user
   }) as { data: any[]; isLoading: boolean };
+
+  const { data: photographer, isLoading: photographerLoading } = useQuery({
+    queryKey: ["/api/auth/me"],
+    enabled: !!user
+  }) as { data: { publicToken?: string; businessName?: string } | undefined; isLoading: boolean };
   
   // Availability form
   const availabilityForm = useForm<AvailabilityFormData>({
@@ -152,8 +157,13 @@ export default function Scheduling() {
   // Create availability mutation
   const createAvailabilityMutation = useMutation({
     mutationFn: async (data: AvailabilityFormData) => {
+      if (!user?.id) {
+        throw new Error("User not authenticated");
+      }
+      
       // Transform form data to match backend schema
       const slotData = {
+        photographerId: user.id,
         title: data.title,
         description: data.description || null,
         startAt: new Date(`${data.date}T${data.startTime}`).toISOString(),
@@ -185,7 +195,12 @@ export default function Scheduling() {
   // Update availability mutation
   const updateAvailabilityMutation = useMutation({
     mutationFn: async (data: AvailabilityFormData & { id: string }) => {
+      if (!user?.id) {
+        throw new Error("User not authenticated");
+      }
+      
       const slotData = {
+        photographerId: user.id,
         title: data.title,
         description: data.description || null,
         startAt: new Date(`${data.date}T${data.startTime}`).toISOString(),

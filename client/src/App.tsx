@@ -29,6 +29,7 @@ import Checkout from "@/pages/checkout";
 import ClientPortal from "@/pages/client-portal";
 import PublicProposal from "@/pages/public-proposal";
 import PublicBooking from "@/pages/public-booking";
+import PublicBookingCalendar from "@/pages/public-booking-calendar";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -40,6 +41,7 @@ function Router() {
       <Route path="/client-portal" component={ClientPortal} />
       <Route path="/public/proposals/:token" component={PublicProposal} />
       <Route path="/public/booking/:token" component={PublicBooking} />
+      <Route path="/public/booking/calendar/:publicToken" component={PublicBookingCalendar} />
       <Route>
         <SidebarProvider>
           <AppSidebar />

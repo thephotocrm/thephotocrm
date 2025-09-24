@@ -313,9 +313,14 @@ export const projectQuestionnaires = pgTable("project_questionnaires", {
 export const availabilitySlots = pgTable("availability_slots", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   photographerId: varchar("photographer_id").notNull().references(() => photographers.id),
+  title: text("title").notNull(),
+  description: text("description"),
   startAt: timestamp("start_at").notNull(),
   endAt: timestamp("end_at").notNull(),
-  isBooked: boolean("is_booked").default(false)
+  isBooked: boolean("is_booked").default(false),
+  isRecurring: boolean("is_recurring").default(false),
+  recurrencePattern: text("recurrence_pattern"), // WEEKLY, DAILY
+  createdAt: timestamp("created_at").defaultNow()
 });
 
 export const bookings = pgTable("bookings", {

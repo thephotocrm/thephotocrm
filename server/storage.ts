@@ -1254,6 +1254,16 @@ export class DatabaseStorage implements IStorage {
     await db.delete(availabilitySlots).where(eq(availabilitySlots.id, id));
   }
 
+  async getAvailableSlots(photographerId: string, afterDate: Date): Promise<AvailabilitySlot[]> {
+    return await db.select().from(availabilitySlots)
+      .where(and(
+        eq(availabilitySlots.photographerId, photographerId),
+        eq(availabilitySlots.isBooked, false),
+        gt(availabilitySlots.startAt, afterDate)
+      ))
+      .orderBy(asc(availabilitySlots.startAt));
+  }
+
   // Google Calendar Integration methods
   async storeGoogleCalendarCredentials(photographerId: string, credentials: {
     accessToken: string;

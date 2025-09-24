@@ -159,12 +159,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "User not found" });
       }
 
-      res.json({
+      // Base user data
+      const userData: any = {
         id: user.id,
         email: user.email,
         role: user.role,
         photographerId: user.photographerId
-      });
+      };
+
+      // If user is a photographer, include photographer metadata
+      if (user.photographerId) {
+        try {
+          const photographer = await storage.getPhotographer(user.photographerId);
+          if (photographer) {
+            userData.publicToken = photographer.publicToken;
+            userData.businessName = photographer.businessName;
+            userData.timezone = photographer.timezone;
+            userData.brandPrimary = photographer.brandPrimary;
+          }
+        } catch (photogError) {
+          console.error("Error fetching photographer data:", photogError);
+          // Continue without photographer data if fetch fails
+        }
+      }
+
+      res.json(userData);
     } catch (error) {
       res.status(500).json({ message: "Internal server error" });
     }
@@ -2642,8 +2661,155 @@ ${photographer?.businessName || 'Your Photography Team'}`;
     }
   });
 
+  // Public booking calendar API - Get available slots for a photographer
+  app.get("/api/public/booking/calendar/:publicToken", async (req, res) => {
+    try {
+      const { publicToken } = req.params;
+      
+      // Find photographer by public token
+      const photographer = await storage.getPhotographerByPublicToken(publicToken);
+      if (!photographer) {
+        return res.status(404).json({ message: "Photographer not found" });
+      }
+
+      // Get available slots that aren't booked and are in the future
+      const now = new Date();
+      const availableSlots = await storage.getAvailableSlots(photographer.id, now);
+
+      res.json({
+        success: true,
+        photographer: {
+          id: photographer.id,
+          businessName: photographer.businessName,
+          timezone: photographer.timezone,
+          brandPrimary: photographer.brandPrimary
+        },
+        availableSlots
+      });
+    } catch (error) {
+      console.error("Error fetching available slots:", error);
+      res.status(500).json({ 
+        success: false,
+        message: "Failed to fetch available slots" 
+      });
+    }
+  });
+
+  // Public booking calendar API - Book a specific slot
+  app.post("/api/public/booking/calendar/:publicToken/book/:slotId", async (req, res) => {
+    try {
+      const { publicToken, slotId } = req.params;
+      const { clientName, clientEmail, clientPhone, bookingNotes } = req.body;
+
+      // Validate required fields
+      if (!clientName || !clientEmail) {
+        return res.status(400).json({ 
+          message: "Client name and email are required" 
+        });
+      }
+
+      // Find photographer by public token
+      const photographer = await storage.getPhotographerByPublicToken(publicToken);
+      if (!photographer) {
+        return res.status(404).json({ message: "Photographer not found" });
+      }
+
+      // Get the availability slot
+      const slot = await storage.getAvailabilitySlot(slotId);
+      if (!slot || slot.photographerId !== photographer.id) {
+        return res.status(404).json({ message: "Availability slot not found" });
+      }
+
+      // Check if slot is already booked
+      if (slot.isBooked) {
+        return res.status(400).json({ message: "This time slot is no longer available" });
+      }
+
+      // Check if slot is in the future
+      if (new Date(slot.startAt) <= new Date()) {
+        return res.status(400).json({ message: "Cannot book slots in the past" });
+      }
+
+      // Create the booking
+      const bookingData = {
+        photographerId: photographer.id,
+        title: slot.title,
+        description: bookingNotes || slot.description,
+        startAt: slot.startAt,
+        endAt: slot.endAt,
+        status: "PENDING",
+        bookingType: "CONSULTATION",
+        isFirstBooking: true, // Public bookings are typically first bookings
+        clientName,
+        clientEmail,
+        clientPhone
+      };
+
+      const booking = await storage.createBooking(bookingData);
+
+      // Mark the availability slot as booked
+      await storage.updateAvailabilitySlot(slotId, { isBooked: true });
+
+      // Create calendar event if Google Calendar is connected
+      try {
+        if (photographer.googleCalendarAccessToken) {
+          const calendarResult = await googleCalendarService.createBookingCalendarEvent(
+            photographer,
+            {
+              summary: slot.title,
+              description: `Booking with ${clientName}\nEmail: ${clientEmail}\nPhone: ${clientPhone || 'Not provided'}\n\n${bookingNotes || ''}`,
+              startTime: new Date(slot.startAt),
+              endTime: new Date(slot.endAt),
+              attendeeEmails: [clientEmail],
+              timeZone: photographer.timezone
+            }
+          );
+
+          if (calendarResult.success && calendarResult.eventId) {
+            await storage.updateBooking(booking.id, {
+              googleCalendarEventId: calendarResult.eventId,
+              googleMeetLink: calendarResult.googleMeetLink
+            });
+          }
+        }
+      } catch (calendarError) {
+        console.error("Failed to create calendar event:", calendarError);
+        // Don't fail the booking if calendar creation fails
+      }
+
+      res.json({
+        success: true,
+        booking: {
+          id: booking.id,
+          bookingToken: booking.bookingToken,
+          title: booking.title,
+          startAt: booking.startAt,
+          endAt: booking.endAt,
+          status: booking.status
+        },
+        message: "Booking created successfully! You'll receive a confirmation email shortly."
+      });
+    } catch (error) {
+      console.error("Error creating booking:", error);
+      res.status(500).json({ 
+        success: false,
+        message: "Failed to create booking" 
+      });
+    }
+  });
+
   // Add explicit route handler for public booking pages to serve the React app
   app.get("/public/booking/:token", async (req, res, next) => {
+    if (app.get("env") === "development") {
+      next();
+    } else {
+      const distPath = path.resolve(import.meta.dirname, "public");
+      res.sendFile(path.resolve(distPath, "index.html"));
+    }
+  });
+
+  // Add explicit route handler for public booking calendar pages to serve the React app
+  app.get("/public/booking/calendar/:publicToken", async (req, res, next) => {
     if (app.get("env") === "development") {
       next();
     } else {
