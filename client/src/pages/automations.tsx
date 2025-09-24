@@ -644,7 +644,7 @@ export default function Automations() {
           if (data.templateId && data.templateId !== "unavailable") {
             const channelTemplates = templates.filter((t: any) => t.channel === data.channel);
             if (channelTemplates.length === 0) {
-              throw new Error(`No ${data.channel.toLowerCase()} templates available. Please create templates first.`);
+              throw new Error(`No ${data.channel?.toLowerCase() || 'selected'} templates available. Please create templates first.`);
             }
             const selectedTemplate = channelTemplates.find((t: any) => t.id === data.templateId);
             if (!selectedTemplate) {
@@ -799,7 +799,7 @@ export default function Automations() {
       // Validate templates are available for selected channel
       const channelTemplates = templates.filter((t: any) => t.channel === data.channel);
       if (channelTemplates.length === 0) {
-        throw new Error(`No ${data.channel.toLowerCase()} templates available. Please create templates first.`);
+        throw new Error(`No ${data.channel?.toLowerCase() || 'selected'} templates available. Please create templates first.`);
       }
 
       // Validate selected template exists
@@ -1670,18 +1670,30 @@ export default function Automations() {
           </DialogContent>
         </Dialog>
 
-        <div className="p-3 sm:p-6 space-y-6">
+        <div className="min-h-screen bg-background">
+          <div className="p-3 sm:p-6 space-y-6">
           {/* Project Type Selection */}
-          <Tabs value={activeProjectType} onValueChange={setActiveProjectType} className="w-full">
+          <div className="w-full">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-              {/* Desktop tabs */}
-              <TabsList className="hidden md:grid w-full grid-cols-5 max-w-3xl">
-                <TabsTrigger value="WEDDING" data-testid="tab-wedding">💒 Wedding</TabsTrigger>
-                <TabsTrigger value="ENGAGEMENT" data-testid="tab-engagement">💍 Engagement</TabsTrigger>
-                <TabsTrigger value="PORTRAIT" data-testid="tab-portrait">🎭 Portrait</TabsTrigger>
-                <TabsTrigger value="CORPORATE" data-testid="tab-corporate">🏢 Corporate</TabsTrigger>
-                <TabsTrigger value="EVENT" data-testid="tab-event">🎉 Event</TabsTrigger>
-              </TabsList>
+              {/* Desktop project type buttons */}
+              <div className="hidden md:flex flex-wrap gap-2 max-w-3xl">
+                {Object.entries(projectTypeEnum).map(([value, _]) => (
+                  <Button
+                    key={value}
+                    variant={activeProjectType === value ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setActiveProjectType(value as keyof typeof projectTypeEnum)}
+                    data-testid={`tab-${value.toLowerCase()}`}
+                    className="flex items-center gap-2"
+                  >
+                    {value === "WEDDING" && "💒 Wedding"}
+                    {value === "ENGAGEMENT" && "💍 Engagement"}
+                    {value === "PORTRAIT" && "🎭 Portrait"}
+                    {value === "CORPORATE" && "🏢 Corporate"}
+                    {value === "EVENT" && "🎉 Event"}
+                  </Button>
+                ))}
+              </div>
               
               {/* Mobile dropdown and button */}
               <div className="flex flex-col sm:flex-row gap-4 md:hidden w-full">
@@ -1718,8 +1730,8 @@ export default function Automations() {
               </Button>
             </div>
 
-            {Object.keys(projectTypeEnum).map((projectType) => (
-              <TabsContent key={projectType} value={projectType} className="space-y-6">
+            {activeProjectType && (
+              <div className="space-y-6">
                 {/* Stats Cards */}
                 <div className="hidden md:grid md:grid-cols-3 gap-6">
                   <Card>
@@ -1758,127 +1770,71 @@ export default function Automations() {
                   </Card>
                 </div>
 
-                {/* Two-Level Automation Architecture with Tabs */}
-                <Tabs defaultValue="stage-based" className="w-full">
-                  <TabsList className="flex flex-col md:grid w-full md:grid-cols-2 h-auto md:h-10">
-                    <TabsTrigger value="stage-based" className="flex items-center gap-2">
-                      <Settings className="w-4 h-4" />
-                      Stage-Based Automations
-                    </TabsTrigger>
-                    <TabsTrigger value="event-countdown" className="flex items-center gap-2">
-                      <Calendar className="w-4 h-4" />
-                      Event Countdown Automations
-                    </TabsTrigger>
-                  </TabsList>
-
-                  {/* Stage-Based Automations Tab */}
-                  <TabsContent value="stage-based" className="mt-6">
-                    <Card>
-                      <CardHeader>
-                        <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
-                          <div>
-                            <CardTitle className="flex items-center">
-                              <Settings className="w-5 h-5 mr-3 text-blue-500" />
-                              Stage-Based Automations
-                            </CardTitle>
-                            <p className="text-sm text-muted-foreground mt-1">
-                              Triggered when clients enter specific pipeline stages
-                            </p>
-                          </div>
-                          <Button 
-                            onClick={() => {
-                              setCreateDialogOpen(true);
-                            }}
-                            data-testid="button-add-stage-automation"
-                            className="w-full md:w-auto"
-                          >
-                            <Plus className="w-4 h-4 mr-2" />
-                            Add Stage Automation
-                          </Button>
-                        </div>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-4">
-                          {(() => {
-                            const stageBasedAutomations = (automations ?? []).filter((a: any) => 
-                              a.automationType === 'COMMUNICATION' || a.automationType === 'STAGE_CHANGE'
-                            );
-                            
-                            if (stageBasedAutomations.length === 0) {
-                              return (
-                                <div className="text-center py-8">
-                                  <Settings className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                                  <p className="text-muted-foreground">No stage-based automations configured yet.</p>
-                                  <p className="text-sm text-muted-foreground">Create automations that trigger when clients move to specific stages.</p>
-                                </div>
-                              );
-                            }
-                            
-                            return stageBasedAutomations.map((automation: any) => (
-                              automation.automationType === 'COMMUNICATION' ? (
-                                <AutomationStepManager key={automation.id} automation={automation} onDelete={handleDeleteAutomation} />
-                              ) : (
-                                <StageChangeAutomationCard key={automation.id} automation={automation} onDelete={handleDeleteAutomation} />
-                              )
-                            ));
-                          })()}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </TabsContent>
-
-                  {/* Event Countdown Automations Tab */}
-                  <TabsContent value="event-countdown" className="mt-6">
-                    <Card>
-                      <CardHeader>
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <CardTitle className="flex items-center">
-                              <Calendar className="w-5 h-5 mr-3 text-green-500" />
-                              Event Countdown Automations
-                            </CardTitle>
-                            <p className="text-sm text-muted-foreground mt-1">
-                              Triggered by days remaining until event dates
-                            </p>
-                          </div>
-                          <Button 
-                            onClick={() => setCountdownDialogOpen(true)}
-                            data-testid="button-add-countdown-automation"
-                          >
-                            <Plus className="w-4 h-4 mr-2" />
-                            Add Countdown Automation
-                          </Button>
-                        </div>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-4">
-                          {(() => {
-                            const countdownAutomations = (automations ?? []).filter((a: any) => 
-                              a.automationType === 'COUNTDOWN'
-                            );
-                            
-                            if (countdownAutomations.length === 0) {
-                              return (
-                                <div className="text-center py-8">
-                                  <Calendar className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                                  <p className="text-muted-foreground">No countdown automations configured yet.</p>
-                                  <p className="text-sm text-muted-foreground">Create time-based reminders leading up to event dates.</p>
-                                </div>
-                              );
-                            }
-                            
-                            return countdownAutomations.map((automation: any) => (
-                              <AutomationStepManager key={automation.id} automation={automation} onDelete={handleDeleteAutomation} />
-                            ));
-                          })()}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </TabsContent>
-                </Tabs>
-              </TabsContent>
-            ))}
-          </Tabs>
+                {/* Unified Automation Interface */}
+                <Card>
+                  <CardHeader>
+                    <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
+                      <div>
+                        <CardTitle className="flex items-center">
+                          <Zap className="w-5 h-5 mr-3 text-blue-500" />
+                          All Automations
+                        </CardTitle>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          Automate your workflow with stage triggers, business events, and time-based actions
+                        </p>
+                      </div>
+                      <Button 
+                        onClick={() => {
+                          setCreateDialogOpen(true);
+                        }}
+                        data-testid="button-add-automation"
+                        className="w-full md:w-auto"
+                      >
+                        <Plus className="w-4 h-4 mr-2" />
+                        Add Automation
+                      </Button>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      {(() => {
+                        // Get all automations and group them
+                        const allAutomations = automations ?? [];
+                        
+                        if (allAutomations.length === 0) {
+                          return (
+                            <div className="text-center py-8">
+                              <Zap className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                              <p className="text-muted-foreground">No automations configured yet.</p>
+                              <p className="text-sm text-muted-foreground">Create workflows that trigger automatically based on stages, events, or time.</p>
+                            </div>
+                          );
+                        }
+                        
+                        return allAutomations.map((automation: any) => {
+                          // Add trigger type badge to each automation
+                          const automationWithBadge = {
+                            ...automation,
+                            triggerTypeBadge: automation.automationType === 'COUNTDOWN' ? 'Time-based' : 
+                                             automation.automationType === 'STAGE_CHANGE' ? 'Business Event' : 'Stage Trigger'
+                          };
+                          
+                          if (automation.automationType === 'COMMUNICATION') {
+                            return <AutomationStepManager key={automation.id} automation={automationWithBadge} onDelete={handleDeleteAutomation} />;
+                          } else if (automation.automationType === 'STAGE_CHANGE') {
+                            return <StageChangeAutomationCard key={automation.id} automation={automationWithBadge} onDelete={handleDeleteAutomation} />;
+                          } else if (automation.automationType === 'COUNTDOWN') {
+                            return <AutomationStepManager key={automation.id} automation={automationWithBadge} onDelete={handleDeleteAutomation} />;
+                          }
+                          return null;
+                        });
+                      })()}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+          </div>
         </div>
     </div>
   );
