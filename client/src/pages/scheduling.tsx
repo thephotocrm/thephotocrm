@@ -545,97 +545,26 @@ export default function Scheduling() {
             </Card>
           </div>
 
-          {/* Daily Templates Management */}
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle>Daily Schedule Templates</CardTitle>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={handleNewTemplate}
-                  data-testid="button-add-template"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add Template
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              {templatesLoading ? (
-                <div className="space-y-4">
-                  {Array.from({ length: 3 }).map((_, i) => (
-                    <div key={i} className="flex items-center justify-between p-4 border border-border rounded-lg animate-pulse">
-                      <div className="flex items-center space-x-4">
-                        <div className="w-3 h-3 bg-muted rounded-full"></div>
-                        <div>
-                          <div className="h-4 bg-muted rounded w-32 mb-2"></div>
-                          <div className="h-3 bg-muted rounded w-24"></div>
-                        </div>
-                      </div>
-                      <div className="flex space-x-2">
-                        <div className="h-8 w-16 bg-muted rounded"></div>
-                        <div className="h-8 w-16 bg-muted rounded"></div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : dailyTemplates.length === 0 ? (
-                <div className="text-center py-8">
-                  <Clock className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-muted-foreground mb-4">No daily schedule templates created yet</p>
-                  <p className="text-sm text-muted-foreground">
-                    Set your regular working hours for each day of the week
-                  </p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {dailyTemplates.map((template) => (
-                    <div key={template.id} className="flex items-center justify-between p-4 border border-border rounded-lg hover:bg-muted/50" data-testid={`template-${template.id}`}>
-                      <div className="flex items-center space-x-4">
-                        <div className={`w-3 h-3 rounded-full ${
-                          template.isEnabled ? "bg-primary" : "bg-muted-foreground"
-                        }`}></div>
-                        <div>
-                          <h4 className="font-medium" data-testid={`template-day-${template.id}`}>
-                            {(() => {
-                              const dayName = convertNumberToDayName(template.dayOfWeek as number);
-                              return dayName.charAt(0) + dayName.slice(1).toLowerCase();
-                            })()}
-                          </h4>
-                          <p className="text-sm text-muted-foreground" data-testid={`template-time-${template.id}`}>
-                            {formatTime(template.startTime)} - {formatTime(template.endTime)}
-                            {!template.isEnabled && (
-                              <span className="ml-2 text-red-600">(Disabled)</span>
-                            )}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex space-x-2">
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          onClick={() => handleEditTemplate(template)}
-                          data-testid={`button-edit-template-${template.id}`}
-                        >
-                          Edit
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          onClick={() => deleteTemplateMutation.mutate(template.id)}
-                          disabled={deleteTemplateMutation.isPending}
-                          data-testid={`button-delete-template-${template.id}`}
-                        >
-                          {deleteTemplateMutation.isPending ? "..." : <Trash2 className="w-4 h-4" />}
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+          {/* Daily Schedule Templates - Compact Version */}
+          <div className="flex items-center justify-between p-4 border border-border rounded-lg bg-muted/20">
+            <div>
+              <h3 className="font-medium">Daily Schedule Templates</h3>
+              <p className="text-sm text-muted-foreground">
+                {dailyTemplates.length === 0 ? 
+                  "Set your regular working hours for each day" : 
+                  `${dailyTemplates.length} template${dailyTemplates.length === 1 ? '' : 's'} configured`
+                }
+              </p>
+            </div>
+            <Button 
+              variant="outline"
+              onClick={handleNewTemplate}
+              data-testid="button-manage-templates"
+            >
+              <Clock className="w-4 h-4 mr-2" />
+              Manage Templates
+            </Button>
+          </div>
 
           {/* Upcoming Bookings */}
           <Card>
@@ -706,24 +635,26 @@ export default function Scheduling() {
                           {booking.status === "CONFIRMED" ? "Confirmed" : 
                            booking.status === "PENDING" ? "Pending" : booking.status}
                         </Badge>
+                        {booking.meetingLink && (
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={() => window.open(booking.meetingLink, '_blank')}
+                            data-testid={`button-join-meeting-${index}`}
+                          >
+                            Join Meeting
+                          </Button>
+                        )}
                         <Button 
                           variant="outline" 
                           size="sm" 
                           onClick={() => {
-                            if (booking.status === "PENDING") {
-                              confirmBookingMutation.mutate(booking.id);
-                            } else {
-                              setSelectedBooking(booking);
-                              setShowBookingDetailsModal(true);
-                            }
+                            setSelectedBooking(booking);
+                            setShowBookingDetailsModal(true);
                           }}
-                          disabled={booking.status === "PENDING" && confirmBookingMutation.isPending}
-                          data-testid={`button-booking-${index}`}
+                          data-testid={`button-view-details-${index}`}
                         >
-                          {booking.status === "PENDING" ? 
-                            (confirmBookingMutation.isPending ? "Confirming..." : "Confirm") : 
-                            "View Details"
-                          }
+                          View Details
                         </Button>
                       </div>
                     </div>
@@ -802,14 +733,69 @@ export default function Scheduling() {
             templateForm.reset();
           }
         }}>
-          <DialogContent className="max-w-md" aria-describedby="template-description">
+          <DialogContent className="max-w-2xl" aria-describedby="template-description">
             <DialogHeader>
-              <DialogTitle>{editingTemplate ? "Edit Daily Template" : "Create Daily Template"}</DialogTitle>
+              <DialogTitle>{editingTemplate ? "Edit Daily Template" : "Manage Daily Schedule Templates"}</DialogTitle>
             </DialogHeader>
             <p id="template-description" className="text-sm text-muted-foreground mb-4">
-              Set your regular working hours for a specific day of the week
+              {editingTemplate ? "Edit your working hours for a specific day" : "Create and manage your regular working hours for each day of the week"}
             </p>
-            <Form {...templateForm}>
+            
+            {/* Existing Templates List - Only show when not editing */}
+            {!editingTemplate && dailyTemplates.length > 0 && (
+              <div className="mb-6">
+                <h4 className="font-medium mb-3">Existing Templates</h4>
+                <div className="space-y-2 max-h-48 overflow-y-auto">
+                  {dailyTemplates.map((template) => (
+                    <div key={template.id} className="flex items-center justify-between p-3 border border-border rounded-lg hover:bg-muted/50" data-testid={`modal-template-${template.id}`}>
+                      <div className="flex items-center space-x-3">
+                        <div className={`w-3 h-3 rounded-full ${
+                          template.isEnabled ? "bg-primary" : "bg-muted-foreground"
+                        }`}></div>
+                        <div>
+                          <span className="font-medium" data-testid={`modal-template-day-${template.id}`}>
+                            {(() => {
+                              const dayName = convertNumberToDayName(template.dayOfWeek as number);
+                              return dayName.charAt(0) + dayName.slice(1).toLowerCase();
+                            })()}
+                          </span>
+                          <span className="text-sm text-muted-foreground ml-2" data-testid={`modal-template-time-${template.id}`}>
+                            {formatTime(template.startTime)} - {formatTime(template.endTime)}
+                            {!template.isEnabled && (
+                              <span className="ml-1 text-red-600">(Disabled)</span>
+                            )}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex space-x-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => handleEditTemplate(template)}
+                          data-testid={`modal-button-edit-template-${template.id}`}
+                        >
+                          Edit
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => deleteTemplateMutation.mutate(template.id)}
+                          disabled={deleteTemplateMutation.isPending}
+                          data-testid={`modal-button-delete-template-${template.id}`}
+                        >
+                          {deleteTemplateMutation.isPending ? "..." : <Trash2 className="w-4 h-4" />}
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            {/* Form for Creating/Editing Templates */}
+            <div className="border-t pt-4">
+              <h4 className="font-medium mb-3">{editingTemplate ? "Edit Template" : "Create New Template"}</h4>
+              <Form {...templateForm}>
               <form onSubmit={templateForm.handleSubmit(handleTemplateSubmit)} className="space-y-4">
                 <FormField
                   control={templateForm.control}
@@ -907,6 +893,7 @@ export default function Scheduling() {
                 </div>
               </form>
             </Form>
+            </div>
           </DialogContent>
         </Dialog>
 
