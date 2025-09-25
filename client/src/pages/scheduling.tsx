@@ -676,17 +676,17 @@ export default function Scheduling() {
                           "bg-blue-400"
                         }`}></div>
                         <div className="flex-1">
-                          <h4 className="font-medium" data-testid={`booking-title-${index}`}>
+                          <h4 className="text-lg font-medium" data-testid={`booking-title-${index}`}>
                             {formatBookingTitle(booking.title)}
                           </h4>
-                          <p className="text-sm text-muted-foreground" data-testid={`booking-date-${index}`}>
+                          <p className="text-sm" data-testid={`booking-date-${index}`}>
                             {(() => {
                               const startDateTime = formatBookingDateTime(booking.startAt);
                               return startDateTime.date;
                             })()}
                           </p>
                           {(booking.clientName || booking.clientPhone) && (
-                            <div className="flex items-center gap-4 mt-1 text-xs text-muted-foreground">
+                            <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground">
                               {booking.clientName && (
                                 <span data-testid={`booking-client-name-${index}`}>
                                   👤 {booking.clientName}
