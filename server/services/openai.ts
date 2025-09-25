@@ -57,39 +57,49 @@ Campaign Duration: Up to ${maxDurationMonths} months with emails every ${frequen
   `.trim();
 
   // Create AI prompt
-  const systemPrompt = `You are an expert email marketing strategist specializing in wedding and photography business nurturing campaigns. Create personalized, engaging email sequences that build trust, showcase expertise, and gently guide potential clients toward booking.
+  const systemPrompt = `You are an expert email marketing strategist specializing in photography business nurturing campaigns. Create value-driven email sequences that educate, inspire, and build relationships - NOT welcome emails.
+
+IMPORTANT: These are NOT welcome emails. The clients have already been contacted and welcomed. Your job is to provide ongoing value and nurture the relationship.
 
 Your goal is to create a ${emailCount}-email drip campaign for ${projectType.toLowerCase()} photography clients who are in the "${targetStage}" stage. These emails should be sent every ${frequencyWeeks} weeks over up to ${maxDurationMonths} months.
 
 Business Context:
 ${businessContext}
 
-Guidelines:
-1. Each email should provide genuine value (tips, behind-the-scenes insights, client stories, etc.)
-2. Maintain a warm, personal tone that reflects the photographer's brand
-3. Include subtle calls-to-action without being pushy
-4. Use personalization variables like {{firstName}}, {{lastName}}, {{eventDate}}, {{projectType}}
-5. Create compelling subject lines that encourage opens
-6. Keep emails scannable with clear structure
-7. Include social proof and photography expertise
-8. Address common concerns and questions at this stage
-9. Build anticipation and excitement about the photography experience
+Content Strategy:
+1. AVOID welcome/thank you emails - assume first contact already happened
+2. Focus on value-added content: tips, tutorials, behind-the-scenes insights
+3. Share photography expertise and industry knowledge
+4. Include booking CTAs in every 2-3 emails (not every email)
+5. Use storytelling and social proof
+6. Address common concerns and questions
+7. Provide actionable advice they can use
+8. Build trust through expertise demonstration
 
-Email Topics to Consider:
-- Welcome and introduction
-- Behind-the-scenes stories and processes  
-- Client success stories and testimonials
-- Photography tips and advice
-- Seasonal inspirations and trends
-- Planning guides and checklists
-- Personal stories from the photographer
-- Portfolio highlights and recent work
+Email Types to Include:
+- Photography tips and techniques
+- Behind-the-scenes process insights  
+- Client success stories and case studies
+- Seasonal inspiration and trends
+- Planning guides and preparation tips
+- Industry insights and trends
+- Personal photographer stories
+- Portfolio highlights with context
+- Booking encouragement (every 2-3 emails)
+
+HTML Styling Requirements:
+- Use modern, clean HTML design with professional styling
+- Include proper colors: ${photographer.brandPrimary ? `Primary: ${photographer.brandPrimary}` : '#2c3e50'}, ${photographer.brandSecondary ? `Secondary: ${photographer.brandSecondary}` : '#3498db'}
+- Make emails mobile-responsive with max-width: 600px
+- Use proper typography (Arial/Helvetica fallback)
+- Include clear call-to-action buttons when appropriate
+- Add spacing and visual hierarchy
 
 ${customPrompt ? `Additional Instructions: ${customPrompt}` : ''}
 
 Respond with a JSON object containing an array of "emails" where each email has:
-- subject: Compelling subject line
-- htmlBody: Full HTML email content with proper structure and styling
+- subject: Compelling subject line (NO "Welcome" or "Thank you" subjects)
+- htmlBody: Full HTML email with professional styling using brand colors
 - textBody: Plain text version of the email
 - weeksAfterStart: When to send this email (0, 2, 4, 6, etc.)
 
@@ -153,24 +163,82 @@ Please respond with valid JSON only.`;
     
     // Provide fallback if OpenAI fails
     console.log('Providing fallback drip campaign due to OpenAI error:', (error as Error).message);
-    const fallbackEmails: DripCampaignEmailContent[] = [
+    
+    // Generate comprehensive fallback emails for the requested count
+    const fallbackTemplates = [
       {
-        subject: "Welcome to Your Photography Journey!",
-        htmlBody: `<h1>Welcome ${'{firstName}'}!</h1><p>Thank you for reaching out to ${businessContext.split('\n')[0] || '{businessName}'}. We're excited to potentially capture your special moments!</p><p>We understand choosing a photographer is an important decision, and we're here to help make it easy for you.</p><p>Best regards,<br>${businessContext.split('\n')[0] || '{businessName}'}</p>`,
-        textBody: `Welcome ${'{firstName}'}! Thank you for reaching out to ${businessContext.split('\n')[0] || '{businessName}'}. We're excited to potentially capture your special moments! We understand choosing a photographer is an important decision, and we're here to help make it easy for you. Best regards, ${businessContext.split('\n')[0] || '{businessName}'}`,
-        weeksAfterStart: 0
+        subject: "5 Essential {projectType} Photography Tips",
+        content: "Here are 5 expert tips to help you prepare for your {projectType} photography session and get the most amazing results."
       },
       {
-        subject: "Let's Plan Your Perfect Photo Session",
-        htmlBody: `<h1>Hi ${'{firstName}'},</h1><p>We hope you're having a great week! We wanted to follow up and see if you have any questions about our photography services.</p><p>Every couple has a unique story, and we'd love to learn more about yours and how we can help capture those precious moments.</p><p>Feel free to reply with any questions or to schedule a consultation.</p><p>Best,<br>${businessContext.split('\n')[0] || '{businessName}'}</p>`,
-        textBody: `Hi ${'{firstName}'}, We hope you're having a great week! We wanted to follow up and see if you have any questions about our photography services. Every couple has a unique story, and we'd love to learn more about yours. Feel free to reply with any questions! Best, ${businessContext.split('\n')[0] || '{businessName}'}`,
-        weeksAfterStart: frequencyWeeks
+        subject: "Behind the Scenes: How We Create Magic",
+        content: "Ever wondered what goes into creating those perfect moments? Let me take you behind the scenes of our photography process."
+      },
+      {
+        subject: "Seasonal {projectType} Inspiration",
+        content: "The current season offers incredible opportunities for {projectType} photography. Here's how to make the most of it."
+      },
+      {
+        subject: "Planning Your Perfect {projectType} Experience",
+        content: "A great {projectType} session starts with proper planning. Here's your comprehensive guide to preparation."
+      },
+      {
+        subject: "Client Spotlight: Amazing {projectType} Stories",
+        content: "Let me share some inspiring stories from recent {projectType} sessions and what made them truly special."
+      },
+      {
+        subject: "Ready to Book Your {projectType} Session?",
+        content: "You've been on our minds! We'd love to discuss how we can create something amazing together."
+      },
+      {
+        subject: "Exclusive {projectType} Photography Insights",
+        content: "As a valued contact, here are some exclusive insights about {projectType} photography that most people don't know."
+      },
+      {
+        subject: "Your {projectType} Photography Questions Answered",
+        content: "We get lots of great questions about {projectType} photography. Here are answers to the most common ones."
       }
     ];
 
+    const businessName = businessContext.split('\n')[0]?.replace('Business Name: ', '') || '{businessName}';
+    const fallbackEmails: DripCampaignEmailContent[] = [];
+    
+    for (let i = 0; i < emailCount; i++) {
+      const template = fallbackTemplates[i % fallbackTemplates.length];
+      const isBookingEmail = (i + 1) % 3 === 0; // Every 3rd email has booking CTA
+      
+      const subject = template.subject.replace(/{projectType}/g, projectType.toLowerCase());
+      const content = template.content.replace(/{projectType}/g, projectType.toLowerCase());
+      
+      const htmlBody = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
+          <h1 style="color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px;">${subject}</h1>
+          <p>Hi {{firstName}},</p>
+          <p>${content}</p>
+          ${isBookingEmail ? `
+            <div style="background: #f8f9fa; padding: 20px; border-left: 4px solid #3498db; margin: 20px 0;">
+              <h3 style="color: #2c3e50; margin-top: 0;">Ready to Move Forward?</h3>
+              <p>We'd love to schedule a consultation to discuss your vision and how we can bring it to life.</p>
+              <p><a href="mailto:${businessContext.includes('Email From:') ? businessContext.split('Email From:')[1]?.split('<')[1]?.split('>')[0] : 'hello@business.com'}" style="background: #3498db; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">Schedule Consultation</a></p>
+            </div>
+          ` : ''}
+          <p>Best regards,<br>${businessName}</p>
+        </div>
+      `;
+      
+      const textBody = `Hi {{firstName}}, ${content} ${isBookingEmail ? "Ready to move forward? We'd love to schedule a consultation to discuss your vision. Reply to this email to get started!" : ""} Best regards, ${businessName}`;
+      
+      fallbackEmails.push({
+        subject,
+        htmlBody,
+        textBody,
+        weeksAfterStart: i * frequencyWeeks
+      });
+    }
+
     return {
-      emails: fallbackEmails.slice(0, emailCount),
-      campaignDescription: `Fallback ${emailCount}-email nurturing sequence for ${targetStage} stage clients`,
+      emails: fallbackEmails,
+      campaignDescription: `Fallback ${emailCount}-email value-added nurturing sequence for ${targetStage} stage clients`,
       businessContext
     };
   }
