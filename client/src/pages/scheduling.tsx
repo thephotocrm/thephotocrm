@@ -325,6 +325,23 @@ export default function Scheduling() {
     };
   };
 
+  // Format booking title to convert any 24-hour times to 12-hour format
+  const formatBookingTitle = (title: string) => {
+    // Regex to match patterns like "13:00 to 14:00" or "09:00 to 10:00"
+    const timePattern = /(\d{1,2}):(\d{2})\s+to\s+(\d{1,2}):(\d{2})/g;
+    
+    return title.replace(timePattern, (match, hour1, min1, hour2, min2) => {
+      const formatTime12Hour = (hour: string, minute: string) => {
+        const h = parseInt(hour);
+        const ampm = h >= 12 ? 'PM' : 'AM';
+        const displayHour = h === 0 ? 12 : h > 12 ? h - 12 : h;
+        return `${displayHour}:${minute} ${ampm}`;
+      };
+      
+      return `${formatTime12Hour(hour1, min1)} to ${formatTime12Hour(hour2, min2)}`;
+    });
+  };
+
   // Handle template editing
   const handleEditTemplate = (template: DailyTemplate) => {
     setEditingTemplate(template);
@@ -660,7 +677,7 @@ export default function Scheduling() {
                         }`}></div>
                         <div className="flex-1">
                           <h4 className="font-medium" data-testid={`booking-title-${index}`}>
-                            {booking.title}
+                            {formatBookingTitle(booking.title)}
                           </h4>
                           <p className="text-sm text-muted-foreground" data-testid={`booking-time-${index}`}>
                             {(() => {
@@ -1010,7 +1027,7 @@ export default function Scheduling() {
                 {/* Booking Title */}
                 <div>
                   <h3 className="font-medium text-lg" data-testid="modal-booking-title">
-                    {selectedBooking.title}
+                    {formatBookingTitle(selectedBooking.title)}
                   </h3>
                 </div>
 
