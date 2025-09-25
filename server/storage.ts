@@ -216,6 +216,18 @@ export interface IStorage {
   updateDripCampaignEmail(id: string, email: Partial<DripCampaignEmail>): Promise<DripCampaignEmail>;
   deleteDripCampaignEmail(id: string): Promise<void>;
   
+  // Individual Email Approval Methods
+  approveEmail(emailId: string, approvedBy: string): Promise<DripCampaignEmail>;
+  rejectEmail(emailId: string, rejectedBy: string, reason: string): Promise<DripCampaignEmail>;
+  updateEmailContent(emailId: string, content: { subject?: string; htmlBody?: string; textBody?: string }, editedBy: string): Promise<DripCampaignEmail>;
+  bulkUpdateEmailSequence(emailUpdates: Array<{ id: string; sequenceIndex: number; weeksAfterStart: number }>): Promise<void>;
+
+  // Campaign Versioning Methods
+  createCampaignVersion(campaignId: string, versionData: Partial<DripCampaign>, changedBy: string, changeDescription: string): Promise<DripCampaign>;
+  getCampaignVersionHistory(campaignId: string): Promise<any[]>;
+  logCampaignChange(campaignId: string, changeType: string, changeDescription: string, changedBy: string, affectedEmailId?: string, previousData?: any, newData?: any): Promise<void>;
+  getDripCampaignWithEmailStats(campaignId: string): Promise<any>;
+  
   // Drip Campaign Subscriptions
   getDripCampaignSubscriptionsByPhotographer(photographerId: string): Promise<DripCampaignSubscriptionWithDetails[]>;
   getDripCampaignSubscriptionsByCampaign(campaignId: string): Promise<DripCampaignSubscriptionWithDetails[]>;
@@ -1959,6 +1971,178 @@ export class DatabaseStorage implements IStorage {
       .where(eq(dripEmailDeliveries.emailId, id));
     await db.delete(dripCampaignEmails)
       .where(eq(dripCampaignEmails.id, id));
+  }
+
+  // Individual Email Approval Methods
+  async approveEmail(emailId: string, approvedBy: string): Promise<DripCampaignEmail> {
+    const [updated] = await db.update(dripCampaignEmails)
+      .set({
+        approvalStatus: 'APPROVED',
+        approvedAt: new Date(),
+        approvedBy,
+        rejectionReason: null
+      })
+      .where(eq(dripCampaignEmails.id, emailId))
+      .returning();
+    return updated;
+  }
+
+  async rejectEmail(emailId: string, rejectedBy: string, reason: string): Promise<DripCampaignEmail> {
+    const [updated] = await db.update(dripCampaignEmails)
+      .set({
+        approvalStatus: 'REJECTED',
+        approvedAt: null,
+        approvedBy: null,
+        rejectionReason: reason,
+        lastEditedAt: new Date(),
+        lastEditedBy: rejectedBy
+      })
+      .where(eq(dripCampaignEmails.id, emailId))
+      .returning();
+    return updated;
+  }
+
+  async updateEmailContent(emailId: string, content: { subject?: string; htmlBody?: string; textBody?: string }, editedBy: string): Promise<DripCampaignEmail> {
+    // First get the current content to save as original if not already saved
+    const [currentEmail] = await db.select()
+      .from(dripCampaignEmails)
+      .where(eq(dripCampaignEmails.id, emailId))
+      .limit(1);
+    
+    if (!currentEmail) {
+      throw new Error('Email not found');
+    }
+
+    // If this is the first edit, save original content
+    const updateData: any = { ...content };
+    if (!currentEmail.hasManualEdits) {
+      updateData.originalSubject = currentEmail.subject;
+      updateData.originalHtmlBody = currentEmail.htmlBody;
+      updateData.originalTextBody = currentEmail.textBody;
+      updateData.hasManualEdits = true;
+    }
+    
+    updateData.lastEditedAt = new Date();
+    updateData.lastEditedBy = editedBy;
+    updateData.approvalStatus = 'PENDING'; // Reset approval status on edit
+    updateData.approvedAt = null;
+    updateData.approvedBy = null;
+
+    const [updated] = await db.update(dripCampaignEmails)
+      .set(updateData)
+      .where(eq(dripCampaignEmails.id, emailId))
+      .returning();
+    return updated;
+  }
+
+  async bulkUpdateEmailSequence(emailUpdates: Array<{ id: string; sequenceIndex: number; weeksAfterStart: number }>): Promise<void> {
+    await db.transaction(async (tx) => {
+      for (const update of emailUpdates) {
+        await tx.update(dripCampaignEmails)
+          .set({ 
+            sequenceIndex: update.sequenceIndex, 
+            weeksAfterStart: update.weeksAfterStart 
+          })
+          .where(eq(dripCampaignEmails.id, update.id));
+      }
+    });
+  }
+
+  // Campaign Versioning Methods
+  async createCampaignVersion(campaignId: string, versionData: Partial<DripCampaign>, changedBy: string, changeDescription: string): Promise<DripCampaign> {
+    return await db.transaction(async (tx) => {
+      // Get current campaign
+      const [currentCampaign] = await tx.select()
+        .from(dripCampaigns)
+        .where(eq(dripCampaigns.id, campaignId))
+        .limit(1);
+      
+      if (!currentCampaign) {
+        throw new Error('Campaign not found');
+      }
+
+      // Mark current version as not current
+      await tx.update(dripCampaigns)
+        .set({ isCurrentVersion: false })
+        .where(eq(dripCampaigns.id, campaignId));
+
+      // Create new version
+      const [newVersion] = await tx.insert(dripCampaigns)
+        .values({
+          ...currentCampaign,
+          ...versionData,
+          id: undefined, // Let database generate new ID
+          version: currentCampaign.version + 1,
+          parentCampaignId: currentCampaign.parentCampaignId || campaignId,
+          isCurrentVersion: true,
+          versionNotes: changeDescription,
+          createdAt: new Date()
+        })
+        .returning();
+
+      // Log version change
+      await tx.insert(dripCampaignVersionHistory).values({
+        campaignId: newVersion.id,
+        version: newVersion.version,
+        changeType: 'CREATED',
+        changeDescription,
+        changedBy,
+        previousData: JSON.stringify(currentCampaign),
+        newData: JSON.stringify(newVersion)
+      });
+
+      return newVersion;
+    });
+  }
+
+  async getCampaignVersionHistory(campaignId: string): Promise<any[]> {
+    return await db.select()
+      .from(dripCampaignVersionHistory)
+      .where(eq(dripCampaignVersionHistory.campaignId, campaignId))
+      .orderBy(desc(dripCampaignVersionHistory.createdAt));
+  }
+
+  async logCampaignChange(campaignId: string, changeType: string, changeDescription: string, changedBy: string, affectedEmailId?: string, previousData?: any, newData?: any): Promise<void> {
+    // Get current campaign version
+    const [campaign] = await db.select()
+      .from(dripCampaigns)
+      .where(eq(dripCampaigns.id, campaignId))
+      .limit(1);
+    
+    if (!campaign) return;
+
+    await db.insert(dripCampaignVersionHistory).values({
+      campaignId,
+      version: campaign.version,
+      changeType,
+      changeDescription,
+      changedBy,
+      affectedEmailId,
+      previousData: previousData ? JSON.stringify(previousData) : null,
+      newData: newData ? JSON.stringify(newData) : null
+    });
+  }
+
+  // Enhanced Campaign Queries with New Fields
+  async getDripCampaignWithEmailStats(campaignId: string): Promise<any> {
+    const campaign = await this.getDripCampaign(campaignId);
+    if (!campaign) return undefined;
+
+    const emails = await this.getDripCampaignEmails(campaignId);
+    
+    const stats = {
+      totalEmails: emails.length,
+      approvedEmails: emails.filter(e => e.approvalStatus === 'APPROVED').length,
+      pendingEmails: emails.filter(e => e.approvalStatus === 'PENDING').length,
+      rejectedEmails: emails.filter(e => e.approvalStatus === 'REJECTED').length,
+      editedEmails: emails.filter(e => e.hasManualEdits).length
+    };
+
+    return {
+      ...campaign,
+      emails,
+      stats
+    };
   }
 
   // Drip Campaign Subscriptions methods

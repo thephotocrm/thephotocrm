@@ -255,6 +255,16 @@ export const dripCampaigns = pgTable("drip_campaigns", {
   businessContext: text("business_context"), // Business info used for AI generation
   approvedAt: timestamp("approved_at"),
   approvedBy: varchar("approved_by").references(() => users.id),
+  // Campaign versioning system
+  version: integer("version").notNull().default(1), // Version number for the campaign
+  parentCampaignId: varchar("parent_campaign_id").references(() => dripCampaigns.id), // Reference to original campaign if this is a version
+  isCurrentVersion: boolean("is_current_version").default(true), // Whether this is the active version
+  versionNotes: text("version_notes"), // Notes about what changed in this version
+  // Brand and styling preferences
+  useCustomStyling: boolean("use_custom_styling").default(false), // Whether to use custom HTML styling
+  primaryBrandColor: text("primary_brand_color"), // Hex code for primary brand color
+  secondaryBrandColor: text("secondary_brand_color"), // Hex code for secondary brand color
+  fontFamily: text("font_family").default("Arial, sans-serif"), // Email font preference
   createdAt: timestamp("created_at").defaultNow(),
   enabled: boolean("enabled").default(true)
 });
@@ -267,6 +277,18 @@ export const dripCampaignEmails = pgTable("drip_campaign_emails", {
   htmlBody: text("html_body").notNull(),
   textBody: text("text_body"),
   weeksAfterStart: integer("weeks_after_start").notNull(), // When to send relative to campaign start
+  // Individual email approval system
+  approvalStatus: text("approval_status").notNull().default("PENDING"), // PENDING, APPROVED, REJECTED
+  approvedAt: timestamp("approved_at"),
+  approvedBy: varchar("approved_by").references(() => users.id),
+  rejectionReason: text("rejection_reason"), // Why it was rejected
+  // Edited content tracking
+  originalSubject: text("original_subject"), // AI-generated subject
+  originalHtmlBody: text("original_html_body"), // AI-generated HTML
+  originalTextBody: text("original_text_body"), // AI-generated text
+  hasManualEdits: boolean("has_manual_edits").default(false), // Track if manually edited
+  lastEditedAt: timestamp("last_edited_at"),
+  lastEditedBy: varchar("last_edited_by").references(() => users.id),
   createdAt: timestamp("created_at").defaultNow()
 });
 
@@ -305,6 +327,25 @@ export const dripEmailDeliveries = pgTable("drip_email_deliveries", {
   // Unique constraint: one delivery per subscription per email
   subscriptionEmailUniqueIdx: unique("drip_delivery_subscription_email_unique").on(
     table.subscriptionId, table.emailId
+  )
+}));
+
+// Campaign version history tracking
+export const dripCampaignVersionHistory = pgTable("drip_campaign_version_history", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  campaignId: varchar("campaign_id").notNull().references(() => dripCampaigns.id),
+  version: integer("version").notNull(),
+  changeType: text("change_type").notNull(), // CREATED, EMAIL_MODIFIED, EMAIL_ADDED, EMAIL_REMOVED, SETTINGS_CHANGED
+  changeDescription: text("change_description").notNull(),
+  changedBy: varchar("changed_by").notNull().references(() => users.id),
+  affectedEmailId: varchar("affected_email_id").references(() => dripCampaignEmails.id), // If change affects specific email
+  previousData: text("previous_data"), // JSON snapshot of previous state
+  newData: text("new_data"), // JSON snapshot of new state
+  createdAt: timestamp("created_at").defaultNow()
+}, (table) => ({
+  // Index for efficient version history queries
+  campaignVersionIdx: index("drip_campaign_version_history_campaign_version_idx").on(
+    table.campaignId, table.version
   )
 }));
 
@@ -1138,6 +1179,11 @@ export const insertDripCampaignSubscriptionSchema = createInsertSchema(dripCampa
   startedAt: true
 });
 
+export const insertDripCampaignVersionHistorySchema = createInsertSchema(dripCampaignVersionHistory).omit({
+  id: true,
+  createdAt: true
+});
+
 export const insertDripEmailDeliverySchema = createInsertSchema(dripEmailDeliveries).omit({
   id: true,
   createdAt: true
@@ -1150,6 +1196,26 @@ export type DripCampaignEmail = typeof dripCampaignEmails.$inferSelect;
 export type InsertDripCampaignEmail = z.infer<typeof insertDripCampaignEmailSchema>;
 export type DripCampaignSubscription = typeof dripCampaignSubscriptions.$inferSelect;
 export type InsertDripCampaignSubscription = z.infer<typeof insertDripCampaignSubscriptionSchema>;
+export type DripCampaignVersionHistory = typeof dripCampaignVersionHistory.$inferSelect;
+export type InsertDripCampaignVersionHistory = z.infer<typeof insertDripCampaignVersionHistorySchema>;
+
+// Enhanced drip campaign types for the UI
+export type DripCampaignEmailStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
+export type CampaignChangeType = 'CREATED' | 'EMAIL_MODIFIED' | 'EMAIL_ADDED' | 'EMAIL_REMOVED' | 'SETTINGS_CHANGED';
+
+// Extended types for campaign management with version control
+export type DripCampaignWithEmails = DripCampaign & {
+  emails: DripCampaignEmail[];
+  totalEmails: number;
+  approvedEmails: number;
+  pendingEmails: number;
+};
+
+export type DripCampaignEmailWithVersioning = DripCampaignEmail & {
+  isEdited: boolean;
+  lastEditor?: string;
+  versionHistory?: DripCampaignVersionHistory[];
+};
 export type DripEmailDelivery = typeof dripEmailDeliveries.$inferSelect;
 export type InsertDripEmailDelivery = z.infer<typeof insertDripEmailDeliverySchema>;
 
