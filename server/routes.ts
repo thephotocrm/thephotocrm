@@ -2023,6 +2023,129 @@ ${photographer?.businessName || 'Your Photography Team'}`;
         console.error('Calendar integration error:', calendarError);
         // Don't fail the booking confirmation if calendar creation fails
       }
+
+      // Send booking confirmation email to client
+      console.log(`📧 Attempting to send booking confirmation email for booking ${booking.id}`);
+      try {
+        const photographer = await storage.getPhotographer(booking.photographerId);
+        console.log(`📧 Photographer found: ${photographer?.businessName || 'NONE'}, Email: ${validatedData.clientEmail}`);
+        if (photographer && validatedData.clientEmail) {
+          const bookingDate = new Date(booking.startAt).toLocaleDateString('en-US', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            timeZone: photographer.timezone || 'America/New_York'
+          });
+          
+          const bookingTime = new Date(booking.startAt).toLocaleTimeString('en-US', {
+            hour: 'numeric',
+            minute: '2-digit',
+            hour12: true,
+            timeZone: photographer.timezone || 'America/New_York'
+          });
+          
+          const endTime = new Date(booking.endAt).toLocaleTimeString('en-US', {
+            hour: 'numeric',
+            minute: '2-digit',
+            hour12: true,
+            timeZone: photographer.timezone || 'America/New_York'
+          });
+
+          // Get the final booking to ensure we have the Google Meet link
+          const finalBooking = await storage.getBooking(booking.id);
+          
+          const emailSuccess = await sendEmail({
+            to: validatedData.clientEmail,
+            from: `${photographer.businessName} <${process.env.SENDGRID_FROM_EMAIL}>`,
+            replyTo: photographer.emailFromAddr || process.env.SENDGRID_FROM_EMAIL,
+            subject: `📸 Your appointment with ${photographer.businessName} is confirmed!`,
+            html: `
+              <div style="max-width: 600px; margin: 0 auto; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333;">
+                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; border-radius: 10px 10px 0 0;">
+                  <h1 style="margin: 0; font-size: 24px;">✅ Appointment Confirmed!</h1>
+                  <p style="margin: 10px 0 0 0; opacity: 0.9;">Your consultation with ${photographer.businessName}</p>
+                </div>
+                
+                <div style="background: white; padding: 30px; border-radius: 0 0 10px 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+                  <h2 style="color: #4a5568; margin-top: 0;">📅 Appointment Details</h2>
+                  
+                  <div style="background: #f7fafc; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                    <p style="margin: 5px 0;"><strong>📅 Date:</strong> ${bookingDate}</p>
+                    <p style="margin: 5px 0;"><strong>🕒 Time:</strong> ${bookingTime} - ${endTime}</p>
+                    <p style="margin: 5px 0;"><strong>👤 Client:</strong> ${validatedData.clientName}</p>
+                    <p style="margin: 5px 0;"><strong>📧 Email:</strong> ${validatedData.clientEmail}</p>
+                    ${validatedData.clientPhone ? `<p style="margin: 5px 0;"><strong>📞 Phone:</strong> ${validatedData.clientPhone}</p>` : ''}
+                  </div>
+
+                  ${finalBooking?.googleMeetLink ? `
+                    <div style="background: #e6fffa; border: 2px solid #38b2ac; padding: 20px; border-radius: 8px; margin: 20px 0; text-align: center;">
+                      <h3 style="color: #2d3748; margin-top: 0;">🎥 Video Call Details</h3>
+                      <p style="margin: 10px 0;">Join your appointment via Google Meet:</p>
+                      <a href="${finalBooking.googleMeetLink}" 
+                         style="background: #48bb78; color: white; padding: 12px 30px; text-decoration: none; border-radius: 25px; display: inline-block; font-weight: 600; margin: 10px 0;">
+                        🎥 Join Video Call
+                      </a>
+                      <p style="font-size: 14px; color: #718096; margin: 10px 0;">
+                        <strong>Meeting Link:</strong> ${finalBooking.googleMeetLink}
+                      </p>
+                    </div>
+                  ` : ''}
+
+                  <div style="background: #fff5f5; border: 2px solid #fc8181; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                    <h3 style="color: #2d3748; margin-top: 0;">⏰ Important Reminders</h3>
+                    <ul style="margin: 10px 0; padding-left: 20px;">
+                      <li>You'll receive a reminder email on the morning of your appointment</li>
+                      <li>Please join the video call 2-3 minutes early</li>
+                      <li>Make sure you have a reliable internet connection</li>
+                      <li>Have any questions or materials ready to discuss</li>
+                    </ul>
+                  </div>
+
+                  <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
+                    <p style="color: #718096; font-size: 14px; margin: 5px 0;">
+                      Need to reschedule or have questions? Reply to this email or contact us directly.
+                    </p>
+                    <p style="color: #718096; font-size: 14px; margin: 5px 0;">
+                      <strong>Best regards,</strong><br>
+                      ${photographer.businessName}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            `,
+            text: `✅ Your appointment with ${photographer.businessName} is confirmed!
+
+📅 APPOINTMENT DETAILS:
+Date: ${bookingDate}
+Time: ${bookingTime} - ${endTime}
+Client: ${validatedData.clientName}
+Email: ${validatedData.clientEmail}
+${validatedData.clientPhone ? `Phone: ${validatedData.clientPhone}\n` : ''}
+${finalBooking?.googleMeetLink ? `\n🎥 VIDEO CALL:\nJoin via Google Meet: ${finalBooking.googleMeetLink}\n\n` : ''}⏰ REMINDERS:
+• You'll receive a reminder email on the morning of your appointment
+• Please join the video call 2-3 minutes early
+• Ensure you have a reliable internet connection
+• Have any questions or materials ready to discuss
+
+Need to reschedule or have questions? Reply to this email.
+
+Best regards,
+${photographer.businessName}`
+          });
+          
+          if (emailSuccess) {
+            console.log(`✅ Booking confirmation email sent to ${validatedData.clientEmail} for booking ${booking.id}`);
+          } else {
+            console.error(`❌ Failed to send confirmation email to ${validatedData.clientEmail} for booking ${booking.id}`);
+          }
+        } else {
+          console.warn(`📧 Email not sent - Missing photographer (${!!photographer}) or email (${!!validatedData.clientEmail}) for booking ${booking.id}`);
+        }
+      } catch (emailError) {
+        console.error('❌ Booking confirmation email error:', emailError);
+        // Don't fail the booking confirmation if email sending fails
+      }
       
       // Handle automatic stage progression for first bookings
       if (booking.isFirstBooking && booking.clientId) {
@@ -3113,6 +3236,131 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       } catch (calendarError) {
         console.error("Failed to create calendar event:", calendarError);
         // Don't fail the booking if calendar creation fails
+      }
+
+      // Send booking confirmation email to client
+      console.log(`📧 Attempting to send booking confirmation email for calendar booking ${booking.id}`);
+      try {
+        const bookingDate = new Date(booking.startAt).toLocaleDateString('en-US', {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+          timeZone: photographer.timezone || 'America/New_York'
+        });
+        
+        const bookingTime = new Date(booking.startAt).toLocaleTimeString('en-US', {
+          hour: 'numeric',
+          minute: '2-digit',
+          hour12: true,
+          timeZone: photographer.timezone || 'America/New_York'
+        });
+        
+        const endTimeStr = new Date(booking.endAt).toLocaleTimeString('en-US', {
+          hour: 'numeric',
+          minute: '2-digit',
+          hour12: true,
+          timeZone: photographer.timezone || 'America/New_York'
+        });
+
+        // Get the final booking to ensure we have the Google Meet link
+        const finalBooking = await storage.getBooking(booking.id);
+        console.log(`📧 Calendar booking photographer: ${photographer.businessName}, Client: ${clientEmail}, Meet Link: ${!!finalBooking?.googleMeetLink}`);
+        
+        const emailSuccess = await sendEmail({
+          to: clientEmail,
+          from: `${photographer.businessName} <${process.env.SENDGRID_FROM_EMAIL}>`,
+          replyTo: photographer.emailFromAddr || process.env.SENDGRID_FROM_EMAIL,
+          subject: `📸 Your appointment with ${photographer.businessName} is confirmed!`,
+          html: `
+            <div style="max-width: 600px; margin: 0 auto; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333;">
+              <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; border-radius: 10px 10px 0 0;">
+                <h1 style="margin: 0; font-size: 24px;">✅ Appointment Confirmed!</h1>
+                <p style="margin: 10px 0 0 0; opacity: 0.9;">Your consultation with ${photographer.businessName}</p>
+              </div>
+              
+              <div style="background: white; padding: 30px; border-radius: 0 0 10px 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+                <h2 style="color: #4a5568; margin-top: 0;">📅 Appointment Details</h2>
+                
+                <div style="background: #f7fafc; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                  <p style="margin: 5px 0;"><strong>📅 Date:</strong> ${bookingDate}</p>
+                  <p style="margin: 5px 0;"><strong>🕒 Time:</strong> ${bookingTime} - ${endTimeStr}</p>
+                  <p style="margin: 5px 0;"><strong>👤 Client:</strong> ${clientName}</p>
+                  <p style="margin: 5px 0;"><strong>📧 Email:</strong> ${clientEmail}</p>
+                  ${clientPhone ? `<p style="margin: 5px 0;"><strong>📞 Phone:</strong> ${clientPhone}</p>` : ''}
+                </div>
+
+                ${finalBooking?.googleMeetLink ? `
+                  <div style="background: #e6fffa; border: 2px solid #38b2ac; padding: 20px; border-radius: 8px; margin: 20px 0; text-align: center;">
+                    <h3 style="color: #2d3748; margin-top: 0;">🎥 Video Call Details</h3>
+                    <p style="margin: 10px 0;">Join your appointment via Google Meet:</p>
+                    <a href="${finalBooking.googleMeetLink}" 
+                       style="background: #48bb78; color: white; padding: 12px 30px; text-decoration: none; border-radius: 25px; display: inline-block; font-weight: 600; margin: 10px 0;">
+                      🎥 Join Video Call
+                    </a>
+                    <p style="font-size: 14px; color: #718096; margin: 10px 0;">
+                      <strong>Meeting Link:</strong> ${finalBooking.googleMeetLink}
+                    </p>
+                  </div>
+                ` : ''}
+
+                <div style="background: #fff5f5; border: 2px solid #fc8181; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                  <h3 style="color: #2d3748; margin-top: 0;">⏰ Important Reminders</h3>
+                  <ul style="margin: 10px 0; padding-left: 20px;">
+                    <li>You'll receive a reminder email on the morning of your appointment</li>
+                    <li>Please join the video call 2-3 minutes early</li>
+                    <li>Make sure you have a reliable internet connection</li>
+                    <li>Have any questions or materials ready to discuss</li>
+                  </ul>
+                </div>
+
+                <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
+                  <p style="color: #718096; font-size: 14px; margin: 5px 0;">
+                    Need to reschedule or have questions? Reply to this email or contact us directly.
+                  </p>
+                  <p style="color: #718096; font-size: 14px; margin: 5px 0;">
+                    
+Best regards,
+${photographer.businessName}
+                  </p>
+                </div>
+              </div>
+            </div>
+          `,
+          text: `
+Appointment Confirmed!
+
+Your consultation with ${photographer.businessName} is confirmed for:
+
+Date: ${bookingDate}
+Time: ${bookingTime} - ${endTimeStr}
+Client: ${clientName}
+Email: ${clientEmail}
+${clientPhone ? `Phone: ${clientPhone}` : ''}
+
+${finalBooking?.googleMeetLink ? `Video Call Link: ${finalBooking.googleMeetLink}` : ''}
+
+Important Reminders:
+- You'll receive a reminder email on the morning of your appointment
+- Please join the video call 2-3 minutes early
+- Make sure you have a reliable internet connection
+- Have any questions or materials ready to discuss
+
+Need to reschedule or have questions? Reply to this email or contact us directly.
+
+Best regards,
+${photographer.businessName}
+          `
+        });
+        
+        if (emailSuccess) {
+          console.log(`✅ Calendar booking confirmation email sent to ${clientEmail} for booking ${booking.id}`);
+        } else {
+          console.error(`❌ Failed to send calendar booking confirmation email to ${clientEmail} for booking ${booking.id}`);
+        }
+      } catch (emailError) {
+        console.error('❌ Calendar booking confirmation email error:', emailError);
+        // Don't fail the booking confirmation if email sending fails
       }
 
       res.json({
