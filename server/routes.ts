@@ -2936,7 +2936,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
     }
   });
 
-  // Public booking calendar API - Get available slots for a photographer
+  // Public booking calendar API - Get photographer info and templates for client booking
   app.get("/api/public/booking/calendar/:publicToken", async (req, res) => {
     try {
       const { publicToken } = req.params;
@@ -2947,9 +2947,8 @@ ${photographer?.businessName || 'Your Photography Team'}`;
         return res.status(404).json({ message: "Photographer not found" });
       }
 
-      // Get available slots that aren't booked and are in the future
-      const now = new Date();
-      const availableSlots = await storage.getAvailableSlots(photographer.id, now);
+      // Get daily templates for this photographer
+      const dailyTemplates = await storage.getDailyAvailabilityTemplatesByPhotographer(photographer.id);
 
       res.json({
         success: true,
@@ -2957,23 +2956,64 @@ ${photographer?.businessName || 'Your Photography Team'}`;
           id: photographer.id,
           businessName: photographer.businessName,
           timezone: photographer.timezone,
-          brandPrimary: photographer.brandPrimary
+          brandPrimary: photographer.brandPrimary,
+          profilePicture: photographer.profilePicture // Add profile picture for branding
         },
-        availableSlots
+        dailyTemplates: dailyTemplates.filter(t => t.isEnabled) // Only return enabled templates
       });
     } catch (error) {
-      console.error("Error fetching available slots:", error);
+      console.error("Error fetching photographer info:", error);
       res.status(500).json({ 
         success: false,
-        message: "Failed to fetch available slots" 
+        message: "Failed to fetch photographer information" 
       });
     }
   });
 
-  // Public booking calendar API - Book a specific slot
-  app.post("/api/public/booking/calendar/:publicToken/book/:slotId", async (req, res) => {
+  // Public booking calendar API - Get available slots for a specific date
+  app.get("/api/public/booking/calendar/:publicToken/slots/:date", async (req, res) => {
     try {
-      const { publicToken, slotId } = req.params;
+      const { publicToken, date } = req.params;
+      
+      // Find photographer by public token
+      const photographer = await storage.getPhotographerByPublicToken(publicToken);
+      if (!photographer) {
+        return res.status(404).json({ message: "Photographer not found" });
+      }
+
+      // Validate date format (YYYY-MM-DD)
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+        return res.status(400).json({ message: "Invalid date format. Expected YYYY-MM-DD" });
+      }
+
+      // Generate slots for the specific date using the slot generation service
+      const slots = await slotGenerationService.getSlotsForDate(photographer.id, new Date(date));
+      
+      // Filter out slots that are in the past
+      const now = new Date();
+      const futureSlots = slots.filter(slot => {
+        const slotDateTime = new Date(`${slot.date}T${slot.startTime}`);
+        return slotDateTime > now;
+      });
+
+      res.json({
+        success: true,
+        date,
+        slots: futureSlots
+      });
+    } catch (error) {
+      console.error('Get public availability slots for date error:', error);
+      res.status(500).json({ 
+        success: false,
+        message: "Failed to fetch available slots for this date" 
+      });
+    }
+  });
+
+  // Public booking calendar API - Book a time slot
+  app.post("/api/public/booking/calendar/:publicToken/book/:date/:slotId", async (req, res) => {
+    try {
+      const { publicToken, date, slotId } = req.params;
       const { clientName, clientEmail, clientPhone, bookingNotes } = req.body;
 
       // Validate required fields
@@ -2983,35 +3023,62 @@ ${photographer?.businessName || 'Your Photography Team'}`;
         });
       }
 
+      // Validate date format (YYYY-MM-DD)
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+        return res.status(400).json({ message: "Invalid date format. Expected YYYY-MM-DD" });
+      }
+
+      // Parse slot ID to extract time range (format: "slot-09:00-10:00")
+      const slotMatch = slotId.match(/^slot-(\d{2}:\d{2})-(\d{2}:\d{2})$/);
+      if (!slotMatch) {
+        return res.status(400).json({ message: "Invalid slot format" });
+      }
+
+      const [, startTime, endTime] = slotMatch;
+
       // Find photographer by public token
       const photographer = await storage.getPhotographerByPublicToken(publicToken);
       if (!photographer) {
         return res.status(404).json({ message: "Photographer not found" });
       }
 
-      // Get the availability slot
-      const slot = await storage.getAvailabilitySlot(slotId);
-      if (!slot || slot.photographerId !== photographer.id) {
-        return res.status(404).json({ message: "Availability slot not found" });
+      // Verify the slot is actually available by checking templates
+      const availableSlots = await slotGenerationService.getSlotsForDate(photographer.id, new Date(date));
+      const requestedSlot = availableSlots.find(slot => slot.id === slotId);
+      if (!requestedSlot) {
+        return res.status(404).json({ message: "This time slot is not available" });
       }
 
-      // Check if slot is already booked
-      if (slot.isBooked) {
-        return res.status(400).json({ message: "This time slot is no longer available" });
-      }
+      // Create start and end datetime objects
+      const startAt = new Date(`${date}T${startTime}:00`);
+      const endAt = new Date(`${date}T${endTime}:00`);
 
       // Check if slot is in the future
-      if (new Date(slot.startAt) <= new Date()) {
+      if (startAt <= new Date()) {
         return res.status(400).json({ message: "Cannot book slots in the past" });
+      }
+
+      // Check if there's already a booking for this exact time slot
+      const existingBookings = await storage.getBookingsByPhotographer(photographer.id);
+      const conflictingBooking = existingBookings.find(booking => {
+        const bookingStart = new Date(booking.startAt);
+        const bookingEnd = new Date(booking.endAt);
+        
+        // Check for any time overlap
+        return (startAt < bookingEnd && endAt > bookingStart);
+      });
+
+      if (conflictingBooking) {
+        return res.status(400).json({ message: "This time slot is no longer available" });
       }
 
       // Create the booking
       const bookingData = {
         photographerId: photographer.id,
-        title: slot.title,
-        description: bookingNotes || slot.description,
-        startAt: slot.startAt,
-        endAt: slot.endAt,
+        title: `Consultation - ${startTime} to ${endTime}`,
+        description: bookingNotes || `Booking consultation with ${clientName}`,
+        startAt: startAt,
+        endAt: endAt,
         status: "PENDING",
         bookingType: "CONSULTATION",
         isFirstBooking: true, // Public bookings are typically first bookings
@@ -3022,18 +3089,15 @@ ${photographer?.businessName || 'Your Photography Team'}`;
 
       const booking = await storage.createBooking(bookingData);
 
-      // Mark the availability slot as booked
-      await storage.updateAvailabilitySlot(slotId, { isBooked: true });
-
       // Create calendar event if Google Calendar is connected
       try {
         const calendarResult = await createBookingCalendarEvent(
           photographer.id,
           {
-            title: slot.title,
+            title: `Consultation - ${clientName}`,
             description: `Booking with ${clientName}\nEmail: ${clientEmail}\nPhone: ${clientPhone || 'Not provided'}\n\n${bookingNotes || ''}`,
-            startTime: new Date(slot.startAt),
-            endTime: new Date(slot.endAt),
+            startTime: startAt,
+            endTime: endAt,
             clientEmail: clientEmail,
             clientName: clientName,
             timeZone: photographer.timezone

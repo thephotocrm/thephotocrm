@@ -4,7 +4,8 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { apiRequest } from "@/lib/queryClient";
+import { DayPicker } from "react-day-picker";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -16,8 +17,6 @@ import { useToast } from "@/hooks/use-toast";
 import { 
   Calendar, 
   Clock, 
-  ChevronLeft, 
-  ChevronRight,
   Camera,
   MapPin,
   User,
@@ -26,13 +25,22 @@ import {
   MessageSquare
 } from "lucide-react";
 
-interface AvailabilitySlot {
+interface TimeSlot {
   id: string;
-  title: string;
-  description?: string;
-  startAt: string;
-  endAt: string;
-  isBooked: boolean;
+  date: string;
+  startTime: string;
+  endTime: string;
+  isAvailable: boolean;
+  photographerId: string;
+}
+
+interface DailyTemplate {
+  id: string;
+  dayOfWeek: number; // 0 = Sunday, 1 = Monday, etc.
+  startTime: string;
+  endTime: string;
+  isEnabled: boolean;
+  photographerId: string;
 }
 
 interface Photographer {
@@ -40,12 +48,13 @@ interface Photographer {
   businessName: string;
   timezone: string;
   brandPrimary?: string;
+  profilePicture?: string;
 }
 
-interface CalendarData {
+interface PublicCalendarData {
   success: boolean;
   photographer: Photographer;
-  availableSlots: AvailabilitySlot[];
+  dailyTemplates: DailyTemplate[];
 }
 
 // Booking form validation schema
@@ -60,8 +69,8 @@ type BookingFormData = z.infer<typeof bookingFormSchema>;
 
 export default function PublicBookingCalendar() {
   const [, params] = useRoute("/public/booking/calendar/:publicToken");
-  const [currentDate, setCurrentDate] = useState(new Date());
-  const [selectedSlot, setSelectedSlot] = useState<AvailabilitySlot | null>(null);
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+  const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null);
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   const [bookingSuccess, setBookingSuccess] = useState(false);
   const { toast } = useToast();
@@ -77,28 +86,68 @@ export default function PublicBookingCalendar() {
     }
   });
 
-  const { data: calendarData, isLoading } = useQuery<CalendarData>({
+  // Get photographer info and templates
+  const { data: calendarData, isLoading } = useQuery<PublicCalendarData>({
     queryKey: [`/api/public/booking/calendar/${params?.publicToken}`],
-    enabled: !!params?.publicToken
+    enabled: !!params?.publicToken,
+    queryFn: async () => {
+      const response = await apiRequest("GET", `/api/public/booking/calendar/${params?.publicToken}`);
+      return await response.json();
+    }
+  });
+
+  // Helper function to format date for API calls (YYYY-MM-DD in local timezone)
+  const formatDateForAPI = (date: Date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  // Get time slots for selected date
+  const { data: timeSlots = [], isLoading: slotsLoading } = useQuery<TimeSlot[]>({
+    queryKey: [`/api/public/booking/calendar/${params?.publicToken}/slots`, selectedDate ? formatDateForAPI(selectedDate) : null],
+    enabled: !!params?.publicToken && !!selectedDate,
+    queryFn: async () => {
+      if (!selectedDate) return [];
+      const dateStr = formatDateForAPI(selectedDate);
+      const response = await apiRequest("GET", `/api/public/booking/calendar/${params?.publicToken}/slots/${dateStr}`);
+      const result = await response.json();
+      return result.slots || [];
+    }
   });
 
   // Booking mutation
   const bookingMutation = useMutation({
     mutationFn: async (formData: BookingFormData) => {
-      if (!selectedSlot || !params?.publicToken) {
+      if (!selectedSlot || !params?.publicToken || !selectedDate) {
         throw new Error("No slot selected or invalid token");
       }
       
-      return apiRequest("POST", `/api/public/booking/calendar/${params.publicToken}/book/${selectedSlot.id}`, formData);
+      const dateStr = formatDateForAPI(selectedDate);
+      const response = await apiRequest("POST", `/api/public/booking/calendar/${params.publicToken}/book/${dateStr}/${selectedSlot.id}`, formData);
+      return await response.json();
     },
     onSuccess: (data) => {
       setBookingSuccess(true);
-      setIsBookingModalOpen(false);
       bookingForm.reset();
+      setSelectedSlot(null);
+      
+      // Invalidate and refetch time slots to update availability
+      queryClient.invalidateQueries({
+        queryKey: [`/api/public/booking/calendar/${params?.publicToken}/slots`, selectedDate ? formatDateForAPI(selectedDate) : null]
+      });
+      
       toast({
         title: "Booking confirmed!",
         description: "You'll receive a confirmation email shortly with all the details.",
       });
+      
+      // Close modal after showing success for 2 seconds
+      setTimeout(() => {
+        setIsBookingModalOpen(false);
+        setBookingSuccess(false);
+      }, 2000);
     },
     onError: (error: any) => {
       toast({
@@ -121,73 +170,37 @@ export default function PublicBookingCalendar() {
     }
   };
 
-  // Generate calendar grid for current month
-  const generateCalendarGrid = () => {
-    const year = currentDate.getFullYear();
-    const month = currentDate.getMonth();
-    
-    // First day of the month
-    const firstDay = new Date(year, month, 1);
-    // Last day of the month
-    const lastDay = new Date(year, month + 1, 0);
-    
-    // Start from the Sunday before the first day
-    const startDate = new Date(firstDay);
-    startDate.setDate(startDate.getDate() - firstDay.getDay());
-    
-    // End at the Saturday after the last day
-    const endDate = new Date(lastDay);
-    endDate.setDate(endDate.getDate() + (6 - lastDay.getDay()));
-    
-    const days = [];
-    const currentDay = new Date(startDate);
-    
-    while (currentDay <= endDate) {
-      days.push(new Date(currentDay));
-      currentDay.setDate(currentDay.getDate() + 1);
-    }
-    
-    return days;
+  // Helper to normalize date to start of day for comparison
+  const startOfDay = (date: Date) => {
+    const normalized = new Date(date);
+    normalized.setHours(0, 0, 0, 0);
+    return normalized;
   };
 
-  // Get available slots for a specific date
-  const getSlotsForDate = (date: Date) => {
-    if (!calendarData?.availableSlots) return [];
+  // Check if a date has availability based on templates
+  const hasAvailability = (date: Date) => {
+    if (!calendarData?.dailyTemplates) return false;
     
-    const dateStr = date.toISOString().split('T')[0];
-    return calendarData.availableSlots.filter(slot => {
-      const slotDate = new Date(slot.startAt).toISOString().split('T')[0];
-      return slotDate === dateStr && !slot.isBooked;
-    });
+    const dayOfWeek = date.getDay(); // 0 = Sunday, 1 = Monday, etc.
+    return calendarData.dailyTemplates.some(template => 
+      template.dayOfWeek === dayOfWeek && template.isEnabled
+    );
+  };
+
+  // Handle date selection
+  const handleDateSelect = (date: Date | undefined) => {
+    setSelectedDate(date);
+    setSelectedSlot(null); // Clear selected slot when changing dates
   };
 
   // Format time for display
-  const formatTime = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleTimeString([], { 
-      hour: '2-digit', 
-      minute: '2-digit',
-      hour12: true 
-    });
+  const formatTime = (timeString: string) => {
+    const [hours, minutes] = timeString.split(':');
+    const hour = parseInt(hours);
+    const ampm = hour >= 12 ? 'PM' : 'AM';
+    const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+    return `${displayHour}:${minutes} ${ampm}`;
   };
-
-  // Navigate months
-  const navigateMonth = (direction: 'prev' | 'next') => {
-    const newDate = new Date(currentDate);
-    if (direction === 'prev') {
-      newDate.setMonth(newDate.getMonth() - 1);
-    } else {
-      newDate.setMonth(newDate.getMonth() + 1);
-    }
-    setCurrentDate(newDate);
-  };
-
-  const monthNames = [
-    "January", "February", "March", "April", "May", "June",
-    "July", "August", "September", "October", "November", "December"
-  ];
-
-  const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
   if (isLoading) {
     return (
@@ -217,22 +230,39 @@ export default function PublicBookingCalendar() {
   }
 
   const { photographer } = calendarData;
-  const calendarDays = generateCalendarGrid();
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
+    <div 
+      className="min-h-screen bg-gray-50"
+      style={{ 
+        '--brand-primary': photographer.brandPrimary || '#3b82f6',
+        '--brand-bg': photographer.brandPrimary ? `${photographer.brandPrimary}10` : '#eff6ff'
+      } as React.CSSProperties}
+    >
+      {/* Header with Photographer Branding */}
       <div className="bg-white shadow-sm border-b">
         <div className="max-w-6xl mx-auto px-4 py-6">
           <div className="flex items-center space-x-4">
-            <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center">
-              <Camera className="w-6 h-6 text-white" />
-            </div>
+            {photographer.profilePicture ? (
+              <img 
+                src={photographer.profilePicture}
+                alt={photographer.businessName}
+                className="w-16 h-16 rounded-full object-cover"
+                data-testid="photographer-profile-picture"
+              />
+            ) : (
+              <div 
+                className="w-16 h-16 rounded-full flex items-center justify-center text-white"
+                style={{ backgroundColor: photographer.brandPrimary || '#3b82f6' }}
+              >
+                <Camera className="w-8 h-8" />
+              </div>
+            )}
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">
+              <h1 className="text-3xl font-bold text-gray-900">
                 {photographer.businessName}
               </h1>
-              <p className="text-gray-600">Book your consultation appointment</p>
+              <p className="text-gray-600 text-lg">Book your consultation appointment</p>
             </div>
           </div>
         </div>
@@ -244,180 +274,275 @@ export default function PublicBookingCalendar() {
           <div className="lg:col-span-2">
             <Card>
               <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-xl">
-                    {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
-                  </CardTitle>
-                  <div className="flex space-x-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => navigateMonth('prev')}
-                      data-testid="button-prev-month"
-                    >
-                      <ChevronLeft className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => navigateMonth('next')}
-                      data-testid="button-next-month"
-                    >
-                      <ChevronRight className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
+                <CardTitle className="flex items-center gap-2">
+                  <Calendar className="w-5 h-5" />
+                  Select a Date
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                {/* Day headers */}
-                <div className="grid grid-cols-7 gap-1 mb-2">
-                  {dayNames.map(day => (
-                    <div key={day} className="p-2 text-center text-sm font-medium text-gray-500">
-                      {day}
-                    </div>
-                  ))}
-                </div>
-
-                {/* Calendar grid */}
-                <div className="grid grid-cols-7 gap-1">
-                  {calendarDays.map((day, index) => {
-                    const isCurrentMonth = day.getMonth() === currentDate.getMonth();
-                    const isToday = day.toDateString() === new Date().toDateString();
-                    const isPast = day < new Date(new Date().setHours(0, 0, 0, 0));
-                    const slots = getSlotsForDate(day);
-                    const hasAvailableSlots = slots.length > 0;
-
-                    return (
-                      <div
-                        key={index}
-                        className={`
-                          min-h-[100px] p-2 border border-gray-200 
-                          ${isCurrentMonth ? 'bg-white' : 'bg-gray-50'}
-                          ${isPast ? 'opacity-50' : ''}
-                          ${isToday ? 'ring-2 ring-blue-500' : ''}
-                        `}
-                        data-testid={`calendar-day-${day.getDate()}`}
-                      >
-                        <div className={`
-                          text-sm font-medium mb-1
-                          ${isCurrentMonth ? 'text-gray-900' : 'text-gray-400'}
-                          ${isToday ? 'text-blue-600' : ''}
-                        `}>
-                          {day.getDate()}
-                        </div>
-                        
-                        {hasAvailableSlots && !isPast && (
-                          <div className="space-y-1">
-                            {slots.slice(0, 3).map((slot, slotIndex) => (
-                              <button
-                                key={slot.id}
-                                onClick={() => setSelectedSlot(slot)}
-                                className="w-full text-xs p-1 rounded bg-blue-100 hover:bg-blue-200 text-blue-800 text-left"
-                                data-testid={`time-slot-${slot.id}`}
-                              >
-                                {formatTime(slot.startAt)}
-                              </button>
-                            ))}
-                            {slots.length > 3 && (
-                              <div className="text-xs text-gray-500">
-                                +{slots.length - 3} more
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
+                <DayPicker
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={handleDateSelect}
+                  disabled={(date) => startOfDay(date) < startOfDay(new Date()) || !hasAvailability(date)}
+                  className="rounded-md border"
+                  data-testid="calendar-day-picker"
+                  modifiers={{
+                    available: (date) => hasAvailability(date) && startOfDay(date) >= startOfDay(new Date())
+                  }}
+                  modifiersStyles={{
+                    available: { 
+                      backgroundColor: photographer.brandPrimary ? `${photographer.brandPrimary}20` : '#eff6ff',
+                      fontWeight: '600'
+                    }
+                  }}
+                />
               </CardContent>
             </Card>
           </div>
 
-          {/* Sidebar */}
+          {/* Time Slots Sidebar */}
           <div className="space-y-6">
-            {/* Selected slot details */}
-            {selectedSlot && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Selected Time Slot</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <h3 className="font-medium text-gray-900">{selectedSlot.title}</h3>
-                    {selectedSlot.description && (
-                      <p className="text-sm text-gray-600 mt-1">{selectedSlot.description}</p>
+            {/* Time Slots for Selected Date */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Clock className="w-5 h-5" />
+                  {selectedDate ? `Available Times - ${selectedDate.toLocaleDateString()}` : "Select a Date"}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {selectedDate ? (
+                  <div className="space-y-4">
+                    {slotsLoading ? (
+                      <div className="space-y-2">
+                        {Array.from({ length: 8 }).map((_, i) => (
+                          <div key={i} className="h-10 bg-muted rounded animate-pulse" />
+                        ))}
+                      </div>
+                    ) : !Array.isArray(timeSlots) || timeSlots.length === 0 ? (
+                      <div className="text-center py-8">
+                        <Clock className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                        <p className="text-muted-foreground mb-2">No availability for this day</p>
+                        <p className="text-sm text-muted-foreground">
+                          Please select a different date
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 gap-2">
+                        {Array.isArray(timeSlots) && timeSlots.map((slot) => (
+                          <button
+                            key={slot.id}
+                            onClick={() => setSelectedSlot(slot)}
+                            className={`p-3 rounded-lg border text-left transition-colors ${
+                              selectedSlot?.id === slot.id
+                                ? 'border-2'
+                                : 'border border-gray-200 hover:border-gray-300'
+                            }`}
+                            style={{
+                              backgroundColor: selectedSlot?.id === slot.id 
+                                ? photographer.brandPrimary ? `${photographer.brandPrimary}20` : '#eff6ff'
+                                : 'white',
+                              borderColor: selectedSlot?.id === slot.id 
+                                ? photographer.brandPrimary || '#3b82f6'
+                                : undefined
+                            }}
+                            data-testid={`time-slot-${slot.startTime}-${slot.endTime}`}
+                          >
+                            <div className="font-medium">
+                              {formatTime(slot.startTime)} - {formatTime(slot.endTime)}
+                            </div>
+                          </button>
+                        ))}
+                      </div>
                     )}
                   </div>
-                  
-                  <div className="flex items-center space-x-2 text-sm text-gray-600">
-                    <Calendar className="w-4 h-4" />
-                    <span>{new Date(selectedSlot.startAt).toLocaleDateString()}</span>
+                ) : (
+                  <div className="text-center py-8">
+                    <Calendar className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                    <p className="text-muted-foreground">Select a date to view available time slots</p>
                   </div>
-                  
-                  <div className="flex items-center space-x-2 text-sm text-gray-600">
-                    <Clock className="w-4 h-4" />
-                    <span>
-                      {formatTime(selectedSlot.startAt)} - {formatTime(selectedSlot.endAt)}
-                    </span>
-                  </div>
+                )}
+              </CardContent>
+            </Card>
 
-                  <Button
-                    className="w-full"
-                    style={{ backgroundColor: photographer.brandPrimary || '#3b82f6' }}
-                    onClick={handleBookSlot}
-                    data-testid="button-book-slot"
-                  >
-                    Book This Time
-                  </Button>
+            {/* Book Button */}
+            {selectedSlot && (
+              <Card>
+                <CardContent className="p-6">
+                  <div className="text-center">
+                    <h3 className="font-semibold mb-2">Selected Time</h3>
+                    <p className="text-lg mb-4">
+                      {formatTime(selectedSlot.startTime)} - {formatTime(selectedSlot.endTime)}
+                    </p>
+                    <Button
+                      onClick={handleBookSlot}
+                      className="w-full"
+                      style={{ 
+                        backgroundColor: photographer.brandPrimary || '#3b82f6',
+                        borderColor: photographer.brandPrimary || '#3b82f6'
+                      }}
+                      data-testid="button-book-slot"
+                    >
+                      Book This Time
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             )}
-
-            {/* Instructions */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">How to Book</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3 text-sm text-gray-600">
-                <div className="flex items-start space-x-2">
-                  <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <span className="text-xs font-medium text-blue-600">1</span>
-                  </div>
-                  <p>Select an available time slot from the calendar</p>
-                </div>
-                <div className="flex items-start space-x-2">
-                  <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <span className="text-xs font-medium text-blue-600">2</span>
-                  </div>
-                  <p>Click "Book This Time" to proceed</p>
-                </div>
-                <div className="flex items-start space-x-2">
-                  <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <span className="text-xs font-medium text-blue-600">3</span>
-                  </div>
-                  <p>Fill out your contact information</p>
-                </div>
-                <div className="flex items-start space-x-2">
-                  <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <span className="text-xs font-medium text-blue-600">4</span>
-                  </div>
-                  <p>Receive confirmation and calendar invite</p>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Contact info */}
-            <Card>
-              <CardContent className="pt-6">
-                <div className="text-center">
-                  <p className="text-sm text-gray-600 mb-2">Questions about booking?</p>
-                  <p className="text-sm font-medium">Contact {photographer.businessName}</p>
-                </div>
-              </CardContent>
-            </Card>
           </div>
         </div>
       </div>
+
+      {/* Booking Modal */}
+      <Dialog open={isBookingModalOpen} onOpenChange={(open) => {
+        setIsBookingModalOpen(open);
+        if (!open) {
+          setBookingSuccess(false); // Reset success state when modal closes
+        }
+      }}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Book Your Appointment</DialogTitle>
+          </DialogHeader>
+          
+          {bookingSuccess ? (
+            <div className="text-center py-6">
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-semibold mb-2">Booking Confirmed!</h3>
+              <p className="text-gray-600 mb-4">
+                You'll receive a confirmation email shortly with all the details.
+              </p>
+              <Button
+                onClick={() => {
+                  setBookingSuccess(false);
+                  setIsBookingModalOpen(false);
+                }}
+                data-testid="button-close-success"
+              >
+                Close
+              </Button>
+            </div>
+          ) : (
+            <Form {...bookingForm}>
+              <form onSubmit={bookingForm.handleSubmit(handleBookingSubmit)} className="space-y-4">
+                {selectedSlot && (
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <h4 className="font-medium mb-2">Selected Time</h4>
+                    <div className="text-sm text-gray-600">
+                      <p>{selectedDate?.toLocaleDateString()}</p>
+                      <p>{formatTime(selectedSlot.startTime)} - {formatTime(selectedSlot.endTime)}</p>
+                    </div>
+                  </div>
+                )}
+
+                <FormField
+                  control={bookingForm.control}
+                  name="clientName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Full Name *</FormLabel>
+                      <FormControl>
+                        <Input 
+                          placeholder="Enter your full name" 
+                          {...field} 
+                          data-testid="input-client-name"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={bookingForm.control}
+                  name="clientEmail"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email Address *</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="email" 
+                          placeholder="Enter your email address" 
+                          {...field} 
+                          data-testid="input-client-email"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={bookingForm.control}
+                  name="clientPhone"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Phone Number</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="tel" 
+                          placeholder="Enter your phone number" 
+                          {...field} 
+                          data-testid="input-client-phone"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={bookingForm.control}
+                  name="bookingNotes"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Additional Notes</FormLabel>
+                      <FormControl>
+                        <Textarea 
+                          placeholder="Any special requests or information..."
+                          className="min-h-[100px]"
+                          {...field} 
+                          data-testid="textarea-booking-notes"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <div className="flex space-x-3 pt-4">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setIsBookingModalOpen(false)}
+                    className="w-full"
+                    data-testid="button-cancel-booking"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    className="w-full"
+                    disabled={bookingMutation.isPending}
+                    style={{ 
+                      backgroundColor: photographer.brandPrimary || '#3b82f6',
+                      borderColor: photographer.brandPrimary || '#3b82f6'
+                    }}
+                    data-testid="button-confirm-booking"
+                  >
+                    {bookingMutation.isPending ? "Booking..." : "Confirm Booking"}
+                  </Button>
+                </div>
+              </form>
+            </Form>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
