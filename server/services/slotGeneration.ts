@@ -319,15 +319,41 @@ export class SlotGenerationService {
       60 // 1 hour duration
     );
     
-    // Convert to API format (similar to AvailabilitySlot but lightweight)
-    return timeSlots.map(slot => ({
-      id: `slot-${slot.startTime}-${slot.endTime}`,
-      date: dateString,
-      startTime: slot.startTime,
-      endTime: slot.endTime,
-      isAvailable: true,
-      photographerId
-    }));
+    // Get existing bookings for this date to filter out booked slots
+    const existingBookings = await storage.getBookingsByPhotographer(photographerId);
+    const dateBookings = existingBookings.filter(booking => {
+      const bookingDate = new Date(booking.startAt).toISOString().split('T')[0];
+      return bookingDate === dateString;
+    });
+    
+    // Convert to API format and filter out already booked slots
+    const availableSlots = timeSlots
+      .map(slot => ({
+        id: `slot-${slot.startTime}-${slot.endTime}`,
+        date: dateString,
+        startTime: slot.startTime,
+        endTime: slot.endTime,
+        isAvailable: true,
+        photographerId
+      }))
+      .filter(slot => {
+        // Check if this slot conflicts with any existing booking
+        const slotStart = this.combineDateTime(date, slot.startTime);
+        const slotEnd = this.combineDateTime(date, slot.endTime);
+        
+        // Return false if any booking overlaps with this slot
+        const hasConflict = dateBookings.some(booking => {
+          const bookingStart = new Date(booking.startAt);
+          const bookingEnd = new Date(booking.endAt);
+          
+          // Check for any time overlap: slot overlaps if it starts before booking ends and ends after booking starts
+          return (slotStart < bookingEnd && slotEnd > bookingStart);
+        });
+        
+        return !hasConflict; // Only return slots without conflicts
+      });
+    
+    return availableSlots;
   }
 
   /**
