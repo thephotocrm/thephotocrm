@@ -90,7 +90,9 @@ export default function Scheduling() {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [showTemplateModal, setShowTemplateModal] = useState(false);
   const [showOverrideModal, setShowOverrideModal] = useState(false);
+  const [showBookingDetailsModal, setShowBookingDetailsModal] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState<DailyTemplate | null>(null);
+  const [selectedBooking, setSelectedBooking] = useState<any>(null);
 
   // New API queries for template-based system
   const { data: dailyTemplates = [], isLoading: templatesLoading } = useQuery({
@@ -694,6 +696,9 @@ export default function Scheduling() {
                           onClick={() => {
                             if (booking.status === "PENDING") {
                               confirmBookingMutation.mutate(booking.id);
+                            } else {
+                              setSelectedBooking(booking);
+                              setShowBookingDetailsModal(true);
                             }
                           }}
                           disabled={booking.status === "PENDING" && confirmBookingMutation.isPending}
@@ -990,6 +995,147 @@ export default function Scheduling() {
                 </div>
               </form>
             </Form>
+          </DialogContent>
+        </Dialog>
+
+        {/* Booking Details Modal */}
+        <Dialog open={showBookingDetailsModal} onOpenChange={setShowBookingDetailsModal}>
+          <DialogContent className="max-w-lg">
+            <DialogHeader>
+              <DialogTitle>Booking Details</DialogTitle>
+            </DialogHeader>
+            
+            {selectedBooking && (
+              <div className="space-y-4">
+                {/* Booking Title */}
+                <div>
+                  <h3 className="font-medium text-lg" data-testid="modal-booking-title">
+                    {selectedBooking.title}
+                  </h3>
+                </div>
+
+                {/* Date and Time */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">Date</label>
+                    <p className="text-sm" data-testid="modal-booking-date">
+                      {(() => {
+                        const startDateTime = formatBookingDateTime(selectedBooking.startAt);
+                        return startDateTime.date;
+                      })()}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">Time</label>
+                    <p className="text-sm" data-testid="modal-booking-time">
+                      {(() => {
+                        const startDateTime = formatBookingDateTime(selectedBooking.startAt);
+                        const endDateTime = formatBookingDateTime(selectedBooking.endAt);
+                        return `${startDateTime.time} - ${endDateTime.time}`;
+                      })()}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Status and Type */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">Status</label>
+                    <p className="text-sm" data-testid="modal-booking-status">
+                      <Badge variant={selectedBooking.status === "CONFIRMED" ? "default" : "outline"}>
+                        {selectedBooking.status}
+                      </Badge>
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">Type</label>
+                    <p className="text-sm" data-testid="modal-booking-type">
+                      {selectedBooking.bookingType || "CONSULTATION"}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Client Information */}
+                {(selectedBooking.clientName || selectedBooking.clientEmail || selectedBooking.clientPhone) && (
+                  <div>
+                    <h4 className="font-medium mb-2">Client Information</h4>
+                    <div className="space-y-2 bg-muted p-3 rounded-lg">
+                      {selectedBooking.clientName && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm text-muted-foreground">👤 Name:</span>
+                          <span className="text-sm" data-testid="modal-client-name">
+                            {selectedBooking.clientName}
+                          </span>
+                        </div>
+                      )}
+                      {selectedBooking.clientEmail && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm text-muted-foreground">✉️ Email:</span>
+                          <span className="text-sm" data-testid="modal-client-email">
+                            {selectedBooking.clientEmail}
+                          </span>
+                        </div>
+                      )}
+                      {selectedBooking.clientPhone && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm text-muted-foreground">📞 Phone:</span>
+                          <span className="text-sm" data-testid="modal-client-phone">
+                            {selectedBooking.clientPhone}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Description */}
+                {selectedBooking.description && (
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">Description</label>
+                    <p className="text-sm mt-1" data-testid="modal-booking-description">
+                      {selectedBooking.description}
+                    </p>
+                  </div>
+                )}
+
+                {/* Google Meet Link */}
+                {selectedBooking.googleMeetLink && (
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">Meeting Link</label>
+                    <div className="flex items-center gap-2 mt-1">
+                      <a 
+                        href={selectedBooking.googleMeetLink} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-sm text-blue-600 hover:text-blue-800 underline"
+                        data-testid="modal-meeting-link"
+                      >
+                        Join Google Meet
+                      </a>
+                    </div>
+                  </div>
+                )}
+
+                {/* Created Date */}
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Created</label>
+                  <p className="text-sm" data-testid="modal-booking-created">
+                    {new Date(selectedBooking.createdAt).toLocaleDateString()} at {new Date(selectedBooking.createdAt).toLocaleTimeString()}
+                  </p>
+                </div>
+
+                {/* Close Button */}
+                <div className="flex justify-end pt-4">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setShowBookingDetailsModal(false)}
+                    data-testid="button-close-booking-details"
+                  >
+                    Close
+                  </Button>
+                </div>
+              </div>
+            )}
           </DialogContent>
         </Dialog>
 
