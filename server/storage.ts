@@ -138,6 +138,7 @@ export interface IStorage {
   
   // Daily Availability Breaks
   getDailyAvailabilityBreaksByTemplate(templateId: string): Promise<DailyAvailabilityBreak[]>;
+  getDailyAvailabilityBreak(id: string): Promise<DailyAvailabilityBreak | undefined>;
   createDailyAvailabilityBreak(breakTime: InsertDailyAvailabilityBreak): Promise<DailyAvailabilityBreak>;
   updateDailyAvailabilityBreak(id: string, breakTime: Partial<DailyAvailabilityBreak>): Promise<DailyAvailabilityBreak>;
   deleteDailyAvailabilityBreak(id: string): Promise<void>;
@@ -145,6 +146,7 @@ export interface IStorage {
   // Daily Availability Overrides
   getDailyAvailabilityOverridesByPhotographer(photographerId: string, startDate?: string, endDate?: string): Promise<DailyAvailabilityOverride[]>;
   getDailyAvailabilityOverrideByDate(photographerId: string, date: string): Promise<DailyAvailabilityOverride | undefined>;
+  getDailyAvailabilityOverride(id: string): Promise<DailyAvailabilityOverride | undefined>;
   createDailyAvailabilityOverride(override: InsertDailyAvailabilityOverride): Promise<DailyAvailabilityOverride>;
   updateDailyAvailabilityOverride(id: string, override: Partial<DailyAvailabilityOverride>): Promise<DailyAvailabilityOverride>;
   deleteDailyAvailabilityOverride(id: string): Promise<void>;
@@ -1347,6 +1349,11 @@ export class DatabaseStorage implements IStorage {
       .orderBy(asc(dailyAvailabilityBreaks.startTime));
   }
 
+  async getDailyAvailabilityBreak(id: string): Promise<DailyAvailabilityBreak | undefined> {
+    const [breakTime] = await db.select().from(dailyAvailabilityBreaks).where(eq(dailyAvailabilityBreaks.id, id));
+    return breakTime || undefined;
+  }
+
   async createDailyAvailabilityBreak(breakTime: InsertDailyAvailabilityBreak): Promise<DailyAvailabilityBreak> {
     const [newBreak] = await db.insert(dailyAvailabilityBreaks).values(breakTime).returning();
     return newBreak;
@@ -1386,6 +1393,11 @@ export class DatabaseStorage implements IStorage {
         eq(dailyAvailabilityOverrides.photographerId, photographerId),
         eq(dailyAvailabilityOverrides.date, date)
       ));
+    return override || undefined;
+  }
+
+  async getDailyAvailabilityOverride(id: string): Promise<DailyAvailabilityOverride | undefined> {
+    const [override] = await db.select().from(dailyAvailabilityOverrides).where(eq(dailyAvailabilityOverrides.id, id));
     return override || undefined;
   }
 

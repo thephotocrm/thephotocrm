@@ -10,12 +10,14 @@ import { sendEmail } from "./services/email";
 import { sendSms } from "./services/sms";
 import { createPaymentIntent, createCheckoutSession, createConnectCheckoutSession, calculatePlatformFee, handleWebhook, stripe } from "./services/stripe";
 import { googleCalendarService, createBookingCalendarEvent } from "./services/calendar";
+import { slotGenerationService } from "./services/slotGeneration";
 import { insertUserSchema, insertPhotographerSchema, insertClientSchema, insertStageSchema, 
          insertTemplateSchema, insertAutomationSchema, validateAutomationSchema, insertAutomationStepSchema, insertPackageSchema, 
          insertEstimateSchema, insertMessageSchema, insertBookingSchema, updateBookingSchema, 
          bookingConfirmationSchema, sanitizedBookingSchema, insertQuestionnaireTemplateSchema, insertQuestionnaireQuestionSchema, 
          insertAvailabilitySlotSchema, updateAvailabilitySlotSchema, emailLogs, smsLogs, projectActivityLog,
-         projectTypeEnum, createOnboardingLinkSchema, createPayoutSchema } from "@shared/schema";
+         projectTypeEnum, createOnboardingLinkSchema, createPayoutSchema, insertDailyAvailabilityTemplateSchema,
+         insertDailyAvailabilityBreakSchema, insertDailyAvailabilityOverrideSchema } from "@shared/schema";
 import { z } from "zod";
 import { startCronJobs } from "./jobs/cron";
 import path from "path";
@@ -2238,6 +2240,322 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       res.status(204).send();
     } catch (error) {
       console.error('Delete availability slot error:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Daily Availability Templates API routes for photographers
+  app.get("/api/availability/templates", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      const photographerId = req.user!.photographerId!;
+      const templates = await storage.getDailyAvailabilityTemplatesByPhotographer(photographerId);
+      res.json(templates);
+    } catch (error) {
+      console.error('Get availability templates error:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.post("/api/availability/templates", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      const photographerId = req.user!.photographerId!;
+      
+      // Inject photographerId before validation
+      const templateData = insertDailyAvailabilityTemplateSchema.parse({
+        ...req.body,
+        photographerId
+      });
+      
+      const template = await storage.createDailyAvailabilityTemplate(templateData);
+      
+      // Regenerate slots for this template if enabled
+      if (template.isEnabled) {
+        await slotGenerationService.regenerateSlotsForTemplate(template.id);
+      }
+      
+      res.status(201).json(template);
+    } catch (error: any) {
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ message: "Invalid template data", errors: error.errors });
+      }
+      console.error('Create availability template error:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.put("/api/availability/templates/:id", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      const template = await storage.getDailyAvailabilityTemplate(req.params.id);
+      if (!template) {
+        return res.status(404).json({ message: "Template not found" });
+      }
+
+      // Verify ownership
+      if (template.photographerId !== req.user!.photographerId!) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const updateData = insertDailyAvailabilityTemplateSchema.partial().parse(req.body);
+      const updatedTemplate = await storage.updateDailyAvailabilityTemplate(req.params.id, updateData);
+      
+      // Regenerate slots for this template
+      await slotGenerationService.regenerateSlotsForTemplate(updatedTemplate.id);
+      
+      res.json(updatedTemplate);
+    } catch (error: any) {
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ message: "Invalid template data", errors: error.errors });
+      }
+      console.error('Update availability template error:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.delete("/api/availability/templates/:id", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      const template = await storage.getDailyAvailabilityTemplate(req.params.id);
+      if (!template) {
+        return res.status(404).json({ message: "Template not found" });
+      }
+
+      // Verify ownership
+      if (template.photographerId !== req.user!.photographerId!) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      // Delete template (cascading delete handled in storage)
+      await storage.deleteDailyAvailabilityTemplate(req.params.id);
+      
+      res.status(204).send();
+    } catch (error) {
+      console.error('Delete availability template error:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Daily Availability Template Breaks API routes
+  app.get("/api/availability/templates/:templateId/breaks", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      const template = await storage.getDailyAvailabilityTemplate(req.params.templateId);
+      if (!template) {
+        return res.status(404).json({ message: "Template not found" });
+      }
+
+      // Verify ownership
+      if (template.photographerId !== req.user!.photographerId!) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const breaks = await storage.getDailyAvailabilityBreaksByTemplate(req.params.templateId);
+      res.json(breaks);
+    } catch (error) {
+      console.error('Get template breaks error:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.post("/api/availability/templates/:templateId/breaks", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      const template = await storage.getDailyAvailabilityTemplate(req.params.templateId);
+      if (!template) {
+        return res.status(404).json({ message: "Template not found" });
+      }
+
+      // Verify ownership
+      if (template.photographerId !== req.user!.photographerId!) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      // Inject templateId before validation
+      const breakData = insertDailyAvailabilityBreakSchema.parse({
+        ...req.body,
+        templateId: req.params.templateId
+      });
+      
+      const breakTime = await storage.createDailyAvailabilityBreak(breakData);
+      
+      // Regenerate slots for this template
+      await slotGenerationService.regenerateSlotsForTemplate(template.id);
+      
+      res.status(201).json(breakTime);
+    } catch (error: any) {
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ message: "Invalid break data", errors: error.errors });
+      }
+      console.error('Create template break error:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.put("/api/availability/breaks/:id", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      // Get the break to verify ownership through template
+      const breakTime = await storage.getDailyAvailabilityBreak(req.params.id);
+      if (!breakTime) {
+        return res.status(404).json({ message: "Break not found" });
+      }
+      
+      // Verify ownership through template
+      const template = await storage.getDailyAvailabilityTemplate(breakTime.templateId);
+      if (!template || template.photographerId !== req.user!.photographerId!) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      const updateData = insertDailyAvailabilityBreakSchema.partial().parse(req.body);
+      const updatedBreak = await storage.updateDailyAvailabilityBreak(req.params.id, updateData);
+      
+      // Regenerate slots for this template
+      await slotGenerationService.regenerateSlotsForTemplate(template.id);
+      
+      res.json(updatedBreak);
+    } catch (error: any) {
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ message: "Invalid break data", errors: error.errors });
+      }
+      console.error('Update template break error:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.delete("/api/availability/breaks/:id", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      // Get the break to verify ownership through template
+      const breakTime = await storage.getDailyAvailabilityBreak(req.params.id);
+      if (!breakTime) {
+        return res.status(404).json({ message: "Break not found" });
+      }
+      
+      // Verify ownership through template
+      const template = await storage.getDailyAvailabilityTemplate(breakTime.templateId);
+      if (!template || template.photographerId !== req.user!.photographerId!) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      await storage.deleteDailyAvailabilityBreak(req.params.id);
+      
+      // Regenerate slots for this template
+      await slotGenerationService.regenerateSlotsForTemplate(template.id);
+      
+      res.status(204).send();
+    } catch (error) {
+      console.error('Delete template break error:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Daily Availability Overrides API routes
+  app.get("/api/availability/overrides", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      const photographerId = req.user!.photographerId!;
+      const { startDate, endDate } = req.query as { startDate?: string; endDate?: string };
+      
+      const overrides = await storage.getDailyAvailabilityOverridesByPhotographer(
+        photographerId, 
+        startDate, 
+        endDate
+      );
+      res.json(overrides);
+    } catch (error) {
+      console.error('Get availability overrides error:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.post("/api/availability/overrides", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      const photographerId = req.user!.photographerId!;
+      
+      // Inject photographerId before validation
+      const overrideData = insertDailyAvailabilityOverrideSchema.parse({
+        ...req.body,
+        photographerId
+      });
+      
+      const override = await storage.createDailyAvailabilityOverride(overrideData);
+      
+      // Regenerate slots for this specific date
+      const date = new Date(override.date);
+      await slotGenerationService.regenerateSlotsForDate(photographerId, date);
+      
+      res.status(201).json(override);
+    } catch (error: any) {
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ message: "Invalid override data", errors: error.errors });
+      }
+      console.error('Create availability override error:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.put("/api/availability/overrides/:id", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      const override = await storage.getDailyAvailabilityOverride(req.params.id);
+      if (!override) {
+        return res.status(404).json({ message: "Override not found" });
+      }
+      
+      // Verify ownership
+      if (override.photographerId !== req.user!.photographerId!) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      const updateData = insertDailyAvailabilityOverrideSchema.partial().parse(req.body);
+      const updatedOverride = await storage.updateDailyAvailabilityOverride(req.params.id, updateData);
+      
+      // Regenerate slots for this specific date
+      const date = new Date(updatedOverride.date);
+      await slotGenerationService.regenerateSlotsForDate(updatedOverride.photographerId, date);
+      
+      res.json(updatedOverride);
+    } catch (error: any) {
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ message: "Invalid override data", errors: error.errors });
+      }
+      console.error('Update availability override error:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.delete("/api/availability/overrides/:id", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      const override = await storage.getDailyAvailabilityOverride(req.params.id);
+      if (!override) {
+        return res.status(404).json({ message: "Override not found" });
+      }
+      
+      // Verify ownership
+      if (override.photographerId !== req.user!.photographerId!) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      await storage.deleteDailyAvailabilityOverride(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error('Delete availability override error:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Slot Generation API routes
+  app.post("/api/availability/generate", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      const { startDate, endDate, slotDurationMinutes = 60 } = req.body;
+      const photographerId = req.user!.photographerId!;
+      
+      if (!startDate || !endDate) {
+        return res.status(400).json({ message: "startDate and endDate are required" });
+      }
+      
+      await slotGenerationService.generateSlotsForDateRange({
+        photographerId,
+        startDate: new Date(startDate),
+        endDate: new Date(endDate),
+        slotDurationMinutes
+      });
+      
+      res.json({ message: "Slots generated successfully" });
+    } catch (error) {
+      console.error('Generate availability slots error:', error);
       res.status(500).json({ message: "Internal server error" });
     }
   });
