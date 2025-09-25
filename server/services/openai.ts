@@ -56,65 +56,45 @@ Target Audience: Clients in "${targetStage}" stage
 Campaign Duration: Up to ${maxDurationMonths} months with emails every ${frequencyWeeks} weeks
   `.trim();
 
-  // Create AI prompt
-  const systemPrompt = `You are an expert email marketing strategist specializing in photography business nurturing campaigns. Create value-driven email sequences that educate, inspire, and build relationships - NOT welcome emails.
+  // Create focused AI prompt for better results
+  const systemPrompt = `You are an expert ${projectType.toLowerCase()} photography specialist and email marketing strategist. Create a ${emailCount}-email nurturing sequence with valuable, actionable content.
 
-IMPORTANT: These are NOT welcome emails. The clients have already been contacted and welcomed. Your job is to provide ongoing value and nurture the relationship.
+Business: ${photographer.businessName}
+Target: ${targetStage} stage clients
+Colors: Primary ${photographer.brandPrimary || '#2c3e50'}, Secondary ${photographer.brandSecondary || '#3498db'}
 
-Your goal is to create a ${emailCount}-email drip campaign for ${projectType.toLowerCase()} photography clients who are in the "${targetStage}" stage. These emails should be sent every ${frequencyWeeks} weeks over up to ${maxDurationMonths} months.
+CONTENT REQUIREMENTS:
+Each email must contain SPECIFIC, ACTIONABLE advice:
+- Detailed photography techniques with camera settings
+- Specific positioning/lighting advice  
+- Step-by-step preparation guides
+- Behind-the-scenes professional insights
+- Real examples and case studies
 
-Business Context:
-${businessContext}
+EMAIL STRUCTURE:
+- Compelling subject (no "welcome" or "thank you")
+- Professional HTML with brand colors and mobile-responsive design
+- Plain text version
+- Booking CTA every 2-3 emails
 
-Content Strategy:
-1. AVOID welcome/thank you emails - assume first contact already happened
-2. Focus on value-added content: tips, tutorials, behind-the-scenes insights
-3. Share photography expertise and industry knowledge
-4. Include booking CTAs in every 2-3 emails (not every email)
-5. Use storytelling and social proof
-6. Address common concerns and questions
-7. Provide actionable advice they can use
-8. Build trust through expertise demonstration
+${customPrompt ? `Special focus: ${customPrompt}` : ''}
 
-Email Types to Include:
-- Photography tips and techniques
-- Behind-the-scenes process insights  
-- Client success stories and case studies
-- Seasonal inspiration and trends
-- Planning guides and preparation tips
-- Industry insights and trends
-- Personal photographer stories
-- Portfolio highlights with context
-- Booking encouragement (every 2-3 emails)
+Respond with JSON containing:
+{
+  "emails": [
+    {
+      "subject": "specific compelling subject",
+      "htmlBody": "full HTML with inline CSS, brand colors, responsive design", 
+      "textBody": "plain text version with actionable tips",
+      "weeksAfterStart": 0
+    }
+  ],
+  "campaignDescription": "brief strategy description"
+}`;
 
-HTML Styling Requirements:
-- Use modern, clean HTML design with professional photography branding
-- MANDATORY: Use photographer's brand colors: Primary: ${photographer.brandPrimary || '#2c3e50'}, Secondary: ${photographer.brandSecondary || '#3498db'}
-- Mobile-responsive design with max-width: 600px and proper viewport scaling
-- Professional email typography with web-safe fonts (Arial, Helvetica, sans-serif)
-- Clean header with business name and subtle branding
-- Well-structured content sections with proper spacing and visual hierarchy
-- Professional call-to-action buttons using brand colors with hover effects
-- Consistent color scheme throughout: use primary color for headers, secondary for buttons/accents
-- Include subtle photography-themed design elements
-- Professional footer with contact information and unsubscribe
-- Ensure accessibility with proper contrast ratios and readable fonts
+  const userPrompt = `Create ${emailCount} valuable ${projectType.toLowerCase()} photography emails for ${photographer.businessName}. Each email should teach specific techniques, provide actionable tips, or share professional insights that help clients understand the value of professional photography.
 
-${customPrompt ? `Additional Instructions: ${customPrompt}` : ''}
-
-Respond with a JSON object containing an array of "emails" where each email has:
-- subject: Compelling subject line (NO "Welcome" or "Thank you" subjects)
-- htmlBody: Full HTML email with professional styling using brand colors
-- textBody: Plain text version of the email
-- weeksAfterStart: When to send this email (0, 2, 4, 6, etc.)
-
-Also include:
-- campaignDescription: Brief description of the overall campaign strategy
-`;
-
-  const userPrompt = `Generate a ${emailCount}-email nurturing campaign for ${photographer.businessName}'s ${projectType.toLowerCase()} photography business, targeting clients in the "${targetStage}" stage. Make it personal, valuable, and conversion-focused while maintaining a warm, authentic tone.
-
-Please respond with valid JSON only.`;
+Focus on detailed, practical advice - NOT generic content. Include specific camera settings, positioning tips, and preparation advice in each email.`;
 
   try {
     console.log('Calling OpenAI with user prompt:', userPrompt.substring(0, 200) + '...');
@@ -131,7 +111,7 @@ Please respond with valid JSON only.`;
         { role: "user", content: userPrompt }
       ],
       response_format: { type: "json_object" },
-      max_completion_tokens: 4000,
+      max_completion_tokens: 8000, // Increased for better email generation
     });
     
     const response = await Promise.race([openaiPromise, timeoutPromise]) as any;
@@ -164,10 +144,14 @@ Please respond with valid JSON only.`;
       businessContext
     };
   } catch (error) {
-    console.error('Error generating drip campaign:', error);
+    console.error('🚨 DRIP CAMPAIGN GENERATION FAILED 🚨');
+    console.error('Error type:', error.constructor.name);
+    console.error('Error message:', (error as Error).message);
+    console.error('Full error details:', error);
     
     // Provide fallback if OpenAI fails
-    console.log('Providing fallback drip campaign due to OpenAI error:', (error as Error).message);
+    console.log('🔄 USING FALLBACK TEMPLATES - OpenAI generation failed:', (error as Error).message);
+    console.log('⚠️ This means users are getting generic content instead of AI-generated tips!');
     
     // Generate comprehensive fallback emails for the requested count
     const fallbackTemplates = [
