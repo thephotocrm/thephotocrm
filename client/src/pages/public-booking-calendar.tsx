@@ -4,7 +4,6 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { DayPicker } from "react-day-picker";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -22,7 +21,9 @@ import {
   User,
   Mail,
   Phone,
-  MessageSquare
+  MessageSquare,
+  ChevronLeft,
+  ChevronRight
 } from "lucide-react";
 
 interface TimeSlot {
@@ -69,6 +70,7 @@ type BookingFormData = z.infer<typeof bookingFormSchema>;
 
 export default function PublicBookingCalendar() {
   const [, params] = useRoute("/public/booking/calendar/:publicToken");
+  const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null);
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
@@ -177,6 +179,68 @@ export default function PublicBookingCalendar() {
     return normalized;
   };
 
+  // Month navigation functions
+  const navigateMonth = (direction: 'prev' | 'next') => {
+    const newDate = new Date(currentDate);
+    if (direction === 'prev') {
+      newDate.setMonth(newDate.getMonth() - 1);
+    } else {
+      newDate.setMonth(newDate.getMonth() + 1);
+    }
+    setCurrentDate(newDate);
+  };
+
+  // Generate calendar grid for current month
+  const generateCalendarGrid = () => {
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
+    
+    // First day of the month
+    const firstDay = new Date(year, month, 1);
+    // Last day of the month
+    const lastDay = new Date(year, month + 1, 0);
+    
+    // Start from the Sunday before the first day
+    const startDate = new Date(firstDay);
+    startDate.setDate(startDate.getDate() - firstDay.getDay());
+    
+    // End at the Saturday after the last day
+    const endDate = new Date(lastDay);
+    endDate.setDate(endDate.getDate() + (6 - lastDay.getDay()));
+    
+    const days = [];
+    const currentDay = new Date(startDate);
+    
+    while (currentDay <= endDate) {
+      days.push(new Date(currentDay));
+      currentDay.setDate(currentDay.getDate() + 1);
+    }
+    
+    return days;
+  };
+
+  // Format selected date for display
+  const formatSelectedDate = (date: Date) => {
+    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const months = ['January', 'February', 'March', 'April', 'May', 'June', 
+                   'July', 'August', 'September', 'October', 'November', 'December'];
+    
+    const dayName = days[date.getDay()];
+    const monthName = months[date.getMonth()];
+    const dayNumber = date.getDate();
+    
+    return `${dayName}, ${monthName} ${dayNumber}`;
+  };
+
+  // Month names for header
+  const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+                     'July', 'August', 'September', 'October', 'November', 'December'];
+  
+  // Day headers
+  const dayHeaders = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+
+  const calendarDays = generateCalendarGrid();
+
   // Check if a date has availability based on templates
   const hasAvailability = (date: Date) => {
     if (!calendarData?.dailyTemplates) return false;
@@ -268,88 +332,149 @@ export default function PublicBookingCalendar() {
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Calendar */}
-          <div className="lg:col-span-2">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Calendar className="w-5 h-5" />
-                  Select a Date
-                </CardTitle>
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Custom Calendar */}
+          <div>
+            <Card className="shadow-sm">
+              <CardHeader className="pb-4">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-xl font-semibold text-gray-900">
+                    Select a Date & Time
+                  </h2>
+                </div>
               </CardHeader>
               <CardContent>
-                <DayPicker
-                  mode="single"
-                  selected={selectedDate}
-                  onSelect={handleDateSelect}
-                  disabled={(date) => startOfDay(date) < startOfDay(new Date()) || !hasAvailability(date)}
-                  className="rounded-md border"
-                  data-testid="calendar-day-picker"
-                  modifiers={{
-                    available: (date) => hasAvailability(date) && startOfDay(date) >= startOfDay(new Date())
-                  }}
-                  modifiersStyles={{
-                    available: { 
-                      backgroundColor: photographer.brandPrimary ? `${photographer.brandPrimary}20` : '#eff6ff',
-                      fontWeight: '600'
-                    }
-                  }}
-                />
+                {/* Calendar Header */}
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-lg font-medium text-gray-900">
+                    {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
+                  </h3>
+                  <div className="flex space-x-1">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => navigateMonth('prev')}
+                      className="h-8 w-8 p-0 hover:bg-gray-100"
+                      data-testid="button-prev-month"
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => navigateMonth('next')}
+                      className="h-8 w-8 p-0 hover:bg-gray-100"
+                      data-testid="button-next-month"
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Day Headers */}
+                <div className="grid grid-cols-7 gap-1 mb-2">
+                  {dayHeaders.map(day => (
+                    <div key={day} className="p-2 text-center text-xs font-medium text-gray-500 uppercase">
+                      {day}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Calendar Grid */}
+                <div className="grid grid-cols-7 gap-1">
+                  {calendarDays.map((day, index) => {
+                    const isCurrentMonth = day.getMonth() === currentDate.getMonth();
+                    const isToday = day.toDateString() === new Date().toDateString();
+                    const isPast = startOfDay(day) < startOfDay(new Date());
+                    const isSelected = selectedDate && day.toDateString() === selectedDate.toDateString();
+                    const isAvailable = hasAvailability(day) && !isPast;
+
+                    return (
+                      <button
+                        key={index}
+                        onClick={() => isAvailable ? handleDateSelect(day) : null}
+                        disabled={!isAvailable}
+                        className={`
+                          h-10 w-10 text-sm font-medium rounded-full flex items-center justify-center
+                          transition-colors duration-200 hover:bg-gray-100
+                          ${isCurrentMonth 
+                            ? (isAvailable 
+                              ? 'text-gray-900 cursor-pointer' 
+                              : 'text-gray-400 cursor-not-allowed')
+                            : 'text-gray-300 cursor-not-allowed'
+                          }
+                          ${isSelected 
+                            ? 'bg-blue-600 text-white hover:bg-blue-700' 
+                            : ''
+                          }
+                          ${isToday && !isSelected 
+                            ? 'bg-blue-50 text-blue-600 font-semibold' 
+                            : ''
+                          }
+                          ${isAvailable && !isSelected && !isToday
+                            ? 'hover:bg-blue-50 hover:text-blue-600'
+                            : ''
+                          }
+                        `}
+                        data-testid={`calendar-day-${day.getDate()}`}
+                      >
+                        {day.getDate()}
+                      </button>
+                    );
+                  })}
+                </div>
               </CardContent>
             </Card>
           </div>
 
-          {/* Time Slots Sidebar */}
-          <div className="space-y-6">
-            {/* Time Slots for Selected Date */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Clock className="w-5 h-5" />
-                  {selectedDate ? `Available Times - ${selectedDate.toLocaleDateString()}` : "Select a Date"}
-                </CardTitle>
+          {/* Time Slots */}
+          <div>
+            <Card className="shadow-sm">
+              <CardHeader className="pb-4">
+                <h3 className="text-xl font-semibold text-gray-900">
+                  {selectedDate ? formatSelectedDate(selectedDate) : "Select a date"}
+                </h3>
+                {selectedDate && (
+                  <p className="text-gray-600 text-sm mt-1">
+                    Available times
+                  </p>
+                )}
               </CardHeader>
               <CardContent>
                 {selectedDate ? (
-                  <div className="space-y-4">
+                  <div className="space-y-3">
                     {slotsLoading ? (
-                      <div className="space-y-2">
-                        {Array.from({ length: 8 }).map((_, i) => (
-                          <div key={i} className="h-10 bg-muted rounded animate-pulse" />
+                      <div className="space-y-3">
+                        {Array.from({ length: 6 }).map((_, i) => (
+                          <div key={i} className="h-12 bg-gray-100 rounded-lg animate-pulse" />
                         ))}
                       </div>
                     ) : !Array.isArray(timeSlots) || timeSlots.length === 0 ? (
-                      <div className="text-center py-8">
-                        <Clock className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                        <p className="text-muted-foreground mb-2">No availability for this day</p>
-                        <p className="text-sm text-muted-foreground">
+                      <div className="text-center py-12">
+                        <Clock className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                        <p className="text-gray-600 mb-2 font-medium">No times available</p>
+                        <p className="text-sm text-gray-500">
                           Please select a different date
                         </p>
                       </div>
                     ) : (
-                      <div className="grid grid-cols-1 gap-2">
+                      <div className="space-y-3">
                         {Array.isArray(timeSlots) && timeSlots.map((slot) => (
                           <button
                             key={slot.id}
                             onClick={() => setSelectedSlot(slot)}
-                            className={`p-3 rounded-lg border text-left transition-colors ${
-                              selectedSlot?.id === slot.id
-                                ? 'border-2'
-                                : 'border border-gray-200 hover:border-gray-300'
-                            }`}
-                            style={{
-                              backgroundColor: selectedSlot?.id === slot.id 
-                                ? photographer.brandPrimary ? `${photographer.brandPrimary}20` : '#eff6ff'
-                                : 'white',
-                              borderColor: selectedSlot?.id === slot.id 
-                                ? photographer.brandPrimary || '#3b82f6'
-                                : undefined
-                            }}
+                            className={`
+                              w-full px-4 py-3 rounded-lg text-left transition-all duration-200
+                              font-medium border-2 hover:shadow-sm
+                              ${selectedSlot?.id === slot.id
+                                ? 'bg-blue-50 border-blue-500 text-blue-700 shadow-sm'
+                                : 'bg-white border-gray-200 text-gray-700 hover:border-gray-300 hover:bg-gray-50'
+                              }
+                            `}
                             data-testid={`time-slot-${slot.startTime}-${slot.endTime}`}
                           >
-                            <div className="font-medium">
+                            <div className="text-center">
                               {formatTime(slot.startTime)} - {formatTime(slot.endTime)}
                             </div>
                           </button>
@@ -358,9 +483,12 @@ export default function PublicBookingCalendar() {
                     )}
                   </div>
                 ) : (
-                  <div className="text-center py-8">
-                    <Calendar className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                    <p className="text-muted-foreground">Select a date to view available time slots</p>
+                  <div className="text-center py-12">
+                    <Calendar className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                    <p className="text-gray-600 font-medium">Select a date to view available times</p>
+                    <p className="text-sm text-gray-500 mt-1">
+                      Choose from available dates in the calendar
+                    </p>
                   </div>
                 )}
               </CardContent>
@@ -368,27 +496,18 @@ export default function PublicBookingCalendar() {
 
             {/* Book Button */}
             {selectedSlot && (
-              <Card>
-                <CardContent className="p-6">
-                  <div className="text-center">
-                    <h3 className="font-semibold mb-2">Selected Time</h3>
-                    <p className="text-lg mb-4">
-                      {formatTime(selectedSlot.startTime)} - {formatTime(selectedSlot.endTime)}
-                    </p>
-                    <Button
-                      onClick={handleBookSlot}
-                      className="w-full"
-                      style={{ 
-                        backgroundColor: photographer.brandPrimary || '#3b82f6',
-                        borderColor: photographer.brandPrimary || '#3b82f6'
-                      }}
-                      data-testid="button-book-slot"
-                    >
-                      Book This Time
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
+              <div className="mt-6">
+                <Button
+                  onClick={handleBookSlot}
+                  className="w-full py-4 text-lg font-semibold bg-blue-600 hover:bg-blue-700 text-white shadow-sm"
+                  data-testid="button-book-slot"
+                >
+                  Continue to Book
+                </Button>
+                <p className="text-center text-sm text-gray-500 mt-3">
+                  Selected: {formatTime(selectedSlot.startTime)} - {formatTime(selectedSlot.endTime)}
+                </p>
+              </div>
             )}
           </div>
         </div>
