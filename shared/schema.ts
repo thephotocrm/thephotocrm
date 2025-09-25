@@ -310,6 +310,39 @@ export const projectQuestionnaires = pgTable("project_questionnaires", {
   completedAt: timestamp("completed_at")
 });
 
+// Daily availability templates for weekly patterns (e.g., "Monday: 8am-6pm")
+export const dailyAvailabilityTemplates = pgTable("daily_availability_templates", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  photographerId: varchar("photographer_id").notNull().references(() => photographers.id),
+  dayOfWeek: integer("day_of_week").notNull(), // 0=Sunday, 1=Monday, etc.
+  startTime: text("start_time").notNull(), // "08:00"
+  endTime: text("end_time").notNull(), // "18:00"
+  isEnabled: boolean("is_enabled").default(true),
+  createdAt: timestamp("created_at").defaultNow()
+});
+
+// Break times within daily availability (e.g., "12pm-2pm lunch break")
+export const dailyAvailabilityBreaks = pgTable("daily_availability_breaks", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  templateId: varchar("template_id").notNull().references(() => dailyAvailabilityTemplates.id),
+  startTime: text("start_time").notNull(), // "12:00"
+  endTime: text("end_time").notNull(), // "14:00"
+  label: text("label"), // "Lunch break"
+  createdAt: timestamp("created_at").defaultNow()
+});
+
+// Date-specific overrides for custom hours or closures
+export const dailyAvailabilityOverrides = pgTable("daily_availability_overrides", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  photographerId: varchar("photographer_id").notNull().references(() => photographers.id),
+  date: text("date").notNull(), // "2024-01-15" format
+  startTime: text("start_time"), // null = closed day
+  endTime: text("end_time"),
+  breaks: json("breaks"), // Array of {startTime, endTime, label}
+  reason: text("reason"), // "Holiday", "Vacation", etc.
+  createdAt: timestamp("created_at").defaultNow()
+});
+
 export const availabilitySlots = pgTable("availability_slots", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   photographerId: varchar("photographer_id").notNull().references(() => photographers.id),
@@ -320,6 +353,7 @@ export const availabilitySlots = pgTable("availability_slots", {
   isBooked: boolean("is_booked").default(false),
   isRecurring: boolean("is_recurring").default(false),
   recurrencePattern: text("recurrence_pattern"), // WEEKLY, DAILY
+  sourceTemplateId: varchar("source_template_id"), // Reference to daily template that generated this slot
   createdAt: timestamp("created_at").defaultNow()
 });
 
@@ -827,6 +861,11 @@ export const sanitizedBookingSchema = z.object({
   createdAt: z.date()
 });
 
+// Daily availability template schemas
+export const insertDailyAvailabilityTemplateSchema = createInsertSchema(dailyAvailabilityTemplates).omit({ id: true });
+export const insertDailyAvailabilityBreakSchema = createInsertSchema(dailyAvailabilityBreaks).omit({ id: true });
+export const insertDailyAvailabilityOverrideSchema = createInsertSchema(dailyAvailabilityOverrides).omit({ id: true });
+
 // Availability slot schemas
 export const insertAvailabilitySlotSchema = z.discriminatedUnion("isRecurring", [
   // Single availability slot
@@ -894,6 +933,12 @@ export type ProjectChecklistItem = typeof projectChecklistItems.$inferSelect;
 export type ProjectQuestionnaire = typeof projectQuestionnaires.$inferSelect;
 export type ClientPortalToken = typeof clientPortalTokens.$inferSelect;
 export type InsertClientPortalToken = z.infer<typeof insertClientPortalTokenSchema>;
+export type DailyAvailabilityTemplate = typeof dailyAvailabilityTemplates.$inferSelect;
+export type InsertDailyAvailabilityTemplate = z.infer<typeof insertDailyAvailabilityTemplateSchema>;
+export type DailyAvailabilityBreak = typeof dailyAvailabilityBreaks.$inferSelect;
+export type InsertDailyAvailabilityBreak = z.infer<typeof insertDailyAvailabilityBreakSchema>;
+export type DailyAvailabilityOverride = typeof dailyAvailabilityOverrides.$inferSelect;
+export type InsertDailyAvailabilityOverride = z.infer<typeof insertDailyAvailabilityOverrideSchema>;
 export type AvailabilitySlot = typeof availabilitySlots.$inferSelect;
 export type InsertAvailabilitySlot = z.infer<typeof insertAvailabilitySlotSchema>;
 export type Booking = typeof bookings.$inferSelect;

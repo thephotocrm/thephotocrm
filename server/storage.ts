@@ -5,6 +5,7 @@ import {
   availabilitySlots, bookings, estimates, estimateItems, estimatePayments,
   photographerEarnings, photographerPayouts,
   messages, projectActivityLog, clientPortalTokens,
+  dailyAvailabilityTemplates, dailyAvailabilityBreaks, dailyAvailabilityOverrides,
   type User, type InsertUser, type Photographer, type InsertPhotographer,
   type Client, type InsertClient, type Project, type InsertProject, type ProjectWithClientAndStage, type ClientWithProjects, type Stage, type InsertStage,
   type Template, type InsertTemplate, type Automation, type InsertAutomation,
@@ -16,6 +17,9 @@ import {
   type QuestionnaireQuestion, type InsertQuestionnaireQuestion,
   type Message, type InsertMessage, type ProjectActivityLog, type TimelineEvent, type ClientPortalToken, type InsertClientPortalToken,
   type Proposal, type InsertProposal, type ProposalItem, type ProposalPayment, type ProposalWithProject, type ProposalWithRelations,
+  type DailyAvailabilityTemplate, type InsertDailyAvailabilityTemplate,
+  type DailyAvailabilityBreak, type InsertDailyAvailabilityBreak,
+  type DailyAvailabilityOverride, type InsertDailyAvailabilityOverride,
   type AvailabilitySlot, type InsertAvailabilitySlot,
   type Booking, type InsertBooking
 } from "@shared/schema";
@@ -124,6 +128,26 @@ export interface IStorage {
   createBooking(booking: InsertBooking): Promise<Booking>;
   updateBooking(id: string, booking: Partial<Booking>): Promise<Booking>;
   deleteBooking(id: string): Promise<void>;
+
+  // Daily Availability Templates
+  getDailyAvailabilityTemplatesByPhotographer(photographerId: string): Promise<DailyAvailabilityTemplate[]>;
+  getDailyAvailabilityTemplate(id: string): Promise<DailyAvailabilityTemplate | undefined>;
+  createDailyAvailabilityTemplate(template: InsertDailyAvailabilityTemplate): Promise<DailyAvailabilityTemplate>;
+  updateDailyAvailabilityTemplate(id: string, template: Partial<DailyAvailabilityTemplate>): Promise<DailyAvailabilityTemplate>;
+  deleteDailyAvailabilityTemplate(id: string): Promise<void>;
+  
+  // Daily Availability Breaks
+  getDailyAvailabilityBreaksByTemplate(templateId: string): Promise<DailyAvailabilityBreak[]>;
+  createDailyAvailabilityBreak(breakTime: InsertDailyAvailabilityBreak): Promise<DailyAvailabilityBreak>;
+  updateDailyAvailabilityBreak(id: string, breakTime: Partial<DailyAvailabilityBreak>): Promise<DailyAvailabilityBreak>;
+  deleteDailyAvailabilityBreak(id: string): Promise<void>;
+  
+  // Daily Availability Overrides
+  getDailyAvailabilityOverridesByPhotographer(photographerId: string, startDate?: string, endDate?: string): Promise<DailyAvailabilityOverride[]>;
+  getDailyAvailabilityOverrideByDate(photographerId: string, date: string): Promise<DailyAvailabilityOverride | undefined>;
+  createDailyAvailabilityOverride(override: InsertDailyAvailabilityOverride): Promise<DailyAvailabilityOverride>;
+  updateDailyAvailabilityOverride(id: string, override: Partial<DailyAvailabilityOverride>): Promise<DailyAvailabilityOverride>;
+  deleteDailyAvailabilityOverride(id: string): Promise<void>;
 
   // Availability Slots
   getAvailabilitySlotsByPhotographer(photographerId: string): Promise<AvailabilitySlot[]>;
@@ -1262,6 +1286,138 @@ export class DatabaseStorage implements IStorage {
         gt(availabilitySlots.startAt, afterDate)
       ))
       .orderBy(asc(availabilitySlots.startAt));
+  }
+
+  // Daily Availability Template methods
+  async getDailyAvailabilityTemplatesByPhotographer(photographerId: string): Promise<DailyAvailabilityTemplate[]> {
+    return await db.select().from(dailyAvailabilityTemplates)
+      .where(eq(dailyAvailabilityTemplates.photographerId, photographerId))
+      .orderBy(asc(dailyAvailabilityTemplates.dayOfWeek));
+  }
+
+  async getDailyAvailabilityTemplate(id: string): Promise<DailyAvailabilityTemplate | undefined> {
+    const [template] = await db.select().from(dailyAvailabilityTemplates).where(eq(dailyAvailabilityTemplates.id, id));
+    return template || undefined;
+  }
+
+  async createDailyAvailabilityTemplate(template: InsertDailyAvailabilityTemplate): Promise<DailyAvailabilityTemplate> {
+    const [newTemplate] = await db.insert(dailyAvailabilityTemplates).values(template).returning();
+    return newTemplate;
+  }
+
+  async updateDailyAvailabilityTemplate(id: string, template: Partial<DailyAvailabilityTemplate>): Promise<DailyAvailabilityTemplate> {
+    const [updatedTemplate] = await db.update(dailyAvailabilityTemplates)
+      .set(template)
+      .where(eq(dailyAvailabilityTemplates.id, id))
+      .returning();
+    return updatedTemplate;
+  }
+
+  async deleteDailyAvailabilityTemplate(id: string): Promise<void> {
+    // Use transaction to safely delete template and all related data
+    await db.transaction(async (trx) => {
+      // First delete all breaks related to this template
+      await trx.delete(dailyAvailabilityBreaks)
+        .where(eq(dailyAvailabilityBreaks.templateId, id));
+      
+      // Delete any availability slots that were generated from this template
+      await trx.delete(availabilitySlots)
+        .where(eq(availabilitySlots.sourceTemplateId, id));
+      
+      // Finally delete the template itself
+      await trx.delete(dailyAvailabilityTemplates)
+        .where(eq(dailyAvailabilityTemplates.id, id));
+    });
+  }
+
+  // Daily Availability Break methods
+  async getDailyAvailabilityBreaksByTemplate(templateId: string): Promise<DailyAvailabilityBreak[]> {
+    return await db.select().from(dailyAvailabilityBreaks)
+      .where(eq(dailyAvailabilityBreaks.templateId, templateId))
+      .orderBy(asc(dailyAvailabilityBreaks.startTime));
+  }
+
+  async createDailyAvailabilityBreak(breakTime: InsertDailyAvailabilityBreak): Promise<DailyAvailabilityBreak> {
+    const [newBreak] = await db.insert(dailyAvailabilityBreaks).values(breakTime).returning();
+    return newBreak;
+  }
+
+  async updateDailyAvailabilityBreak(id: string, breakTime: Partial<DailyAvailabilityBreak>): Promise<DailyAvailabilityBreak> {
+    const [updatedBreak] = await db.update(dailyAvailabilityBreaks)
+      .set(breakTime)
+      .where(eq(dailyAvailabilityBreaks.id, id))
+      .returning();
+    return updatedBreak;
+  }
+
+  async deleteDailyAvailabilityBreak(id: string): Promise<void> {
+    await db.delete(dailyAvailabilityBreaks).where(eq(dailyAvailabilityBreaks.id, id));
+  }
+
+  // Daily Availability Override methods
+  async getDailyAvailabilityOverridesByPhotographer(photographerId: string, startDate?: string, endDate?: string): Promise<DailyAvailabilityOverride[]> {
+    let query = db.select().from(dailyAvailabilityOverrides)
+      .where(eq(dailyAvailabilityOverrides.photographerId, photographerId));
+    
+    if (startDate && endDate) {
+      query = query.where(and(
+        eq(dailyAvailabilityOverrides.photographerId, photographerId),
+        gte(dailyAvailabilityOverrides.date, startDate),
+        lte(dailyAvailabilityOverrides.date, endDate)
+      ));
+    }
+    
+    return await query.orderBy(asc(dailyAvailabilityOverrides.date));
+  }
+
+  async getDailyAvailabilityOverrideByDate(photographerId: string, date: string): Promise<DailyAvailabilityOverride | undefined> {
+    const [override] = await db.select().from(dailyAvailabilityOverrides)
+      .where(and(
+        eq(dailyAvailabilityOverrides.photographerId, photographerId),
+        eq(dailyAvailabilityOverrides.date, date)
+      ));
+    return override || undefined;
+  }
+
+  async createDailyAvailabilityOverride(override: InsertDailyAvailabilityOverride): Promise<DailyAvailabilityOverride> {
+    const [newOverride] = await db.insert(dailyAvailabilityOverrides).values(override).returning();
+    return newOverride;
+  }
+
+  async updateDailyAvailabilityOverride(id: string, override: Partial<DailyAvailabilityOverride>): Promise<DailyAvailabilityOverride> {
+    const [updatedOverride] = await db.update(dailyAvailabilityOverrides)
+      .set(override)
+      .where(eq(dailyAvailabilityOverrides.id, id))
+      .returning();
+    return updatedOverride;
+  }
+
+  async deleteDailyAvailabilityOverride(id: string): Promise<void> {
+    // Use transaction to safely delete override and clean up related slots
+    await db.transaction(async (trx) => {
+      // First get the override to know which date needs cleanup
+      const [override] = await trx.select().from(dailyAvailabilityOverrides)
+        .where(eq(dailyAvailabilityOverrides.id, id));
+      
+      if (override) {
+        // Delete any availability slots generated for this date and photographer
+        // This handles both template-generated slots and override-specific slots
+        const targetDate = new Date(override.date);
+        const startOfDay = new Date(targetDate.setHours(0, 0, 0, 0));
+        const endOfDay = new Date(targetDate.setHours(23, 59, 59, 999));
+        
+        await trx.delete(availabilitySlots)
+          .where(and(
+            eq(availabilitySlots.photographerId, override.photographerId),
+            gte(availabilitySlots.startAt, startOfDay),
+            lte(availabilitySlots.startAt, endOfDay)
+          ));
+      }
+      
+      // Finally delete the override itself
+      await trx.delete(dailyAvailabilityOverrides)
+        .where(eq(dailyAvailabilityOverrides.id, id));
+    });
   }
 
   // Google Calendar Integration methods
