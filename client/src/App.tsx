@@ -18,6 +18,7 @@ import Proposals from "@/pages/proposals";
 import ProposalNew from "@/pages/proposal-new";
 import Templates from "@/pages/templates";
 import Automations from "@/pages/automations";
+import DripCampaigns from "@/pages/drip-campaigns";
 import Packages from "@/pages/packages";
 import WidgetGenerator from "@/pages/widget-generator";
 import Questionnaires from "@/pages/questionnaires";
@@ -57,6 +58,7 @@ function Router() {
               <Route path="/proposals/new" component={ProposalNew} />
               <Route path="/templates" component={Templates} />
               <Route path="/automations" component={Automations} />
+              <Route path="/drip-campaigns" component={DripCampaigns} />
               <Route path="/packages" component={Packages} />
               <Route path="/widget-generator" component={WidgetGenerator} />
               <Route path="/questionnaires" component={Questionnaires} />

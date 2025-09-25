@@ -16,7 +16,8 @@ import {
   DollarSign,
   Settings,
   LogOut,
-  Code
+  Code,
+  Sparkles
 } from "lucide-react";
 import {
   Sidebar,
@@ -57,6 +58,7 @@ export function AppSidebar() {
     { name: "Scheduling", href: "/scheduling", icon: Calendar },
     { name: "Templates", href: "/templates", icon: MessageSquare },
     { name: "Automations", href: "/automations", icon: Zap },
+    { name: "Drip Campaigns", href: "/drip-campaigns", icon: Sparkles },
     { name: "Reports", href: "/reports", icon: BarChart3 },
     { name: "Earnings", href: "/earnings", icon: DollarSign }
   ];
