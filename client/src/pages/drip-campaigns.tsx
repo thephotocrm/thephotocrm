@@ -32,7 +32,7 @@ import {
   Eye,
   MoreHorizontal
 } from "lucide-react";
-import { projectTypeEnum } from "@shared/schema";
+import { projectTypeEnum, type DripCampaignEmail as SchemaDripCampaignEmail } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
@@ -53,13 +53,10 @@ type DripCampaign = {
   subscriptionsCount?: number;
 };
 
-type DripCampaignEmail = {
-  id: string;
-  campaignId: string;
-  sequenceIndex: number;
-  subject: string;
-  content: string;
-  delayWeeks: number;
+// Use schema type with all proper fields including approvalStatus
+type DripCampaignEmail = SchemaDripCampaignEmail & {
+  delayWeeks: number; // Frontend computed field
+  content: string; // Fallback for content display
 };
 
 // Form schemas
@@ -284,6 +281,74 @@ export default function DripCampaigns() {
   const handleDeleteCampaign = (campaignId: string) => {
     if (confirm("Are you sure you want to delete this campaign? This action cannot be undone.")) {
       deleteCampaignMutation.mutate(campaignId);
+    }
+  };
+
+  const handleApproveEmail = async (emailId: string) => {
+    if (!selectedCampaign) return;
+    
+    try {
+      await apiRequest('POST', `/api/drip-campaigns/${selectedCampaign.id}/emails/${emailId}/approve`);
+      
+      // Update the local state
+      setSelectedCampaign(prev => prev ? {
+        ...prev,
+        emails: prev.emails?.map(email => 
+          email.id === emailId 
+            ? { ...email, approvalStatus: 'APPROVED' as const }
+            : email
+        )
+      } : null);
+      
+      toast({
+        title: "Email approved",
+        description: "The email has been approved and will be included in the campaign.",
+      });
+      
+      // Invalidate queries to refresh data
+      queryClient.invalidateQueries({
+        queryKey: ["/api/drip-campaigns", selectedProjectType]
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to approve email. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleRejectEmail = async (emailId: string) => {
+    if (!selectedCampaign) return;
+    
+    try {
+      await apiRequest('POST', `/api/drip-campaigns/${selectedCampaign.id}/emails/${emailId}/reject`);
+      
+      // Update the local state
+      setSelectedCampaign(prev => prev ? {
+        ...prev,
+        emails: prev.emails?.map(email => 
+          email.id === emailId 
+            ? { ...email, approvalStatus: 'REJECTED' as const }
+            : email
+        )
+      } : null);
+      
+      toast({
+        title: "Email rejected",
+        description: "The email has been rejected and will not be included in the campaign.",
+      });
+      
+      // Invalidate queries to refresh data
+      queryClient.invalidateQueries({
+        queryKey: ["/api/drip-campaigns", selectedProjectType]
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to reject email. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -672,6 +737,31 @@ export default function DripCampaigns() {
                                     +{email.delayWeeks} week{email.delayWeeks > 1 ? 's' : ''}
                                   </Badge>
                                 )}
+                                {/* Approval Status Badge - only for saved campaigns */}
+                                {!selectedCampaign.id.startsWith('preview-') && email.approvalStatus === 'APPROVED' && (
+                                  <Badge className="text-xs bg-green-100 text-green-800 border-green-300">
+                                    <CheckCircle className="h-2 w-2 mr-1" />
+                                    Approved
+                                  </Badge>
+                                )}
+                                {!selectedCampaign.id.startsWith('preview-') && email.approvalStatus === 'REJECTED' && (
+                                  <Badge className="text-xs bg-red-100 text-red-800 border-red-300">
+                                    <AlertCircle className="h-2 w-2 mr-1" />
+                                    Rejected
+                                  </Badge>
+                                )}
+                                {!selectedCampaign.id.startsWith('preview-') && !email.approvalStatus && selectedCampaign.status === "DRAFT" && (
+                                  <Badge variant="outline" className="text-xs bg-yellow-50 text-yellow-700 border-yellow-300">
+                                    <Clock className="h-2 w-2 mr-1" />
+                                    Pending Review
+                                  </Badge>
+                                )}
+                                {selectedCampaign.id.startsWith('preview-') && (
+                                  <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-300">
+                                    <Eye className="h-2 w-2 mr-1" />
+                                    Preview
+                                  </Badge>
+                                )}
                               </CardTitle>
                               {selectedEmailId === email.id && (
                                 <Eye className="h-4 w-4 text-blue-500" />
@@ -726,6 +816,35 @@ export default function DripCampaigns() {
                                   Text
                                 </Button>
                               </div>
+                              {selectedCampaign.status === "DRAFT" && !selectedCampaign.id.startsWith('preview-') && (
+                                <div className="flex items-center gap-1 ml-2">
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="text-xs px-2 py-1 text-green-600 border-green-300 hover:bg-green-50"
+                                    onClick={() => handleApproveEmail(selectedEmail.id)}
+                                    data-testid="button-approve-email"
+                                  >
+                                    <CheckCircle className="h-3 w-3 mr-1" />
+                                    Approve
+                                  </Button>
+                                  <Button
+                                    size="sm" 
+                                    variant="outline"
+                                    className="text-xs px-2 py-1 text-red-600 border-red-300 hover:bg-red-50"
+                                    onClick={() => handleRejectEmail(selectedEmail.id)}
+                                    data-testid="button-reject-email"
+                                  >
+                                    <AlertCircle className="h-3 w-3 mr-1" />
+                                    Reject
+                                  </Button>
+                                </div>
+                              )}
+                              {selectedCampaign.id.startsWith('preview-') && (
+                                <div className="text-xs text-muted-foreground ml-2">
+                                  Save as draft to approve individual emails
+                                </div>
+                              )}
                             </div>
                           </div>
                           <ScrollArea className="flex-1">

@@ -1875,6 +1875,61 @@ ${photographer?.businessName || 'Your Photography Team'}`;
     }
   });
 
+  // Individual email approval routes
+  app.post("/api/drip-campaigns/:campaignId/emails/:emailId/approve", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      const { campaignId, emailId } = req.params;
+      
+      // Verify campaign ownership
+      const campaign = await storage.getDripCampaign(campaignId);
+      if (!campaign || campaign.photographerId !== req.user!.photographerId!) {
+        return res.status(404).json({ message: "Campaign not found" });
+      }
+
+      // Verify email belongs to this campaign
+      const emails = await storage.getDripCampaignEmails(campaignId);
+      const targetEmail = emails.find(email => email.id === emailId);
+      if (!targetEmail) {
+        return res.status(404).json({ message: "Email not found in this campaign" });
+      }
+
+      // Approve the email
+      await storage.approveEmail(emailId, req.user!.userId);
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Approve email error:", error);
+      res.status(500).json({ message: "Failed to approve email" });
+    }
+  });
+
+  app.post("/api/drip-campaigns/:campaignId/emails/:emailId/reject", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      const { campaignId, emailId } = req.params;
+      
+      // Verify campaign ownership
+      const campaign = await storage.getDripCampaign(campaignId);
+      if (!campaign || campaign.photographerId !== req.user!.photographerId!) {
+        return res.status(404).json({ message: "Campaign not found" });
+      }
+
+      // Verify email belongs to this campaign
+      const emails = await storage.getDripCampaignEmails(campaignId);
+      const targetEmail = emails.find(email => email.id === emailId);
+      if (!targetEmail) {
+        return res.status(404).json({ message: "Email not found in this campaign" });
+      }
+
+      // Reject the email
+      await storage.rejectEmail(emailId, req.user!.userId, 'Manual rejection');
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Reject email error:", error);
+      res.status(500).json({ message: "Failed to reject email" });
+    }
+  });
+
   // Drip Campaign Subscriptions routes
   app.get("/api/drip-subscriptions", authenticateToken, requirePhotographer, async (req, res) => {
     try {
