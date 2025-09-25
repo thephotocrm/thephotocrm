@@ -11,26 +11,20 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Label } from "@/components/ui/label";
-import { Calendar, Clock, Users, CheckCircle, Plus, CalendarDays, X } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
+import { Calendar as CalendarIcon, Clock, Settings, Trash2, Plus } from "lucide-react";
 
-// Form schema for availability slots
-const availabilitySchema = z.object({
-  date: z.string().optional(), // Optional when recurring
+// Form schema for daily templates
+const dailyTemplateSchema = z.object({
+  dayOfWeek: z.enum(["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"]),
   startTime: z.string().min(1, "Start time is required"),
   endTime: z.string().min(1, "End time is required"),
-  title: z.string().min(1, "Title is required"),
-  description: z.string().optional(),
-  isRecurring: z.boolean().default(false),
-  recurrencePattern: z.enum(["WEEKLY", "DAILY"]).optional(),
-  weeklyDays: z.array(z.enum(["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"])).optional()
+  isEnabled: z.boolean().default(true)
 }).refine((data) => {
-  // Validate that end time is after start time
   if (data.startTime && data.endTime) {
     return data.endTime > data.startTime;
   }
@@ -38,101 +32,96 @@ const availabilitySchema = z.object({
 }, {
   message: "End time must be after start time",
   path: ["endTime"]
-}).refine((data) => {
-  // If not recurring, require date
-  if (!data.isRecurring && !data.date) {
-    return false;
-  }
-  return true;
-}, {
-  message: "Date is required for one-time availability",
-  path: ["date"]
-}).refine((data) => {
-  // If recurring weekly, require weeklyDays
-  if (data.isRecurring && data.recurrencePattern === "WEEKLY" && (!data.weeklyDays || data.weeklyDays.length === 0)) {
-    return false;
-  }
-  return true;
-}, {
-  message: "Please select at least one day of the week",
-  path: ["weeklyDays"]
-}).refine((data) => {
-  // If recurring is enabled, require recurrence pattern
-  if (data.isRecurring && !data.recurrencePattern) {
-    return false;
-  }
-  return true;
-}, {
-  message: "Recurrence pattern is required when recurring is enabled",
-  path: ["recurrencePattern"]
 });
 
-// Form schema for bookings
-const bookingSchema = z.object({
-  title: z.string().min(1, "Title is required"),
-  description: z.string().optional(),
+// Form schema for day overrides
+const overrideSchema = z.object({
   date: z.string().min(1, "Date is required"),
-  startTime: z.string().min(1, "Start time is required"),
-  endTime: z.string().min(1, "End time is required"),
-  bookingType: z.enum(["CONSULTATION", "ENGAGEMENT", "WEDDING", "MEETING"]).default("CONSULTATION"),
-  clientSource: z.enum(["existing", "manual"]).default("manual"),
-  clientId: z.string().optional(),
-  clientName: z.string().optional(),
-  clientEmail: z.string().email("Invalid email").optional().or(z.literal("")),
-  clientPhone: z.string().optional()
+  isAvailable: z.boolean(),
+  startTime: z.string().optional(),
+  endTime: z.string().optional()
 }).refine((data) => {
-  // Validate that end time is after start time
-  if (data.startTime && data.endTime) {
+  if (data.isAvailable && data.startTime && data.endTime) {
     return data.endTime > data.startTime;
   }
   return true;
 }, {
   message: "End time must be after start time",
   path: ["endTime"]
-}).refine((data) => {
-  // Validate that either clientId OR manual fields are provided
-  if (data.clientSource === "existing") {
-    return !!data.clientId;
-  } else {
-    // For manual entry, require at least name and one contact method
-    return !!data.clientName && (!!data.clientEmail || !!data.clientPhone);
-  }
-}, {
-  message: "Please provide client information",
-  path: ["clientName"]
 });
 
-type AvailabilityFormData = z.infer<typeof availabilitySchema>;
-type BookingFormData = z.infer<typeof bookingSchema>;
+type DailyTemplateFormData = z.infer<typeof dailyTemplateSchema>;
+type OverrideFormData = z.infer<typeof overrideSchema>;
+
+// Type definitions for API data
+type DailyTemplate = {
+  id: string;
+  dayOfWeek: string;
+  startTime: string;
+  endTime: string;
+  isEnabled: boolean;
+  photographerId: string;
+};
+
+type DayOverride = {
+  id: string;
+  date: string;
+  isAvailable: boolean;
+  startTime?: string;
+  endTime?: string;
+  photographerId: string;
+};
+
+type TimeSlot = {
+  id: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  isAvailable: boolean;
+  photographerId: string;
+};
 
 export default function Scheduling() {
   const { user, loading } = useAuth();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   
-  // Modal state
-  const [isAvailabilityModalOpen, setIsAvailabilityModalOpen] = useState(false);
-  const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
-  const [editingSlot, setEditingSlot] = useState<any>(null);
-  
-  // Queries
-  const { data: availabilitySlots = [], isLoading: slotsLoading } = useQuery({
-    queryKey: ["/api/availability"],
+  // State for calendar and time management
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+  const [showTemplateModal, setShowTemplateModal] = useState(false);
+  const [showOverrideModal, setShowOverrideModal] = useState(false);
+  const [editingTemplate, setEditingTemplate] = useState<DailyTemplate | null>(null);
+
+  // New API queries for template-based system
+  const { data: dailyTemplates = [], isLoading: templatesLoading } = useQuery({
+    queryKey: ["/api/availability/templates"],
     enabled: !!user
-  }) as { data: any[]; isLoading: boolean };
+  }) as { data: DailyTemplate[]; isLoading: boolean };
+
+  const { data: overrides = [], isLoading: overridesLoading } = useQuery({
+    queryKey: ["/api/availability/overrides", selectedDate?.toISOString().split('T')[0]],
+    enabled: !!user && selectedDate,
+    queryFn: async () => {
+      if (!selectedDate) return [];
+      const startDate = selectedDate.toISOString().split('T')[0];
+      const endDate = selectedDate.toISOString().split('T')[0];
+      return apiRequest("GET", `/api/availability/overrides?startDate=${startDate}&endDate=${endDate}`);
+    }
+  }) as { data: DayOverride[]; isLoading: boolean };
+
+  // Get time slots for selected date
+  const { data: timeSlots = [], isLoading: slotsLoading } = useQuery({
+    queryKey: ["/api/availability/slots", selectedDate?.toISOString().split('T')[0]],
+    enabled: !!user && !!selectedDate,
+    queryFn: async () => {
+      if (!selectedDate) return [];
+      const dateStr = selectedDate.toISOString().split('T')[0];
+      return apiRequest("GET", `/api/availability/slots/${dateStr}`);
+    }
+  }) as { data: TimeSlot[]; isLoading: boolean };
   
   const { data: bookings = [], isLoading: bookingsLoading } = useQuery({
     queryKey: ["/api/bookings"],
-    enabled: !!user
-  }) as { data: any[]; isLoading: boolean };
-  
-  const { data: calendarStatus, isLoading: calendarStatusLoading } = useQuery({
-    queryKey: ["/api/calendar/status"],
-    enabled: !!user
-  }) as { data: { configured?: boolean; authenticated?: boolean; message?: string } | undefined; isLoading: boolean };
-  
-  const { data: clients = [], isLoading: clientsLoading } = useQuery({
-    queryKey: ["/api/clients"],
     enabled: !!user
   }) as { data: any[]; isLoading: boolean };
 
@@ -140,226 +129,198 @@ export default function Scheduling() {
     queryKey: ["/api/auth/me"],
     enabled: !!user
   }) as { data: { publicToken?: string; businessName?: string } | undefined; isLoading: boolean };
-  
-  // Availability form
-  const availabilityForm = useForm<AvailabilityFormData>({
-    resolver: zodResolver(availabilitySchema),
+
+  // Forms for the new template-based system
+  const templateForm = useForm<DailyTemplateFormData>({
+    resolver: zodResolver(dailyTemplateSchema),
     defaultValues: {
-      date: "",
-      startTime: "",
-      endTime: "",
-      title: "",
-      description: "",
-      isRecurring: false,
-      recurrencePattern: "WEEKLY",
-      weeklyDays: []
+      dayOfWeek: "MONDAY",
+      startTime: "09:00",
+      endTime: "17:00",
+      isEnabled: true
     }
   });
 
-  // Booking form
-  const bookingForm = useForm<BookingFormData>({
-    resolver: zodResolver(bookingSchema),
+  const overrideForm = useForm<OverrideFormData>({
+    resolver: zodResolver(overrideSchema),
     defaultValues: {
-      title: "",
-      description: "",
       date: "",
-      startTime: "",
-      endTime: "",
-      bookingType: "CONSULTATION",
-      clientSource: "manual",
-      clientId: "",
-      clientName: "",
-      clientEmail: "",
-      clientPhone: ""
+      isAvailable: true,
+      startTime: "09:00",
+      endTime: "17:00"
     }
   });
-  
-  // Create availability mutation
-  const createAvailabilityMutation = useMutation({
-    mutationFn: async (data: AvailabilityFormData) => {
-      if (!user?.id) {
-        throw new Error("User not authenticated");
-      }
-      
-      // Transform form data to match backend schema
-      const slotData = {
-        photographerId: user.id,
-        title: data.title,
-        description: data.description || null,
-        startAt: data.date ? new Date(`${data.date}T${data.startTime}`).toISOString() : null,
-        endAt: data.date ? new Date(`${data.date}T${data.endTime}`).toISOString() : null,
-        startTime: data.startTime,
-        endTime: data.endTime,
-        isRecurring: data.isRecurring,
-        recurrencePattern: data.isRecurring ? data.recurrencePattern : null,
-        weeklyDays: data.isRecurring && data.recurrencePattern === "WEEKLY" ? data.weeklyDays : null
-      };
-      
-      return apiRequest("POST", "/api/availability", slotData);
+
+  // Create template mutation
+  const createTemplateMutation = useMutation({
+    mutationFn: async (data: DailyTemplateFormData) => {
+      return apiRequest("POST", "/api/availability/templates", data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/availability"] });
-      setIsAvailabilityModalOpen(false);
-      availabilityForm.reset();
+      queryClient.invalidateQueries({ queryKey: ["/api/availability/templates"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/availability/slots"] });
+      setShowTemplateModal(false);
+      templateForm.reset();
       toast({
         title: "Success",
-        description: "Availability slot created successfully"
+        description: "Daily schedule template created successfully"
       });
     },
     onError: (error: any) => {
       toast({
         title: "Error",
-        description: error?.message || "Failed to create availability slot",
+        description: error?.message || "Failed to create template",
         variant: "destructive"
       });
     }
   });
 
-  // Update availability mutation
-  const updateAvailabilityMutation = useMutation({
-    mutationFn: async (data: AvailabilityFormData & { id: string }) => {
-      if (!user?.id) {
-        throw new Error("User not authenticated");
-      }
-      
-      const slotData = {
-        photographerId: user.id,
-        title: data.title,
-        description: data.description || null,
-        startAt: data.date ? new Date(`${data.date}T${data.startTime}`).toISOString() : null,
-        endAt: data.date ? new Date(`${data.date}T${data.endTime}`).toISOString() : null,
+  // Update template mutation
+  const updateTemplateMutation = useMutation({
+    mutationFn: async (data: DailyTemplateFormData & { id: string }) => {
+      return apiRequest("PUT", `/api/availability/templates/${data.id}`, {
+        dayOfWeek: data.dayOfWeek,
         startTime: data.startTime,
         endTime: data.endTime,
-        isRecurring: data.isRecurring,
-        recurrencePattern: data.isRecurring ? data.recurrencePattern : null,
-        weeklyDays: data.isRecurring && data.recurrencePattern === "WEEKLY" ? data.weeklyDays : null
-      };
-      
-      return apiRequest("PUT", `/api/availability/${data.id}`, slotData);
+        isEnabled: data.isEnabled
+      });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/availability"] });
-      setIsAvailabilityModalOpen(false);
-      setEditingSlot(null);
-      availabilityForm.reset();
+      queryClient.invalidateQueries({ queryKey: ["/api/availability/templates"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/availability/slots"] });
+      setShowTemplateModal(false);
+      setEditingTemplate(null);
+      templateForm.reset();
       toast({
         title: "Success",
-        description: "Availability slot updated successfully"
+        description: "Daily schedule template updated successfully"
       });
     },
     onError: (error: any) => {
       toast({
         title: "Error",
-        description: error?.message || "Failed to update availability slot",
+        description: error?.message || "Failed to update template",
         variant: "destructive"
       });
     }
   });
 
-  // Delete availability mutation
-  const deleteAvailabilityMutation = useMutation({
+  // Delete template mutation
+  const deleteTemplateMutation = useMutation({
     mutationFn: async (id: string) => {
-      return apiRequest("DELETE", `/api/availability/${id}`);
+      return apiRequest("DELETE", `/api/availability/templates/${id}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/availability"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/availability/templates"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/availability/slots"] });
       toast({
         title: "Success",
-        description: "Availability slot deleted successfully"
+        description: "Daily schedule template deleted successfully"
       });
     },
     onError: (error: any) => {
       toast({
         title: "Error",
-        description: error?.message || "Failed to delete availability slot",
+        description: error?.message || "Failed to delete template",
         variant: "destructive"
       });
     }
   });
 
-  // Create booking mutation
-  const createBookingMutation = useMutation({
-    mutationFn: async (data: BookingFormData) => {
-      // Transform form data to match backend schema
-      const bookingData = {
-        title: data.title,
-        description: data.description || null,
-        startAt: new Date(`${data.date}T${data.startTime}`).toISOString(),
-        endAt: new Date(`${data.date}T${data.endTime}`).toISOString(),
-        bookingType: data.bookingType,
-        status: "PENDING",
-        // Include clientId if using existing client, otherwise use manual fields
-        ...(data.clientSource === "existing" 
-          ? { clientId: data.clientId }
-          : { 
-              clientName: data.clientName || null,
-              clientEmail: data.clientEmail || null,
-              clientPhone: data.clientPhone || null
-            }
-        )
-      };
-      
-      return apiRequest("POST", "/api/bookings", bookingData);
+  // Create override mutation
+  const createOverrideMutation = useMutation({
+    mutationFn: async (data: OverrideFormData) => {
+      return apiRequest("POST", "/api/availability/overrides", data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/bookings"] });
-      setIsBookingModalOpen(false);
-      bookingForm.reset();
+      queryClient.invalidateQueries({ queryKey: ["/api/availability/overrides"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/availability/slots"] });
+      setShowOverrideModal(false);
+      overrideForm.reset();
       toast({
         title: "Success",
-        description: "Booking created successfully"
+        description: "Day override created successfully"
       });
     },
     onError: (error: any) => {
       toast({
         title: "Error",
-        description: error?.message || "Failed to create booking",
+        description: error?.message || "Failed to create override",
         variant: "destructive"
       });
     }
   });
 
-  // Handle edit slot
-  const handleEditSlot = (slot: any) => {
-    const startDate = new Date(slot.startAt);
-    const endDate = new Date(slot.endAt);
-    
-    setEditingSlot(slot);
-    availabilityForm.reset({
-      date: startDate.toISOString().split('T')[0],
-      startTime: startDate.toTimeString().substring(0, 5),
-      endTime: endDate.toTimeString().substring(0, 5),
-      title: slot.title,
-      description: slot.description || "",
-      isRecurring: slot.isRecurring || false,
-      recurrencePattern: slot.recurrencePattern || "WEEKLY"
+  // Utility functions
+  const getDayOfWeekFromDate = (date: Date): string => {
+    const days = ["SUNDAY", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY"];
+    return days[date.getDay()];
+  };
+
+  const formatTime = (time: string) => {
+    return new Date(`2000-01-01T${time}`).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+  };
+
+  // Handle template editing
+  const handleEditTemplate = (template: DailyTemplate) => {
+    setEditingTemplate(template);
+    templateForm.reset({
+      dayOfWeek: template.dayOfWeek as any,
+      startTime: template.startTime,
+      endTime: template.endTime,
+      isEnabled: template.isEnabled
     });
-    setIsAvailabilityModalOpen(true);
+    setShowTemplateModal(true);
   };
 
-  // Handle submit (create or update)
-  const handleSubmit = (data: AvailabilityFormData) => {
-    if (editingSlot) {
-      updateAvailabilityMutation.mutate({ ...data, id: editingSlot.id });
+  // Handle template form submission
+  const handleTemplateSubmit = (data: DailyTemplateFormData) => {
+    if (editingTemplate) {
+      updateTemplateMutation.mutate({ ...data, id: editingTemplate.id });
     } else {
-      createAvailabilityMutation.mutate(data);
+      createTemplateMutation.mutate(data);
     }
   };
 
-  // Handle modal open/close
-  const handleModalChange = (open: boolean) => {
-    setIsAvailabilityModalOpen(open);
-    if (!open) {
-      setEditingSlot(null);
-      availabilityForm.reset();
+  // Handle override form submission
+  const handleOverrideSubmit = (data: OverrideFormData) => {
+    createOverrideMutation.mutate(data);
+  };
+
+  // Handle date selection
+  const handleDateSelect = (date: Date | undefined) => {
+    setSelectedDate(date);
+    if (date) {
+      // Pre-fill override form with selected date
+      overrideForm.setValue("date", date.toISOString().split('T')[0]);
     }
   };
 
-  // Handle new availability click
-  const handleNewAvailability = () => {
-    setEditingSlot(null);
-    availabilityForm.reset();
-    setIsAvailabilityModalOpen(true);
+  // Handle new template
+  const handleNewTemplate = () => {
+    setEditingTemplate(null);
+    templateForm.reset();
+    setShowTemplateModal(true);
+  };
+
+  // Handle new override for selected date
+  const handleNewOverride = () => {
+    if (selectedDate) {
+      overrideForm.setValue("date", selectedDate.toISOString().split('T')[0]);
+    }
+    setShowOverrideModal(true);
+  };
+
+  // Get template for current selected day
+  const getTemplateForDay = (date: Date) => {
+    const dayOfWeek = getDayOfWeekFromDate(date);
+    return dailyTemplates.find(t => t.dayOfWeek === dayOfWeek && t.isEnabled);
+  };
+
+  // Get override for selected date
+  const getOverrideForDate = (date: Date) => {
+    const dateStr = date.toISOString().split('T')[0];
+    return overrides.find(o => o.date === dateStr);
   };
 
   // Redirect to login if not authenticated
@@ -388,613 +349,141 @@ export default function Scheduling() {
               />
               <div>
                 <h1 className="text-xl md:text-2xl font-semibold">Scheduling</h1>
-                <p className="text-sm md:text-base text-muted-foreground">Manage availability and client bookings</p>
+                <p className="text-sm md:text-base text-muted-foreground">Set your daily hours and manage calendar availability</p>
               </div>
             </div>
             
             <div className="flex flex-col space-y-2 md:flex-row md:space-y-0 md:space-x-2">
-              <Dialog open={isAvailabilityModalOpen} onOpenChange={handleModalChange}>
-                <DialogTrigger asChild>
-                  <Button variant="outline" data-testid="button-set-availability">
-                    <Clock className="w-5 h-5 mr-2" />
-                    Set Availability
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-md" aria-describedby="availability-description">
-                  <DialogHeader>
-                    <DialogTitle>{editingSlot ? "Edit Availability" : "Set Availability"}</DialogTitle>
-                  </DialogHeader>
-                  <p id="availability-description" className="text-sm text-muted-foreground mb-4">
-                    Create time slots when you're available for client bookings
-                  </p>
-                  <Form {...availabilityForm}>
-                    <form onSubmit={availabilityForm.handleSubmit(handleSubmit)} className="space-y-4">
-                      <FormField
-                        control={availabilityForm.control}
-                        name="title"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Title</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Available for consultations" data-testid="input-availability-title" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      {!availabilityForm.watch("isRecurring") && (
-                        <FormField
-                          control={availabilityForm.control}
-                          name="date"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Date</FormLabel>
-                              <FormControl>
-                                <Input type="date" data-testid="input-availability-date" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      )}
-                      
-                      <div className="grid grid-cols-2 gap-4">
-                        <FormField
-                          control={availabilityForm.control}
-                          name="startTime"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Start Time</FormLabel>
-                              <FormControl>
-                                <Input type="time" data-testid="input-availability-start-time" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        
-                        <FormField
-                          control={availabilityForm.control}
-                          name="endTime"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>End Time</FormLabel>
-                              <FormControl>
-                                <Input type="time" data-testid="input-availability-end-time" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                      
-                      <FormField
-                        control={availabilityForm.control}
-                        name="description"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Description (Optional)</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Available for consultation calls" data-testid="input-availability-description" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={availabilityForm.control}
-                        name="isRecurring"
-                        render={({ field }) => (
-                          <FormItem className="flex items-center space-x-2">
-                            <FormControl>
-                              <input
-                                type="checkbox"
-                                checked={field.value}
-                                onChange={(e) => field.onChange(e.target.checked)}
-                                data-testid="checkbox-availability-recurring"
-                                className="w-4 h-4"
-                              />
-                            </FormControl>
-                            <FormLabel className="!mt-0">Make this recurring</FormLabel>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      {availabilityForm.watch("isRecurring") && (
-                        <>
-                          <FormField
-                            control={availabilityForm.control}
-                            name="recurrencePattern"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Recurrence Pattern</FormLabel>
-                                <Select onValueChange={field.onChange} value={field.value} data-testid="select-availability-recurrence">
-                                  <FormControl>
-                                    <SelectTrigger>
-                                      <SelectValue placeholder="Select pattern" />
-                                    </SelectTrigger>
-                                  </FormControl>
-                                  <SelectContent>
-                                    <SelectItem value="WEEKLY">Weekly</SelectItem>
-                                    <SelectItem value="DAILY">Daily</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          
-                          {availabilityForm.watch("recurrencePattern") === "WEEKLY" && (
-                            <FormField
-                              control={availabilityForm.control}
-                              name="weeklyDays"
-                              render={({ field }) => {
-                                const days = [
-                                  { value: "MONDAY", label: "Monday" },
-                                  { value: "TUESDAY", label: "Tuesday" },
-                                  { value: "WEDNESDAY", label: "Wednesday" },
-                                  { value: "THURSDAY", label: "Thursday" },
-                                  { value: "FRIDAY", label: "Friday" },
-                                  { value: "SATURDAY", label: "Saturday" },
-                                  { value: "SUNDAY", label: "Sunday" }
-                                ];
-                                
-                                const selectedDays = field.value || [];
-                                
-                                return (
-                                  <FormItem>
-                                    <FormLabel>Days of the Week</FormLabel>
-                                    <div className="grid grid-cols-2 gap-2">
-                                      {days.map((day) => (
-                                        <div key={day.value} className="flex items-center space-x-2">
-                                          <input
-                                            type="checkbox"
-                                            id={`day-${day.value}`}
-                                            checked={selectedDays.includes(day.value)}
-                                            onChange={(e) => {
-                                              let newDays = [...selectedDays];
-                                              if (e.target.checked) {
-                                                newDays.push(day.value);
-                                              } else {
-                                                newDays = newDays.filter(d => d !== day.value);
-                                              }
-                                              field.onChange(newDays);
-                                            }}
-                                            data-testid={`checkbox-day-${day.value.toLowerCase()}`}
-                                            className="w-4 h-4"
-                                          />
-                                          <label htmlFor={`day-${day.value}`} className="text-sm font-medium">
-                                            {day.label}
-                                          </label>
-                                        </div>
-                                      ))}
-                                    </div>
-                                    <FormMessage />
-                                  </FormItem>
-                                );
-                              }}
-                            />
-                          )}
-                        </>
-                      )}
-                      
-                      <div className="flex justify-end space-x-2">
-                        <Button 
-                          type="button" 
-                          variant="outline" 
-                          onClick={() => setIsAvailabilityModalOpen(false)}
-                          data-testid="button-cancel-availability"
-                        >
-                          Cancel
-                        </Button>
-                        <Button 
-                          type="submit" 
-                          disabled={createAvailabilityMutation.isPending || updateAvailabilityMutation.isPending}
-                          data-testid="button-save-availability"
-                        >
-                          {(createAvailabilityMutation.isPending || updateAvailabilityMutation.isPending) 
-                            ? "Saving..." 
-                            : editingSlot ? "Update" : "Save"}
-                        </Button>
-                      </div>
-                    </form>
-                  </Form>
-                </DialogContent>
-              </Dialog>
+              <Button variant="outline" onClick={handleNewTemplate} data-testid="button-set-daily-hours">
+                <Clock className="w-5 h-5 mr-2" />
+                Set Daily Hours
+              </Button>
               
-              <Dialog open={isBookingModalOpen} onOpenChange={setIsBookingModalOpen}>
-                <DialogTrigger asChild>
-                  <Button data-testid="button-add-booking">
-                    <Plus className="w-5 h-5 mr-2" />
-                    Add Booking
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-2xl" aria-describedby="booking-description">
-                  <DialogHeader>
-                    <DialogTitle>Add Manual Booking</DialogTitle>
-                  </DialogHeader>
-                  <p id="booking-description" className="text-sm text-muted-foreground mb-4">
-                    Create a manual booking for clients outside the normal booking flow
-                  </p>
-                  <Form {...bookingForm}>
-                    <form onSubmit={bookingForm.handleSubmit((data) => createBookingMutation.mutate(data))} className="space-y-4">
-                      <div className="grid grid-cols-2 gap-4">
-                        <FormField
-                          control={bookingForm.control}
-                          name="title"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Title *</FormLabel>
-                              <FormControl>
-                                <Input placeholder="Consultation Call" data-testid="input-booking-title" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        
-                        <FormField
-                          control={bookingForm.control}
-                          name="bookingType"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Booking Type</FormLabel>
-                              <Select onValueChange={field.onChange} value={field.value} data-testid="select-booking-type">
-                                <FormControl>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Select type" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  <SelectItem value="CONSULTATION">Consultation</SelectItem>
-                                  <SelectItem value="ENGAGEMENT">Engagement Session</SelectItem>
-                                  <SelectItem value="WEDDING">Wedding Day</SelectItem>
-                                  <SelectItem value="MEETING">Meeting</SelectItem>
-                                </SelectContent>
-                              </Select>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-
-                      <FormField
-                        control={bookingForm.control}
-                        name="description"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Description (Optional)</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Discuss wedding photography package..." data-testid="input-booking-description" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <div className="grid grid-cols-3 gap-4">
-                        <FormField
-                          control={bookingForm.control}
-                          name="date"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Date *</FormLabel>
-                              <FormControl>
-                                <Input type="date" data-testid="input-booking-date" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        
-                        <FormField
-                          control={bookingForm.control}
-                          name="startTime"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Start Time *</FormLabel>
-                              <FormControl>
-                                <Input type="time" data-testid="input-booking-start-time" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        
-                        <FormField
-                          control={bookingForm.control}
-                          name="endTime"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>End Time *</FormLabel>
-                              <FormControl>
-                                <Input type="time" data-testid="input-booking-end-time" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-
-                      <div className="border-t pt-4">
-                        <h4 className="font-medium mb-3 text-sm">Client Information</h4>
-                        
-                        {/* Client Source Selection */}
-                        <FormField
-                          control={bookingForm.control}
-                          name="clientSource"
-                          render={({ field }) => (
-                            <FormItem className="mb-4">
-                              <FormLabel>How would you like to add client information?</FormLabel>
-                              <FormControl>
-                                <RadioGroup
-                                  onValueChange={field.onChange}
-                                  value={field.value}
-                                  className="flex flex-col space-y-2"
-                                  data-testid="radio-client-source"
-                                >
-                                  <div className="flex items-center space-x-2">
-                                    <RadioGroupItem value="existing" id="existing" data-testid="radio-existing-client" />
-                                    <Label htmlFor="existing">Select from existing clients</Label>
-                                  </div>
-                                  <div className="flex items-center space-x-2">
-                                    <RadioGroupItem value="manual" id="manual" data-testid="radio-manual-client" />
-                                    <Label htmlFor="manual">Enter client details manually</Label>
-                                  </div>
-                                </RadioGroup>
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-
-                        {/* Existing Client Selection */}
-                        {bookingForm.watch("clientSource") === "existing" && (
-                          <FormField
-                            control={bookingForm.control}
-                            name="clientId"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Select Client *</FormLabel>
-                                <Select onValueChange={field.onChange} value={field.value} data-testid="select-existing-client">
-                                  <FormControl>
-                                    <SelectTrigger>
-                                      <SelectValue placeholder="Choose a client..." />
-                                    </SelectTrigger>
-                                  </FormControl>
-                                  <SelectContent>
-                                    {clientsLoading ? (
-                                      <SelectItem value="" disabled>Loading clients...</SelectItem>
-                                    ) : clients.length === 0 ? (
-                                      <SelectItem value="" disabled>No clients found</SelectItem>
-                                    ) : (
-                                      clients.map((client: any) => (
-                                        <SelectItem key={client.id} value={client.id}>
-                                          {client.name} {client.email ? `(${client.email})` : ''}
-                                        </SelectItem>
-                                      ))
-                                    )}
-                                  </SelectContent>
-                                </Select>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        )}
-
-                        {/* Manual Client Entry */}
-                        {bookingForm.watch("clientSource") === "manual" && (
-                          <div className="space-y-4">
-                            <FormField
-                              control={bookingForm.control}
-                              name="clientName"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Client Name *</FormLabel>
-                                  <FormControl>
-                                    <Input placeholder="John & Jane Smith" data-testid="input-booking-client-name" {...field} />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                            
-                            <div className="grid grid-cols-2 gap-4">
-                              <FormField
-                                control={bookingForm.control}
-                                name="clientEmail"
-                                render={({ field }) => (
-                                  <FormItem>
-                                    <FormLabel>Client Email</FormLabel>
-                                    <FormControl>
-                                      <Input type="email" placeholder="john@example.com" data-testid="input-booking-client-email" {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                  </FormItem>
-                                )}
-                              />
-                              
-                              <FormField
-                                control={bookingForm.control}
-                                name="clientPhone"
-                                render={({ field }) => (
-                                  <FormItem>
-                                    <FormLabel>Client Phone</FormLabel>
-                                    <FormControl>
-                                      <Input type="tel" placeholder="(555) 123-4567" data-testid="input-booking-client-phone" {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                  </FormItem>
-                                )}
-                              />
-                            </div>
-                            <p className="text-xs text-muted-foreground">
-                              * Please provide at least an email or phone number
-                            </p>
-                          </div>
-                        )}
-                      </div>
-                      
-                      <div className="flex justify-end space-x-2">
-                        <Button 
-                          type="button" 
-                          variant="outline" 
-                          onClick={() => setIsBookingModalOpen(false)}
-                          data-testid="button-cancel-booking"
-                        >
-                          Cancel
-                        </Button>
-                        <Button 
-                          type="submit" 
-                          disabled={createBookingMutation.isPending}
-                          data-testid="button-save-booking"
-                        >
-                          {createBookingMutation.isPending ? "Creating..." : "Create Booking"}
-                        </Button>
-                      </div>
-                    </form>
-                  </Form>
-                </DialogContent>
-              </Dialog>
+              {selectedDate && (
+                <Button variant="outline" onClick={handleNewOverride} data-testid="button-override-day">
+                  <Settings className="w-5 h-5 mr-2" />
+                  Override Day
+                </Button>
+              )}
             </div>
           </div>
         </header>
 
-        <div className="p-6 space-y-6">
-          {/* Stats Cards */}
-          <div className="hidden md:grid md:grid-cols-4 gap-6">
+        {/* Main Content - Calendar First */}
+        <div className="container mx-auto p-4 md:p-6 space-y-6">
+
+          {/* Calendar and Time Slot Selection */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Calendar */}
             <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">This Month</CardTitle>
-                <Calendar className="h-4 w-4 text-muted-foreground" />
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <CalendarIcon className="w-5 h-5" />
+                  Calendar
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold" data-testid="stat-monthly-bookings">
-                  {bookingsLoading ? "..." : bookings.filter((booking: any) => {
-                    const bookingDate = new Date(booking.startAt || booking.createdAt);
-                    const now = new Date();
-                    return bookingDate.getMonth() === now.getMonth() && bookingDate.getFullYear() === now.getFullYear();
-                  }).length}
-                </div>
-                <p className="text-xs text-muted-foreground">Bookings scheduled</p>
+                <Calendar
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={handleDateSelect}
+                  className="rounded-md border"
+                  data-testid="calendar-availability"
+                />
               </CardContent>
             </Card>
 
+            {/* Time Slots for Selected Date */}
             <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Available Slots</CardTitle>
-                <Clock className="h-4 w-4 text-muted-foreground" />
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  <span className="flex items-center gap-2">
+                    <Clock className="w-5 h-5" />
+                    {selectedDate ? `Time Slots - ${selectedDate.toLocaleDateString()}` : "Select a Date"}
+                  </span>
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold" data-testid="stat-available-slots">
-                  {slotsLoading ? "..." : availabilitySlots.length}
-                </div>
-                <p className="text-xs text-muted-foreground">Open time slots</p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Confirmed</CardTitle>
-                <CheckCircle className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold" data-testid="stat-confirmed-bookings">
-                  {bookingsLoading ? "..." : bookings.filter((booking: any) => booking.status === "CONFIRMED").length}
-                </div>
-                <p className="text-xs text-muted-foreground">Confirmed bookings</p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Pending</CardTitle>
-                <Users className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold" data-testid="stat-pending-bookings">
-                  {bookingsLoading ? "..." : bookings.filter((booking: any) => booking.status === "PENDING").length}
-                </div>
-                <p className="text-xs text-muted-foreground">Awaiting confirmation</p>
+                {selectedDate ? (
+                  <div className="space-y-4">
+                    {slotsLoading ? (
+                      <div className="space-y-2">
+                        {Array.from({ length: 8 }).map((_, i) => (
+                          <div key={i} className="h-10 bg-muted rounded animate-pulse" />
+                        ))}
+                      </div>
+                    ) : timeSlots.length === 0 ? (
+                      <div className="text-center py-8">
+                        <Clock className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                        <p className="text-muted-foreground mb-2">No availability set for this day</p>
+                        <p className="text-sm text-muted-foreground">
+                          {getTemplateForDay(selectedDate) ? 
+                            "Create a daily schedule template or override this specific day" :
+                            "Set your daily hours for " + getDayOfWeekFromDate(selectedDate).toLowerCase()
+                          }
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 gap-2">
+                        {timeSlots.map((slot) => (
+                          <div
+                            key={slot.id}
+                            className={`p-3 rounded-lg border ${
+                              slot.isAvailable 
+                                ? "bg-green-50 border-green-200 text-green-800"
+                                : "bg-gray-50 border-gray-200 text-gray-500"
+                            }`}
+                            data-testid={`time-slot-${slot.startTime}-${slot.endTime}`}
+                          >
+                            <div className="flex items-center justify-between">
+                              <span className="font-medium">
+                                {formatTime(slot.startTime)} - {formatTime(slot.endTime)}
+                              </span>
+                              <span className="text-sm">
+                                {slot.isAvailable ? "Available" : "Blocked"}
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <CalendarIcon className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                    <p className="text-muted-foreground">Select a date to view availability</p>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
 
-          {/* Calendar View */}
+          {/* Daily Templates Management */}
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
-                <CardTitle className="flex items-center">
-                  <CalendarDays className="w-5 h-5 mr-2" />
-                  Calendar View
-                </CardTitle>
-                <div className="flex space-x-2">
-                  <Button variant="outline" size="sm">Week</Button>
-                  <Button variant="outline" size="sm">Month</Button>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              {calendarStatusLoading ? (
-                <div className="text-center py-12">
-                  <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4" />
-                  <p className="text-muted-foreground">Checking calendar status...</p>
-                </div>
-              ) : calendarStatus?.configured && calendarStatus?.authenticated ? (
-                <div className="text-center py-12">
-                  <CalendarDays className="w-16 h-16 text-green-500 mx-auto mb-4" />
-                  <p className="text-green-700 dark:text-green-400 mb-4 font-medium">Google Calendar Connected!</p>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    Your availability and bookings will sync with Google Calendar
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    Full calendar view coming soon
-                  </p>
-                </div>
-              ) : (
-                <div className="text-center py-12">
-                  <CalendarDays className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-muted-foreground mb-4">Google Calendar not connected</p>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    Connect with Google Calendar to sync your availability and bookings
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    Visit the Settings page to set up Google Calendar integration
-                  </p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Availability Slots */}
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle>Availability Slots</CardTitle>
+                <CardTitle>Daily Schedule Templates</CardTitle>
                 <Button 
                   variant="outline" 
                   size="sm" 
-                  onClick={handleNewAvailability}
-                  data-testid="button-add-availability"
+                  onClick={handleNewTemplate}
+                  data-testid="button-add-template"
                 >
                   <Plus className="w-4 h-4 mr-2" />
-                  Add Slot
+                  Add Template
                 </Button>
               </div>
             </CardHeader>
             <CardContent>
-              {slotsLoading ? (
+              {templatesLoading ? (
                 <div className="space-y-4">
                   {Array.from({ length: 3 }).map((_, i) => (
                     <div key={i} className="flex items-center justify-between p-4 border border-border rounded-lg animate-pulse">
                       <div className="flex items-center space-x-4">
                         <div className="w-3 h-3 bg-muted rounded-full"></div>
                         <div>
-                          <div className="h-4 bg-muted rounded w-48 mb-2"></div>
-                          <div className="h-3 bg-muted rounded w-32"></div>
+                          <div className="h-4 bg-muted rounded w-32 mb-2"></div>
+                          <div className="h-3 bg-muted rounded w-24"></div>
                         </div>
                       </div>
                       <div className="flex space-x-2">
@@ -1004,52 +493,51 @@ export default function Scheduling() {
                     </div>
                   ))}
                 </div>
-              ) : availabilitySlots.length === 0 ? (
+              ) : dailyTemplates.length === 0 ? (
                 <div className="text-center py-8">
                   <Clock className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-muted-foreground mb-4">No availability slots created yet</p>
+                  <p className="text-muted-foreground mb-4">No daily schedule templates created yet</p>
                   <p className="text-sm text-muted-foreground">
-                    Create your first availability slot to let clients book time with you
+                    Set your regular working hours for each day of the week
                   </p>
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {availabilitySlots.map((slot: any) => (
-                    <div key={slot.id} className="flex items-center justify-between p-4 border border-border rounded-lg hover:bg-muted/50" data-testid={`slot-${slot.id}`}>
+                  {dailyTemplates.map((template) => (
+                    <div key={template.id} className="flex items-center justify-between p-4 border border-border rounded-lg hover:bg-muted/50" data-testid={`template-${template.id}`}>
                       <div className="flex items-center space-x-4">
-                        <div className="w-3 h-3 bg-primary rounded-full"></div>
+                        <div className={`w-3 h-3 rounded-full ${
+                          template.isEnabled ? "bg-primary" : "bg-muted-foreground"
+                        }`}></div>
                         <div>
-                          <h4 className="font-medium" data-testid={`slot-title-${slot.id}`}>{slot.title}</h4>
-                          <p className="text-sm text-muted-foreground" data-testid={`slot-time-${slot.id}`}>
-                            {new Date(slot.startAt).toLocaleDateString()} • {new Date(slot.startAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} - {new Date(slot.endAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-                            {slot.isRecurring && (
-                              <span className="ml-2 inline-flex items-center px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">
-                                {slot.recurrencePattern?.toLowerCase()}
-                              </span>
+                          <h4 className="font-medium" data-testid={`template-day-${template.id}`}>
+                            {template.dayOfWeek.charAt(0) + template.dayOfWeek.slice(1).toLowerCase()}
+                          </h4>
+                          <p className="text-sm text-muted-foreground" data-testid={`template-time-${template.id}`}>
+                            {formatTime(template.startTime)} - {formatTime(template.endTime)}
+                            {!template.isEnabled && (
+                              <span className="ml-2 text-red-600">(Disabled)</span>
                             )}
                           </p>
-                          {slot.description && (
-                            <p className="text-sm text-muted-foreground mt-1" data-testid={`slot-description-${slot.id}`}>{slot.description}</p>
-                          )}
                         </div>
                       </div>
                       <div className="flex space-x-2">
                         <Button 
                           variant="outline" 
                           size="sm" 
-                          onClick={() => handleEditSlot(slot)}
-                          data-testid={`button-edit-slot-${slot.id}`}
+                          onClick={() => handleEditTemplate(template)}
+                          data-testid={`button-edit-template-${template.id}`}
                         >
                           Edit
                         </Button>
                         <Button 
                           variant="outline" 
                           size="sm" 
-                          onClick={() => deleteAvailabilityMutation.mutate(slot.id)}
-                          disabled={deleteAvailabilityMutation.isPending}
-                          data-testid={`button-delete-slot-${slot.id}`}
+                          onClick={() => deleteTemplateMutation.mutate(template.id)}
+                          disabled={deleteTemplateMutation.isPending}
+                          data-testid={`button-delete-template-${template.id}`}
                         >
-                          {deleteAvailabilityMutation.isPending ? "..." : "Delete"}
+                          {deleteTemplateMutation.isPending ? "..." : <Trash2 className="w-4 h-4" />}
                         </Button>
                       </div>
                     </div>
@@ -1081,7 +569,7 @@ export default function Scheduling() {
                 </div>
               ) : bookings.length === 0 ? (
                 <div className="text-center py-8">
-                  <Calendar className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                  <CalendarIcon className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
                   <p className="text-muted-foreground">No bookings scheduled yet</p>
                   <p className="text-sm text-muted-foreground">
                     Bookings will appear here when clients make appointments
@@ -1184,6 +672,227 @@ export default function Scheduling() {
               </div>
             </CardContent>
           </Card>
+
+        {/* Template Modal */}
+        <Dialog open={showTemplateModal} onOpenChange={(open) => {
+          setShowTemplateModal(open);
+          if (!open) {
+            setEditingTemplate(null);
+            templateForm.reset();
+          }
+        }}>
+          <DialogContent className="max-w-md" aria-describedby="template-description">
+            <DialogHeader>
+              <DialogTitle>{editingTemplate ? "Edit Daily Template" : "Create Daily Template"}</DialogTitle>
+            </DialogHeader>
+            <p id="template-description" className="text-sm text-muted-foreground mb-4">
+              Set your regular working hours for a specific day of the week
+            </p>
+            <Form {...templateForm}>
+              <form onSubmit={templateForm.handleSubmit(handleTemplateSubmit)} className="space-y-4">
+                <FormField
+                  control={templateForm.control}
+                  name="dayOfWeek"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Day of Week</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value} data-testid="select-template-day">
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select day" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="MONDAY">Monday</SelectItem>
+                          <SelectItem value="TUESDAY">Tuesday</SelectItem>
+                          <SelectItem value="WEDNESDAY">Wednesday</SelectItem>
+                          <SelectItem value="THURSDAY">Thursday</SelectItem>
+                          <SelectItem value="FRIDAY">Friday</SelectItem>
+                          <SelectItem value="SATURDAY">Saturday</SelectItem>
+                          <SelectItem value="SUNDAY">Sunday</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={templateForm.control}
+                    name="startTime"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Start Time</FormLabel>
+                        <FormControl>
+                          <Input type="time" data-testid="input-template-start-time" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={templateForm.control}
+                    name="endTime"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>End Time</FormLabel>
+                        <FormControl>
+                          <Input type="time" data-testid="input-template-end-time" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                
+                <FormField
+                  control={templateForm.control}
+                  name="isEnabled"
+                  render={({ field }) => (
+                    <FormItem className="flex items-center space-x-2">
+                      <FormControl>
+                        <input
+                          type="checkbox"
+                          checked={field.value}
+                          onChange={(e) => field.onChange(e.target.checked)}
+                          data-testid="checkbox-template-enabled"
+                          className="w-4 h-4"
+                        />
+                      </FormControl>
+                      <FormLabel className="!mt-0">Enable this template</FormLabel>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <div className="flex justify-end space-x-2">
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={() => setShowTemplateModal(false)}
+                    data-testid="button-cancel-template"
+                  >
+                    Cancel
+                  </Button>
+                  <Button 
+                    type="submit" 
+                    disabled={createTemplateMutation.isPending || updateTemplateMutation.isPending}
+                    data-testid="button-save-template"
+                  >
+                    {createTemplateMutation.isPending || updateTemplateMutation.isPending ? "Saving..." : (editingTemplate ? "Update" : "Create")}
+                  </Button>
+                </div>
+              </form>
+            </Form>
+          </DialogContent>
+        </Dialog>
+
+        {/* Override Modal */}
+        <Dialog open={showOverrideModal} onOpenChange={(open) => {
+          setShowOverrideModal(open);
+          if (!open) {
+            overrideForm.reset();
+          }
+        }}>
+          <DialogContent className="max-w-md" aria-describedby="override-description">
+            <DialogHeader>
+              <DialogTitle>Override Day Availability</DialogTitle>
+            </DialogHeader>
+            <p id="override-description" className="text-sm text-muted-foreground mb-4">
+              Set custom availability for a specific date
+            </p>
+            <Form {...overrideForm}>
+              <form onSubmit={overrideForm.handleSubmit(handleOverrideSubmit)} className="space-y-4">
+                <FormField
+                  control={overrideForm.control}
+                  name="date"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Date</FormLabel>
+                      <FormControl>
+                        <Input type="date" data-testid="input-override-date" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={overrideForm.control}
+                  name="isAvailable"
+                  render={({ field }) => (
+                    <FormItem className="flex items-center space-x-2">
+                      <FormControl>
+                        <input
+                          type="checkbox"
+                          checked={field.value}
+                          onChange={(e) => field.onChange(e.target.checked)}
+                          data-testid="checkbox-override-available"
+                          className="w-4 h-4"
+                        />
+                      </FormControl>
+                      <FormLabel className="!mt-0">Available on this day</FormLabel>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                {overrideForm.watch("isAvailable") && (
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                      control={overrideForm.control}
+                      name="startTime"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Start Time</FormLabel>
+                          <FormControl>
+                            <Input type="time" data-testid="input-override-start-time" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={overrideForm.control}
+                      name="endTime"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>End Time</FormLabel>
+                          <FormControl>
+                            <Input type="time" data-testid="input-override-end-time" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                )}
+                
+                <div className="flex justify-end space-x-2">
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={() => setShowOverrideModal(false)}
+                    data-testid="button-cancel-override"
+                  >
+                    Cancel
+                  </Button>
+                  <Button 
+                    type="submit" 
+                    disabled={createOverrideMutation.isPending}
+                    data-testid="button-save-override"
+                  >
+                    {createOverrideMutation.isPending ? "Saving..." : "Create Override"}
+                  </Button>
+                </div>
+              </form>
+            </Form>
+          </DialogContent>
+        </Dialog>
+
         </div>
     </div>
   );
