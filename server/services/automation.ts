@@ -2,8 +2,8 @@ import { storage } from '../storage';
 import { sendEmail, renderTemplate } from './email';
 import { sendSms, renderSmsTemplate } from './sms';
 import { db } from '../db';
-import { clients, automations, automationSteps, stages, templates, emailLogs, smsLogs, automationExecutions, photographers, estimates, estimatePayments, projects, bookings, projectQuestionnaires } from '@shared/schema';
-import { eq, and, gte, lte } from 'drizzle-orm';
+import { clients, automations, automationSteps, stages, templates, emailLogs, smsLogs, automationExecutions, photographers, estimates, estimatePayments, projects, bookings, projectQuestionnaires, dripCampaigns, dripCampaignEmails, dripCampaignSubscriptions, dripEmailDeliveries } from '@shared/schema';
+import { eq, and, gte, lte, isNull } from 'drizzle-orm';
 
 // Bulletproof automation execution tracking with reservation pattern
 async function reserveAutomationExecution(
@@ -126,6 +126,8 @@ export async function processAutomations(photographerId: string): Promise<void> 
         await processStageChangeAutomation(automation, photographerId);
       } else if (automation.automationType === 'COUNTDOWN') {
         await processCountdownAutomation(automation, photographerId);
+      } else if (automation.automationType === 'NURTURE') {
+        await processNurtureAutomation(automation, photographerId);
       }
     }
   } catch (error) {
@@ -928,5 +930,289 @@ export async function processPaymentReminders(photographerId: string): Promise<v
     
   } catch (error) {
     console.error('Error processing payment reminders:', error);
+  }
+}
+
+async function processNurtureAutomation(automation: any, photographerId: string): Promise<void> {
+  console.log(`Processing nurture automation: ${automation.name}`);
+  
+  // Find approved drip campaigns for this photographer and project type
+  const activeCampaigns = await db
+    .select()
+    .from(dripCampaigns)
+    .where(and(
+      eq(dripCampaigns.photographerId, photographerId),
+      eq(dripCampaigns.projectType, automation.projectType || 'WEDDING'),
+      eq(dripCampaigns.status, 'APPROVED'),
+      eq(dripCampaigns.enabled, true)
+    ));
+
+  console.log(`Found ${activeCampaigns.length} active drip campaigns for project type ${automation.projectType}`);
+
+  for (const campaign of activeCampaigns) {
+    await processNurtureCampaign(campaign, photographerId);
+  }
+}
+
+async function processNurtureCampaign(campaign: any, photographerId: string): Promise<void> {
+  console.log(`Processing nurture campaign: ${campaign.name} (${campaign.id})`);
+
+  // 1. Check for new projects that should be subscribed to this campaign
+  await subscribeNewProjectsToCampaign(campaign, photographerId);
+
+  // 2. Process existing subscriptions to send next emails
+  await processExistingSubscriptions(campaign, photographerId);
+}
+
+async function subscribeNewProjectsToCampaign(campaign: any, photographerId: string): Promise<void> {
+  // Find projects in the target stage that aren't already subscribed and have email opt-in
+  const eligibleProjects = await db
+    .select({
+      id: projects.id,
+      clientId: projects.clientId,
+      stageEnteredAt: projects.stageEnteredAt,
+      eventDate: projects.eventDate,
+      emailOptIn: projects.emailOptIn,
+      // Client details
+      firstName: clients.firstName,
+      lastName: clients.lastName,
+      email: clients.email
+    })
+    .from(projects)
+    .innerJoin(clients, eq(projects.clientId, clients.id))
+    .leftJoin(dripCampaignSubscriptions, and(
+      eq(dripCampaignSubscriptions.projectId, projects.id),
+      eq(dripCampaignSubscriptions.campaignId, campaign.id)
+    ))
+    .where(and(
+      eq(projects.photographerId, photographerId),
+      eq(projects.stageId, campaign.targetStageId),
+      eq(projects.status, 'ACTIVE'),
+      eq(projects.emailOptIn, true), // Must have email opt-in
+      // Not already subscribed
+      isNull(dripCampaignSubscriptions.id)
+    ));
+
+  console.log(`Found ${eligibleProjects.length} eligible projects for campaign ${campaign.name}`);
+
+  for (const project of eligibleProjects) {
+    // Check that client has email address
+    if (!project.email) {
+      console.log(`Project ${project.id} has no email address, skipping subscription`);
+      continue;
+    }
+
+    // Subscribe project to campaign
+    const now = new Date();
+    const firstEmailWeeks = 0; // Start immediately
+    const nextEmailAt = new Date(now.getTime() + (firstEmailWeeks * 7 * 24 * 60 * 60 * 1000));
+
+    await db.insert(dripCampaignSubscriptions).values({
+      campaignId: campaign.id,
+      projectId: project.id,
+      clientId: project.clientId,
+      startedAt: now,
+      nextEmailIndex: 0,
+      nextEmailAt: nextEmailAt,
+      status: 'ACTIVE'
+    });
+
+    console.log(`✅ Subscribed project ${project.id} (${project.firstName} ${project.lastName}) to campaign ${campaign.name}`);
+  }
+}
+
+async function processExistingSubscriptions(campaign: any, photographerId: string): Promise<void> {
+  const now = new Date();
+  
+  // Find active subscriptions that are ready for their next email
+  const readySubscriptions = await db
+    .select({
+      subscription: dripCampaignSubscriptions,
+      project: projects,
+      client: clients
+    })
+    .from(dripCampaignSubscriptions)
+    .innerJoin(projects, eq(dripCampaignSubscriptions.projectId, projects.id))
+    .innerJoin(clients, eq(projects.clientId, clients.id))
+    .where(and(
+      eq(dripCampaignSubscriptions.campaignId, campaign.id),
+      eq(dripCampaignSubscriptions.status, 'ACTIVE'),
+      lte(dripCampaignSubscriptions.nextEmailAt, now), // Ready to send
+      eq(projects.status, 'ACTIVE') // Project still active
+    ));
+
+  console.log(`Found ${readySubscriptions.length} subscriptions ready for next email in campaign ${campaign.name}`);
+
+  for (const { subscription, project, client } of readySubscriptions) {
+    await processSubscriptionEmail(subscription, campaign, project, client, photographerId);
+  }
+}
+
+async function processSubscriptionEmail(subscription: any, campaign: any, project: any, client: any, photographerId: string): Promise<void> {
+  console.log(`Processing subscription email for ${client.firstName} ${client.lastName}, next email index: ${subscription.nextEmailIndex}`);
+
+  // Get the next email in the sequence
+  const nextEmail = await db
+    .select()
+    .from(dripCampaignEmails)
+    .where(and(
+      eq(dripCampaignEmails.campaignId, campaign.id),
+      eq(dripCampaignEmails.sequenceIndex, subscription.nextEmailIndex)
+    ))
+    .limit(1);
+
+  if (nextEmail.length === 0) {
+    console.log(`No more emails in sequence for subscription ${subscription.id}, completing campaign`);
+    // Mark subscription as completed
+    await db
+      .update(dripCampaignSubscriptions)
+      .set({ 
+        status: 'COMPLETED',
+        completedAt: new Date()
+      })
+      .where(eq(dripCampaignSubscriptions.id, subscription.id));
+    return;
+  }
+
+  const emailToSend = nextEmail[0];
+
+  // Check if email was already delivered (duplicate prevention)
+  const existingDelivery = await db
+    .select()
+    .from(dripEmailDeliveries)
+    .where(and(
+      eq(dripEmailDeliveries.subscriptionId, subscription.id),
+      eq(dripEmailDeliveries.emailId, emailToSend.id)
+    ))
+    .limit(1);
+
+  if (existingDelivery.length > 0) {
+    console.log(`Email ${emailToSend.sequenceIndex} already delivered for subscription ${subscription.id}, skipping`);
+    return;
+  }
+
+  // Check if project has event date and if it has passed (stop nurturing after event)
+  if (project.eventDate) {
+    const eventDate = new Date(project.eventDate);
+    const now = new Date();
+    if (eventDate <= now) {
+      console.log(`Event date has passed for project ${project.id}, completing drip campaign`);
+      await db
+        .update(dripCampaignSubscriptions)
+        .set({ 
+          status: 'COMPLETED',
+          completedAt: new Date()
+        })
+        .where(eq(dripCampaignSubscriptions.id, subscription.id));
+      return;
+    }
+  }
+
+  // Check max duration (stop after maxDurationMonths)
+  const subscriptionStartDate = new Date(subscription.startedAt);
+  const maxDurationMs = campaign.maxDurationMonths * 30 * 24 * 60 * 60 * 1000; // Approximate months to milliseconds
+  const now = new Date();
+  if (now.getTime() - subscriptionStartDate.getTime() > maxDurationMs) {
+    console.log(`Max duration reached for subscription ${subscription.id}, completing campaign`);
+    await db
+      .update(dripCampaignSubscriptions)
+      .set({ 
+        status: 'COMPLETED',
+        completedAt: new Date()
+      })
+      .where(eq(dripCampaignSubscriptions.id, subscription.id));
+    return;
+  }
+
+  // Get photographer info for email personalization
+  const [photographer] = await db
+    .select()
+    .from(photographers)
+    .where(eq(photographers.id, photographerId));
+
+  // Prepare variables for template rendering
+  const variables = {
+    firstName: client.firstName,
+    lastName: client.lastName,
+    fullName: `${client.firstName} ${client.lastName}`,
+    email: client.email || '',
+    phone: client.phone || '',
+    businessName: photographer?.businessName || 'Your Photographer',
+    eventDate: project.eventDate ? new Date(project.eventDate).toLocaleDateString() : 'Not set'
+  };
+
+  // Render email content
+  const subject = renderTemplate(emailToSend.subject, variables);
+  const htmlBody = renderTemplate(emailToSend.htmlBody, variables);
+  const textBody = renderTemplate(emailToSend.textBody || '', variables);
+
+  // Create delivery record first
+  const deliveryRecord = await db.insert(dripEmailDeliveries).values({
+    subscriptionId: subscription.id,
+    emailId: emailToSend.id,
+    clientId: client.id,
+    projectId: project.id,
+    status: 'PENDING'
+  }).returning({ id: dripEmailDeliveries.id });
+
+  const deliveryId = deliveryRecord[0].id;
+
+  try {
+    // Send email
+    console.log(`📧 Sending drip email to ${client.firstName} ${client.lastName} (${client.email})...`);
+    
+    const fromEmail = process.env.SENDGRID_FROM_EMAIL || 'scoop@missionscoopable.com';
+    const fromName = photographer?.emailFromName || photographer?.businessName || 'Scoop Photography';
+    const replyToEmail = photographer?.emailFromAddr || process.env.SENDGRID_REPLY_TO || fromEmail;
+    
+    const success = await sendEmail({
+      to: client.email,
+      from: `${fromName} <${fromEmail}>`,
+      replyTo: `${fromName} <${replyToEmail}>`,
+      subject,
+      html: htmlBody,
+      text: textBody
+    });
+
+    if (success) {
+      // Update delivery status to sent
+      await db
+        .update(dripEmailDeliveries)
+        .set({ 
+          status: 'SENT',
+          sentAt: new Date()
+        })
+        .where(eq(dripEmailDeliveries.id, deliveryId));
+
+      // Update subscription for next email
+      const nextEmailIndex = subscription.nextEmailIndex + 1;
+      const nextEmailAt = new Date(now.getTime() + (campaign.emailFrequencyWeeks * 7 * 24 * 60 * 60 * 1000));
+
+      await db
+        .update(dripCampaignSubscriptions)
+        .set({
+          nextEmailIndex,
+          nextEmailAt
+        })
+        .where(eq(dripCampaignSubscriptions.id, subscription.id));
+
+      console.log(`✅ Sent drip email ${emailToSend.sequenceIndex} to ${client.firstName} ${client.lastName}. Next email scheduled for ${nextEmailAt}`);
+    } else {
+      // Mark delivery as failed
+      await db
+        .update(dripEmailDeliveries)
+        .set({ status: 'FAILED' })
+        .where(eq(dripEmailDeliveries.id, deliveryId));
+
+      console.log(`❌ Failed to send drip email to ${client.firstName} ${client.lastName}`);
+    }
+  } catch (error) {
+    console.error(`❌ Error sending drip email to ${client.firstName} ${client.lastName}:`, error);
+    
+    // Mark delivery as failed
+    await db
+      .update(dripEmailDeliveries)
+      .set({ status: 'FAILED' })
+      .where(eq(dripEmailDeliveries.id, deliveryId));
   }
 }

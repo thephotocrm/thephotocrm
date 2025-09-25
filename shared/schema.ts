@@ -213,7 +213,7 @@ export const automationExecutions = pgTable("automation_executions", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   projectId: varchar("project_id").notNull().references(() => projects.id),
   automationId: varchar("automation_id").notNull().references(() => automations.id),
-  automationType: text("automation_type").notNull(), // COMMUNICATION, STAGE_CHANGE, COUNTDOWN
+  automationType: text("automation_type").notNull(), // COMMUNICATION, STAGE_CHANGE, COUNTDOWN, NURTURE
   // For communication automations
   automationStepId: varchar("automation_step_id").references(() => automationSteps.id),
   // For stage change automations  
