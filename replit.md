@@ -13,6 +13,14 @@ Preferred communication style: Simple, everyday language.
 ### Multi-Tenant Architecture
 The system implements tenant isolation at the photographer level, where each photographer has completely segregated data access. This is achieved through a hierarchical data model where photographers serve as the primary tenant boundary, with all related data (clients, stages, templates, etc.) linked through photographer IDs.
 
+### AI-Powered Drip Campaign System
+Comprehensive drip campaign management with OpenAI integration:
+- **AI Generation**: OpenAI-powered email sequence creation with 30-second timeout protection and robust fallback system
+- **Campaign Lifecycle**: Complete workflow from generation through preview, draft saving, approval, and automatic delivery
+- **Preview System**: Interactive preview modal showing generated email sequences with subject lines, content, and delivery timing
+- **NURTURE Integration**: Seamless integration with automation system for sequential email delivery to inquiry-stage clients
+- **Campaign Management**: Full CRUD operations for campaign management, editing, approval, and status tracking
+
 ### Frontend Architecture
 - **Framework**: React with Vite for fast development and optimized builds
 - **Routing**: Wouter for lightweight client-side routing
@@ -54,6 +62,7 @@ Event-driven automation engine using node-cron for scheduled tasks:
 - **Multi-channel Support**: Both email and SMS delivery channels
 - **Unified Creation Interface**: Single modal allowing users to create communication-only, pipeline-only, or combined automations with optional section toggles
 - **Questionnaire Support**: Automated questionnaire assignments with proper step creation for both template-based and questionnaire-only communications
+- **NURTURE Automation**: AI-powered drip campaigns with sequential email delivery for approved campaigns, automatic client subscription for inquiry-stage projects, and campaign completion tracking
 
 ### Payment Processing
 Stripe integration for secure payment handling:

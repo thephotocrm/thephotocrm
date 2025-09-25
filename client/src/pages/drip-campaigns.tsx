@@ -125,7 +125,8 @@ export default function DripCampaigns() {
   // Mutations
   const generateCampaignMutation = useMutation({
     mutationFn: async (data: GenerateCampaignFormData) => {
-      return apiRequest("POST", "/api/drip-campaigns/generate", data);
+      const response = await apiRequest("POST", "/api/drip-campaigns/generate", data);
+      return await response.json();
     },
     onSuccess: (data) => {
       toast({ title: "Campaign generated successfully!" });
@@ -133,6 +134,15 @@ export default function DripCampaigns() {
       setGeneratedCampaignData(data);
       
       // Transform OpenAI response to DripCampaign format for preview
+      const mappedEmails = data.emails?.map((email: any, index: number) => ({
+        id: 'email-' + index,
+        campaignId: 'preview-' + Date.now(),
+        sequenceIndex: index,
+        subject: email.subject,
+        content: email.textBody || email.htmlBody || '',
+        delayWeeks: email.weeksAfterStart || 0
+      })) || [];
+      
       const campaignForPreview = {
         id: 'preview-' + Date.now(),
         name: generateForm.getValues('campaignName') || 'Generated Campaign',
@@ -143,15 +153,9 @@ export default function DripCampaigns() {
         emailFrequencyWeeks: generateForm.getValues('frequencyWeeks') || 2,
         maxDurationMonths: 12,
         createdAt: new Date(),
-        emails: data.emails?.map((email: any, index: number) => ({
-          id: 'email-' + index,
-          campaignId: 'preview-' + Date.now(),
-          sequenceIndex: index,
-          subject: email.subject,
-          content: email.textBody || email.htmlBody || '',
-          delayWeeks: email.weeksAfterStart || 0
-        })) || []
+        emails: mappedEmails
       };
+      
       setSelectedCampaign(campaignForPreview);
       setGenerateDialogOpen(false);
       setPreviewDialogOpen(true);
@@ -642,34 +646,36 @@ export default function DripCampaigns() {
             </DialogHeader>
             <ScrollArea className="max-h-[60vh]">
               <div className="space-y-4">
-                {selectedCampaign.emails?.map((email, index) => (
-                  <Card key={email.id}>
-                    <CardHeader className="pb-3">
-                      <div className="flex items-center justify-between">
-                        <CardTitle className="text-base flex items-center gap-2">
-                          <Mail className="h-4 w-4" />
-                          Email {index + 1}
-                          {email.delayWeeks > 0 && (
-                            <Badge variant="outline" className="text-xs">
-                              <Clock className="h-3 w-3 mr-1" />
-                              +{email.delayWeeks} week{email.delayWeeks > 1 ? 's' : ''}
-                            </Badge>
-                          )}
-                        </CardTitle>
-                      </div>
-                      <CardDescription className="font-medium">
-                        Subject: {email.subject}
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="prose prose-sm max-w-none">
-                        <div className="whitespace-pre-wrap text-sm">
-                          {email.content}
+                {selectedCampaign.emails && selectedCampaign.emails.length > 0 ? (
+                  selectedCampaign.emails.map((email, index) => (
+                    <Card key={email.id}>
+                      <CardHeader className="pb-3">
+                        <div className="flex items-center justify-between">
+                          <CardTitle className="text-base flex items-center gap-2">
+                            <Mail className="h-4 w-4" />
+                            Email {index + 1}
+                            {email.delayWeeks > 0 && (
+                              <Badge variant="outline" className="text-xs">
+                                <Clock className="h-3 w-3 mr-1" />
+                                +{email.delayWeeks} week{email.delayWeeks > 1 ? 's' : ''}
+                              </Badge>
+                            )}
+                          </CardTitle>
                         </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                )) || (
+                        <CardDescription className="font-medium">
+                          Subject: {email.subject}
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="prose prose-sm max-w-none">
+                          <div className="whitespace-pre-wrap text-sm">
+                            {email.content}
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))
+                ) : (
                   <div className="text-center py-8 text-muted-foreground">
                     No emails in this campaign yet
                   </div>

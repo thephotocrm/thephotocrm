@@ -152,7 +152,7 @@ Please respond with valid JSON only.`;
     console.error('Error generating drip campaign:', error);
     
     // Provide fallback if OpenAI fails
-    console.log('Providing fallback drip campaign due to OpenAI error:', error.message);
+    console.log('Providing fallback drip campaign due to OpenAI error:', (error as Error).message);
     const fallbackEmails: DripCampaignEmailContent[] = [
       {
         subject: "Welcome to Your Photography Journey!",
@@ -218,7 +218,7 @@ Please create an improved version that addresses the feedback while maintaining 
     };
   } catch (error) {
     console.error('Error regenerating email:', error);
-    throw new Error(`Failed to regenerate email: ${error.message}`);
+    throw new Error(`Failed to regenerate email: ${(error as Error).message}`);
   }
 }
 
