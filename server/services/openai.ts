@@ -40,7 +40,7 @@ export async function generateDripCampaign(options: GenerateCampaignOptions): Pr
     targetStage,
     projectType,
     campaignName,
-    emailCount = 6,
+    emailCount = 4, // Reduced default for faster, more reliable generation
     frequencyWeeks = 2,
     maxDurationMonths = 12,
     customPrompt
@@ -92,16 +92,22 @@ Respond with JSON containing:
   "campaignDescription": "brief strategy description"
 }`;
 
-  const userPrompt = `Create ${emailCount} valuable ${projectType.toLowerCase()} photography emails for ${photographer.businessName}. Each email should teach specific techniques, provide actionable tips, or share professional insights that help clients understand the value of professional photography.
+  const userPrompt = `Create ${emailCount} actionable ${projectType.toLowerCase()} photography emails for ${photographer.businessName}. 
 
-Focus on detailed, practical advice - NOT generic content. Include specific camera settings, positioning tips, and preparation advice in each email.`;
+REQUIREMENTS:
+- Each email: specific camera settings (ISO, aperture, shutter)
+- Positioning/lighting techniques with exact instructions
+- Professional tips clients can immediately use
+- NO generic "here are tips" content
+
+Generate quality over quantity - focused, valuable advice only.`;
 
   try {
     console.log('Calling OpenAI with user prompt:', userPrompt.substring(0, 200) + '...');
     
     // Add timeout wrapper to prevent hanging
     const timeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error('OpenAI request timeout after 30 seconds')), 30000);
+      setTimeout(() => reject(new Error('OpenAI request timeout after 90 seconds')), 90000);
     });
     
     const openaiPromise = openai.chat.completions.create({
