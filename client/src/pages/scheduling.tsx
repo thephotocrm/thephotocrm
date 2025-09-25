@@ -679,11 +679,10 @@ export default function Scheduling() {
                           <h4 className="font-medium" data-testid={`booking-title-${index}`}>
                             {formatBookingTitle(booking.title)}
                           </h4>
-                          <p className="text-sm text-muted-foreground" data-testid={`booking-time-${index}`}>
+                          <p className="text-sm text-muted-foreground" data-testid={`booking-date-${index}`}>
                             {(() => {
                               const startDateTime = formatBookingDateTime(booking.startAt);
-                              const endDateTime = formatBookingDateTime(booking.endAt);
-                              return `${startDateTime.date} • ${startDateTime.time} - ${endDateTime.time}`;
+                              return startDateTime.date;
                             })()}
                           </p>
                           {(booking.clientName || booking.clientPhone) && (
