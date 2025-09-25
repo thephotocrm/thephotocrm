@@ -153,6 +153,7 @@ export interface IStorage {
   getAvailabilitySlotsByPhotographer(photographerId: string): Promise<AvailabilitySlot[]>;
   getAvailabilitySlot(id: string): Promise<AvailabilitySlot | undefined>;
   createAvailabilitySlot(slot: InsertAvailabilitySlot): Promise<AvailabilitySlot>;
+  createAvailabilitySlotsBatch(slots: InsertAvailabilitySlot[]): Promise<AvailabilitySlot[]>;
   updateAvailabilitySlot(id: string, slot: Partial<AvailabilitySlot>): Promise<AvailabilitySlot>;
   deleteAvailabilitySlot(id: string): Promise<void>;
 
@@ -1264,6 +1265,15 @@ export class DatabaseStorage implements IStorage {
   async createAvailabilitySlot(slot: InsertAvailabilitySlot): Promise<AvailabilitySlot> {
     const [newSlot] = await db.insert(availabilitySlots).values(slot).returning();
     return newSlot;
+  }
+
+  async createAvailabilitySlotsBatch(slots: InsertAvailabilitySlot[]): Promise<AvailabilitySlot[]> {
+    if (slots.length === 0) {
+      return [];
+    }
+    
+    // Bulk insert all slots in a single database operation
+    return await db.insert(availabilitySlots).values(slots).returning();
   }
 
   async updateAvailabilitySlot(id: string, slot: Partial<AvailabilitySlot>): Promise<AvailabilitySlot> {
