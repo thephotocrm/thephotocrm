@@ -151,13 +151,11 @@ export interface IStorage {
   updateDailyAvailabilityOverride(id: string, override: Partial<DailyAvailabilityOverride>): Promise<DailyAvailabilityOverride>;
   deleteDailyAvailabilityOverride(id: string): Promise<void>;
 
-  // Availability Slots
+  // Availability Slots (read-only - legacy data access)
   getAvailabilitySlotsByPhotographer(photographerId: string): Promise<AvailabilitySlot[]>;
   getAvailabilitySlot(id: string): Promise<AvailabilitySlot | undefined>;
-  createAvailabilitySlot(slot: InsertAvailabilitySlot): Promise<AvailabilitySlot>;
   createAvailabilitySlotsBatch(slots: InsertAvailabilitySlot[]): Promise<AvailabilitySlot[]>;
-  updateAvailabilitySlot(id: string, slot: Partial<AvailabilitySlot>): Promise<AvailabilitySlot>;
-  deleteAvailabilitySlot(id: string): Promise<void>;
+  // Old CRUD methods removed - use template-based system instead
 
   // Google Calendar Integration
   storeGoogleCalendarCredentials(photographerId: string, credentials: {
@@ -1264,10 +1262,7 @@ export class DatabaseStorage implements IStorage {
     return slot || undefined;
   }
 
-  async createAvailabilitySlot(slot: InsertAvailabilitySlot): Promise<AvailabilitySlot> {
-    const [newSlot] = await db.insert(availabilitySlots).values(slot).returning();
-    return newSlot;
-  }
+  // Old createAvailabilitySlot method removed - use template-based system instead
 
   async createAvailabilitySlotsBatch(slots: InsertAvailabilitySlot[]): Promise<AvailabilitySlot[]> {
     if (slots.length === 0) {
@@ -1278,17 +1273,9 @@ export class DatabaseStorage implements IStorage {
     return await db.insert(availabilitySlots).values(slots).returning();
   }
 
-  async updateAvailabilitySlot(id: string, slot: Partial<AvailabilitySlot>): Promise<AvailabilitySlot> {
-    const [updatedSlot] = await db.update(availabilitySlots)
-      .set(slot)
-      .where(eq(availabilitySlots.id, id))
-      .returning();
-    return updatedSlot;
-  }
+  // Old updateAvailabilitySlot method removed - use template-based system instead
 
-  async deleteAvailabilitySlot(id: string): Promise<void> {
-    await db.delete(availabilitySlots).where(eq(availabilitySlots.id, id));
-  }
+  // Old deleteAvailabilitySlot method removed - use template-based system instead
 
   async getAvailableSlots(photographerId: string, afterDate: Date): Promise<AvailabilitySlot[]> {
     return await db.select().from(availabilitySlots)
