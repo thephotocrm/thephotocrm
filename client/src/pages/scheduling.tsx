@@ -130,7 +130,7 @@ export default function Scheduling() {
   const { data: photographer, isLoading: photographerLoading } = useQuery({
     queryKey: ["/api/auth/me"],
     enabled: !!user
-  }) as { data: { publicToken?: string; businessName?: string } | undefined; isLoading: boolean };
+  }) as { data: { publicToken?: string; businessName?: string; timezone?: string } | undefined; isLoading: boolean };
 
   // Forms for the new template-based system
   const templateForm = useForm<DailyTemplateFormData>({
@@ -279,6 +279,27 @@ export default function Scheduling() {
 
   const formatTime = (time: string) => {
     return new Date(`2000-01-01T${time}`).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+  };
+
+  // Format booking date/time with photographer's timezone
+  const formatBookingDateTime = (dateTime: string) => {
+    const date = new Date(dateTime);
+    const timezone = photographer?.timezone || 'America/New_York';
+    
+    return {
+      date: date.toLocaleDateString('en-US', { 
+        timeZone: timezone,
+        weekday: 'short',
+        month: 'short', 
+        day: 'numeric' 
+      }),
+      time: date.toLocaleTimeString('en-US', { 
+        timeZone: timezone,
+        hour: '2-digit', 
+        minute: '2-digit',
+        hour12: true
+      })
+    };
   };
 
   // Handle template editing
@@ -619,9 +640,11 @@ export default function Scheduling() {
                             {booking.title}
                           </h4>
                           <p className="text-sm text-muted-foreground" data-testid={`booking-time-${index}`}>
-                            {new Date(booking.startAt).toLocaleDateString()} - {" "}
-                            {new Date(booking.startAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - {" "}
-                            {new Date(booking.endAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            {(() => {
+                              const startDateTime = formatBookingDateTime(booking.startAt);
+                              const endDateTime = formatBookingDateTime(booking.endAt);
+                              return `${startDateTime.date} • ${startDateTime.time} - ${endDateTime.time}`;
+                            })()}
                           </p>
                         </div>
                       </div>
