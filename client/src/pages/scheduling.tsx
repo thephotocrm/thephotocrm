@@ -229,6 +229,27 @@ export default function Scheduling() {
     }
   });
 
+  // Confirm booking mutation
+  const confirmBookingMutation = useMutation({
+    mutationFn: async (bookingId: string) => {
+      return apiRequest("PUT", `/api/bookings/${bookingId}`, { status: "CONFIRMED" });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/bookings"] });
+      toast({
+        title: "Booking confirmed!",
+        description: "The booking has been successfully confirmed"
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error?.message || "Failed to confirm booking",
+        variant: "destructive"
+      });
+    }
+  });
+
   // Create override mutation
   const createOverrideMutation = useMutation({
     mutationFn: async (data: OverrideFormData) => {
@@ -635,7 +656,7 @@ export default function Scheduling() {
                           booking.status === "PENDING" ? "bg-amber-400" :
                           "bg-blue-400"
                         }`}></div>
-                        <div>
+                        <div className="flex-1">
                           <h4 className="font-medium" data-testid={`booking-title-${index}`}>
                             {booking.title}
                           </h4>
@@ -646,6 +667,20 @@ export default function Scheduling() {
                               return `${startDateTime.date} • ${startDateTime.time} - ${endDateTime.time}`;
                             })()}
                           </p>
+                          {(booking.clientName || booking.clientPhone) && (
+                            <div className="flex items-center gap-4 mt-1 text-xs text-muted-foreground">
+                              {booking.clientName && (
+                                <span data-testid={`booking-client-name-${index}`}>
+                                  👤 {booking.clientName}
+                                </span>
+                              )}
+                              {booking.clientPhone && (
+                                <span data-testid={`booking-client-phone-${index}`}>
+                                  📞 {booking.clientPhone}
+                                </span>
+                              )}
+                            </div>
+                          )}
                         </div>
                       </div>
                       <div className="flex items-center space-x-2">
@@ -653,8 +688,21 @@ export default function Scheduling() {
                           {booking.status === "CONFIRMED" ? "Confirmed" : 
                            booking.status === "PENDING" ? "Pending" : booking.status}
                         </Badge>
-                        <Button variant="outline" size="sm" data-testid={`button-booking-${index}`}>
-                          {booking.status === "PENDING" ? "Confirm" : "View Details"}
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => {
+                            if (booking.status === "PENDING") {
+                              confirmBookingMutation.mutate(booking.id);
+                            }
+                          }}
+                          disabled={booking.status === "PENDING" && confirmBookingMutation.isPending}
+                          data-testid={`button-booking-${index}`}
+                        >
+                          {booking.status === "PENDING" ? 
+                            (confirmBookingMutation.isPending ? "Confirming..." : "Confirm") : 
+                            "View Details"
+                          }
                         </Button>
                       </div>
                     </div>
