@@ -8,6 +8,7 @@ import { authenticateToken, requirePhotographer, requireRole } from "./middlewar
 import { hashPassword, authenticateUser, generateToken } from "./services/auth";
 import { sendEmail } from "./services/email";
 import { sendSms } from "./services/sms";
+import { generateDripCampaign, regenerateEmail } from "./services/openai";
 import { createPaymentIntent, createCheckoutSession, createConnectCheckoutSession, calculatePlatformFee, handleWebhook, stripe } from "./services/stripe";
 import { googleCalendarService, createBookingCalendarEvent } from "./services/calendar";
 import { slotGenerationService } from "./services/slotGeneration";
@@ -17,7 +18,8 @@ import { insertUserSchema, insertPhotographerSchema, insertClientSchema, insertS
          bookingConfirmationSchema, sanitizedBookingSchema, insertQuestionnaireTemplateSchema, insertQuestionnaireQuestionSchema, 
          emailLogs, smsLogs, projectActivityLog,
          projectTypeEnum, createOnboardingLinkSchema, createPayoutSchema, insertDailyAvailabilityTemplateSchema,
-         insertDailyAvailabilityBreakSchema, insertDailyAvailabilityOverrideSchema } from "@shared/schema";
+         insertDailyAvailabilityBreakSchema, insertDailyAvailabilityOverrideSchema,
+         insertDripCampaignSchema, insertDripCampaignEmailSchema, insertDripCampaignSubscriptionSchema } from "@shared/schema";
 import { z } from "zod";
 import { startCronJobs } from "./jobs/cron";
 import path from "path";
@@ -1662,6 +1664,262 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       res.json({ message: "Automation step deleted successfully" });
     } catch (error) {
       console.error('Delete automation step error:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Drip Campaign routes
+  app.get("/api/drip-campaigns", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      const { projectType } = req.query;
+      const campaigns = await storage.getDripCampaignsByPhotographer(
+        req.user!.photographerId!,
+        projectType as string | undefined
+      );
+      res.json(campaigns);
+    } catch (error) {
+      console.error('Get drip campaigns error:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.get("/api/drip-campaigns/:id", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      const campaign = await storage.getDripCampaign(req.params.id);
+      if (!campaign || campaign.photographerId !== req.user!.photographerId!) {
+        return res.status(404).json({ message: "Drip campaign not found" });
+      }
+      res.json(campaign);
+    } catch (error) {
+      console.error('Get drip campaign error:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.post("/api/drip-campaigns/generate", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      const { targetStageId, projectType, campaignName, emailCount, frequencyWeeks, customPrompt } = req.body;
+
+      // Get photographer details
+      const photographer = await storage.getPhotographer(req.user!.photographerId!);
+      if (!photographer) {
+        return res.status(404).json({ message: "Photographer not found" });
+      }
+
+      // Get stage details
+      const stages = await storage.getStagesByPhotographer(req.user!.photographerId!, projectType);
+      const stage = stages.find(s => s.id === targetStageId);
+      if (!stage) {
+        return res.status(404).json({ message: "Stage not found" });
+      }
+
+      // Generate drip campaign using OpenAI
+      const result = await generateDripCampaign({
+        photographer,
+        targetStage: stage.name,
+        projectType: projectType || "WEDDING",
+        campaignName: campaignName || `${stage.name} Nurturing Campaign`,
+        emailCount: emailCount || 6,
+        frequencyWeeks: frequencyWeeks || 2,
+        maxDurationMonths: 12,
+        customPrompt
+      });
+
+      res.json(result);
+    } catch (error) {
+      console.error('Generate drip campaign error:', error);
+      res.status(500).json({ message: "Failed to generate drip campaign", error: error.message });
+    }
+  });
+
+  app.post("/api/drip-campaigns", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      const campaignData = insertDripCampaignSchema.parse({
+        ...req.body,
+        photographerId: req.user!.photographerId!
+      });
+
+      // Verify stage belongs to photographer
+      const stages = await storage.getStagesByPhotographer(req.user!.photographerId!, campaignData.projectType);
+      const stage = stages.find(s => s.id === campaignData.targetStageId);
+      if (!stage) {
+        return res.status(400).json({ message: "Invalid target stage" });
+      }
+
+      const campaign = await storage.createDripCampaign(campaignData);
+
+      // If emails are provided, create them
+      if (req.body.emails && Array.isArray(req.body.emails)) {
+        for (let i = 0; i < req.body.emails.length; i++) {
+          const emailData = insertDripCampaignEmailSchema.parse({
+            ...req.body.emails[i],
+            campaignId: campaign.id,
+            sequenceIndex: i
+          });
+          await storage.createDripCampaignEmail(emailData);
+        }
+      }
+
+      // Return the campaign with emails
+      const campaignWithEmails = await storage.getDripCampaign(campaign.id);
+      res.status(201).json(campaignWithEmails);
+    } catch (error: any) {
+      console.error('Create drip campaign error:', error);
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ message: "Invalid request data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.put("/api/drip-campaigns/:id", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      const campaign = await storage.getDripCampaign(req.params.id);
+      if (!campaign || campaign.photographerId !== req.user!.photographerId!) {
+        return res.status(404).json({ message: "Drip campaign not found" });
+      }
+
+      const updateData = insertDripCampaignSchema.partial().omit({ photographerId: true, id: true }).parse(req.body);
+      const updated = await storage.updateDripCampaign(req.params.id, updateData);
+
+      // If emails are provided, update them
+      if (req.body.emails && Array.isArray(req.body.emails)) {
+        // Delete existing emails and recreate them (simpler than complex updating)
+        const existingEmails = await storage.getDripCampaignEmails(req.params.id);
+        for (const email of existingEmails) {
+          await storage.deleteDripCampaignEmail(email.id);
+        }
+
+        for (let i = 0; i < req.body.emails.length; i++) {
+          const emailData = insertDripCampaignEmailSchema.parse({
+            ...req.body.emails[i],
+            campaignId: req.params.id,
+            sequenceIndex: i
+          });
+          await storage.createDripCampaignEmail(emailData);
+        }
+      }
+
+      const campaignWithEmails = await storage.getDripCampaign(req.params.id);
+      res.json(campaignWithEmails);
+    } catch (error: any) {
+      console.error('Update drip campaign error:', error);
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ message: "Invalid request data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.post("/api/drip-campaigns/:id/approve", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      const campaign = await storage.getDripCampaign(req.params.id);
+      if (!campaign || campaign.photographerId !== req.user!.photographerId!) {
+        return res.status(404).json({ message: "Drip campaign not found" });
+      }
+
+      if (campaign.status !== 'DRAFT') {
+        return res.status(400).json({ message: "Only draft campaigns can be approved" });
+      }
+
+      const updated = await storage.updateDripCampaign(req.params.id, {
+        status: 'APPROVED',
+        approvedAt: new Date(),
+        approvedBy: req.user!.id
+      });
+
+      res.json(updated);
+    } catch (error) {
+      console.error('Approve drip campaign error:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.post("/api/drip-campaigns/:id/activate", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      const campaign = await storage.getDripCampaign(req.params.id);
+      if (!campaign || campaign.photographerId !== req.user!.photographerId!) {
+        return res.status(404).json({ message: "Drip campaign not found" });
+      }
+
+      if (campaign.status !== 'APPROVED') {
+        return res.status(400).json({ message: "Only approved campaigns can be activated" });
+      }
+
+      const updated = await storage.updateDripCampaign(req.params.id, {
+        status: 'ACTIVE'
+      });
+
+      // TODO: Auto-subscribe eligible clients in the target stage
+      // This would be implemented in the drip automation service
+
+      res.json(updated);
+    } catch (error) {
+      console.error('Activate drip campaign error:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.delete("/api/drip-campaigns/:id", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      const campaign = await storage.getDripCampaign(req.params.id);
+      if (!campaign || campaign.photographerId !== req.user!.photographerId!) {
+        return res.status(404).json({ message: "Drip campaign not found" });
+      }
+
+      await storage.deleteDripCampaign(req.params.id);
+      res.json({ message: "Drip campaign deleted successfully" });
+    } catch (error) {
+      console.error('Delete drip campaign error:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Drip Campaign Subscriptions routes
+  app.get("/api/drip-subscriptions", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      const subscriptions = await storage.getDripCampaignSubscriptionsByPhotographer(req.user!.photographerId!);
+      res.json(subscriptions);
+    } catch (error) {
+      console.error('Get drip subscriptions error:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.post("/api/drip-subscriptions", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      const { campaignId, projectId } = req.body;
+
+      // Verify campaign belongs to photographer
+      const campaign = await storage.getDripCampaign(campaignId);
+      if (!campaign || campaign.photographerId !== req.user!.photographerId!) {
+        return res.status(404).json({ message: "Drip campaign not found" });
+      }
+
+      // Verify project belongs to photographer
+      const project = await storage.getProject(projectId);
+      if (!project || project.photographerId !== req.user!.photographerId!) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // Calculate when to send the first email
+      const firstEmailAt = new Date();
+      firstEmailAt.setDate(firstEmailAt.getDate() + (campaign.emailFrequencyWeeks * 7));
+
+      const subscriptionData = insertDripCampaignSubscriptionSchema.parse({
+        campaignId,
+        projectId,
+        clientId: project.clientId,
+        nextEmailAt: firstEmailAt
+      });
+
+      const subscription = await storage.createDripCampaignSubscription(subscriptionData);
+      res.status(201).json(subscription);
+    } catch (error: any) {
+      console.error('Create drip subscription error:', error);
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ message: "Invalid request data", errors: error.errors });
+      }
       res.status(500).json({ message: "Internal server error" });
     }
   });

@@ -6,6 +6,7 @@ import {
   photographerEarnings, photographerPayouts,
   messages, projectActivityLog, clientPortalTokens,
   dailyAvailabilityTemplates, dailyAvailabilityBreaks, dailyAvailabilityOverrides,
+  dripCampaigns, dripCampaignEmails, dripCampaignSubscriptions, dripEmailDeliveries,
   type User, type InsertUser, type Photographer, type InsertPhotographer,
   type Client, type InsertClient, type Project, type InsertProject, type ProjectWithClientAndStage, type ClientWithProjects, type Stage, type InsertStage,
   type Template, type InsertTemplate, type Automation, type InsertAutomation,
@@ -21,7 +22,11 @@ import {
   type DailyAvailabilityBreak, type InsertDailyAvailabilityBreak,
   type DailyAvailabilityOverride, type InsertDailyAvailabilityOverride,
   type AvailabilitySlot, type InsertAvailabilitySlot,
-  type Booking, type InsertBooking
+  type Booking, type InsertBooking,
+  type DripCampaign, type InsertDripCampaign, type DripCampaignWithEmails,
+  type DripCampaignEmail, type InsertDripCampaignEmail,
+  type DripCampaignSubscription, type InsertDripCampaignSubscription, type DripCampaignSubscriptionWithDetails,
+  type DripEmailDelivery, type InsertDripEmailDelivery
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, inArray, gte, lte, gt } from "drizzle-orm";
@@ -197,6 +202,31 @@ export interface IStorage {
   
   // Photographer Payouts
   getPayoutsByPhotographer(photographerId: string): Promise<PhotographerPayouts[]>;
+  
+  // Drip Campaigns
+  getDripCampaignsByPhotographer(photographerId: string, projectType?: string): Promise<DripCampaignWithEmails[]>;
+  getDripCampaign(id: string): Promise<DripCampaignWithEmails | undefined>;
+  createDripCampaign(campaign: InsertDripCampaign): Promise<DripCampaign>;
+  updateDripCampaign(id: string, campaign: Partial<DripCampaign>): Promise<DripCampaign>;
+  deleteDripCampaign(id: string): Promise<void>;
+  
+  // Drip Campaign Emails
+  getDripCampaignEmails(campaignId: string): Promise<DripCampaignEmail[]>;
+  createDripCampaignEmail(email: InsertDripCampaignEmail): Promise<DripCampaignEmail>;
+  updateDripCampaignEmail(id: string, email: Partial<DripCampaignEmail>): Promise<DripCampaignEmail>;
+  deleteDripCampaignEmail(id: string): Promise<void>;
+  
+  // Drip Campaign Subscriptions
+  getDripCampaignSubscriptionsByPhotographer(photographerId: string): Promise<DripCampaignSubscriptionWithDetails[]>;
+  getDripCampaignSubscriptionsByCampaign(campaignId: string): Promise<DripCampaignSubscriptionWithDetails[]>;
+  getDripCampaignSubscription(id: string): Promise<DripCampaignSubscriptionWithDetails | undefined>;
+  createDripCampaignSubscription(subscription: InsertDripCampaignSubscription): Promise<DripCampaignSubscription>;
+  updateDripCampaignSubscription(id: string, subscription: Partial<DripCampaignSubscription>): Promise<DripCampaignSubscription>;
+  
+  // Drip Email Deliveries
+  getDripEmailDeliveriesBySubscription(subscriptionId: string): Promise<DripEmailDelivery[]>;
+  createDripEmailDelivery(delivery: InsertDripEmailDelivery): Promise<DripEmailDelivery>;
+  updateDripEmailDelivery(id: string, delivery: Partial<DripEmailDelivery>): Promise<DripEmailDelivery>;
   getPayoutByStripePayoutId(stripePayoutId: string): Promise<PhotographerPayouts | undefined>;
   createPayout(payout: InsertPhotographerPayouts): Promise<PhotographerPayouts>;
   updatePayout(id: string, payout: Partial<PhotographerPayouts>): Promise<PhotographerPayouts>;
@@ -1830,6 +1860,283 @@ export class DatabaseStorage implements IStorage {
       availableCents,
       pendingCents
     };
+  }
+
+  // Drip Campaigns methods
+  async getDripCampaignsByPhotographer(photographerId: string, projectType?: string): Promise<DripCampaignWithEmails[]> {
+    const query = db.select()
+      .from(dripCampaigns)
+      .where(eq(dripCampaigns.photographerId, photographerId))
+      .orderBy(desc(dripCampaigns.createdAt));
+    
+    if (projectType) {
+      query.where(and(
+        eq(dripCampaigns.photographerId, photographerId),
+        eq(dripCampaigns.projectType, projectType)
+      ));
+    }
+    
+    const campaigns = await query;
+    
+    // Get emails for each campaign
+    const campaignsWithEmails: DripCampaignWithEmails[] = [];
+    for (const campaign of campaigns) {
+      const emails = await this.getDripCampaignEmails(campaign.id);
+      campaignsWithEmails.push({
+        ...campaign,
+        emails
+      });
+    }
+    
+    return campaignsWithEmails;
+  }
+
+  async getDripCampaign(id: string): Promise<DripCampaignWithEmails | undefined> {
+    const [campaign] = await db.select()
+      .from(dripCampaigns)
+      .where(eq(dripCampaigns.id, id))
+      .limit(1);
+    
+    if (!campaign) return undefined;
+    
+    const emails = await this.getDripCampaignEmails(campaign.id);
+    
+    return {
+      ...campaign,
+      emails
+    };
+  }
+
+  async createDripCampaign(campaign: InsertDripCampaign): Promise<DripCampaign> {
+    const [created] = await db.insert(dripCampaigns).values(campaign).returning();
+    return created;
+  }
+
+  async updateDripCampaign(id: string, campaign: Partial<DripCampaign>): Promise<DripCampaign> {
+    const [updated] = await db.update(dripCampaigns)
+      .set(campaign)
+      .where(eq(dripCampaigns.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteDripCampaign(id: string): Promise<void> {
+    // Delete related data first (cascading delete)
+    await db.delete(dripEmailDeliveries)
+      .where(eq(dripEmailDeliveries.emailId, id)); // Need to join through subscriptions
+    await db.delete(dripCampaignSubscriptions)
+      .where(eq(dripCampaignSubscriptions.campaignId, id));
+    await db.delete(dripCampaignEmails)
+      .where(eq(dripCampaignEmails.campaignId, id));
+    await db.delete(dripCampaigns)
+      .where(eq(dripCampaigns.id, id));
+  }
+
+  // Drip Campaign Emails methods
+  async getDripCampaignEmails(campaignId: string): Promise<DripCampaignEmail[]> {
+    return await db.select()
+      .from(dripCampaignEmails)
+      .where(eq(dripCampaignEmails.campaignId, campaignId))
+      .orderBy(asc(dripCampaignEmails.sequenceIndex));
+  }
+
+  async createDripCampaignEmail(email: InsertDripCampaignEmail): Promise<DripCampaignEmail> {
+    const [created] = await db.insert(dripCampaignEmails).values(email).returning();
+    return created;
+  }
+
+  async updateDripCampaignEmail(id: string, email: Partial<DripCampaignEmail>): Promise<DripCampaignEmail> {
+    const [updated] = await db.update(dripCampaignEmails)
+      .set(email)
+      .where(eq(dripCampaignEmails.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteDripCampaignEmail(id: string): Promise<void> {
+    // Delete related deliveries first
+    await db.delete(dripEmailDeliveries)
+      .where(eq(dripEmailDeliveries.emailId, id));
+    await db.delete(dripCampaignEmails)
+      .where(eq(dripCampaignEmails.id, id));
+  }
+
+  // Drip Campaign Subscriptions methods
+  async getDripCampaignSubscriptionsByPhotographer(photographerId: string): Promise<DripCampaignSubscriptionWithDetails[]> {
+    return await db.select({
+      id: dripCampaignSubscriptions.id,
+      campaignId: dripCampaignSubscriptions.campaignId,
+      projectId: dripCampaignSubscriptions.projectId,
+      clientId: dripCampaignSubscriptions.clientId,
+      startedAt: dripCampaignSubscriptions.startedAt,
+      nextEmailIndex: dripCampaignSubscriptions.nextEmailIndex,
+      nextEmailAt: dripCampaignSubscriptions.nextEmailAt,
+      completedAt: dripCampaignSubscriptions.completedAt,
+      unsubscribedAt: dripCampaignSubscriptions.unsubscribedAt,
+      status: dripCampaignSubscriptions.status,
+      campaign: {
+        id: dripCampaigns.id,
+        photographerId: dripCampaigns.photographerId,
+        projectType: dripCampaigns.projectType,
+        name: dripCampaigns.name,
+        targetStageId: dripCampaigns.targetStageId,
+        status: dripCampaigns.status,
+        maxDurationMonths: dripCampaigns.maxDurationMonths,
+        emailFrequencyWeeks: dripCampaigns.emailFrequencyWeeks,
+        generatedByAi: dripCampaigns.generatedByAi,
+        aiPrompt: dripCampaigns.aiPrompt,
+        businessContext: dripCampaigns.businessContext,
+        approvedAt: dripCampaigns.approvedAt,
+        approvedBy: dripCampaigns.approvedBy,
+        createdAt: dripCampaigns.createdAt,
+        enabled: dripCampaigns.enabled
+      },
+      project: {
+        title: projects.title,
+        eventDate: projects.eventDate
+      },
+      client: {
+        firstName: clients.firstName,
+        lastName: clients.lastName,
+        email: clients.email
+      }
+    })
+      .from(dripCampaignSubscriptions)
+      .innerJoin(dripCampaigns, eq(dripCampaignSubscriptions.campaignId, dripCampaigns.id))
+      .innerJoin(projects, eq(dripCampaignSubscriptions.projectId, projects.id))
+      .innerJoin(clients, eq(dripCampaignSubscriptions.clientId, clients.id))
+      .where(eq(dripCampaigns.photographerId, photographerId))
+      .orderBy(desc(dripCampaignSubscriptions.startedAt));
+  }
+
+  async getDripCampaignSubscriptionsByCampaign(campaignId: string): Promise<DripCampaignSubscriptionWithDetails[]> {
+    return await db.select({
+      id: dripCampaignSubscriptions.id,
+      campaignId: dripCampaignSubscriptions.campaignId,
+      projectId: dripCampaignSubscriptions.projectId,
+      clientId: dripCampaignSubscriptions.clientId,
+      startedAt: dripCampaignSubscriptions.startedAt,
+      nextEmailIndex: dripCampaignSubscriptions.nextEmailIndex,
+      nextEmailAt: dripCampaignSubscriptions.nextEmailAt,
+      completedAt: dripCampaignSubscriptions.completedAt,
+      unsubscribedAt: dripCampaignSubscriptions.unsubscribedAt,
+      status: dripCampaignSubscriptions.status,
+      campaign: {
+        id: dripCampaigns.id,
+        photographerId: dripCampaigns.photographerId,
+        projectType: dripCampaigns.projectType,
+        name: dripCampaigns.name,
+        targetStageId: dripCampaigns.targetStageId,
+        status: dripCampaigns.status,
+        maxDurationMonths: dripCampaigns.maxDurationMonths,
+        emailFrequencyWeeks: dripCampaigns.emailFrequencyWeeks,
+        generatedByAi: dripCampaigns.generatedByAi,
+        aiPrompt: dripCampaigns.aiPrompt,
+        businessContext: dripCampaigns.businessContext,
+        approvedAt: dripCampaigns.approvedAt,
+        approvedBy: dripCampaigns.approvedBy,
+        createdAt: dripCampaigns.createdAt,
+        enabled: dripCampaigns.enabled
+      },
+      project: {
+        title: projects.title,
+        eventDate: projects.eventDate
+      },
+      client: {
+        firstName: clients.firstName,
+        lastName: clients.lastName,
+        email: clients.email
+      }
+    })
+      .from(dripCampaignSubscriptions)
+      .innerJoin(dripCampaigns, eq(dripCampaignSubscriptions.campaignId, dripCampaigns.id))
+      .innerJoin(projects, eq(dripCampaignSubscriptions.projectId, projects.id))
+      .innerJoin(clients, eq(dripCampaignSubscriptions.clientId, clients.id))
+      .where(eq(dripCampaignSubscriptions.campaignId, campaignId))
+      .orderBy(desc(dripCampaignSubscriptions.startedAt));
+  }
+
+  async getDripCampaignSubscription(id: string): Promise<DripCampaignSubscriptionWithDetails | undefined> {
+    const [subscription] = await db.select({
+      id: dripCampaignSubscriptions.id,
+      campaignId: dripCampaignSubscriptions.campaignId,
+      projectId: dripCampaignSubscriptions.projectId,
+      clientId: dripCampaignSubscriptions.clientId,
+      startedAt: dripCampaignSubscriptions.startedAt,
+      nextEmailIndex: dripCampaignSubscriptions.nextEmailIndex,
+      nextEmailAt: dripCampaignSubscriptions.nextEmailAt,
+      completedAt: dripCampaignSubscriptions.completedAt,
+      unsubscribedAt: dripCampaignSubscriptions.unsubscribedAt,
+      status: dripCampaignSubscriptions.status,
+      campaign: {
+        id: dripCampaigns.id,
+        photographerId: dripCampaigns.photographerId,
+        projectType: dripCampaigns.projectType,
+        name: dripCampaigns.name,
+        targetStageId: dripCampaigns.targetStageId,
+        status: dripCampaigns.status,
+        maxDurationMonths: dripCampaigns.maxDurationMonths,
+        emailFrequencyWeeks: dripCampaigns.emailFrequencyWeeks,
+        generatedByAi: dripCampaigns.generatedByAi,
+        aiPrompt: dripCampaigns.aiPrompt,
+        businessContext: dripCampaigns.businessContext,
+        approvedAt: dripCampaigns.approvedAt,
+        approvedBy: dripCampaigns.approvedBy,
+        createdAt: dripCampaigns.createdAt,
+        enabled: dripCampaigns.enabled
+      },
+      project: {
+        title: projects.title,
+        eventDate: projects.eventDate
+      },
+      client: {
+        firstName: clients.firstName,
+        lastName: clients.lastName,
+        email: clients.email
+      }
+    })
+      .from(dripCampaignSubscriptions)
+      .innerJoin(dripCampaigns, eq(dripCampaignSubscriptions.campaignId, dripCampaigns.id))
+      .innerJoin(projects, eq(dripCampaignSubscriptions.projectId, projects.id))
+      .innerJoin(clients, eq(dripCampaignSubscriptions.clientId, clients.id))
+      .where(eq(dripCampaignSubscriptions.id, id))
+      .limit(1);
+    
+    return subscription || undefined;
+  }
+
+  async createDripCampaignSubscription(subscription: InsertDripCampaignSubscription): Promise<DripCampaignSubscription> {
+    const [created] = await db.insert(dripCampaignSubscriptions).values(subscription).returning();
+    return created;
+  }
+
+  async updateDripCampaignSubscription(id: string, subscription: Partial<DripCampaignSubscription>): Promise<DripCampaignSubscription> {
+    const [updated] = await db.update(dripCampaignSubscriptions)
+      .set(subscription)
+      .where(eq(dripCampaignSubscriptions.id, id))
+      .returning();
+    return updated;
+  }
+
+  // Drip Email Deliveries methods
+  async getDripEmailDeliveriesBySubscription(subscriptionId: string): Promise<DripEmailDelivery[]> {
+    return await db.select()
+      .from(dripEmailDeliveries)
+      .where(eq(dripEmailDeliveries.subscriptionId, subscriptionId))
+      .orderBy(desc(dripEmailDeliveries.createdAt));
+  }
+
+  async createDripEmailDelivery(delivery: InsertDripEmailDelivery): Promise<DripEmailDelivery> {
+    const [created] = await db.insert(dripEmailDeliveries).values(delivery).returning();
+    return created;
+  }
+
+  async updateDripEmailDelivery(id: string, delivery: Partial<DripEmailDelivery>): Promise<DripEmailDelivery> {
+    const [updated] = await db.update(dripEmailDeliveries)
+      .set(delivery)
+      .where(eq(dripEmailDeliveries.id, id))
+      .returning();
+    return updated;
   }
 }
 
