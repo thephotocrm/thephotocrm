@@ -80,6 +80,7 @@ export default function DripCampaigns() {
   const [selectedCampaign, setSelectedCampaign] = useState<DripCampaign | null>(null);
   const [generateDialogOpen, setGenerateDialogOpen] = useState(false);
   const [previewDialogOpen, setPreviewDialogOpen] = useState(false);
+  const [generatedCampaignData, setGeneratedCampaignData] = useState<any>(null);
   const [selectedProjectType, setSelectedProjectType] = useState<string>("WEDDING");
 
   // Queries
@@ -128,7 +129,30 @@ export default function DripCampaigns() {
     },
     onSuccess: (data) => {
       toast({ title: "Campaign generated successfully!" });
-      setSelectedCampaign(data);
+      // Store original OpenAI data for saving
+      setGeneratedCampaignData(data);
+      
+      // Transform OpenAI response to DripCampaign format for preview
+      const campaignForPreview = {
+        id: 'preview-' + Date.now(),
+        name: generateForm.getValues('campaignName') || 'Generated Campaign',
+        projectType: generateForm.getValues('projectType') || 'WEDDING',
+        targetStageId: generateForm.getValues('targetStageId') || '',
+        status: 'DRAFT' as const,
+        emailCount: data.emails?.length || 0,
+        emailFrequencyWeeks: generateForm.getValues('frequencyWeeks') || 2,
+        maxDurationMonths: 12,
+        createdAt: new Date(),
+        emails: data.emails?.map((email: any, index: number) => ({
+          id: 'email-' + index,
+          campaignId: 'preview-' + Date.now(),
+          sequenceIndex: index,
+          subject: email.subject,
+          content: email.textBody || email.htmlBody || '',
+          delayWeeks: email.weeksAfterStart || 0
+        })) || []
+      };
+      setSelectedCampaign(campaignForPreview);
       setGenerateDialogOpen(false);
       setPreviewDialogOpen(true);
     },
@@ -150,6 +174,7 @@ export default function DripCampaigns() {
       queryClient.invalidateQueries({ queryKey: ["/api/drip-campaigns"] });
       setPreviewDialogOpen(false);
       setSelectedCampaign(null);
+      setGeneratedCampaignData(null);
     },
     onError: (error: any) => {
       toast({ 
@@ -216,8 +241,25 @@ export default function DripCampaigns() {
   };
 
   const handleSaveCampaign = () => {
-    if (selectedCampaign) {
-      saveCampaignMutation.mutate(selectedCampaign);
+    if (selectedCampaign && generatedCampaignData) {
+      // Construct proper payload for backend with all required fields
+      const formData = generateForm.getValues();
+      
+      const campaignPayload = {
+        name: formData.campaignName || selectedCampaign.name,
+        projectType: formData.projectType || selectedCampaign.projectType,
+        targetStageId: formData.targetStageId || selectedCampaign.targetStageId,
+        status: 'DRAFT',
+        maxDurationMonths: 12,
+        emailFrequencyWeeks: formData.frequencyWeeks || selectedCampaign.emailFrequencyWeeks,
+        generatedByAi: true,
+        aiPrompt: formData.customPrompt || '',
+        businessContext: generatedCampaignData.businessContext || '',
+        enabled: true,
+        emails: generatedCampaignData.emails || []
+      };
+      
+      saveCampaignMutation.mutate(campaignPayload);
     }
   };
 
