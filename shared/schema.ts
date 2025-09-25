@@ -41,7 +41,8 @@ export const leadSourceEnum = {
 export const automationTypeEnum = {
   COMMUNICATION: "COMMUNICATION",
   STAGE_CHANGE: "STAGE_CHANGE",
-  COUNTDOWN: "COUNTDOWN"
+  COUNTDOWN: "COUNTDOWN",
+  NURTURE: "NURTURE"
 } as const;
 
 export const triggerTypeEnum = {
@@ -236,6 +237,74 @@ export const automationExecutions = pgTable("automation_executions", {
   // Unique constraint for countdown automations: one execution per project+automation+event+days
   countdownUniqueIdx: unique("automation_executions_countdown_unique").on(
     table.projectId, table.automationId, table.eventDate, table.daysBefore
+  )
+}));
+
+// Drip Campaign Tables
+export const dripCampaigns = pgTable("drip_campaigns", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  photographerId: varchar("photographer_id").notNull().references(() => photographers.id),
+  projectType: text("project_type").notNull().default("WEDDING"),
+  name: text("name").notNull(),
+  targetStageId: varchar("target_stage_id").notNull().references(() => stages.id),
+  status: text("status").notNull().default("DRAFT"), // DRAFT, APPROVED, ACTIVE, PAUSED
+  maxDurationMonths: integer("max_duration_months").notNull().default(12),
+  emailFrequencyWeeks: integer("email_frequency_weeks").notNull().default(2), // How often to send emails (2 = every 2 weeks)
+  generatedByAi: boolean("generated_by_ai").default(false),
+  aiPrompt: text("ai_prompt"), // The prompt used to generate this campaign
+  businessContext: text("business_context"), // Business info used for AI generation
+  approvedAt: timestamp("approved_at"),
+  approvedBy: varchar("approved_by").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  enabled: boolean("enabled").default(true)
+});
+
+export const dripCampaignEmails = pgTable("drip_campaign_emails", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  campaignId: varchar("campaign_id").notNull().references(() => dripCampaigns.id),
+  sequenceIndex: integer("sequence_index").notNull(), // Order in the sequence (0, 1, 2, etc.)
+  subject: text("subject").notNull(),
+  htmlBody: text("html_body").notNull(),
+  textBody: text("text_body"),
+  weeksAfterStart: integer("weeks_after_start").notNull(), // When to send relative to campaign start
+  createdAt: timestamp("created_at").defaultNow()
+});
+
+export const dripCampaignSubscriptions = pgTable("drip_campaign_subscriptions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  campaignId: varchar("campaign_id").notNull().references(() => dripCampaigns.id),
+  projectId: varchar("project_id").notNull().references(() => projects.id),
+  clientId: varchar("client_id").notNull().references(() => clients.id),
+  startedAt: timestamp("started_at").defaultNow(),
+  nextEmailIndex: integer("next_email_index").notNull().default(0), // Which email to send next
+  nextEmailAt: timestamp("next_email_at"), // When to send the next email
+  completedAt: timestamp("completed_at"), // When the campaign completed (event date reached or max duration)
+  unsubscribedAt: timestamp("unsubscribed_at"),
+  status: text("status").notNull().default("ACTIVE") // ACTIVE, COMPLETED, UNSUBSCRIBED, PAUSED
+}, (table) => ({
+  // Unique constraint: one subscription per project per campaign
+  projectCampaignUniqueIdx: unique("drip_subscription_project_campaign_unique").on(
+    table.projectId, table.campaignId
+  )
+}));
+
+export const dripEmailDeliveries = pgTable("drip_email_deliveries", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  subscriptionId: varchar("subscription_id").notNull().references(() => dripCampaignSubscriptions.id),
+  emailId: varchar("email_id").notNull().references(() => dripCampaignEmails.id),
+  clientId: varchar("client_id").notNull().references(() => clients.id),
+  projectId: varchar("project_id").notNull().references(() => projects.id),
+  status: text("status").notNull(), // PENDING, SENT, DELIVERED, BOUNCED, FAILED
+  providerId: text("provider_id"),
+  sentAt: timestamp("sent_at"),
+  openedAt: timestamp("opened_at"),
+  clickedAt: timestamp("clicked_at"),
+  bouncedAt: timestamp("bounced_at"),
+  createdAt: timestamp("created_at").defaultNow()
+}, (table) => ({
+  // Unique constraint: one delivery per subscription per email
+  subscriptionEmailUniqueIdx: unique("drip_delivery_subscription_email_unique").on(
+    table.subscriptionId, table.emailId
   )
 }));
 
@@ -1052,6 +1121,55 @@ export const insertPhotographerEarningsSchema = createInsertSchema(photographerE
   id: true,
   createdAt: true
 });
+
+// Drip Campaign Schemas
+export const insertDripCampaignSchema = createInsertSchema(dripCampaigns).omit({
+  id: true,
+  createdAt: true
+});
+
+export const insertDripCampaignEmailSchema = createInsertSchema(dripCampaignEmails).omit({
+  id: true,
+  createdAt: true
+});
+
+export const insertDripCampaignSubscriptionSchema = createInsertSchema(dripCampaignSubscriptions).omit({
+  id: true,
+  startedAt: true
+});
+
+export const insertDripEmailDeliverySchema = createInsertSchema(dripEmailDeliveries).omit({
+  id: true,
+  createdAt: true
+});
+
+// Drip Campaign Types
+export type DripCampaign = typeof dripCampaigns.$inferSelect;
+export type InsertDripCampaign = z.infer<typeof insertDripCampaignSchema>;
+export type DripCampaignEmail = typeof dripCampaignEmails.$inferSelect;
+export type InsertDripCampaignEmail = z.infer<typeof insertDripCampaignEmailSchema>;
+export type DripCampaignSubscription = typeof dripCampaignSubscriptions.$inferSelect;
+export type InsertDripCampaignSubscription = z.infer<typeof insertDripCampaignSubscriptionSchema>;
+export type DripEmailDelivery = typeof dripEmailDeliveries.$inferSelect;
+export type InsertDripEmailDelivery = z.infer<typeof insertDripEmailDeliverySchema>;
+
+// Drip Campaign with Relations
+export type DripCampaignWithEmails = DripCampaign & {
+  emails: DripCampaignEmail[];
+};
+
+export type DripCampaignSubscriptionWithDetails = DripCampaignSubscription & {
+  campaign: DripCampaign;
+  project: {
+    title: string;
+    eventDate: Date | null;
+  };
+  client: {
+    firstName: string;
+    lastName: string;
+    email: string | null;
+  };
+};
 
 export const insertPhotographerPayoutsSchema = createInsertSchema(photographerPayouts).omit({
   id: true,
