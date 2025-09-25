@@ -326,22 +326,14 @@ export class SlotGenerationService {
       return bookingDate === dateString;
     });
     
-    // Convert to API format and filter out already booked slots
-    const availableSlots = timeSlots
-      .map(slot => ({
-        id: `slot-${slot.startTime}-${slot.endTime}`,
-        date: dateString,
-        startTime: slot.startTime,
-        endTime: slot.endTime,
-        isAvailable: true,
-        photographerId
-      }))
-      .filter(slot => {
+    // Convert to API format and mark slots as available or booked
+    const allSlots = timeSlots
+      .map(slot => {
         // Check if this slot conflicts with any existing booking
         const slotStart = this.combineDateTime(date, slot.startTime);
         const slotEnd = this.combineDateTime(date, slot.endTime);
         
-        // Return false if any booking overlaps with this slot
+        // Check if any booking overlaps with this slot
         const hasConflict = dateBookings.some(booking => {
           const bookingStart = new Date(booking.startAt);
           const bookingEnd = new Date(booking.endAt);
@@ -349,11 +341,18 @@ export class SlotGenerationService {
           // Check for any time overlap: slot overlaps if it starts before booking ends and ends after booking starts
           return (slotStart < bookingEnd && slotEnd > bookingStart);
         });
-        
-        return !hasConflict; // Only return slots without conflicts
+
+        return {
+          id: `slot-${slot.startTime}-${slot.endTime}`,
+          date: dateString,
+          startTime: slot.startTime,
+          endTime: slot.endTime,
+          isAvailable: !hasConflict, // Available if no conflict, otherwise booked
+          photographerId
+        };
       });
     
-    return availableSlots;
+    return allSlots;
   }
 
   /**
