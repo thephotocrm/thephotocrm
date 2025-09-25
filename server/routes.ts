@@ -3195,10 +3195,18 @@ ${photographer.businessName}`
         return res.status(400).json({ message: "This time slot is no longer available" });
       }
 
+      // Helper function to format time from 24-hour to 12-hour format
+      const formatTime12Hour = (time: string): string => {
+        const [hours, minutes] = time.split(':').map(Number);
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        const displayHour = hours === 0 ? 12 : hours > 12 ? hours - 12 : hours;
+        return `${displayHour}:${minutes.toString().padStart(2, '0')} ${ampm}`;
+      };
+
       // Create the booking
       const bookingData = {
         photographerId: photographer.id,
-        title: `Consultation - ${startTime} to ${endTime}`,
+        title: `Consultation - ${formatTime12Hour(startTime)} to ${formatTime12Hour(endTime)}`,
         description: bookingNotes || `Booking consultation with ${clientName}`,
         startAt: startAt,
         endAt: endAt,
