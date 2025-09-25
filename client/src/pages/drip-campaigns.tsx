@@ -80,6 +80,8 @@ export default function DripCampaigns() {
   const [selectedCampaign, setSelectedCampaign] = useState<DripCampaign | null>(null);
   const [generateDialogOpen, setGenerateDialogOpen] = useState(false);
   const [previewDialogOpen, setPreviewDialogOpen] = useState(false);
+  const [selectedEmailId, setSelectedEmailId] = useState<string | null>(null);
+  const [selectedEmailPreview, setSelectedEmailPreview] = useState<'text' | 'html'>('html');
   const [generatedCampaignData, setGeneratedCampaignData] = useState<any>(null);
   const [selectedProjectType, setSelectedProjectType] = useState<string>("WEDDING");
 
@@ -644,44 +646,118 @@ export default function DripCampaigns() {
                 Preview and manage your drip campaign emails
               </DialogDescription>
             </DialogHeader>
-            <ScrollArea className="max-h-[60vh]">
-              <div className="space-y-4">
-                {selectedCampaign.emails && selectedCampaign.emails.length > 0 ? (
-                  selectedCampaign.emails.map((email, index) => (
-                    <Card key={email.id}>
-                      <CardHeader className="pb-3">
-                        <div className="flex items-center justify-between">
-                          <CardTitle className="text-base flex items-center gap-2">
-                            <Mail className="h-4 w-4" />
-                            Email {index + 1}
-                            {email.delayWeeks > 0 && (
-                              <Badge variant="outline" className="text-xs">
-                                <Clock className="h-3 w-3 mr-1" />
-                                +{email.delayWeeks} week{email.delayWeeks > 1 ? 's' : ''}
-                              </Badge>
-                            )}
-                          </CardTitle>
-                        </div>
-                        <CardDescription className="font-medium">
-                          Subject: {email.subject}
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="prose prose-sm max-w-none">
-                          <div className="whitespace-pre-wrap text-sm">
-                            {email.content}
+            <div className="flex h-[60vh]">
+              {/* Email List */}
+              <div className="w-1/2 pr-4">
+                <ScrollArea className="h-full">
+                  <div className="space-y-2">
+                    {selectedCampaign.emails && selectedCampaign.emails.length > 0 ? (
+                      selectedCampaign.emails.map((email, index) => (
+                        <Card 
+                          key={email.id}
+                          className={`cursor-pointer hover:bg-accent transition-colors ${
+                            selectedEmailId === email.id ? 'ring-2 ring-blue-500 bg-accent' : ''
+                          }`}
+                          onClick={() => setSelectedEmailId(email.id)}
+                          data-testid={`email-preview-${email.id}`}
+                        >
+                          <CardHeader className="pb-2">
+                            <div className="flex items-center justify-between">
+                              <CardTitle className="text-sm flex items-center gap-2">
+                                <Mail className="h-3 w-3" />
+                                Email {index + 1}
+                                {email.delayWeeks > 0 && (
+                                  <Badge variant="outline" className="text-xs">
+                                    <Clock className="h-3 w-3 mr-1" />
+                                    +{email.delayWeeks} week{email.delayWeeks > 1 ? 's' : ''}
+                                  </Badge>
+                                )}
+                              </CardTitle>
+                              {selectedEmailId === email.id && (
+                                <Eye className="h-4 w-4 text-blue-500" />
+                              )}
+                            </div>
+                            <CardDescription className="font-medium text-xs">
+                              {email.subject}
+                            </CardDescription>
+                          </CardHeader>
+                        </Card>
+                      ))
+                    ) : (
+                      <div className="text-center py-8 text-muted-foreground">
+                        No emails in this campaign yet
+                      </div>
+                    )}
+                  </div>
+                </ScrollArea>
+              </div>
+
+              {/* Email Preview */}
+              <div className="w-1/2 pl-4 border-l">
+                {selectedEmailId ? (
+                  <div className="h-full flex flex-col">
+                    {(() => {
+                      const selectedEmail = selectedCampaign.emails?.find(e => e.id === selectedEmailId);
+                      return selectedEmail ? (
+                        <>
+                          <div className="flex items-center justify-between mb-3">
+                            <div>
+                              <h3 className="font-semibold text-sm">{selectedEmail.subject}</h3>
+                              <p className="text-xs text-muted-foreground">
+                                Sent {selectedEmail.delayWeeks} weeks after campaign start
+                              </p>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <div className="flex border rounded">
+                                <Button
+                                  variant={selectedEmailPreview === 'html' ? 'default' : 'ghost'}
+                                  size="sm"
+                                  onClick={() => setSelectedEmailPreview('html')}
+                                  className="text-xs px-2 py-1"
+                                >
+                                  HTML
+                                </Button>
+                                <Button
+                                  variant={selectedEmailPreview === 'text' ? 'default' : 'ghost'}
+                                  size="sm"
+                                  onClick={() => setSelectedEmailPreview('text')}
+                                  className="text-xs px-2 py-1"
+                                >
+                                  Text
+                                </Button>
+                              </div>
+                            </div>
                           </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))
+                          <ScrollArea className="flex-1">
+                            <div className="border rounded p-4 bg-white">
+                              {selectedEmailPreview === 'html' ? (
+                                <div 
+                                  className="w-full h-auto"
+                                  dangerouslySetInnerHTML={{ __html: selectedEmail.htmlBody || selectedEmail.content }}
+                                  style={{ maxWidth: '100%' }}
+                                  data-testid="email-html-preview"
+                                />
+                              ) : (
+                                <div className="whitespace-pre-wrap text-sm font-mono">
+                                  {selectedEmail.textBody || selectedEmail.content}
+                                </div>
+                              )}
+                            </div>
+                          </ScrollArea>
+                        </>
+                      ) : null;
+                    })()}
+                  </div>
                 ) : (
-                  <div className="text-center py-8 text-muted-foreground">
-                    No emails in this campaign yet
+                  <div className="h-full flex items-center justify-center text-center text-muted-foreground">
+                    <div>
+                      <Mail className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                      <p className="text-sm">Select an email to preview</p>
+                    </div>
                   </div>
                 )}
               </div>
-            </ScrollArea>
+            </div>
             <div className="flex justify-end space-x-2 mt-4">
               <Button 
                 variant="outline" 

@@ -88,12 +88,17 @@ Email Types to Include:
 - Booking encouragement (every 2-3 emails)
 
 HTML Styling Requirements:
-- Use modern, clean HTML design with professional styling
-- Include proper colors: ${photographer.brandPrimary ? `Primary: ${photographer.brandPrimary}` : '#2c3e50'}, ${photographer.brandSecondary ? `Secondary: ${photographer.brandSecondary}` : '#3498db'}
-- Make emails mobile-responsive with max-width: 600px
-- Use proper typography (Arial/Helvetica fallback)
-- Include clear call-to-action buttons when appropriate
-- Add spacing and visual hierarchy
+- Use modern, clean HTML design with professional photography branding
+- MANDATORY: Use photographer's brand colors: Primary: ${photographer.brandPrimary || '#2c3e50'}, Secondary: ${photographer.brandSecondary || '#3498db'}
+- Mobile-responsive design with max-width: 600px and proper viewport scaling
+- Professional email typography with web-safe fonts (Arial, Helvetica, sans-serif)
+- Clean header with business name and subtle branding
+- Well-structured content sections with proper spacing and visual hierarchy
+- Professional call-to-action buttons using brand colors with hover effects
+- Consistent color scheme throughout: use primary color for headers, secondary for buttons/accents
+- Include subtle photography-themed design elements
+- Professional footer with contact information and unsubscribe
+- Ensure accessibility with proper contrast ratios and readable fonts
 
 ${customPrompt ? `Additional Instructions: ${customPrompt}` : ''}
 
@@ -210,21 +215,96 @@ Please respond with valid JSON only.`;
       const subject = template.subject.replace(/{projectType}/g, projectType.toLowerCase());
       const content = template.content.replace(/{projectType}/g, projectType.toLowerCase());
       
+      const primaryColor = photographer.brandPrimary || '#2c3e50';
+      const secondaryColor = photographer.brandSecondary || '#3498db';
+      const contactEmail = photographer.emailFromAddr || 'hello@business.com';
+      
       const htmlBody = `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
-          <h1 style="color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px;">${subject}</h1>
-          <p>Hi {{firstName}},</p>
-          <p>${content}</p>
-          ${isBookingEmail ? `
-            <div style="background: #f8f9fa; padding: 20px; border-left: 4px solid #3498db; margin: 20px 0;">
-              <h3 style="color: #2c3e50; margin-top: 0;">Ready to Move Forward?</h3>
-              <p>We'd love to schedule a consultation to discuss your vision and how we can bring it to life.</p>
-              <p><a href="mailto:${businessContext.includes('Email From:') ? businessContext.split('Email From:')[1]?.split('<')[1]?.split('>')[0] : 'hello@business.com'}" style="background: #3498db; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">Schedule Consultation</a></p>
-            </div>
-          ` : ''}
-          <p>Best regards,<br>${businessName}</p>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${subject}</title>
+  <style>
+    @media only screen and (max-width: 600px) {
+      .email-container { width: 100% !important; padding: 15px !important; }
+      .header { font-size: 24px !important; }
+      .cta-button { width: 100% !important; padding: 15px !important; }
+    }
+  </style>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f4f4f4; font-family: Arial, Helvetica, sans-serif;">
+  <div class="email-container" style="max-width: 600px; margin: 0 auto; background-color: white; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+    
+    <!-- Header -->
+    <div style="background: linear-gradient(135deg, ${primaryColor} 0%, ${secondaryColor} 100%); padding: 30px 20px; text-align: center;">
+      <h1 class="header" style="color: white; margin: 0; font-size: 28px; font-weight: 300; letter-spacing: 1px;">
+        ${businessName}
+      </h1>
+      <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">
+        Professional Photography
+      </p>
+    </div>
+
+    <!-- Content -->
+    <div style="padding: 40px 30px;">
+      <h2 style="color: ${primaryColor}; font-size: 22px; margin-bottom: 20px; font-weight: 400;">
+        ${subject.replace(/^\w/, c => c.toUpperCase())}
+      </h2>
+      
+      <p style="color: #555; line-height: 1.6; margin-bottom: 20px; font-size: 16px;">
+        Hi {{firstName}},
+      </p>
+      
+      <div style="color: #666; line-height: 1.7; font-size: 16px; margin-bottom: 30px;">
+        <p>${content}</p>
+      </div>
+
+      ${isBookingEmail ? `
+        <!-- Call to Action -->
+        <div style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); padding: 30px; border-radius: 10px; text-align: center; margin: 30px 0; border: 1px solid #dee2e6;">
+          <div style="background: ${secondaryColor}; width: 60px; height: 4px; margin: 0 auto 20px; border-radius: 2px;"></div>
+          <h3 style="color: ${primaryColor}; margin: 0 0 15px; font-size: 20px; font-weight: 500;">
+            Ready to Move Forward?
+          </h3>
+          <p style="color: #666; margin: 0 0 25px; line-height: 1.6;">
+            We'd love to schedule a consultation to discuss your vision and how we can bring it to life.
+          </p>
+          <a href="mailto:${contactEmail}" class="cta-button" 
+             style="background: linear-gradient(135deg, ${secondaryColor} 0%, ${primaryColor} 100%); 
+                    color: white; 
+                    padding: 15px 30px; 
+                    text-decoration: none; 
+                    border-radius: 25px; 
+                    display: inline-block; 
+                    font-weight: 500; 
+                    letter-spacing: 0.5px; 
+                    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+                    transition: all 0.3s ease;">
+            Schedule Consultation
+          </a>
         </div>
-      `;
+      ` : ''}
+    </div>
+
+    <!-- Footer -->
+    <div style="background-color: #f8f9fa; padding: 25px 30px; border-top: 1px solid #e9ecef;">
+      <p style="color: ${primaryColor}; margin: 0 0 10px; font-weight: 500; font-size: 16px;">
+        ${businessName}
+      </p>
+      <p style="color: #666; margin: 0; font-size: 14px; line-height: 1.4;">
+        Capturing your most precious moments with artistry and passion.
+      </p>
+      ${contactEmail !== 'hello@business.com' ? `
+        <p style="color: #888; margin: 10px 0 0; font-size: 14px;">
+          <a href="mailto:${contactEmail}" style="color: ${secondaryColor}; text-decoration: none;">${contactEmail}</a>
+        </p>
+      ` : ''}
+    </div>
+  </div>
+</body>
+</html>`;
       
       const textBody = `Hi {{firstName}}, ${content} ${isBookingEmail ? "Ready to move forward? We'd love to schedule a consultation to discuss your vision. Reply to this email to get started!" : ""} Best regards, ${businessName}`;
       
