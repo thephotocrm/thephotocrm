@@ -147,13 +147,8 @@ export class SlotGenerationService {
       };
     });
     
-    // Delete existing slots for this date to avoid duplicates
-    await this.clearSlotsForDate(photographerId, date);
-    
-    // Batch insert new slots for better performance
-    if (availabilitySlots.length > 0) {
-      await this.batchInsertSlots(availabilitySlots);
-    }
+    // Note: Slots are now generated on-demand, no persistence needed
+    // The template-based system generates slots dynamically for API requests
   }
   
   /**
@@ -201,28 +196,7 @@ export class SlotGenerationService {
     return slots;
   }
   
-  /**
-   * Clear existing slots for a specific date
-   */
-  private async clearSlotsForDate(photographerId: string, date: Date): Promise<void> {
-    const startOfDay = new Date(date);
-    startOfDay.setHours(0, 0, 0, 0);
-    
-    const endOfDay = new Date(date);
-    endOfDay.setHours(23, 59, 59, 999);
-    
-    // Get existing slots for this date
-    const existingSlots = await storage.getAvailabilitySlotsByPhotographer(photographerId);
-    const slotsToDelete = existingSlots.filter(slot => {
-      const slotDate = new Date(slot.startAt);
-      return slotDate >= startOfDay && slotDate <= endOfDay;
-    });
-    
-    // Delete existing slots
-    for (const slot of slotsToDelete) {
-      await storage.deleteAvailabilitySlot(slot.id);
-    }
-  }
+  // clearSlotsForDate method removed - slots are now generated on-demand without persistence
   
   /**
    * Regenerate slots for a specific template
@@ -264,6 +238,98 @@ export class SlotGenerationService {
     await this.generateSlotsForDate(photographerId, date, templates, overrideMap, 60);
   }
   
+  /**
+   * Get generated time slots for a specific date (on-demand, no persistence)
+   * Returns slots in API-friendly format for frontend display
+   */
+  async getSlotsForDate(photographerId: string, date: Date): Promise<any[]> {
+    const templates = await storage.getDailyAvailabilityTemplatesByPhotographer(photographerId);
+    const overrides = await storage.getDailyAvailabilityOverridesByPhotographer(
+      photographerId,
+      this.formatDate(date),
+      this.formatDate(date)
+    );
+    
+    const overrideMap = new Map<string, DailyAvailabilityOverride>();
+    overrides.forEach(override => {
+      overrideMap.set(override.date, override);
+    });
+    
+    // Generate slots without persistence
+    const dateString = this.formatDate(date);
+    const dayOfWeek = date.getDay(); // 0 = Sunday, 1 = Monday, etc.
+    
+    // Check if there's an override for this date
+    const override = overrideMap.get(dateString);
+    
+    let availabilityConfig: {
+      startTime?: string;
+      endTime?: string;
+      templateId?: string;
+      breaks: { startTime: string; endTime: string; label?: string }[];
+      reason?: string;
+    };
+    
+    if (override) {
+      // Use override configuration - null startTime/endTime means closed day
+      if (!override.startTime || !override.endTime) {
+        // Day is closed due to override
+        return [];
+      }
+      
+      availabilityConfig = {
+        startTime: override.startTime,
+        endTime: override.endTime,
+        breaks: (override.breaks as any) || [], // Parse JSON breaks array
+        reason: override.reason || undefined
+      };
+    } else {
+      // Find template for this day of week
+      const template = templates.find(t => t.dayOfWeek === dayOfWeek);
+      if (!template) {
+        // No template for this day, return empty
+        return [];
+      }
+      
+      // Check if template is enabled
+      if (!template.isEnabled || !template.startTime || !template.endTime) {
+        return [];
+      }
+      
+      // Get breaks for this template
+      const templateBreaks = await storage.getDailyAvailabilityBreaksByTemplate(template.id);
+      
+      availabilityConfig = {
+        startTime: template.startTime,
+        endTime: template.endTime,
+        templateId: template.id,
+        breaks: templateBreaks.map(b => ({
+          startTime: b.startTime,
+          endTime: b.endTime,
+          label: b.label
+        }))
+      };
+    }
+    
+    // Generate time slots
+    const timeSlots = this.generateTimeSlots(
+      availabilityConfig.startTime!,
+      availabilityConfig.endTime!,
+      availabilityConfig.breaks,
+      60 // 1 hour duration
+    );
+    
+    // Convert to API format (similar to AvailabilitySlot but lightweight)
+    return timeSlots.map(slot => ({
+      id: `slot-${slot.startTime}-${slot.endTime}`,
+      date: dateString,
+      startTime: slot.startTime,
+      endTime: slot.endTime,
+      isAvailable: true,
+      photographerId
+    }));
+  }
+
   /**
    * Batch insert availability slots for better performance
    */

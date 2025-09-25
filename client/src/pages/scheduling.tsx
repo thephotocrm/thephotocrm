@@ -100,12 +100,13 @@ export default function Scheduling() {
 
   const { data: overrides = [], isLoading: overridesLoading } = useQuery({
     queryKey: ["/api/availability/overrides", selectedDate?.toISOString().split('T')[0]],
-    enabled: !!user && selectedDate,
+    enabled: !!user && !!selectedDate,
     queryFn: async () => {
       if (!selectedDate) return [];
       const startDate = selectedDate.toISOString().split('T')[0];
       const endDate = selectedDate.toISOString().split('T')[0];
-      return apiRequest("GET", `/api/availability/overrides?startDate=${startDate}&endDate=${endDate}`);
+      const response = await apiRequest("GET", `/api/availability/overrides?startDate=${startDate}&endDate=${endDate}`);
+      return await response.json();
     }
   }) as { data: DayOverride[]; isLoading: boolean };
 
@@ -116,7 +117,8 @@ export default function Scheduling() {
     queryFn: async () => {
       if (!selectedDate) return [];
       const dateStr = selectedDate.toISOString().split('T')[0];
-      return apiRequest("GET", `/api/availability/slots/${dateStr}`);
+      const response = await apiRequest("GET", `/api/availability/slots/${dateStr}`);
+      return await response.json();
     }
   }) as { data: TimeSlot[]; isLoading: boolean };
   
@@ -257,6 +259,24 @@ export default function Scheduling() {
     return days[date.getDay()];
   };
 
+  const convertDayNameToNumber = (dayName: string): number => {
+    const dayMap: Record<string, number> = {
+      "SUNDAY": 0,
+      "MONDAY": 1,
+      "TUESDAY": 2,
+      "WEDNESDAY": 3,
+      "THURSDAY": 4,
+      "FRIDAY": 5,
+      "SATURDAY": 6
+    };
+    return dayMap[dayName];
+  };
+
+  const convertNumberToDayName = (dayNumber: number): string => {
+    const days = ["SUNDAY", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY"];
+    return days[dayNumber];
+  };
+
   const formatTime = (time: string) => {
     return new Date(`2000-01-01T${time}`).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
   };
@@ -265,7 +285,7 @@ export default function Scheduling() {
   const handleEditTemplate = (template: DailyTemplate) => {
     setEditingTemplate(template);
     templateForm.reset({
-      dayOfWeek: template.dayOfWeek as any,
+      dayOfWeek: convertNumberToDayName(template.dayOfWeek as number),
       startTime: template.startTime,
       endTime: template.endTime,
       isEnabled: template.isEnabled
@@ -275,10 +295,16 @@ export default function Scheduling() {
 
   // Handle template form submission
   const handleTemplateSubmit = (data: DailyTemplateFormData) => {
+    // Convert day name to number for API
+    const apiData = {
+      ...data,
+      dayOfWeek: convertDayNameToNumber(data.dayOfWeek)
+    };
+    
     if (editingTemplate) {
-      updateTemplateMutation.mutate({ ...data, id: editingTemplate.id });
+      updateTemplateMutation.mutate({ ...apiData, id: editingTemplate.id });
     } else {
-      createTemplateMutation.mutate(data);
+      createTemplateMutation.mutate(apiData);
     }
   };
 
@@ -412,7 +438,7 @@ export default function Scheduling() {
                           <div key={i} className="h-10 bg-muted rounded animate-pulse" />
                         ))}
                       </div>
-                    ) : timeSlots.length === 0 ? (
+                    ) : !Array.isArray(timeSlots) || timeSlots.length === 0 ? (
                       <div className="text-center py-8">
                         <Clock className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
                         <p className="text-muted-foreground mb-2">No availability set for this day</p>
@@ -425,7 +451,7 @@ export default function Scheduling() {
                       </div>
                     ) : (
                       <div className="grid grid-cols-1 gap-2">
-                        {timeSlots.map((slot) => (
+                        {Array.isArray(timeSlots) && timeSlots.map((slot) => (
                           <div
                             key={slot.id}
                             className={`p-3 rounded-lg border ${
@@ -511,7 +537,10 @@ export default function Scheduling() {
                         }`}></div>
                         <div>
                           <h4 className="font-medium" data-testid={`template-day-${template.id}`}>
-                            {template.dayOfWeek.charAt(0) + template.dayOfWeek.slice(1).toLowerCase()}
+                            {(() => {
+                              const dayName = convertNumberToDayName(template.dayOfWeek as number);
+                              return dayName.charAt(0) + dayName.slice(1).toLowerCase();
+                            })()}
                           </h4>
                           <p className="text-sm text-muted-foreground" data-testid={`template-time-${template.id}`}>
                             {formatTime(template.startTime)} - {formatTime(template.endTime)}

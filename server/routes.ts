@@ -2083,6 +2083,26 @@ ${photographer?.businessName || 'Your Photography Team'}`;
     }
   });
 
+  // Get generated time slots for a specific date
+  app.get("/api/availability/slots/:date", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      const { date } = req.params;
+      const photographerId = req.user!.photographerId!;
+      
+      // Validate date format (YYYY-MM-DD)
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+        return res.status(400).json({ message: "Invalid date format. Expected YYYY-MM-DD" });
+      }
+      
+      // Generate slots for the specific date using the slot generation service
+      const slots = await slotGenerationService.getSlotsForDate(photographerId, new Date(date));
+      res.json(slots);
+    } catch (error) {
+      console.error('Get availability slots for date error:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   // Old availability slot endpoints removed - replaced by template-based system
   // Use /api/availability/templates, /api/availability/overrides, and /api/availability/slots instead
 
