@@ -78,12 +78,41 @@ EMAIL STRUCTURE:
 - Helpful, friendly tone (like a trusted advisor)
 - Subtle booking reminder at end
 
-STYLING REQUIREMENTS:
-- Rich HTML design with proper margins, padding, typography
-- Styled buttons with rounded corners and hover effects  
-- Elegant color scheme using brand colors
-- Professional email layout with clear sections
-- Mobile-friendly responsive design
+STYLING REQUIREMENTS - FOLLOW EXACTLY:
+Create professional, consistent email design with:
+
+LAYOUT STANDARDS:
+- Max-width: 600px, centered
+- Header with business name in brand primary color
+- Content area with 40px padding
+- Footer with business signature
+- Mobile-responsive design
+
+TYPOGRAPHY:
+- Font: Segoe UI, Helvetica Neue, Arial, sans-serif
+- Header: 24px white text on brand background
+- Content H2: 20px in brand primary color
+- Body text: 16px gray (#4a5568)
+- Footer: 14px light gray (#718096)
+
+BUTTONS:
+- Background: Brand secondary color or #3498db
+- White text, 14px vertical padding, 28px horizontal
+- Rounded corners (6px border-radius)
+- Maximum ONE button per email
+
+COLOR SCHEME:
+- Use photographer's brand colors: Primary ${photographer.brandPrimary || '#2c3e50'}, Secondary ${photographer.brandSecondary || '#3498db'}
+- Background: #f8f9fa
+- Content background: #ffffff
+- Text: #4a5568
+
+CONTENT STRUCTURE:
+- Business name in header
+- One H2 heading
+- 2-4 short paragraphs (2-3 sentences each)
+- Optional CTA button
+- Professional footer signature
 
 ${customPrompt ? `Special focus: ${customPrompt}` : ''}
 
@@ -100,17 +129,55 @@ Respond with JSON containing:
   "campaignDescription": "brief strategy description"
 }`;
 
-  const userPrompt = `Create ${emailCount} helpful ${projectType.toLowerCase()} preparation emails that help ${photographer.businessName}'s clients prepare for their photography session.
+  // Define strategic email categories for balanced campaigns
+  const emailCategories = [
+    { type: 'educational', weight: 0.6, description: 'Helpful preparation guides and planning advice' },
+    { type: 'social_proof', weight: 0.2, description: 'Client testimonials and success stories' },
+    { type: 'cta', weight: 0.15, description: 'Gentle calls to action for booking or consultations' },
+    { type: 'nurture', weight: 0.05, description: 'Personal connection and behind-the-scenes content' }
+  ];
+
+  // Calculate email distribution based on count
+  const emailDistribution = emailCategories.map(cat => ({
+    ...cat,
+    count: Math.max(1, Math.round(emailCount * cat.weight))
+  }));
+
+  const userPrompt = `Create ${emailCount} strategically categorized ${projectType.toLowerCase()} emails for ${photographer.businessName}'s clients.
 
 AUDIENCE: Couples/individuals who booked photography services (NOT photographers)
 
-REQUIREMENTS:
-- Focus on CLIENT preparation and success
+EMAIL DISTRIBUTION (follow this balance):
+${emailDistribution.map(cat => `- ${cat.type.toUpperCase()}: ${cat.count} email(s) - ${cat.description}`).join('\n')}
+
+CONTENT REQUIREMENTS BY CATEGORY:
+
+EDUCATIONAL (Primary): 
 - Event planning advice (timeline, coordination, what to bring)
-- Styling tips (outfit choices, what photographs well)  
+- Styling tips (outfit choices, what photographs well)
 - Confidence building (what to expect, how to prepare)
 - Personal touches (meaningful details to include)
+
+SOCIAL PROOF:
+- Brief client success stories or testimonials
+- "What [Client Name] loved most about their session"
+- Gallery highlights from past events
+
+CTA (Call-to-Action):
+- Gentle booking reminders for additional services
+- Consultation invitations
+- Package upgrade opportunities
+
+NURTURE:
+- Personal photographer story or philosophy
+- Behind-the-scenes glimpses
+- Why photography matters personally
+
+REQUIREMENTS:
 - NO camera settings or technical photography advice
+- Focus on CLIENT preparation and success
+- Maintain strategic balance across categories
+- Each email should provide genuine value
 
 Generate valuable preparation content that helps clients get amazing results from their photography session.`;
 
