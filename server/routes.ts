@@ -1719,7 +1719,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
         targetStage: stage.name,
         projectType: projectType || "WEDDING",
         campaignName: campaignName || `${stage.name} Nurturing Campaign`,
-        emailCount: emailCount || 6,
+        emailCount: emailCount || 4,
         frequencyWeeks: frequencyWeeks || 2,
         maxDurationMonths: 12,
         customPrompt

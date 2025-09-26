@@ -64,7 +64,7 @@ const generateCampaignSchema = z.object({
   targetStageId: z.string().min(1, "Please select a target stage"),
   projectType: z.enum(["WEDDING", "PORTRAIT", "COMMERCIAL"]).default("WEDDING"),
   campaignName: z.string().min(1, "Campaign name is required"),
-  emailCount: z.number().min(1).max(12).default(6),
+  emailCount: z.number().min(1).max(12).default(4),
   frequencyWeeks: z.number().min(1).max(8).default(2),
   customPrompt: z.string().optional(),
 });
@@ -718,7 +718,12 @@ export default function DripCampaigns() {
                 <ScrollArea className="w-full">
                   <div className="flex gap-3 pb-2">
                     {selectedCampaign.emails && selectedCampaign.emails.length > 0 ? (
-                      selectedCampaign.emails.map((email, index) => (
+                      selectedCampaign.emails.map((email, index) => {
+                        // Debug logging
+                        if (index === 0) {
+                          console.log('🔍 DEBUG: Total emails in campaign:', selectedCampaign.emails.length);
+                        }
+                        return (
                         <Card 
                           key={email.id}
                           className={`min-w-[280px] cursor-pointer hover:bg-accent transition-colors ${
@@ -773,7 +778,8 @@ export default function DripCampaigns() {
                             </CardDescription>
                           </CardHeader>
                         </Card>
-                      ))
+                        )
+                      })
                     ) : (
                       <div className="text-center py-8 text-muted-foreground w-full">
                         No emails in this campaign yet
