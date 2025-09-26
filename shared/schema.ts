@@ -250,7 +250,10 @@ export const dripCampaigns = pgTable("drip_campaigns", {
   status: text("status").notNull().default("DRAFT"), // DRAFT, APPROVED, ACTIVE, PAUSED
   maxDurationMonths: integer("max_duration_months").notNull().default(12),
   emailFrequencyWeeks: integer("email_frequency_weeks").notNull().default(2), // How often to send emails (2 = every 2 weeks)
+  emailFrequencyDays: integer("email_frequency_days"), // Alternative frequency in days (24 = every 24 days)
   generatedByAi: boolean("generated_by_ai").default(false),
+  isStaticTemplate: boolean("is_static_template").default(false), // Whether this uses static email templates
+  staticTemplateType: text("static_template_type"), // WEDDING, PORTRAIT, COMMERCIAL, etc.
   aiPrompt: text("ai_prompt"), // The prompt used to generate this campaign
   businessContext: text("business_context"), // Business info used for AI generation
   approvedAt: timestamp("approved_at"),
@@ -276,7 +279,8 @@ export const dripCampaignEmails = pgTable("drip_campaign_emails", {
   subject: text("subject").notNull(),
   htmlBody: text("html_body").notNull(),
   textBody: text("text_body"),
-  weeksAfterStart: integer("weeks_after_start").notNull(), // When to send relative to campaign start
+  weeksAfterStart: integer("weeks_after_start").notNull(), // When to send relative to campaign start (legacy)
+  daysAfterStart: integer("days_after_start"), // Alternative timing in days for static campaigns
   // Individual email approval system
   approvalStatus: text("approval_status").notNull().default("PENDING"), // PENDING, APPROVED, REJECTED
   approvedAt: timestamp("approved_at"),
