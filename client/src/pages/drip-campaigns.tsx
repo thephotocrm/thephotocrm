@@ -115,7 +115,7 @@ export default function DripCampaigns() {
     resolver: zodResolver(generateCampaignSchema),
     defaultValues: {
       projectType: "WEDDING",
-      emailCount: 6,
+      emailCount: 4, // Updated to match server default
       frequencyWeeks: 2,
       campaignName: ""
     }

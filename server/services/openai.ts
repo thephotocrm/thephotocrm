@@ -56,26 +56,34 @@ Target Audience: Clients in "${targetStage}" stage
 Campaign Duration: Up to ${maxDurationMonths} months with emails every ${frequencyWeeks} weeks
   `.trim();
 
-  // Create focused AI prompt for better results
-  const systemPrompt = `You are an expert ${projectType.toLowerCase()} photography specialist and email marketing strategist. Create a ${emailCount}-email nurturing sequence with valuable, actionable content.
+  // Create client-focused AI prompt 
+  const systemPrompt = `You are an expert helping couples and individuals prepare for their ${projectType.toLowerCase()} photography sessions. Create valuable content that helps CLIENTS get better results and feel confident.
 
 Business: ${photographer.businessName}
-Target: ${targetStage} stage clients
+Target: ${targetStage} stage clients preparing for their photography session
 Colors: Primary ${photographer.brandPrimary || '#2c3e50'}, Secondary ${photographer.brandSecondary || '#3498db'}
 
 CONTENT REQUIREMENTS:
-Each email must contain SPECIFIC, ACTIONABLE advice:
-- Detailed photography techniques with camera settings
-- Specific positioning/lighting advice  
-- Step-by-step preparation guides
-- Behind-the-scenes professional insights
-- Real examples and case studies
+Each email must help CLIENTS prepare and succeed:
+- Event planning tips (timelines, coordination, venue prep)
+- Styling advice (outfit choices, colors, accessories that photograph well)
+- Preparation guides (what to expect, how to feel confident)
+- Personal touches (meaningful details to include, family coordination)
+- Day-of logistics (timeline, what photographer needs from them)
 
 EMAIL STRUCTURE:
-- Compelling subject (no "welcome" or "thank you")
-- Professional HTML with brand colors and mobile-responsive design
-- Plain text version
-- Booking CTA every 2-3 emails
+- Compelling subject focused on client benefit
+- Professional HTML with elegant design: proper typography, buttons, borders, spacing
+- Mobile-responsive layout with branded colors
+- Helpful, friendly tone (like a trusted advisor)
+- Subtle booking reminder at end
+
+STYLING REQUIREMENTS:
+- Rich HTML design with proper margins, padding, typography
+- Styled buttons with rounded corners and hover effects  
+- Elegant color scheme using brand colors
+- Professional email layout with clear sections
+- Mobile-friendly responsive design
 
 ${customPrompt ? `Special focus: ${customPrompt}` : ''}
 
@@ -83,24 +91,28 @@ Respond with JSON containing:
 {
   "emails": [
     {
-      "subject": "specific compelling subject",
-      "htmlBody": "full HTML with inline CSS, brand colors, responsive design", 
-      "textBody": "plain text version with actionable tips",
+      "subject": "client preparation focused subject",
+      "htmlBody": "professional HTML email with elegant styling and proper design", 
+      "textBody": "plain text version with helpful client tips",
       "weeksAfterStart": 0
     }
   ],
   "campaignDescription": "brief strategy description"
 }`;
 
-  const userPrompt = `Create ${emailCount} actionable ${projectType.toLowerCase()} photography emails for ${photographer.businessName}. 
+  const userPrompt = `Create ${emailCount} helpful ${projectType.toLowerCase()} preparation emails that help ${photographer.businessName}'s clients prepare for their photography session.
+
+AUDIENCE: Couples/individuals who booked photography services (NOT photographers)
 
 REQUIREMENTS:
-- Each email: specific camera settings (ISO, aperture, shutter)
-- Positioning/lighting techniques with exact instructions
-- Professional tips clients can immediately use
-- NO generic "here are tips" content
+- Focus on CLIENT preparation and success
+- Event planning advice (timeline, coordination, what to bring)
+- Styling tips (outfit choices, what photographs well)  
+- Confidence building (what to expect, how to prepare)
+- Personal touches (meaningful details to include)
+- NO camera settings or technical photography advice
 
-Generate quality over quantity - focused, valuable advice only.`;
+Generate valuable preparation content that helps clients get amazing results from their photography session.`;
 
   try {
     console.log('Calling OpenAI with user prompt:', userPrompt.substring(0, 200) + '...');
@@ -151,8 +163,8 @@ Generate quality over quantity - focused, valuable advice only.`;
     };
   } catch (error) {
     console.error('🚨 DRIP CAMPAIGN GENERATION FAILED 🚨');
-    console.error('Error type:', error.constructor.name);
-    console.error('Error message:', (error as Error).message);
+    console.error('Error type:', error instanceof Error ? error.constructor.name : typeof error);
+    console.error('Error message:', error instanceof Error ? error.message : String(error));
     console.error('Full error details:', error);
     
     // Provide fallback if OpenAI fails
