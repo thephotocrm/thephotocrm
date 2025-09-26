@@ -1331,13 +1331,804 @@ export function generateCommercialEmailContent(photographer: Photographer): Stat
   };
 }
 
+// ENGAGEMENT Campaign Template
+export const ENGAGEMENT_CAMPAIGN: StaticCampaignTemplate = {
+  projectType: "ENGAGEMENT",
+  name: "Engagement Photography Journey",
+  description: "A comprehensive 24-email sequence guiding couples through their engagement photography experience",
+  emails: [
+    {
+      sequenceIndex: 0,
+      subject: "Congratulations on Your Engagement!",
+      weeksAfterStart: 0,
+      daysAfterStart: 0,
+      htmlBody: "",
+      textBody: "Congratulations on your engagement! We're excited to capture this special chapter of your love story through beautiful engagement photography."
+    },
+    {
+      sequenceIndex: 1,
+      subject: "Planning Your Perfect Engagement Session",
+      weeksAfterStart: 1,
+      daysAfterStart: 3,
+      htmlBody: "",
+      textBody: "Essential planning tips to create an engagement session that perfectly captures your unique love story and personality as a couple."
+    },
+    {
+      sequenceIndex: 2,
+      subject: "Choosing the Perfect Location for Your Love Story",
+      weeksAfterStart: 1,
+      daysAfterStart: 7,
+      htmlBody: "",
+      textBody: "Location ideas and tips for selecting meaningful places that reflect your relationship and create stunning engagement photos."
+    },
+    {
+      sequenceIndex: 3,
+      subject: "Engagement Session Outfit Ideas and Tips",
+      weeksAfterStart: 2,
+      daysAfterStart: 14,
+      htmlBody: "",
+      textBody: "Wardrobe guidance for engagement photos that look amazing and feel authentically you as a couple."
+    },
+    {
+      sequenceIndex: 4,
+      subject: "Timing Your Engagement Session Perfectly",
+      weeksAfterStart: 3,
+      daysAfterStart: 21,
+      htmlBody: "",
+      textBody: "The best times of year and day for engagement photography, considering lighting, seasons, and your wedding timeline."
+    },
+    {
+      sequenceIndex: 5,
+      subject: "Props and Personal Touches for Your Session",
+      weeksAfterStart: 4,
+      daysAfterStart: 28,
+      htmlBody: "",
+      textBody: "Creative ideas for incorporating meaningful props and personal elements that tell your unique love story."
+    },
+    {
+      sequenceIndex: 6,
+      subject: "Natural Posing Tips for Couples",
+      weeksAfterStart: 5,
+      daysAfterStart: 35,
+      htmlBody: "",
+      textBody: "Posing guidance that helps you look natural and comfortable while showcasing your connection as a couple."
+    },
+    {
+      sequenceIndex: 7,
+      subject: "Making the Most of Golden Hour Photography",
+      weeksAfterStart: 6,
+      daysAfterStart: 42,
+      htmlBody: "",
+      textBody: "Understanding how golden hour lighting creates magical engagement photos and how to plan for it."
+    },
+    {
+      sequenceIndex: 8,
+      subject: "Seasonal Engagement Photography Ideas",
+      weeksAfterStart: 7,
+      daysAfterStart: 49,
+      htmlBody: "",
+      textBody: "Making the most of each season's unique beauty for stunning engagement photos year-round."
+    },
+    {
+      sequenceIndex: 9,
+      subject: "Urban vs. Natural Engagement Locations",
+      weeksAfterStart: 8,
+      daysAfterStart: 56,
+      htmlBody: "",
+      textBody: "Comparing city and nature settings to choose the perfect backdrop for your engagement photography style."
+    },
+    {
+      sequenceIndex: 10,
+      subject: "Engagement Photos for Save the Dates",
+      weeksAfterStart: 9,
+      daysAfterStart: 63,
+      htmlBody: "",
+      textBody: "Creating engagement photos specifically designed for beautiful save the date announcements."
+    },
+    {
+      sequenceIndex: 11,
+      subject: "Including Pets in Your Engagement Session",
+      weeksAfterStart: 10,
+      daysAfterStart: 70,
+      htmlBody: "",
+      textBody: "Tips for including your furry family members in engagement photos for even more personality and meaning."
+    },
+    {
+      sequenceIndex: 12,
+      subject: "Engagement Ring Photography Tips",
+      weeksAfterStart: 11,
+      daysAfterStart: 77,
+      htmlBody: "",
+      textBody: "Showcasing your beautiful engagement ring in photos that highlight its sparkle and significance."
+    },
+    {
+      sequenceIndex: 13,
+      subject: "Hair and Makeup for Engagement Photos",
+      weeksAfterStart: 12,
+      daysAfterStart: 84,
+      htmlBody: "",
+      textBody: "Professional styling tips to look camera-ready while maintaining your natural beauty and personal style."
+    },
+    {
+      sequenceIndex: 14,
+      subject: "Capturing Authentic Emotions and Connection",
+      weeksAfterStart: 13,
+      daysAfterStart: 91,
+      htmlBody: "",
+      textBody: "Techniques for bringing out genuine emotions and showcasing your authentic connection as a couple."
+    },
+    {
+      sequenceIndex: 15,
+      subject: "Engagement Photo Editing Styles",
+      weeksAfterStart: 15,
+      daysAfterStart: 105,
+      htmlBody: "",
+      textBody: "Understanding different editing approaches to achieve the perfect look for your engagement photos."
+    },
+    {
+      sequenceIndex: 16,
+      subject: "Using Engagement Photos for Wedding Planning",
+      weeksAfterStart: 17,
+      daysAfterStart: 119,
+      htmlBody: "",
+      textBody: "Creative ways to incorporate your engagement photos into wedding invitations, websites, and décor."
+    },
+    {
+      sequenceIndex: 17,
+      subject: "Social Media and Engagement Announcements",
+      weeksAfterStart: 19,
+      daysAfterStart: 133,
+      htmlBody: "",
+      textBody: "Best practices for sharing your engagement photos on social media and making memorable announcements."
+    },
+    {
+      sequenceIndex: 18,
+      subject: "Printing and Displaying Your Engagement Photos",
+      weeksAfterStart: 21,
+      daysAfterStart: 147,
+      htmlBody: "",
+      textBody: "Beautiful ways to print and display your engagement photos at home and at your wedding celebration."
+    },
+    {
+      sequenceIndex: 19,
+      subject: "Engagement Photo Gift Ideas",
+      weeksAfterStart: 23,
+      daysAfterStart: 161,
+      htmlBody: "",
+      textBody: "Thoughtful ways to turn your engagement photos into meaningful gifts for family and friends."
+    },
+    {
+      sequenceIndex: 20,
+      subject: "Building Your Wedding Photography Portfolio",
+      weeksAfterStart: 25,
+      daysAfterStart: 175,
+      htmlBody: "",
+      textBody: "How your engagement session helps your photographer understand your style for even better wedding photos."
+    },
+    {
+      sequenceIndex: 21,
+      subject: "Engagement Session as Wedding Prep",
+      weeksAfterStart: 27,
+      daysAfterStart: 189,
+      htmlBody: "",
+      textBody: "Using your engagement session as practice for your wedding day timeline and photography experience."
+    },
+    {
+      sequenceIndex: 22,
+      subject: "Creating a Cohesive Visual Story",
+      weeksAfterStart: 29,
+      daysAfterStart: 203,
+      htmlBody: "",
+      textBody: "Connecting your engagement photos with your wedding photography for a beautiful, cohesive love story."
+    },
+    {
+      sequenceIndex: 23,
+      subject: "Looking Forward to Your Wedding Photography",
+      weeksAfterStart: 31,
+      daysAfterStart: 217,
+      htmlBody: "",
+      textBody: "How your engagement session experience prepares you for amazing wedding photography and continued memories."
+    }
+  ]
+};
+
+// Function to generate complete email content for engagement campaign
+export function generateEngagementEmailContent(photographer: Photographer): StaticCampaignTemplate {
+  const emailContents = [
+    // Email 1: Welcome
+    {
+      content: `<p>Congratulations on your engagement! What an exciting milestone in your love story. We're absolutely thrilled to be part of this special time and can't wait to capture the joy and excitement of this moment through beautiful engagement photography.</p>
+      
+      <p>Over the next several months, we'll be sharing tips, inspiration, and guidance to help you plan the perfect engagement session that truly reflects your unique relationship and personalities as a couple.</p>
+      
+      <p>Our goal is to create timeless images that capture not just how you look, but how you feel about each other during this magical time. These photos will become treasured memories of your engagement period.</p>
+      
+      <p>Here's to capturing your beautiful love story! 💕</p>`,
+      includeBookingCTA: false
+    },
+    
+    // Email 2: Planning Your Session
+    {
+      content: `<p>Planning your engagement session is all about creating an experience that feels authentic to your relationship. Here's how to get started:</p>
+      
+      <p><strong>Tell your story:</strong> Think about what makes your relationship special. Are you adventurous? Homebodies? Book lovers? Let your personalities guide the session planning.</p>
+      
+      <p><strong>Consider your comfort zone:</strong> Choose activities and locations where you feel relaxed and natural. Great photos happen when you're being yourselves.</p>
+      
+      <p><strong>Plan for variety:</strong> Consider multiple looks or locations to create a diverse collection of images for different uses.</p>
+      
+      <p><strong>Think about timeline:</strong> When will you need these photos? For save the dates, your wedding website, or just for your own memories?</p>
+      
+      <p><strong>Communicate openly:</strong> Share your vision, concerns, and any must-have shots with your photographer ahead of time.</p>
+      
+      <p>Remember, the best engagement sessions feel more like a fun date than a formal photo shoot!</p>`,
+      includeBookingCTA: false
+    },
+    
+    // Continue with key engagement-specific content
+    {
+      content: `<p>Looking ahead to your wedding photography, your engagement session is invaluable preparation. Here's how it sets you up for success:</p>
+      
+      <p><strong>Build photographer relationship:</strong> Getting comfortable with your photographer now means more natural wedding photos later.</p>
+      
+      <p><strong>Learn your angles:</strong> Discover how you photograph best together and what poses feel most natural for your body types.</p>
+      
+      <p><strong>Practice timeline:</strong> Experience a photography session timeline to better understand pacing for your wedding day.</p>
+      
+      <p><strong>Style continuity:</strong> Your engagement photos help establish the visual style that will carry through to your wedding photography.</p>
+      
+      <p><strong>Confidence building:</strong> Being in front of the camera becomes more comfortable with practice, leading to better wedding photos.</p>
+      
+      <p>We're excited to continue capturing your love story on your wedding day and creating a beautiful collection of memories that chronicle your journey together!</p>`,
+      includeBookingCTA: true
+    }
+  ];
+
+  // Generate HTML for each email
+  const processedEmails = ENGAGEMENT_CAMPAIGN.emails.map((email, index) => {
+    const contentData = emailContents[Math.min(index, emailContents.length - 1)];
+    
+    return {
+      ...email,
+      htmlBody: generateEmailHTML(
+        photographer,
+        email.subject,
+        contentData.content,
+        contentData.includeBookingCTA
+      ),
+      textBody: contentData.content.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim()
+    };
+  });
+
+  return {
+    ...ENGAGEMENT_CAMPAIGN,
+    emails: processedEmails
+  };
+}
+
+// MATERNITY Campaign Template
+export const MATERNITY_CAMPAIGN: StaticCampaignTemplate = {
+  projectType: "MATERNITY",
+  name: "Maternity Photography Journey",
+  description: "A comprehensive 24-email sequence celebrating the journey to motherhood through professional photography",
+  emails: [
+    {
+      sequenceIndex: 0,
+      subject: "Celebrating Your Beautiful Journey to Motherhood!",
+      weeksAfterStart: 0,
+      daysAfterStart: 0,
+      htmlBody: "",
+      textBody: "Congratulations on your pregnancy! We're honored to capture this incredible journey to motherhood through beautiful maternity photography."
+    },
+    {
+      sequenceIndex: 1,
+      subject: "When to Schedule Your Maternity Session",
+      weeksAfterStart: 1,
+      daysAfterStart: 3,
+      htmlBody: "",
+      textBody: "Timing guidance for maternity photography to capture your beautiful bump at the perfect stage of pregnancy."
+    },
+    {
+      sequenceIndex: 2,
+      subject: "Maternity Photography Wardrobe Guide",
+      weeksAfterStart: 1,
+      daysAfterStart: 7,
+      htmlBody: "",
+      textBody: "Outfit ideas and styling tips that celebrate your changing body and create stunning maternity portraits."
+    },
+    {
+      sequenceIndex: 3,
+      subject: "Location Ideas for Maternity Sessions",
+      weeksAfterStart: 2,
+      daysAfterStart: 14,
+      htmlBody: "",
+      textBody: "Beautiful location options for maternity photography that provide comfort and stunning backdrops."
+    },
+    {
+      sequenceIndex: 4,
+      subject: "Including Partners in Maternity Photos",
+      weeksAfterStart: 3,
+      daysAfterStart: 21,
+      htmlBody: "",
+      textBody: "Tips for including your partner in maternity photos to capture this special time together as a growing family."
+    },
+    {
+      sequenceIndex: 5,
+      subject: "Posing Comfortably During Pregnancy",
+      weeksAfterStart: 4,
+      daysAfterStart: 28,
+      htmlBody: "",
+      textBody: "Comfortable posing techniques that flatter your pregnant body and create beautiful, natural-looking maternity photos."
+    },
+    {
+      sequenceIndex: 6,
+      subject: "Maternity Photography Props and Accessories",
+      weeksAfterStart: 5,
+      daysAfterStart: 35,
+      htmlBody: "",
+      textBody: "Creative prop ideas and meaningful accessories that enhance your maternity photos and tell your story."
+    },
+    {
+      sequenceIndex: 7,
+      subject: "Seasonal Maternity Photography Ideas",
+      weeksAfterStart: 6,
+      daysAfterStart: 42,
+      htmlBody: "",
+      textBody: "Making the most of each season's unique beauty for stunning maternity photos throughout the year."
+    },
+    {
+      sequenceIndex: 8,
+      subject: "Sibling Photos During Maternity Sessions",
+      weeksAfterStart: 7,
+      daysAfterStart: 49,
+      htmlBody: "",
+      textBody: "Including older children in maternity photos to capture the excitement of becoming a big brother or sister."
+    },
+    {
+      sequenceIndex: 9,
+      subject: "Hair and Makeup for Maternity Photos",
+      weeksAfterStart: 8,
+      daysAfterStart: 56,
+      htmlBody: "",
+      textBody: "Professional styling tips for maternity photography that enhance your natural pregnancy glow."
+    },
+    {
+      sequenceIndex: 10,
+      subject: "Indoor vs. Outdoor Maternity Photography",
+      weeksAfterStart: 9,
+      daysAfterStart: 63,
+      htmlBody: "",
+      textBody: "Comparing indoor and outdoor settings to choose the perfect environment for your maternity session."
+    },
+    {
+      sequenceIndex: 11,
+      subject: "Capturing the Emotional Journey",
+      weeksAfterStart: 10,
+      daysAfterStart: 70,
+      htmlBody: "",
+      textBody: "Photographing the emotions and anticipation of pregnancy to create meaningful maternity portraits."
+    },
+    {
+      sequenceIndex: 12,
+      subject: "Maternity Boudoir Photography",
+      weeksAfterStart: 11,
+      daysAfterStart: 77,
+      htmlBody: "",
+      textBody: "Intimate maternity photography that celebrates the beauty and sensuality of pregnancy in an artistic way."
+    },
+    {
+      sequenceIndex: 13,
+      subject: "Belly Casting and Alternative Keepsakes",
+      weeksAfterStart: 12,
+      daysAfterStart: 84,
+      htmlBody: "",
+      textBody: "Creative ways to preserve memories of your pregnancy beyond traditional photography."
+    },
+    {
+      sequenceIndex: 14,
+      subject: "Preparing for Your Maternity Session",
+      weeksAfterStart: 13,
+      daysAfterStart: 91,
+      htmlBody: "",
+      textBody: "Final preparation tips to ensure your maternity photography session is comfortable and successful."
+    },
+    {
+      sequenceIndex: 15,
+      subject: "Maternity Photo Editing and Retouching",
+      weeksAfterStart: 15,
+      daysAfterStart: 105,
+      htmlBody: "",
+      textBody: "Understanding the editing process for maternity photos to achieve the perfect look while maintaining authenticity."
+    },
+    {
+      sequenceIndex: 16,
+      subject: "Creating a Pregnancy Journal with Photos",
+      weeksAfterStart: 17,
+      daysAfterStart: 119,
+      htmlBody: "",
+      textBody: "Using your maternity photos to create a beautiful pregnancy journal and memory book."
+    },
+    {
+      sequenceIndex: 17,
+      subject: "Announcement Ideas with Maternity Photos",
+      weeksAfterStart: 19,
+      daysAfterStart: 133,
+      htmlBody: "",
+      textBody: "Creative ways to use your maternity photos for pregnancy announcements and social media sharing."
+    },
+    {
+      sequenceIndex: 18,
+      subject: "Printing and Displaying Maternity Photos",
+      weeksAfterStart: 21,
+      daysAfterStart: 147,
+      htmlBody: "",
+      textBody: "Beautiful ways to print and display your maternity photos in your home and nursery."
+    },
+    {
+      sequenceIndex: 19,
+      subject: "Maternity Photos as Gifts",
+      weeksAfterStart: 23,
+      daysAfterStart: 161,
+      htmlBody: "",
+      textBody: "Thoughtful ways to turn your maternity photos into meaningful gifts for family and friends."
+    },
+    {
+      sequenceIndex: 20,
+      subject: "Connecting Maternity and Newborn Photography",
+      weeksAfterStart: 25,
+      daysAfterStart: 175,
+      htmlBody: "",
+      textBody: "Creating a cohesive visual story from pregnancy through your baby's first days with connected photography sessions."
+    },
+    {
+      sequenceIndex: 21,
+      subject: "Preparing for Newborn Photography",
+      weeksAfterStart: 27,
+      daysAfterStart: 189,
+      htmlBody: "",
+      textBody: "Planning ahead for newborn photography to continue documenting your growing family's journey."
+    },
+    {
+      sequenceIndex: 22,
+      subject: "Celebrating Your Pregnancy Journey",
+      weeksAfterStart: 29,
+      daysAfterStart: 203,
+      htmlBody: "",
+      textBody: "Reflecting on your pregnancy journey and how your maternity photos capture this special time in your life."
+    },
+    {
+      sequenceIndex: 23,
+      subject: "Looking Forward: Family Photography",
+      weeksAfterStart: 31,
+      daysAfterStart: 217,
+      htmlBody: "",
+      textBody: "Planning for ongoing family photography to document your child's growth and your family's evolving story."
+    }
+  ]
+};
+
+// Function to generate complete email content for maternity campaign
+export function generateMaternityEmailContent(photographer: Photographer): StaticCampaignTemplate {
+  const emailContents = [
+    // Email 1: Welcome
+    {
+      content: `<p>Congratulations on your pregnancy! What an incredible journey you're on. We're absolutely honored to be part of this special time and capture the beauty and wonder of your pregnancy through professional maternity photography.</p>
+      
+      <p>Over the next several months, we'll be sharing guidance, inspiration, and tips to help you plan a maternity session that celebrates this amazing time in your life and creates lasting memories of your pregnancy journey.</p>
+      
+      <p>Our goal is to create beautiful images that capture not just how you look, but how you feel during this transformative time. These photos will become treasured keepsakes of your journey to motherhood.</p>
+      
+      <p>Here's to celebrating your beautiful pregnancy journey! 🤱</p>`,
+      includeBookingCTA: false
+    },
+    
+    // Key maternity-specific content
+    {
+      content: `<p>Planning for newborn photography while still pregnant ensures you'll capture every precious moment of your baby's earliest days:</p>
+      
+      <p><strong>Book early:</strong> The best newborn photographers book 2-3 months in advance, so planning during pregnancy is essential.</p>
+      
+      <p><strong>Style continuity:</strong> Working with the same photographer for maternity and newborn sessions creates a cohesive visual story.</p>
+      
+      <p><strong>Timeline preparation:</strong> Understanding the newborn photography timeline (ideally within 2 weeks of birth) helps you plan ahead.</p>
+      
+      <p><strong>Family coordination:</strong> Plan how to include your partner and any siblings in newborn sessions for complete family portraits.</p>
+      
+      <p><strong>Newborn safety:</strong> Experienced newborn photographers know how to safely pose and photograph your precious baby.</p>
+      
+      <p>We're excited to continue documenting your family's story from pregnancy through your baby's first precious days!</p>`,
+      includeBookingCTA: true
+    }
+  ];
+
+  // Generate HTML for each email
+  const processedEmails = MATERNITY_CAMPAIGN.emails.map((email, index) => {
+    const contentData = emailContents[Math.min(index, emailContents.length - 1)];
+    
+    return {
+      ...email,
+      htmlBody: generateEmailHTML(
+        photographer,
+        email.subject,
+        contentData.content,
+        contentData.includeBookingCTA
+      ),
+      textBody: contentData.content.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim()
+    };
+  });
+
+  return {
+    ...MATERNITY_CAMPAIGN,
+    emails: processedEmails
+  };
+}
+
+// FAMILY Campaign Template
+export const FAMILY_CAMPAIGN: StaticCampaignTemplate = {
+  projectType: "FAMILY",
+  name: "Family Photography Journey",
+  description: "A comprehensive 24-email sequence helping families create lasting memories through professional photography",
+  emails: [
+    {
+      sequenceIndex: 0,
+      subject: "Welcome to Your Family Photography Journey!",
+      weeksAfterStart: 0,
+      daysAfterStart: 0,
+      htmlBody: "",
+      textBody: "Welcome to our family photography experience! We're excited to help you create beautiful memories that celebrate your unique family."
+    },
+    {
+      sequenceIndex: 1,
+      subject: "Planning Your Perfect Family Session",
+      weeksAfterStart: 1,
+      daysAfterStart: 3,
+      htmlBody: "",
+      textBody: "Essential planning tips for family photography sessions that capture authentic moments and genuine connections."
+    },
+    {
+      sequenceIndex: 2,
+      subject: "Family Photography Wardrobe Coordination",
+      weeksAfterStart: 1,
+      daysAfterStart: 7,
+      htmlBody: "",
+      textBody: "Coordinating family outfits that photograph beautifully while letting each family member's personality shine."
+    },
+    {
+      sequenceIndex: 3,
+      subject: "Best Locations for Family Photography",
+      weeksAfterStart: 2,
+      daysAfterStart: 14,
+      htmlBody: "",
+      textBody: "Choosing locations that provide beautiful backdrops while accommodating your family's needs and comfort."
+    },
+    {
+      sequenceIndex: 4,
+      subject: "Timing Your Family Photo Session",
+      weeksAfterStart: 3,
+      daysAfterStart: 21,
+      htmlBody: "",
+      textBody: "Scheduling family photography sessions around nap times, golden hour, and your family's natural rhythms."
+    },
+    {
+      sequenceIndex: 5,
+      subject: "Working with Children in Family Photos",
+      weeksAfterStart: 4,
+      daysAfterStart: 28,
+      htmlBody: "",
+      textBody: "Tips and techniques for getting natural, happy expressions from children during family photography sessions."
+    },
+    {
+      sequenceIndex: 6,
+      subject: "Multi-Generational Family Photography",
+      weeksAfterStart: 5,
+      daysAfterStart: 35,
+      htmlBody: "",
+      textBody: "Including grandparents and extended family in photography sessions for comprehensive family portraits."
+    },
+    {
+      sequenceIndex: 7,
+      subject: "Natural Family Posing Techniques",
+      weeksAfterStart: 6,
+      daysAfterStart: 42,
+      htmlBody: "",
+      textBody: "Posing guidance that creates natural, comfortable family portraits without stiff or forced arrangements."
+    },
+    {
+      sequenceIndex: 8,
+      subject: "Seasonal Family Photography Ideas",
+      weeksAfterStart: 7,
+      daysAfterStart: 49,
+      htmlBody: "",
+      textBody: "Making the most of each season's unique opportunities for beautiful family photography throughout the year."
+    },
+    {
+      sequenceIndex: 9,
+      subject: "Including Pets in Family Photos",
+      weeksAfterStart: 8,
+      daysAfterStart: 56,
+      htmlBody: "",
+      textBody: "Successfully including beloved pets in family photography sessions for complete family portraits."
+    },
+    {
+      sequenceIndex: 10,
+      subject: "Family Photography Props and Activities",
+      weeksAfterStart: 9,
+      daysAfterStart: 63,
+      htmlBody: "",
+      textBody: "Using props and activities to create engaging family photos that show your family's personality and interests."
+    },
+    {
+      sequenceIndex: 11,
+      subject: "Capturing Individual Personalities",
+      weeksAfterStart: 10,
+      daysAfterStart: 70,
+      htmlBody: "",
+      textBody: "Photographing each family member's unique personality while maintaining family cohesion in group portraits."
+    },
+    {
+      sequenceIndex: 12,
+      subject: "Family Photography for Different Ages",
+      weeksAfterStart: 11,
+      daysAfterStart: 77,
+      htmlBody: "",
+      textBody: "Adapting family photography techniques for families with babies, toddlers, teens, and adult children."
+    },
+    {
+      sequenceIndex: 13,
+      subject: "Lifestyle vs. Traditional Family Photography",
+      weeksAfterStart: 12,
+      daysAfterStart: 84,
+      htmlBody: "",
+      textBody: "Understanding different family photography styles to choose the approach that best fits your family."
+    },
+    {
+      sequenceIndex: 14,
+      subject: "Preparing Your Family for the Session",
+      weeksAfterStart: 13,
+      daysAfterStart: 91,
+      htmlBody: "",
+      textBody: "Preparation tips to ensure your family photography session goes smoothly and everyone feels comfortable."
+    },
+    {
+      sequenceIndex: 15,
+      subject: "Family Photo Editing and Retouching",
+      weeksAfterStart: 15,
+      daysAfterStart: 105,
+      htmlBody: "",
+      textBody: "Understanding the editing process for family photography to achieve beautiful, natural-looking results."
+    },
+    {
+      sequenceIndex: 16,
+      subject: "Creating Family Photo Albums and Books",
+      weeksAfterStart: 17,
+      daysAfterStart: 119,
+      htmlBody: "",
+      textBody: "Designing beautiful family photo albums and books that preserve and showcase your family memories."
+    },
+    {
+      sequenceIndex: 17,
+      subject: "Using Family Photos for Holiday Cards",
+      weeksAfterStart: 19,
+      daysAfterStart: 133,
+      htmlBody: "",
+      textBody: "Creating stunning holiday cards and family announcements using your professional family photography."
+    },
+    {
+      sequenceIndex: 18,
+      subject: "Displaying Family Photos in Your Home",
+      weeksAfterStart: 21,
+      daysAfterStart: 147,
+      htmlBody: "",
+      textBody: "Beautiful ways to display and arrange family photos throughout your home for daily enjoyment."
+    },
+    {
+      sequenceIndex: 19,
+      subject: "Family Photos as Gifts",
+      weeksAfterStart: 23,
+      daysAfterStart: 161,
+      htmlBody: "",
+      textBody: "Thoughtful ways to share family photos as meaningful gifts for relatives and friends."
+    },
+    {
+      sequenceIndex: 20,
+      subject: "Annual Family Photography Traditions",
+      weeksAfterStart: 25,
+      daysAfterStart: 175,
+      htmlBody: "",
+      textBody: "Establishing annual family photography traditions to document your family's growth over time."
+    },
+    {
+      sequenceIndex: 21,
+      subject: "Milestone Family Photography",
+      weeksAfterStart: 27,
+      daysAfterStart: 189,
+      htmlBody: "",
+      textBody: "Celebrating family milestones with special photography sessions that mark important moments."
+    },
+    {
+      sequenceIndex: 22,
+      subject: "Building Your Family's Visual Legacy",
+      weeksAfterStart: 29,
+      daysAfterStart: 203,
+      htmlBody: "",
+      textBody: "Creating a comprehensive family photography collection that tells your family's story over time."
+    },
+    {
+      sequenceIndex: 23,
+      subject: "Planning Your Next Family Session",
+      weeksAfterStart: 31,
+      daysAfterStart: 217,
+      htmlBody: "",
+      textBody: "When and why to schedule follow-up family photography sessions as your family grows and changes."
+    }
+  ]
+};
+
+// Function to generate complete email content for family campaign
+export function generateFamilyEmailContent(photographer: Photographer): StaticCampaignTemplate {
+  const emailContents = [
+    // Email 1: Welcome
+    {
+      content: `<p>Welcome to our family photography experience! We're so excited to work with your family and help you create beautiful memories that you'll treasure for generations to come.</p>
+      
+      <p>Over the next several months, we'll be sharing tips, ideas, and guidance to help you get the most out of your family photography experience. From planning and preparation to displaying your finished photos, we've got you covered!</p>
+      
+      <p>Our goal is to create authentic family photos that capture not just how you look together, but the love, connections, and unique personality that makes your family special.</p>
+      
+      <p>Here's to capturing your family's beautiful story! 👨‍👩‍👧‍👦</p>`,
+      includeBookingCTA: false
+    },
+    
+    // Key family-specific content
+    {
+      content: `<p>Creating annual family photography traditions is one of the most meaningful ways to document your family's journey over time:</p>
+      
+      <p><strong>Consistency builds legacy:</strong> Annual sessions in the same location or style create a beautiful timeline of your family's growth.</p>
+      
+      <p><strong>Milestone documentation:</strong> Regular sessions ensure you capture all the important stages and changes in your children's lives.</p>
+      
+      <p><strong>Holiday coordination:</strong> Annual sessions can provide beautiful images for holiday cards and year-end family updates.</p>
+      
+      <p><strong>Investment planning:</strong> Budgeting for annual sessions makes family photography an expected part of your yearly planning.</p>
+      
+      <p><strong>Relationship building:</strong> Working with the same photographer annually builds trust and better results over time.</p>
+      
+      <p>We'd love to be part of your family's annual photography tradition and help you create a beautiful visual legacy that your children will treasure!</p>`,
+      includeBookingCTA: true
+    }
+  ];
+
+  // Generate HTML for each email
+  const processedEmails = FAMILY_CAMPAIGN.emails.map((email, index) => {
+    const contentData = emailContents[Math.min(index, emailContents.length - 1)];
+    
+    return {
+      ...email,
+      htmlBody: generateEmailHTML(
+        photographer,
+        email.subject,
+        contentData.content,
+        contentData.includeBookingCTA
+      ),
+      textBody: contentData.content.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim()
+    };
+  });
+
+  return {
+    ...FAMILY_CAMPAIGN,
+    emails: processedEmails
+  };
+}
+
 // Export function to get all static campaigns
 export function getStaticCampaigns(photographer: Photographer): StaticCampaignTemplate[] {
   return [
     generateWeddingEmailContent(photographer),
     generatePortraitEmailContent(photographer),
-    generateCommercialEmailContent(photographer)
-    // Add other event types here: ENGAGEMENT, MATERNITY, FAMILY, etc.
+    generateCommercialEmailContent(photographer),
+    generateEngagementEmailContent(photographer),
+    generateMaternityEmailContent(photographer),
+    generateFamilyEmailContent(photographer)
   ];
 }
 
