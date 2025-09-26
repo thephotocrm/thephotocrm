@@ -6,7 +6,7 @@ import {
   photographerEarnings, photographerPayouts,
   messages, projectActivityLog, clientPortalTokens,
   dailyAvailabilityTemplates, dailyAvailabilityBreaks, dailyAvailabilityOverrides,
-  dripCampaigns, dripCampaignEmails, dripCampaignSubscriptions, dripEmailDeliveries,
+  dripCampaigns, dripCampaignEmails, dripCampaignSubscriptions, dripEmailDeliveries, staticCampaignSettings,
   type User, type InsertUser, type Photographer, type InsertPhotographer,
   type Client, type InsertClient, type Project, type InsertProject, type ProjectWithClientAndStage, type ClientWithProjects, type Stage, type InsertStage,
   type Template, type InsertTemplate, type Automation, type InsertAutomation,
@@ -26,7 +26,8 @@ import {
   type DripCampaign, type InsertDripCampaign, type DripCampaignWithEmails,
   type DripCampaignEmail, type InsertDripCampaignEmail,
   type DripCampaignSubscription, type InsertDripCampaignSubscription, type DripCampaignSubscriptionWithDetails,
-  type DripEmailDelivery, type InsertDripEmailDelivery
+  type DripEmailDelivery, type InsertDripEmailDelivery,
+  type StaticCampaignSettings, type InsertStaticCampaignSettings
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, inArray, gte, lte, gt } from "drizzle-orm";
@@ -227,6 +228,10 @@ export interface IStorage {
   getCampaignVersionHistory(campaignId: string): Promise<any[]>;
   logCampaignChange(campaignId: string, changeType: string, changeDescription: string, changedBy: string, affectedEmailId?: string, previousData?: any, newData?: any): Promise<void>;
   getDripCampaignWithEmailStats(campaignId: string): Promise<any>;
+  
+  // Static Campaign Settings  
+  getStaticCampaignSettings(photographerId: string, projectType: string): Promise<StaticCampaignSettings | undefined>;
+  saveStaticCampaignSettings(settings: InsertStaticCampaignSettings): Promise<StaticCampaignSettings>;
   
   // Drip Campaign Subscriptions
   getDripCampaignSubscriptionsByPhotographer(photographerId: string): Promise<DripCampaignSubscriptionWithDetails[]>;
@@ -2143,6 +2148,42 @@ export class DatabaseStorage implements IStorage {
       emails,
       stats
     };
+  }
+
+  // Static Campaign Settings methods
+  async getStaticCampaignSettings(photographerId: string, projectType: string): Promise<StaticCampaignSettings | undefined> {
+    const [settings] = await db.select()
+      .from(staticCampaignSettings)
+      .where(and(
+        eq(staticCampaignSettings.photographerId, photographerId),
+        eq(staticCampaignSettings.projectType, projectType)
+      ));
+    return settings;
+  }
+
+  async saveStaticCampaignSettings(settings: InsertStaticCampaignSettings): Promise<StaticCampaignSettings> {
+    // Try to find existing settings first
+    const existing = await this.getStaticCampaignSettings(settings.photographerId, settings.projectType);
+    
+    if (existing) {
+      // Update existing settings
+      const [updated] = await db.update(staticCampaignSettings)
+        .set({
+          campaignEnabled: settings.campaignEnabled,
+          emailToggles: settings.emailToggles,
+          updatedAt: new Date()
+        })
+        .where(and(
+          eq(staticCampaignSettings.photographerId, settings.photographerId),
+          eq(staticCampaignSettings.projectType, settings.projectType)
+        ))
+        .returning();
+      return updated;
+    } else {
+      // Create new settings
+      const [created] = await db.insert(staticCampaignSettings).values(settings).returning();
+      return created;
+    }
   }
 
   // Drip Campaign Subscriptions methods

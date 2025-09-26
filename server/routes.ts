@@ -1683,6 +1683,37 @@ ${photographer?.businessName || 'Your Photography Team'}`;
     }
   });
 
+  // Get static campaign templates for display
+  app.get("/api/drip-campaigns/static-templates", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      const { projectType } = req.query;
+      
+      // Get photographer details for branding
+      const photographer = await storage.getPhotographer(req.user!.photographerId!);
+      if (!photographer) {
+        return res.status(404).json({ message: "Photographer not found" });
+      }
+
+      const staticCampaignService = await import('./services/staticCampaigns');
+      
+      if (projectType) {
+        // Return specific campaign template
+        const staticCampaign = staticCampaignService.getStaticCampaignByType(photographer, projectType as string);
+        if (!staticCampaign) {
+          return res.status(404).json({ message: `No static campaign template available for project type: ${projectType}` });
+        }
+        res.json(staticCampaign);
+      } else {
+        // Return all campaign templates
+        const allCampaigns = staticCampaignService.getStaticCampaigns(photographer);
+        res.json(allCampaigns);
+      }
+    } catch (error) {
+      console.error('Get static campaign templates error:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   app.get("/api/drip-campaigns/:id", authenticateToken, requirePhotographer, async (req, res) => {
     try {
       const campaign = await storage.getDripCampaign(req.params.id);
@@ -1947,6 +1978,49 @@ ${photographer?.businessName || 'Your Photography Team'}`;
     } catch (error) {
       console.error("Reject email error:", error);
       res.status(500).json({ message: "Failed to reject email" });
+    }
+  });
+
+  // Static Campaign Settings routes
+  app.get("/api/static-campaign-settings/:projectType", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      const { projectType } = req.params;
+      const settings = await storage.getStaticCampaignSettings(
+        req.user!.photographerId!,
+        projectType
+      );
+      
+      // Return default settings if none exist
+      if (!settings) {
+        res.json({
+          campaignEnabled: false,
+          emailToggles: null,
+          projectType: projectType
+        });
+      } else {
+        res.json(settings);
+      }
+    } catch (error) {
+      console.error('Get static campaign settings error:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.post("/api/static-campaign-settings", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      const { projectType, campaignEnabled, emailToggles } = req.body;
+      
+      const settings = await storage.saveStaticCampaignSettings({
+        photographerId: req.user!.photographerId!,
+        projectType,
+        campaignEnabled,
+        emailToggles: JSON.stringify(emailToggles)
+      });
+      
+      res.json(settings);
+    } catch (error) {
+      console.error('Save static campaign settings error:', error);
+      res.status(500).json({ message: "Internal server error" });
     }
   });
 

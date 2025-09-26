@@ -334,6 +334,22 @@ export const dripEmailDeliveries = pgTable("drip_email_deliveries", {
   )
 }));
 
+// Static Campaign Settings
+export const staticCampaignSettings = pgTable("static_campaign_settings", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  photographerId: varchar("photographer_id").notNull().references(() => photographers.id),
+  projectType: text("project_type").notNull(), // WEDDING, PORTRAIT, COMMERCIAL, ENGAGEMENT, MATERNITY, FAMILY
+  campaignEnabled: boolean("campaign_enabled").default(false), // Master toggle for this campaign type
+  emailToggles: text("email_toggles"), // JSON string storing individual email toggles {0: true, 1: false, etc}
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+}, (table) => ({
+  // Unique constraint: one setting per photographer per project type
+  photographerProjectTypeUniqueIdx: unique("static_campaign_settings_photographer_project_type_unique").on(
+    table.photographerId, table.projectType
+  )
+}));
+
 // Campaign version history tracking
 export const dripCampaignVersionHistory = pgTable("drip_campaign_version_history", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -1193,6 +1209,12 @@ export const insertDripEmailDeliverySchema = createInsertSchema(dripEmailDeliver
   createdAt: true
 });
 
+export const insertStaticCampaignSettingsSchema = createInsertSchema(staticCampaignSettings).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true
+});
+
 // Drip Campaign Types
 export type DripCampaign = typeof dripCampaigns.$inferSelect;
 export type InsertDripCampaign = z.infer<typeof insertDripCampaignSchema>;
@@ -1222,6 +1244,8 @@ export type DripCampaignEmailWithVersioning = DripCampaignEmail & {
 };
 export type DripEmailDelivery = typeof dripEmailDeliveries.$inferSelect;
 export type InsertDripEmailDelivery = z.infer<typeof insertDripEmailDeliverySchema>;
+export type StaticCampaignSettings = typeof staticCampaignSettings.$inferSelect;
+export type InsertStaticCampaignSettings = z.infer<typeof insertStaticCampaignSettingsSchema>;
 
 // Drip Campaign with Relations
 export type DripCampaignWithEmails = DripCampaign & {
