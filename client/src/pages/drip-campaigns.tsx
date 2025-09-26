@@ -59,17 +59,13 @@ type DripCampaignEmail = SchemaDripCampaignEmail & {
   content: string; // Fallback for content display
 };
 
-// Form schemas
-const generateCampaignSchema = z.object({
+// Form schemas for static campaign activation
+const activateCampaignSchema = z.object({
   targetStageId: z.string().min(1, "Please select a target stage"),
   projectType: z.enum(["WEDDING", "PORTRAIT", "COMMERCIAL"]).default("WEDDING"),
-  campaignName: z.string().min(1, "Campaign name is required"),
-  emailCount: z.number().min(1).max(12).default(4),
-  frequencyWeeks: z.number().min(1).max(8).default(2),
-  customPrompt: z.string().optional(),
 });
 
-type GenerateCampaignFormData = z.infer<typeof generateCampaignSchema>;
+type ActivateCampaignFormData = z.infer<typeof activateCampaignSchema>;
 
 export default function DripCampaigns() {
   const { user } = useAuth();
@@ -110,47 +106,44 @@ export default function DripCampaigns() {
     enabled: !!user?.photographerId
   });
 
-  // Generate campaign form
-  const generateForm = useForm<GenerateCampaignFormData>({
-    resolver: zodResolver(generateCampaignSchema),
+  // Activate campaign form
+  const activateForm = useForm<ActivateCampaignFormData>({
+    resolver: zodResolver(activateCampaignSchema),
     defaultValues: {
-      projectType: "WEDDING",
-      emailCount: 4, // Updated to match server default
-      frequencyWeeks: 2,
-      campaignName: ""
+      projectType: "WEDDING"
     }
   });
 
   // Mutations
-  const generateCampaignMutation = useMutation({
-    mutationFn: async (data: GenerateCampaignFormData) => {
-      const response = await apiRequest("POST", "/api/drip-campaigns/generate", data);
+  const createStaticCampaignMutation = useMutation({
+    mutationFn: async (data: ActivateCampaignFormData) => {
+      const response = await apiRequest("POST", "/api/drip-campaigns/activate", data);
       return await response.json();
     },
     onSuccess: (data) => {
-      toast({ title: "Campaign generated successfully!" });
-      // Store original OpenAI data for saving
+      toast({ title: "Static campaign activated successfully!" });
+      // Store static campaign data for saving
       setGeneratedCampaignData(data);
       
-      // Transform OpenAI response to DripCampaign format for preview
+      // Transform static campaign response to DripCampaign format for preview
       const mappedEmails = data.emails?.map((email: any, index: number) => ({
         id: 'email-' + index,
         campaignId: 'preview-' + Date.now(),
         sequenceIndex: index,
         subject: email.subject,
         content: email.textBody || email.htmlBody || '',
-        delayWeeks: email.weeksAfterStart || 0
+        delayWeeks: Math.ceil(email.daysAfterStart / 7) || 0 // Convert days to weeks for display
       })) || [];
       
       const campaignForPreview = {
         id: 'preview-' + Date.now(),
-        name: generateForm.getValues('campaignName') || 'Generated Campaign',
-        projectType: generateForm.getValues('projectType') || 'WEDDING',
-        targetStageId: generateForm.getValues('targetStageId') || '',
+        name: data.campaign.name || `${activateForm.getValues('projectType')} Email Campaign`,
+        projectType: activateForm.getValues('projectType') || 'WEDDING',
+        targetStageId: activateForm.getValues('targetStageId') || '',
         status: 'DRAFT' as const,
         emailCount: data.emails?.length || 0,
-        emailFrequencyWeeks: generateForm.getValues('frequencyWeeks') || 2,
-        maxDurationMonths: 12,
+        emailFrequencyWeeks: Math.ceil(data.campaign.emailFrequencyDays / 7) || 3, // ~24 days = 3.4 weeks
+        maxDurationMonths: data.campaign.maxDurationMonths || 24,
         createdAt: new Date(),
         emails: mappedEmails
       };
@@ -161,7 +154,7 @@ export default function DripCampaigns() {
     },
     onError: (error: any) => {
       toast({ 
-        title: "Failed to generate campaign", 
+        title: "Failed to activate campaign", 
         description: error.message || "Please try again",
         variant: "destructive" 
       });
@@ -239,25 +232,24 @@ export default function DripCampaigns() {
     }
   });
 
-  const handleGenerateCampaign = (data: GenerateCampaignFormData) => {
-    generateCampaignMutation.mutate(data);
+  const handleActivateCampaign = (data: ActivateCampaignFormData) => {
+    createStaticCampaignMutation.mutate(data);
   };
 
   const handleSaveCampaign = () => {
     if (selectedCampaign && generatedCampaignData) {
-      // Construct proper payload for backend with all required fields
-      const formData = generateForm.getValues();
-      
+      // Construct proper payload for backend with all required fields for static campaign
       const campaignPayload = {
-        name: formData.campaignName || selectedCampaign.name,
-        projectType: formData.projectType || selectedCampaign.projectType,
-        targetStageId: formData.targetStageId || selectedCampaign.targetStageId,
+        name: selectedCampaign.name,
+        projectType: selectedCampaign.projectType,
+        targetStageId: selectedCampaign.targetStageId,
         status: 'DRAFT',
-        maxDurationMonths: 12,
-        emailFrequencyWeeks: formData.frequencyWeeks || selectedCampaign.emailFrequencyWeeks,
-        generatedByAi: true,
-        aiPrompt: formData.customPrompt || '',
-        businessContext: generatedCampaignData.businessContext || '',
+        maxDurationMonths: 24, // 24-month static campaign
+        emailFrequencyDays: 24, // 24-day intervals
+        emailFrequencyWeeks: Math.ceil(24 / 7), // Legacy compatibility
+        isStaticTemplate: true,
+        staticTemplateType: selectedCampaign.projectType,
+        generatedByAi: false,
         enabled: true,
         emails: generatedCampaignData.emails || []
       };
@@ -272,7 +264,7 @@ export default function DripCampaigns() {
     }
   };
 
-  const handleActivateCampaign = (campaignId: string) => {
+  const handleActivateExistingCampaign = (campaignId: string) => {
     if (confirm("Are you sure you want to activate this campaign? It will start sending emails to eligible clients.")) {
       activateCampaignMutation.mutate(campaignId);
     }
@@ -380,7 +372,7 @@ export default function DripCampaigns() {
         return (
           <Button 
             size="sm" 
-            onClick={() => handleActivateCampaign(campaign.id)}
+            onClick={() => handleActivateExistingCampaign(campaign.id)}
             data-testid={`button-activate-${campaign.id}`}
           >
             <Play className="h-4 w-4 mr-1" />
@@ -414,28 +406,28 @@ export default function DripCampaigns() {
         <div>
           <h1 className="text-3xl font-bold" data-testid="heading-drip-campaigns">Drip Campaigns</h1>
           <p className="text-muted-foreground mt-2">
-            AI-powered email sequences to nurture your inquiries into bookings
+            Professional email campaigns with 24 pre-written templates to nurture your inquiries into bookings
           </p>
         </div>
         <Dialog open={generateDialogOpen} onOpenChange={setGenerateDialogOpen}>
           <DialogTrigger asChild>
-            <Button data-testid="button-generate-campaign">
-              <Sparkles className="h-4 w-4 mr-2" />
-              Generate AI Campaign
+            <Button data-testid="button-activate-campaign">
+              <Plus className="h-4 w-4 mr-2" />
+              Activate Email Campaign
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-2xl">
             <DialogHeader>
-              <DialogTitle>Generate AI Drip Campaign</DialogTitle>
+              <DialogTitle>Activate Static Email Campaign</DialogTitle>
               <DialogDescription>
-                Let AI create a personalized email sequence to nurture clients in a specific stage
+                Activate a professional 24-email campaign with pre-written content tailored to your project type. Emails will be sent every 24 days.
               </DialogDescription>
             </DialogHeader>
-            <Form {...generateForm}>
-              <form onSubmit={generateForm.handleSubmit(handleGenerateCampaign)} className="space-y-4">
+            <Form {...activateForm}>
+              <form onSubmit={activateForm.handleSubmit(handleActivateCampaign)} className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <FormField
-                    control={generateForm.control}
+                    control={activateForm.control}
                     name="projectType"
                     render={({ field }) => (
                       <FormItem>
@@ -457,7 +449,7 @@ export default function DripCampaigns() {
                     )}
                   />
                   <FormField
-                    control={generateForm.control}
+                    control={activateForm.control}
                     name="targetStageId"
                     render={({ field }) => (
                       <FormItem>
@@ -485,111 +477,36 @@ export default function DripCampaigns() {
                   />
                 </div>
                 
-                <FormField
-                  control={generateForm.control}
-                  name="campaignName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Campaign Name</FormLabel>
-                      <FormControl>
-                        <Input 
-                          placeholder="e.g., Inquiry Nurturing Campaign" 
-                          {...field} 
-                          data-testid="input-campaign-name"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <div className="grid grid-cols-2 gap-4">
-                  <FormField
-                    control={generateForm.control}
-                    name="emailCount"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Number of Emails</FormLabel>
-                        <FormControl>
-                          <Input 
-                            type="number" 
-                            min={1} 
-                            max={12} 
-                            {...field} 
-                            onChange={(e) => field.onChange(parseInt(e.target.value))}
-                            data-testid="input-email-count"
-                          />
-                        </FormControl>
-                        <FormDescription>1-12 emails</FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={generateForm.control}
-                    name="frequencyWeeks"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Email Frequency</FormLabel>
-                        <FormControl>
-                          <Input 
-                            type="number" 
-                            min={1} 
-                            max={8} 
-                            {...field} 
-                            onChange={(e) => field.onChange(parseInt(e.target.value))}
-                            data-testid="input-frequency-weeks"
-                          />
-                        </FormControl>
-                        <FormDescription>Weeks between emails</FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                  <h4 className="font-medium text-blue-900 mb-2">Campaign Details</h4>
+                  <ul className="text-sm text-blue-800 space-y-1">
+                    <li>• 24 professionally written emails</li>
+                    <li>• Sent every 24 days (monthly touchpoints)</li>
+                    <li>• Beautiful HTML styling with your branding</li>
+                    <li>• Targets clients in inquiry stage only</li>
+                  </ul>
                 </div>
-
-                <FormField
-                  control={generateForm.control}
-                  name="customPrompt"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Custom Instructions (Optional)</FormLabel>
-                      <FormControl>
-                        <Textarea 
-                          placeholder="e.g., Focus on showcasing portfolio, mention specific services, use a friendly tone..."
-                          className="min-h-[80px]"
-                          {...field} 
-                          data-testid="textarea-custom-prompt"
-                        />
-                      </FormControl>
-                      <FormDescription>
-                        Additional instructions for AI to customize the email content
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
 
                 <div className="flex justify-end space-x-2">
                   <Button 
                     type="button" 
                     variant="outline" 
                     onClick={() => setGenerateDialogOpen(false)}
-                    data-testid="button-cancel-generate"
+                    data-testid="button-cancel-activate"
                   >
                     Cancel
                   </Button>
                   <Button 
                     type="submit" 
-                    disabled={generateCampaignMutation.isPending}
-                    data-testid="button-submit-generate"
+                    disabled={createStaticCampaignMutation.isPending}
+                    data-testid="button-submit-activate"
                   >
-                    {generateCampaignMutation.isPending ? (
-                      <>Generating...</>
+                    {createStaticCampaignMutation.isPending ? (
+                      <>Activating...</>
                     ) : (
                       <>
-                        <Sparkles className="h-4 w-4 mr-2" />
-                        Generate Campaign
+                        <Plus className="h-4 w-4 mr-2" />
+                        Activate Campaign
                       </>
                     )}
                   </Button>

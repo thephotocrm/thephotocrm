@@ -1696,9 +1696,9 @@ ${photographer?.businessName || 'Your Photography Team'}`;
     }
   });
 
-  app.post("/api/drip-campaigns/generate", authenticateToken, requirePhotographer, async (req, res) => {
+  app.post("/api/drip-campaigns/activate", authenticateToken, requirePhotographer, async (req, res) => {
     try {
-      const { targetStageId, projectType, campaignName, emailCount, frequencyWeeks, customPrompt } = req.body;
+      const { targetStageId, projectType } = req.body;
 
       // Get photographer details
       const photographer = await storage.getPhotographer(req.user!.photographerId!);
@@ -1713,22 +1713,42 @@ ${photographer?.businessName || 'Your Photography Team'}`;
         return res.status(404).json({ message: "Stage not found" });
       }
 
-      // Generate drip campaign using OpenAI
-      const result = await generateDripCampaign({
-        photographer,
-        targetStage: stage.name,
-        projectType: projectType || "WEDDING",
-        campaignName: campaignName || `${stage.name} Nurturing Campaign`,
-        emailCount: emailCount || 4,
-        frequencyWeeks: frequencyWeeks || 2,
-        maxDurationMonths: 12,
-        customPrompt
-      });
+      // Get static campaign template for the project type
+      const staticCampaignService = await import('./services/staticCampaigns');
+      const staticCampaign = staticCampaignService.getStaticCampaignByType(photographer, projectType || "WEDDING");
+      
+      if (!staticCampaign) {
+        return res.status(400).json({ message: `No static campaign template available for project type: ${projectType}` });
+      }
+
+      // Create campaign with static template data
+      const result = {
+        emails: staticCampaign.emails.map((email, index) => ({
+          sequenceIndex: index,
+          subject: email.subject,
+          htmlBody: email.htmlBody,
+          textBody: email.textBody,
+          daysAfterStart: (index + 1) * 24, // 24-day intervals for all 24 emails
+          weeksAfterStart: Math.ceil(((index + 1) * 24) / 7) // Legacy compatibility
+        })),
+        campaign: {
+          name: staticCampaign.name,
+          projectType: projectType || "WEDDING",
+          targetStageId,
+          status: "DRAFT",
+          maxDurationMonths: 24, // 24 emails over 24 months
+          emailFrequencyDays: 24, // Send every 24 days
+          emailFrequencyWeeks: Math.ceil(24 / 7), // Legacy compatibility ~3.4 weeks
+          isStaticTemplate: true,
+          staticTemplateType: projectType || "WEDDING",
+          generatedByAi: false
+        }
+      };
 
       res.json(result);
     } catch (error) {
-      console.error('Generate drip campaign error:', error);
-      res.status(500).json({ message: "Failed to generate drip campaign", error: error.message });
+      console.error('Activate static campaign error:', error);
+      res.status(500).json({ message: "Failed to activate static campaign", error: error.message });
     }
   });
 
