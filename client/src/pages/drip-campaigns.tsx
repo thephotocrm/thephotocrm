@@ -638,7 +638,7 @@ export default function DripCampaigns() {
                           {getStatusBadge(campaign.status)}
                         </CardTitle>
                         <CardDescription className="mt-1">
-                          {campaign.emailCount} emails • Every {campaign.frequencyWeeks} week{campaign.frequencyWeeks > 1 ? 's' : ''}
+                          {campaign.emailCount} emails • Every {campaign.emailFrequencyWeeks} week{campaign.emailFrequencyWeeks > 1 ? 's' : ''}
                           {campaign.subscriptionsCount ? ` • ${campaign.subscriptionsCount} active subscriptions` : ''}
                         </CardDescription>
                       </div>
