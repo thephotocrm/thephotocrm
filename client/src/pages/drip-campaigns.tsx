@@ -711,16 +711,17 @@ export default function DripCampaigns() {
                 Preview and manage your drip campaign emails
               </DialogDescription>
             </DialogHeader>
-            <div className="flex h-[60vh]">
-              {/* Email List */}
-              <div className="w-1/2 pr-4">
-                <ScrollArea className="h-full">
-                  <div className="space-y-2">
+            <div className="space-y-4 h-[70vh]">
+              {/* Email List - Horizontal Layout */}
+              <div className="h-32">
+                <h3 className="text-sm font-medium mb-3">Campaign Emails</h3>
+                <ScrollArea className="w-full">
+                  <div className="flex gap-3 pb-2">
                     {selectedCampaign.emails && selectedCampaign.emails.length > 0 ? (
                       selectedCampaign.emails.map((email, index) => (
                         <Card 
                           key={email.id}
-                          className={`cursor-pointer hover:bg-accent transition-colors ${
+                          className={`min-w-[280px] cursor-pointer hover:bg-accent transition-colors ${
                             selectedEmailId === email.id ? 'ring-2 ring-blue-500 bg-accent' : ''
                           }`}
                           onClick={() => setSelectedEmailId(email.id)}
@@ -774,7 +775,7 @@ export default function DripCampaigns() {
                         </Card>
                       ))
                     ) : (
-                      <div className="text-center py-8 text-muted-foreground">
+                      <div className="text-center py-8 text-muted-foreground w-full">
                         No emails in this campaign yet
                       </div>
                     )}
@@ -782,8 +783,8 @@ export default function DripCampaigns() {
                 </ScrollArea>
               </div>
 
-              {/* Email Preview */}
-              <div className="w-1/2 pl-4 border-l">
+              {/* Email Preview - Full Width Below */}
+              <div className="flex-1 border-t pt-4">
                 {selectedEmailId ? (
                   <div className="h-full flex flex-col">
                     {(() => {
@@ -848,16 +849,17 @@ export default function DripCampaigns() {
                             </div>
                           </div>
                           <ScrollArea className="flex-1">
-                            <div className="border rounded p-4 bg-white">
+                            <div className="border rounded bg-white">
                               {selectedEmailPreview === 'html' ? (
-                                <div 
-                                  className="w-full h-auto"
-                                  dangerouslySetInnerHTML={{ __html: selectedEmail.htmlBody || selectedEmail.content }}
-                                  style={{ maxWidth: '100%' }}
+                                <iframe
+                                  srcDoc={selectedEmail.htmlBody || selectedEmail.content}
+                                  className="w-full h-[500px] border-0 rounded"
+                                  title="Email Preview"
+                                  sandbox="allow-same-origin"
                                   data-testid="email-html-preview"
                                 />
                               ) : (
-                                <div className="whitespace-pre-wrap text-sm font-mono">
+                                <div className="p-4 whitespace-pre-wrap text-sm font-mono">
                                   {selectedEmail.textBody || selectedEmail.content}
                                 </div>
                               )}
