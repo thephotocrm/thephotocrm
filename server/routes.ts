@@ -1728,17 +1728,17 @@ ${photographer?.businessName || 'Your Photography Team'}`;
           subject: email.subject,
           htmlBody: email.htmlBody,
           textBody: email.textBody,
-          daysAfterStart: (index + 1) * 24, // 24-day intervals for all 24 emails
-          weeksAfterStart: Math.ceil(((index + 1) * 24) / 7) // Legacy compatibility
+          daysAfterStart: email.daysAfterStart, // Use research-backed timing from template
+          weeksAfterStart: email.weeksAfterStart // Legacy compatibility from template
         })),
         campaign: {
           name: staticCampaign.name,
           projectType: projectType || "WEDDING",
           targetStageId,
           status: "DRAFT",
-          maxDurationMonths: 24, // 24 emails over 24 months
-          emailFrequencyDays: 24, // Send every 24 days
-          emailFrequencyWeeks: Math.ceil(24 / 7), // Legacy compatibility ~3.4 weeks
+          maxDurationMonths: 8, // Research-backed: 217 days = ~7.2 months  
+          emailFrequencyDays: 9, // Research-backed: Average frequency across phases
+          emailFrequencyWeeks: 1, // Legacy compatibility ~1.3 weeks average
           isStaticTemplate: true,
           staticTemplateType: projectType || "WEDDING",
           generatedByAi: false

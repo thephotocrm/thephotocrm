@@ -13,13 +13,17 @@ Preferred communication style: Simple, everyday language.
 ### Multi-Tenant Architecture
 The system implements tenant isolation at the photographer level, where each photographer has completely segregated data access. This is achieved through a hierarchical data model where photographers serve as the primary tenant boundary, with all related data (clients, stages, templates, etc.) linked through photographer IDs.
 
-### AI-Powered Drip Campaign System
-Comprehensive drip campaign management with OpenAI integration:
-- **AI Generation**: OpenAI-powered email sequence creation with 30-second timeout protection and robust fallback system
-- **Campaign Lifecycle**: Complete workflow from generation through preview, draft saving, approval, and automatic delivery
-- **Preview System**: Interactive preview modal showing generated email sequences with subject lines, content, and delivery timing
-- **NURTURE Integration**: Seamless integration with automation system for sequential email delivery to inquiry-stage clients
-- **Campaign Management**: Full CRUD operations for campaign management, editing, approval, and status tracking
+### Static Email Marketing Platform
+Professional-grade drip campaign system featuring research-backed timing and pre-written content:
+- **Static Templates**: 24 professionally crafted wedding email templates with strategic content progression covering the entire client journey
+- **Research-Backed Timing**: 3-phase delivery schedule optimized for engagement:
+  - Phase 1 (High-interest): Days 0, 3, 7, 14, 21 for immediate engagement
+  - Phase 2 (Relationship building): Weekly delivery (days 28-91) for consistent touchpoints  
+  - Phase 3 (Long-term nurturing): Bi-weekly delivery (days 105-217) for extended engagement
+- **Day-0 Scheduling**: Immediate welcome email delivery upon campaign activation
+- **Project Type Support**: Dedicated campaign templates for Wedding, Portrait, and Commercial photography
+- **NURTURE Integration**: Seamless automation system integration for sequential email delivery to inquiry-stage clients
+- **Campaign Management**: Full activation, preview, and status tracking capabilities
 
 ### Frontend Architecture
 - **Framework**: React with Vite for fast development and optimized builds

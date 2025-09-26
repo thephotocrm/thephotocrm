@@ -5,7 +5,8 @@ export interface StaticEmailTemplate {
   subject: string;
   htmlBody: string;
   textBody: string;
-  weeksAfterStart: number; // Will be converted to days (24-day intervals)
+  weeksAfterStart: number; // Legacy field for compatibility
+  daysAfterStart: number; // Research-optimized timing in days
 }
 
 export interface StaticCampaignTemplate {
@@ -136,168 +137,192 @@ export const WEDDING_CAMPAIGN: StaticCampaignTemplate = {
     {
       sequenceIndex: 0,
       subject: "Welcome to Your Wedding Journey!",
-      weeksAfterStart: 0,
+      weeksAfterStart: 0, // Legacy compatibility
+      daysAfterStart: 0, // Immediate welcome (research-backed)
       htmlBody: "", // Will be generated
       textBody: "Welcome to your wedding planning journey! We're here to help you create the perfect day."
     },
     {
       sequenceIndex: 1,
       subject: "Setting Your Wedding Vision and Style",
-      weeksAfterStart: 3, // ~24 days
+      weeksAfterStart: 1, // Legacy compatibility
+      daysAfterStart: 3, // Phase 1: High-interest window
       htmlBody: "",
       textBody: "Discover how to define your wedding style and create a cohesive vision for your special day."
     },
     {
       sequenceIndex: 2,
       subject: "Your Wedding Budget: Planning Made Simple",
-      weeksAfterStart: 7, // ~48 days
+      weeksAfterStart: 1, // Legacy compatibility
+      daysAfterStart: 7, // Phase 1: High-interest window
       htmlBody: "",
       textBody: "Learn practical strategies for creating and managing your wedding budget effectively."
     },
     {
       sequenceIndex: 3,
       subject: "Choosing Your Perfect Wedding Venue",
-      weeksAfterStart: 10, // ~72 days
+      weeksAfterStart: 2, // Legacy compatibility
+      daysAfterStart: 14, // Phase 1: High-interest window
       htmlBody: "",
       textBody: "Essential tips for finding and booking the ideal venue for your celebration."
     },
     {
       sequenceIndex: 4,
       subject: "Building Your Dream Wedding Team",
-      weeksAfterStart: 14, // ~96 days
+      weeksAfterStart: 3, // Legacy compatibility
+      daysAfterStart: 21, // Phase 1: High-interest window
       htmlBody: "",
       textBody: "How to research, interview, and select the perfect vendors for your wedding day."
     },
     {
       sequenceIndex: 5,
       subject: "Wedding Photography Styles Explained",
-      weeksAfterStart: 17, // ~120 days
+      weeksAfterStart: 4, // Legacy compatibility
+      daysAfterStart: 28, // Phase 2: Weekly relationship building
       htmlBody: "",
       textBody: "Understanding different photography styles to choose what's perfect for you."
     },
     {
       sequenceIndex: 6,
       subject: "Planning Your Engagement Session",
-      weeksAfterStart: 21, // ~144 days
+      weeksAfterStart: 5, // Legacy compatibility
+      daysAfterStart: 35, // Phase 2: Weekly relationship building
       htmlBody: "",
       textBody: "Make the most of your engagement session with these expert preparation tips."
     },
     {
       sequenceIndex: 7,
       subject: "Wedding Dress Shopping Success",
-      weeksAfterStart: 24, // ~168 days
+      weeksAfterStart: 6, // Legacy compatibility
+      daysAfterStart: 42, // Phase 2: Weekly relationship building
       htmlBody: "",
       textBody: "Navigate dress shopping like a pro with our insider guide to finding 'the one'."
     },
     {
       sequenceIndex: 8,
       subject: "Designing Your Wedding Day Timeline",
-      weeksAfterStart: 28, // ~192 days
+      weeksAfterStart: 7, // Legacy compatibility
+      daysAfterStart: 49, // Phase 2: Weekly relationship building
       htmlBody: "",
       textBody: "Create a stress-free wedding day schedule that gives you time to enjoy every moment."
     },
     {
       sequenceIndex: 9,
       subject: "Wedding Menu and Catering Tips",
-      weeksAfterStart: 31, // ~216 days
+      weeksAfterStart: 8, // Legacy compatibility
+      daysAfterStart: 56, // Phase 2: Weekly relationship building
       htmlBody: "",
       textBody: "Planning your wedding menu to delight guests and reflect your taste."
     },
     {
       sequenceIndex: 10,
       subject: "Wedding Flowers and Decor Ideas",
-      weeksAfterStart: 35, // ~240 days
+      weeksAfterStart: 9, // Legacy compatibility
+      daysAfterStart: 63, // Phase 2: Weekly relationship building
       htmlBody: "",
       textBody: "Create stunning wedding decor that photographs beautifully and stays within budget."
     },
     {
       sequenceIndex: 11,
       subject: "Managing Wedding Day Logistics",
-      weeksAfterStart: 38, // ~264 days
+      weeksAfterStart: 10, // Legacy compatibility
+      daysAfterStart: 70, // Phase 2: Weekly relationship building
       htmlBody: "",
       textBody: "Master the logistics to ensure your wedding day runs smoothly from start to finish."
     },
     {
       sequenceIndex: 12,
       subject: "Guest List and Invitation Strategy",
-      weeksAfterStart: 42, // ~288 days
+      weeksAfterStart: 11, // Legacy compatibility
+      daysAfterStart: 77, // Phase 2: Weekly relationship building
       htmlBody: "",
       textBody: "Navigate guest lists and invitations with grace and efficiency."
     },
     {
       sequenceIndex: 13,
       subject: "Wedding Day Beauty and Preparation",
-      weeksAfterStart: 45, // ~312 days
+      weeksAfterStart: 12, // Legacy compatibility
+      daysAfterStart: 84, // Phase 2: Weekly relationship building
       htmlBody: "",
       textBody: "Look and feel your absolute best with our beauty and preparation timeline."
     },
     {
       sequenceIndex: 14,
       subject: "Creating Your Wedding Day Emergency Kit",
-      weeksAfterStart: 49, // ~336 days
+      weeksAfterStart: 13, // Legacy compatibility
+      daysAfterStart: 91, // Phase 2: Weekly relationship building
       htmlBody: "",
       textBody: "Be prepared for anything with the ultimate wedding day emergency kit checklist."
     },
     {
       sequenceIndex: 15,
       subject: "Wedding Ceremony Planning Essentials",
-      weeksAfterStart: 52, // ~360 days
+      weeksAfterStart: 15, // Legacy compatibility
+      daysAfterStart: 105, // Phase 3: Bi-weekly long-term nurturing
       htmlBody: "",
       textBody: "Plan a meaningful ceremony that reflects your love story and personal style."
     },
     {
       sequenceIndex: 16,
       subject: "Reception Planning and Entertainment",
-      weeksAfterStart: 56, // ~384 days
+      weeksAfterStart: 17, // Legacy compatibility
+      daysAfterStart: 119, // Phase 3: Bi-weekly long-term nurturing
       htmlBody: "",
       textBody: "Create an unforgettable reception that keeps your guests celebrating all night."
     },
     {
       sequenceIndex: 17,
       subject: "Weather Contingency Planning",
-      weeksAfterStart: 59, // ~408 days
+      weeksAfterStart: 19, // Legacy compatibility
+      daysAfterStart: 133, // Phase 3: Bi-weekly long-term nurturing
       htmlBody: "",
       textBody: "Plan for any weather scenario to ensure your outdoor wedding is perfect regardless."
     },
     {
       sequenceIndex: 18,
       subject: "Final Month Wedding Checklist",
-      weeksAfterStart: 63, // ~432 days
+      weeksAfterStart: 21, // Legacy compatibility
+      daysAfterStart: 147, // Phase 3: Bi-weekly long-term nurturing
       htmlBody: "",
       textBody: "Stay organized in your final month with this comprehensive completion checklist."
     },
     {
       sequenceIndex: 19,
       subject: "Wedding Week Survival Guide",
-      weeksAfterStart: 66, // ~456 days
+      weeksAfterStart: 23, // Legacy compatibility
+      daysAfterStart: 161, // Phase 3: Bi-weekly long-term nurturing
       htmlBody: "",
       textBody: "Navigate your wedding week with confidence and enjoy every precious moment."
     },
     {
       sequenceIndex: 20,
       subject: "Rehearsal Dinner Planning",
-      weeksAfterStart: 70, // ~480 days
+      weeksAfterStart: 25, // Legacy compatibility
+      daysAfterStart: 175, // Phase 3: Bi-weekly long-term nurturing
       htmlBody: "",
       textBody: "Plan the perfect rehearsal dinner to kick off your wedding celebration."
     },
     {
       sequenceIndex: 21,
       subject: "Wedding Morning Preparation",
-      weeksAfterStart: 73, // ~504 days
+      weeksAfterStart: 27, // Legacy compatibility
+      daysAfterStart: 189, // Phase 3: Bi-weekly long-term nurturing
       htmlBody: "",
       textBody: "Start your wedding day perfectly with our morning preparation guide."
     },
     {
       sequenceIndex: 22,
       subject: "Making the Most of Your Wedding Day",
-      weeksAfterStart: 77, // ~528 days
+      weeksAfterStart: 29, // Legacy compatibility
+      daysAfterStart: 203, // Phase 3: Bi-weekly long-term nurturing
       htmlBody: "",
       textBody: "Savor every moment of your wedding day with these mindfulness tips."
     },
     {
       sequenceIndex: 23,
       subject: "After the Wedding: Next Steps",
-      weeksAfterStart: 80, // ~552 days
+      weeksAfterStart: 31, // Legacy compatibility
+      daysAfterStart: 217, // Phase 3: Bi-weekly long-term nurturing
       htmlBody: "",
       textBody: "Navigate post-wedding tasks and begin your happily ever after journey."
     }
