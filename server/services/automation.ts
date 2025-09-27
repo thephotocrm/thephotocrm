@@ -153,8 +153,8 @@ async function processCommunicationAutomation(automation: any, photographerId: s
       clientId: projects.clientId,
       stageEnteredAt: projects.stageEnteredAt,
       eventDate: projects.eventDate,
-      smsOptIn: projects.smsOptIn,
-      emailOptIn: projects.emailOptIn,
+      smsOptIn: clients.smsOptIn,
+      emailOptIn: clients.emailOptIn,
       photographerId: projects.photographerId,
       // Client details
       firstName: clients.firstName,
@@ -608,8 +608,8 @@ async function processCountdownAutomation(automation: any, photographerId: strin
       clientId: projects.clientId,
       eventDate: projects.eventDate,
       stageId: projects.stageId,
-      smsOptIn: projects.smsOptIn,
-      emailOptIn: projects.emailOptIn,
+      smsOptIn: clients.smsOptIn,
+      emailOptIn: clients.emailOptIn,
       photographerId: projects.photographerId,
       // Client details
       firstName: clients.firstName,
@@ -972,7 +972,7 @@ async function subscribeNewProjectsToCampaign(campaign: any, photographerId: str
       clientId: projects.clientId,
       stageEnteredAt: projects.stageEnteredAt,
       eventDate: projects.eventDate,
-      emailOptIn: projects.emailOptIn,
+      emailOptIn: clients.emailOptIn,
       // Client details
       firstName: clients.firstName,
       lastName: clients.lastName,
@@ -988,7 +988,7 @@ async function subscribeNewProjectsToCampaign(campaign: any, photographerId: str
       eq(projects.photographerId, photographerId),
       eq(projects.stageId, campaign.targetStageId),
       eq(projects.status, 'ACTIVE'),
-      eq(projects.emailOptIn, true), // Must have email opt-in
+      eq(clients.emailOptIn, true), // Must have email opt-in
       // Not already subscribed
       isNull(dripCampaignSubscriptions.id)
     ));
