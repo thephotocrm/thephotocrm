@@ -16,113 +16,233 @@ export interface StaticCampaignTemplate {
   emails: StaticEmailTemplate[];
 }
 
-// Helper function to add client-focused visual content containers
-function enhanceContentWithWeddingVisuals(content: string, primaryColor: string, secondaryColor: string, variation: string): string {
-  // Client-focused visual containers for wedding planning
-  const visualContainers = {
-    centered: {
-      weddingTip: `<div style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-left: 4px solid ${primaryColor}; padding: 20px 25px; margin: 25px 0; border-radius: 8px;">
-        <div style="display: flex; align-items: center; margin-bottom: 12px;">
-          <div style="width: 8px; height: 8px; background: ${secondaryColor}; border-radius: 50%; margin-right: 12px;"></div>
-          <strong style="color: ${primaryColor}; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">Wedding Planning Tip</strong>
-        </div>
-        <p style="margin: 0; color: #4a5568; line-height: 1.6; font-style: italic;">`,
-      rememberThis: `<div style="background: #fafafa; padding: 25px; margin: 25px 0; border-radius: 12px; position: relative;">
-        <div style="position: absolute; top: 15px; left: 20px; width: 30px; height: 20px; background: ${secondaryColor}; opacity: 0.1; border-radius: 4px;"></div>
-        <p style="margin: 0; color: #5a5a5a; font-size: 18px; line-height: 1.6; font-style: italic; text-align: center;">`
+// Theme Registry - Five Distinct Email Marketing Themes
+const EMAIL_THEMES = {
+  editorial: {
+    name: "Editorial Minimalist",
+    colors: {
+      primary: "#2c3e50",
+      secondary: "#34495e", 
+      accent: "#e74c3c",
+      background: "#ffffff",
+      text: "#2c3e50",
+      light: "#ecf0f1"
     },
-    
-    left: {
-      planningStep: `<div style="background: white; border: 2px solid #f0f0f0; padding: 20px; margin: 20px 0; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
-        <div style="display: flex; align-items: center; margin-bottom: 15px;">
-          <div style="background: ${primaryColor}; color: white; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 12px; margin-right: 15px;">`,
-      budgetHighlight: `<div style="background: linear-gradient(90deg, ${primaryColor} 0%, transparent 100%); height: 4px; width: 60px; margin: 20px 0 15px;"></div>
-        <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
-          <strong style="color: ${primaryColor}; display: block; margin-bottom: 10px;">Budget Tip:</strong>
-          <p style="margin: 0; color: #4a5568;">`
+    fonts: {
+      heading: "'Georgia', 'Times New Roman', serif",
+      body: "'Lato', 'Helvetica Neue', Arial, sans-serif"
+    }
+  },
+  vibrant: {
+    name: "Bold Color Block",
+    colors: {
+      primary: "#8e44ad",
+      secondary: "#e67e22",
+      accent: "#f39c12",
+      background: "#ffffff",
+      text: "#2c3e50",
+      light: "#f8f9fa"
     },
-    
-    accent: {
-      importantReminder: `<div style="text-align: center; margin: 30px 0; padding: 25px; background: linear-gradient(135deg, rgba(${primaryColor.replace('#', '').match(/.{2}/g).map(x => parseInt(x, 16)).join(', ')}, 0.05) 0%, rgba(${secondaryColor.replace('#', '').match(/.{2}/g).map(x => parseInt(x, 16)).join(', ')}, 0.05) 100%); border-radius: 15px; border: 1px solid rgba(${primaryColor.replace('#', '').match(/.{2}/g).map(x => parseInt(x, 16)).join(', ')}, 0.1);">
-        <div style="width: 40px; height: 2px; background: ${secondaryColor}; margin: 0 auto 20px;"></div>
-        <h4 style="color: ${primaryColor}; margin: 0 0 15px; font-size: 16px; font-weight: 600;">Don't Forget</h4>
-        <p style="margin: 0; color: #5a5a5a; line-height: 1.6;">`,
-      vendorAdvice: `<div style="background: #ffffff; border: 1px solid #e0e0e0; border-radius: 12px; padding: 20px; margin: 25px 0; box-shadow: 0 4px 15px rgba(0,0,0,0.08);">
-        <div style="display: flex; align-items: center; margin-bottom: 15px;">
-          <div style="background: ${secondaryColor}; width: 12px; height: 12px; border-radius: 50%; margin-right: 10px;"></div>
-          <div style="background: ${primaryColor}; width: 8px; height: 8px; border-radius: 50%; margin-right: 15px;"></div>
-          <strong style="color: ${primaryColor}; font-size: 14px;">Vendor Selection</strong>
-        </div>
-        <p style="margin: 0; color: #4a5568; line-height: 1.7;">`
+    fonts: {
+      heading: "'Poppins', 'Arial', sans-serif",
+      body: "'Open Sans', 'Helvetica Neue', Arial, sans-serif"
+    }
+  },
+  scrapbook: {
+    name: "Scrapbook Textured",
+    colors: {
+      primary: "#d35400",
+      secondary: "#27ae60",
+      accent: "#f1c40f",
+      background: "#fef9e7",
+      text: "#34495e",
+      light: "#fdfbf5"
     },
-    
-    compact: {
-      quickReminder: `<div style="background: ${primaryColor}; color: white; padding: 15px 20px; margin: 20px 0; border-radius: 25px; font-size: 14px; text-align: center;">
-        <strong>Quick Reminder: </strong>`,
-      timelineItem: `<div style="background: #f9f9f9; padding: 20px; margin: 20px 0; border-radius: 8px; border-left: 3px solid ${secondaryColor};">
-        <div style="display: flex; align-items: center; margin-bottom: 8px;">
-          <div style="width: 16px; height: 16px; background: ${secondaryColor}; border-radius: 3px; margin-right: 12px; display: flex; align-items: center; justify-content: center; color: white; font-size: 10px; font-weight: bold;">✓</div>
-          <span style="color: #4a5568; font-weight: 500;">`
+    fonts: {
+      heading: "'Playfair Display', 'Georgia', serif",
+      body: "'Merriweather', 'Georgia', serif"
+    }
+  },
+  luxury: {
+    name: "Luxury Magazine",
+    colors: {
+      primary: "#1a1a1a",
+      secondary: "#c0392b",
+      accent: "#f1c40f",
+      background: "#ffffff",
+      text: "#1a1a1a",
+      light: "#f7f7f7"
     },
-    
-    tagline: {
-      inspirationBox: `<div style="position: relative; background: linear-gradient(135deg, #fafafa 0%, #f0f0f0 100%); padding: 30px 25px; margin: 25px 0; border-radius: 15px; overflow: hidden;">
-        <div style="position: absolute; top: 0; right: 0; width: 50px; height: 50px; background: ${secondaryColor}; opacity: 0.1; transform: rotate(45deg) translate(25px, -25px);"></div>
-        <div style="position: relative; z-index: 1;">
-          <div style="text-align: center; margin-bottom: 20px;">
-            <div style="display: inline-block; background: ${primaryColor}; color: white; padding: 5px 15px; border-radius: 20px; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">Wedding Inspiration</div>
+    fonts: {
+      heading: "'Cormorant Garamond', 'Times New Roman', serif",
+      body: "'Source Sans Pro', 'Helvetica Neue', Arial, sans-serif"
+    }
+  },
+  dark: {
+    name: "Modern Dark Tech",
+    colors: {
+      primary: "#1abc9c",
+      secondary: "#3498db",
+      accent: "#e74c3c",
+      background: "#2c3e50",
+      text: "#ecf0f1",
+      light: "#34495e"
+    },
+    fonts: {
+      heading: "'Inter', 'Segoe UI', Arial, sans-serif",
+      body: "'Inter', 'Segoe UI', Arial, sans-serif"
+    }
+  }
+};
+
+// Content Enhancement System with Theme-Specific Modules
+function enhanceContentWithThematicModules(content: string, theme: any, sequenceIndex: number): string {
+  let enhancedContent = content;
+  
+  // Define themed visual modules
+  const modules = {
+    editorial: {
+      tipBox: (content: string) => `
+        <div style="border-left: 3px solid ${theme.colors.accent}; padding: 20px 25px; margin: 25px 0; background: ${theme.colors.light}; font-family: ${theme.fonts.body};">
+          <div style="display: flex; align-items: center; margin-bottom: 15px;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="${theme.colors.accent}" stroke-width="2" style="margin-right: 12px;">
+              <circle cx="12" cy="12" r="10"/><path d="M12 6v6"/><path d="M12 18h.01"/>
+            </svg>
+            <strong style="color: ${theme.colors.primary}; font-size: 14px; letter-spacing: 0.5px; font-family: ${theme.fonts.heading};">Essential Planning Insight</strong>
           </div>
-          <p style="margin: 0; color: #5a5a5a; line-height: 1.7; text-align: center; font-style: italic;">`,
-      planningTimeline: `<div style="position: relative; padding: 20px 0 20px 40px; margin: 25px 0;">
-        <div style="position: absolute; left: 15px; top: 0; bottom: 0; width: 2px; background: linear-gradient(to bottom, ${primaryColor} 0%, ${secondaryColor} 100%);"></div>
-        <div style="position: absolute; left: 10px; top: 25px; width: 12px; height: 12px; background: ${primaryColor}; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.2);"></div>
-        <div style="background: white; padding: 15px 20px; border-radius: 10px; box-shadow: 0 3px 10px rgba(0,0,0,0.1); margin-left: 10px;">
-          <strong style="color: ${primaryColor}; display: block; margin-bottom: 8px;">Planning Milestone:</strong>
-          <p style="margin: 0; color: #4a5568; line-height: 1.6;">`
+          <div style="color: ${theme.colors.text}; line-height: 1.7; font-size: 15px;">${content}</div>
+        </div>`,
+      
+      timeline: (content: string) => `
+        <div style="position: relative; margin: 30px 0; padding: 25px; background: ${theme.colors.background}; border: 1px solid #e0e0e0; font-family: ${theme.fonts.body};">
+          <div style="position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: linear-gradient(to bottom, ${theme.colors.primary}, ${theme.colors.secondary});"></div>
+          <div style="margin-left: 20px;">
+            <h4 style="color: ${theme.colors.primary}; margin: 0 0 10px; font-family: ${theme.fonts.heading}; font-size: 16px;">Wedding Timeline</h4>
+            <div style="color: ${theme.colors.text}; line-height: 1.6;">${content}</div>
+          </div>
+        </div>`
+    },
+    
+    vibrant: {
+      tipBox: (content: string) => `
+        <div style="background: linear-gradient(135deg, ${theme.colors.primary}15 0%, ${theme.colors.secondary}15 100%); border-radius: 15px; padding: 25px; margin: 25px 0; border: 2px solid ${theme.colors.accent}; font-family: ${theme.fonts.body};">
+          <div style="text-align: center; margin-bottom: 20px;">
+            <div style="display: inline-block; background: ${theme.colors.accent}; color: white; padding: 8px 20px; border-radius: 25px; font-weight: bold; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">
+              🎯 Pro Tip
+            </div>
+          </div>
+          <div style="color: ${theme.colors.text}; line-height: 1.7; font-size: 16px; text-align: center;">${content}</div>
+        </div>`,
+      
+      reminder: (content: string) => `
+        <div style="background: ${theme.colors.primary}; color: white; padding: 20px; margin: 25px 0; border-radius: 12px; text-align: center; box-shadow: 0 8px 25px rgba(0,0,0,0.15); font-family: ${theme.fonts.body};">
+          <div style="font-size: 24px; margin-bottom: 15px;">⏰</div>
+          <h4 style="margin: 0 0 10px; font-size: 18px; font-weight: bold;">Important Reminder</h4>
+          <div style="line-height: 1.6; opacity: 0.95;">${content}</div>
+        </div>`
+    },
+    
+    scrapbook: {
+      tipBox: (content: string) => `
+        <div style="position: relative; background: ${theme.colors.light}; padding: 25px; margin: 25px 0; border-radius: 8px; border: 2px dashed ${theme.colors.secondary}; font-family: ${theme.fonts.body};">
+          <div style="position: absolute; top: -8px; left: 20px; background: ${theme.colors.accent}; color: ${theme.colors.text}; padding: 5px 15px; border-radius: 20px; font-size: 12px; font-weight: bold;">
+            ✨ Wedding Wisdom
+          </div>
+          <div style="margin-top: 10px; color: ${theme.colors.text}; line-height: 1.7; font-style: italic;">${content}</div>
+          <div style="position: absolute; bottom: 10px; right: 15px; width: 30px; height: 30px; background: ${theme.colors.primary}; opacity: 0.1; border-radius: 50%; transform: rotate(45deg);"></div>
+        </div>`,
+      
+      checklist: (content: string) => `
+        <div style="background: white; padding: 20px; margin: 25px 0; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border-top: 5px solid ${theme.colors.primary}; font-family: ${theme.fonts.body};">
+          <div style="display: flex; align-items: center; margin-bottom: 15px;">
+            <div style="background: ${theme.colors.primary}; color: white; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 15px;">
+              📝
+            </div>
+            <h4 style="color: ${theme.colors.text}; margin: 0; font-family: ${theme.fonts.heading};">Planning Checklist</h4>
+          </div>
+          <div style="color: ${theme.colors.text}; line-height: 1.6;">${content}</div>
+        </div>`
+    },
+    
+    luxury: {
+      tipBox: (content: string) => `
+        <div style="background: linear-gradient(to right, ${theme.colors.light} 0%, white 50%, ${theme.colors.light} 100%); padding: 30px; margin: 30px 0; border-top: 1px solid #d4af37; border-bottom: 1px solid #d4af37; font-family: ${theme.fonts.body};">
+          <div style="text-align: center; margin-bottom: 20px;">
+            <div style="display: inline-block; font-family: ${theme.fonts.heading}; font-size: 14px; color: ${theme.colors.secondary}; text-transform: uppercase; letter-spacing: 2px; font-weight: normal;">
+              ♦ Exclusive Insight ♦
+            </div>
+          </div>
+          <div style="color: ${theme.colors.text}; line-height: 1.8; font-size: 16px; text-align: center; font-style: italic;">${content}</div>
+        </div>`,
+      
+      quote: (content: string) => `
+        <div style="position: relative; background: ${theme.colors.background}; padding: 40px 35px; margin: 30px 0; border-left: 4px solid #d4af37; font-family: ${theme.fonts.body};">
+          <div style="position: absolute; top: 15px; left: 15px; font-size: 48px; color: #d4af37; line-height: 1; font-family: ${theme.fonts.heading};">"</div>
+          <div style="margin-left: 25px; color: ${theme.colors.text}; line-height: 1.7; font-size: 17px; font-style: italic; font-family: ${theme.fonts.heading};">${content}</div>
+          <div style="position: absolute; bottom: 15px; right: 15px; font-size: 48px; color: #d4af37; line-height: 1; font-family: ${theme.fonts.heading}; transform: rotate(180deg);">"</div>
+        </div>`
+    },
+    
+    dark: {
+      tipBox: (content: string) => `
+        <div style="background: linear-gradient(135deg, ${theme.colors.light} 0%, ${theme.colors.background} 100%); border: 1px solid ${theme.colors.primary}; border-radius: 12px; padding: 25px; margin: 25px 0; position: relative; overflow: hidden; font-family: ${theme.fonts.body};">
+          <div style="position: absolute; top: 0; right: 0; width: 60px; height: 60px; background: ${theme.colors.primary}; opacity: 0.1; transform: rotate(45deg) translate(30px, -30px);"></div>
+          <div style="display: flex; align-items: center; margin-bottom: 15px;">
+            <div style="background: ${theme.colors.primary}; color: ${theme.colors.background}; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: bold; margin-right: 15px;">
+              💡 INSIGHT
+            </div>
+          </div>
+          <div style="color: ${theme.colors.text}; line-height: 1.7; font-size: 15px;">${content}</div>
+        </div>`,
+      
+      warning: (content: string) => `
+        <div style="background: ${theme.colors.light}; border: 2px solid ${theme.colors.accent}; border-radius: 8px; padding: 20px; margin: 25px 0; font-family: ${theme.fonts.body};">
+          <div style="display: flex; align-items: center; margin-bottom: 15px;">
+            <div style="background: ${theme.colors.accent}; color: white; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 15px; font-weight: bold;">
+              !
+            </div>
+            <h4 style="color: ${theme.colors.text}; margin: 0; font-size: 16px;">Important Notice</h4>
+          </div>
+          <div style="color: ${theme.colors.text}; line-height: 1.6;">${content}</div>
+        </div>`
     }
   };
 
-  let enhancedContent = content;
+  // Apply content enhancements based on keywords and theme
+  const themeModules = modules[Object.keys(modules)[sequenceIndex % 5]];
   
-  // Add wedding planning tip boxes for content with wedding advice
-  if (enhancedContent.includes('tip') || enhancedContent.includes('advice') || enhancedContent.includes('remember')) {
-    const containers = visualContainers[variation] || visualContainers.centered;
-    if (containers.weddingTip || containers.quickReminder) {
-      const container = containers.weddingTip || containers.quickReminder;
-      enhancedContent = enhancedContent.replace(
-        /(<p><strong>.*?(tip|advice|remember).*?<\/strong>.*?<\/p>)/gi,
-        container + '$1</p></div>'
-      );
-    }
+  // Enhance tip content
+  if (enhancedContent.includes('tip') || enhancedContent.includes('advice') || enhancedContent.includes('insight')) {
+    enhancedContent = enhancedContent.replace(
+      /(<p><strong>.*?(tip|advice|insight).*?<\/strong>.*?<\/p>)/gi,
+      (match) => themeModules.tipBox ? themeModules.tipBox(match) : match
+    );
   }
   
-  // Add planning milestone boxes for timeline content
-  if (enhancedContent.includes('months before') || enhancedContent.includes('weeks before') || enhancedContent.includes('timeline')) {
-    const containers = visualContainers[variation] || visualContainers.centered;
-    if (containers.planningTimeline || containers.timelineItem) {
-      const container = containers.planningTimeline || containers.timelineItem;
-      enhancedContent = enhancedContent.replace(
-        /(<p><strong>.*?(months|weeks).*?before.*?<\/strong>.*?<\/p>)/gi,
-        container + '$1</p></div>'
-      );
-    }
+  // Enhance timeline content
+  if (enhancedContent.includes('timeline') || enhancedContent.includes('schedule') || enhancedContent.includes('months before')) {
+    enhancedContent = enhancedContent.replace(
+      /(<p><strong>.*?(timeline|schedule|months before).*?<\/strong>.*?<\/p>)/gi,
+      (match) => themeModules.timeline ? themeModules.timeline(match) : match
+    );
   }
-
-  // Add important reminder boxes
-  if (enhancedContent.includes('important') || enhancedContent.includes('crucial') || enhancedContent.includes('essential')) {
-    const containers = visualContainers[variation] || visualContainers.centered;
-    if (containers.importantReminder) {
-      enhancedContent = enhancedContent.replace(
-        /(<p><strong>.*?(important|crucial|essential).*?<\/strong>.*?<\/p>)/gi,
-        containers.importantReminder + '$1</p></div>'
-      );
-    }
+  
+  // Enhance reminders and important content
+  if (enhancedContent.includes('important') || enhancedContent.includes('remember') || enhancedContent.includes('crucial')) {
+    enhancedContent = enhancedContent.replace(
+      /(<p><strong>.*?(important|remember|crucial).*?<\/strong>.*?<\/p>)/gi,
+      (match) => {
+        if (themeModules.reminder) return themeModules.reminder(match);
+        if (themeModules.warning) return themeModules.warning(match);
+        return themeModules.tipBox ? themeModules.tipBox(match) : match;
+      }
+    );
   }
 
   return enhancedContent;
 }
 
-// Main function to generate emails with template variations
+// Main function to generate emails with distinct themes
 function generateEmailHTML(
   photographer: Photographer,
   subject: string,
@@ -131,40 +251,49 @@ function generateEmailHTML(
   sequenceIndex: number = 0
 ): string {
   const businessName = photographer.businessName;
-  const primaryColor = photographer.brandPrimary || '#2c3e50';
-  const secondaryColor = photographer.brandSecondary || '#3498db';
   const emailFromName = photographer.emailFromName || businessName;
   const emailFromAddr = photographer.emailFromAddr || 'hello@business.com';
 
-  // Determine variation based on sequence index (cycles through 5 variations)
-  const variations = ['centered', 'left', 'accent', 'compact', 'tagline'];
-  const variation = variations[sequenceIndex % variations.length];
+  // Get theme based on sequence index (cycles through 5 themes)
+  const themeKeys = Object.keys(EMAIL_THEMES);
+  const themeKey = themeKeys[sequenceIndex % themeKeys.length];
+  const theme = EMAIL_THEMES[themeKey];
   
-  // Enhance content with wedding-focused visual elements
-  const enhancedContent = enhanceContentWithWeddingVisuals(content, primaryColor, secondaryColor, variation);
+  // Override colors with photographer's brand colors if available
+  const themedColors = {
+    ...theme.colors,
+    primary: photographer.brandPrimary || theme.colors.primary,
+    secondary: photographer.brandSecondary || theme.colors.secondary,
+  };
+  
+  const themedTemplate = { ...theme, colors: themedColors };
+  
+  // Enhance content with theme-specific visual modules
+  const enhancedContent = enhanceContentWithThematicModules(content, themedTemplate, sequenceIndex);
 
-  // Generate template based on variation
-  switch (variation) {
-    case 'left':
-      return generateLeftAlignedTemplate(subject, enhancedContent, includeBookingCTA, primaryColor, secondaryColor, businessName, emailFromName, emailFromAddr);
-    case 'accent':
-      return generateAccentLineTemplate(subject, enhancedContent, includeBookingCTA, primaryColor, secondaryColor, businessName, emailFromName, emailFromAddr);
-    case 'compact':
-      return generateCompactTemplate(subject, enhancedContent, includeBookingCTA, primaryColor, secondaryColor, businessName, emailFromName, emailFromAddr);
-    case 'tagline':
-      return generateTaglineTemplate(subject, enhancedContent, includeBookingCTA, primaryColor, secondaryColor, businessName, emailFromName, emailFromAddr);
-    default: // 'centered'
-      return generateCenteredTemplate(subject, enhancedContent, includeBookingCTA, primaryColor, secondaryColor, businessName, emailFromName, emailFromAddr);
+  // Generate email based on theme
+  switch (themeKey) {
+    case 'editorial':
+      return generateEditorialTemplate(subject, enhancedContent, includeBookingCTA, themedTemplate, businessName, emailFromName, emailFromAddr);
+    case 'vibrant':
+      return generateVibrantTemplate(subject, enhancedContent, includeBookingCTA, themedTemplate, businessName, emailFromName, emailFromAddr);
+    case 'scrapbook':
+      return generateScrapbookTemplate(subject, enhancedContent, includeBookingCTA, themedTemplate, businessName, emailFromName, emailFromAddr);
+    case 'luxury':
+      return generateLuxuryTemplate(subject, enhancedContent, includeBookingCTA, themedTemplate, businessName, emailFromName, emailFromAddr);
+    case 'dark':
+      return generateDarkTemplate(subject, enhancedContent, includeBookingCTA, themedTemplate, businessName, emailFromName, emailFromAddr);
+    default:
+      return generateEditorialTemplate(subject, enhancedContent, includeBookingCTA, themedTemplate, businessName, emailFromName, emailFromAddr);
   }
 }
 
-// Template 1: Centered - Original style with client-focused enhancements
-function generateCenteredTemplate(
+// Theme 1: Editorial Minimalist - Clean, serif typography with classic layout
+function generateEditorialTemplate(
   subject: string,
   content: string,
   includeBookingCTA: boolean,
-  primaryColor: string,
-  secondaryColor: string,
+  theme: any,
   businessName: string,
   emailFromName: string,
   emailFromAddr: string
@@ -176,271 +305,58 @@ function generateCenteredTemplate(
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${subject}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Georgia:wght@400;700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
   <style>
     @media only screen and (max-width: 600px) {
       .email-container { width: 100% !important; padding: 15px !important; }
-      .header { font-size: 20px !important; }
+      .header-title { font-size: 24px !important; }
       .content-section { padding: 25px 20px !important; }
       .cta-button { width: 100% !important; padding: 15px 20px !important; }
     }
   </style>
 </head>
-<body style="margin: 0; padding: 0; background-color: #f8f9fa; font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; line-height: 1.6;">
-  <div class="email-container" style="max-width: 600px; margin: 0 auto; background-color: white; box-shadow: 0 4px 20px rgba(0,0,0,0.08);">
+<body style="margin: 0; padding: 0; background-color: #f5f5f5; font-family: ${theme.fonts.body}; line-height: 1.7;">
+  <div class="email-container" style="max-width: 600px; margin: 0 auto; background-color: ${theme.colors.background}; box-shadow: 0 2px 15px rgba(0,0,0,0.1);">
     
-    <!-- Centered Header -->
-    <div style="background: linear-gradient(135deg, ${primaryColor} 0%, ${secondaryColor} 100%); padding: 35px 25px; text-align: center;">
-      <h1 class="header" style="color: white; margin: 0; font-size: 26px; font-weight: 300; letter-spacing: 1.5px; text-shadow: 0 2px 4px rgba(0,0,0,0.2);">
-        ${businessName}
+    <!-- Editorial Header -->
+    <div style="background: ${theme.colors.background}; padding: 50px 40px 30px; text-align: center; border-bottom: 1px solid ${theme.colors.light};">
+      <h1 class="header-title" style="color: ${theme.colors.primary}; margin: 0 0 15px; font-size: 32px; font-weight: 400; font-family: ${theme.fonts.heading}; line-height: 1.2;">
+        ${subject}
       </h1>
-      <p style="color: rgba(255,255,255,0.9); margin: 12px 0 0; font-size: 14px; text-transform: uppercase; letter-spacing: 0.8px; font-weight: 400;">
-        Professional Photography
+      <div style="width: 60px; height: 2px; background: ${theme.colors.accent}; margin: 0 auto 15px;"></div>
+      <p style="color: ${theme.colors.secondary}; margin: 0; font-size: 16px; font-family: ${theme.fonts.body}; font-weight: 300; letter-spacing: 0.5px;">
+        ${businessName}
       </p>
     </div>
 
     <!-- Content -->
-    <div class="content-section" style="padding: 40px 35px;">
-      <h2 style="color: ${primaryColor}; font-size: 22px; margin-bottom: 25px; font-weight: 400; line-height: 1.3; text-align: center;">
-        ${subject}
-      </h2>
-      
-      <p style="color: #4a5568; line-height: 1.8; margin-bottom: 20px; font-size: 16px;">
-        Hi {{firstName}},
+    <div class="content-section" style="padding: 45px 40px;">
+      <p style="color: ${theme.colors.text}; line-height: 1.8; margin-bottom: 25px; font-size: 16px; font-family: ${theme.fonts.body};">
+        Dear {{firstName}},
       </p>
       
-      <div style="color: #4a5568; line-height: 1.8; font-size: 16px; margin-bottom: 30px;">
+      <div style="color: ${theme.colors.text}; line-height: 1.8; font-size: 16px; margin-bottom: 35px; font-family: ${theme.fonts.body};">
         ${content}
       </div>
 
       ${includeBookingCTA ? `
-        <!-- Rounded CTA -->
-        <div style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); padding: 35px 30px; border-radius: 12px; text-align: center; margin: 35px 0; border: 1px solid #dee2e6; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
-          <div style="background: ${secondaryColor}; width: 60px; height: 4px; margin: 0 auto 25px; border-radius: 2px;"></div>
-          <h3 style="color: ${primaryColor}; margin: 0 0 18px; font-size: 20px; font-weight: 500;">
-            Ready to Take the Next Step?
+        <!-- Editorial CTA -->
+        <div style="border-top: 1px solid ${theme.colors.light}; border-bottom: 1px solid ${theme.colors.light}; padding: 35px 0; text-align: center; margin: 40px 0;">
+          <h3 style="color: ${theme.colors.primary}; margin: 0 0 20px; font-size: 20px; font-weight: 400; font-family: ${theme.fonts.heading};">
+            Let's Create Something Beautiful Together
           </h3>
-          <p style="color: #4a5568; margin: 0 0 28px; line-height: 1.7; font-size: 16px;">
-            We'd love to chat about your vision and how we can bring it to life perfectly.
+          <p style="color: ${theme.colors.text}; margin: 0 0 25px; line-height: 1.6; font-size: 16px; font-family: ${theme.fonts.body};">
+            I'd love to discuss your vision and how we can bring it to life.
           </p>
           <a href="mailto:${emailFromAddr}" class="cta-button" 
-             style="background: linear-gradient(135deg, ${secondaryColor} 0%, ${primaryColor} 100%); 
+             style="background: ${theme.colors.primary}; 
                     color: white; 
-                    padding: 16px 32px; 
+                    padding: 16px 35px; 
                     text-decoration: none; 
-                    border-radius: 30px; 
                     display: inline-block; 
-                    font-weight: 500; 
+                    font-weight: 400; 
                     font-size: 16px;
-                    letter-spacing: 0.5px; 
-                    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
-                    text-transform: uppercase;">
-            Let's Chat
-          </a>
-        </div>
-      ` : ''}
-    </div>
-
-    <!-- Centered Signature -->
-    <div style="background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%); padding: 30px 35px; border-top: 1px solid #e9ecef; text-align: center;">
-      <h4 style="color: ${primaryColor}; margin: 0 0 8px; font-size: 18px; font-weight: 500;">
-        ${emailFromName}
-      </h4>
-      <p style="color: #6c757d; margin: 0 0 4px; font-size: 14px; font-style: italic;">
-        ${businessName}
-      </p>
-      <p style="color: #6c757d; margin: 0; font-size: 14px; line-height: 1.5;">
-        Capturing life's most precious moments with artistry and passion
-      </p>
-      ${emailFromAddr !== 'hello@business.com' ? `
-        <div style="text-align: center; padding-top: 20px; border-top: 1px solid #e9ecef; margin-top: 20px;">
-          <p style="color: #6c757d; margin: 0; font-size: 14px;">
-            <a href="mailto:${emailFromAddr}" style="color: ${secondaryColor}; text-decoration: none; font-weight: 500;">${emailFromAddr}</a>
-          </p>
-        </div>
-      ` : ''}
-    </div>
-  </div>
-</body>
-</html>`;
-}
-
-// Template 2: Left-Aligned with Square CTAs
-function generateLeftAlignedTemplate(
-  subject: string,
-  content: string,
-  includeBookingCTA: boolean,
-  primaryColor: string,
-  secondaryColor: string,
-  businessName: string,
-  emailFromName: string,
-  emailFromAddr: string
-): string {
-  return `
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${subject}</title>
-  <style>
-    @media only screen and (max-width: 600px) {
-      .email-container { width: 100% !important; padding: 15px !important; }
-      .header { font-size: 20px !important; }
-      .content-section { padding: 25px 20px !important; }
-      .cta-button { width: 100% !important; padding: 15px 20px !important; }
-    }
-  </style>
-</head>
-<body style="margin: 0; padding: 0; background-color: #f5f5f5; font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; line-height: 1.6;">
-  <div class="email-container" style="max-width: 600px; margin: 0 auto; background-color: white; box-shadow: 0 6px 25px rgba(0,0,0,0.1);">
-    
-    <!-- Left-Aligned Header -->
-    <div style="background: linear-gradient(145deg, ${primaryColor} 0%, ${secondaryColor} 100%); padding: 40px 35px 35px; text-align: left;">
-      <h1 class="header" style="color: white; margin: 0; font-size: 28px; font-weight: 400; letter-spacing: 1px; text-shadow: 0 2px 4px rgba(0,0,0,0.2);">
-        ${businessName}
-      </h1>
-      <div style="width: 50px; height: 3px; background: rgba(255,255,255,0.8); margin-top: 15px;"></div>
-    </div>
-
-    <!-- Content -->
-    <div class="content-section" style="padding: 45px 35px;">
-      <h2 style="color: ${primaryColor}; font-size: 24px; margin-bottom: 30px; font-weight: 500; line-height: 1.2;">
-        ${subject}
-      </h2>
-      
-      <p style="color: #4a5568; line-height: 1.8; margin-bottom: 25px; font-size: 16px;">
-        Hi {{firstName}},
-      </p>
-      
-      <div style="color: #4a5568; line-height: 1.8; font-size: 16px; margin-bottom: 35px;">
-        ${content}
-      </div>
-
-      ${includeBookingCTA ? `
-        <!-- Square CTA -->
-        <div style="background: #fafafa; padding: 30px; border: 2px solid #f0f0f0; margin: 35px 0;">
-          <h3 style="color: ${primaryColor}; margin: 0 0 15px; font-size: 18px; font-weight: 600;">
-            Get Started Today
-          </h3>
-          <p style="color: #4a5568; margin: 0 0 25px; line-height: 1.6; font-size: 15px;">
-            Ready to discuss your project? Let's connect and create something amazing.
-          </p>
-          <a href="mailto:${emailFromAddr}" class="cta-button" 
-             style="background: ${primaryColor}; 
-                    color: white; 
-                    padding: 15px 28px; 
-                    text-decoration: none; 
-                    display: inline-block; 
-                    font-weight: 600; 
-                    font-size: 14px;
-                    letter-spacing: 0.5px; 
-                    text-transform: uppercase;">
-            Contact Us
-          </a>
-        </div>
-      ` : ''}
-    </div>
-
-    <!-- Left-Aligned Signature -->
-    <div style="background: #f8f8f8; padding: 35px; border-top: 1px solid #e5e5e5;">
-      <div style="text-align: left;">
-        <h4 style="color: ${primaryColor}; margin: 0 0 10px; font-size: 17px; font-weight: 600;">
-          ${emailFromName}
-        </h4>
-        <p style="color: #7a7a7a; margin: 0 0 5px; font-size: 14px;">
-          ${businessName}
-        </p>
-        <p style="color: #7a7a7a; margin: 0; font-size: 13px; line-height: 1.4;">
-          Professional photography services
-        </p>
-        ${emailFromAddr !== 'hello@business.com' ? `
-          <p style="margin-top: 15px; margin-bottom: 0;">
-            <a href="mailto:${emailFromAddr}" style="color: ${secondaryColor}; text-decoration: none; font-weight: 500; font-size: 14px;">${emailFromAddr}</a>
-          </p>
-        ` : ''}
-      </div>
-    </div>
-  </div>
-</body>
-</html>`;
-}
-
-// Template 3: Header with Accent Line + Outlined CTAs
-function generateAccentLineTemplate(
-  subject: string,
-  content: string,
-  includeBookingCTA: boolean,
-  primaryColor: string,
-  secondaryColor: string,
-  businessName: string,
-  emailFromName: string,
-  emailFromAddr: string
-): string {
-  return `
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${subject}</title>
-  <style>
-    @media only screen and (max-width: 600px) {
-      .email-container { width: 100% !important; padding: 15px !important; }
-      .header { font-size: 20px !important; }
-      .content-section { padding: 25px 20px !important; }
-      .cta-button { width: 100% !important; padding: 15px 20px !important; }
-    }
-  </style>
-</head>
-<body style="margin: 0; padding: 0; background-color: #fafafa; font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; line-height: 1.6;">
-  <div class="email-container" style="max-width: 600px; margin: 0 auto; background-color: white; box-shadow: 0 8px 30px rgba(0,0,0,0.12);">
-    
-    <!-- Header with Accent Line -->
-    <div style="background: linear-gradient(120deg, ${primaryColor} 0%, ${secondaryColor} 100%); padding: 45px 35px 30px; text-align: center; position: relative;">
-      <div style="position: absolute; bottom: 0; left: 0; width: 100%; height: 6px; background: linear-gradient(90deg, ${secondaryColor} 0%, transparent 100%);"></div>
-      <h1 class="header" style="color: white; margin: 0; font-size: 25px; font-weight: 300; letter-spacing: 2px; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">
-        ${businessName}
-      </h1>
-      <p style="color: rgba(255,255,255,0.95); margin: 15px 0 0; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; font-weight: 400;">
-        Professional Photography
-      </p>
-    </div>
-
-    <!-- Content -->
-    <div class="content-section" style="padding: 50px 35px;">
-      <div style="text-align: center; margin-bottom: 35px;">
-        <h2 style="color: ${primaryColor}; font-size: 23px; margin: 0 0 15px; font-weight: 400; line-height: 1.3;">
-          ${subject}
-        </h2>
-        <div style="width: 80px; height: 2px; background: ${secondaryColor}; margin: 0 auto;"></div>
-      </div>
-      
-      <p style="color: #4a5568; line-height: 1.8; margin-bottom: 25px; font-size: 16px;">
-        Hi {{firstName}},
-      </p>
-      
-      <div style="color: #4a5568; line-height: 1.8; font-size: 16px; margin-bottom: 35px;">
-        ${content}
-      </div>
-
-      ${includeBookingCTA ? `
-        <!-- Outlined CTA -->
-        <div style="text-align: center; margin: 40px 0; padding: 40px 30px; border: 2px solid ${primaryColor}; background: rgba(${primaryColor.replace('#', '').match(/.{2}/g).map(x => parseInt(x, 16)).join(', ')}, 0.02);">
-          <h3 style="color: ${primaryColor}; margin: 0 0 20px; font-size: 19px; font-weight: 500;">
-            Let's Discuss Your Vision
-          </h3>
-          <p style="color: #4a5568; margin: 0 0 30px; line-height: 1.6; font-size: 15px;">
-            I'm excited to learn about your project and create something beautiful together.
-          </p>
-          <a href="mailto:${emailFromAddr}" class="cta-button" 
-             style="background: transparent; 
-                    color: ${primaryColor}; 
-                    border: 2px solid ${primaryColor};
-                    padding: 16px 30px; 
-                    text-decoration: none; 
-                    display: inline-block; 
-                    font-weight: 500; 
-                    font-size: 15px;
+                    font-family: ${theme.fonts.body};
                     letter-spacing: 0.5px; 
                     text-transform: uppercase;">
             Start Conversation
@@ -449,121 +365,17 @@ function generateAccentLineTemplate(
       ` : ''}
     </div>
 
-    <!-- Signature with Divider -->
-    <div style="border-top: 3px solid ${secondaryColor}; background: #f9f9f9; padding: 35px; text-align: center;">
-      <div style="margin-bottom: 20px;">
-        <div style="width: 40px; height: 1px; background: ${primaryColor}; margin: 0 auto;"></div>
-      </div>
-      <h4 style="color: ${primaryColor}; margin: 0 0 8px; font-size: 17px; font-weight: 500;">
+    <!-- Editorial Footer -->
+    <div style="background: ${theme.colors.light}; padding: 35px 40px; text-align: center; border-top: 1px solid #e0e0e0;">
+      <p style="color: ${theme.colors.text}; margin: 0 0 8px; font-size: 18px; font-family: ${theme.fonts.heading}; font-style: italic;">
         ${emailFromName}
-      </h4>
-      <p style="color: #8a8a8a; margin: 0 0 5px; font-size: 14px;">
-        ${businessName}
       </p>
-      <p style="color: #8a8a8a; margin: 0; font-size: 13px; line-height: 1.5;">
-        Creating timeless memories through photography
-      </p>
-      ${emailFromAddr !== 'hello@business.com' ? `
-        <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e0e0e0;">
-          <p style="color: #8a8a8a; margin: 0; font-size: 13px;">
-            <a href="mailto:${emailFromAddr}" style="color: ${secondaryColor}; text-decoration: none; font-weight: 500;">${emailFromAddr}</a>
-          </p>
-        </div>
-      ` : ''}
-    </div>
-  </div>
-</body>
-</html>`;
-}
-
-// Template 4: Compact Header + Pill CTAs
-function generateCompactTemplate(
-  subject: string,
-  content: string,
-  includeBookingCTA: boolean,
-  primaryColor: string,
-  secondaryColor: string,
-  businessName: string,
-  emailFromName: string,
-  emailFromAddr: string
-): string {
-  return `
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${subject}</title>
-  <style>
-    @media only screen and (max-width: 600px) {
-      .email-container { width: 100% !important; padding: 15px !important; }
-      .header { font-size: 18px !important; }
-      .content-section { padding: 25px 20px !important; }
-      .cta-button { width: 100% !important; padding: 15px 20px !important; }
-    }
-  </style>
-</head>
-<body style="margin: 0; padding: 0; background-color: #f7f7f7; font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; line-height: 1.5;">
-  <div class="email-container" style="max-width: 600px; margin: 0 auto; background-color: white; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
-    
-    <!-- Compact Header -->
-    <div style="background: linear-gradient(135deg, ${primaryColor} 0%, ${secondaryColor} 100%); padding: 25px 35px; text-align: center;">
-      <h1 class="header" style="color: white; margin: 0; font-size: 22px; font-weight: 500; letter-spacing: 1px;">
-        ${businessName}
-      </h1>
-    </div>
-
-    <!-- Content -->
-    <div class="content-section" style="padding: 35px 35px;">
-      <h2 style="color: ${primaryColor}; font-size: 20px; margin-bottom: 25px; font-weight: 600; line-height: 1.2;">
-        ${subject}
-      </h2>
-      
-      <p style="color: #4a5568; line-height: 1.7; margin-bottom: 20px; font-size: 15px;">
-        Hi {{firstName}},
-      </p>
-      
-      <div style="color: #4a5568; line-height: 1.7; font-size: 15px; margin-bottom: 30px;">
-        ${content}
-      </div>
-
-      ${includeBookingCTA ? `
-        <!-- Pill CTA -->
-        <div style="text-align: center; margin: 30px 0; padding: 25px; background: linear-gradient(135deg, #f8f9fa 0%, #f0f0f0 100%); border-radius: 20px;">
-          <h3 style="color: ${primaryColor}; margin: 0 0 15px; font-size: 17px; font-weight: 600;">
-            Ready to Connect?
-          </h3>
-          <p style="color: #4a5568; margin: 0 0 20px; line-height: 1.5; font-size: 14px;">
-            Let's chat about bringing your vision to life.
-          </p>
-          <a href="mailto:${emailFromAddr}" class="cta-button" 
-             style="background: linear-gradient(135deg, ${secondaryColor} 0%, ${primaryColor} 100%); 
-                    color: white; 
-                    padding: 12px 25px; 
-                    text-decoration: none; 
-                    border-radius: 50px;
-                    display: inline-block; 
-                    font-weight: 500; 
-                    font-size: 13px;
-                    letter-spacing: 0.5px; 
-                    text-transform: uppercase;">
-            Get In Touch
-          </a>
-        </div>
-      ` : ''}
-    </div>
-
-    <!-- Minimal Signature -->
-    <div style="background: #f5f5f5; padding: 25px 35px; border-top: 1px solid #e8e8e8; text-align: center;">
-      <h4 style="color: ${primaryColor}; margin: 0 0 5px; font-size: 16px; font-weight: 600;">
-        ${emailFromName}
-      </h4>
-      <p style="color: #888; margin: 0; font-size: 13px;">
+      <p style="color: ${theme.colors.secondary}; margin: 0 0 15px; font-size: 14px; font-family: ${theme.fonts.body};">
         ${businessName} • Professional Photography
       </p>
       ${emailFromAddr !== 'hello@business.com' ? `
-        <p style="margin-top: 12px; margin-bottom: 0;">
-          <a href="mailto:${emailFromAddr}" style="color: ${secondaryColor}; text-decoration: none; font-weight: 500; font-size: 13px;">${emailFromAddr}</a>
+        <p style="margin: 0;">
+          <a href="mailto:${emailFromAddr}" style="color: ${theme.colors.accent}; text-decoration: none; font-weight: 400; font-size: 14px; font-family: ${theme.fonts.body};">${emailFromAddr}</a>
         </p>
       ` : ''}
     </div>
@@ -572,13 +384,12 @@ function generateCompactTemplate(
 </html>`;
 }
 
-// Template 5: Header with Tagline + Ghost CTAs
-function generateTaglineTemplate(
+// Theme 2: Bold Color Block - Vibrant gradients with modern typography
+function generateVibrantTemplate(
   subject: string,
   content: string,
   includeBookingCTA: boolean,
-  primaryColor: string,
-  secondaryColor: string,
+  theme: any,
   businessName: string,
   emailFromName: string,
   emailFromAddr: string
@@ -590,93 +401,478 @@ function generateTaglineTemplate(
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${subject}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Open+Sans:wght@300;400;600&display=swap" rel="stylesheet">
   <style>
     @media only screen and (max-width: 600px) {
       .email-container { width: 100% !important; padding: 15px !important; }
-      .header { font-size: 20px !important; }
+      .header-title { font-size: 24px !important; }
       .content-section { padding: 25px 20px !important; }
       .cta-button { width: 100% !important; padding: 15px 20px !important; }
     }
   </style>
 </head>
-<body style="margin: 0; padding: 0; background-color: #f9f9f9; font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; line-height: 1.6;">
-  <div class="email-container" style="max-width: 600px; margin: 0 auto; background-color: white; box-shadow: 0 6px 25px rgba(0,0,0,0.15);">
+<body style="margin: 0; padding: 0; background: linear-gradient(135deg, ${theme.colors.light} 0%, #ffffff 100%); font-family: ${theme.fonts.body}; line-height: 1.6;">
+  <div class="email-container" style="max-width: 600px; margin: 0 auto; background-color: ${theme.colors.background}; box-shadow: 0 10px 40px rgba(0,0,0,0.15); border-radius: 16px; overflow: hidden;">
     
-    <!-- Header with Tagline -->
-    <div style="background: linear-gradient(150deg, ${primaryColor} 0%, ${secondaryColor} 100%); padding: 40px 35px 35px; text-align: center;">
-      <h1 class="header" style="color: white; margin: 0 0 8px; font-size: 27px; font-weight: 400; letter-spacing: 1.2px; text-shadow: 0 2px 4px rgba(0,0,0,0.2);">
-        ${businessName}
-      </h1>
-      <div style="width: 60px; height: 1px; background: rgba(255,255,255,0.7); margin: 0 auto 12px;"></div>
-      <p style="color: rgba(255,255,255,0.95); margin: 0; font-size: 14px; font-style: italic; letter-spacing: 0.5px;">
-        Capturing Your Story with Heart & Soul
-      </p>
+    <!-- Vibrant Header -->
+    <div style="background: linear-gradient(135deg, ${theme.colors.primary} 0%, ${theme.colors.secondary} 50%, ${theme.colors.accent} 100%); padding: 40px 35px; text-align: center; position: relative;">
+      <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: url('data:image/svg+xml,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 100 100\"><circle cx=\"20\" cy=\"20\" r=\"5\" fill=\"rgba(255,255,255,0.1)\"/><circle cx=\"80\" cy=\"80\" r=\"8\" fill=\"rgba(255,255,255,0.05)\"/><circle cx=\"70\" cy=\"30\" r=\"6\" fill=\"rgba(255,255,255,0.08)\"/></svg>') no-repeat center; background-size: cover; opacity: 0.3;"></div>
+      <div style="position: relative; z-index: 1;">
+        <h1 class="header-title" style="color: white; margin: 0 0 15px; font-size: 30px; font-weight: 600; font-family: ${theme.fonts.heading}; line-height: 1.2; text-shadow: 0 2px 8px rgba(0,0,0,0.3);">
+          ${subject}
+        </h1>
+        <div style="display: inline-block; background: rgba(255,255,255,0.2); padding: 8px 20px; border-radius: 25px; margin-bottom: 10px;">
+          <p style="color: white; margin: 0; font-size: 14px; font-family: ${theme.fonts.body}; font-weight: 500; letter-spacing: 0.5px;">
+            ${businessName}
+          </p>
+        </div>
+      </div>
     </div>
 
-    <!-- Content with Wider Margins -->
-    <div class="content-section" style="padding: 45px 45px;">
-      <h2 style="color: ${primaryColor}; font-size: 24px; margin-bottom: 30px; font-weight: 400; line-height: 1.3; text-align: center;">
-        ${subject}
-      </h2>
+    <!-- Content -->
+    <div class="content-section" style="padding: 45px 35px;">
+      <div style="text-align: center; margin-bottom: 30px;">
+        <div style="display: inline-block; background: linear-gradient(90deg, ${theme.colors.primary} 0%, ${theme.colors.secondary} 100%); padding: 3px 25px; border-radius: 20px; margin-bottom: 20px;">
+          <p style="color: white; margin: 0; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; font-family: ${theme.fonts.body};">💌 Personal Message</p>
+        </div>
+      </div>
       
-      <p style="color: #4a5568; line-height: 1.8; margin-bottom: 25px; font-size: 16px;">
-        Hi {{firstName}},
+      <p style="color: ${theme.colors.text}; line-height: 1.8; margin-bottom: 25px; font-size: 16px; font-family: ${theme.fonts.body}; text-align: center;">
+        Hey {{firstName}}! 👋
       </p>
       
-      <div style="color: #4a5568; line-height: 1.8; font-size: 16px; margin-bottom: 35px;">
+      <div style="color: ${theme.colors.text}; line-height: 1.8; font-size: 16px; margin-bottom: 35px; font-family: ${theme.fonts.body};">
         ${content}
       </div>
 
       ${includeBookingCTA ? `
-        <!-- Ghost CTA -->
-        <div style="text-align: center; margin: 40px 0; padding: 35px 30px; border: 2px solid rgba(${primaryColor.replace('#', '').match(/.{2}/g).map(x => parseInt(x, 16)).join(', ')}, 0.2); background: rgba(${primaryColor.replace('#', '').match(/.{2}/g).map(x => parseInt(x, 16)).join(', ')}, 0.03); border-radius: 15px;">
-          <div style="margin-bottom: 20px;">
-            <div style="width: 30px; height: 1px; background: ${secondaryColor}; margin: 0 auto;"></div>
+        <!-- Vibrant CTA -->
+        <div style="background: linear-gradient(135deg, ${theme.colors.primary}15 0%, ${theme.colors.accent}15 100%); border-radius: 20px; padding: 35px 30px; text-align: center; margin: 40px 0; border: 3px solid ${theme.colors.accent}; position: relative; overflow: hidden;">
+          <div style="position: absolute; top: -20px; right: -20px; width: 80px; height: 80px; background: ${theme.colors.secondary}; opacity: 0.1; border-radius: 50%;"></div>
+          <div style="position: relative; z-index: 1;">
+            <div style="font-size: 32px; margin-bottom: 20px;">🚀</div>
+            <h3 style="color: ${theme.colors.primary}; margin: 0 0 15px; font-size: 22px; font-weight: 600; font-family: ${theme.fonts.heading};">
+              Ready to Create Magic?
+            </h3>
+            <p style="color: ${theme.colors.text}; margin: 0 0 25px; line-height: 1.6; font-size: 16px; font-family: ${theme.fonts.body};">
+              Let's turn your vision into stunning reality!
+            </p>
+            <a href="mailto:${emailFromAddr}" class="cta-button" 
+               style="background: linear-gradient(135deg, ${theme.colors.secondary} 0%, ${theme.colors.primary} 100%); 
+                      color: white; 
+                      padding: 18px 35px; 
+                      text-decoration: none; 
+                      border-radius: 30px;
+                      display: inline-block; 
+                      font-weight: 600; 
+                      font-size: 16px;
+                      font-family: ${theme.fonts.body};
+                      text-transform: uppercase;
+                      letter-spacing: 1px;
+                      box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+                      transition: all 0.3s ease;">
+              Let's Talk! 💬
+            </a>
           </div>
-          <h3 style="color: ${primaryColor}; margin: 0 0 18px; font-size: 20px; font-weight: 400; font-style: italic;">
-            Let's Create Something Beautiful
-          </h3>
-          <p style="color: #4a5568; margin: 0 0 28px; line-height: 1.6; font-size: 15px;">
-            I'd love to hear about your vision and discuss how we can bring it to life together.
+        </div>
+      ` : ''}
+    </div>
+
+    <!-- Vibrant Footer -->
+    <div style="background: ${theme.colors.light}; padding: 30px 35px; text-align: center; border-top: 3px solid ${theme.colors.accent};">
+      <p style="color: ${theme.colors.primary}; margin: 0 0 8px; font-size: 18px; font-family: ${theme.fonts.heading}; font-weight: 600;">
+        ${emailFromName}
+      </p>
+      <p style="color: ${theme.colors.text}; margin: 0 0 15px; font-size: 14px; font-family: ${theme.fonts.body};">
+        ✨ ${businessName} • Bringing Your Vision to Life ✨
+      </p>
+      ${emailFromAddr !== 'hello@business.com' ? `
+        <div style="display: inline-block; background: ${theme.colors.secondary}; padding: 8px 20px; border-radius: 25px;">
+          <a href="mailto:${emailFromAddr}" style="color: white; text-decoration: none; font-weight: 500; font-size: 14px; font-family: ${theme.fonts.body};">${emailFromAddr}</a>
+        </div>
+      ` : ''}
+    </div>
+  </div>
+</body>
+</html>`;
+}
+
+// Theme 3: Scrapbook Textured - Playful design with decorative elements
+function generateScrapbookTemplate(
+  subject: string,
+  content: string,
+  includeBookingCTA: boolean,
+  theme: any,
+  businessName: string,
+  emailFromName: string,
+  emailFromAddr: string
+): string {
+  return `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${subject}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Merriweather:wght@300;400;700&display=swap" rel="stylesheet">
+  <style>
+    @media only screen and (max-width: 600px) {
+      .email-container { width: 100% !important; padding: 15px !important; }
+      .header-title { font-size: 22px !important; }
+      .content-section { padding: 25px 20px !important; }
+      .cta-button { width: 100% !important; padding: 15px 20px !important; }
+    }
+  </style>
+</head>
+<body style="margin: 0; padding: 0; background: linear-gradient(45deg, ${theme.colors.background} 0%, ${theme.colors.light} 100%); font-family: ${theme.fonts.body}; line-height: 1.7;">
+  <div class="email-container" style="max-width: 600px; margin: 0 auto; background-color: ${theme.colors.background}; box-shadow: 0 8px 30px rgba(0,0,0,0.1); border: 3px solid ${theme.colors.secondary}; border-radius: 20px; position: relative; overflow: hidden;">
+    
+    <!-- Decorative Corner Elements -->
+    <div style="position: absolute; top: -10px; left: -10px; width: 40px; height: 40px; background: ${theme.colors.accent}; transform: rotate(45deg); opacity: 0.8;"></div>
+    <div style="position: absolute; top: 10px; right: 10px; width: 20px; height: 20px; background: ${theme.colors.secondary}; border-radius: 50%; opacity: 0.6;"></div>
+    <div style="position: absolute; bottom: 10px; left: 15px; width: 25px; height: 15px; background: ${theme.colors.primary}; transform: rotate(-15deg); opacity: 0.4;"></div>
+    
+    <!-- Scrapbook Header -->
+    <div style="background: linear-gradient(135deg, ${theme.colors.primary} 0%, ${theme.colors.secondary} 100%); padding: 40px 35px 30px; text-align: center; position: relative; border-bottom: 4px dashed ${theme.colors.accent};">
+      <div style="position: absolute; top: 15px; left: 20px; width: 30px; height: 20px; background: ${theme.colors.accent}; opacity: 0.3; transform: rotate(-10deg);"></div>
+      <div style="position: relative; z-index: 1;">
+        <h1 class="header-title" style="color: white; margin: 0 0 10px; font-size: 28px; font-weight: 700; font-family: ${theme.fonts.heading}; line-height: 1.2; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); transform: rotate(-1deg);">
+          ${subject}
+        </h1>
+        <div style="display: inline-block; background: ${theme.colors.accent}; color: ${theme.colors.text}; padding: 5px 15px; border-radius: 15px; transform: rotate(1deg); margin-top: 10px;">
+          <p style="color: ${theme.colors.text}; margin: 0; font-size: 14px; font-family: ${theme.fonts.body}; font-weight: 600;">
+            ✨ ${businessName} ✨
           </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div class="content-section" style="padding: 45px 35px; position: relative;">
+      <!-- Decorative Tape -->
+      <div style="position: absolute; top: 20px; right: 30px; width: 60px; height: 20px; background: ${theme.colors.accent}; opacity: 0.7; transform: rotate(15deg);"></div>
+      
+      <div style="margin-bottom: 25px;">
+        <div style="display: inline-block; background: ${theme.colors.light}; padding: 8px 15px; border-radius: 20px; border: 2px dotted ${theme.colors.secondary}; transform: rotate(-0.5deg);">
+          <p style="color: ${theme.colors.primary}; margin: 0; font-size: 14px; font-family: ${theme.fonts.body}; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">
+            💌 Personal Note
+          </p>
+        </div>
+      </div>
+      
+      <p style="color: ${theme.colors.text}; line-height: 1.8; margin-bottom: 25px; font-size: 16px; font-family: ${theme.fonts.body};">
+        Hello dear {{firstName}}, 🌿
+      </p>
+      
+      <div style="color: ${theme.colors.text}; line-height: 1.8; font-size: 16px; margin-bottom: 35px; font-family: ${theme.fonts.body};">
+        ${content}
+      </div>
+
+      ${includeBookingCTA ? `
+        <!-- Scrapbook CTA -->
+        <div style="position: relative; background: ${theme.colors.light}; border: 3px dashed ${theme.colors.primary}; border-radius: 15px; padding: 35px 30px; text-align: center; margin: 40px 0; transform: rotate(-0.5deg);">
+          <div style="position: absolute; top: -8px; left: 20px; background: ${theme.colors.accent}; color: ${theme.colors.text}; padding: 5px 15px; border-radius: 20px; font-size: 12px; font-weight: bold; transform: rotate(2deg);">
+            ✨ Special Invitation
+          </div>
+          <div style="position: absolute; bottom: -8px; right: 20px; background: ${theme.colors.secondary}; color: white; padding: 4px 12px; border-radius: 15px; font-size: 11px; transform: rotate(-3deg);">
+            Limited Time
+          </div>
+          <div style="margin-top: 15px;">
+            <div style="font-size: 28px; margin-bottom: 15px;">🎯</div>
+            <h3 style="color: ${theme.colors.primary}; margin: 0 0 15px; font-size: 20px; font-weight: 700; font-family: ${theme.fonts.heading};">
+              Let's Create Magic Together!
+            </h3>
+            <p style="color: ${theme.colors.text}; margin: 0 0 25px; line-height: 1.6; font-size: 16px; font-family: ${theme.fonts.body}; font-style: italic;">
+              Ready to turn your dreams into beautiful memories?
+            </p>
+            <a href="mailto:${emailFromAddr}" class="cta-button" 
+               style="background: linear-gradient(135deg, ${theme.colors.primary} 0%, ${theme.colors.secondary} 100%); 
+                      color: white; 
+                      padding: 16px 30px; 
+                      text-decoration: none; 
+                      border-radius: 25px;
+                      display: inline-block; 
+                      font-weight: 600; 
+                      font-size: 16px;
+                      font-family: ${theme.fonts.body};
+                      text-transform: capitalize;
+                      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+                      transform: rotate(1deg);">
+              Let's Chat! 💬
+            </a>
+          </div>
+        </div>
+      ` : ''}
+    </div>
+
+    <!-- Scrapbook Footer -->
+    <div style="background: ${theme.colors.light}; padding: 30px 35px; text-align: center; border-top: 3px dashed ${theme.colors.secondary}; position: relative;">
+      <div style="position: absolute; top: -15px; left: 50%; width: 30px; height: 30px; background: ${theme.colors.accent}; border-radius: 50%; transform: translateX(-50%);"></div>
+      <div style="margin-top: 10px;">
+        <p style="color: ${theme.colors.primary}; margin: 0 0 8px; font-size: 18px; font-family: ${theme.fonts.heading}; font-weight: 700; font-style: italic;">
+          ${emailFromName}
+        </p>
+        <p style="color: ${theme.colors.text}; margin: 0 0 15px; font-size: 14px; font-family: ${theme.fonts.body};">
+          🎨 ${businessName} • Crafting Your Story 🎨
+        </p>
+        ${emailFromAddr !== 'hello@business.com' ? `
+          <div style="display: inline-block; background: ${theme.colors.secondary}; padding: 8px 20px; border-radius: 20px; transform: rotate(-1deg);">
+            <a href="mailto:${emailFromAddr}" style="color: white; text-decoration: none; font-weight: 500; font-size: 14px; font-family: ${theme.fonts.body};">${emailFromAddr}</a>
+          </div>
+        ` : ''}
+      </div>
+    </div>
+  </div>
+</body>
+</html>`;
+}
+
+// Theme 4: Luxury Magazine - Elegant typography with premium feel
+function generateLuxuryTemplate(
+  subject: string,
+  content: string,
+  includeBookingCTA: boolean,
+  theme: any,
+  businessName: string,
+  emailFromName: string,
+  emailFromAddr: string
+): string {
+  return `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${subject}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600;700&family=Source+Sans+Pro:wght@300;400;600&display=swap" rel="stylesheet">
+  <style>
+    @media only screen and (max-width: 600px) {
+      .email-container { width: 100% !important; padding: 15px !important; }
+      .header-title { font-size: 24px !important; }
+      .content-section { padding: 25px 20px !important; }
+      .cta-button { width: 100% !important; padding: 15px 20px !important; }
+    }
+  </style>
+</head>
+<body style="margin: 0; padding: 0; background: linear-gradient(to bottom, #f0f0f0 0%, ${theme.colors.background} 100%); font-family: ${theme.fonts.body}; line-height: 1.7;">
+  <div class="email-container" style="max-width: 600px; margin: 0 auto; background-color: ${theme.colors.background}; box-shadow: 0 15px 50px rgba(0,0,0,0.1); border: 1px solid #e0e0e0;">
+    
+    <!-- Luxury Header -->
+    <div style="background: linear-gradient(135deg, ${theme.colors.background} 0%, ${theme.colors.light} 100%); padding: 60px 40px 40px; text-align: center; border-bottom: 3px solid #d4af37; position: relative;">
+      <div style="position: absolute; top: 20px; left: 50%; width: 80px; height: 1px; background: #d4af37; transform: translateX(-50%);"></div>
+      <div style="margin-bottom: 20px;">
+        <div style="display: inline-block; border: 2px solid #d4af37; padding: 15px 25px; margin-bottom: 25px;">
+          <h1 class="header-title" style="color: ${theme.colors.primary}; margin: 0; font-size: 32px; font-weight: 400; font-family: ${theme.fonts.heading}; line-height: 1.2; letter-spacing: 1px;">
+            ${subject}
+          </h1>
+        </div>
+      </div>
+      <div style="width: 120px; height: 1px; background: ${theme.colors.secondary}; margin: 0 auto 20px;"></div>
+      <p style="color: ${theme.colors.text}; margin: 0; font-size: 16px; font-family: ${theme.fonts.body}; font-weight: 300; letter-spacing: 2px; text-transform: uppercase;">
+        ${businessName}
+      </p>
+      <p style="color: ${theme.colors.secondary}; margin: 8px 0 0; font-size: 14px; font-family: ${theme.fonts.heading}; font-style: italic;">
+        Fine Art Photography
+      </p>
+    </div>
+
+    <!-- Content -->
+    <div class="content-section" style="padding: 50px 45px;">
+      <div style="text-align: center; margin-bottom: 40px;">
+        <div style="display: inline-block; font-family: ${theme.fonts.heading}; font-size: 14px; color: ${theme.colors.secondary}; text-transform: uppercase; letter-spacing: 3px; font-weight: normal; border-bottom: 1px solid #d4af37; padding-bottom: 8px;">
+          ♦ Personal Correspondence ♦
+        </div>
+      </div>
+      
+      <p style="color: ${theme.colors.text}; line-height: 1.9; margin-bottom: 30px; font-size: 17px; font-family: ${theme.fonts.body}; text-align: center; font-style: italic;">
+        Dear {{firstName}},
+      </p>
+      
+      <div style="color: ${theme.colors.text}; line-height: 1.9; font-size: 17px; margin-bottom: 40px; font-family: ${theme.fonts.body}; text-align: justify;">
+        ${content}
+      </div>
+
+      ${includeBookingCTA ? `
+        <!-- Luxury CTA -->
+        <div style="text-align: center; margin: 50px 0; padding: 45px 35px; background: linear-gradient(to right, ${theme.colors.light} 0%, white 50%, ${theme.colors.light} 100%); border-top: 2px solid #d4af37; border-bottom: 2px solid #d4af37; position: relative;">
+          <div style="position: absolute; top: -10px; left: 50%; width: 20px; height: 20px; background: #d4af37; transform: translateX(-50%) rotate(45deg);"></div>
+          <div style="position: absolute; bottom: -10px; left: 50%; width: 20px; height: 20px; background: #d4af37; transform: translateX(-50%) rotate(45deg);"></div>
+          <div style="margin-bottom: 25px;">
+            <div style="font-family: ${theme.fonts.heading}; font-size: 14px; color: ${theme.colors.secondary}; text-transform: uppercase; letter-spacing: 2px; font-weight: normal; margin-bottom: 20px;">
+              ♦ Exclusive Consultation ♦
+            </div>
+            <h3 style="color: ${theme.colors.primary}; margin: 0 0 20px; font-size: 24px; font-weight: 400; font-family: ${theme.fonts.heading}; font-style: italic;">
+              Shall We Begin This Journey Together?
+            </h3>
+            <p style="color: ${theme.colors.text}; margin: 0 0 30px; line-height: 1.8; font-size: 17px; font-family: ${theme.fonts.body}; font-style: italic;">
+              I invite you to discover how we can create something truly extraordinary.
+            </p>
+          </div>
           <a href="mailto:${emailFromAddr}" class="cta-button" 
-             style="background: transparent; 
-                    color: ${primaryColor}; 
-                    border: 1px solid ${primaryColor};
-                    padding: 16px 30px; 
+             style="background: ${theme.colors.primary}; 
+                    color: white; 
+                    padding: 18px 40px; 
                     text-decoration: none; 
-                    border-radius: 8px;
                     display: inline-block; 
                     font-weight: 400; 
-                    font-size: 15px;
-                    letter-spacing: 0.5px;">
-            Begin Our Journey
+                    font-size: 16px;
+                    font-family: ${theme.fonts.body};
+                    text-transform: uppercase;
+                    letter-spacing: 2px;
+                    border: 2px solid ${theme.colors.primary};">
+            Arrange Consultation
           </a>
         </div>
       ` : ''}
     </div>
 
-    <!-- Signature with Contact Highlight -->
-    <div style="background: linear-gradient(135deg, #f8f9fa 0%, #f0f0f0 100%); padding: 35px; text-align: center; border-top: 1px solid #e5e5e5;">
-      <div style="margin-bottom: 20px;">
-        <div style="display: inline-block; width: 25px; height: 1px; background: ${secondaryColor}; margin: 0 8px;"></div>
-        <div style="display: inline-block; width: 4px; height: 4px; background: ${primaryColor}; border-radius: 50%;"></div>
-        <div style="display: inline-block; width: 25px; height: 1px; background: ${secondaryColor}; margin: 0 8px;"></div>
+    <!-- Luxury Footer -->
+    <div style="background: ${theme.colors.light}; padding: 40px 45px; text-align: center; border-top: 1px solid #d4af37;">
+      <div style="margin-bottom: 25px;">
+        <div style="width: 60px; height: 1px; background: #d4af37; margin: 0 auto;"></div>
       </div>
-      <h4 style="color: ${primaryColor}; margin: 0 0 8px; font-size: 18px; font-weight: 400; font-style: italic;">
+      <p style="color: ${theme.colors.primary}; margin: 0 0 10px; font-size: 20px; font-family: ${theme.fonts.heading}; font-weight: 400; font-style: italic;">
         ${emailFromName}
-      </h4>
-      <p style="color: #7a7a7a; margin: 0 0 8px; font-size: 14px;">
+      </p>
+      <p style="color: ${theme.colors.text}; margin: 0 0 20px; font-size: 14px; font-family: ${theme.fonts.body}; text-transform: uppercase; letter-spacing: 1px;">
         ${businessName}
       </p>
-      <p style="color: #7a7a7a; margin: 0; font-size: 13px; line-height: 1.5; font-style: italic;">
-        Photography that tells your unique story
+      <p style="color: ${theme.colors.secondary}; margin: 0 0 25px; font-size: 13px; font-family: ${theme.fonts.heading}; font-style: italic;">
+        "Capturing the essence of life's most precious moments"
       </p>
       ${emailFromAddr !== 'hello@business.com' ? `
-        <div style="margin-top: 20px; padding: 15px 20px; background: white; border-radius: 8px; display: inline-block;">
-          <p style="color: #7a7a7a; margin: 0; font-size: 13px;">
-            <a href="mailto:${emailFromAddr}" style="color: ${secondaryColor}; text-decoration: none; font-weight: 500;">${emailFromAddr}</a>
+        <div style="border-top: 1px solid #e0e0e0; padding-top: 20px; margin-top: 20px;">
+          <a href="mailto:${emailFromAddr}" style="color: ${theme.colors.secondary}; text-decoration: none; font-weight: 400; font-size: 14px; font-family: ${theme.fonts.body}; letter-spacing: 1px;">${emailFromAddr}</a>
+        </div>
+      ` : ''}
+    </div>
+  </div>
+</body>
+</html>`;
+}
+
+// Theme 5: Modern Dark Tech - Sleek dark mode with neon accents
+function generateDarkTemplate(
+  subject: string,
+  content: string,
+  includeBookingCTA: boolean,
+  theme: any,
+  businessName: string,
+  emailFromName: string,
+  emailFromAddr: string
+): string {
+  return `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${subject}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    @media only screen and (max-width: 600px) {
+      .email-container { width: 100% !important; padding: 15px !important; }
+      .header-title { font-size: 22px !important; }
+      .content-section { padding: 25px 20px !important; }
+      .cta-button { width: 100% !important; padding: 15px 20px !important; }
+    }
+  </style>
+</head>
+<body style="margin: 0; padding: 0; background: linear-gradient(135deg, #1a1a1a 0%, ${theme.colors.background} 100%); font-family: ${theme.fonts.body}; line-height: 1.6;">
+  <div class="email-container" style="max-width: 600px; margin: 0 auto; background-color: ${theme.colors.background}; box-shadow: 0 20px 60px rgba(0,0,0,0.4); border: 1px solid ${theme.colors.light}; border-radius: 12px; overflow: hidden;">
+    
+    <!-- Dark Tech Header -->
+    <div style="background: linear-gradient(135deg, ${theme.colors.background} 0%, ${theme.colors.light} 100%); padding: 45px 35px 35px; text-align: center; position: relative; border-bottom: 2px solid ${theme.colors.primary};">
+      <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: url('data:image/svg+xml,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 100 100\"><defs><pattern id=\"grid\" width=\"10\" height=\"10\" patternUnits=\"userSpaceOnUse\"><path d=\"M 10 0 L 0 0 0 10\" fill=\"none\" stroke=\"rgba(26,188,156,0.1)\" stroke-width=\"0.5\"/></pattern></defs><rect width=\"100\" height=\"100\" fill=\"url(%23grid)\"/></svg>') repeat; opacity: 0.3;"></div>
+      <div style="position: relative; z-index: 1;">
+        <div style="display: inline-block; background: ${theme.colors.primary}; color: ${theme.colors.background}; padding: 4px 12px; border-radius: 4px; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 20px;">
+          NEW MESSAGE
+        </div>
+        <h1 class="header-title" style="color: ${theme.colors.text}; margin: 0 0 15px; font-size: 28px; font-weight: 600; font-family: ${theme.fonts.heading}; line-height: 1.2; letter-spacing: -0.5px;">
+          ${subject}
+        </h1>
+        <div style="width: 40px; height: 2px; background: ${theme.colors.primary}; margin: 0 auto 20px;"></div>
+        <div style="display: inline-block; background: ${theme.colors.light}; border: 1px solid ${theme.colors.primary}; padding: 8px 20px; border-radius: 6px;">
+          <p style="color: ${theme.colors.text}; margin: 0; font-size: 14px; font-family: ${theme.fonts.body}; font-weight: 500;">
+            ${businessName}
           </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div class="content-section" style="padding: 40px 35px;">
+      <div style="margin-bottom: 30px;">
+        <div style="display: flex; align-items: center; margin-bottom: 25px;">
+          <div style="width: 4px; height: 20px; background: ${theme.colors.primary}; margin-right: 15px;"></div>
+          <div style="background: ${theme.colors.light}; padding: 6px 15px; border-radius: 15px; border: 1px solid ${theme.colors.primary};">
+            <p style="color: ${theme.colors.text}; margin: 0; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; font-family: ${theme.fonts.body};">PERSONAL</p>
+          </div>
+        </div>
+      </div>
+      
+      <p style="color: ${theme.colors.text}; line-height: 1.7; margin-bottom: 25px; font-size: 16px; font-family: ${theme.fonts.body};">
+        Hello {{firstName}} 👋
+      </p>
+      
+      <div style="color: ${theme.colors.text}; line-height: 1.7; font-size: 16px; margin-bottom: 35px; font-family: ${theme.fonts.body};">
+        ${content}
+      </div>
+
+      ${includeBookingCTA ? `
+        <!-- Dark Tech CTA -->
+        <div style="background: linear-gradient(135deg, ${theme.colors.light} 0%, ${theme.colors.background} 100%); border: 2px solid ${theme.colors.primary}; border-radius: 12px; padding: 35px 30px; text-align: center; margin: 40px 0; position: relative; overflow: hidden;">
+          <div style="position: absolute; top: -50px; right: -50px; width: 100px; height: 100px; background: ${theme.colors.primary}; opacity: 0.1; border-radius: 50%;"></div>
+          <div style="position: absolute; bottom: -30px; left: -30px; width: 60px; height: 60px; background: ${theme.colors.secondary}; opacity: 0.1; border-radius: 50%;"></div>
+          <div style="position: relative; z-index: 1;">
+            <div style="display: inline-block; background: ${theme.colors.primary}; color: ${theme.colors.background}; padding: 8px 15px; border-radius: 6px; font-size: 12px; font-weight: 600; margin-bottom: 20px;">
+              🚀 READY TO LAUNCH?
+            </div>
+            <h3 style="color: ${theme.colors.text}; margin: 0 0 15px; font-size: 22px; font-weight: 600; font-family: ${theme.fonts.heading};">
+              Let's Build Something Amazing
+            </h3>
+            <p style="color: ${theme.colors.text}; margin: 0 0 25px; line-height: 1.6; font-size: 16px; font-family: ${theme.fonts.body}; opacity: 0.9;">
+              Ready to transform your vision into reality? Let's connect.
+            </p>
+            <a href="mailto:${emailFromAddr}" class="cta-button" 
+               style="background: linear-gradient(135deg, ${theme.colors.primary} 0%, ${theme.colors.secondary} 100%); 
+                      color: ${theme.colors.background}; 
+                      padding: 16px 32px; 
+                      text-decoration: none; 
+                      border-radius: 8px;
+                      display: inline-block; 
+                      font-weight: 600; 
+                      font-size: 14px;
+                      font-family: ${theme.fonts.body};
+                      text-transform: uppercase;
+                      letter-spacing: 1px;
+                      box-shadow: 0 8px 25px rgba(26,188,156,0.3);
+                      border: 1px solid ${theme.colors.primary};">
+              CONNECT NOW →
+            </a>
+          </div>
+        </div>
+      ` : ''}
+    </div>
+
+    <!-- Dark Footer -->
+    <div style="background: ${theme.colors.light}; padding: 35px; text-align: center; border-top: 2px solid ${theme.colors.primary};">
+      <div style="margin-bottom: 20px;">
+        <div style="display: inline-flex; align-items: center; gap: 10px;">
+          <div style="width: 20px; height: 2px; background: ${theme.colors.primary};"></div>
+          <div style="width: 8px; height: 8px; background: ${theme.colors.secondary}; border-radius: 50%;"></div>
+          <div style="width: 20px; height: 2px; background: ${theme.colors.primary};"></div>
+        </div>
+      </div>
+      <p style="color: ${theme.colors.text}; margin: 0 0 8px; font-size: 18px; font-family: ${theme.fonts.heading}; font-weight: 600;">
+        ${emailFromName}
+      </p>
+      <p style="color: ${theme.colors.text}; margin: 0 0 15px; font-size: 14px; font-family: ${theme.fonts.body}; opacity: 0.8;">
+        📸 ${businessName} • Digital Innovation
+      </p>
+      ${emailFromAddr !== 'hello@business.com' ? `
+        <div style="display: inline-block; background: ${theme.colors.background}; border: 1px solid ${theme.colors.primary}; padding: 10px 20px; border-radius: 6px;">
+          <a href="mailto:${emailFromAddr}" style="color: ${theme.colors.primary}; text-decoration: none; font-weight: 500; font-size: 14px; font-family: ${theme.fonts.body};">${emailFromAddr}</a>
         </div>
       ` : ''}
     </div>

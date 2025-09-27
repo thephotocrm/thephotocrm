@@ -22,19 +22,19 @@ Professional-grade drip campaign system featuring research-backed timing and pre
   - Phase 3 (Long-term nurturing): Bi-weekly delivery (days 105-217) for extended engagement
 - **Day-0 Scheduling**: Immediate welcome email delivery upon campaign activation
 - **Project Type Support**: Dedicated campaign templates for Wedding, Portrait, and Commercial photography
-- **5 Visual Template Variations**: Each email automatically uses one of 5 distinct layouts to prevent visual fatigue:
-  - **Centered**: Traditional layout with rounded CTAs and centered alignment
-  - **Left-Aligned**: Modern left-aligned header with square CTAs and professional spacing
-  - **Accent Line**: Centered header with colored accent lines and outlined CTAs
-  - **Compact**: Minimal header design with pill-shaped CTAs and tighter spacing
-  - **Tagline**: Header with business tagline and ghost-style transparent CTAs
-- **Client-Focused Visual Containers**: Smart content enhancement with wedding planning elements:
-  - **Wedding Planning Tips**: Highlighted advice boxes with colored borders and icons
-  - **Important Reminders**: Callout containers for crucial planning milestones
-  - **Budget Highlights**: Special containers for financial planning advice
-  - **Timeline Items**: Visual progression indicators for planning phases
-  - **Vendor Selection Guides**: Styled containers for choosing wedding vendors
-  - **Inspiration Boxes**: Decorative containers for wedding vision and style guidance
+- **5 Platform-Inspired Email Themes**: Each email uses one of 5 completely distinct visual themes to prevent visual fatigue and provide premium variety:
+  - **Editorial Minimalist**: Clean serif typography with classic magazine layout, elegant borders, and sophisticated color palettes
+  - **Bold Color Block**: Vibrant gradients with modern sans-serif fonts, geometric elements, and dynamic visual containers
+  - **Scrapbook Textured**: Playful design with decorative elements, dashed borders, rotated elements, and craft-inspired styling
+  - **Luxury Magazine**: Premium typography with gold accents, refined spacing, and high-end editorial aesthetics
+  - **Modern Dark Tech**: Sleek dark mode design with neon accent colors, grid patterns, and contemporary tech-inspired elements
+- **Subject-Forward Headers**: Email subject lines serve as the primary headline with photographer business name as supporting subheadline, creating attention-grabbing, content-focused messaging
+- **Theme-Specific Visual Modules**: Smart content enhancement with semantic keyword detection that triggers themed visual containers:
+  - **Editorial**: Information icons with bordered insights, timeline elements with gradient accents
+  - **Vibrant**: Colorful tip badges, emoji-enhanced reminders with gradient backgrounds
+  - **Scrapbook**: Decorative tape elements, rotated wisdom boxes with dashed borders
+  - **Luxury**: Ornate quote boxes with gold dividers, exclusive insight containers
+  - **Dark**: Neon-accented insight boxes, tech-styled warning notifications
 - **NURTURE Integration**: Seamless automation system integration for sequential email delivery to inquiry-stage clients
 - **Campaign Management**: Full activation, preview, and status tracking capabilities with backend persistence
 
