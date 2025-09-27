@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { useLocation } from "wouter";
@@ -60,6 +60,16 @@ export default function Projects() {
   const [notes, setNotes] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState<string>("ALL");
+
+  // Handle clientId query parameter to pre-select client
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const clientIdParam = urlParams.get('clientId');
+    if (clientIdParam) {
+      setClientId(clientIdParam);
+      setIsDialogOpen(true); // Auto-open the dialog
+    }
+  }, []);
 
   // Fetch projects
   const { data: projects, isLoading: projectsLoading } = useQuery<ProjectWithClientAndStage[]>({
