@@ -66,6 +66,7 @@ export const photographers = pgTable("photographers", {
   brandSecondary: text("brand_secondary"),
   emailFromName: text("email_from_name"),
   emailFromAddr: text("email_from_addr"),
+  phone: text("phone"), // Photographer's phone for two-way SMS relay
   timezone: text("timezone").notNull().default("America/New_York"),
   // Widget Integration
   publicToken: varchar("public_token").unique().default(sql`gen_random_uuid()`),
@@ -205,7 +206,15 @@ export const smsLogs = pgTable("sms_logs", {
   status: text("status").notNull(),
   providerId: text("provider_id"),
   sentAt: timestamp("sent_at"),
-  deliveredAt: timestamp("delivered_at")
+  deliveredAt: timestamp("delivered_at"),
+  // Two-way messaging support
+  direction: text("direction").notNull().default("OUTBOUND"), // OUTBOUND, INBOUND
+  fromPhone: text("from_phone"), // Source phone number
+  toPhone: text("to_phone"), // Destination phone number  
+  messageBody: text("message_body"), // SMS content for tracking
+  isForwarded: boolean("is_forwarded").default(false), // Whether this was forwarded to photographer
+  relatedSmsId: varchar("related_sms_id").references(() => smsLogs.id), // Link replies to original messages
+  createdAt: timestamp("created_at").defaultNow()
 });
 
 // Bulletproof automation execution tracking to prevent duplicates

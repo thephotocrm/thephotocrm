@@ -1,34 +1,30 @@
-import twilio from 'twilio';
 import { renderTemplate } from '@shared/template-utils';
 
-// Use conditional initialization for development mode fallback
-let client: twilio.Twilio | null = null;
-
-if (process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN && process.env.TWILIO_PHONE_NUMBER) {
-  client = twilio(
-    process.env.TWILIO_ACCOUNT_SID,
-    process.env.TWILIO_AUTH_TOKEN
-  );
-} else {
-  console.warn('Twilio credentials not found - SMS functionality will be disabled');
-}
+// SimpleTexting API configuration
+const SIMPLETEXTING_API_URL = 'https://api-app2.simpletexting.com/v2/api';
 
 interface SmsParams {
   to: string;
   body: string;
 }
 
+interface SimpleTextingResponse {
+  success: boolean;
+  message_id?: string;
+  error?: string;
+}
+
 export async function sendSms(params: SmsParams): Promise<{ success: boolean; sid?: string; error?: string }> {
-  if (!client) {
-    console.warn('Twilio client not initialized - skipping SMS');
+  if (!process.env.SIMPLETEXTING_API_TOKEN) {
+    console.warn('SimpleTexting API token not configured - skipping SMS');
     return { 
       success: false, 
       error: 'SMS service not configured' 
     };
   }
 
-  if (!process.env.TWILIO_PHONE_NUMBER) {
-    console.error('TWILIO_PHONE_NUMBER not set');
+  if (!process.env.SIMPLETEXTING_PHONE_NUMBER) {
+    console.error('SIMPLETEXTING_PHONE_NUMBER not set');
     return { 
       success: false, 
       error: 'SMS phone number not configured' 
@@ -36,24 +32,35 @@ export async function sendSms(params: SmsParams): Promise<{ success: boolean; si
   }
 
   try {
-    console.log('Sending SMS to:', params.to);
-    console.log('From phone:', process.env.TWILIO_PHONE_NUMBER);
+    console.log('Sending SMS via SimpleTexting to:', params.to);
+    console.log('From phone:', process.env.SIMPLETEXTING_PHONE_NUMBER);
     
-    const message = await client.messages.create({
-      body: params.body,
-      from: process.env.TWILIO_PHONE_NUMBER,
-      to: params.to,
+    const response = await fetch(`${SIMPLETEXTING_API_URL}/messages`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${process.env.SIMPLETEXTING_API_TOKEN}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        phone: params.to,
+        message: params.body
+      })
     });
+
+    const responseData = await response.json() as SimpleTextingResponse;
     
-    console.log('SMS sent successfully, SID:', message.sid);
-    return { success: true, sid: message.sid };
+    if (!response.ok) {
+      console.error('SimpleTexting SMS error:', responseData);
+      return { 
+        success: false, 
+        error: responseData.error || `HTTP ${response.status}: ${response.statusText}` 
+      };
+    }
+    
+    console.log('SMS sent successfully via SimpleTexting, ID:', responseData.message_id);
+    return { success: true, sid: responseData.message_id };
   } catch (error: any) {
-    console.error('Twilio SMS error:', error);
-    console.error('SMS error details:', {
-      code: error?.code,
-      message: error?.message,
-      moreInfo: error?.moreInfo
-    });
+    console.error('SimpleTexting SMS error:', error);
     return { 
       success: false, 
       error: error?.message || 'Failed to send SMS' 
