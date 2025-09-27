@@ -242,7 +242,7 @@ function enhanceContentWithThematicModules(content: string, theme: any, sequence
   return enhancedContent;
 }
 
-// Main function to generate emails with distinct themes
+// Main function to generate emails with subtle layout variations
 function generateEmailHTML(
   photographer: Photographer,
   subject: string,
@@ -253,51 +253,56 @@ function generateEmailHTML(
   const businessName = photographer.businessName;
   const emailFromName = photographer.emailFromName || businessName;
   const emailFromAddr = photographer.emailFromAddr || 'hello@business.com';
+  const logoUrl = photographer.logoUrl || '';
 
-  // Get theme based on sequence index (cycles through 5 themes)
-  const themeKeys = Object.keys(EMAIL_THEMES);
-  const themeKey = themeKeys[sequenceIndex % themeKeys.length];
-  const theme = EMAIL_THEMES[themeKey];
+  // Get layout based on sequence index (cycles through 5 layouts)
+  const layoutKeys = Object.keys(EMAIL_LAYOUTS);
+  const layoutKey = layoutKeys[sequenceIndex % layoutKeys.length];
+  const layout = EMAIL_LAYOUTS[layoutKey];
   
-  // Override colors with photographer's brand colors if available
-  const themedColors = {
-    ...theme.colors,
-    primary: photographer.brandPrimary || theme.colors.primary,
-    secondary: photographer.brandSecondary || theme.colors.secondary,
-  };
+  // Use photographer's brand colors or defaults
+  const primaryColor = photographer.brandPrimary || '#2c3e50';
+  const secondaryColor = photographer.brandSecondary || '#3498db';
   
-  const themedTemplate = { ...theme, colors: themedColors };
-  
-  // Enhance content with theme-specific visual modules
-  const enhancedContent = enhanceContentWithThematicModules(content, themedTemplate, sequenceIndex);
+  // Enhance content with layout-based modules
+  const enhancedContent = enhanceContentWithLayoutModules(content, layout, primaryColor, secondaryColor, sequenceIndex);
 
-  // Generate email based on theme
-  switch (themeKey) {
-    case 'editorial':
-      return generateEditorialTemplate(subject, enhancedContent, includeBookingCTA, themedTemplate, businessName, emailFromName, emailFromAddr);
-    case 'vibrant':
-      return generateVibrantTemplate(subject, enhancedContent, includeBookingCTA, themedTemplate, businessName, emailFromName, emailFromAddr);
-    case 'scrapbook':
-      return generateScrapbookTemplate(subject, enhancedContent, includeBookingCTA, themedTemplate, businessName, emailFromName, emailFromAddr);
-    case 'luxury':
-      return generateLuxuryTemplate(subject, enhancedContent, includeBookingCTA, themedTemplate, businessName, emailFromName, emailFromAddr);
-    case 'dark':
-      return generateDarkTemplate(subject, enhancedContent, includeBookingCTA, themedTemplate, businessName, emailFromName, emailFromAddr);
-    default:
-      return generateEditorialTemplate(subject, enhancedContent, includeBookingCTA, themedTemplate, businessName, emailFromName, emailFromAddr);
-  }
+  // Generate email with consistent styling but layout variations
+  return generateConsistentTemplate(
+    subject, 
+    enhancedContent, 
+    includeBookingCTA, 
+    layout, 
+    primaryColor, 
+    secondaryColor,
+    businessName, 
+    emailFromName, 
+    emailFromAddr,
+    logoUrl
+  );
 }
 
-// Theme 1: Editorial Minimalist - Clean, serif typography with classic layout
-function generateEditorialTemplate(
+// Consistent Email Template with Subtle Layout Variations
+function generateConsistentTemplate(
   subject: string,
   content: string,
   includeBookingCTA: boolean,
-  theme: any,
+  layout: any,
+  primaryColor: string,
+  secondaryColor: string,
   businessName: string,
   emailFromName: string,
-  emailFromAddr: string
+  emailFromAddr: string,
+  logoUrl: string = ''
 ): string {
+  // Determine header style based on layout
+  const headerStyle = layout.hasColoredHeader 
+    ? `background: linear-gradient(135deg, ${primaryColor} 0%, ${secondaryColor} 100%); color: white;`
+    : `background: white; color: ${primaryColor}; border-bottom: 1px solid #e0e0e0;`;
+  
+  const headerTextColor = layout.hasColoredHeader ? 'white' : primaryColor;
+  const headerSubColor = layout.hasColoredHeader ? 'rgba(255,255,255,0.9)' : secondaryColor;
+
   return `
 <!DOCTYPE html>
 <html lang="en">
@@ -315,48 +320,49 @@ function generateEditorialTemplate(
     }
   </style>
 </head>
-<body style="margin: 0; padding: 0; background-color: #f5f5f5; font-family: ${theme.fonts.body}; line-height: 1.7;">
-  <div class="email-container" style="max-width: 600px; margin: 0 auto; background-color: ${theme.colors.background}; box-shadow: 0 2px 15px rgba(0,0,0,0.1);">
+<body style="margin: 0; padding: 0; background-color: #f5f5f5; font-family: 'Lato', 'Helvetica Neue', Arial, sans-serif; line-height: 1.7;">
+  <div class="email-container" style="max-width: 600px; margin: 0 auto; background-color: white; box-shadow: 0 2px 15px rgba(0,0,0,0.1);">
     
-    <!-- Editorial Header -->
-    <div style="background: ${theme.colors.background}; padding: 50px 40px 30px; text-align: center; border-bottom: 1px solid ${theme.colors.light};">
-      <h1 class="header-title" style="color: ${theme.colors.primary}; margin: 0 0 15px; font-size: 32px; font-weight: 400; font-family: ${theme.fonts.heading}; line-height: 1.2;">
+    <!-- Header with Conditional Styling -->
+    <div style="${headerStyle} padding: 40px 40px 30px; text-align: ${layout.headerAlignment};">
+      <h1 class="header-title" style="color: ${headerTextColor}; margin: 0 0 15px; font-size: 28px; font-weight: 400; font-family: 'Georgia', serif; line-height: 1.2;">
         ${subject}
       </h1>
-      <div style="width: 60px; height: 2px; background: ${theme.colors.accent}; margin: 0 auto 15px;"></div>
-      <p style="color: ${theme.colors.secondary}; margin: 0; font-size: 16px; font-family: ${theme.fonts.body}; font-weight: 300; letter-spacing: 0.5px;">
+      <div style="width: 60px; height: 2px; background: ${layout.hasColoredHeader ? 'rgba(255,255,255,0.7)' : primaryColor}; margin: ${layout.headerAlignment === 'center' ? '0 auto 15px' : '0 0 15px'};"></div>
+      <p style="color: ${headerSubColor}; margin: 0; font-size: 16px; font-family: 'Lato', sans-serif; font-weight: 300; letter-spacing: 0.5px;">
         ${businessName}
       </p>
     </div>
 
     <!-- Content -->
-    <div class="content-section" style="padding: 45px 40px;">
-      <p style="color: ${theme.colors.text}; line-height: 1.8; margin-bottom: 25px; font-size: 16px; font-family: ${theme.fonts.body};">
+    <div class="content-section" style="padding: 40px;">
+      <p style="color: #4a5568; line-height: 1.8; margin-bottom: 25px; font-size: 16px; font-family: 'Lato', sans-serif;">
         Dear {{firstName}},
       </p>
       
-      <div style="color: ${theme.colors.text}; line-height: 1.8; font-size: 16px; margin-bottom: 35px; font-family: ${theme.fonts.body};">
+      <div style="color: #4a5568; line-height: 1.8; font-size: 16px; margin-bottom: 35px; font-family: 'Lato', sans-serif;">
         ${content}
       </div>
 
       ${includeBookingCTA ? `
-        <!-- Editorial CTA -->
-        <div style="border-top: 1px solid ${theme.colors.light}; border-bottom: 1px solid ${theme.colors.light}; padding: 35px 0; text-align: center; margin: 40px 0;">
-          <h3 style="color: ${theme.colors.primary}; margin: 0 0 20px; font-size: 20px; font-weight: 400; font-family: ${theme.fonts.heading};">
+        <!-- Consistent CTA -->
+        <div style="border-top: 1px solid #e0e0e0; border-bottom: 1px solid #e0e0e0; padding: 35px 0; text-align: center; margin: 40px 0;">
+          <h3 style="color: ${primaryColor}; margin: 0 0 20px; font-size: 20px; font-weight: 400; font-family: 'Georgia', serif;">
             Let's Create Something Beautiful Together
           </h3>
-          <p style="color: ${theme.colors.text}; margin: 0 0 25px; line-height: 1.6; font-size: 16px; font-family: ${theme.fonts.body};">
+          <p style="color: #4a5568; margin: 0 0 25px; line-height: 1.6; font-size: 16px; font-family: 'Lato', sans-serif;">
             I'd love to discuss your vision and how we can bring it to life.
           </p>
           <a href="mailto:${emailFromAddr}" class="cta-button" 
-             style="background: ${theme.colors.primary}; 
+             style="background: ${primaryColor}; 
                     color: white; 
                     padding: 16px 35px; 
                     text-decoration: none; 
+                    border-radius: 6px;
                     display: inline-block; 
                     font-weight: 400; 
                     font-size: 16px;
-                    font-family: ${theme.fonts.body};
+                    font-family: 'Lato', sans-serif;
                     letter-spacing: 0.5px; 
                     text-transform: uppercase;">
             Start Conversation
@@ -365,17 +371,22 @@ function generateEditorialTemplate(
       ` : ''}
     </div>
 
-    <!-- Editorial Footer -->
-    <div style="background: ${theme.colors.light}; padding: 35px 40px; text-align: center; border-top: 1px solid #e0e0e0;">
-      <p style="color: ${theme.colors.text}; margin: 0 0 8px; font-size: 18px; font-family: ${theme.fonts.heading}; font-style: italic;">
+    <!-- Footer with Optional Logo -->
+    <div style="background: #f8f9fa; padding: 35px 40px; text-align: center; border-top: 1px solid #e0e0e0;">
+      ${logoUrl ? `
+        <div style="margin-bottom: 20px;">
+          <img src="${logoUrl}" alt="${businessName} Logo" style="max-height: 60px; max-width: 200px;">
+        </div>
+      ` : ''}
+      <p style="color: #4a5568; margin: 0 0 8px; font-size: 18px; font-family: 'Georgia', serif; font-style: italic;">
         ${emailFromName}
       </p>
-      <p style="color: ${theme.colors.secondary}; margin: 0 0 15px; font-size: 14px; font-family: ${theme.fonts.body};">
+      <p style="color: #718096; margin: 0 0 15px; font-size: 14px; font-family: 'Lato', sans-serif;">
         ${businessName} • Professional Photography
       </p>
       ${emailFromAddr !== 'hello@business.com' ? `
         <p style="margin: 0;">
-          <a href="mailto:${emailFromAddr}" style="color: ${theme.colors.accent}; text-decoration: none; font-weight: 400; font-size: 14px; font-family: ${theme.fonts.body};">${emailFromAddr}</a>
+          <a href="mailto:${emailFromAddr}" style="color: ${secondaryColor}; text-decoration: none; font-weight: 400; font-size: 14px; font-family: 'Lato', sans-serif;">${emailFromAddr}</a>
         </p>
       ` : ''}
     </div>
