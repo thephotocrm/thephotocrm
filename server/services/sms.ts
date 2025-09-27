@@ -33,7 +33,6 @@ export async function sendSms(params: SmsParams): Promise<{ success: boolean; si
 
   try {
     console.log('Sending SMS via SimpleTexting to:', params.to);
-    console.log('SMS message body:', params.body);
     console.log('From phone:', process.env.SIMPLETEXTING_PHONE_NUMBER);
     
     const requestPayload = {
@@ -41,7 +40,6 @@ export async function sendSms(params: SmsParams): Promise<{ success: boolean; si
       accountPhone: process.env.SIMPLETEXTING_PHONE_NUMBER,
       text: params.body
     };
-    console.log('SMS request payload:', JSON.stringify(requestPayload, null, 2));
     
     // Validate message body is not empty
     if (!params.body || params.body.trim() === '') {
