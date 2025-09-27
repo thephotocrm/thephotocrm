@@ -683,7 +683,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
         clientId: z.string(),
         title: z.string().min(1),
         projectType: z.enum(['WEDDING', 'ENGAGEMENT', 'PROPOSAL', 'CORPORATE', 'PORTRAIT', 'FAMILY', 'MATERNITY', 'NEWBORN', 'EVENT', 'COMMERCIAL', 'OTHER']),
-        eventDate: z.date().optional(),
+        eventDate: z.string().optional().transform((val) => val ? new Date(val) : undefined),
         leadSource: z.enum(['WEBSITE_WIDGET', 'REFERRAL', 'SOCIAL_MEDIA', 'ADVERTISING', 'REPEAT_CLIENT', 'OTHER']).optional(),
         smsOptIn: z.boolean().default(false),
         emailOptIn: z.boolean().default(true),
