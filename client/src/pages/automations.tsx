@@ -549,6 +549,8 @@ export default function Automations() {
   const [activeProjectType, setActiveProjectType] = useState<string>('WEDDING');
   const [enableCommunication, setEnableCommunication] = useState(true);
   const [enablePipeline, setEnablePipeline] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editingAutomation, setEditingAutomation] = useState<any>(null);
 
   // Reset modal state when dialog opens
   useEffect(() => {
@@ -865,6 +867,45 @@ export default function Automations() {
 
   const handleDeleteAutomation = (automationId: string) => {
     deleteAutomationMutation.mutate(automationId);
+  };
+
+  // Toggle automation mutation
+  const toggleAutomationMutation = useMutation({
+    mutationFn: async ({ automationId, enabled }: { automationId: string; enabled: boolean }) => {
+      return apiRequest("PATCH", `/api/automations/${automationId}`, { enabled });
+    },
+    onSuccess: () => {
+      toast({ title: "Automation updated successfully" });
+      queryClient.invalidateQueries({ queryKey: ["/api/automations"] });
+    },
+    onError: () => {
+      toast({ title: "Failed to update automation", variant: "destructive" });
+    }
+  });
+
+  // Edit automation mutation
+  const editAutomationMutation = useMutation({
+    mutationFn: async ({ automationId, data }: { automationId: string; data: any }) => {
+      return apiRequest("PUT", `/api/automations/${automationId}`, data);
+    },
+    onSuccess: () => {
+      toast({ title: "Automation updated successfully" });
+      queryClient.invalidateQueries({ queryKey: ["/api/automations"] });
+      setEditDialogOpen(false);
+      setEditingAutomation(null);
+    },
+    onError: () => {
+      toast({ title: "Failed to update automation", variant: "destructive" });
+    }
+  });
+
+  const handleToggleAutomation = (automationId: string, enabled: boolean) => {
+    toggleAutomationMutation.mutate({ automationId, enabled });
+  };
+
+  const handleEditAutomation = (automation: any) => {
+    setEditingAutomation(automation);
+    setEditDialogOpen(true);
   };
 
 
@@ -1557,6 +1598,122 @@ export default function Automations() {
 
 
 
+        {/* Edit Automation Dialog */}
+        {editingAutomation && (
+          <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+            <DialogContent className="sm:max-w-lg">
+              <DialogHeader>
+                <DialogTitle>Edit Automation</DialogTitle>
+                <DialogDescription>
+                  Update automation settings
+                </DialogDescription>
+              </DialogHeader>
+              
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Automation Name</Label>
+                  <Input
+                    value={editingAutomation.name}
+                    onChange={(e) => setEditingAutomation({...editingAutomation, name: e.target.value})}
+                    placeholder="Enter automation name"
+                    data-testid={`input-edit-name-${editingAutomation.id}`}
+                  />
+                </div>
+
+                {/* Show automation details based on type */}
+                {editingAutomation.automationType === 'COMMUNICATION' && (
+                  <div className="space-y-2">
+                    <Label>Channel</Label>
+                    <Select
+                      value={editingAutomation.channel}
+                      onValueChange={(value) => setEditingAutomation({...editingAutomation, channel: value})}
+                    >
+                      <SelectTrigger data-testid={`select-edit-channel-${editingAutomation.id}`}>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="EMAIL">Email</SelectItem>
+                        <SelectItem value="SMS">SMS</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+
+                {/* Show automation type and trigger info */}
+                <div className="space-y-2">
+                  <Label>Automation Details</Label>
+                  <div className="border rounded-lg p-3 bg-muted">
+                    <div className="space-y-2 text-sm">
+                      <div className="flex items-center justify-between">
+                        <span className="font-medium">Type:</span>
+                        <span>{editingAutomation.automationType === 'COMMUNICATION' ? 'Communication' : 'Pipeline Stage'}</span>
+                      </div>
+                      {editingAutomation.triggerMode && (
+                        <div className="flex items-center justify-between">
+                          <span className="font-medium">Trigger:</span>
+                          <span>
+                            {editingAutomation.triggerMode === 'STAGE' ? 'Stage-based' :
+                             editingAutomation.triggerMode === 'BUSINESS' ? 'Business Event' : 'Time-based'}
+                          </span>
+                        </div>
+                      )}
+                      {editingAutomation.stageName && (
+                        <div className="flex items-center justify-between">
+                          <span className="font-medium">Stage:</span>
+                          <span>"{editingAutomation.stageName}"</span>
+                        </div>
+                      )}
+                      <div className="flex items-center justify-between">
+                        <span className="font-medium">Status:</span>
+                        <Badge variant={editingAutomation.enabled ? "default" : "secondary"}>
+                          {editingAutomation.enabled ? "Active" : "Inactive"}
+                        </Badge>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    checked={editingAutomation.enabled}
+                    onCheckedChange={(checked) => setEditingAutomation({...editingAutomation, enabled: checked})}
+                    data-testid={`switch-edit-enabled-${editingAutomation.id}`}
+                  />
+                  <Label>Enable automation</Label>
+                </div>
+              </div>
+
+              <div className="flex justify-end space-x-2 pt-4">
+                <Button
+                  variant="outline"
+                  onClick={() => setEditDialogOpen(false)}
+                  data-testid={`button-cancel-edit-${editingAutomation.id}`}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={() => {
+                    editAutomationMutation.mutate({
+                      automationId: editingAutomation.id,
+                      data: {
+                        name: editingAutomation.name,
+                        enabled: editingAutomation.enabled,
+                        ...(editingAutomation.automationType === 'COMMUNICATION' && {
+                          channel: editingAutomation.channel
+                        })
+                      }
+                    });
+                  }}
+                  disabled={editAutomationMutation.isPending || !editingAutomation.name.trim()}
+                  data-testid={`button-save-edit-${editingAutomation.id}`}
+                >
+                  {editAutomationMutation.isPending ? "Saving..." : "Save Changes"}
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        )}
+
         {/* Manage Rules Modal */}
         <Dialog open={manageRulesDialogOpen} onOpenChange={setManageRulesDialogOpen}>
           <DialogContent className="sm:max-w-2xl">
@@ -1791,13 +1948,22 @@ export default function Automations() {
                               </div>
                             </div>
                             <div className="flex items-center space-x-2">
+                              <span className="text-xs text-muted-foreground">
+                                {automation.enabled ? "On" : "Off"}
+                              </span>
                               <Switch
                                 checked={automation.enabled}
-                                onCheckedChange={(enabled) => {
-                                  // Handle enable/disable toggle
-                                }}
+                                onCheckedChange={(enabled) => handleToggleAutomation(automation.id, enabled)}
                                 data-testid={`switch-automation-${automation.id}`}
                               />
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleEditAutomation(automation)}
+                                data-testid={`button-edit-automation-${automation.id}`}
+                              >
+                                <Edit2 className="h-4 w-4" />
+                              </Button>
                               <Button
                                 variant="ghost"
                                 size="sm"
