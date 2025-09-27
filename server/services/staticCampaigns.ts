@@ -16,12 +16,119 @@ export interface StaticCampaignTemplate {
   emails: StaticEmailTemplate[];
 }
 
-// Helper function to generate professional email HTML
+// Helper function to add client-focused visual content containers
+function enhanceContentWithWeddingVisuals(content: string, primaryColor: string, secondaryColor: string, variation: string): string {
+  // Client-focused visual containers for wedding planning
+  const visualContainers = {
+    centered: {
+      weddingTip: `<div style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-left: 4px solid ${primaryColor}; padding: 20px 25px; margin: 25px 0; border-radius: 8px;">
+        <div style="display: flex; align-items: center; margin-bottom: 12px;">
+          <div style="width: 8px; height: 8px; background: ${secondaryColor}; border-radius: 50%; margin-right: 12px;"></div>
+          <strong style="color: ${primaryColor}; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px;">Wedding Planning Tip</strong>
+        </div>
+        <p style="margin: 0; color: #4a5568; line-height: 1.6; font-style: italic;">`,
+      rememberThis: `<div style="background: #fafafa; padding: 25px; margin: 25px 0; border-radius: 12px; position: relative;">
+        <div style="position: absolute; top: 15px; left: 20px; width: 30px; height: 20px; background: ${secondaryColor}; opacity: 0.1; border-radius: 4px;"></div>
+        <p style="margin: 0; color: #5a5a5a; font-size: 18px; line-height: 1.6; font-style: italic; text-align: center;">`
+    },
+    
+    left: {
+      planningStep: `<div style="background: white; border: 2px solid #f0f0f0; padding: 20px; margin: 20px 0; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+        <div style="display: flex; align-items: center; margin-bottom: 15px;">
+          <div style="background: ${primaryColor}; color: white; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 12px; margin-right: 15px;">`,
+      budgetHighlight: `<div style="background: linear-gradient(90deg, ${primaryColor} 0%, transparent 100%); height: 4px; width: 60px; margin: 20px 0 15px;"></div>
+        <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
+          <strong style="color: ${primaryColor}; display: block; margin-bottom: 10px;">Budget Tip:</strong>
+          <p style="margin: 0; color: #4a5568;">`
+    },
+    
+    accent: {
+      importantReminder: `<div style="text-align: center; margin: 30px 0; padding: 25px; background: linear-gradient(135deg, rgba(${primaryColor.replace('#', '').match(/.{2}/g).map(x => parseInt(x, 16)).join(', ')}, 0.05) 0%, rgba(${secondaryColor.replace('#', '').match(/.{2}/g).map(x => parseInt(x, 16)).join(', ')}, 0.05) 100%); border-radius: 15px; border: 1px solid rgba(${primaryColor.replace('#', '').match(/.{2}/g).map(x => parseInt(x, 16)).join(', ')}, 0.1);">
+        <div style="width: 40px; height: 2px; background: ${secondaryColor}; margin: 0 auto 20px;"></div>
+        <h4 style="color: ${primaryColor}; margin: 0 0 15px; font-size: 16px; font-weight: 600;">Don't Forget</h4>
+        <p style="margin: 0; color: #5a5a5a; line-height: 1.6;">`,
+      vendorAdvice: `<div style="background: #ffffff; border: 1px solid #e0e0e0; border-radius: 12px; padding: 20px; margin: 25px 0; box-shadow: 0 4px 15px rgba(0,0,0,0.08);">
+        <div style="display: flex; align-items: center; margin-bottom: 15px;">
+          <div style="background: ${secondaryColor}; width: 12px; height: 12px; border-radius: 50%; margin-right: 10px;"></div>
+          <div style="background: ${primaryColor}; width: 8px; height: 8px; border-radius: 50%; margin-right: 15px;"></div>
+          <strong style="color: ${primaryColor}; font-size: 14px;">Vendor Selection</strong>
+        </div>
+        <p style="margin: 0; color: #4a5568; line-height: 1.7;">`
+    },
+    
+    compact: {
+      quickReminder: `<div style="background: ${primaryColor}; color: white; padding: 15px 20px; margin: 20px 0; border-radius: 25px; font-size: 14px; text-align: center;">
+        <strong>Quick Reminder: </strong>`,
+      timelineItem: `<div style="background: #f9f9f9; padding: 20px; margin: 20px 0; border-radius: 8px; border-left: 3px solid ${secondaryColor};">
+        <div style="display: flex; align-items: center; margin-bottom: 8px;">
+          <div style="width: 16px; height: 16px; background: ${secondaryColor}; border-radius: 3px; margin-right: 12px; display: flex; align-items: center; justify-content: center; color: white; font-size: 10px; font-weight: bold;">✓</div>
+          <span style="color: #4a5568; font-weight: 500;">`
+    },
+    
+    tagline: {
+      inspirationBox: `<div style="position: relative; background: linear-gradient(135deg, #fafafa 0%, #f0f0f0 100%); padding: 30px 25px; margin: 25px 0; border-radius: 15px; overflow: hidden;">
+        <div style="position: absolute; top: 0; right: 0; width: 50px; height: 50px; background: ${secondaryColor}; opacity: 0.1; transform: rotate(45deg) translate(25px, -25px);"></div>
+        <div style="position: relative; z-index: 1;">
+          <div style="text-align: center; margin-bottom: 20px;">
+            <div style="display: inline-block; background: ${primaryColor}; color: white; padding: 5px 15px; border-radius: 20px; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">Wedding Inspiration</div>
+          </div>
+          <p style="margin: 0; color: #5a5a5a; line-height: 1.7; text-align: center; font-style: italic;">`,
+      planningTimeline: `<div style="position: relative; padding: 20px 0 20px 40px; margin: 25px 0;">
+        <div style="position: absolute; left: 15px; top: 0; bottom: 0; width: 2px; background: linear-gradient(to bottom, ${primaryColor} 0%, ${secondaryColor} 100%);"></div>
+        <div style="position: absolute; left: 10px; top: 25px; width: 12px; height: 12px; background: ${primaryColor}; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.2);"></div>
+        <div style="background: white; padding: 15px 20px; border-radius: 10px; box-shadow: 0 3px 10px rgba(0,0,0,0.1); margin-left: 10px;">
+          <strong style="color: ${primaryColor}; display: block; margin-bottom: 8px;">Planning Milestone:</strong>
+          <p style="margin: 0; color: #4a5568; line-height: 1.6;">`
+    }
+  };
+
+  let enhancedContent = content;
+  
+  // Add wedding planning tip boxes for content with wedding advice
+  if (enhancedContent.includes('tip') || enhancedContent.includes('advice') || enhancedContent.includes('remember')) {
+    const containers = visualContainers[variation] || visualContainers.centered;
+    if (containers.weddingTip || containers.quickReminder) {
+      const container = containers.weddingTip || containers.quickReminder;
+      enhancedContent = enhancedContent.replace(
+        /(<p><strong>.*?(tip|advice|remember).*?<\/strong>.*?<\/p>)/gi,
+        container + '$1</p></div>'
+      );
+    }
+  }
+  
+  // Add planning milestone boxes for timeline content
+  if (enhancedContent.includes('months before') || enhancedContent.includes('weeks before') || enhancedContent.includes('timeline')) {
+    const containers = visualContainers[variation] || visualContainers.centered;
+    if (containers.planningTimeline || containers.timelineItem) {
+      const container = containers.planningTimeline || containers.timelineItem;
+      enhancedContent = enhancedContent.replace(
+        /(<p><strong>.*?(months|weeks).*?before.*?<\/strong>.*?<\/p>)/gi,
+        container + '$1</p></div>'
+      );
+    }
+  }
+
+  // Add important reminder boxes
+  if (enhancedContent.includes('important') || enhancedContent.includes('crucial') || enhancedContent.includes('essential')) {
+    const containers = visualContainers[variation] || visualContainers.centered;
+    if (containers.importantReminder) {
+      enhancedContent = enhancedContent.replace(
+        /(<p><strong>.*?(important|crucial|essential).*?<\/strong>.*?<\/p>)/gi,
+        containers.importantReminder + '$1</p></div>'
+      );
+    }
+  }
+
+  return enhancedContent;
+}
+
+// Main function to generate emails with template variations
 function generateEmailHTML(
   photographer: Photographer,
   subject: string,
   content: string,
-  includeBookingCTA: boolean = false
+  includeBookingCTA: boolean = false,
+  sequenceIndex: number = 0
 ): string {
   const businessName = photographer.businessName;
   const primaryColor = photographer.brandPrimary || '#2c3e50';
@@ -29,6 +136,39 @@ function generateEmailHTML(
   const emailFromName = photographer.emailFromName || businessName;
   const emailFromAddr = photographer.emailFromAddr || 'hello@business.com';
 
+  // Determine variation based on sequence index (cycles through 5 variations)
+  const variations = ['centered', 'left', 'accent', 'compact', 'tagline'];
+  const variation = variations[sequenceIndex % variations.length];
+  
+  // Enhance content with wedding-focused visual elements
+  const enhancedContent = enhanceContentWithWeddingVisuals(content, primaryColor, secondaryColor, variation);
+
+  // Generate template based on variation
+  switch (variation) {
+    case 'left':
+      return generateLeftAlignedTemplate(subject, enhancedContent, includeBookingCTA, primaryColor, secondaryColor, businessName, emailFromName, emailFromAddr);
+    case 'accent':
+      return generateAccentLineTemplate(subject, enhancedContent, includeBookingCTA, primaryColor, secondaryColor, businessName, emailFromName, emailFromAddr);
+    case 'compact':
+      return generateCompactTemplate(subject, enhancedContent, includeBookingCTA, primaryColor, secondaryColor, businessName, emailFromName, emailFromAddr);
+    case 'tagline':
+      return generateTaglineTemplate(subject, enhancedContent, includeBookingCTA, primaryColor, secondaryColor, businessName, emailFromName, emailFromAddr);
+    default: // 'centered'
+      return generateCenteredTemplate(subject, enhancedContent, includeBookingCTA, primaryColor, secondaryColor, businessName, emailFromName, emailFromAddr);
+  }
+}
+
+// Template 1: Centered - Original style with client-focused enhancements
+function generateCenteredTemplate(
+  subject: string,
+  content: string,
+  includeBookingCTA: boolean,
+  primaryColor: string,
+  secondaryColor: string,
+  businessName: string,
+  emailFromName: string,
+  emailFromAddr: string
+): string {
   return `
 <!DOCTYPE html>
 <html lang="en">
@@ -48,8 +188,8 @@ function generateEmailHTML(
 <body style="margin: 0; padding: 0; background-color: #f8f9fa; font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; line-height: 1.6;">
   <div class="email-container" style="max-width: 600px; margin: 0 auto; background-color: white; box-shadow: 0 4px 20px rgba(0,0,0,0.08);">
     
-    <!-- Header -->
-    <div style="background: linear-gradient(135deg, ${primaryColor} 0%, ${secondaryColor} 100%); padding: 35px 25px; text-align: center; border-radius: 0 0 0 0;">
+    <!-- Centered Header -->
+    <div style="background: linear-gradient(135deg, ${primaryColor} 0%, ${secondaryColor} 100%); padding: 35px 25px; text-align: center;">
       <h1 class="header" style="color: white; margin: 0; font-size: 26px; font-weight: 300; letter-spacing: 1.5px; text-shadow: 0 2px 4px rgba(0,0,0,0.2);">
         ${businessName}
       </h1>
@@ -60,7 +200,7 @@ function generateEmailHTML(
 
     <!-- Content -->
     <div class="content-section" style="padding: 40px 35px;">
-      <h2 style="color: ${primaryColor}; font-size: 22px; margin-bottom: 25px; font-weight: 400; line-height: 1.3;">
+      <h2 style="color: ${primaryColor}; font-size: 22px; margin-bottom: 25px; font-weight: 400; line-height: 1.3; text-align: center;">
         ${subject}
       </h2>
       
@@ -73,7 +213,7 @@ function generateEmailHTML(
       </div>
 
       ${includeBookingCTA ? `
-        <!-- Call to Action -->
+        <!-- Rounded CTA -->
         <div style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); padding: 35px 30px; border-radius: 12px; text-align: center; margin: 35px 0; border: 1px solid #dee2e6; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
           <div style="background: ${secondaryColor}; width: 60px; height: 4px; margin: 0 auto 25px; border-radius: 2px;"></div>
           <h3 style="color: ${primaryColor}; margin: 0 0 18px; font-size: 20px; font-weight: 500;">
@@ -93,7 +233,6 @@ function generateEmailHTML(
                     font-size: 16px;
                     letter-spacing: 0.5px; 
                     box-shadow: 0 6px 20px rgba(0,0,0,0.15);
-                    transition: all 0.3s ease;
                     text-transform: uppercase;">
             Let's Chat
           </a>
@@ -101,23 +240,441 @@ function generateEmailHTML(
       ` : ''}
     </div>
 
-    <!-- Professional Signature -->
-    <div style="background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%); padding: 30px 35px; border-top: 1px solid #e9ecef;">
-      <div style="text-align: center; margin-bottom: 25px;">
-        <h4 style="color: ${primaryColor}; margin: 0 0 8px; font-size: 18px; font-weight: 500;">
+    <!-- Centered Signature -->
+    <div style="background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%); padding: 30px 35px; border-top: 1px solid #e9ecef; text-align: center;">
+      <h4 style="color: ${primaryColor}; margin: 0 0 8px; font-size: 18px; font-weight: 500;">
+        ${emailFromName}
+      </h4>
+      <p style="color: #6c757d; margin: 0 0 4px; font-size: 14px; font-style: italic;">
+        ${businessName}
+      </p>
+      <p style="color: #6c757d; margin: 0; font-size: 14px; line-height: 1.5;">
+        Capturing life's most precious moments with artistry and passion
+      </p>
+      ${emailFromAddr !== 'hello@business.com' ? `
+        <div style="text-align: center; padding-top: 20px; border-top: 1px solid #e9ecef; margin-top: 20px;">
+          <p style="color: #6c757d; margin: 0; font-size: 14px;">
+            <a href="mailto:${emailFromAddr}" style="color: ${secondaryColor}; text-decoration: none; font-weight: 500;">${emailFromAddr}</a>
+          </p>
+        </div>
+      ` : ''}
+    </div>
+  </div>
+</body>
+</html>`;
+}
+
+// Template 2: Left-Aligned with Square CTAs
+function generateLeftAlignedTemplate(
+  subject: string,
+  content: string,
+  includeBookingCTA: boolean,
+  primaryColor: string,
+  secondaryColor: string,
+  businessName: string,
+  emailFromName: string,
+  emailFromAddr: string
+): string {
+  return `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${subject}</title>
+  <style>
+    @media only screen and (max-width: 600px) {
+      .email-container { width: 100% !important; padding: 15px !important; }
+      .header { font-size: 20px !important; }
+      .content-section { padding: 25px 20px !important; }
+      .cta-button { width: 100% !important; padding: 15px 20px !important; }
+    }
+  </style>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f5f5f5; font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; line-height: 1.6;">
+  <div class="email-container" style="max-width: 600px; margin: 0 auto; background-color: white; box-shadow: 0 6px 25px rgba(0,0,0,0.1);">
+    
+    <!-- Left-Aligned Header -->
+    <div style="background: linear-gradient(145deg, ${primaryColor} 0%, ${secondaryColor} 100%); padding: 40px 35px 35px; text-align: left;">
+      <h1 class="header" style="color: white; margin: 0; font-size: 28px; font-weight: 400; letter-spacing: 1px; text-shadow: 0 2px 4px rgba(0,0,0,0.2);">
+        ${businessName}
+      </h1>
+      <div style="width: 50px; height: 3px; background: rgba(255,255,255,0.8); margin-top: 15px;"></div>
+    </div>
+
+    <!-- Content -->
+    <div class="content-section" style="padding: 45px 35px;">
+      <h2 style="color: ${primaryColor}; font-size: 24px; margin-bottom: 30px; font-weight: 500; line-height: 1.2;">
+        ${subject}
+      </h2>
+      
+      <p style="color: #4a5568; line-height: 1.8; margin-bottom: 25px; font-size: 16px;">
+        Hi {{firstName}},
+      </p>
+      
+      <div style="color: #4a5568; line-height: 1.8; font-size: 16px; margin-bottom: 35px;">
+        ${content}
+      </div>
+
+      ${includeBookingCTA ? `
+        <!-- Square CTA -->
+        <div style="background: #fafafa; padding: 30px; border: 2px solid #f0f0f0; margin: 35px 0;">
+          <h3 style="color: ${primaryColor}; margin: 0 0 15px; font-size: 18px; font-weight: 600;">
+            Get Started Today
+          </h3>
+          <p style="color: #4a5568; margin: 0 0 25px; line-height: 1.6; font-size: 15px;">
+            Ready to discuss your project? Let's connect and create something amazing.
+          </p>
+          <a href="mailto:${emailFromAddr}" class="cta-button" 
+             style="background: ${primaryColor}; 
+                    color: white; 
+                    padding: 15px 28px; 
+                    text-decoration: none; 
+                    display: inline-block; 
+                    font-weight: 600; 
+                    font-size: 14px;
+                    letter-spacing: 0.5px; 
+                    text-transform: uppercase;">
+            Contact Us
+          </a>
+        </div>
+      ` : ''}
+    </div>
+
+    <!-- Left-Aligned Signature -->
+    <div style="background: #f8f8f8; padding: 35px; border-top: 1px solid #e5e5e5;">
+      <div style="text-align: left;">
+        <h4 style="color: ${primaryColor}; margin: 0 0 10px; font-size: 17px; font-weight: 600;">
           ${emailFromName}
         </h4>
-        <p style="color: #6c757d; margin: 0 0 4px; font-size: 14px; font-style: italic;">
+        <p style="color: #7a7a7a; margin: 0 0 5px; font-size: 14px;">
           ${businessName}
         </p>
-        <p style="color: #6c757d; margin: 0; font-size: 14px; line-height: 1.5;">
-          Capturing life's most precious moments with artistry and passion
+        <p style="color: #7a7a7a; margin: 0; font-size: 13px; line-height: 1.4;">
+          Professional photography services
         </p>
+        ${emailFromAddr !== 'hello@business.com' ? `
+          <p style="margin-top: 15px; margin-bottom: 0;">
+            <a href="mailto:${emailFromAddr}" style="color: ${secondaryColor}; text-decoration: none; font-weight: 500; font-size: 14px;">${emailFromAddr}</a>
+          </p>
+        ` : ''}
+      </div>
+    </div>
+  </div>
+</body>
+</html>`;
+}
+
+// Template 3: Header with Accent Line + Outlined CTAs
+function generateAccentLineTemplate(
+  subject: string,
+  content: string,
+  includeBookingCTA: boolean,
+  primaryColor: string,
+  secondaryColor: string,
+  businessName: string,
+  emailFromName: string,
+  emailFromAddr: string
+): string {
+  return `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${subject}</title>
+  <style>
+    @media only screen and (max-width: 600px) {
+      .email-container { width: 100% !important; padding: 15px !important; }
+      .header { font-size: 20px !important; }
+      .content-section { padding: 25px 20px !important; }
+      .cta-button { width: 100% !important; padding: 15px 20px !important; }
+    }
+  </style>
+</head>
+<body style="margin: 0; padding: 0; background-color: #fafafa; font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; line-height: 1.6;">
+  <div class="email-container" style="max-width: 600px; margin: 0 auto; background-color: white; box-shadow: 0 8px 30px rgba(0,0,0,0.12);">
+    
+    <!-- Header with Accent Line -->
+    <div style="background: linear-gradient(120deg, ${primaryColor} 0%, ${secondaryColor} 100%); padding: 45px 35px 30px; text-align: center; position: relative;">
+      <div style="position: absolute; bottom: 0; left: 0; width: 100%; height: 6px; background: linear-gradient(90deg, ${secondaryColor} 0%, transparent 100%);"></div>
+      <h1 class="header" style="color: white; margin: 0; font-size: 25px; font-weight: 300; letter-spacing: 2px; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">
+        ${businessName}
+      </h1>
+      <p style="color: rgba(255,255,255,0.95); margin: 15px 0 0; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; font-weight: 400;">
+        Professional Photography
+      </p>
+    </div>
+
+    <!-- Content -->
+    <div class="content-section" style="padding: 50px 35px;">
+      <div style="text-align: center; margin-bottom: 35px;">
+        <h2 style="color: ${primaryColor}; font-size: 23px; margin: 0 0 15px; font-weight: 400; line-height: 1.3;">
+          ${subject}
+        </h2>
+        <div style="width: 80px; height: 2px; background: ${secondaryColor}; margin: 0 auto;"></div>
       </div>
       
+      <p style="color: #4a5568; line-height: 1.8; margin-bottom: 25px; font-size: 16px;">
+        Hi {{firstName}},
+      </p>
+      
+      <div style="color: #4a5568; line-height: 1.8; font-size: 16px; margin-bottom: 35px;">
+        ${content}
+      </div>
+
+      ${includeBookingCTA ? `
+        <!-- Outlined CTA -->
+        <div style="text-align: center; margin: 40px 0; padding: 40px 30px; border: 2px solid ${primaryColor}; background: rgba(${primaryColor.replace('#', '').match(/.{2}/g).map(x => parseInt(x, 16)).join(', ')}, 0.02);">
+          <h3 style="color: ${primaryColor}; margin: 0 0 20px; font-size: 19px; font-weight: 500;">
+            Let's Discuss Your Vision
+          </h3>
+          <p style="color: #4a5568; margin: 0 0 30px; line-height: 1.6; font-size: 15px;">
+            I'm excited to learn about your project and create something beautiful together.
+          </p>
+          <a href="mailto:${emailFromAddr}" class="cta-button" 
+             style="background: transparent; 
+                    color: ${primaryColor}; 
+                    border: 2px solid ${primaryColor};
+                    padding: 16px 30px; 
+                    text-decoration: none; 
+                    display: inline-block; 
+                    font-weight: 500; 
+                    font-size: 15px;
+                    letter-spacing: 0.5px; 
+                    text-transform: uppercase;">
+            Start Conversation
+          </a>
+        </div>
+      ` : ''}
+    </div>
+
+    <!-- Signature with Divider -->
+    <div style="border-top: 3px solid ${secondaryColor}; background: #f9f9f9; padding: 35px; text-align: center;">
+      <div style="margin-bottom: 20px;">
+        <div style="width: 40px; height: 1px; background: ${primaryColor}; margin: 0 auto;"></div>
+      </div>
+      <h4 style="color: ${primaryColor}; margin: 0 0 8px; font-size: 17px; font-weight: 500;">
+        ${emailFromName}
+      </h4>
+      <p style="color: #8a8a8a; margin: 0 0 5px; font-size: 14px;">
+        ${businessName}
+      </p>
+      <p style="color: #8a8a8a; margin: 0; font-size: 13px; line-height: 1.5;">
+        Creating timeless memories through photography
+      </p>
       ${emailFromAddr !== 'hello@business.com' ? `
-        <div style="text-align: center; padding-top: 20px; border-top: 1px solid #e9ecef;">
-          <p style="color: #6c757d; margin: 0; font-size: 14px;">
+        <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e0e0e0;">
+          <p style="color: #8a8a8a; margin: 0; font-size: 13px;">
+            <a href="mailto:${emailFromAddr}" style="color: ${secondaryColor}; text-decoration: none; font-weight: 500;">${emailFromAddr}</a>
+          </p>
+        </div>
+      ` : ''}
+    </div>
+  </div>
+</body>
+</html>`;
+}
+
+// Template 4: Compact Header + Pill CTAs
+function generateCompactTemplate(
+  subject: string,
+  content: string,
+  includeBookingCTA: boolean,
+  primaryColor: string,
+  secondaryColor: string,
+  businessName: string,
+  emailFromName: string,
+  emailFromAddr: string
+): string {
+  return `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${subject}</title>
+  <style>
+    @media only screen and (max-width: 600px) {
+      .email-container { width: 100% !important; padding: 15px !important; }
+      .header { font-size: 18px !important; }
+      .content-section { padding: 25px 20px !important; }
+      .cta-button { width: 100% !important; padding: 15px 20px !important; }
+    }
+  </style>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f7f7f7; font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; line-height: 1.5;">
+  <div class="email-container" style="max-width: 600px; margin: 0 auto; background-color: white; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+    
+    <!-- Compact Header -->
+    <div style="background: linear-gradient(135deg, ${primaryColor} 0%, ${secondaryColor} 100%); padding: 25px 35px; text-align: center;">
+      <h1 class="header" style="color: white; margin: 0; font-size: 22px; font-weight: 500; letter-spacing: 1px;">
+        ${businessName}
+      </h1>
+    </div>
+
+    <!-- Content -->
+    <div class="content-section" style="padding: 35px 35px;">
+      <h2 style="color: ${primaryColor}; font-size: 20px; margin-bottom: 25px; font-weight: 600; line-height: 1.2;">
+        ${subject}
+      </h2>
+      
+      <p style="color: #4a5568; line-height: 1.7; margin-bottom: 20px; font-size: 15px;">
+        Hi {{firstName}},
+      </p>
+      
+      <div style="color: #4a5568; line-height: 1.7; font-size: 15px; margin-bottom: 30px;">
+        ${content}
+      </div>
+
+      ${includeBookingCTA ? `
+        <!-- Pill CTA -->
+        <div style="text-align: center; margin: 30px 0; padding: 25px; background: linear-gradient(135deg, #f8f9fa 0%, #f0f0f0 100%); border-radius: 20px;">
+          <h3 style="color: ${primaryColor}; margin: 0 0 15px; font-size: 17px; font-weight: 600;">
+            Ready to Connect?
+          </h3>
+          <p style="color: #4a5568; margin: 0 0 20px; line-height: 1.5; font-size: 14px;">
+            Let's chat about bringing your vision to life.
+          </p>
+          <a href="mailto:${emailFromAddr}" class="cta-button" 
+             style="background: linear-gradient(135deg, ${secondaryColor} 0%, ${primaryColor} 100%); 
+                    color: white; 
+                    padding: 12px 25px; 
+                    text-decoration: none; 
+                    border-radius: 50px;
+                    display: inline-block; 
+                    font-weight: 500; 
+                    font-size: 13px;
+                    letter-spacing: 0.5px; 
+                    text-transform: uppercase;">
+            Get In Touch
+          </a>
+        </div>
+      ` : ''}
+    </div>
+
+    <!-- Minimal Signature -->
+    <div style="background: #f5f5f5; padding: 25px 35px; border-top: 1px solid #e8e8e8; text-align: center;">
+      <h4 style="color: ${primaryColor}; margin: 0 0 5px; font-size: 16px; font-weight: 600;">
+        ${emailFromName}
+      </h4>
+      <p style="color: #888; margin: 0; font-size: 13px;">
+        ${businessName} • Professional Photography
+      </p>
+      ${emailFromAddr !== 'hello@business.com' ? `
+        <p style="margin-top: 12px; margin-bottom: 0;">
+          <a href="mailto:${emailFromAddr}" style="color: ${secondaryColor}; text-decoration: none; font-weight: 500; font-size: 13px;">${emailFromAddr}</a>
+        </p>
+      ` : ''}
+    </div>
+  </div>
+</body>
+</html>`;
+}
+
+// Template 5: Header with Tagline + Ghost CTAs
+function generateTaglineTemplate(
+  subject: string,
+  content: string,
+  includeBookingCTA: boolean,
+  primaryColor: string,
+  secondaryColor: string,
+  businessName: string,
+  emailFromName: string,
+  emailFromAddr: string
+): string {
+  return `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${subject}</title>
+  <style>
+    @media only screen and (max-width: 600px) {
+      .email-container { width: 100% !important; padding: 15px !important; }
+      .header { font-size: 20px !important; }
+      .content-section { padding: 25px 20px !important; }
+      .cta-button { width: 100% !important; padding: 15px 20px !important; }
+    }
+  </style>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f9f9f9; font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; line-height: 1.6;">
+  <div class="email-container" style="max-width: 600px; margin: 0 auto; background-color: white; box-shadow: 0 6px 25px rgba(0,0,0,0.15);">
+    
+    <!-- Header with Tagline -->
+    <div style="background: linear-gradient(150deg, ${primaryColor} 0%, ${secondaryColor} 100%); padding: 40px 35px 35px; text-align: center;">
+      <h1 class="header" style="color: white; margin: 0 0 8px; font-size: 27px; font-weight: 400; letter-spacing: 1.2px; text-shadow: 0 2px 4px rgba(0,0,0,0.2);">
+        ${businessName}
+      </h1>
+      <div style="width: 60px; height: 1px; background: rgba(255,255,255,0.7); margin: 0 auto 12px;"></div>
+      <p style="color: rgba(255,255,255,0.95); margin: 0; font-size: 14px; font-style: italic; letter-spacing: 0.5px;">
+        Capturing Your Story with Heart & Soul
+      </p>
+    </div>
+
+    <!-- Content with Wider Margins -->
+    <div class="content-section" style="padding: 45px 45px;">
+      <h2 style="color: ${primaryColor}; font-size: 24px; margin-bottom: 30px; font-weight: 400; line-height: 1.3; text-align: center;">
+        ${subject}
+      </h2>
+      
+      <p style="color: #4a5568; line-height: 1.8; margin-bottom: 25px; font-size: 16px;">
+        Hi {{firstName}},
+      </p>
+      
+      <div style="color: #4a5568; line-height: 1.8; font-size: 16px; margin-bottom: 35px;">
+        ${content}
+      </div>
+
+      ${includeBookingCTA ? `
+        <!-- Ghost CTA -->
+        <div style="text-align: center; margin: 40px 0; padding: 35px 30px; border: 2px solid rgba(${primaryColor.replace('#', '').match(/.{2}/g).map(x => parseInt(x, 16)).join(', ')}, 0.2); background: rgba(${primaryColor.replace('#', '').match(/.{2}/g).map(x => parseInt(x, 16)).join(', ')}, 0.03); border-radius: 15px;">
+          <div style="margin-bottom: 20px;">
+            <div style="width: 30px; height: 1px; background: ${secondaryColor}; margin: 0 auto;"></div>
+          </div>
+          <h3 style="color: ${primaryColor}; margin: 0 0 18px; font-size: 20px; font-weight: 400; font-style: italic;">
+            Let's Create Something Beautiful
+          </h3>
+          <p style="color: #4a5568; margin: 0 0 28px; line-height: 1.6; font-size: 15px;">
+            I'd love to hear about your vision and discuss how we can bring it to life together.
+          </p>
+          <a href="mailto:${emailFromAddr}" class="cta-button" 
+             style="background: transparent; 
+                    color: ${primaryColor}; 
+                    border: 1px solid ${primaryColor};
+                    padding: 16px 30px; 
+                    text-decoration: none; 
+                    border-radius: 8px;
+                    display: inline-block; 
+                    font-weight: 400; 
+                    font-size: 15px;
+                    letter-spacing: 0.5px;">
+            Begin Our Journey
+          </a>
+        </div>
+      ` : ''}
+    </div>
+
+    <!-- Signature with Contact Highlight -->
+    <div style="background: linear-gradient(135deg, #f8f9fa 0%, #f0f0f0 100%); padding: 35px; text-align: center; border-top: 1px solid #e5e5e5;">
+      <div style="margin-bottom: 20px;">
+        <div style="display: inline-block; width: 25px; height: 1px; background: ${secondaryColor}; margin: 0 8px;"></div>
+        <div style="display: inline-block; width: 4px; height: 4px; background: ${primaryColor}; border-radius: 50%;"></div>
+        <div style="display: inline-block; width: 25px; height: 1px; background: ${secondaryColor}; margin: 0 8px;"></div>
+      </div>
+      <h4 style="color: ${primaryColor}; margin: 0 0 8px; font-size: 18px; font-weight: 400; font-style: italic;">
+        ${emailFromName}
+      </h4>
+      <p style="color: #7a7a7a; margin: 0 0 8px; font-size: 14px;">
+        ${businessName}
+      </p>
+      <p style="color: #7a7a7a; margin: 0; font-size: 13px; line-height: 1.5; font-style: italic;">
+        Photography that tells your unique story
+      </p>
+      ${emailFromAddr !== 'hello@business.com' ? `
+        <div style="margin-top: 20px; padding: 15px 20px; background: white; border-radius: 8px; display: inline-block;">
+          <p style="color: #7a7a7a; margin: 0; font-size: 13px;">
             <a href="mailto:${emailFromAddr}" style="color: ${secondaryColor}; text-decoration: none; font-weight: 500;">${emailFromAddr}</a>
           </p>
         </div>
@@ -546,7 +1103,8 @@ export function generateWeddingEmailContent(photographer: Photographer): StaticC
         photographer,
         email.subject,
         contentData.content,
-        contentData.includeBookingCTA
+        contentData.includeBookingCTA,
+        email.sequenceIndex
       ),
       textBody: contentData.content.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim()
     };
@@ -1024,7 +1582,8 @@ export function generatePortraitEmailContent(photographer: Photographer): Static
         photographer,
         email.subject,
         contentData.content,
-        contentData.includeBookingCTA
+        contentData.includeBookingCTA,
+        email.sequenceIndex
       ),
       textBody: contentData.content.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim()
     };
@@ -1319,7 +1878,8 @@ export function generateCommercialEmailContent(photographer: Photographer): Stat
         photographer,
         email.subject,
         contentData.content,
-        contentData.includeBookingCTA
+        contentData.includeBookingCTA,
+        email.sequenceIndex
       ),
       textBody: contentData.content.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim()
     };
@@ -1594,7 +2154,8 @@ export function generateEngagementEmailContent(photographer: Photographer): Stat
         photographer,
         email.subject,
         contentData.content,
-        contentData.includeBookingCTA
+        contentData.includeBookingCTA,
+        email.sequenceIndex
       ),
       textBody: contentData.content.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim()
     };
@@ -1851,7 +2412,8 @@ export function generateMaternityEmailContent(photographer: Photographer): Stati
         photographer,
         email.subject,
         contentData.content,
-        contentData.includeBookingCTA
+        contentData.includeBookingCTA,
+        email.sequenceIndex
       ),
       textBody: contentData.content.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim()
     };
@@ -2108,7 +2670,8 @@ export function generateFamilyEmailContent(photographer: Photographer): StaticCa
         photographer,
         email.subject,
         contentData.content,
-        contentData.includeBookingCTA
+        contentData.includeBookingCTA,
+        email.sequenceIndex
       ),
       textBody: contentData.content.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim()
     };

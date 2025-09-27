@@ -55,7 +55,7 @@ type DripCampaignEmail = SchemaDripCampaignEmail & {
 
 
 export default function DripCampaigns() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { toast } = useToast();
   const [selectedEmailPreview, setSelectedEmailPreview] = useState<'text' | 'html'>('html');
   const [selectedProjectType, setSelectedProjectType] = useState<string>("WEDDING");
@@ -198,7 +198,7 @@ export default function DripCampaigns() {
     }
   };
 
-  if (!user?.photographerId) {
+  if (authLoading || !user?.photographerId) {
     return <div>Loading...</div>;
   }
 
