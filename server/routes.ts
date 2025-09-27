@@ -520,7 +520,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('Client phone:', client.phone);
       console.log('NODE_ENV:', process.env.NODE_ENV);
       console.log('SENDGRID_API_KEY exists:', !!process.env.SENDGRID_API_KEY);
-      console.log('TWILIO credentials exist:', !!process.env.TWILIO_ACCOUNT_SID && !!process.env.TWILIO_AUTH_TOKEN);
+      console.log('SimpleTexting credentials exist:', !!process.env.SIMPLETEXTING_API_TOKEN && !!process.env.SIMPLETEXTING_PHONE_NUMBER);
       
       const emailText = `Hi ${client.firstName},
 
