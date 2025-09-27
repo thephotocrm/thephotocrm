@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Switch } from "@/components/ui/switch";
 import {
   Form,
   FormControl,
@@ -23,7 +24,7 @@ const clientFormSchema = z.object({
   phone: z.string().optional(),
   notes: z.string().optional(),
   emailOptIn: z.boolean().default(true),
-  smsOptIn: z.boolean().default(false),
+  smsOptIn: z.boolean().default(true),
 });
 
 type ClientFormData = z.infer<typeof clientFormSchema>;
@@ -50,7 +51,7 @@ export default function ClientForm({
       phone: initialData?.phone || "",
       notes: initialData?.notes || "",
       emailOptIn: initialData?.emailOptIn ?? true,
-      smsOptIn: initialData?.smsOptIn ?? false,
+      smsOptIn: initialData?.smsOptIn ?? true,
     },
   });
 
@@ -192,23 +193,23 @@ export default function ClientForm({
             control={form.control}
             name="smsOptIn"
             render={({ field }) => (
-              <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                <FormControl>
-                  <Checkbox
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                    data-testid="checkbox-sms-opt-in"
-                  />
-                </FormControl>
-                <div className="space-y-1 leading-none">
-                  <FormLabel className="text-sm font-normal">
-                    SMS notifications
+              <FormItem className="flex flex-row items-center justify-between p-4 border rounded-lg bg-card">
+                <div className="space-y-1">
+                  <FormLabel className="text-sm font-medium">
+                    📱 SMS notifications & automations
                   </FormLabel>
                   <p className="text-xs text-muted-foreground">
-                    Receive important updates and reminders via text message. Message and data rates may apply. 
-                    You can reply STOP to opt out at any time.
+                    Enable to receive SMS updates and automated messages. Required for SMS automation workflows.
+                    Message and data rates may apply. Reply STOP to opt out anytime.
                   </p>
                 </div>
+                <FormControl>
+                  <Switch
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                    data-testid="switch-sms-opt-in"
+                  />
+                </FormControl>
               </FormItem>
             )}
           />
