@@ -41,6 +41,12 @@ function AutomationStepManager({ automation, onDelete }: { automation: any, onDe
     enabled: !!automation.id
   });
 
+  // Fetch template details for the automation
+  const { data: templates } = useQuery<any[]>({
+    queryKey: ["/api/templates"],
+    enabled: !!automation.id
+  });
+
 
   // Delete step mutation  
   const deleteStepMutation = useMutation({
@@ -170,15 +176,20 @@ function AutomationStepManager({ automation, onDelete }: { automation: any, onDe
           >
             <Edit2 className="w-3 h-3" />
           </Button>
+          <div className="flex items-center space-x-2">
+            <span className="text-sm text-muted-foreground">
+              {automation.enabled ? "On" : "Off"}
+            </span>
+            <Switch 
+              checked={automation.enabled}
+              disabled={toggleAutomationMutation.isPending}
+              data-testid={`switch-automation-${automation.id}`}
+              onCheckedChange={handleToggleAutomation}
+            />
+          </div>
           <Badge variant={automation.enabled ? "default" : "secondary"}>
             {automation.enabled ? "Active" : "Inactive"}
           </Badge>
-          <Switch 
-            checked={automation.enabled}
-            disabled={toggleAutomationMutation.isPending}
-            data-testid={`switch-automation-${automation.id}`}
-            onCheckedChange={handleToggleAutomation}
-          />
         </div>
       </div>
 
@@ -202,6 +213,9 @@ function AutomationStepManager({ automation, onDelete }: { automation: any, onDe
                   </span>
                 </div>
                 <div className="flex items-center space-x-1">
+                  <span className="text-xs text-muted-foreground">
+                    {step.enabled ? "On" : "Off"}
+                  </span>
                   <Switch
                     checked={step.enabled}
                     disabled={toggleStepMutation.isPending}
@@ -261,6 +275,38 @@ function AutomationStepManager({ automation, onDelete }: { automation: any, onDe
                   <SelectItem value="SMS">SMS</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+
+            {/* Template Content Preview */}
+            <div className="space-y-2">
+              <Label>Message Content</Label>
+              <div className="border rounded-lg p-3 bg-muted max-h-40 overflow-y-auto">
+                {steps.length > 0 ? (
+                  <div className="space-y-2">
+                    {steps.map((step: any, index: number) => {
+                      const template = templates?.find(t => t.id === step.templateId);
+                      return (
+                        <div key={step.id} className="border-l-2 border-primary pl-3">
+                          <p className="text-sm font-medium">Step {index + 1} ({step.delayMinutes} min delay)</p>
+                          {template ? (
+                            <div className="text-sm text-muted-foreground">
+                              <p className="font-medium">{template.name}</p>
+                              {template.subject && <p className="italic">Subject: {template.subject}</p>}
+                              <p className="mt-1 text-xs bg-background rounded p-2 border">
+                                {template.textBody?.substring(0, 150) + (template.textBody?.length > 150 ? '...' : '')}
+                              </p>
+                            </div>
+                          ) : (
+                            <p className="text-sm text-muted-foreground">Template not found</p>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">No message steps configured</p>
+                )}
+              </div>
             </div>
 
             <div className="flex items-center space-x-2">
@@ -384,12 +430,17 @@ function StageChangeAutomationCard({ automation, onDelete }: { automation: any, 
           >
             <Edit2 className="w-4 h-4" />
           </Button>
-          <Switch
-            checked={automation.enabled}
-            onCheckedChange={handleToggleAutomation}
-            disabled={toggleAutomationMutation.isPending}
-            data-testid={`switch-toggle-automation-${automation.id}`}
-          />
+          <div className="flex items-center space-x-2">
+            <span className="text-sm text-muted-foreground">
+              {automation.enabled ? "On" : "Off"}
+            </span>
+            <Switch
+              checked={automation.enabled}
+              onCheckedChange={handleToggleAutomation}
+              disabled={toggleAutomationMutation.isPending}
+              data-testid={`switch-toggle-automation-${automation.id}`}
+            />
+          </div>
           <Button
             variant="ghost"
             size="sm"
@@ -425,6 +476,33 @@ function StageChangeAutomationCard({ automation, onDelete }: { automation: any, 
                 onChange={(e) => setEditForm({...editForm, name: e.target.value})}
                 data-testid={`input-edit-name-${automation.id}`}
               />
+            </div>
+
+            {/* Pipeline Automation Details */}
+            <div className="space-y-2">
+              <Label>Automation Details</Label>
+              <div className="border rounded-lg p-3 bg-muted">
+                <div className="space-y-2 text-sm">
+                  <div className="flex items-center justify-between">
+                    <span className="font-medium">Type:</span>
+                    <span>Pipeline Stage Automation</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="font-medium">Trigger:</span>
+                    <span>{getTriggerLabel(automation.triggerType)}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="font-medium">Action:</span>
+                    <span>Move to "{automation.targetStage?.name || 'Unknown Stage'}"</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="font-medium">Status:</span>
+                    <Badge variant={automation.enabled ? "default" : "secondary"}>
+                      {automation.enabled ? "Active" : "Inactive"}
+                    </Badge>
+                  </div>
+                </div>
+              </div>
             </div>
 
             <div className="flex items-center space-x-2">
