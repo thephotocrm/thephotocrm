@@ -506,6 +506,13 @@ export class DatabaseStorage implements IStorage {
         await tx.delete(photographerEarnings)
           .where(inArray(photographerEarnings.projectId, projectIds));
         
+        // Delete drip campaign deliveries and subscriptions related to these projects
+        await tx.delete(dripEmailDeliveries)
+          .where(inArray(dripEmailDeliveries.projectId, projectIds));
+          
+        await tx.delete(dripCampaignSubscriptions)
+          .where(inArray(dripCampaignSubscriptions.projectId, projectIds));
+        
         // Delete projects (batched)
         await tx.delete(projects)
           .where(inArray(projects.id, projectIds));
