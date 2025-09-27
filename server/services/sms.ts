@@ -36,6 +36,13 @@ export async function sendSms(params: SmsParams): Promise<{ success: boolean; si
     console.log('SMS message body:', params.body);
     console.log('From phone:', process.env.SIMPLETEXTING_PHONE_NUMBER);
     
+    const requestPayload = {
+      contactPhone: params.to,
+      accountPhone: process.env.SIMPLETEXTING_PHONE_NUMBER,
+      text: params.body
+    };
+    console.log('SMS request payload:', JSON.stringify(requestPayload, null, 2));
+    
     // Validate message body is not empty
     if (!params.body || params.body.trim() === '') {
       console.error('SMS body is empty or blank, aborting send');
@@ -51,10 +58,7 @@ export async function sendSms(params: SmsParams): Promise<{ success: boolean; si
         'Authorization': `Bearer ${process.env.SIMPLETEXTING_API_TOKEN}`,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({
-        phone: params.to,
-        text: params.body  // Changed from 'message' to 'text'
-      })
+      body: JSON.stringify(requestPayload)
     });
 
     const responseData = await response.json() as SimpleTextingResponse;
