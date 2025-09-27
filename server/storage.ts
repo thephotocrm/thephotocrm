@@ -522,6 +522,10 @@ export class DatabaseStorage implements IStorage {
       await tx.delete(messages)
         .where(eq(messages.clientId, id));
       
+      // Delete SMS logs directly related to client (not just by project)
+      await tx.delete(smsLogs)
+        .where(eq(smsLogs.clientId, id));
+      
       // Delete client portal tokens
       await tx.delete(clientPortalTokens)
         .where(eq(clientPortalTokens.clientId, id));
