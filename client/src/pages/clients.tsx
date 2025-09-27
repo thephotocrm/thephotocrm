@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Search, Mail, Phone, Calendar, Trash2, Eye, MoreHorizontal } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import {
   Dialog,
   DialogContent,
@@ -57,6 +58,8 @@ export default function Clients() {
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  const [emailOptIn, setEmailOptIn] = useState(true);
+  const [smsOptIn, setSmsOptIn] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [clientToDelete, setClientToDelete] = useState<ClientWithProjects | null>(null);
@@ -116,6 +119,8 @@ export default function Clients() {
     setLastName("");
     setEmail("");
     setPhone("");
+    setEmailOptIn(true);
+    setSmsOptIn(true);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -125,7 +130,9 @@ export default function Clients() {
       firstName,
       lastName,
       email: email || undefined,
-      phone: phone || undefined
+      phone: phone || undefined,
+      emailOptIn,
+      smsOptIn
     });
   };
 
@@ -221,6 +228,48 @@ export default function Clients() {
                       onChange={(e) => setPhone(e.target.value)}
                       data-testid="input-phone"
                     />
+                  </div>
+
+                  {/* Communication Preferences */}
+                  <div className="space-y-4">
+                    <div>
+                      <Label className="text-sm font-medium">Communication Preferences</Label>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Choose how this client will receive updates and automated messages.
+                      </p>
+                    </div>
+                    
+                    <div className="flex flex-row items-center justify-between p-4 border rounded-lg bg-card">
+                      <div className="space-y-1">
+                        <Label className="text-sm font-medium">
+                          📧 Email communications
+                        </Label>
+                        <p className="text-xs text-muted-foreground">
+                          Receive project updates and notifications via email
+                        </p>
+                      </div>
+                      <Switch
+                        checked={emailOptIn}
+                        onCheckedChange={setEmailOptIn}
+                        data-testid="switch-email-opt-in"
+                      />
+                    </div>
+
+                    <div className="flex flex-row items-center justify-between p-4 border rounded-lg bg-card">
+                      <div className="space-y-1">
+                        <Label className="text-sm font-medium">
+                          📱 SMS notifications & automations
+                        </Label>
+                        <p className="text-xs text-muted-foreground">
+                          Enable SMS updates and automated messages. Required for SMS automation workflows.
+                        </p>
+                      </div>
+                      <Switch
+                        checked={smsOptIn}
+                        onCheckedChange={setSmsOptIn}
+                        data-testid="switch-sms-opt-in"
+                      />
+                    </div>
                   </div>
                   
                   <div className="flex justify-end space-x-2">
