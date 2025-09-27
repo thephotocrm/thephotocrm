@@ -4243,21 +4243,6 @@ ${photographer.businessName}
     }
   });
 
-  // Temporary test endpoint to manually trigger automation
-  app.get("/api/test-automation-trigger", async (req, res) => {
-    try {
-      console.log("🔥 MANUALLY TRIGGERING AUTOMATION TEST");
-      await processAutomations('3208b269-a837-44f6-a509-50436d2aecca');
-      res.json({ message: "Automation triggered successfully" });
-    } catch (error: any) {
-      console.error('Manual automation trigger error:', error);
-      res.status(500).json({ 
-        message: "Failed to trigger automation",
-        error: error.message 
-      });
-    }
-  });
-
   const httpServer = createServer(app);
   return httpServer;
 }

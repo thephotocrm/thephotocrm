@@ -1762,6 +1762,12 @@ export class DatabaseStorage implements IStorage {
     };
     
     const [project] = await db.insert(projects).values(projectData).returning();
+    
+    // Auto-subscribe to wedding campaigns when creating in inquiry stage
+    if (project.stageId) {
+      await this.checkAndSubscribeToWeddingCampaign(project);
+    }
+    
     return project;
   }
 
@@ -1778,7 +1784,112 @@ export class DatabaseStorage implements IStorage {
       .set(updateData)
       .where(eq(projects.id, id))
       .returning();
+
+    // Auto-subscribe to wedding campaigns when entering inquiry stage
+    if (projectUpdate.stageId) {
+      await this.checkAndSubscribeToWeddingCampaign(updated);
+    }
+    
     return updated;
+  }
+
+  private async checkAndSubscribeToWeddingCampaign(project: Project): Promise<void> {
+    try {
+      console.log(`🔍 AUTO-SUBSCRIPTION CHECK: Project ${project.id}, Type: ${project.projectType}, Stage: ${project.stageId}`);
+      
+      // Only process wedding projects
+      if (project.projectType !== 'WEDDING') {
+        console.log(`❌ Skipping auto-subscription: Not a wedding project (${project.projectType})`);
+        return;
+      }
+
+      // Get the stage to check if it's inquiry stage
+      const stage = await db.select()
+        .from(stages)
+        .where(eq(stages.id, project.stageId!))
+        .limit(1);
+
+      console.log(`🔍 Stage check: Found ${stage.length} stages, Stage name: ${stage[0]?.name}`);
+      if (!stage.length || stage[0].name !== 'Inquiry') {
+        console.log(`❌ Skipping auto-subscription: Not in Inquiry stage (current: ${stage[0]?.name || 'unknown'})`);
+        return;
+      }
+
+      // Check if wedding campaign is enabled for this photographer
+      const campaignSettings = await db.select()
+        .from(staticCampaignSettings)
+        .where(and(
+          eq(staticCampaignSettings.photographerId, project.photographerId),
+          eq(staticCampaignSettings.projectType, 'WEDDING')
+        ))
+        .limit(1);
+
+      console.log(`🔍 Campaign settings: Found ${campaignSettings.length} settings, Enabled: ${campaignSettings[0]?.campaignEnabled}`);
+      if (!campaignSettings.length || !campaignSettings[0].campaignEnabled) {
+        console.log(`❌ Skipping auto-subscription: Wedding campaign not enabled`);
+        return;
+      }
+
+      // Get the client to check email opt-in
+      const client = await db.select()
+        .from(clients)
+        .where(eq(clients.id, project.clientId))
+        .limit(1);
+
+      console.log(`🔍 Client check: Found ${client.length} clients, Email opt-in: ${client[0]?.emailOptIn}, Has email: ${!!client[0]?.email}`);
+      if (!client.length || !client[0].emailOptIn || !client[0].email) {
+        console.log(`❌ Skipping auto-subscription: Client has no email opt-in or email address`);
+        return;
+      }
+
+      // Find the active wedding campaign for this photographer
+      const weddingCampaign = await db.select()
+        .from(dripCampaigns)
+        .where(and(
+          eq(dripCampaigns.photographerId, project.photographerId),
+          eq(dripCampaigns.projectType, 'WEDDING'),
+          eq(dripCampaigns.status, 'APPROVED'),
+          eq(dripCampaigns.enabled, true)
+        ))
+        .limit(1);
+
+      console.log(`🔍 Wedding campaign: Found ${weddingCampaign.length} campaigns`);
+      if (!weddingCampaign.length) {
+        console.log(`❌ Skipping auto-subscription: No active wedding campaign found`);
+        return;
+      }
+
+      // Check if already subscribed
+      const existingSubscription = await db.select()
+        .from(dripCampaignSubscriptions)
+        .where(and(
+          eq(dripCampaignSubscriptions.projectId, project.id),
+          eq(dripCampaignSubscriptions.campaignId, weddingCampaign[0].id)
+        ))
+        .limit(1);
+
+      console.log(`🔍 Existing subscription: Found ${existingSubscription.length} subscriptions`);
+      if (existingSubscription.length) {
+        console.log(`❌ Skipping auto-subscription: Already subscribed`);
+        return;
+      }
+
+      // Subscribe to the campaign
+      const now = new Date();
+      await db.insert(dripCampaignSubscriptions).values({
+        campaignId: weddingCampaign[0].id,
+        projectId: project.id,
+        clientId: project.clientId,
+        startedAt: now,
+        nextEmailIndex: 0,
+        nextEmailAt: now, // Send first email immediately
+        status: 'ACTIVE'
+      });
+
+      console.log(`✅ AUTO-SUBSCRIBED: Project ${project.id} (${client[0].firstName} ${client[0].lastName}) to wedding campaign ${weddingCampaign[0].name}`);
+    } catch (error) {
+      console.error('❌ ERROR in auto-subscribing to wedding campaign:', error);
+    }
   }
 
   async getProjectHistory(projectId: string): Promise<TimelineEvent[]> {
