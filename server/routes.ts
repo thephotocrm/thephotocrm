@@ -467,7 +467,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Client not found" });
       }
       
+      // Create the message first
       const message = await storage.createMessage(messageData);
+      
+      // Send SMS if client has SMS opt-in and phone number
+      if (client.smsOptIn && client.phone && messageData.sentByPhotographer) {
+        try {
+          console.log(`📱 Sending dual-channel SMS to ${client.firstName} ${client.lastName} (${client.phone})`);
+          
+          const smsResult = await sendSms({
+            to: client.phone,
+            body: messageData.content
+          });
+          
+          // Log the SMS attempt
+          await db.insert(smsLogs).values({
+            clientId: client.id,
+            direction: 'OUTBOUND',
+            messageBody: messageData.content,
+            status: smsResult.success ? 'sent' : 'failed',
+            providerId: smsResult.sid,
+            sentAt: smsResult.success ? new Date() : null
+          });
+          
+          console.log(`📱 Dual-channel SMS ${smsResult.success ? 'sent successfully' : 'FAILED'} to ${client.firstName} ${client.lastName}`);
+        } catch (smsError) {
+          console.error(`❌ Error sending dual-channel SMS to ${client.firstName} ${client.lastName}:`, smsError);
+          // Don't fail the entire request if SMS fails - the message was still created
+        }
+      }
+      
       res.status(201).json(message);
     } catch (error: any) {
       if (error.name === 'ZodError') {
