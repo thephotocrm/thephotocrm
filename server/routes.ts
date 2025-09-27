@@ -3458,13 +3458,30 @@ ${photographer.businessName}`
       // 3. Send welcome SMS if client opted in and has valid phone number
       if (finalSmsOptIn && client.phone) {
         console.log(`[WIDGET SMS] Sending welcome SMS to ${client.firstName} ${client.lastName} at ${client.phone}`);
+        const welcomeMessage = `Hi ${client.firstName}! Thank you for your ${leadData.projectType.toLowerCase()} inquiry with ${photographer.businessName}. We'll be in touch soon!`;
         const smsResult = await sendSms({
           to: client.phone,
-          body: `Hi ${client.firstName}! Thank you for your ${leadData.projectType.toLowerCase()} inquiry with ${photographer.businessName}. We'll be in touch soon!`
+          body: welcomeMessage
         });
         
         if (smsResult.success) {
           console.log(`[WIDGET SMS] Welcome SMS sent successfully, SID: ${smsResult.sid}`);
+          
+          // Log the welcome SMS in the database
+          await storage.createSmsLog({
+            clientId: client.id,
+            projectId: project.id,
+            status: 'sent',
+            direction: 'OUTBOUND',
+            fromPhone: process.env.SIMPLETEXTING_PHONE_NUMBER || '',
+            toPhone: client.phone,
+            messageBody: welcomeMessage,
+            isForwarded: false,
+            providerId: smsResult.sid,
+            sentAt: new Date()
+          });
+          
+          console.log(`[WIDGET SMS] Welcome SMS logged in database for client ${client.id}`);
         } else {
           console.error(`[WIDGET SMS] Failed to send welcome SMS: ${smsResult.error}`);
         }
