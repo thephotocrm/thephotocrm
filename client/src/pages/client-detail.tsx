@@ -435,7 +435,7 @@ export default function ClientDetail() {
                       variant="outline" 
                       size="sm" 
                       className="mt-2" 
-                      onClick={() => setLocation(`/projects/new?clientId=${clientId}`)}
+                      onClick={() => setLocation(`/projects?clientId=${clientId}`)}
                       data-testid="button-add-project"
                     >
                       Add Project
