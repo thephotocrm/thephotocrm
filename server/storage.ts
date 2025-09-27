@@ -992,9 +992,20 @@ export class DatabaseStorage implements IStorage {
   async getClientHistory(clientId: string): Promise<TimelineEvent[]> {
     // Parallelize all queries for better performance
     const [activityLogs, emailLogEntries, smsLogEntries, clientEstimates, paymentHistory, messageHistory] = await Promise.all([
-      // Get activity log entries
-      db.select().from(clientActivityLog)
-        .where(eq(clientActivityLog.clientId, clientId)),
+      // Get activity log entries for all projects belonging to this client
+      db.select({
+        id: projectActivityLog.id,
+        activityType: projectActivityLog.activityType,
+        title: projectActivityLog.title,
+        description: projectActivityLog.description,
+        metadata: projectActivityLog.metadata,
+        relatedId: projectActivityLog.relatedId,
+        relatedType: projectActivityLog.relatedType,
+        createdAt: projectActivityLog.createdAt,
+        projectId: projectActivityLog.projectId
+      }).from(projectActivityLog)
+        .innerJoin(projects, eq(projectActivityLog.projectId, projects.id))
+        .where(eq(projects.clientId, clientId)),
       
       // Get email logs with template information
       db.select({
