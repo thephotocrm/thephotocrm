@@ -2200,6 +2200,91 @@ ${photographer?.businessName || 'Your Photography Team'}`;
     }
   });
 
+  // SimpleTexting Webhooks
+  app.post("/webhooks/simpletexting/inbound", async (req, res) => {
+    try {
+      console.log('Received SimpleTexting inbound SMS webhook:', req.body);
+      
+      const { phone, message, timestamp } = req.body;
+      
+      if (!phone || !message) {
+        console.error('Invalid SimpleTexting webhook payload:', req.body);
+        return res.status(400).json({ error: 'Invalid payload' });
+      }
+
+      // Find client by phone number
+      const client = await storage.getClientByPhone(phone);
+      
+      if (!client) {
+        console.log(`No client found for phone number: ${phone}`);
+        return res.status(200).json({ message: 'Client not found' });
+      }
+
+      // Get photographer for this client
+      const photographer = await storage.getPhotographer(client.photographerId);
+      
+      if (!photographer) {
+        console.error(`No photographer found for client: ${client.id}`);
+        return res.status(200).json({ message: 'Photographer not found' });
+      }
+
+      // Get client's projects to find the most recent one for context
+      const clientWithProjects = await storage.getClient(client.id);
+      const latestProject = clientWithProjects?.projects?.[0]; // Projects are typically ordered by creation date
+
+      // Log the inbound SMS
+      await storage.createSmsLog({
+        clientId: client.id,
+        projectId: latestProject?.id || null,
+        status: 'received',
+        direction: 'INBOUND',
+        fromPhone: phone,
+        toPhone: process.env.SIMPLETEXTING_PHONE_NUMBER || '',
+        messageBody: message,
+        isForwarded: false,
+        sentAt: new Date(timestamp || Date.now())
+      });
+
+      // Forward message to photographer if they have a phone number
+      if (photographer.phone) {
+        const projectContext = latestProject ? `${latestProject.projectType} Project` : 'Client';
+        const contextMessage = `${client.firstName} ${client.lastName} (${projectContext}): ${message}`;
+        
+        const forwardResult = await sendSms({
+          to: photographer.phone,
+          body: contextMessage
+        });
+
+        if (forwardResult.success) {
+          // Log the forwarded message
+          await storage.createSmsLog({
+            clientId: client.id,
+            projectId: latestProject?.id || null,
+            status: 'sent',
+            direction: 'OUTBOUND',
+            fromPhone: process.env.SIMPLETEXTING_PHONE_NUMBER || '',
+            toPhone: photographer.phone,
+            messageBody: contextMessage,
+            isForwarded: true,
+            providerId: forwardResult.sid,
+            sentAt: new Date()
+          });
+
+          console.log(`Forwarded client message to photographer: ${photographer.phone}`);
+        } else {
+          console.error('Failed to forward message to photographer:', forwardResult.error);
+        }
+      } else {
+        console.log('Photographer has no phone number configured for forwarding');
+      }
+
+      res.status(200).json({ message: 'Message processed successfully' });
+    } catch (error: any) {
+      console.error('SimpleTexting webhook error:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+
   // Reports
   app.get("/api/reports/summary", authenticateToken, requirePhotographer, async (req, res) => {
     try {

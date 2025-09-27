@@ -17,6 +17,7 @@ import {
   type QuestionnaireTemplate, type InsertQuestionnaireTemplate,
   type QuestionnaireQuestion, type InsertQuestionnaireQuestion,
   type Message, type InsertMessage, type ProjectActivityLog, type TimelineEvent, type ClientPortalToken, type InsertClientPortalToken,
+  type SmsLog, type InsertSmsLog,
   type Proposal, type InsertProposal, type ProposalItem, type ProposalPayment, type ProposalWithProject, type ProposalWithRelations,
   type DailyAvailabilityTemplate, type InsertDailyAvailabilityTemplate,
   type DailyAvailabilityBreak, type InsertDailyAvailabilityBreak,
@@ -48,6 +49,7 @@ export interface IStorage {
   // Clients
   getClientsByPhotographer(photographerId: string, projectType?: string): Promise<ClientWithProjects[]>;
   getClient(id: string): Promise<ClientWithProjects | undefined>;
+  getClientByPhone(phone: string): Promise<Client | undefined>;
   createClient(client: InsertClient): Promise<Client>;
   updateClient(id: string, client: Partial<Client>): Promise<Client>;
   deleteClient(id: string): Promise<void>;
@@ -248,6 +250,9 @@ export interface IStorage {
   createPayout(payout: InsertPhotographerPayouts): Promise<PhotographerPayouts>;
   updatePayout(id: string, payout: Partial<PhotographerPayouts>): Promise<PhotographerPayouts>;
   getPhotographerBalance(photographerId: string, currency?: string): Promise<{ availableCents: number; pendingCents: number }>;
+  
+  // SMS Logging
+  createSmsLog(smsLog: InsertSmsLog): Promise<SmsLog>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -404,6 +409,13 @@ export class DatabaseStorage implements IStorage {
       ...client,
       projects: projectRows
     };
+  }
+
+  async getClientByPhone(phone: string): Promise<Client | undefined> {
+    const [client] = await db.select()
+      .from(clients)
+      .where(eq(clients.phone, phone));
+    return client || undefined;
   }
 
   async createClient(insertClient: InsertClient): Promise<Client> {
@@ -2362,6 +2374,12 @@ export class DatabaseStorage implements IStorage {
       .where(eq(dripEmailDeliveries.id, id))
       .returning();
     return updated;
+  }
+
+  // SMS Logging
+  async createSmsLog(smsLog: InsertSmsLog): Promise<SmsLog> {
+    const [created] = await db.insert(smsLogs).values(smsLog).returning();
+    return created;
   }
 }
 

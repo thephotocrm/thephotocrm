@@ -81,6 +81,19 @@ Event-driven automation engine using node-cron for scheduled tasks:
 - **Questionnaire Support**: Automated questionnaire assignments with proper step creation for both template-based and questionnaire-only communications
 - **NURTURE Automation**: AI-powered drip campaigns with sequential email delivery for approved campaigns, automatic client subscription for inquiry-stage projects, and campaign completion tracking
 
+### Two-Way SMS Communication System
+Comprehensive SMS platform powered by SimpleTexting for seamless client-photographer communication:
+- **SimpleTexting API Integration**: Complete SMS sending and receiving capabilities using the SimpleTexting v2 API
+- **Two-Way Relay System**: Inbound client SMS messages are automatically forwarded to photographers with full context including client name and project type
+- **Message Context Preservation**: All forwarded messages include client identification and project details for clear communication context
+- **Complete SMS Logging**: Comprehensive tracking of all inbound and outbound SMS messages with status, timestamps, and metadata
+- **Client Lookup System**: Phone number-based client identification for accurate message routing and context
+- **Webhook Infrastructure**: Dedicated `/webhooks/simpletexting/inbound` endpoint for processing incoming SMS messages
+- **Environment Variables Required**:
+  - `SIMPLETEXTING_API_TOKEN`: Authentication token for SimpleTexting API access
+  - `SIMPLETEXTING_PHONE_NUMBER`: Business phone number configured in SimpleTexting for message sending/receiving
+- **Database Integration**: Enhanced SMS logging with direction tracking (INBOUND/OUTBOUND), forwarding status, and message relationship mapping
+
 ### Payment Processing
 Stripe integration for secure payment handling:
 - **Deposit Collection**: Configurable deposit percentages on estimates
@@ -103,7 +116,7 @@ Dedicated business calendar system with automatic event creation:
 
 ### Communication Services
 - **SendGrid**: Email delivery service for transactional emails and marketing communications
-- **Twilio**: SMS messaging service for automated text notifications and reminders
+- **SimpleTexting**: SMS messaging service for automated text notifications, reminders, and two-way client communication with photographer relay functionality
 
 ### Payment Processing
 - **Stripe**: Complete payment infrastructure including payment intents, checkout sessions, and webhook processing for deposit and full payment collection
