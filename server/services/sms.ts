@@ -33,7 +33,17 @@ export async function sendSms(params: SmsParams): Promise<{ success: boolean; si
 
   try {
     console.log('Sending SMS via SimpleTexting to:', params.to);
+    console.log('SMS message body:', params.body);
     console.log('From phone:', process.env.SIMPLETEXTING_PHONE_NUMBER);
+    
+    // Validate message body is not empty
+    if (!params.body || params.body.trim() === '') {
+      console.error('SMS body is empty or blank, aborting send');
+      return {
+        success: false,
+        error: 'SMS message body cannot be empty'
+      };
+    }
     
     const response = await fetch(`${SIMPLETEXTING_API_URL}/messages`, {
       method: 'POST',
@@ -43,7 +53,7 @@ export async function sendSms(params: SmsParams): Promise<{ success: boolean; si
       },
       body: JSON.stringify({
         phone: params.to,
-        message: params.body
+        text: params.body  // Changed from 'message' to 'text'
       })
     });
 
