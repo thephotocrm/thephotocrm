@@ -117,8 +117,15 @@ export const clients = pgTable("clients", {
   lastName: text("last_name").notNull(),
   email: text("email"),
   phone: text("phone"),
+  eventDate: timestamp("event_date"),
   notes: text("notes"),
-  createdAt: timestamp("created_at").defaultNow()
+  stageId: varchar("stage_id").references(() => stages.id),
+  stageEnteredAt: timestamp("stage_entered_at"),
+  smsOptIn: boolean("sms_opt_in").default(false),
+  emailOptIn: boolean("email_opt_in").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  projectType: text("project_type").notNull().default("WEDDING"),
+  leadSource: text("lead_source").default("MANUAL")
 });
 
 export const projects = pgTable("projects", {
