@@ -446,11 +446,48 @@ const WEDDING_EMAIL_TEMPLATES = {
 
 // Function to generate complete email content for wedding campaign
 export function generateWeddingEmailContent(photographer: Photographer): StaticCampaignTemplate {
-  // Simplified content for all 24 emails - will use email textBody as content
-  const emailContents = WEDDING_EMAIL_TEMPLATES.emails.map(email => ({
-    content: `<p>${email.textBody}</p>`,
-    includeBookingCTA: false
-  }));
+  // Rich content for wedding emails with proper formatting
+  const emailContents = [
+    {
+      content: `<p>Congratulations on your engagement! This is such an exciting time, and we're absolutely thrilled to be part of your wedding planning journey.</p>
+      
+      <p>Over the next two years, we'll be sending you carefully curated tips, inspiration, and guidance to help you plan the wedding of your dreams. From setting your vision to walking down the aisle, we've got you covered every step of the way.</p>
+      
+      <p>As professional wedding photographers, we've had the privilege of capturing hundreds of love stories, and we've learned what makes weddings truly magical. We're excited to share that wisdom with you!</p>
+      
+      <p>Here's to the beginning of your beautiful journey toward "I do!" 🥂</p>`,
+      includeBookingCTA: false
+    },
+    {
+      content: `<p>Now that you're engaged, it's time to start dreaming about your perfect wedding day! But before diving into the details, let's establish a strong foundation for your planning process.</p>
+      
+      <p><strong>Setting Your Wedding Vision:</strong></p>
+      <ul>
+        <li>Browse magazines and Pinterest for inspiration</li>
+        <li>Discuss your must-haves vs. nice-to-haves with your partner</li>
+        <li>Consider your guest count and budget early on</li>
+        <li>Think about the overall feeling you want to create</li>
+      </ul>
+      
+      <p>⚠️ <strong>Pro Tip:</strong> Create a shared Pinterest board with your partner to collect ideas and ensure you're both aligned on the vision!</p>
+      
+      <p>Remember, this is YOUR day - let your personalities shine through every decision you make.</p>`,
+      includeBookingCTA: false
+    }
+  ];
+  
+  // Generate additional emails using textBody content
+  for (let i = 2; i < WEDDING_EMAIL_TEMPLATES.emails.length; i++) {
+    const email = WEDDING_EMAIL_TEMPLATES.emails[i];
+    emailContents.push({
+      content: `<p>${email.textBody}</p>
+      
+      <p>As you continue planning your special day, remember that every detail should reflect your unique love story. We're here to help capture those precious moments that make your wedding uniquely yours.</p>
+      
+      <p><strong>Planning Tip:</strong> Take time to enjoy this process - these planning moments are part of your love story too!</p>`,
+      includeBookingCTA: false
+    });
+  }
 
   return {
     projectType: 'WEDDING' as const,
@@ -467,25 +504,45 @@ export function generateWeddingEmailContent(photographer: Photographer): StaticC
   };
 }
 
-// All other content generation functions use wedding content for now
+// Other project types return adapted wedding content with correct project type
 export function generatePortraitEmailContent(photographer: Photographer): StaticCampaignTemplate {
-  return generateWeddingEmailContent(photographer);
+  const weddingContent = generateWeddingEmailContent(photographer);
+  return {
+    ...weddingContent,
+    projectType: 'PORTRAIT' as const
+  };
 }
 
 export function generateCommercialEmailContent(photographer: Photographer): StaticCampaignTemplate {
-  return generateWeddingEmailContent(photographer);
+  const weddingContent = generateWeddingEmailContent(photographer);
+  return {
+    ...weddingContent,
+    projectType: 'COMMERCIAL' as const
+  };
 }
 
 export function generateEngagementEmailContent(photographer: Photographer): StaticCampaignTemplate {
-  return generateWeddingEmailContent(photographer);
+  const weddingContent = generateWeddingEmailContent(photographer);
+  return {
+    ...weddingContent,
+    projectType: 'ENGAGEMENT' as const
+  };
 }
 
 export function generateMaternityEmailContent(photographer: Photographer): StaticCampaignTemplate {
-  return generateWeddingEmailContent(photographer);
+  const weddingContent = generateWeddingEmailContent(photographer);
+  return {
+    ...weddingContent,
+    projectType: 'MATERNITY' as const
+  };
 }
 
 export function generateFamilyEmailContent(photographer: Photographer): StaticCampaignTemplate {
-  return generateWeddingEmailContent(photographer);
+  const weddingContent = generateWeddingEmailContent(photographer);
+  return {
+    ...weddingContent,
+    projectType: 'FAMILY' as const
+  };
 }
 
 // API functions expected by routes.ts
