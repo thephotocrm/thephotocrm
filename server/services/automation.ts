@@ -411,7 +411,9 @@ async function processAutomationStep(client: any, step: any, automation: any): P
       automationStepId: step.id,
       status: result.success ? 'sent' : 'failed',
       providerId: result.sid,
-      sentAt: result.success ? now : null
+      sentAt: result.success ? now : null,
+      direction: 'OUTBOUND',
+      messageBody: body
     });
 
       // 🔒 BULLETPROOF EXECUTION TRACKING - Update reservation status
@@ -837,7 +839,9 @@ async function sendCountdownMessage(project: any, automation: any, photographerI
       automationStepId: null,
       status: result.success ? 'sent' : 'failed',
       providerId: result.sid,
-      sentAt: result.success ? new Date() : null
+      sentAt: result.success ? new Date() : null,
+      direction: 'OUTBOUND',
+      messageBody: body
     });
 
       // 🔒 BULLETPROOF EXECUTION TRACKING - Update countdown reservation status
