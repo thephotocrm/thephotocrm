@@ -1208,9 +1208,51 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getClientMessages(clientId: string): Promise<Message[]> {
-    return await db.select().from(messages)
-      .where(eq(messages.clientId, clientId))
-      .orderBy(desc(messages.createdAt));
+    // Get regular messages
+    const regularMessages = await db.select({
+      id: messages.id,
+      clientId: messages.clientId,
+      photographerId: messages.photographerId,
+      content: messages.content,
+      sentByPhotographer: messages.sentByPhotographer,
+      channel: messages.channel,
+      readAt: messages.readAt,
+      createdAt: messages.createdAt
+    }).from(messages)
+      .where(eq(messages.clientId, clientId));
+
+    // Get SMS messages and convert them to Message format
+    const smsMessages = await db.select({
+      id: smsLogs.id,
+      clientId: smsLogs.clientId,
+      content: smsLogs.messageBody,
+      direction: smsLogs.direction,
+      sentAt: smsLogs.sentAt,
+      createdAt: smsLogs.createdAt,
+      photographerId: clients.photographerId
+    }).from(smsLogs)
+      .innerJoin(clients, eq(smsLogs.clientId, clients.id))
+      .where(eq(smsLogs.clientId, clientId));
+
+    // Convert SMS messages to Message format
+    const convertedSmsMessages = smsMessages.map(sms => ({
+      id: sms.id,
+      clientId: sms.clientId,
+      photographerId: sms.photographerId,
+      content: sms.content || '',
+      sentByPhotographer: sms.direction === 'OUTBOUND',
+      channel: 'SMS' as const,
+      readAt: null,
+      createdAt: sms.createdAt || sms.sentAt
+    }));
+
+    // Combine and sort all messages by creation time
+    const allMessages = [...regularMessages, ...convertedSmsMessages];
+    return allMessages.sort((a, b) => {
+      const aTime = a.createdAt?.getTime() || 0;
+      const bTime = b.createdAt?.getTime() || 0;
+      return bTime - aTime; // Most recent first
+    });
   }
 
   async createMessage(message: InsertMessage): Promise<Message> {
@@ -1762,6 +1804,22 @@ export class DatabaseStorage implements IStorage {
     };
     
     const [project] = await db.insert(projects).values(projectData).returning();
+    
+    // Log project creation to client history
+    await db.insert(projectActivityLog).values({
+      projectId: project.id,
+      activityType: 'PROJECT_CREATED',
+      action: 'CREATED',
+      title: 'Project Created',
+      description: `${project.projectType} project "${project.title}" was created`,
+      metadata: JSON.stringify({
+        projectType: project.projectType,
+        projectTitle: project.title,
+        leadSource: project.leadSource
+      }),
+      relatedId: project.id,
+      relatedType: 'PROJECT'
+    });
     
     // Auto-subscribe to wedding campaigns when creating in inquiry stage
     if (project.stageId) {

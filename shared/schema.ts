@@ -624,6 +624,7 @@ export const messages = pgTable("messages", {
 export const projectActivityLog = pgTable("project_activity_log", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   projectId: varchar("project_id").notNull().references(() => projects.id),
+  action: text("action").notNull(), // CREATED, UPDATED, SENT, RECEIVED, etc.
   activityType: text("activity_type").notNull(), // STAGE_CHANGE, PROPOSAL_SENT, PROPOSAL_SIGNED, PAYMENT_RECEIVED, MESSAGE_SENT, EMAIL_OPENED, etc.
   title: text("title").notNull(),
   description: text("description"),
