@@ -428,10 +428,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Client not found" });
       }
       
+      console.log(`[CLIENT HISTORY] Getting history for client: ${req.params.id}`);
       const history = await storage.getClientHistory(req.params.id);
+      console.log(`[CLIENT HISTORY] Retrieved ${history.length} history items`);
       res.json(history);
     } catch (error) {
-      res.status(500).json({ message: "Internal server error" });
+      console.error(`[CLIENT HISTORY ERROR] Failed to get client history for ${req.params.id}:`, error);
+      res.status(500).json({ message: "Internal server error", error: error instanceof Error ? error.message : String(error) });
     }
   });
 
