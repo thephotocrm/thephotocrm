@@ -1049,11 +1049,33 @@ export class DatabaseStorage implements IStorage {
         .leftJoin(automations, eq(automationSteps.automationId, automations.id))
         .where(eq(smsLogs.clientId, clientId)),
       
-      // Get estimates for this client
-      db.select().from(estimates)
-        .where(eq(estimates.clientId, clientId)),
+      // Get estimates for this client (through projects)
+      db.select({
+        id: estimates.id,
+        photographerId: estimates.photographerId,
+        projectId: estimates.projectId,
+        title: estimates.title,
+        notes: estimates.notes,
+        currency: estimates.currency,
+        subtotalCents: estimates.subtotalCents,
+        discountCents: estimates.discountCents,
+        taxCents: estimates.taxCents,
+        totalCents: estimates.totalCents,
+        depositPercent: estimates.depositPercent,
+        depositCents: estimates.depositCents,
+        status: estimates.status,
+        validUntil: estimates.validUntil,
+        createdAt: estimates.createdAt,
+        sentAt: estimates.sentAt,
+        signedAt: estimates.signedAt,
+        signedByName: estimates.signedByName,
+        signedByEmail: estimates.signedByEmail,
+        token: estimates.token
+      }).from(estimates)
+        .innerJoin(projects, eq(estimates.projectId, projects.id))
+        .where(eq(projects.clientId, clientId)),
       
-      // Get estimate payments
+      // Get estimate payments (through projects)
       db.select({
         id: estimatePayments.id,
         amountCents: estimatePayments.amountCents,
@@ -1065,7 +1087,8 @@ export class DatabaseStorage implements IStorage {
       })
         .from(estimatePayments)
         .innerJoin(estimates, eq(estimatePayments.estimateId, estimates.id))
-        .where(eq(estimates.clientId, clientId)),
+        .innerJoin(projects, eq(estimates.projectId, projects.id))
+        .where(eq(projects.clientId, clientId)),
       
       // Get messages for this client
       db.select().from(messages)
