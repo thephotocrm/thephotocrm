@@ -1020,9 +1020,9 @@ export class DatabaseStorage implements IStorage {
       id: projectQuestionnaires.id,
       projectId: projectQuestionnaires.projectId,
       templateId: projectQuestionnaires.templateId,
-      status: projectQuestionnaires.status,
       answers: projectQuestionnaires.answers,
-      completedAt: projectQuestionnaires.completedAt,
+      submittedAt: projectQuestionnaires.submittedAt,
+      createdAt: projectQuestionnaires.createdAt,
       clientName: sql<string>`${clients.firstName} || ' ' || ${clients.lastName}`,
       templateTitle: questionnaireTemplates.title,
       projectType: projects.projectType
@@ -1043,8 +1043,7 @@ export class DatabaseStorage implements IStorage {
   async assignQuestionnaireToProject(projectId: string, templateId: string): Promise<ProjectQuestionnaire> {
     const [assigned] = await db.insert(projectQuestionnaires).values({
       projectId,
-      templateId,
-      status: "PENDING"
+      templateId
     }).returning();
     return assigned;
   }

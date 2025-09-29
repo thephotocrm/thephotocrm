@@ -3490,9 +3490,8 @@ ${photographer.businessName}`
       
       // Validate and whitelist only mutable fields to prevent authorization bypass
       const updateSchema = z.object({
-        status: z.string().optional(),
         answers: z.any().optional(),
-        completedAt: z.string().datetime().optional().nullable()
+        submittedAt: z.string().datetime().optional().nullable()
       });
       
       const validatedData = updateSchema.parse(req.body);

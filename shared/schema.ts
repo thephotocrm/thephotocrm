@@ -450,10 +450,10 @@ export const questionnaireQuestions = pgTable("questionnaire_questions", {
 export const projectQuestionnaires = pgTable("project_questionnaires", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   projectId: varchar("project_id").notNull().references(() => projects.id),
-  templateId: varchar("template_id").notNull().references(() => questionnaireTemplates.id),
-  status: text("status").default("PENDING"),
+  templateId: varchar("questionnaire_template_id").notNull().references(() => questionnaireTemplates.id),
   answers: json("answers"),
-  completedAt: timestamp("completed_at")
+  submittedAt: timestamp("submitted_at"),
+  createdAt: timestamp("created_at").defaultNow()
 });
 
 // Daily availability templates for weekly patterns (e.g., "Monday: 8am-6pm")
@@ -954,6 +954,11 @@ export const insertQuestionnaireTemplateSchema = createInsertSchema(questionnair
 
 export const insertQuestionnaireQuestionSchema = createInsertSchema(questionnaireQuestions).omit({
   id: true
+});
+
+export const insertProjectQuestionnaireSchema = createInsertSchema(projectQuestionnaires).omit({
+  id: true,
+  createdAt: true
 });
 
 export const insertMessageSchema = createInsertSchema(messages).omit({
