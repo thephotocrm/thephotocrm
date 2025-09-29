@@ -251,8 +251,25 @@ async function processAutomationStep(client: any, step: any, automation: any): P
 
   const now = new Date();
   const stageEnteredAt = new Date(client.stageEnteredAt);
-  const delayMs = step.delayMinutes * 60 * 1000;
-  const shouldSendAt = new Date(stageEnteredAt.getTime() + delayMs);
+  
+  // Calculate total delay from days, hours, and minutes
+  const totalDelayMinutes = (step.delayDays || 0) * 24 * 60 + (step.delayHours || 0) * 60 + (step.delayMinutes || 0);
+  let shouldSendAt = new Date(stageEnteredAt.getTime() + totalDelayMinutes * 60 * 1000);
+  
+  // If sendAtTime is specified, adjust to that specific time of day
+  if (step.sendAtTime) {
+    const [hours, minutes] = step.sendAtTime.split(':').map(Number);
+    if (!isNaN(hours) && !isNaN(minutes) && hours >= 0 && hours <= 23 && minutes >= 0 && minutes <= 59) {
+      shouldSendAt.setHours(hours, minutes, 0, 0);
+      
+      // If the calculated time has already passed today, move to next day
+      const adjustedTime = new Date(shouldSendAt);
+      if (adjustedTime <= new Date(stageEnteredAt.getTime() + totalDelayMinutes * 60 * 1000)) {
+        adjustedTime.setDate(adjustedTime.getDate() + 1);
+        shouldSendAt = adjustedTime;
+      }
+    }
+  }
 
   // Check if it's time to send
   if (now < shouldSendAt) {
