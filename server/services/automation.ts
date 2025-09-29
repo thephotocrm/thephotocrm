@@ -2,7 +2,7 @@ import { storage } from '../storage';
 import { sendEmail, renderTemplate } from './email';
 import { sendSms, renderSmsTemplate } from './sms';
 import { db } from '../db';
-import { clients, automations, automationSteps, stages, templates, emailLogs, smsLogs, automationExecutions, photographers, estimates, estimatePayments, projects, bookings, projectQuestionnaires, dripCampaigns, dripCampaignEmails, dripCampaignSubscriptions, dripEmailDeliveries } from '@shared/schema';
+import { clients, automations, automationSteps, stages, templates, emailLogs, smsLogs, automationExecutions, photographers, estimates, estimatePayments, projects, bookings, projectQuestionnaires, dripCampaigns, dripCampaignEmails, dripCampaignSubscriptions, dripEmailDeliveries, automationBusinessTriggers } from '@shared/schema';
 import { eq, and, gte, lte, isNull } from 'drizzle-orm';
 
 // Bulletproof automation execution tracking with reservation pattern
@@ -185,7 +185,23 @@ async function processCommunicationAutomation(automation: any, photographerId: s
 }
 
 async function processStageChangeAutomation(automation: any, photographerId: string): Promise<void> {
-  console.log(`Processing stage change automation: ${automation.name} (trigger: ${automation.triggerType})`);
+  console.log(`Processing stage change automation: ${automation.name}`);
+  
+  // Load business triggers for this automation from the new table
+  const businessTriggers = await db
+    .select()
+    .from(automationBusinessTriggers)
+    .where(and(
+      eq(automationBusinessTriggers.automationId, automation.id),
+      eq(automationBusinessTriggers.enabled, true)
+    ));
+
+  if (businessTriggers.length === 0) {
+    console.log(`No enabled business triggers found for automation ${automation.name}, skipping`);
+    return;
+  }
+
+  console.log(`Found ${businessTriggers.length} enabled business triggers for automation: ${businessTriggers.map(t => t.triggerType).join(', ')}`);
   
   // Get all active projects for this photographer and project type
   const activeProjects = await db
@@ -198,45 +214,64 @@ async function processStageChangeAutomation(automation: any, photographerId: str
       eq(projects.status, 'ACTIVE')
     ));
 
-  console.log(`Found ${activeProjects.length} active projects to check for trigger: ${automation.triggerType}`);
+  console.log(`Found ${activeProjects.length} active projects to check for business triggers`);
 
   for (const projectRow of activeProjects) {
     const project = projectRow.projects;
     
-    // First check if trigger condition is met (don't reserve if not triggered)
-    const shouldTrigger = await checkTriggerCondition(automation.triggerType, project, photographerId);
-    
-    if (!shouldTrigger) {
-      // Trigger condition not met, skip without reserving to allow future retries
-      continue;
-    }
-    
-    // 🔒 BULLETPROOF DUPLICATE PREVENTION - Reserve stage change execution atomically (ONLY after trigger confirmed)
-    const reservation = await reserveAutomationExecution(
-      project.id, // projectId
-      automation.id, // automationId
-      'STAGE_CHANGE', // automationType
-      'SYSTEM', // channel (stage changes are system actions)
-      undefined, // stepId (not used for stage change)
-      automation.triggerType // triggerType
-    );
-    
-    if (!reservation.canExecute) {
-      console.log(`🔒 Stage change automation already reserved/executed for project ${project.id} (trigger: ${automation.triggerType}), prevented duplicate`);
-      continue;
-    }
-    
-    // 🔒 BULLETPROOF ERROR HANDLING - Wrap stage change execution to prevent PENDING reservations on errors
-    try {
-      // Execute the stage change
-      console.log(`✅ Trigger "${automation.triggerType}" matched for project ${project.id}, moving to stage ${automation.targetStageId}`);
-      await moveProjectToStage(project.id, automation.targetStageId!);
-      // 🔒 BULLETPROOF EXECUTION TRACKING - Update stage change reservation status  
-      await updateExecutionStatus(reservation.executionId!, 'SUCCESS');
-    } catch (error) {
-      console.error(`❌ Error executing stage change for project ${project.id}:`, error);
-      // 🔒 BULLETPROOF ERROR HANDLING - Mark reservation as FAILED on any error to prevent PENDING state
-      await updateExecutionStatus(reservation.executionId!, 'FAILED');
+    // Check each business trigger - if any trigger is satisfied, execute the automation
+    for (const businessTrigger of businessTriggers) {
+      // First check if trigger condition is met (don't reserve if not triggered)
+      const shouldTrigger = await checkTriggerCondition(businessTrigger.triggerType, project, photographerId);
+      
+      if (!shouldTrigger) {
+        // Trigger condition not met, try next trigger
+        continue;
+      }
+      
+      // Additional constraint checks for business triggers
+      if (businessTrigger.minAmountCents && !await checkMinAmountConstraint(project.id, businessTrigger.minAmountCents)) {
+        console.log(`Min amount constraint not met for business trigger ${businessTrigger.triggerType}, skipping`);
+        continue;
+      }
+      
+      if (businessTrigger.projectType && project.projectType !== businessTrigger.projectType) {
+        console.log(`Project type constraint not met for business trigger ${businessTrigger.triggerType}, skipping`);
+        continue;
+      }
+      
+      // 🔒 BULLETPROOF DUPLICATE PREVENTION - Reserve stage change execution atomically (ONLY after trigger confirmed)
+      const reservation = await reserveAutomationExecution(
+        project.id, // projectId
+        automation.id, // automationId
+        'STAGE_CHANGE', // automationType
+        'SYSTEM', // channel (stage changes are system actions)
+        undefined, // stepId (not used for stage change)
+        businessTrigger.triggerType // triggerType
+      );
+      
+      if (!reservation.canExecute) {
+        console.log(`🔒 Stage change automation already reserved/executed for project ${project.id} (trigger: ${businessTrigger.triggerType}), prevented duplicate`);
+        // Try next trigger (maybe a different trigger can still execute)
+        continue;
+      }
+      
+      // 🔒 BULLETPROOF ERROR HANDLING - Wrap stage change execution to prevent PENDING reservations on errors
+      try {
+        // Execute the stage change
+        console.log(`✅ Business trigger "${businessTrigger.triggerType}" matched for project ${project.id}, moving to stage ${automation.targetStageId}`);
+        await moveProjectToStage(project.id, automation.targetStageId!);
+        // 🔒 BULLETPROOF EXECUTION TRACKING - Update stage change reservation status  
+        await updateExecutionStatus(reservation.executionId!, 'SUCCESS');
+        
+        // Break out of trigger loop - automation executed successfully
+        break;
+      } catch (error) {
+        console.error(`❌ Error executing stage change for project ${project.id}:`, error);
+        // 🔒 BULLETPROOF ERROR HANDLING - Mark reservation as FAILED on any error to prevent PENDING state
+        await updateExecutionStatus(reservation.executionId!, 'FAILED');
+        // Continue trying other triggers - don't break on error
+      }
     }
   }
 }
@@ -573,6 +608,36 @@ async function checkAppointmentBooked(project: any): Promise<boolean> {
       eq(bookings.status, 'CONFIRMED')
     ));
   return confirmedBookings.length > 0;
+}
+
+async function checkMinAmountConstraint(projectId: string, minAmountCents: number): Promise<boolean> {
+  // Check if project has estimates with completed payments that meet the minimum amount
+  const estimatesWithPayments = await db
+    .select({
+      id: estimates.id,
+      totalCents: estimates.totalCents
+    })
+    .from(estimates)
+    .where(and(
+      eq(estimates.projectId, projectId),
+      eq(estimates.status, 'SIGNED')
+    ));
+
+  for (const estimate of estimatesWithPayments) {
+    const completedPayments = await db
+      .select()
+      .from(estimatePayments)
+      .where(and(
+        eq(estimatePayments.estimateId, estimate.id),
+        eq(estimatePayments.status, 'completed')
+      ));
+    
+    const totalPaid = completedPayments.reduce((sum, payment) => sum + payment.amountCents, 0);
+    if (totalPaid >= minAmountCents) {
+      return true;
+    }
+  }
+  return false;
 }
 
 async function processCountdownAutomation(automation: any, photographerId: string): Promise<void> {

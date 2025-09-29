@@ -92,6 +92,14 @@ export interface IStorage {
   updateAutomationStep(id: string, step: Partial<AutomationStep>): Promise<AutomationStep>;
   deleteAutomationStep(id: string): Promise<void>;
   
+  // Business Triggers
+  getBusinessTriggersByAutomation(automationId: string): Promise<AutomationBusinessTrigger[]>;
+  getBusinessTriggersByPhotographer(photographerId: string): Promise<AutomationBusinessTrigger[]>;
+  createBusinessTrigger(trigger: InsertAutomationBusinessTrigger): Promise<AutomationBusinessTrigger>;
+  updateBusinessTrigger(id: string, trigger: Partial<AutomationBusinessTrigger>): Promise<AutomationBusinessTrigger>;
+  deleteBusinessTrigger(id: string): Promise<void>;
+  deleteBusinessTriggersByAutomation(automationId: string): Promise<void>;
+  
   // Packages
   getPackagesByPhotographer(photographerId: string): Promise<Package[]>;
   createPackage(pkg: InsertPackage): Promise<Package>;
@@ -642,6 +650,50 @@ export class DatabaseStorage implements IStorage {
 
   async deleteAutomationStep(id: string): Promise<void> {
     await db.delete(automationSteps).where(eq(automationSteps.id, id));
+  }
+
+  // Business Trigger implementations
+  async getBusinessTriggersByAutomation(automationId: string): Promise<AutomationBusinessTrigger[]> {
+    return await db.select().from(automationBusinessTriggers)
+      .where(eq(automationBusinessTriggers.automationId, automationId))
+      .orderBy(automationBusinessTriggers.createdAt);
+  }
+
+  async getBusinessTriggersByPhotographer(photographerId: string): Promise<AutomationBusinessTrigger[]> {
+    return await db.select({
+      id: automationBusinessTriggers.id,
+      automationId: automationBusinessTriggers.automationId,
+      triggerType: automationBusinessTriggers.triggerType,
+      enabled: automationBusinessTriggers.enabled,
+      minAmountCents: automationBusinessTriggers.minAmountCents,
+      projectType: automationBusinessTriggers.projectType,
+      createdAt: automationBusinessTriggers.createdAt
+    })
+    .from(automationBusinessTriggers)
+    .innerJoin(automations, eq(automations.id, automationBusinessTriggers.automationId))
+    .where(eq(automations.photographerId, photographerId))
+    .orderBy(automationBusinessTriggers.createdAt);
+  }
+
+  async createBusinessTrigger(trigger: InsertAutomationBusinessTrigger): Promise<AutomationBusinessTrigger> {
+    const [created] = await db.insert(automationBusinessTriggers).values(trigger).returning();
+    return created;
+  }
+
+  async updateBusinessTrigger(id: string, trigger: Partial<AutomationBusinessTrigger>): Promise<AutomationBusinessTrigger> {
+    const [updated] = await db.update(automationBusinessTriggers)
+      .set(trigger)
+      .where(eq(automationBusinessTriggers.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteBusinessTrigger(id: string): Promise<void> {
+    await db.delete(automationBusinessTriggers).where(eq(automationBusinessTriggers.id, id));
+  }
+
+  async deleteBusinessTriggersByAutomation(automationId: string): Promise<void> {
+    await db.delete(automationBusinessTriggers).where(eq(automationBusinessTriggers.automationId, automationId));
   }
 
   async getPackagesByPhotographer(photographerId: string): Promise<Package[]> {

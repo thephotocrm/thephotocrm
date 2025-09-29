@@ -17,13 +17,17 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Plus, Zap, Clock, Mail, Smartphone, Settings, Edit2, ArrowRight, Calendar, Users, AlertCircle, Trash2 } from "lucide-react";
-import { insertAutomationSchema, projectTypeEnum, automationTypeEnum, triggerTypeEnum } from "@shared/schema";
+import { insertAutomationSchema, projectTypeEnum, automationTypeEnum, triggerTypeEnum, insertAutomationBusinessTriggerSchema } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
 // Create form schema based on insertAutomationSchema but without photographerId (auto-added by backend)
 const createAutomationFormSchema = insertAutomationSchema.omit({ photographerId: true });
 type CreateAutomationFormData = z.infer<typeof createAutomationFormSchema>;
+
+// Business trigger form schema  
+const createBusinessTriggerFormSchema = insertAutomationBusinessTriggerSchema.omit({ automationId: true });
+type CreateBusinessTriggerFormData = z.infer<typeof createBusinessTriggerFormSchema>;
 
 // AutomationStepManager Component
 function AutomationStepManager({ automation, onDelete }: { automation: any, onDelete: (id: string) => void }) {
@@ -532,6 +536,493 @@ function StageChangeAutomationCard({ automation, onDelete }: { automation: any, 
               {updateAutomationMutation.isPending ? "Saving..." : "Save Changes"}
             </Button>
           </div>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
+// Business Triggers Manager Component
+function BusinessTriggersManager({ automation }: { automation: any }) {
+  const { toast } = useToast();
+  const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const [editTrigger, setEditTrigger] = useState<any>(null);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+
+  // Fetch business triggers for this automation
+  const { data: businessTriggers = [], isLoading } = useQuery<any[]>({
+    queryKey: ["/api/automations", automation.id, "business-triggers"],
+    enabled: !!automation.id
+  });
+
+  // Create business trigger form
+  const createForm = useForm<CreateBusinessTriggerFormData>({
+    resolver: zodResolver(createBusinessTriggerFormSchema),
+    defaultValues: {
+      triggerType: "DEPOSIT_PAID",
+      enabled: true,
+      minAmountCents: undefined,
+      projectType: undefined
+    }
+  });
+
+  // Edit business trigger form
+  const editForm = useForm<CreateBusinessTriggerFormData>({
+    resolver: zodResolver(createBusinessTriggerFormSchema),
+    defaultValues: {
+      triggerType: "DEPOSIT_PAID",
+      enabled: true,
+      minAmountCents: undefined,
+      projectType: undefined
+    }
+  });
+
+  // Create business trigger mutation
+  const createTriggerMutation = useMutation({
+    mutationFn: async (data: CreateBusinessTriggerFormData) => {
+      return apiRequest("POST", "/api/business-triggers", {
+        ...data,
+        automationId: automation.id
+      });
+    },
+    onSuccess: () => {
+      toast({ title: "Business trigger created successfully" });
+      queryClient.invalidateQueries({ queryKey: ["/api/automations", automation.id, "business-triggers"] });
+      setAddDialogOpen(false);
+      createForm.reset();
+    },
+    onError: (error: any) => {
+      toast({ 
+        title: "Failed to create business trigger", 
+        description: error.message || "An error occurred",
+        variant: "destructive" 
+      });
+    }
+  });
+
+  // Update business trigger mutation
+  const updateTriggerMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: CreateBusinessTriggerFormData }) => {
+      return apiRequest("PUT", `/api/business-triggers/${id}`, data);
+    },
+    onSuccess: () => {
+      toast({ title: "Business trigger updated successfully" });
+      queryClient.invalidateQueries({ queryKey: ["/api/automations", automation.id, "business-triggers"] });
+      setEditDialogOpen(false);
+      setEditTrigger(null);
+      editForm.reset();
+    },
+    onError: (error: any) => {
+      toast({ 
+        title: "Failed to update business trigger", 
+        description: error.message || "An error occurred",
+        variant: "destructive" 
+      });
+    }
+  });
+
+  // Delete business trigger mutation
+  const deleteTriggerMutation = useMutation({
+    mutationFn: async (triggerId: string) => {
+      return apiRequest("DELETE", `/api/business-triggers/${triggerId}`);
+    },
+    onSuccess: () => {
+      toast({ title: "Business trigger deleted successfully" });
+      queryClient.invalidateQueries({ queryKey: ["/api/automations", automation.id, "business-triggers"] });
+    },
+    onError: (error: any) => {
+      toast({ 
+        title: "Failed to delete business trigger", 
+        description: error.message || "An error occurred",
+        variant: "destructive" 
+      });
+    }
+  });
+
+  const handleCreateTrigger = (data: CreateBusinessTriggerFormData) => {
+    createTriggerMutation.mutate(data);
+  };
+
+  const handleEditTrigger = (trigger: any) => {
+    setEditTrigger(trigger);
+    editForm.reset({
+      triggerType: trigger.triggerType,
+      enabled: trigger.enabled,
+      minAmountCents: trigger.minAmountCents || undefined,
+      projectType: trigger.projectType || undefined
+    });
+    setEditDialogOpen(true);
+  };
+
+  const handleUpdateTrigger = (data: CreateBusinessTriggerFormData) => {
+    if (editTrigger) {
+      updateTriggerMutation.mutate({ id: editTrigger.id, data });
+    }
+  };
+
+  const handleDeleteTrigger = (triggerId: string) => {
+    if (confirm('Are you sure you want to delete this business trigger?')) {
+      deleteTriggerMutation.mutate(triggerId);
+    }
+  };
+
+  const formatTriggerType = (triggerType: string) => {
+    return triggerType.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase());
+  };
+
+  const formatAmount = (cents: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 0
+    }).format(cents / 100);
+  };
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-2">
+          <Zap className="w-4 h-4 text-purple-500" />
+          <h4 className="text-sm font-medium">Business Triggers</h4>
+          <Badge variant="outline" className="text-xs">
+            {businessTriggers.length} configured
+          </Badge>
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setAddDialogOpen(true)}
+          data-testid={`button-add-business-trigger-${automation.id}`}
+        >
+          <Plus className="w-3 h-3 mr-1" />
+          Add Trigger
+        </Button>
+      </div>
+
+      {isLoading ? (
+        <div className="text-center py-4">
+          <div className="animate-spin w-4 h-4 border-2 border-primary border-t-transparent rounded-full mx-auto" />
+          <p className="text-xs text-muted-foreground mt-1">Loading triggers...</p>
+        </div>
+      ) : businessTriggers.length === 0 ? (
+        <div className="text-center py-6 border border-dashed border-border rounded-lg">
+          <Zap className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
+          <p className="text-sm text-muted-foreground mb-2">No business triggers configured</p>
+          <p className="text-xs text-muted-foreground">Add triggers to execute this automation based on business events</p>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {businessTriggers.map((trigger: any) => (
+            <div
+              key={trigger.id}
+              className="flex items-center justify-between p-3 border rounded-lg bg-accent/20"
+              data-testid={`business-trigger-${trigger.id}`}
+            >
+              <div className="flex items-center space-x-3">
+                <div className={`p-1.5 rounded-full ${trigger.enabled ? 'bg-green-100 text-green-600 dark:bg-green-900 dark:text-green-400' : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'}`}>
+                  <Zap className="w-3 h-3" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium">{formatTriggerType(trigger.triggerType)}</p>
+                  <div className="flex items-center space-x-2 text-xs text-muted-foreground">
+                    {trigger.minAmountCents && (
+                      <span>Min: {formatAmount(trigger.minAmountCents)}</span>
+                    )}
+                    {trigger.projectType && (
+                      <span>Type: {trigger.projectType}</span>
+                    )}
+                    <Badge variant={trigger.enabled ? "default" : "secondary"} className="text-xs">
+                      {trigger.enabled ? "Enabled" : "Disabled"}
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-center space-x-1">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleEditTrigger(trigger)}
+                  data-testid={`button-edit-trigger-${trigger.id}`}
+                >
+                  <Edit2 className="w-3 h-3" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleDeleteTrigger(trigger.id)}
+                  data-testid={`button-delete-trigger-${trigger.id}`}
+                >
+                  <Trash2 className="w-3 h-3" />
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Add Trigger Dialog */}
+      <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Add Business Trigger</DialogTitle>
+            <DialogDescription>
+              Configure a business event that will trigger this automation.
+            </DialogDescription>
+          </DialogHeader>
+          <Form {...createForm}>
+            <form onSubmit={createForm.handleSubmit(handleCreateTrigger)} className="space-y-4">
+              <FormField
+                control={createForm.control}
+                name="triggerType"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Trigger Event</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger data-testid="select-trigger-type">
+                          <SelectValue placeholder="Select trigger event" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {Object.values(triggerTypeEnum).map((trigger) => (
+                          <SelectItem key={trigger} value={trigger}>
+                            {formatTriggerType(trigger)}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={createForm.control}
+                name="minAmountCents"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Minimum Amount (Optional)</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        placeholder="e.g., 500 for $5.00"
+                        {...field}
+                        value={field.value || ''}
+                        onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
+                        data-testid="input-min-amount"
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      Amount in cents. Trigger only when payment meets this minimum.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={createForm.control}
+                name="projectType"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Project Type Filter (Optional)</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value || ''}>
+                      <FormControl>
+                        <SelectTrigger data-testid="select-project-type">
+                          <SelectValue placeholder="All project types" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="">All project types</SelectItem>
+                        {Object.values(projectTypeEnum).map((type) => (
+                          <SelectItem key={type} value={type}>
+                            {type.charAt(0) + type.slice(1).toLowerCase()}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormDescription>
+                      Limit trigger to specific project types only.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={createForm.control}
+                name="enabled"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                    <div className="space-y-0.5">
+                      <FormLabel>Enable Trigger</FormLabel>
+                      <FormDescription>
+                        Trigger will be active and can execute the automation.
+                      </FormDescription>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                        data-testid="switch-trigger-enabled"
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+
+              <div className="flex justify-end space-x-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setAddDialogOpen(false)}
+                  data-testid="button-cancel-add-trigger"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={createTriggerMutation.isPending}
+                  data-testid="button-save-trigger"
+                >
+                  {createTriggerMutation.isPending ? "Saving..." : "Save Trigger"}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Trigger Dialog */}
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit Business Trigger</DialogTitle>
+            <DialogDescription>
+              Modify the business event trigger configuration.
+            </DialogDescription>
+          </DialogHeader>
+          <Form {...editForm}>
+            <form onSubmit={editForm.handleSubmit(handleUpdateTrigger)} className="space-y-4">
+              <FormField
+                control={editForm.control}
+                name="triggerType"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Trigger Event</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger data-testid="select-edit-trigger-type">
+                          <SelectValue placeholder="Select trigger event" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {Object.values(triggerTypeEnum).map((trigger) => (
+                          <SelectItem key={trigger} value={trigger}>
+                            {formatTriggerType(trigger)}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={editForm.control}
+                name="minAmountCents"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Minimum Amount (Optional)</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        placeholder="e.g., 500 for $5.00"
+                        {...field}
+                        value={field.value || ''}
+                        onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
+                        data-testid="input-edit-min-amount"
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      Amount in cents. Trigger only when payment meets this minimum.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={editForm.control}
+                name="projectType"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Project Type Filter (Optional)</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value || ''}>
+                      <FormControl>
+                        <SelectTrigger data-testid="select-edit-project-type">
+                          <SelectValue placeholder="All project types" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="">All project types</SelectItem>
+                        {Object.values(projectTypeEnum).map((type) => (
+                          <SelectItem key={type} value={type}>
+                            {type.charAt(0) + type.slice(1).toLowerCase()}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormDescription>
+                      Limit trigger to specific project types only.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={editForm.control}
+                name="enabled"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                    <div className="space-y-0.5">
+                      <FormLabel>Enable Trigger</FormLabel>
+                      <FormDescription>
+                        Trigger will be active and can execute the automation.
+                      </FormDescription>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                        data-testid="switch-edit-trigger-enabled"
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+
+              <div className="flex justify-end space-x-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setEditDialogOpen(false)}
+                  data-testid="button-cancel-edit-trigger"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={updateTriggerMutation.isPending}
+                  data-testid="button-update-trigger"
+                >
+                  {updateTriggerMutation.isPending ? "Updating..." : "Update Trigger"}
+                </Button>
+              </div>
+            </form>
+          </Form>
         </DialogContent>
       </Dialog>
     </div>
@@ -1923,68 +2414,78 @@ export default function Automations() {
                         automations.map((automation: any) => (
                           <div
                             key={automation.id}
-                            className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 border rounded-lg bg-card hover:bg-accent/50 transition-colors space-y-3 sm:space-y-0"
+                            className="border rounded-lg bg-card hover:bg-accent/50 transition-colors"
                           >
-                            <div className="flex items-center space-x-3">
-                              <div className={`p-2 rounded-full ${automation.enabled ? 'bg-green-100 text-green-600 dark:bg-green-900 dark:text-green-400' : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'}`}>
-                                {automation.automationType === 'COMMUNICATION' ? <Mail className="h-4 w-4" /> : <ArrowRight className="h-4 w-4" />}
-                              </div>
-                              <div>
-                                <div className="flex flex-wrap items-center gap-2">
-                                  <p className="font-medium">{automation.name}</p>
-                                  <Badge 
-                                    variant="outline" 
-                                    className={`text-xs ${
-                                      automation.triggerMode === 'STAGE' ? 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950 dark:text-blue-300' :
-                                      automation.triggerMode === 'BUSINESS' ? 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-950 dark:text-purple-300' :
-                                      'bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-950 dark:text-orange-300'
-                                    }`}
-                                  >
-                                    {automation.triggerMode === 'STAGE' ? 'Stage-based' : 
-                                     automation.triggerMode === 'BUSINESS' ? 'Business Event' : 'Time-based'}
-                                  </Badge>
-                                  <Badge variant={automation.automationType === 'COMMUNICATION' ? 'default' : 'secondary'}>
-                                    {automation.automationType === 'COMMUNICATION' ? 'Communication' : 'Pipeline'}
-                                  </Badge>
+                            {/* Automation Header */}
+                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 space-y-3 sm:space-y-0">
+                              <div className="flex items-center space-x-3">
+                                <div className={`p-2 rounded-full ${automation.enabled ? 'bg-green-100 text-green-600 dark:bg-green-900 dark:text-green-400' : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'}`}>
+                                  {automation.automationType === 'COMMUNICATION' ? <Mail className="h-4 w-4" /> : <ArrowRight className="h-4 w-4" />}
                                 </div>
-                                <p className="text-sm text-muted-foreground">
-                                  {automation.triggerMode === 'STAGE' && automation.stageName ? 
-                                    `Triggers when clients enter "${automation.stageName}" stage` :
-                                   automation.triggerMode === 'BUSINESS' && automation.triggerEvent ?
-                                    `Triggers on ${automation.triggerEvent.replace(/_/g, ' ').toLowerCase()}` :
-                                   automation.triggerMode === 'TIME' ?
-                                    `Time-based trigger after ${automation.delayAmount} ${automation.delayUnit}` :
-                                    'Custom trigger conditions'
-                                  }
-                                </p>
+                                <div>
+                                  <div className="flex flex-wrap items-center gap-2">
+                                    <p className="font-medium">{automation.name}</p>
+                                    <Badge 
+                                      variant="outline" 
+                                      className={`text-xs ${
+                                        automation.triggerMode === 'STAGE' ? 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950 dark:text-blue-300' :
+                                        automation.triggerMode === 'BUSINESS' ? 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-950 dark:text-purple-300' :
+                                        'bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-950 dark:text-orange-300'
+                                      }`}
+                                    >
+                                      {automation.triggerMode === 'STAGE' ? 'Stage-based' : 
+                                       automation.triggerMode === 'BUSINESS' ? 'Business Event' : 'Time-based'}
+                                    </Badge>
+                                    <Badge variant={automation.automationType === 'COMMUNICATION' ? 'default' : 'secondary'}>
+                                      {automation.automationType === 'COMMUNICATION' ? 'Communication' : 'Pipeline'}
+                                    </Badge>
+                                  </div>
+                                  <p className="text-sm text-muted-foreground">
+                                    {automation.triggerMode === 'STAGE' && automation.stageName ? 
+                                      `Triggers when clients enter "${automation.stageName}" stage` :
+                                     automation.triggerMode === 'BUSINESS' && automation.triggerEvent ?
+                                      `Triggers on ${automation.triggerEvent.replace(/_/g, ' ').toLowerCase()}` :
+                                     automation.triggerMode === 'TIME' ?
+                                      `Time-based trigger after ${automation.delayAmount} ${automation.delayUnit}` :
+                                      'Custom trigger conditions'
+                                    }
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="flex items-center justify-center sm:justify-start space-x-2">
+                                <span className="text-xs text-muted-foreground">
+                                  {automation.enabled ? "On" : "Off"}
+                                </span>
+                                <Switch
+                                  checked={automation.enabled}
+                                  onCheckedChange={(enabled) => handleToggleAutomation(automation.id, enabled)}
+                                  data-testid={`switch-automation-${automation.id}`}
+                                />
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleEditAutomation(automation)}
+                                  data-testid={`button-edit-automation-${automation.id}`}
+                                >
+                                  <Edit2 className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleDeleteAutomation(automation.id)}
+                                  data-testid={`button-delete-automation-${automation.id}`}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
                               </div>
                             </div>
-                            <div className="flex items-center justify-center sm:justify-start space-x-2">
-                              <span className="text-xs text-muted-foreground">
-                                {automation.enabled ? "On" : "Off"}
-                              </span>
-                              <Switch
-                                checked={automation.enabled}
-                                onCheckedChange={(enabled) => handleToggleAutomation(automation.id, enabled)}
-                                data-testid={`switch-automation-${automation.id}`}
-                              />
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleEditAutomation(automation)}
-                                data-testid={`button-edit-automation-${automation.id}`}
-                              >
-                                <Edit2 className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleDeleteAutomation(automation.id)}
-                                data-testid={`button-delete-automation-${automation.id}`}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
+                            
+                            {/* Business Triggers Section - Only shown for business event automations */}
+                            {automation.triggerMode === 'BUSINESS' && (
+                              <div className="border-t p-4 bg-accent/5">
+                                <BusinessTriggersManager automation={automation} />
+                              </div>
+                            )}
                           </div>
                         ))
                       )}

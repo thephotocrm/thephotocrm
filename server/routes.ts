@@ -13,7 +13,7 @@ import { createPaymentIntent, createCheckoutSession, createConnectCheckoutSessio
 import { googleCalendarService, createBookingCalendarEvent } from "./services/calendar";
 import { slotGenerationService } from "./services/slotGeneration";
 import { insertUserSchema, insertPhotographerSchema, insertClientSchema, insertStageSchema, 
-         insertTemplateSchema, insertAutomationSchema, validateAutomationSchema, insertAutomationStepSchema, insertPackageSchema, 
+         insertTemplateSchema, insertAutomationSchema, validateAutomationSchema, insertAutomationStepSchema, insertAutomationBusinessTriggerSchema, insertPackageSchema, 
          insertEstimateSchema, insertMessageSchema, insertBookingSchema, updateBookingSchema, 
          bookingConfirmationSchema, sanitizedBookingSchema, insertQuestionnaireTemplateSchema, insertQuestionnaireQuestionSchema, 
          emailLogs, smsLogs, projectActivityLog,
@@ -1595,6 +1595,105 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       res.json({ message: "Automation disabled successfully", automation: updated });
     } catch (error) {
       console.error('Delete automation error:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Business Triggers
+  app.get("/api/business-triggers", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      const businessTriggers = await storage.getBusinessTriggersByPhotographer(req.user!.photographerId!);
+      res.json(businessTriggers);
+    } catch (error) {
+      console.error('Get business triggers error:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.get("/api/automations/:automationId/business-triggers", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      // First verify the automation belongs to this photographer
+      const automations = await storage.getAutomationsByPhotographer(req.user!.photographerId!);
+      const automation = automations.find(a => a.id === req.params.automationId);
+      
+      if (!automation) {
+        return res.status(404).json({ message: "Automation not found" });
+      }
+
+      const businessTriggers = await storage.getBusinessTriggersByAutomation(req.params.automationId);
+      res.json(businessTriggers);
+    } catch (error) {
+      console.error('Get automation business triggers error:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.post("/api/business-triggers", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      // Verify the automation belongs to this photographer
+      const automations = await storage.getAutomationsByPhotographer(req.user!.photographerId!);
+      const automation = automations.find(a => a.id === req.body.automationId);
+      
+      if (!automation) {
+        return res.status(404).json({ message: "Automation not found" });
+      }
+
+      const triggerData = insertAutomationBusinessTriggerSchema.parse(req.body);
+      const businessTrigger = await storage.createBusinessTrigger(triggerData);
+      res.status(201).json(businessTrigger);
+    } catch (error: any) {
+      console.error('Create business trigger error:', error);
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ message: "Invalid request data", errors: error.errors });
+      }
+      if (error?.code === '23505') {
+        return res.status(400).json({ message: "Business trigger already exists for this automation and trigger type" });
+      }
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.put("/api/business-triggers/:id", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      // Get the business trigger and verify ownership through automation
+      const businessTriggers = await storage.getBusinessTriggersByPhotographer(req.user!.photographerId!);
+      const businessTrigger = businessTriggers.find(t => t.id === req.params.id);
+      
+      if (!businessTrigger) {
+        return res.status(404).json({ message: "Business trigger not found" });
+      }
+
+      // Create update schema that excludes id and automationId
+      const updateSchema = insertAutomationBusinessTriggerSchema.partial().omit({
+        automationId: true
+      });
+      
+      const updateData = updateSchema.parse(req.body);
+      const updated = await storage.updateBusinessTrigger(req.params.id, updateData);
+      res.json(updated);
+    } catch (error: any) {
+      console.error('Update business trigger error:', error);
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ message: "Invalid request data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.delete("/api/business-triggers/:id", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      // Get the business trigger and verify ownership through automation
+      const businessTriggers = await storage.getBusinessTriggersByPhotographer(req.user!.photographerId!);
+      const businessTrigger = businessTriggers.find(t => t.id === req.params.id);
+      
+      if (!businessTrigger) {
+        return res.status(404).json({ message: "Business trigger not found" });
+      }
+
+      await storage.deleteBusinessTrigger(req.params.id);
+      res.json({ message: "Business trigger deleted successfully" });
+    } catch (error) {
+      console.error('Delete business trigger error:', error);
       res.status(500).json({ message: "Internal server error" });
     }
   });
