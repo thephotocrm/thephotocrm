@@ -1061,6 +1061,9 @@ export default function Automations() {
     triggerEvent: z.string().optional(), // For business event triggers
     // Time-based trigger fields
     daysBefore: z.coerce.number().min(1).max(365).optional(),
+    triggerTiming: z.enum(['BEFORE', 'AFTER']).default('BEFORE'),
+    triggerHour: z.coerce.number().min(0).max(23).default(9),
+    triggerMinute: z.coerce.number().min(0).max(59).default(0),
     eventType: z.string().optional(),
     stageCondition: z.string().optional(),
     // Optional automation type flags
@@ -1129,6 +1132,9 @@ export default function Automations() {
       triggerStageId: "",
       triggerEvent: "",
       daysBefore: 7,
+      triggerTiming: "BEFORE" as const,
+      triggerHour: 9,
+      triggerMinute: 0,
       eventType: "placeholder",
       stageCondition: "all",
       channel: "EMAIL", 
@@ -1279,6 +1285,23 @@ export default function Automations() {
             }
             
             await apiRequest("POST", `/api/automations/${commAutomation.id}/steps`, stepData);
+          }
+        }
+
+        // Handle time-based triggers - update automation with time fields
+        if (data.triggerMode === 'TIME' && createdAutomations.length > 0) {
+          // Update the created automation(s) with time-based trigger fields
+          for (const automation of createdAutomations) {
+            const timeData = {
+              daysBefore: data.daysBefore,
+              triggerTiming: data.triggerTiming,
+              triggerHour: data.triggerHour,
+              triggerMinute: data.triggerMinute,
+              eventType: data.eventType,
+              stageCondition: data.stageCondition && data.stageCondition !== 'all' ? data.stageCondition : null
+            };
+            
+            await apiRequest("PATCH", `/api/automations/${automation.id}`, timeData);
           }
         }
 
@@ -1595,30 +1618,51 @@ export default function Automations() {
                       {/* Time-based Trigger Fields */}
                       {form.watch('triggerMode') === 'TIME' && (
                         <div className="space-y-4">
-                          <FormField
-                            control={form.control}
-                            name="daysBefore"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>How many days before?</FormLabel>
-                                <FormControl>
-                                  <Input 
-                                    type="number"
-                                    min="1"
-                                    max="365"
-                                    placeholder="e.g., 7"
-                                    data-testid="input-days-before"
-                                    {...field}
-                                    onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                                  />
-                                </FormControl>
-                                <FormDescription>
-                                  Enter the number of days before the event date
-                                </FormDescription>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
+                          <div className="grid grid-cols-2 gap-4">
+                            <FormField
+                              control={form.control}
+                              name="daysBefore"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Number of Days</FormLabel>
+                                  <FormControl>
+                                    <Input 
+                                      type="number"
+                                      min="1"
+                                      max="365"
+                                      placeholder="e.g., 7"
+                                      data-testid="input-days-before"
+                                      {...field}
+                                      onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                                    />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+
+                            <FormField
+                              control={form.control}
+                              name="triggerTiming"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Before or After?</FormLabel>
+                                  <Select onValueChange={field.onChange} value={field.value}>
+                                    <FormControl>
+                                      <SelectTrigger data-testid="select-trigger-timing">
+                                        <SelectValue placeholder="Select timing" />
+                                      </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                      <SelectItem value="BEFORE">Before</SelectItem>
+                                      <SelectItem value="AFTER">After</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          </div>
 
                           <FormField
                             control={form.control}
@@ -1647,6 +1691,58 @@ export default function Automations() {
                               </FormItem>
                             )}
                           />
+
+                          <div className="grid grid-cols-2 gap-4">
+                            <FormField
+                              control={form.control}
+                              name="triggerHour"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>At what time? (Hour)</FormLabel>
+                                  <Select onValueChange={(value) => field.onChange(parseInt(value))} value={field.value?.toString()}>
+                                    <FormControl>
+                                      <SelectTrigger data-testid="select-trigger-hour">
+                                        <SelectValue placeholder="Select hour" />
+                                      </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                      {Array.from({ length: 24 }, (_, i) => (
+                                        <SelectItem key={i} value={i.toString()}>
+                                          {i.toString().padStart(2, '0')}:00 {i < 12 ? 'AM' : 'PM'}
+                                        </SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+
+                            <FormField
+                              control={form.control}
+                              name="triggerMinute"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Minute</FormLabel>
+                                  <Select onValueChange={(value) => field.onChange(parseInt(value))} value={field.value?.toString()}>
+                                    <FormControl>
+                                      <SelectTrigger data-testid="select-trigger-minute">
+                                        <SelectValue placeholder="Select minute" />
+                                      </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                      {[0, 15, 30, 45].map((minute) => (
+                                        <SelectItem key={minute} value={minute.toString()}>
+                                          :{minute.toString().padStart(2, '0')}
+                                        </SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          </div>
 
                           <FormField
                             control={form.control}
