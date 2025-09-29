@@ -232,6 +232,7 @@ export default function Templates() {
                       <p>{'{'}phone{'}'} - Client's phone number</p>
                       <p>{'{'}weddingDate{'}'} - Client's wedding date</p>
                       <p>{'{'}businessName{'}'} - Your business name</p>
+                      <p>{'{'}scheduling_link{'}'} - Short URL to your booking calendar</p>
                     </div>
                   </div>
                   
