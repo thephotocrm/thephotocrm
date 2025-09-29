@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { 
@@ -217,16 +218,40 @@ export default function DripCampaigns() {
         </Badge>
       </div>
 
-      {/* Project Type Tabs */}
+      {/* Project Type Selection */}
+      <div>
+        {/* Desktop Tabs */}
+        <Tabs value={selectedProjectType} onValueChange={setSelectedProjectType} className="hidden md:block">
+          <TabsList data-testid="tabs-project-type" className="grid w-full grid-cols-6">
+            <TabsTrigger value="WEDDING">Wedding</TabsTrigger>
+            <TabsTrigger value="PORTRAIT">Portrait</TabsTrigger>
+            <TabsTrigger value="COMMERCIAL">Commercial</TabsTrigger>
+            <TabsTrigger value="ENGAGEMENT">Engagement</TabsTrigger>
+            <TabsTrigger value="MATERNITY">Maternity</TabsTrigger>
+            <TabsTrigger value="FAMILY">Family</TabsTrigger>
+          </TabsList>
+        </Tabs>
+        
+        {/* Mobile Dropdown */}
+        <div className="md:hidden">
+          <Label htmlFor="mobile-project-type" className="text-sm font-medium">Project Type</Label>
+          <Select value={selectedProjectType} onValueChange={setSelectedProjectType}>
+            <SelectTrigger className="w-full mt-2" data-testid="select-mobile-project-type">
+              <SelectValue placeholder="Select project type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="WEDDING">💒 Wedding</SelectItem>
+              <SelectItem value="PORTRAIT">🎭 Portrait</SelectItem>
+              <SelectItem value="COMMERCIAL">📸 Commercial</SelectItem>
+              <SelectItem value="ENGAGEMENT">💍 Engagement</SelectItem>
+              <SelectItem value="MATERNITY">🤱 Maternity</SelectItem>
+              <SelectItem value="FAMILY">👨‍👩‍👧‍👦 Family</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
       <Tabs value={selectedProjectType} onValueChange={setSelectedProjectType}>
-        <TabsList data-testid="tabs-project-type" className="grid w-full grid-cols-6">
-          <TabsTrigger value="WEDDING">Wedding</TabsTrigger>
-          <TabsTrigger value="PORTRAIT">Portrait</TabsTrigger>
-          <TabsTrigger value="COMMERCIAL">Commercial</TabsTrigger>
-          <TabsTrigger value="ENGAGEMENT">Engagement</TabsTrigger>
-          <TabsTrigger value="MATERNITY">Maternity</TabsTrigger>
-          <TabsTrigger value="FAMILY">Family</TabsTrigger>
-        </TabsList>
 
         <TabsContent value={selectedProjectType} className="mt-6">
           {/* Static Email Campaign Display */}

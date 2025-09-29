@@ -1780,21 +1780,27 @@ export default function Automations() {
           <div className="w-full">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
               {/* Desktop project type buttons */}
-              <div className="hidden md:flex flex-wrap gap-2 max-w-3xl">
-                {Object.entries(projectTypeEnum).map(([value, _]) => (
+              <div className="hidden md:flex flex-wrap gap-2 max-w-5xl">
+                {(Object.keys(projectTypeEnum) as Array<keyof typeof projectTypeEnum>).map((value) => (
                   <Button
                     key={value}
                     variant={activeProjectType === value ? "default" : "outline"}
                     size="sm"
-                    onClick={() => setActiveProjectType(value as keyof typeof projectTypeEnum)}
+                    onClick={() => setActiveProjectType(value)}
                     data-testid={`tab-${value.toLowerCase()}`}
                     className="flex items-center gap-2"
                   >
                     {value === "WEDDING" && "💒 Wedding"}
                     {value === "ENGAGEMENT" && "💍 Engagement"}
+                    {value === "PROPOSAL" && "💍 Proposal"}
                     {value === "PORTRAIT" && "🎭 Portrait"}
                     {value === "CORPORATE" && "🏢 Corporate"}
+                    {value === "FAMILY" && "👨‍👩‍👧‍👦 Family"}
+                    {value === "MATERNITY" && "🤱 Maternity"}
+                    {value === "NEWBORN" && "👶 Newborn"}
                     {value === "EVENT" && "🎉 Event"}
+                    {value === "COMMERCIAL" && "📸 Commercial"}
+                    {value === "OTHER" && "📁 Other"}
                   </Button>
                 ))}
               </div>
@@ -1808,9 +1814,15 @@ export default function Automations() {
                   <SelectContent>
                     <SelectItem value="WEDDING">💒 Wedding</SelectItem>
                     <SelectItem value="ENGAGEMENT">💍 Engagement</SelectItem>
+                    <SelectItem value="PROPOSAL">💍 Proposal</SelectItem>
                     <SelectItem value="PORTRAIT">🎭 Portrait</SelectItem>
                     <SelectItem value="CORPORATE">🏢 Corporate</SelectItem>
+                    <SelectItem value="FAMILY">👨‍👩‍👧‍👦 Family</SelectItem>
+                    <SelectItem value="MATERNITY">🤱 Maternity</SelectItem>
+                    <SelectItem value="NEWBORN">👶 Newborn</SelectItem>
                     <SelectItem value="EVENT">🎉 Event</SelectItem>
+                    <SelectItem value="COMMERCIAL">📸 Commercial</SelectItem>
+                    <SelectItem value="OTHER">📁 Other</SelectItem>
                   </SelectContent>
                 </Select>
                 <Button
