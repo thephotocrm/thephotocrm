@@ -1,5 +1,5 @@
 import { 
-  photographers, users, clients, projects, stages, templates, automations, automationSteps,
+  photographers, users, clients, projects, stages, templates, automations, automationSteps, automationBusinessTriggers,
   emailLogs, smsLogs, automationExecutions, photographerLinks, checklistTemplateItems, projectChecklistItems,
   packages, packageItems, questionnaireTemplates, questionnaireQuestions, projectQuestionnaires,
   availabilitySlots, bookings, estimates, estimateItems, estimatePayments,
@@ -10,7 +10,7 @@ import {
   type User, type InsertUser, type Photographer, type InsertPhotographer,
   type Client, type InsertClient, type Project, type InsertProject, type ProjectWithClientAndStage, type ClientWithProjects, type Stage, type InsertStage,
   type Template, type InsertTemplate, type Automation, type InsertAutomation,
-  type AutomationStep, type InsertAutomationStep, type Package, type InsertPackage,
+  type AutomationStep, type InsertAutomationStep, type AutomationBusinessTrigger, type InsertAutomationBusinessTrigger, type Package, type InsertPackage,
   type Estimate, type InsertEstimate, type EstimateItem, type EstimateWithProject, type EstimateWithRelations,
   type PhotographerEarnings, type InsertPhotographerEarnings,
   type PhotographerPayouts, type InsertPhotographerPayouts,

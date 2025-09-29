@@ -181,6 +181,23 @@ export const automations = pgTable("automations", {
   enabled: boolean("enabled").default(true)
 });
 
+// Business Triggers table - separate from automations to avoid null-handling issues
+export const automationBusinessTriggers = pgTable("automation_business_triggers", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  automationId: varchar("automation_id").notNull().references(() => automations.id, { onDelete: "cascade" }),
+  triggerType: text("trigger_type").notNull(), // DEPOSIT_PAID, FULL_PAYMENT_MADE, etc.
+  enabled: boolean("enabled").default(true),
+  // Optional constraints for more specific triggering
+  minAmountCents: integer("min_amount_cents"), // For payment triggers
+  projectType: text("project_type"), // If trigger should only apply to specific project types
+  createdAt: timestamp("created_at").defaultNow()
+}, (table) => ({
+  // Ensure each automation can only have one trigger of each type
+  uniqueAutomationTrigger: unique("automation_business_triggers_unique").on(table.automationId, table.triggerType),
+  // Index for efficient queries
+  automationIdIdx: index("automation_business_triggers_automation_id_idx").on(table.automationId)
+}));
+
 export const automationSteps = pgTable("automation_steps", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   automationId: varchar("automation_id").notNull().references(() => automations.id),
@@ -724,7 +741,15 @@ export const automationsRelations = relations(automations, ({ one, many }) => ({
     fields: [automations.stageId],
     references: [stages.id]
   }),
-  steps: many(automationSteps)
+  steps: many(automationSteps),
+  businessTriggers: many(automationBusinessTriggers)
+}));
+
+export const automationBusinessTriggersRelations = relations(automationBusinessTriggers, ({ one }) => ({
+  automation: one(automations, {
+    fields: [automationBusinessTriggers.automationId],
+    references: [automations.id]
+  })
 }));
 
 export const automationStepsRelations = relations(automationSteps, ({ one }) => ({
@@ -929,6 +954,11 @@ export const insertAutomationStepSchema = createInsertSchema(automationSteps).om
   id: true
 });
 
+export const insertAutomationBusinessTriggerSchema = createInsertSchema(automationBusinessTriggers).omit({
+  id: true,
+  createdAt: true
+});
+
 export const insertAutomationExecutionSchema = createInsertSchema(automationExecutions).omit({
   id: true,
   executedAt: true
@@ -1038,6 +1068,8 @@ export type Automation = typeof automations.$inferSelect;
 export type InsertAutomation = z.infer<typeof insertAutomationSchema>;
 export type AutomationStep = typeof automationSteps.$inferSelect;
 export type InsertAutomationStep = z.infer<typeof insertAutomationStepSchema>;
+export type AutomationBusinessTrigger = typeof automationBusinessTriggers.$inferSelect;
+export type InsertAutomationBusinessTrigger = z.infer<typeof insertAutomationBusinessTriggerSchema>;
 export type AutomationExecution = typeof automationExecutions.$inferSelect;
 export type InsertAutomationExecution = z.infer<typeof insertAutomationExecutionSchema>;
 export type Package = typeof packages.$inferSelect;
