@@ -50,26 +50,6 @@ export default function Questionnaires() {
   const [, setLocation] = useLocation();
 
   // ALL HOOKS MUST BE CALLED BEFORE ANY CONDITIONAL LOGIC - Rules of Hooks!
-  const { data: templates = [], isLoading } = useQuery({
-    queryKey: ["/api/questionnaire-templates"],
-    enabled: !!user
-  });
-
-  // Redirect to login if not authenticated  
-  useEffect(() => {
-    if (!loading && !user) {
-      setLocation("/login");
-    }
-  }, [loading, user, setLocation]);
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
-      </div>
-    );
-  }
-
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState<any>(null);
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
@@ -80,13 +60,15 @@ export default function Questionnaires() {
   
   const { toast } = useToast();
 
+  const { data: templates = [], isLoading } = useQuery({
+    queryKey: ["/api/questionnaire-templates"],
+    enabled: !!user
+  });
+
   // Fetch questions when editing a template
   const { data: questions = [], isLoading: questionsLoading } = useQuery({
     queryKey: ["/api/questionnaire-templates", editingTemplate?.id, "questions"],
-    enabled: !!editingTemplate?.id,
-    onSuccess: (data) => {
-      setEditingQuestions(data);
-    }
+    enabled: !!editingTemplate?.id
   });
 
   // Create template mutation
@@ -216,6 +198,29 @@ export default function Questionnaires() {
     }
   });
 
+  // Update editingQuestions when questions data changes
+  useEffect(() => {
+    if (questions && Array.isArray(questions)) {
+      setEditingQuestions(questions);
+    }
+  }, [questions]);
+
+  // Redirect to login if not authenticated  
+  useEffect(() => {
+    if (!loading && !user) {
+      setLocation("/login");
+    }
+  }, [loading, user, setLocation]);
+
+  // Early return for loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
+      </div>
+    );
+  }
+
   const handleCreateSubmit = () => {
     if (!newTemplate.title.trim()) {
       toast({
@@ -291,14 +296,6 @@ export default function Questionnaires() {
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
-      </div>
-    );
-  }
-
   return (
     <div>
         {/* Header */}
@@ -371,7 +368,7 @@ export default function Questionnaires() {
                 <ClipboardList className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{templates.length}</div>
+                <div className="text-2xl font-bold">{Array.isArray(templates) ? templates.length : 0}</div>
                 <p className="text-xs text-muted-foreground">Active templates</p>
               </CardContent>
             </Card>
@@ -417,14 +414,14 @@ export default function Questionnaires() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {templates.length === 0 ? (
+                {!Array.isArray(templates) || templates.length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground">
                     <ClipboardList className="w-12 h-12 mx-auto mb-4 opacity-50" />
                     <p>No questionnaire templates yet</p>
                     <p className="text-sm">Create your first template to get started</p>
                   </div>
                 ) : (
-                  templates.map((template: any) => (
+                  (templates as any[]).map((template: any) => (
                     <div key={template.id} className="flex items-center justify-between p-4 border border-border rounded-lg">
                       <div>
                         <h3 className="font-medium">{template.title}</h3>
