@@ -1551,7 +1551,7 @@ export default function Automations() {
                         />
                       </div>
                     )}
-                      <div className="h-full flex flex-col">
+                      <div className="flex flex-col flex-1">
                         </div>
                         <div className="sticky bottom-0 bg-background px-6 py-4 border-t flex justify-end space-x-2">
                       <Button
@@ -1652,7 +1652,6 @@ export default function Automations() {
                         </div>
                       </div>
                     </form>
-                    </div>
                   </Form>
               </DialogContent>
             </Dialog>
