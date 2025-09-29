@@ -1,8 +1,11 @@
 import { useAuth } from "@/hooks/use-auth";
 import { useLocation } from "wouter";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { projectTypeEnum } from "@shared/schema";
+import { projectTypeEnum, insertProjectSchema } from "@shared/schema";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import KanbanBoard from "@/components/kanban/kanban-board";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,12 +13,40 @@ import { Input } from "@/components/ui/input";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 import { Users, CheckCircle, DollarSign, Clock, Search, Plus } from "lucide-react";
+
+type InsertProject = z.infer<typeof insertProjectSchema>;
 
 export default function Dashboard() {
   const { user, loading } = useAuth();
   const [, setLocation] = useLocation();
   const [activeProjectType, setActiveProjectType] = useState<string>('WEDDING');
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [isCreateProjectOpen, setIsCreateProjectOpen] = useState(false);
+  
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  // Form setup with proper schema validation
+  const form = useForm<InsertProject>({
+    resolver: zodResolver(insertProjectSchema),
+    defaultValues: {
+      title: '',
+      projectType: 'WEDDING',
+      clientId: '',
+      eventDate: undefined,
+      leadSource: undefined,
+      smsOptIn: true,
+      emailOptIn: true,
+      notes: ''
+    }
+  });
 
   // ALL HOOKS MUST BE CALLED BEFORE ANY CONDITIONAL LOGIC
   const { data: stats } = useQuery({
@@ -33,6 +64,59 @@ export default function Dashboard() {
     queryKey: ["/api/stages", activeProjectType], 
     queryFn: () => fetch(`/api/stages?projectType=${activeProjectType}`).then(res => res.json()),
     enabled: !!user
+  });
+
+  // Fetch clients for project creation
+  const { data: clients } = useQuery({
+    queryKey: ["/api/clients"],
+    enabled: !!user
+  });
+
+  // Create project mutation
+  const createProjectMutation = useMutation({
+    mutationFn: async (projectData: InsertProject) => {
+      return await apiRequest("POST", "/api/projects", projectData);
+    },
+    onSuccess: () => {
+      // Invalidate both projects and stages to refresh the dashboard
+      queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/stages"] });
+      setIsCreateProjectOpen(false);
+      form.reset();
+      toast({
+        title: "Project created",
+        description: "New project has been added successfully.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error?.response?.data?.message || "Failed to create project. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Utility functions
+  const openCreateProjectModal = (projectType?: string, stageId?: string) => {
+    form.setValue('projectType', projectType || activeProjectType);
+    setIsCreateProjectOpen(true);
+  };
+
+  const handleCreateProject = (data: InsertProject) => {
+    createProjectMutation.mutate(data);
+  };
+
+  // Filter projects based on search query
+  const filteredProjects = (projects || []).filter((project: any) => {
+    if (!searchQuery.trim()) return true;
+    
+    const query = searchQuery.toLowerCase();
+    const title = project.title?.toLowerCase() || '';
+    const clientName = `${project.client?.firstName || ''} ${project.client?.lastName || ''}`.toLowerCase();
+    const email = project.client?.email?.toLowerCase() || '';
+    
+    return title.includes(query) || clientName.includes(query) || email.includes(query);
   });
 
   // Redirect to login if not authenticated
@@ -81,12 +165,14 @@ export default function Dashboard() {
                   placeholder="Search projects..." 
                   className="w-64 pl-10"
                   data-testid="input-search-projects"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
                 />
                 <Search className="absolute left-3 top-2.5 w-5 h-5 text-muted-foreground" />
               </div>
               
               {/* Add Project Button */}
-              <Button onClick={() => setLocation("/projects")} data-testid="button-add-project">
+              <Button onClick={() => openCreateProjectModal()} data-testid="button-add-project">
                 <Plus className="w-5 h-5 mr-2" />
                 Add Project
               </Button>
@@ -108,12 +194,14 @@ export default function Dashboard() {
                   placeholder="Search projects..." 
                   className="w-full pl-10"
                   data-testid="input-search-projects"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
                 />
                 <Search className="absolute left-3 top-2.5 w-5 h-5 text-muted-foreground" />
               </div>
               
               <Button 
-                onClick={() => setLocation("/projects")} 
+                onClick={() => openCreateProjectModal()} 
                 data-testid="button-add-project"
                 className="w-full"
               >
@@ -129,14 +217,31 @@ export default function Dashboard() {
           {/* Project Type Selection */}
           <Tabs value={activeProjectType} onValueChange={setActiveProjectType} className="w-full">
             <div className="flex items-center justify-between mb-6">
-              {/* Desktop tabs */}
-              <TabsList className="hidden md:grid w-full grid-cols-5 max-w-3xl">
-                <TabsTrigger value="WEDDING" data-testid="tab-wedding">💒 Wedding</TabsTrigger>
-                <TabsTrigger value="ENGAGEMENT" data-testid="tab-engagement">💍 Engagement</TabsTrigger>
-                <TabsTrigger value="PORTRAIT" data-testid="tab-portrait">🎭 Portrait</TabsTrigger>
-                <TabsTrigger value="CORPORATE" data-testid="tab-corporate">🏢 Corporate</TabsTrigger>
-                <TabsTrigger value="EVENT" data-testid="tab-event">🎉 Event</TabsTrigger>
-              </TabsList>
+              {/* Desktop tabs - showing first 5 most common types */}
+              <div className="hidden md:flex flex-wrap gap-2 max-w-5xl">
+                {(Object.keys(projectTypeEnum) as Array<keyof typeof projectTypeEnum>).map((value) => (
+                  <Button
+                    key={value}
+                    variant={activeProjectType === value ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setActiveProjectType(value)}
+                    data-testid={`tab-${value.toLowerCase()}`}
+                    className="flex items-center gap-2"
+                  >
+                    {value === "WEDDING" && "💒 Wedding"}
+                    {value === "ENGAGEMENT" && "💍 Engagement"}
+                    {value === "PROPOSAL" && "💍 Proposal"}
+                    {value === "PORTRAIT" && "🎭 Portrait"}
+                    {value === "CORPORATE" && "🏢 Corporate"}
+                    {value === "FAMILY" && "👨‍👩‍👧‍👦 Family"}
+                    {value === "MATERNITY" && "🤱 Maternity"}
+                    {value === "NEWBORN" && "👶 Newborn"}
+                    {value === "EVENT" && "🎉 Event"}
+                    {value === "COMMERCIAL" && "📸 Commercial"}
+                    {value === "OTHER" && "📁 Other"}
+                  </Button>
+                ))}
+              </div>
               
               {/* Mobile dropdown */}
               <div className="md:hidden w-full max-w-xs">
@@ -147,15 +252,21 @@ export default function Dashboard() {
                   <SelectContent>
                     <SelectItem value="WEDDING">💒 Wedding</SelectItem>
                     <SelectItem value="ENGAGEMENT">💍 Engagement</SelectItem>
+                    <SelectItem value="PROPOSAL">💍 Proposal</SelectItem>
                     <SelectItem value="PORTRAIT">🎭 Portrait</SelectItem>
                     <SelectItem value="CORPORATE">🏢 Corporate</SelectItem>
+                    <SelectItem value="FAMILY">👨‍👩‍👧‍👦 Family</SelectItem>
+                    <SelectItem value="MATERNITY">🤱 Maternity</SelectItem>
+                    <SelectItem value="NEWBORN">👶 Newborn</SelectItem>
                     <SelectItem value="EVENT">🎉 Event</SelectItem>
+                    <SelectItem value="COMMERCIAL">📸 Commercial</SelectItem>
+                    <SelectItem value="OTHER">📁 Other</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </div>
 
-            {Object.keys(projectTypeEnum).map((projectType) => (
+            {(Object.keys(projectTypeEnum) as Array<keyof typeof projectTypeEnum>).map((projectType) => (
               <TabsContent key={projectType} value={projectType} className="space-y-6">
           {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -233,9 +344,10 @@ export default function Dashboard() {
                   </CardHeader>
                   <CardContent>
                     <KanbanBoard 
-                      projects={projects || []} 
+                      projects={filteredProjects} 
                       stages={stages || []} 
                       isLoading={projectsLoading || stagesLoading}
+                      onAddProject={(stageId, stageName) => openCreateProjectModal(activeProjectType, stageId)}
                     />
                   </CardContent>
                 </Card>
@@ -243,6 +355,167 @@ export default function Dashboard() {
             ))}
           </Tabs>
         </div>
+
+        {/* Create Project Modal */}
+        <Dialog open={isCreateProjectOpen} onOpenChange={setIsCreateProjectOpen}>
+          <DialogContent className="sm:max-w-[600px]">
+            <DialogHeader>
+              <DialogTitle>Create New Project</DialogTitle>
+              <DialogDescription>
+                Add a new project to your pipeline. All fields marked with * are required.
+              </DialogDescription>
+            </DialogHeader>
+            
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(handleCreateProject)} className="space-y-4">
+                {/* Project Title */}
+                <FormField
+                  control={form.control}
+                  name="title"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Project Title *</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="e.g., Johnson Wedding Photography"
+                          data-testid="input-project-title"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Project Type */}
+                <FormField
+                  control={form.control}
+                  name="projectType"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Project Type *</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger data-testid="select-project-type">
+                            <SelectValue placeholder="Select project type" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="WEDDING">💒 Wedding</SelectItem>
+                          <SelectItem value="ENGAGEMENT">💍 Engagement</SelectItem>
+                          <SelectItem value="PROPOSAL">💍 Proposal</SelectItem>
+                          <SelectItem value="PORTRAIT">🎭 Portrait</SelectItem>
+                          <SelectItem value="CORPORATE">🏢 Corporate</SelectItem>
+                          <SelectItem value="FAMILY">👨‍👩‍👧‍👦 Family</SelectItem>
+                          <SelectItem value="MATERNITY">🤱 Maternity</SelectItem>
+                          <SelectItem value="NEWBORN">👶 Newborn</SelectItem>
+                          <SelectItem value="EVENT">🎉 Event</SelectItem>
+                          <SelectItem value="COMMERCIAL">📸 Commercial</SelectItem>
+                          <SelectItem value="OTHER">📁 Other</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Client Selection */}
+                <FormField
+                  control={form.control}
+                  name="clientId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Client *</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger data-testid="select-client">
+                            <SelectValue placeholder="Select a client" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {clients?.map((client: any) => (
+                            <SelectItem key={client.id} value={client.id}>
+                              {client.firstName} {client.lastName} ({client.email})
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormDescription>
+                        Need to add a new client? Go to the <button 
+                          type="button" 
+                          className="text-blue-600 hover:text-blue-800 underline"
+                          onClick={() => {
+                            setIsCreateProjectOpen(false);
+                            setLocation("/clients");
+                          }}
+                        >
+                          Clients page
+                        </button> first.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Event Date */}
+                <FormField
+                  control={form.control}
+                  name="eventDate"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Event Date</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="date"
+                          data-testid="input-event-date"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Notes */}
+                <FormField
+                  control={form.control}
+                  name="notes"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Notes</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="Additional project notes..."
+                          data-testid="textarea-notes"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <DialogFooter>
+                  <Button 
+                    type="button"
+                    variant="outline" 
+                    onClick={() => setIsCreateProjectOpen(false)}
+                    data-testid="button-cancel-project"
+                  >
+                    Cancel
+                  </Button>
+                  <Button 
+                    type="submit"
+                    disabled={createProjectMutation.isPending}
+                    data-testid="button-create-project"
+                  >
+                    {createProjectMutation.isPending ? "Creating..." : "Create Project"}
+                  </Button>
+                </DialogFooter>
+              </form>
+            </Form>
+          </DialogContent>
+        </Dialog>
     </div>
   );
 }

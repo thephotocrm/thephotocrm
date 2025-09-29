@@ -35,6 +35,7 @@ interface KanbanBoardProps {
   projects: Project[];
   stages: Stage[];
   isLoading?: boolean;
+  onAddProject?: (stageId: string, stageName: string) => void;
 }
 
 // Loading skeleton for the kanban board
@@ -78,7 +79,7 @@ function KanbanSkeleton() {
   );
 }
 
-export default function KanbanBoard({ projects, stages, isLoading = false }: KanbanBoardProps) {
+export default function KanbanBoard({ projects, stages, isLoading = false, onAddProject }: KanbanBoardProps) {
   
   if (isLoading) {
     return <KanbanSkeleton />;
@@ -149,6 +150,7 @@ export default function KanbanBoard({ projects, stages, isLoading = false }: Kan
                 variant="outline"
                 className="w-full h-20 border-dashed text-muted-foreground hover:bg-accent"
                 data-testid={`button-add-project-${stage.name.toLowerCase().replace(/\s+/g, '-')}`}
+                onClick={() => onAddProject?.(stage.id, stage.name)}
               >
                 + Add project to {stage.name}
               </Button>
