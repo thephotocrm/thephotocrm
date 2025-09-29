@@ -983,6 +983,7 @@ export default function Automations() {
                   
                   <Form {...form}>
                     <form onSubmit={form.handleSubmit(handleCreateAutomation)} className="flex flex-col min-h-0 flex-1">
+                      <>
                       <div className="flex-1 min-h-0 overflow-y-auto px-6 py-4 space-y-8">
                     
                     {/* Step 1: Basic Information */}
@@ -1550,10 +1551,8 @@ export default function Automations() {
                         />
                       </div>
                     )}
-                      </div>
                     </div>
 
-                    {/* Footer with Submit Buttons */}
                     <div className="sticky bottom-0 bg-background px-6 py-4 border-t flex justify-end space-x-2">
                       <Button
                         type="button" 
@@ -1651,6 +1650,7 @@ export default function Automations() {
                         }
                       </Button>
                     </div>
+                    </>
                     </form>
                   </Form>
               </DialogContent>
