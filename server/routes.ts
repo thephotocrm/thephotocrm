@@ -4225,6 +4225,74 @@ ${photographer.businessName}
     }
   });
 
+  // Short Link API - Create short link for booking calendar
+  app.post("/api/short-links", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      const photographerId = req.user!.photographerId!;
+      const { targetUrl, linkType } = req.body;
+
+      // Generate a unique 6-character short code
+      const generateShortCode = () => {
+        const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+        let code = '';
+        for (let i = 0; i < 6; i++) {
+          code += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        return code;
+      };
+
+      // Try to generate a unique code
+      let shortCode = generateShortCode();
+      let attempts = 0;
+      while (attempts < 10) {
+        const existing = await storage.getShortLink(shortCode);
+        if (!existing) break;
+        shortCode = generateShortCode();
+        attempts++;
+      }
+
+      if (attempts >= 10) {
+        return res.status(500).json({ message: "Failed to generate unique short code" });
+      }
+
+      const shortLink = await storage.createShortLink({
+        photographerId,
+        shortCode,
+        targetUrl,
+        linkType: linkType || 'BOOKING'
+      });
+
+      res.json({
+        ...shortLink,
+        shortUrl: `${req.protocol}://${req.get('host')}/s/${shortCode}`
+      });
+    } catch (error: any) {
+      console.error('Error creating short link:', error);
+      res.status(500).json({ message: "Failed to create short link" });
+    }
+  });
+
+  // Public redirect route for short links
+  app.get("/s/:code", async (req, res) => {
+    try {
+      const { code } = req.params;
+      const shortLink = await storage.getShortLink(code);
+
+      if (!shortLink) {
+        return res.status(404).send("Short link not found");
+      }
+
+      // Increment click counter
+      await storage.incrementShortLinkClicks(code);
+
+      // Redirect to target URL
+      res.redirect(301, shortLink.targetUrl);
+    } catch (error: any) {
+      console.error('Error redirecting short link:', error);
+      res.status(500).send("Error processing redirect");
+    }
+  });
+
   // Add explicit route handler for public booking pages to serve the React app
   app.get("/public/booking/:token", async (req, res, next) => {
     if (app.get("env") === "development") {

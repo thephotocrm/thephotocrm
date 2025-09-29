@@ -7,6 +7,7 @@ import {
   messages, projectActivityLog, clientPortalTokens,
   dailyAvailabilityTemplates, dailyAvailabilityBreaks, dailyAvailabilityOverrides,
   dripCampaigns, dripCampaignEmails, dripCampaignSubscriptions, dripEmailDeliveries, staticCampaignSettings,
+  shortLinks,
   type User, type InsertUser, type Photographer, type InsertPhotographer,
   type Client, type InsertClient, type Project, type InsertProject, type ProjectWithClientAndStage, type ClientWithProjects, type Stage, type InsertStage,
   type Template, type InsertTemplate, type Automation, type InsertAutomation,
@@ -28,7 +29,8 @@ import {
   type DripCampaignEmail, type InsertDripCampaignEmail,
   type DripCampaignSubscription, type InsertDripCampaignSubscription, type DripCampaignSubscriptionWithDetails,
   type DripEmailDelivery, type InsertDripEmailDelivery,
-  type StaticCampaignSettings, type InsertStaticCampaignSettings
+  type StaticCampaignSettings, type InsertStaticCampaignSettings,
+  type ShortLink, type InsertShortLink
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, inArray, gte, lte, gt, sql } from "drizzle-orm";
@@ -152,6 +154,12 @@ export interface IStorage {
   createBooking(booking: InsertBooking): Promise<Booking>;
   updateBooking(id: string, booking: Partial<Booking>): Promise<Booking>;
   deleteBooking(id: string): Promise<void>;
+  
+  // Short Links
+  getShortLink(shortCode: string): Promise<ShortLink | undefined>;
+  getShortLinksByPhotographer(photographerId: string): Promise<ShortLink[]>;
+  createShortLink(shortLink: InsertShortLink): Promise<ShortLink>;
+  incrementShortLinkClicks(shortCode: string): Promise<void>;
 
   // Daily Availability Templates
   getDailyAvailabilityTemplatesByPhotographer(photographerId: string): Promise<DailyAvailabilityTemplate[]>;
@@ -1541,6 +1549,29 @@ export class DatabaseStorage implements IStorage {
 
   async deleteBooking(id: string): Promise<void> {
     await db.delete(bookings).where(eq(bookings.id, id));
+  }
+
+  // Short Link methods
+  async getShortLink(shortCode: string): Promise<ShortLink | undefined> {
+    const [link] = await db.select().from(shortLinks).where(eq(shortLinks.shortCode, shortCode));
+    return link || undefined;
+  }
+
+  async getShortLinksByPhotographer(photographerId: string): Promise<ShortLink[]> {
+    return await db.select().from(shortLinks)
+      .where(eq(shortLinks.photographerId, photographerId))
+      .orderBy(desc(shortLinks.createdAt));
+  }
+
+  async createShortLink(shortLink: InsertShortLink): Promise<ShortLink> {
+    const [newLink] = await db.insert(shortLinks).values(shortLink).returning();
+    return newLink;
+  }
+
+  async incrementShortLinkClicks(shortCode: string): Promise<void> {
+    await db.update(shortLinks)
+      .set({ clicks: sql`${shortLinks.clicks} + 1` })
+      .where(eq(shortLinks.shortCode, shortCode));
   }
 
   // Availability Slot methods
