@@ -378,6 +378,57 @@ async function processAutomationStep(client: any, step: any, automation: any): P
     .select()
     .from(photographers)
     .where(eq(photographers.id, client.photographerId));
+  
+  // Generate or get short link for booking calendar
+  let schedulingLink = '';
+  if (photographer?.publicToken) {
+    const baseUrl = process.env.REPLIT_DEV_DOMAIN 
+      ? `https://${process.env.REPLIT_DEV_DOMAIN}`
+      : 'https://thephotocrm.com';
+    const targetUrl = `${baseUrl}/public/booking/calendar/${photographer.publicToken}`;
+    
+    // Try to find existing short link for this photographer's booking calendar
+    const existingLinks = await storage.getShortLinksByPhotographer(client.photographerId);
+    const existingBookingLink = existingLinks.find(link => 
+      link.linkType === 'BOOKING' && link.targetUrl === targetUrl
+    );
+    
+    if (existingBookingLink) {
+      schedulingLink = `${baseUrl}/s/${existingBookingLink.shortCode}`;
+    } else {
+      // Generate a new short link
+      const generateShortCode = () => {
+        const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+        let code = '';
+        for (let i = 0; i < 6; i++) {
+          code += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        return code;
+      };
+
+      let shortCode = generateShortCode();
+      let attempts = 0;
+      while (attempts < 10) {
+        const existing = await storage.getShortLink(shortCode);
+        if (!existing) break;
+        shortCode = generateShortCode();
+        attempts++;
+      }
+
+      if (attempts < 10) {
+        const newLink = await storage.createShortLink({
+          photographerId: client.photographerId,
+          shortCode,
+          targetUrl,
+          linkType: 'BOOKING'
+        });
+        schedulingLink = `${baseUrl}/s/${newLink.shortCode}`;
+      } else {
+        // Fallback to full URL if short link generation fails
+        schedulingLink = targetUrl;
+      }
+    }
+  }
     
   // Prepare variables for template rendering
   const variables = {
@@ -388,7 +439,8 @@ async function processAutomationStep(client: any, step: any, automation: any): P
     phone: client.phone || '',
     businessName: photographer?.businessName || 'Your Photographer',
     eventDate: client.eventDate ? new Date(client.eventDate).toLocaleDateString() : 'Not set',
-    weddingDate: client.eventDate ? new Date(client.eventDate).toLocaleDateString() : 'Not set' // Backward compatibility
+    weddingDate: client.eventDate ? new Date(client.eventDate).toLocaleDateString() : 'Not set', // Backward compatibility
+    scheduling_link: schedulingLink
   };
 
   // 🔒 BULLETPROOF ERROR HANDLING - Wrap all send operations to prevent PENDING reservations on errors
@@ -832,6 +884,54 @@ async function sendCountdownMessage(project: any, automation: any, photographerI
   const eventDateInTz = new Date(eventDateParts.year, eventDateParts.month, eventDateParts.day);
   const todayDateInTz = new Date(todayParts.year, todayParts.month, todayParts.day);
   const daysRemaining = Math.ceil((eventDateInTz.getTime() - todayDateInTz.getTime()) / (1000 * 60 * 60 * 24));
+  
+  // Generate or get short link for booking calendar
+  let schedulingLink = '';
+  if (photographer?.publicToken) {
+    const baseUrl = process.env.REPLIT_DEV_DOMAIN 
+      ? `https://${process.env.REPLIT_DEV_DOMAIN}`
+      : 'https://thephotocrm.com';
+    const targetUrl = `${baseUrl}/public/booking/calendar/${photographer.publicToken}`;
+    
+    const existingLinks = await storage.getShortLinksByPhotographer(photographerId);
+    const existingBookingLink = existingLinks.find(link => 
+      link.linkType === 'BOOKING' && link.targetUrl === targetUrl
+    );
+    
+    if (existingBookingLink) {
+      schedulingLink = `${baseUrl}/s/${existingBookingLink.shortCode}`;
+    } else {
+      const generateShortCode = () => {
+        const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+        let code = '';
+        for (let i = 0; i < 6; i++) {
+          code += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        return code;
+      };
+
+      let shortCode = generateShortCode();
+      let attempts = 0;
+      while (attempts < 10) {
+        const existing = await storage.getShortLink(shortCode);
+        if (!existing) break;
+        shortCode = generateShortCode();
+        attempts++;
+      }
+
+      if (attempts < 10) {
+        const newLink = await storage.createShortLink({
+          photographerId,
+          shortCode,
+          targetUrl,
+          linkType: 'BOOKING'
+        });
+        schedulingLink = `${baseUrl}/s/${newLink.shortCode}`;
+      } else {
+        schedulingLink = targetUrl;
+      }
+    }
+  }
     
   // Prepare variables for template rendering
   const variables = {
@@ -844,7 +944,8 @@ async function sendCountdownMessage(project: any, automation: any, photographerI
     eventDate: eventDateInTz.toLocaleDateString(),
     weddingDate: eventDateInTz.toLocaleDateString(), // Backward compatibility
     daysRemaining: daysRemaining.toString(),
-    daysBefore: automation.daysBefore.toString()
+    daysBefore: automation.daysBefore.toString(),
+    scheduling_link: schedulingLink
   };
 
   // 🔒 BULLETPROOF ERROR HANDLING - Wrap send operations to prevent PENDING reservations on errors
@@ -1199,6 +1300,54 @@ async function processSubscriptionEmail(subscription: any, campaign: any, projec
     .from(photographers)
     .where(eq(photographers.id, photographerId));
 
+  // Generate or get short link for booking calendar
+  let schedulingLink = '';
+  if (photographer?.publicToken) {
+    const baseUrl = process.env.REPLIT_DEV_DOMAIN 
+      ? `https://${process.env.REPLIT_DEV_DOMAIN}`
+      : 'https://thephotocrm.com';
+    const targetUrl = `${baseUrl}/public/booking/calendar/${photographer.publicToken}`;
+    
+    const existingLinks = await storage.getShortLinksByPhotographer(photographerId);
+    const existingBookingLink = existingLinks.find(link => 
+      link.linkType === 'BOOKING' && link.targetUrl === targetUrl
+    );
+    
+    if (existingBookingLink) {
+      schedulingLink = `${baseUrl}/s/${existingBookingLink.shortCode}`;
+    } else {
+      const generateShortCode = () => {
+        const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+        let code = '';
+        for (let i = 0; i < 6; i++) {
+          code += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        return code;
+      };
+
+      let shortCode = generateShortCode();
+      let attempts = 0;
+      while (attempts < 10) {
+        const existing = await storage.getShortLink(shortCode);
+        if (!existing) break;
+        shortCode = generateShortCode();
+        attempts++;
+      }
+
+      if (attempts < 10) {
+        const newLink = await storage.createShortLink({
+          photographerId,
+          shortCode,
+          targetUrl,
+          linkType: 'BOOKING'
+        });
+        schedulingLink = `${baseUrl}/s/${newLink.shortCode}`;
+      } else {
+        schedulingLink = targetUrl;
+      }
+    }
+  }
+
   // Prepare variables for template rendering
   const variables = {
     firstName: client.firstName,
@@ -1207,7 +1356,8 @@ async function processSubscriptionEmail(subscription: any, campaign: any, projec
     email: client.email || '',
     phone: client.phone || '',
     businessName: photographer?.businessName || 'Your Photographer',
-    eventDate: project.eventDate ? new Date(project.eventDate).toLocaleDateString() : 'Not set'
+    eventDate: project.eventDate ? new Date(project.eventDate).toLocaleDateString() : 'Not set',
+    scheduling_link: schedulingLink
   };
 
   // Render email content
