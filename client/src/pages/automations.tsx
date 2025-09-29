@@ -25,6 +25,34 @@ import { useToast } from "@/hooks/use-toast";
 const createAutomationFormSchema = insertAutomationSchema.omit({ photographerId: true });
 type CreateAutomationFormData = z.infer<typeof createAutomationFormSchema>;
 
+// Helper function to format enhanced timing information
+function formatStepTiming(step: any): string {
+  const parts: string[] = [];
+  
+  // Add days, hours, minutes
+  if (step.delayDays > 0) parts.push(`${step.delayDays} day${step.delayDays > 1 ? 's' : ''}`);
+  if (step.delayHours > 0) parts.push(`${step.delayHours} hour${step.delayHours > 1 ? 's' : ''}`);
+  if (step.delayMinutes > 0) parts.push(`${step.delayMinutes} min`);
+  
+  // If no timing is set, show "immediately"
+  if (parts.length === 0) {
+    parts.push('immediately');
+  }
+  
+  let timing = `Wait ${parts.join(', ')}`;
+  
+  // Add specific send time if set
+  if (step.sendAtTime) {
+    const [hours, minutes] = step.sendAtTime.split(':');
+    const time = new Date();
+    time.setHours(parseInt(hours), parseInt(minutes));
+    const timeStr = time.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+    timing += `, at ${timeStr}`;
+  }
+  
+  return timing;
+}
+
 // AutomationStepManager Component
 function AutomationStepManager({ automation, onDelete }: { automation: any, onDelete: (id: string) => void }) {
   const { toast } = useToast();
@@ -209,7 +237,7 @@ function AutomationStepManager({ automation, onDelete }: { automation: any, onDe
                     {index + 1}
                   </span>
                   <span>
-                    Wait {step.delayMinutes} min, then send {automation.channel.toLowerCase()}
+                    {formatStepTiming(step)}, then send {automation.channel.toLowerCase()}
                   </span>
                 </div>
                 <div className="flex items-center space-x-1">
@@ -287,7 +315,7 @@ function AutomationStepManager({ automation, onDelete }: { automation: any, onDe
                       const template = templates?.find(t => t.id === step.templateId);
                       return (
                         <div key={step.id} className="border-l-2 border-primary pl-3">
-                          <p className="text-sm font-medium">Step {index + 1} ({step.delayMinutes} min delay)</p>
+                          <p className="text-sm font-medium">Step {index + 1} ({formatStepTiming(step)})</p>
                           {template ? (
                             <div className="text-sm text-muted-foreground">
                               <p className="font-medium">{template.name}</p>
@@ -1390,91 +1418,93 @@ export default function Automations() {
                       </div>
 
                       {timingMode === 'delayed' && (
-                        <div className="grid grid-cols-3 gap-2 pt-2">
-                          <FormField
-                            control={form.control}
-                            name="delayDays"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel className="text-xs">Days</FormLabel>
-                                <FormControl>
-                                  <Input
-                                    type="number"
-                                    min="0"
-                                    placeholder="0"
-                                    data-testid="input-delay-days"
-                                    {...field}
-                                    onChange={e => field.onChange(parseInt(e.target.value) || 0)}
-                                  />
-                                </FormControl>
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={form.control}
-                            name="delayHours"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel className="text-xs">Hours</FormLabel>
-                                <FormControl>
-                                  <Input
-                                    type="number"
-                                    min="0"
-                                    max="23"
-                                    placeholder="0"
-                                    data-testid="input-delay-hours"
-                                    {...field}
-                                    onChange={e => field.onChange(parseInt(e.target.value) || 0)}
-                                  />
-                                </FormControl>
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={form.control}
-                            name="delayMinutes"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel className="text-xs">Minutes</FormLabel>
-                                <FormControl>
-                                  <Input
-                                    type="number"
-                                    min="0"
-                                    max="59"
-                                    placeholder="0"
-                                    data-testid="input-delay-minutes"
-                                    {...field}
-                                    onChange={e => field.onChange(parseInt(e.target.value) || 0)}
-                                  />
-                                </FormControl>
-                              </FormItem>
-                            )}
-                          />
-                        </div>
-                        
-                        <div className="pt-4 border-t">
-                          <FormField
-                            control={form.control}
-                            name="sendAtTime"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel className="text-sm">Send at specific time (optional)</FormLabel>
-                                <FormControl>
-                                  <Input
-                                    type="time"
-                                    placeholder="09:00"
-                                    className="w-full"
-                                    data-testid="input-send-at-time"
-                                    {...field}
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                                <FormDescription className="text-xs text-muted-foreground">
-                                  If specified, the message will be sent at this time of day after the delay period
-                                </FormDescription>
-                              </FormItem>
-                            )}
-                          />
+                        <div className="space-y-4 pt-2">
+                          <div className="grid grid-cols-3 gap-2">
+                            <FormField
+                              control={form.control}
+                              name="delayDays"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel className="text-xs">Days</FormLabel>
+                                  <FormControl>
+                                    <Input
+                                      type="number"
+                                      min="0"
+                                      placeholder="0"
+                                      data-testid="input-delay-days"
+                                      {...field}
+                                      onChange={e => field.onChange(parseInt(e.target.value) || 0)}
+                                    />
+                                  </FormControl>
+                                </FormItem>
+                              )}
+                            />
+                            <FormField
+                              control={form.control}
+                              name="delayHours"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel className="text-xs">Hours</FormLabel>
+                                  <FormControl>
+                                    <Input
+                                      type="number"
+                                      min="0"
+                                      max="23"
+                                      placeholder="0"
+                                      data-testid="input-delay-hours"
+                                      {...field}
+                                      onChange={e => field.onChange(parseInt(e.target.value) || 0)}
+                                    />
+                                  </FormControl>
+                                </FormItem>
+                              )}
+                            />
+                            <FormField
+                              control={form.control}
+                              name="delayMinutes"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel className="text-xs">Minutes</FormLabel>
+                                  <FormControl>
+                                    <Input
+                                      type="number"
+                                      min="0"
+                                      max="59"
+                                      placeholder="0"
+                                      data-testid="input-delay-minutes"
+                                      {...field}
+                                      onChange={e => field.onChange(parseInt(e.target.value) || 0)}
+                                    />
+                                  </FormControl>
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+                          
+                          <div className="pt-4 border-t">
+                            <FormField
+                              control={form.control}
+                              name="sendAtTime"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel className="text-sm">Send at specific time (optional)</FormLabel>
+                                  <FormControl>
+                                    <Input
+                                      type="time"
+                                      placeholder="09:00"
+                                      className="w-full"
+                                      data-testid="input-send-at-time"
+                                      {...field}
+                                    />
+                                  </FormControl>
+                                  <FormMessage />
+                                  <FormDescription className="text-xs text-muted-foreground">
+                                    If specified, the message will be sent at this time of day after the delay period
+                                  </FormDescription>
+                                </FormItem>
+                              )}
+                            />
+                          </div>
                         </div>
                       )}
                     </div>
