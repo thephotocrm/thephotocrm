@@ -1172,6 +1172,21 @@ export default function Automations() {
     }
   }, [enableCommunication, enablePipeline, form]);
 
+  // Auto-switch to delayed mode when user enters delay values
+  useEffect(() => {
+    const subscription = form.watch((value, { name }) => {
+      if (name === 'delayMinutes' || name === 'delayHours' || name === 'delayDays') {
+        const hasDelay = (value.delayDays && value.delayDays > 0) || 
+                        (value.delayHours && value.delayHours > 0) || 
+                        (value.delayMinutes && value.delayMinutes > 0);
+        if (hasDelay && timingMode === 'immediate') {
+          setTimingMode('delayed');
+        }
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [form, timingMode]);
+
   // ALL HOOKS MUST BE CALLED BEFORE ANY CONDITIONALS
   const { data: stages = [], isError: stagesError, isLoading: stagesLoading } = useQuery<any[]>({
     queryKey: ["/api/stages", activeProjectType],
@@ -1939,13 +1954,18 @@ export default function Automations() {
                     />
 
                     <div className="space-y-3">
-                      <FormLabel>Send Timing</FormLabel>
+                      <FormLabel>Send Timing {timingMode === 'delayed' && <span className="text-blue-600 dark:text-blue-400 font-semibold">(Delay Active)</span>}</FormLabel>
                       <div className="grid grid-cols-2 gap-2">
                         <Button
                           type="button"
                           variant={timingMode === 'immediate' ? 'default' : 'outline'}
                           className="w-full"
-                          onClick={() => setTimingMode('immediate')}
+                          onClick={() => {
+                            setTimingMode('immediate');
+                            form.setValue('delayMinutes', 0);
+                            form.setValue('delayHours', 0);
+                            form.setValue('delayDays', 0);
+                          }}
                           data-testid="button-timing-immediate"
                         >
                           Send Immediately
@@ -1962,66 +1982,69 @@ export default function Automations() {
                       </div>
 
                       {timingMode === 'delayed' && (
-                        <div className="grid grid-cols-3 gap-2 pt-2">
-                          <FormField
-                            control={form.control}
-                            name="delayDays"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel className="text-xs">Days</FormLabel>
-                                <FormControl>
-                                  <Input
-                                    type="number"
-                                    min="0"
-                                    placeholder="0"
-                                    data-testid="input-delay-days"
-                                    {...field}
-                                    onChange={e => field.onChange(parseInt(e.target.value) || 0)}
-                                  />
-                                </FormControl>
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={form.control}
-                            name="delayHours"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel className="text-xs">Hours</FormLabel>
-                                <FormControl>
-                                  <Input
-                                    type="number"
-                                    min="0"
-                                    max="23"
-                                    placeholder="0"
-                                    data-testid="input-delay-hours"
-                                    {...field}
-                                    onChange={e => field.onChange(parseInt(e.target.value) || 0)}
-                                  />
-                                </FormControl>
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={form.control}
-                            name="delayMinutes"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel className="text-xs">Minutes</FormLabel>
-                                <FormControl>
-                                  <Input
-                                    type="number"
-                                    min="0"
-                                    max="59"
-                                    placeholder="0"
-                                    data-testid="input-delay-minutes"
-                                    {...field}
-                                    onChange={e => field.onChange(parseInt(e.target.value) || 0)}
-                                  />
-                                </FormControl>
-                              </FormItem>
-                            )}
-                          />
+                        <div className="space-y-2 p-3 border rounded-lg bg-blue-50/50 dark:bg-blue-950/20">
+                          <p className="text-xs text-muted-foreground">Set the delay before sending the message</p>
+                          <div className="grid grid-cols-3 gap-2">
+                            <FormField
+                              control={form.control}
+                              name="delayDays"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel className="text-xs">Days</FormLabel>
+                                  <FormControl>
+                                    <Input
+                                      type="number"
+                                      min="0"
+                                      placeholder="0"
+                                      data-testid="input-delay-days"
+                                      {...field}
+                                      onChange={e => field.onChange(parseInt(e.target.value) || 0)}
+                                    />
+                                  </FormControl>
+                                </FormItem>
+                              )}
+                            />
+                            <FormField
+                              control={form.control}
+                              name="delayHours"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel className="text-xs">Hours</FormLabel>
+                                  <FormControl>
+                                    <Input
+                                      type="number"
+                                      min="0"
+                                      max="23"
+                                      placeholder="0"
+                                      data-testid="input-delay-hours"
+                                      {...field}
+                                      onChange={e => field.onChange(parseInt(e.target.value) || 0)}
+                                    />
+                                  </FormControl>
+                                </FormItem>
+                              )}
+                            />
+                            <FormField
+                              control={form.control}
+                              name="delayMinutes"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel className="text-xs">Minutes</FormLabel>
+                                  <FormControl>
+                                    <Input
+                                      type="number"
+                                      min="0"
+                                      max="59"
+                                      placeholder="0"
+                                      data-testid="input-delay-minutes"
+                                      {...field}
+                                      onChange={e => field.onChange(parseInt(e.target.value) || 0)}
+                                    />
+                                  </FormControl>
+                                </FormItem>
+                              )}
+                            />
+                          </div>
                         </div>
                       )}
                     </div>
