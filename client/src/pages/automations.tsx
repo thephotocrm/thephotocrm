@@ -1734,20 +1734,16 @@ export default function Automations() {
                     </div>
 
                     {/* Current Limitations Info */}
-                    {(enableCommunication && form.watch('triggerMode') === 'BUSINESS') || (enablePipeline && form.watch('triggerMode') === 'STAGE') ? (
+                    {enablePipeline && form.watch('triggerMode') === 'STAGE' ? (
                       <div className="p-3 bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
                         <div className="flex items-start space-x-2">
                           <AlertCircle className="h-4 w-4 text-yellow-600 mt-0.5 flex-shrink-0" />
                           <div className="text-sm text-yellow-800 dark:text-yellow-200">
                             <p className="font-medium mb-1">Current Limitations:</p>
                             <ul className="text-xs space-y-1">
-                              {enablePipeline && form.watch('triggerMode') === 'STAGE' && (
-                                <li>• Stage-based triggers for pipeline actions are coming soon</li>
-                              )}
+                              <li>• Stage-based triggers for pipeline actions are coming soon</li>
                             </ul>
-                            {enablePipeline && form.watch('triggerMode') === 'STAGE' && (
-                              <p className="text-xs mt-2 opacity-75">Currently supported: Stage triggers for communication, Business events for pipeline</p>
-                            )}
+                            <p className="text-xs mt-2 opacity-75">Currently supported: Stage triggers for communication, Business events for pipeline</p>
                           </div>
                         </div>
                       </div>
