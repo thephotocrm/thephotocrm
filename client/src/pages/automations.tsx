@@ -1539,7 +1539,7 @@ export default function Automations() {
                                   <RadioGroupItem value="TIME" id="trigger-time" data-testid="radio-trigger-time" />
                                   <Label htmlFor="trigger-time" className="flex items-center space-x-2 cursor-pointer">
                                     <Clock className="h-4 w-4" />
-                                    <span>Before an event date</span>
+                                    <span>Based on event date</span>
                                   </Label>
                                 </div>
                               </RadioGroup>
