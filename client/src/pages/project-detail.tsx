@@ -6,7 +6,7 @@ import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/s
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar, User, Mail, Phone, MapPin, FileText, DollarSign, Clock, ArrowLeft } from "lucide-react";
+import { Calendar, User, Mail, Phone, MapPin, FileText, DollarSign, Clock, ArrowLeft, ClipboardCheck } from "lucide-react";
 import { Link } from "wouter";
 
 interface Project {
@@ -38,6 +38,15 @@ interface Estimate {
   createdAt: string;
 }
 
+interface ProjectQuestionnaire {
+  id: string;
+  templateId: string;
+  answers?: any;
+  submittedAt?: string;
+  createdAt: string;
+  templateTitle: string;
+}
+
 export default function ProjectDetail() {
   const { id } = useParams<{ id: string }>();
   const { user, loading } = useAuth();
@@ -49,6 +58,11 @@ export default function ProjectDetail() {
 
   const { data: estimates } = useQuery<Estimate[]>({
     queryKey: ["/api/estimates", "project", id],
+    enabled: !!user && !!id
+  });
+
+  const { data: questionnaires } = useQuery<ProjectQuestionnaire[]>({
+    queryKey: ["/api/projects", id, "questionnaires"],
     enabled: !!user && !!id
   });
 
@@ -129,6 +143,20 @@ export default function ProjectDetail() {
   const getProjectTypeLabel = (type: string | null | undefined) => {
     if (!type) return 'Unknown';
     return type.charAt(0) + type.slice(1).toLowerCase();
+  };
+
+  const getQuestionnaireStatusColor = (questionnaire: ProjectQuestionnaire) => {
+    if (questionnaire.submittedAt) {
+      return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
+    }
+    return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300';
+  };
+
+  const getQuestionnaireStatus = (questionnaire: ProjectQuestionnaire) => {
+    if (questionnaire.submittedAt) {
+      return 'Completed';
+    }
+    return 'Pending';
   };
 
   return (
@@ -320,6 +348,73 @@ export default function ProjectDetail() {
                     <Button data-testid="button-create-first-proposal">
                       <FileText className="w-4 h-4 mr-2" />
                       Create First Proposal
+                    </Button>
+                  </Link>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Questionnaires */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <ClipboardCheck className="w-5 h-5" />
+                Questionnaires
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {questionnaires && questionnaires.length > 0 ? (
+                <div className="space-y-3">
+                  {questionnaires.map((questionnaire) => (
+                    <div 
+                      key={questionnaire.id} 
+                      className="flex items-center justify-between p-4 border rounded-lg"
+                      data-testid={`questionnaire-${questionnaire.id}`}
+                    >
+                      <div className="space-y-1">
+                        <p className="font-medium" data-testid={`questionnaire-title-${questionnaire.id}`}>
+                          {questionnaire.templateTitle}
+                        </p>
+                        <div className="flex items-center gap-2">
+                          <Badge 
+                            className={getQuestionnaireStatusColor(questionnaire)}
+                            data-testid={`questionnaire-status-${questionnaire.id}`}
+                          >
+                            {getQuestionnaireStatus(questionnaire)}
+                          </Badge>
+                          <span className="text-sm text-muted-foreground">
+                            Assigned {formatDate(questionnaire.createdAt)}
+                          </span>
+                          {questionnaire.submittedAt && (
+                            <span className="text-sm text-muted-foreground">
+                              • Completed {formatDate(questionnaire.submittedAt)}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        {questionnaire.submittedAt ? (
+                          <Button variant="outline" size="sm" data-testid={`button-view-questionnaire-${questionnaire.id}`}>
+                            View Responses
+                          </Button>
+                        ) : (
+                          <Button variant="outline" size="sm" data-testid={`button-send-questionnaire-${questionnaire.id}`}>
+                            Send to Client
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <ClipboardCheck className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                  <p className="text-muted-foreground mb-4">No questionnaires assigned yet</p>
+                  <Link href="/questionnaires">
+                    <Button data-testid="button-manage-questionnaires">
+                      <ClipboardCheck className="w-4 h-4 mr-2" />
+                      Manage Questionnaires
                     </Button>
                   </Link>
                 </div>

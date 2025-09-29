@@ -3438,6 +3438,18 @@ ${photographer.businessName}`
       }
       
       const assignment = await storage.assignQuestionnaireToProject(req.params.projectId, templateId);
+      
+      // Add activity log entry for questionnaire assignment
+      await storage.addProjectActivityLog({
+        projectId: req.params.projectId,
+        action: "ASSIGNED",
+        activityType: "QUESTIONNAIRE_ASSIGNED",
+        title: "Questionnaire Assigned",
+        description: `Questionnaire "${template.title}" was assigned to this project`,
+        relatedId: assignment.id,
+        relatedType: "QUESTIONNAIRE"
+      });
+      
       res.status(201).json(assignment);
     } catch (error) {
       console.error('Failed to assign questionnaire:', error);
@@ -3445,7 +3457,7 @@ ${photographer.businessName}`
     }
   });
   
-  // Get questionnaires assigned to a project
+  // Get questionnaires assigned to a project - with template details
   app.get("/api/projects/:projectId/questionnaires", authenticateToken, requirePhotographer, async (req, res) => {
     try {
       // Verify project belongs to photographer
@@ -3454,7 +3466,7 @@ ${photographer.businessName}`
         return res.status(403).json({ error: 'Access denied' });
       }
       
-      const questionnaires = await storage.getProjectQuestionnairesByProject(req.params.projectId);
+      const questionnaires = await storage.getProjectQuestionnairesWithTemplates(req.params.projectId);
       res.json(questionnaires);
     } catch (error) {
       console.error('Failed to fetch project questionnaires:', error);
@@ -3527,6 +3539,62 @@ ${photographer.businessName}`
     } catch (error) {
       console.error('Failed to delete questionnaire assignment:', error);
       res.status(500).json({ error: 'Failed to delete assignment' });
+    }
+  });
+
+  // Client Portal Data
+  app.get("/api/client-portal", authenticateToken, async (req, res) => {
+    try {
+      // For now, assume user is a client - in production you'd have proper client auth
+      const clientId = req.user!.id; // This should be the client ID in a real implementation
+      
+      // Get client's project and related data
+      const projects = await storage.getProjectsByClient(clientId);
+      if (!projects || projects.length === 0) {
+        return res.status(404).json({ error: 'No projects found for client' });
+      }
+      
+      // Use the first project for client portal data
+      const project = projects[0];
+      
+      // Get questionnaires for this client's projects
+      const questionnaires = await storage.getQuestionnairesByClient(clientId);
+      
+      // Format questionnaires for client portal
+      const formattedQuestionnaires = questionnaires.map(q => ({
+        id: q.id,
+        template: {
+          title: q.templateTitle,
+          description: q.templateDescription
+        },
+        status: q.submittedAt ? 'COMPLETED' : 'PENDING',
+        completedAt: q.submittedAt
+      }));
+      
+      const portalData = {
+        client: {
+          firstName: project.client.firstName,
+          lastName: project.client.lastName,
+          email: project.client.email,
+          phone: project.client.phone,
+          weddingDate: project.eventDate,
+          stage: project.stage ? { name: project.stage.name } : { name: 'Unknown' }
+        },
+        photographer: {
+          businessName: "Wedding Photography Studio", // This would come from photographer data
+          logoUrl: undefined
+        },
+        questionnaires: formattedQuestionnaires,
+        checklistItems: [], // TODO: Implement checklist items
+        links: [], // TODO: Implement client links
+        estimates: [], // TODO: Implement estimates for client
+        bookings: [] // TODO: Implement bookings for client
+      };
+      
+      res.json(portalData);
+    } catch (error) {
+      console.error('Failed to fetch client portal data:', error);
+      res.status(500).json({ error: 'Failed to fetch client portal data' });
     }
   });
 

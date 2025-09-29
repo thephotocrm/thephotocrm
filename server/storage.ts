@@ -1015,6 +1015,20 @@ export class DatabaseStorage implements IStorage {
       .where(eq(projectQuestionnaires.projectId, projectId));
   }
 
+  async getProjectQuestionnairesWithTemplates(projectId: string): Promise<any[]> {
+    return await db.select({
+      id: projectQuestionnaires.id,
+      templateId: projectQuestionnaires.templateId,
+      answers: projectQuestionnaires.answers,
+      submittedAt: projectQuestionnaires.submittedAt,
+      createdAt: projectQuestionnaires.createdAt,
+      templateTitle: questionnaireTemplates.title
+    })
+    .from(projectQuestionnaires)
+    .innerJoin(questionnaireTemplates, eq(projectQuestionnaires.templateId, questionnaireTemplates.id))
+    .where(eq(projectQuestionnaires.projectId, projectId));
+  }
+
   async getProjectQuestionnairesByPhotographer(photographerId: string): Promise<ProjectQuestionnaire[]> {
     return await db.select({
       id: projectQuestionnaires.id,
@@ -1058,6 +1072,64 @@ export class DatabaseStorage implements IStorage {
 
   async deleteProjectQuestionnaire(id: string): Promise<void> {
     await db.delete(projectQuestionnaires).where(eq(projectQuestionnaires.id, id));
+  }
+
+  // Project Activity Log
+  async addProjectActivityLog(logEntry: {
+    projectId: string;
+    action: string;
+    activityType: string;
+    title: string;
+    description?: string;
+    metadata?: any;
+    relatedId?: string;
+    relatedType?: string;
+  }): Promise<void> {
+    await db.insert(projectActivityLog).values(logEntry);
+  }
+
+  // Client-specific questionnaire queries
+  async getQuestionnairesByClient(clientId: string): Promise<any[]> {
+    return await db.select({
+      id: projectQuestionnaires.id,
+      templateId: projectQuestionnaires.templateId,
+      answers: projectQuestionnaires.answers,
+      submittedAt: projectQuestionnaires.submittedAt,
+      createdAt: projectQuestionnaires.createdAt,
+      templateTitle: questionnaireTemplates.title,
+      templateDescription: questionnaireTemplates.description
+    })
+    .from(projectQuestionnaires)
+    .innerJoin(projects, eq(projectQuestionnaires.projectId, projects.id))
+    .innerJoin(questionnaireTemplates, eq(projectQuestionnaires.templateId, questionnaireTemplates.id))
+    .where(eq(projects.clientId, clientId));
+  }
+
+  async getProjectsByClient(clientId: string): Promise<any[]> {
+    return await db.select({
+      id: projects.id,
+      title: projects.title,
+      projectType: projects.projectType,
+      eventDate: projects.eventDate,
+      notes: projects.notes,
+      status: projects.status,
+      createdAt: projects.createdAt,
+      client: {
+        id: clients.id,
+        firstName: clients.firstName,
+        lastName: clients.lastName,
+        email: clients.email,
+        phone: clients.phone
+      },
+      stage: {
+        id: stages.id,
+        name: stages.name
+      }
+    })
+    .from(projects)
+    .innerJoin(clients, eq(projects.clientId, clients.id))
+    .leftJoin(stages, eq(projects.stageId, stages.id))
+    .where(eq(projects.clientId, clientId));
   }
 
   async getClientHistory(clientId: string): Promise<TimelineEvent[]> {

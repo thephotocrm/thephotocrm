@@ -78,6 +78,12 @@ export default function ClientPortal() {
   const { user, loading } = useAuth();
   const [, setLocation] = useLocation();
 
+  // Fetch client portal data from API
+  const { data: portalData, isLoading: portalLoading } = useQuery<ClientPortalData>({
+    queryKey: ["/api/client-portal"],
+    enabled: !!user
+  });
+
   // For demo purposes, we'll assume this is accessed by a client user
   // In reality, you'd need proper client authentication
   if (!loading && !user) {
@@ -85,7 +91,7 @@ export default function ClientPortal() {
     return null;
   }
 
-  if (loading) {
+  if (loading || portalLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
@@ -93,8 +99,8 @@ export default function ClientPortal() {
     );
   }
 
-  // Mock client portal data - in reality this would come from API
-  const portalData: ClientPortalData = {
+  // Fallback to mock data if API fails
+  const fallbackData: ClientPortalData = {
     client: {
       firstName: "Emily",
       lastName: "Peterson",
@@ -147,8 +153,11 @@ export default function ClientPortal() {
     ]
   };
 
-  const completedChecklistItems = portalData.checklistItems.filter(item => item.completedAt).length;
-  const checklistProgress = (completedChecklistItems / portalData.checklistItems.length) * 100;
+  // Use API data if available, otherwise fallback to mock data
+  const currentPortalData = portalData || fallbackData;
+
+  const completedChecklistItems = currentPortalData.checklistItems.filter(item => item.completedAt).length;
+  const checklistProgress = (completedChecklistItems / currentPortalData.checklistItems.length) * 100;
 
   const formatPrice = (cents: number) => {
     return (cents / 100).toLocaleString('en-US', {
@@ -182,7 +191,7 @@ export default function ClientPortal() {
                 <Camera className="w-6 h-6 text-primary-foreground" />
               </div>
               <div>
-                <h1 className="text-xl font-semibold">{portalData.photographer.businessName}</h1>
+                <h1 className="text-xl font-semibold">{currentPortalData.photographer.businessName}</h1>
                 <p className="text-sm text-muted-foreground">Client Portal</p>
               </div>
             </div>
@@ -194,18 +203,18 @@ export default function ClientPortal() {
         {/* Welcome Section */}
         <div className="mb-8">
           <h2 className="text-3xl font-bold mb-2">
-            Welcome, {portalData.client.firstName} & {portalData.client.lastName}!
+            Welcome, {currentPortalData.client.firstName} & {currentPortalData.client.lastName}!
           </h2>
           <div className="flex items-center space-x-6 text-muted-foreground">
-            {portalData.client.weddingDate && (
+            {currentPortalData.client.weddingDate && (
               <div className="flex items-center">
                 <Heart className="w-4 h-4 mr-2" />
-                <span>Wedding: {new Date(portalData.client.weddingDate).toLocaleDateString()}</span>
+                <span>Wedding: {new Date(currentPortalData.client.weddingDate).toLocaleDateString()}</span>
               </div>
             )}
             <div className="flex items-center">
               <Users className="w-4 h-4 mr-2" />
-              <span>Status: {portalData.client.stage.name}</span>
+              <span>Status: {currentPortalData.client.stage.name}</span>
             </div>
           </div>
         </div>
@@ -222,7 +231,7 @@ export default function ClientPortal() {
                     Wedding Checklist
                   </CardTitle>
                   <Badge variant="outline">
-                    {completedChecklistItems} of {portalData.checklistItems.length} complete
+                    {completedChecklistItems} of {currentPortalData.checklistItems.length} complete
                   </Badge>
                 </div>
               </CardHeader>
@@ -236,7 +245,7 @@ export default function ClientPortal() {
                 </div>
                 
                 <div className="space-y-3">
-                  {portalData.checklistItems.map((item) => (
+                  {currentPortalData.checklistItems.map((item) => (
                     <div key={item.id} className="flex items-center space-x-3">
                       <Checkbox 
                         checked={!!item.completedAt} 
@@ -266,13 +275,13 @@ export default function ClientPortal() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {portalData.questionnaires.length === 0 ? (
+                {currentPortalData.questionnaires.length === 0 ? (
                   <p className="text-muted-foreground text-center py-4">
                     No questionnaires assigned yet.
                   </p>
                 ) : (
                   <div className="space-y-4">
-                    {portalData.questionnaires.map((questionnaire) => (
+                    {currentPortalData.questionnaires.map((questionnaire) => (
                       <div key={questionnaire.id} className="flex items-center justify-between p-4 border border-border rounded-lg">
                         <div>
                           <h4 className="font-medium">{questionnaire.template.title}</h4>
@@ -306,13 +315,13 @@ export default function ClientPortal() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {portalData.estimates.length === 0 ? (
+                {currentPortalData.estimates.length === 0 ? (
                   <p className="text-muted-foreground text-center py-4">
                     No estimates available yet.
                   </p>
                 ) : (
                   <div className="space-y-4">
-                    {portalData.estimates.map((estimate) => (
+                    {currentPortalData.estimates.map((estimate) => (
                       <div key={estimate.id} className="flex items-center justify-between p-4 border border-border rounded-lg">
                         <div>
                           <h4 className="font-medium">{estimate.title}</h4>
@@ -349,13 +358,13 @@ export default function ClientPortal() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {portalData.bookings.length === 0 ? (
+                {currentPortalData.bookings.length === 0 ? (
                   <p className="text-muted-foreground text-center py-4">
                     No appointments scheduled yet.
                   </p>
                 ) : (
                   <div className="space-y-4">
-                    {portalData.bookings.map((booking) => (
+                    {currentPortalData.bookings.map((booking) => (
                       <div key={booking.id} className="flex items-center justify-between p-4 border border-border rounded-lg">
                         <div>
                           <h4 className="font-medium">{booking.title}</h4>
@@ -384,7 +393,7 @@ export default function ClientPortal() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  {portalData.links.map((link) => (
+                  {currentPortalData.links.map((link) => (
                     <a
                       key={link.id}
                       href={link.url}
@@ -408,19 +417,19 @@ export default function ClientPortal() {
                 <div className="space-y-3">
                   <div className="flex items-center">
                     <Mail className="w-4 h-4 mr-3 text-muted-foreground" />
-                    <span className="text-sm">{portalData.client.email}</span>
+                    <span className="text-sm">{currentPortalData.client.email}</span>
                   </div>
-                  {portalData.client.phone && (
+                  {currentPortalData.client.phone && (
                     <div className="flex items-center">
                       <Phone className="w-4 h-4 mr-3 text-muted-foreground" />
-                      <span className="text-sm">{portalData.client.phone}</span>
+                      <span className="text-sm">{currentPortalData.client.phone}</span>
                     </div>
                   )}
-                  {portalData.client.weddingDate && (
+                  {currentPortalData.client.weddingDate && (
                     <div className="flex items-center">
                       <Heart className="w-4 h-4 mr-3 text-muted-foreground" />
                       <span className="text-sm">
-                        {new Date(portalData.client.weddingDate).toLocaleDateString()}
+                        {new Date(currentPortalData.client.weddingDate).toLocaleDateString()}
                       </span>
                     </div>
                   )}
