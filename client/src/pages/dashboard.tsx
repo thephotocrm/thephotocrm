@@ -2,7 +2,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useLocation } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { projectTypeEnum, insertProjectSchema } from "@shared/schema";
+import { projectTypeEnum, insertProjectSchema, insertStageSchema } from "@shared/schema";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -19,9 +19,10 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { Users, CheckCircle, DollarSign, Clock, Search, Plus } from "lucide-react";
+import { Users, CheckCircle, DollarSign, Clock, Search, Plus, Edit2, Trash2, GripVertical, Save, X } from "lucide-react";
 
 type InsertProject = z.infer<typeof insertProjectSchema>;
+type InsertStage = z.infer<typeof insertStageSchema>;
 
 export default function Dashboard() {
   const { user, loading } = useAuth();
@@ -29,6 +30,9 @@ export default function Dashboard() {
   const [activeProjectType, setActiveProjectType] = useState<string>('WEDDING');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [isCreateProjectOpen, setIsCreateProjectOpen] = useState(false);
+  const [isManageStagesOpen, setIsManageStagesOpen] = useState(false);
+  const [isStageFormOpen, setIsStageFormOpen] = useState(false);
+  const [editingStage, setEditingStage] = useState<any>(null);
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -45,6 +49,18 @@ export default function Dashboard() {
       smsOptIn: true,
       emailOptIn: true,
       notes: ''
+    }
+  });
+
+  // Stage form setup
+  const stageForm = useForm<InsertStage>({
+    resolver: zodResolver(insertStageSchema),
+    defaultValues: {
+      name: '',
+      projectType: 'WEDDING',
+      orderIndex: 0,
+      color: '#64748b',
+      isDefault: false
     }
   });
 
@@ -81,6 +97,7 @@ export default function Dashboard() {
       // Invalidate both projects and stages to refresh the dashboard
       queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
       queryClient.invalidateQueries({ queryKey: ["/api/stages"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/stages", activeProjectType] });
       setIsCreateProjectOpen(false);
       form.reset();
       toast({
@@ -97,6 +114,75 @@ export default function Dashboard() {
     }
   });
 
+  // Stage mutations
+  const createStageMutation = useMutation({
+    mutationFn: async (stageData: InsertStage) => {
+      return await apiRequest("POST", "/api/stages", stageData);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/stages"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/stages", activeProjectType] });
+      setIsStageFormOpen(false);
+      stageForm.reset();
+      toast({
+        title: "Stage created",
+        description: "New stage has been added successfully.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error?.response?.data?.message || "Failed to create stage. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const updateStageMutation = useMutation({
+    mutationFn: async (data: { id: string; stageData: Partial<InsertStage> }) => {
+      return await apiRequest("PUT", `/api/stages/${data.id}`, data.stageData);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/stages"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/stages", activeProjectType] });
+      setIsStageFormOpen(false);
+      setEditingStage(null);
+      stageForm.reset();
+      toast({
+        title: "Stage updated",
+        description: "Stage has been updated successfully.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error?.response?.data?.message || "Failed to update stage. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const deleteStageMutation = useMutation({
+    mutationFn: async (stageId: string) => {
+      return await apiRequest("DELETE", `/api/stages/${stageId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/stages"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/stages", activeProjectType] });
+      toast({
+        title: "Stage deleted",
+        description: "Stage has been deleted successfully.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error?.response?.data?.message || "Failed to delete stage. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
   // Utility functions
   const openCreateProjectModal = (projectType?: string, stageId?: string) => {
     form.setValue('projectType', projectType || activeProjectType);
@@ -105,6 +191,45 @@ export default function Dashboard() {
 
   const handleCreateProject = (data: InsertProject) => {
     createProjectMutation.mutate(data);
+  };
+
+  // Stage management handlers
+  const openStageManagement = () => {
+    setIsManageStagesOpen(true);
+  };
+
+  const openStageForm = (stage?: any) => {
+    if (stage) {
+      setEditingStage(stage);
+      stageForm.setValue('name', stage.name);
+      stageForm.setValue('projectType', stage.projectType);
+      stageForm.setValue('orderIndex', stage.orderIndex);
+      stageForm.setValue('color', stage.color);
+      stageForm.setValue('isDefault', stage.isDefault);
+    } else {
+      setEditingStage(null);
+      stageForm.reset();
+      stageForm.setValue('projectType', activeProjectType);
+      // Set orderIndex to be next in sequence
+      const currentStages = stages || [];
+      const maxOrder = currentStages.length > 0 ? Math.max(...currentStages.map((s: any) => s.orderIndex)) : -1;
+      stageForm.setValue('orderIndex', maxOrder + 1);
+    }
+    setIsStageFormOpen(true);
+  };
+
+  const handleStageSubmit = (data: InsertStage) => {
+    if (editingStage) {
+      updateStageMutation.mutate({ id: editingStage.id, stageData: data });
+    } else {
+      createStageMutation.mutate(data);
+    }
+  };
+
+  const handleDeleteStage = (stageId: string) => {
+    if (confirm('Are you sure you want to delete this stage? This action cannot be undone.')) {
+      deleteStageMutation.mutate(stageId);
+    }
   };
 
   // Filter projects based on search query
@@ -337,7 +462,7 @@ export default function Dashboard() {
                     <div className="flex items-center justify-between">
                       <CardTitle>Project Pipeline</CardTitle>
                       <div className="flex space-x-2">
-                        <Button variant="outline" size="sm" disabled>Manage Stages (Coming Soon)</Button>
+                        <Button variant="outline" size="sm" onClick={openStageManagement} data-testid="button-manage-stages">Manage Stages</Button>
                         <Button variant="outline" size="sm" onClick={() => setLocation("/automations")} data-testid="button-automation-rules">Automation Rules</Button>
                       </div>
                     </div>
@@ -510,6 +635,243 @@ export default function Dashboard() {
                     data-testid="button-create-project"
                   >
                     {createProjectMutation.isPending ? "Creating..." : "Create Project"}
+                  </Button>
+                </DialogFooter>
+              </form>
+            </Form>
+          </DialogContent>
+        </Dialog>
+
+        {/* Manage Stages Modal */}
+        <Dialog open={isManageStagesOpen} onOpenChange={setIsManageStagesOpen}>
+          <DialogContent className="sm:max-w-[700px]">
+            <DialogHeader>
+              <DialogTitle>Manage Stages - {activeProjectType} Projects</DialogTitle>
+              <DialogDescription>
+                Create, edit, and organize the stages in your project pipeline.
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <h4 className="text-sm font-medium">Current Stages</h4>
+                <Button size="sm" onClick={() => openStageForm()} data-testid="button-add-stage">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Stage
+                </Button>
+              </div>
+              
+              <div className="space-y-2 max-h-[300px] overflow-y-auto">
+                {(stages || [])
+                  .filter((stage: any) => stage.projectType === activeProjectType)
+                  .sort((a: any, b: any) => a.orderIndex - b.orderIndex)
+                  .map((stage: any) => (
+                    <div key={stage.id} className="flex items-center justify-between p-3 border rounded-lg">
+                      <div className="flex items-center space-x-3">
+                        <GripVertical className="h-4 w-4 text-muted-foreground" />
+                        <div className="flex items-center space-x-2">
+                          <div 
+                            className="w-4 h-4 rounded-full border" 
+                            style={{ backgroundColor: stage.color }}
+                          />
+                          <span className="font-medium">{stage.name}</span>
+                          {stage.isDefault && (
+                            <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
+                              Default
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => openStageForm(stage)}
+                          data-testid={`button-edit-stage-${stage.id}`}
+                        >
+                          <Edit2 className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => handleDeleteStage(stage.id)}
+                          disabled={deleteStageMutation.isPending}
+                          data-testid={`button-delete-stage-${stage.id}`}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))
+                }
+              </div>
+            </div>
+
+            <DialogFooter>
+              <Button 
+                variant="outline" 
+                onClick={() => setIsManageStagesOpen(false)}
+                data-testid="button-close-manage-stages"
+              >
+                Close
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Stage Form Modal */}
+        <Dialog open={isStageFormOpen} onOpenChange={setIsStageFormOpen}>
+          <DialogContent className="sm:max-w-[500px]">
+            <DialogHeader>
+              <DialogTitle>{editingStage ? 'Edit Stage' : 'Create New Stage'}</DialogTitle>
+              <DialogDescription>
+                {editingStage ? 'Update the stage details.' : 'Add a new stage to your project pipeline.'}
+              </DialogDescription>
+            </DialogHeader>
+            
+            <Form {...stageForm}>
+              <form onSubmit={stageForm.handleSubmit(handleStageSubmit)} className="space-y-4">
+                {/* Stage Name */}
+                <FormField
+                  control={stageForm.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Stage Name *</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="e.g., Inquiry, Booked, Delivered"
+                          data-testid="input-stage-name"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Project Type */}
+                <FormField
+                  control={stageForm.control}
+                  name="projectType"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Project Type *</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger data-testid="select-stage-project-type">
+                            <SelectValue placeholder="Select project type" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="WEDDING">💒 Wedding</SelectItem>
+                          <SelectItem value="ENGAGEMENT">💍 Engagement</SelectItem>
+                          <SelectItem value="PROPOSAL">💍 Proposal</SelectItem>
+                          <SelectItem value="PORTRAIT">🎭 Portrait</SelectItem>
+                          <SelectItem value="CORPORATE">🏢 Corporate</SelectItem>
+                          <SelectItem value="FAMILY">👨‍👩‍👧‍👦 Family</SelectItem>
+                          <SelectItem value="MATERNITY">🤱 Maternity</SelectItem>
+                          <SelectItem value="NEWBORN">👶 Newborn</SelectItem>
+                          <SelectItem value="EVENT">🎉 Event</SelectItem>
+                          <SelectItem value="COMMERCIAL">📸 Commercial</SelectItem>
+                          <SelectItem value="OTHER">📁 Other</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Order Index */}
+                <FormField
+                  control={stageForm.control}
+                  name="orderIndex"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Order Position</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          placeholder="0"
+                          data-testid="input-stage-order"
+                          {...field}
+                          onChange={(e) => field.onChange(parseInt(e.target.value))}
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        Lower numbers appear first in the pipeline
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Color */}
+                <FormField
+                  control={stageForm.control}
+                  name="color"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Stage Color</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="color"
+                          data-testid="input-stage-color"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Is Default */}
+                <FormField
+                  control={stageForm.control}
+                  name="isDefault"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                      <div className="space-y-0.5">
+                        <FormLabel className="text-base">Default Stage</FormLabel>
+                        <FormDescription>
+                          New projects will be automatically placed in this stage
+                        </FormDescription>
+                      </div>
+                      <FormControl>
+                        <Input
+                          type="checkbox"
+                          className="w-4 h-4"
+                          data-testid="checkbox-stage-default"
+                          checked={field.value}
+                          onChange={field.onChange}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+
+                <DialogFooter>
+                  <Button 
+                    type="button"
+                    variant="outline" 
+                    onClick={() => {
+                      setIsStageFormOpen(false);
+                      setEditingStage(null);
+                    }}
+                    data-testid="button-cancel-stage"
+                  >
+                    Cancel
+                  </Button>
+                  <Button 
+                    type="submit"
+                    disabled={createStageMutation.isPending || updateStageMutation.isPending}
+                    data-testid="button-save-stage"
+                  >
+                    {(createStageMutation.isPending || updateStageMutation.isPending) ? (
+                      editingStage ? "Updating..." : "Creating..."
+                    ) : (
+                      editingStage ? "Update Stage" : "Create Stage"
+                    )}
                   </Button>
                 </DialogFooter>
               </form>
