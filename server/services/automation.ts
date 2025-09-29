@@ -44,7 +44,7 @@ async function reserveAutomationExecution(
     
     console.log(`🔒 Automation execution reserved: ${automationType} for project ${projectId}`);
     return { canExecute: true, executionId: result[0].id };
-  } catch (error) {
+  } catch (error: any) {
     // If it's a unique constraint violation, automation already reserved/executed
     if (error?.code === '23505') {
       console.log(`🚫 Automation execution already reserved/completed (bulletproof prevention): ${automationType} for project ${projectId}`);
@@ -920,12 +920,11 @@ async function processQuestionnaireAssignment(project: any, automation: any, pho
     // Create questionnaire assignment
     await db.insert(projectQuestionnaires).values({
       projectId: project.id,
-      templateId: automation.questionnaireTemplateId,
-      status: 'PENDING'
+      templateId: automation.questionnaireTemplateId
     });
 
     console.log(`📋 Successfully assigned questionnaire to ${project.firstName} ${project.lastName}`);
-  } catch (error) {
+  } catch (error: any) {
     // 🚫 BULLETPROOF ERROR HANDLING - Don't crash automation system on database schema issues
     if (error?.code === '42703') {
       console.log(`⚠️ Database schema issue for questionnaire assignment (${error.message}). Skipping questionnaire assignment for ${project.firstName} ${project.lastName} to prevent automation system crash.`);

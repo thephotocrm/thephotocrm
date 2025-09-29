@@ -581,6 +581,7 @@ export default function Automations() {
     delayMinutes: z.coerce.number().min(0).default(0),
     delayHours: z.coerce.number().min(0).default(0),
     delayDays: z.coerce.number().min(0).default(0),
+    sendAtTime: z.string().optional(),
     questionnaireTemplateId: z.string().optional(),
     // Pipeline automation fields (simplified - only target stage)
     targetStageId: z.string().optional()
@@ -649,6 +650,7 @@ export default function Automations() {
       delayMinutes: 0,
       delayHours: 0,
       delayDays: 0,
+      sendAtTime: "",
       questionnaireTemplateId: "",
       targetStageId: ""
     }
@@ -667,6 +669,7 @@ export default function Automations() {
       form.setValue('delayMinutes', 0);
       form.setValue('delayHours', 0);
       form.setValue('delayDays', 0);
+      form.setValue('sendAtTime', '');
       form.setValue('questionnaireTemplateId', '');
       form.setValue('channel', 'EMAIL');
     }
@@ -783,6 +786,9 @@ export default function Automations() {
             const stepData: any = {
               stepIndex: 0,
               delayMinutes: totalDelayMinutes,
+              delayHours: data.delayHours || 0,
+              delayDays: data.delayDays || 0,
+              sendAtTime: data.sendAtTime || null,
               enabled: true
             };
             
@@ -1441,6 +1447,32 @@ export default function Automations() {
                                     onChange={e => field.onChange(parseInt(e.target.value) || 0)}
                                   />
                                 </FormControl>
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                        
+                        {/* Add specific send time option */}
+                        <div className="pt-4 border-t">
+                          <FormField
+                            control={form.control}
+                            name="sendAtTime"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-sm">Send at specific time (optional)</FormLabel>
+                                <FormControl>
+                                  <Input
+                                    type="time"
+                                    placeholder="09:00"
+                                    className="w-full"
+                                    data-testid="input-send-at-time"
+                                    {...field}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                                <FormDescription className="text-xs text-muted-foreground">
+                                  If specified, the message will be sent at this time of day after the delay period
+                                </FormDescription>
                               </FormItem>
                             )}
                           />
