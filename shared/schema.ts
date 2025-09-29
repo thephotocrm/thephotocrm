@@ -540,6 +540,19 @@ export const bookings = pgTable("bookings", {
   createdAt: timestamp("created_at").defaultNow()
 });
 
+export const shortLinks = pgTable("short_links", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  photographerId: varchar("photographer_id").notNull().references(() => photographers.id),
+  shortCode: text("short_code").notNull().unique(),
+  targetUrl: text("target_url").notNull(),
+  linkType: text("link_type").notNull().default("BOOKING"), // BOOKING, ESTIMATE, CUSTOM
+  clicks: integer("clicks").default(0),
+  createdAt: timestamp("created_at").defaultNow()
+}, (table) => ({
+  shortCodeIdx: index("short_links_short_code_idx").on(table.shortCode),
+  photographerIdx: index("short_links_photographer_idx").on(table.photographerId)
+}));
+
 export const estimates = pgTable("estimates", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   photographerId: varchar("photographer_id").notNull().references(() => photographers.id),
@@ -1019,6 +1032,12 @@ export const insertBookingSchema = createInsertSchema(bookings).omit({
   endAt: z.string().transform((val) => new Date(val))
 });
 
+export const insertShortLinkSchema = createInsertSchema(shortLinks).omit({
+  id: true,
+  createdAt: true,
+  clicks: true
+});
+
 // Booking confirmation validation schema
 export const bookingConfirmationSchema = z.object({
   clientName: z.string().min(2, "Name must be at least 2 characters").max(100, "Name too long"),
@@ -1349,6 +1368,10 @@ export const createPayoutSchema = z.object({
   currency: z.string().length(3).default('USD'),
   method: z.enum(['standard', 'instant']).default('standard')
 });
+
+// Short Link Types
+export type ShortLink = typeof shortLinks.$inferSelect;
+export type InsertShortLink = z.infer<typeof insertShortLinkSchema>;
 
 // Proposal type aliases (for terminology migration from "Estimate" to "Proposal")
 // These aliases enable gradual UI/API migration while maintaining backend consistency
