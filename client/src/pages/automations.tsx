@@ -982,7 +982,6 @@ export default function Automations() {
                   </DialogHeader>
                   
                   <Form {...form}>
-                    <div className="flex flex-col min-h-0 flex-1">
                     <form onSubmit={form.handleSubmit(handleCreateAutomation)} className="flex flex-col min-h-0 flex-1">
                         <div className="flex-1 overflow-y-auto px-6 py-4 space-y-8">
                     
@@ -1303,6 +1302,7 @@ export default function Automations() {
                     ) : null}
 
                     {/* Communication Automation Fields */}
+                    <div className="space-y-8">
                     {enableCommunication && (
                       <div className="space-y-4 p-4 border rounded-lg bg-blue-50/50 dark:bg-blue-950/20">
                         <div className="flex items-center space-x-2">
@@ -1551,8 +1551,7 @@ export default function Automations() {
                         />
                       </div>
                     )}
-                      <div className="flex flex-col flex-1">
-                        </div>
+                    </div>
                         <div className="sticky bottom-0 bg-background px-6 py-4 border-t flex justify-end space-x-2">
                       <Button
                         type="button" 
