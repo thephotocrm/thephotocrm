@@ -1226,10 +1226,6 @@ export default function Automations() {
       try {
         // Create communication automation if enabled
         if (data.enableCommunication) {
-          // Phase 1: Only allow stage-based triggers for communication
-          if (data.triggerMode === 'BUSINESS') {
-            throw new Error("Business event triggers for communication automations are coming soon. Please use stage-based triggers for now.");
-          }
 
           // Validate communication automation data
           if (data.templateId && data.templateId !== "unavailable") {
@@ -1745,14 +1741,13 @@ export default function Automations() {
                           <div className="text-sm text-yellow-800 dark:text-yellow-200">
                             <p className="font-medium mb-1">Current Limitations:</p>
                             <ul className="text-xs space-y-1">
-                              {enableCommunication && form.watch('triggerMode') === 'BUSINESS' && (
-                                <li>• Business event triggers for communication are coming soon</li>
-                              )}
                               {enablePipeline && form.watch('triggerMode') === 'STAGE' && (
                                 <li>• Stage-based triggers for pipeline actions are coming soon</li>
                               )}
                             </ul>
-                            <p className="text-xs mt-2 opacity-75">Currently supported: Stage triggers for communication, Business events for pipeline</p>
+                            {enablePipeline && form.watch('triggerMode') === 'STAGE' && (
+                              <p className="text-xs mt-2 opacity-75">Currently supported: Stage triggers for communication, Business events for pipeline</p>
+                            )}
                           </div>
                         </div>
                       </div>
