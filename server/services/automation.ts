@@ -44,7 +44,7 @@ async function reserveAutomationExecution(
     
     console.log(`🔒 Automation execution reserved: ${automationType} for project ${projectId}`);
     return { canExecute: true, executionId: result[0].id };
-  } catch (error: any) {
+  } catch (error) {
     // If it's a unique constraint violation, automation already reserved/executed
     if (error?.code === '23505') {
       console.log(`🚫 Automation execution already reserved/completed (bulletproof prevention): ${automationType} for project ${projectId}`);
@@ -251,25 +251,8 @@ async function processAutomationStep(client: any, step: any, automation: any): P
 
   const now = new Date();
   const stageEnteredAt = new Date(client.stageEnteredAt);
-  
-  // Calculate total delay from days, hours, and minutes
-  const totalDelayMinutes = (step.delayDays || 0) * 24 * 60 + (step.delayHours || 0) * 60 + (step.delayMinutes || 0);
-  let shouldSendAt = new Date(stageEnteredAt.getTime() + totalDelayMinutes * 60 * 1000);
-  
-  // If sendAtTime is specified, adjust to that specific time of day
-  if (step.sendAtTime) {
-    const [hours, minutes] = step.sendAtTime.split(':').map(Number);
-    if (!isNaN(hours) && !isNaN(minutes) && hours >= 0 && hours <= 23 && minutes >= 0 && minutes <= 59) {
-      shouldSendAt.setHours(hours, minutes, 0, 0);
-      
-      // If the calculated time has already passed today, move to next day
-      const adjustedTime = new Date(shouldSendAt);
-      if (adjustedTime <= new Date(stageEnteredAt.getTime() + totalDelayMinutes * 60 * 1000)) {
-        adjustedTime.setDate(adjustedTime.getDate() + 1);
-        shouldSendAt = adjustedTime;
-      }
-    }
-  }
+  const delayMs = step.delayMinutes * 60 * 1000;
+  const shouldSendAt = new Date(stageEnteredAt.getTime() + delayMs);
 
   // Check if it's time to send
   if (now < shouldSendAt) {
@@ -920,11 +903,12 @@ async function processQuestionnaireAssignment(project: any, automation: any, pho
     // Create questionnaire assignment
     await db.insert(projectQuestionnaires).values({
       projectId: project.id,
-      templateId: automation.questionnaireTemplateId
+      templateId: automation.questionnaireTemplateId,
+      status: 'PENDING'
     });
 
     console.log(`📋 Successfully assigned questionnaire to ${project.firstName} ${project.lastName}`);
-  } catch (error: any) {
+  } catch (error) {
     // 🚫 BULLETPROOF ERROR HANDLING - Don't crash automation system on database schema issues
     if (error?.code === '42703') {
       console.log(`⚠️ Database schema issue for questionnaire assignment (${error.message}). Skipping questionnaire assignment for ${project.firstName} ${project.lastName} to prevent automation system crash.`);

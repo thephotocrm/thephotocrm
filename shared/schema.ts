@@ -186,9 +186,6 @@ export const automationSteps = pgTable("automation_steps", {
   automationId: varchar("automation_id").notNull().references(() => automations.id),
   stepIndex: integer("step_index").notNull(),
   delayMinutes: integer("delay_minutes").notNull(),
-  delayHours: integer("delay_hours").default(0),
-  delayDays: integer("delay_days").default(0),
-  sendAtTime: text("send_at_time"), // Format "HH:MM" (24-hour format, e.g. "09:00", "14:30")
   templateId: varchar("template_id").references(() => templates.id),
   enabled: boolean("enabled").default(true),
   quietHoursStart: integer("quiet_hours_start"),
