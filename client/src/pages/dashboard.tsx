@@ -23,13 +23,13 @@ export default function Dashboard() {
     enabled: !!user
   });
 
-  const { data: projects } = useQuery({
+  const { data: projects, isLoading: projectsLoading } = useQuery({
     queryKey: ["/api/projects", activeProjectType],
     queryFn: () => fetch(`/api/projects?projectType=${activeProjectType}`).then(res => res.json()),
     enabled: !!user
   });
 
-  const { data: stages } = useQuery({
+  const { data: stages, isLoading: stagesLoading } = useQuery({
     queryKey: ["/api/stages", activeProjectType], 
     queryFn: () => fetch(`/api/stages?projectType=${activeProjectType}`).then(res => res.json()),
     enabled: !!user
@@ -232,7 +232,11 @@ export default function Dashboard() {
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <KanbanBoard projects={projects || []} stages={stages || []} />
+                    <KanbanBoard 
+                      projects={projects || []} 
+                      stages={stages || []} 
+                      isLoading={projectsLoading || stagesLoading}
+                    />
                   </CardContent>
                 </Card>
               </TabsContent>

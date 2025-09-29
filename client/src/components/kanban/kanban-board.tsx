@@ -4,6 +4,7 @@ import { apiRequest } from "@/lib/queryClient";
 import ClientCard from "./client-card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 
 interface Project {
@@ -33,9 +34,55 @@ interface Stage {
 interface KanbanBoardProps {
   projects: Project[];
   stages: Stage[];
+  isLoading?: boolean;
 }
 
-export default function KanbanBoard({ projects, stages }: KanbanBoardProps) {
+// Loading skeleton for the kanban board
+function KanbanSkeleton() {
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 overflow-x-auto min-h-[500px]">
+      {Array.from({ length: 4 }).map((_, stageIndex) => (
+        <div key={stageIndex} className="flex flex-col">
+          {/* Stage Header Skeleton */}
+          <div className="bg-muted rounded-lg p-4 mb-4">
+            <div className="flex items-center justify-between">
+              <Skeleton className="h-5 w-24" />
+              <Skeleton className="h-6 w-8 rounded-full" />
+            </div>
+            <Skeleton className="h-3 w-32 mt-2" />
+          </div>
+          
+          {/* Project Cards Skeleton */}
+          <div className="space-y-3 flex-1">
+            {Array.from({ length: Math.floor(Math.random() * 3) + 1 }).map((_, cardIndex) => (
+              <div key={cardIndex} className="bg-card border rounded-lg p-4">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <Skeleton className="h-4 w-20" />
+                    <Skeleton className="h-5 w-12 rounded-full" />
+                  </div>
+                  <Skeleton className="h-5 w-full" />
+                  <Skeleton className="h-4 w-3/4" />
+                  <div className="flex items-center justify-between text-xs">
+                    <Skeleton className="h-3 w-20" />
+                    <Skeleton className="h-5 w-16 rounded-full" />
+                  </div>
+                </div>
+              </div>
+            ))}
+            <Skeleton className="w-full h-20 border-dashed rounded-lg" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export default function KanbanBoard({ projects, stages, isLoading = false }: KanbanBoardProps) {
+  
+  if (isLoading) {
+    return <KanbanSkeleton />;
+  }
   const queryClient = useQueryClient();
   const { toast } = useToast();
   

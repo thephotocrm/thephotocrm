@@ -462,9 +462,9 @@ export default function Scheduling() {
           {/* Calendar and Time Slot Selection */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Calendar */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+            <Card className="border-violet-200 dark:border-violet-800">
+              <CardHeader className="bg-violet-50 dark:bg-violet-900/20">
+                <CardTitle className="flex items-center gap-2 text-violet-700 dark:text-violet-300">
                   <CalendarIcon className="w-5 h-5" />
                   Calendar
                 </CardTitle>
@@ -481,9 +481,9 @@ export default function Scheduling() {
             </Card>
 
             {/* Time Slots for Selected Date */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between">
+            <Card className="border-violet-200 dark:border-violet-800">
+              <CardHeader className="bg-violet-50 dark:bg-violet-900/20">
+                <CardTitle className="flex items-center justify-between text-violet-700 dark:text-violet-300">
                   <span className="flex items-center gap-2">
                     <Clock className="w-5 h-5" />
                     {selectedDate ? `Time Slots - ${selectedDate.toLocaleDateString()}` : "Select a Date"}
@@ -546,9 +546,9 @@ export default function Scheduling() {
           </div>
 
           {/* Daily Schedule Templates - Compact Version */}
-          <div className="flex items-center justify-between p-4 border border-border rounded-lg bg-muted/20">
+          <div className="flex items-center justify-between p-4 border border-violet-200 dark:border-violet-800 rounded-lg bg-violet-50 dark:bg-violet-900/20">
             <div>
-              <h3 className="font-medium">Daily Schedule Templates</h3>
+              <h3 className="font-medium text-violet-700 dark:text-violet-300">Daily Schedule Templates</h3>
               <p className="text-sm text-muted-foreground">
                 {dailyTemplates.length === 0 ? 
                   "Set your regular working hours for each day" : 

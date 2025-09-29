@@ -3,7 +3,7 @@ import { format } from "date-fns";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { MoreHorizontal, Mail, Phone } from "lucide-react";
+import { MoreHorizontal, Mail, Phone, Clock, CheckCircle, AlertTriangle } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -82,6 +82,13 @@ export default function ClientCard({ client, onMove }: ClientCardProps) {
     return "Overdue";
   };
 
+  const getStatusIcon = () => {
+    const days = getDaysInStage();
+    if (days <= 2) return CheckCircle;
+    if (days <= 5) return Clock;
+    return AlertTriangle;
+  };
+
   const getStatusVariant = () => {
     const days = getDaysInStage();
     if (days <= 2) return "default";
@@ -111,7 +118,11 @@ export default function ClientCard({ client, onMove }: ClientCardProps) {
           <span className="text-muted-foreground" data-testid={`client-days-in-stage-${client.id}`}>
             {getDaysInStage()} days in stage
           </span>
-          <Badge variant={getStatusVariant()} className="text-xs">
+          <Badge variant={getStatusVariant()} className="text-xs flex items-center gap-1">
+            {(() => {
+              const Icon = getStatusIcon();
+              return <Icon className="w-3 h-3" />;
+            })()}
             {getStatusLabel()}
           </Badge>
         </div>
