@@ -48,19 +48,19 @@ export function AppSidebar() {
   }, [location, isMobile, setOpenMobile]);
 
   const navigation = [
-    { name: "Dashboard", href: "/", icon: LayoutDashboard },
-    { name: "Clients", href: "/clients", icon: Users },
-    { name: "Projects", href: "/projects", icon: FolderOpen },
-    { name: "Proposals", href: "/proposals", icon: FileText },
-    { name: "Packages", href: "/packages", icon: Package },
-    { name: "Widget Generator", href: "/widget-generator", icon: Code },
-    { name: "Questionnaires", href: "/questionnaires", icon: ClipboardList },
-    { name: "Scheduling", href: "/scheduling", icon: Calendar },
-    { name: "Templates", href: "/templates", icon: MessageSquare },
-    { name: "Automations", href: "/automations", icon: Zap },
-    { name: "Drip Campaigns", href: "/drip-campaigns", icon: Sparkles },
-    { name: "Reports", href: "/reports", icon: BarChart3 },
-    { name: "Earnings", href: "/earnings", icon: DollarSign }
+    { name: "Dashboard", href: "/", icon: LayoutDashboard, color: "bg-slate-50 dark:bg-slate-900/50" },
+    { name: "Clients", href: "/clients", icon: Users, color: "bg-emerald-50 dark:bg-emerald-900/20" },
+    { name: "Projects", href: "/projects", icon: FolderOpen, color: "bg-blue-50 dark:bg-blue-900/20" },
+    { name: "Proposals", href: "/proposals", icon: FileText, color: "bg-amber-50 dark:bg-amber-900/20" },
+    { name: "Packages", href: "/packages", icon: Package, color: "bg-purple-50 dark:bg-purple-900/20" },
+    { name: "Widget Generator", href: "/widget-generator", icon: Code, color: "bg-cyan-50 dark:bg-cyan-900/20" },
+    { name: "Questionnaires", href: "/questionnaires", icon: ClipboardList, color: "bg-pink-50 dark:bg-pink-900/20" },
+    { name: "Scheduling", href: "/scheduling", icon: Calendar, color: "bg-violet-50 dark:bg-violet-900/20" },
+    { name: "Templates", href: "/templates", icon: MessageSquare, color: "bg-orange-50 dark:bg-orange-900/20" },
+    { name: "Automations", href: "/automations", icon: Zap, color: "bg-yellow-50 dark:bg-yellow-900/20" },
+    { name: "Drip Campaigns", href: "/drip-campaigns", icon: Sparkles, color: "bg-indigo-50 dark:bg-indigo-900/20" },
+    { name: "Reports", href: "/reports", icon: BarChart3, color: "bg-teal-50 dark:bg-teal-900/20" },
+    { name: "Earnings", href: "/earnings", icon: DollarSign, color: "bg-green-50 dark:bg-green-900/20" }
   ];
 
   const handleLogout = async () => {
@@ -99,6 +99,7 @@ export function AppSidebar() {
                       asChild
                       isActive={isActive}
                       data-testid={`nav-${item.name.toLowerCase()}`}
+                      className={`${item.color} transition-colors duration-200 hover:opacity-80`}
                     >
                       <Link href={item.href}>
                         <Icon className="w-5 h-5" />
@@ -122,6 +123,7 @@ export function AppSidebar() {
                   asChild
                   isActive={location === "/settings"}
                   data-testid="nav-settings"
+                  className="bg-gray-50 dark:bg-gray-900/20 transition-colors duration-200 hover:opacity-80"
                 >
                   <Link href="/settings">
                     <Settings className="w-5 h-5" />
