@@ -2,8 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { useLocation, useParams } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
-import { SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/sidebar";
-import { AppSidebar } from "@/components/layout/app-sidebar";
+import { SidebarTrigger, SidebarInset } from "@/components/ui/sidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -239,34 +238,28 @@ export default function ClientDetail() {
 
   if (isLoading) {
     return (
-      <SidebarProvider>
-        <AppSidebar />
-        <SidebarInset>
-          <div className="flex items-center justify-center h-full">
-            <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
-          </div>
-        </SidebarInset>
-      </SidebarProvider>
+      <SidebarInset>
+        <div className="flex items-center justify-center h-full">
+          <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
+        </div>
+      </SidebarInset>
     );
   }
 
   if (!client) {
     return (
-      <SidebarProvider>
-        <AppSidebar />
-        <SidebarInset>
-          <div className="flex items-center justify-center h-full">
-            <div className="text-center">
-              <h2 className="text-2xl font-semibold mb-2">Client not found</h2>
-              <p className="text-muted-foreground mb-4">The client you're looking for doesn't exist.</p>
-              <Button onClick={() => setLocation("/clients")} data-testid="button-back-to-clients">
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to Clients
-              </Button>
-            </div>
+      <SidebarInset>
+        <div className="flex items-center justify-center h-full">
+          <div className="text-center">
+            <h2 className="text-2xl font-semibold mb-2">Client not found</h2>
+            <p className="text-muted-foreground mb-4">The client you're looking for doesn't exist.</p>
+            <Button onClick={() => setLocation("/clients")} data-testid="button-back-to-clients">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Clients
+            </Button>
           </div>
-        </SidebarInset>
-      </SidebarProvider>
+        </div>
+      </SidebarInset>
     );
   }
 
@@ -286,9 +279,7 @@ export default function ClientDetail() {
   };
 
   return (
-    <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset>
+    <SidebarInset>
         {/* Header */}
         <header className="bg-card border-b border-border px-6 py-4">
           <div className="flex items-center justify-between">
@@ -819,6 +810,5 @@ export default function ClientDetail() {
           </Card>
         </div>
       </SidebarInset>
-    </SidebarProvider>
   );
 }
