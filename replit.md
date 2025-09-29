@@ -75,11 +75,18 @@ JWT tokens provide stateless authentication with role-based middleware enforcing
 Event-driven automation engine using node-cron for scheduled tasks:
 - **Stage-based Triggers**: Automated emails/SMS when clients enter specific stages
 - **Time Delays**: Configurable delays (minutes/hours/days) before automation execution
-- **Template Integration**: Dynamic content rendering with variable substitution
+- **Template Integration**: Dynamic content rendering with variable substitution including {scheduling_link} for shortened booking URLs
 - **Multi-channel Support**: Both email and SMS delivery channels
 - **Unified Creation Interface**: Single modal allowing users to create communication-only, pipeline-only, or combined automations with optional section toggles
 - **Questionnaire Support**: Automated questionnaire assignments with proper step creation for both template-based and questionnaire-only communications
 - **NURTURE Automation**: AI-powered drip campaigns with sequential email delivery for approved campaigns, automatic client subscription for inquiry-stage projects, and campaign completion tracking
+- **URL Shortening System**: Internal short link generator for booking calendar URLs optimized for SMS character limits:
+  - 6-character alphanumeric codes (e.g., `thephotocrm.com/s/abc123`)
+  - Automatic reuse of existing links for same photographer's booking calendar
+  - Collision-resistant generation with 10-attempt retry logic
+  - Click tracking and analytics built-in
+  - Graceful fallback to full URLs if generation fails
+  - Template variable `{scheduling_link}` available in all automation types
 
 ### Two-Way SMS Communication System
 Comprehensive SMS platform powered by SimpleTexting for seamless client-photographer communication:
