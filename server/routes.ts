@@ -3406,6 +3406,131 @@ ${photographer.businessName}`
     }
   });
 
+  // Project Questionnaire Assignment Routes
+  
+  // Assign questionnaire template to a project
+  app.post("/api/projects/:projectId/questionnaires", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      const { templateId } = req.body;
+      
+      if (!templateId) {
+        return res.status(400).json({ error: 'Template ID is required' });
+      }
+      
+      // Verify project belongs to photographer
+      const project = await storage.getProject(req.params.projectId);
+      if (!project || project.photographerId !== req.user!.photographerId) {
+        return res.status(403).json({ error: 'Access denied' });
+      }
+      
+      // Verify template belongs to photographer
+      const template = await storage.getQuestionnaireTemplate(templateId);
+      if (!template || template.photographerId !== req.user!.photographerId) {
+        return res.status(403).json({ error: 'Template access denied' });
+      }
+      
+      // Check if already assigned
+      const existing = await storage.getProjectQuestionnairesByProject(req.params.projectId);
+      const alreadyAssigned = existing.find(q => q.templateId === templateId);
+      
+      if (alreadyAssigned) {
+        return res.status(409).json({ error: 'Template already assigned to this project' });
+      }
+      
+      const assignment = await storage.assignQuestionnaireToProject(req.params.projectId, templateId);
+      res.status(201).json(assignment);
+    } catch (error) {
+      console.error('Failed to assign questionnaire:', error);
+      res.status(500).json({ error: 'Failed to assign questionnaire' });
+    }
+  });
+  
+  // Get questionnaires assigned to a project
+  app.get("/api/projects/:projectId/questionnaires", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      // Verify project belongs to photographer
+      const project = await storage.getProject(req.params.projectId);
+      if (!project || project.photographerId !== req.user!.photographerId) {
+        return res.status(403).json({ error: 'Access denied' });
+      }
+      
+      const questionnaires = await storage.getProjectQuestionnairesByProject(req.params.projectId);
+      res.json(questionnaires);
+    } catch (error) {
+      console.error('Failed to fetch project questionnaires:', error);
+      res.status(500).json({ error: 'Failed to fetch questionnaires' });
+    }
+  });
+  
+  // Get all questionnaire assignments for photographer
+  app.get("/api/questionnaire-assignments", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      const assignments = await storage.getProjectQuestionnairesByPhotographer(req.user!.photographerId);
+      res.json(assignments);
+    } catch (error) {
+      console.error('Failed to fetch questionnaire assignments:', error);
+      res.status(500).json({ error: 'Failed to fetch assignments' });
+    }
+  });
+  
+  // Update questionnaire assignment (e.g., mark as completed, save answers)
+  app.put("/api/questionnaire-assignments/:id", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      // Get assignment and verify ownership
+      const assignment = await storage.getProjectQuestionnaire(req.params.id);
+      if (!assignment) {
+        return res.status(404).json({ error: 'Assignment not found' });
+      }
+      
+      // Verify project belongs to photographer
+      const project = await storage.getProject(assignment.projectId);
+      if (!project || project.photographerId !== req.user!.photographerId) {
+        return res.status(403).json({ error: 'Access denied' });
+      }
+      
+      // Validate and whitelist only mutable fields to prevent authorization bypass
+      const updateSchema = z.object({
+        status: z.string().optional(),
+        answers: z.any().optional(),
+        completedAt: z.string().datetime().optional().nullable()
+      });
+      
+      const validatedData = updateSchema.parse(req.body);
+      
+      const updated = await storage.updateProjectQuestionnaire(req.params.id, validatedData);
+      res.json(updated);
+    } catch (error: any) {
+      console.error('Failed to update questionnaire assignment:', error);
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ error: 'Invalid update data', details: error.errors });
+      }
+      res.status(500).json({ error: 'Failed to update assignment' });
+    }
+  });
+  
+  // Delete questionnaire assignment
+  app.delete("/api/questionnaire-assignments/:id", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      // Get assignment and verify ownership
+      const assignment = await storage.getProjectQuestionnaire(req.params.id);
+      if (!assignment) {
+        return res.status(404).json({ error: 'Assignment not found' });
+      }
+      
+      // Verify project belongs to photographer
+      const project = await storage.getProject(assignment.projectId);
+      if (!project || project.photographerId !== req.user!.photographerId) {
+        return res.status(403).json({ error: 'Access denied' });
+      }
+      
+      await storage.deleteProjectQuestionnaire(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error('Failed to delete questionnaire assignment:', error);
+      res.status(500).json({ error: 'Failed to delete assignment' });
+    }
+  });
+
   // Dedicated CORS middleware for public endpoints
   const publicCorsMiddleware = (req: any, res: any, next: any) => {
     const origin = req.headers.origin;

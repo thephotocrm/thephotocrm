@@ -16,6 +16,7 @@ import {
   type PhotographerPayouts, type InsertPhotographerPayouts,
   type QuestionnaireTemplate, type InsertQuestionnaireTemplate,
   type QuestionnaireQuestion, type InsertQuestionnaireQuestion,
+  type ProjectQuestionnaire, type InsertProjectQuestionnaire,
   type Message, type InsertMessage, type ProjectActivityLog, type TimelineEvent, type ClientPortalToken, type InsertClientPortalToken,
   type SmsLog, type InsertSmsLog,
   type Proposal, type InsertProposal, type ProposalItem, type ProposalPayment, type ProposalWithProject, type ProposalWithRelations,
@@ -31,7 +32,7 @@ import {
   type StaticCampaignSettings, type InsertStaticCampaignSettings
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, asc, inArray, gte, lte, gt } from "drizzle-orm";
+import { eq, and, desc, asc, inArray, gte, lte, gt, sql } from "drizzle-orm";
 
 export interface IStorage {
   // Users
@@ -128,6 +129,14 @@ export interface IStorage {
   createQuestionnaireQuestion(question: InsertQuestionnaireQuestion): Promise<QuestionnaireQuestion>;
   updateQuestionnaireQuestion(id: string, question: Partial<QuestionnaireQuestion>): Promise<QuestionnaireQuestion>;
   deleteQuestionnaireQuestion(id: string): Promise<void>;
+  
+  // Project Questionnaires (Assignments)
+  getProjectQuestionnairesByProject(projectId: string): Promise<ProjectQuestionnaire[]>;
+  getProjectQuestionnairesByPhotographer(photographerId: string): Promise<ProjectQuestionnaire[]>;
+  getProjectQuestionnaire(id: string): Promise<ProjectQuestionnaire | undefined>;
+  assignQuestionnaireToProject(projectId: string, templateId: string): Promise<ProjectQuestionnaire>;
+  updateProjectQuestionnaire(id: string, data: Partial<ProjectQuestionnaire>): Promise<ProjectQuestionnaire>;
+  deleteProjectQuestionnaire(id: string): Promise<void>;
   
   // Bookings
   getBookingsByPhotographer(photographerId: string): Promise<Booking[]>;
@@ -998,6 +1007,58 @@ export class DatabaseStorage implements IStorage {
 
   async deleteQuestionnaireQuestion(id: string): Promise<void> {
     await db.delete(questionnaireQuestions).where(eq(questionnaireQuestions.id, id));
+  }
+
+  // Project Questionnaires (Assignments)
+  async getProjectQuestionnairesByProject(projectId: string): Promise<ProjectQuestionnaire[]> {
+    return await db.select().from(projectQuestionnaires)
+      .where(eq(projectQuestionnaires.projectId, projectId));
+  }
+
+  async getProjectQuestionnairesByPhotographer(photographerId: string): Promise<ProjectQuestionnaire[]> {
+    return await db.select({
+      id: projectQuestionnaires.id,
+      projectId: projectQuestionnaires.projectId,
+      templateId: projectQuestionnaires.templateId,
+      status: projectQuestionnaires.status,
+      answers: projectQuestionnaires.answers,
+      completedAt: projectQuestionnaires.completedAt,
+      clientName: sql<string>`${clients.firstName} || ' ' || ${clients.lastName}`,
+      templateTitle: questionnaireTemplates.title,
+      projectType: projects.projectType
+    })
+    .from(projectQuestionnaires)
+    .innerJoin(projects, eq(projectQuestionnaires.projectId, projects.id))
+    .innerJoin(clients, eq(projects.clientId, clients.id))
+    .innerJoin(questionnaireTemplates, eq(projectQuestionnaires.templateId, questionnaireTemplates.id))
+    .where(eq(projects.photographerId, photographerId));
+  }
+
+  async getProjectQuestionnaire(id: string): Promise<ProjectQuestionnaire | undefined> {
+    const [questionnaire] = await db.select().from(projectQuestionnaires)
+      .where(eq(projectQuestionnaires.id, id));
+    return questionnaire || undefined;
+  }
+
+  async assignQuestionnaireToProject(projectId: string, templateId: string): Promise<ProjectQuestionnaire> {
+    const [assigned] = await db.insert(projectQuestionnaires).values({
+      projectId,
+      templateId,
+      status: "PENDING"
+    }).returning();
+    return assigned;
+  }
+
+  async updateProjectQuestionnaire(id: string, data: Partial<ProjectQuestionnaire>): Promise<ProjectQuestionnaire> {
+    const [updated] = await db.update(projectQuestionnaires)
+      .set(data)
+      .where(eq(projectQuestionnaires.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteProjectQuestionnaire(id: string): Promise<void> {
+    await db.delete(projectQuestionnaires).where(eq(projectQuestionnaires.id, id));
   }
 
   async getClientHistory(clientId: string): Promise<TimelineEvent[]> {

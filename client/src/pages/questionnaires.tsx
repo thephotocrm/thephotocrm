@@ -65,6 +65,12 @@ export default function Questionnaires() {
     enabled: !!user
   });
 
+  // Fetch projects for assignment
+  const { data: projects = [] } = useQuery({
+    queryKey: ["/api/projects"],
+    enabled: !!user && assignDialogOpen
+  });
+
   // Fetch questions when editing a template
   const { data: questions = [], isLoading: questionsLoading } = useQuery({
     queryKey: ["/api/questionnaire-templates", editingTemplate?.id, "questions"],
@@ -193,6 +199,27 @@ export default function Questionnaires() {
       toast({
         title: "Error",
         description: "Failed to delete question. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Assignment mutation
+  const assignMutation = useMutation({
+    mutationFn: async ({ projectId, templateId }: { projectId: string; templateId: string }) => {
+      await apiRequest("POST", `/api/projects/${projectId}/questionnaires`, { templateId });
+    },
+    onSuccess: () => {
+      setAssignDialogOpen(false);
+      toast({
+        title: "Questionnaire Assigned",
+        description: "Questionnaire has been assigned to the project successfully."
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Assignment Failed",
+        description: error.message || "Failed to assign questionnaire. Please try again.",
         variant: "destructive"
       });
     }
@@ -678,11 +705,54 @@ export default function Questionnaires() {
           </DialogHeader>
           <div className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              Assign "{selectedTemplate?.title}" to a client. This feature will be available soon.
+              Assign "{selectedTemplate?.title}" to a client project. Select a project below.
             </p>
+            
+            {Array.isArray(projects) && projects.length > 0 ? (
+              <div className="space-y-3">
+                <Label>Select Project</Label>
+                <div className="max-h-60 overflow-y-auto space-y-2">
+                  {projects.map((project: any) => (
+                    <div 
+                      key={project.id} 
+                      className="flex items-center justify-between p-3 border border-border rounded-lg hover:bg-muted/50 cursor-pointer"
+                      onClick={() => {
+                        if (selectedTemplate?.id) {
+                          assignMutation.mutate({ 
+                            projectId: project.id, 
+                            templateId: selectedTemplate.id 
+                          });
+                        }
+                      }}
+                      data-testid={`project-option-${project.id}`}
+                    >
+                      <div>
+                        <h4 className="font-medium">{project.client?.firstName} {project.client?.lastName}</h4>
+                        <p className="text-sm text-muted-foreground">
+                          {project.projectType} • {project.stage?.name || 'No stage'}
+                        </p>
+                      </div>
+                      <div className="text-sm text-muted-foreground">
+                        {project.eventDate ? new Date(project.eventDate).toLocaleDateString() : 'No date set'}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">
+                <p>No projects found</p>
+                <p className="text-sm">Create a client project first to assign questionnaires</p>
+              </div>
+            )}
+            
             <div className="flex justify-end space-x-2">
-              <Button variant="outline" onClick={() => setAssignDialogOpen(false)}>
-                Close
+              <Button 
+                variant="outline" 
+                onClick={() => setAssignDialogOpen(false)}
+                disabled={assignMutation.isPending}
+              >
+                Cancel
               </Button>
             </div>
           </div>
