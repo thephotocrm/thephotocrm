@@ -996,6 +996,11 @@ export const insertMessageSchema = createInsertSchema(messages).omit({
   createdAt: true
 });
 
+export const insertSmsLogSchema = createInsertSchema(smsLogs).omit({
+  id: true,
+  createdAt: true
+});
+
 export const insertProjectActivityLogSchema = createInsertSchema(projectActivityLog).omit({
   id: true,
   createdAt: true
@@ -1084,6 +1089,8 @@ export type QuestionnaireQuestion = typeof questionnaireQuestions.$inferSelect;
 export type InsertQuestionnaireQuestion = z.infer<typeof insertQuestionnaireQuestionSchema>;
 export type Message = typeof messages.$inferSelect;
 export type InsertMessage = z.infer<typeof insertMessageSchema>;
+export type SmsLog = typeof smsLogs.$inferSelect;
+export type InsertSmsLog = z.infer<typeof insertSmsLogSchema>;
 export type ProjectActivityLog = typeof projectActivityLog.$inferSelect;
 export type InsertProjectActivityLog = z.infer<typeof insertProjectActivityLogSchema>;
 export type ProjectChecklistItem = typeof projectChecklistItems.$inferSelect;
