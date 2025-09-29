@@ -1551,6 +1551,7 @@ export default function Automations() {
                         />
                       </div>
                     )}
+                        </div>
                     <div className="sticky bottom-0 bg-background px-6 py-4 border-t flex justify-end space-x-2">
                       <Button
                         type="button" 
