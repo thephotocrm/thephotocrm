@@ -67,8 +67,9 @@ export default function Clients() {
   // All hooks must be called before any early returns
   const { data: clients, isLoading } = useQuery<ClientWithProjects[]>({
     queryKey: ["/api/clients"],
-    enabled: !!user
+    enabled: !loading && !!user
   });
+
 
   const createClientMutation = useMutation({
     mutationFn: async (clientData: any) => {
