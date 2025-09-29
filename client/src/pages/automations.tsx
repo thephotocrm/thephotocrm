@@ -1452,7 +1452,6 @@ export default function Automations() {
                           />
                         </div>
                         
-                        {/* Add specific send time option */}
                         <div className="pt-4 border-t">
                           <FormField
                             control={form.control}
@@ -1479,7 +1478,6 @@ export default function Automations() {
                         </div>
                       )}
                     </div>
-                        </div>
                     )}
 
                     {/* Pipeline Action Fields - Simplified */}
