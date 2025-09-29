@@ -1923,14 +1923,14 @@ export default function Automations() {
                         automations.map((automation: any) => (
                           <div
                             key={automation.id}
-                            className="flex items-center justify-between p-4 border rounded-lg bg-card hover:bg-accent/50 transition-colors"
+                            className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 border rounded-lg bg-card hover:bg-accent/50 transition-colors space-y-3 sm:space-y-0"
                           >
                             <div className="flex items-center space-x-3">
                               <div className={`p-2 rounded-full ${automation.enabled ? 'bg-green-100 text-green-600 dark:bg-green-900 dark:text-green-400' : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'}`}>
                                 {automation.automationType === 'COMMUNICATION' ? <Mail className="h-4 w-4" /> : <ArrowRight className="h-4 w-4" />}
                               </div>
                               <div>
-                                <div className="flex items-center gap-2">
+                                <div className="flex flex-wrap items-center gap-2">
                                   <p className="font-medium">{automation.name}</p>
                                   <Badge 
                                     variant="outline" 
@@ -1959,7 +1959,7 @@ export default function Automations() {
                                 </p>
                               </div>
                             </div>
-                            <div className="flex items-center space-x-2">
+                            <div className="flex items-center justify-center sm:justify-start space-x-2">
                               <span className="text-xs text-muted-foreground">
                                 {automation.enabled ? "On" : "Off"}
                               </span>

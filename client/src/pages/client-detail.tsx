@@ -362,13 +362,13 @@ export default function ClientDetail() {
                   </div>
                 )}
                 
-                {client.weddingDate && (
+                {client.eventDate && (
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground">Wedding Date</p>
+                    <p className="text-sm font-medium text-muted-foreground">Event Date</p>
                     <div className="flex items-center space-x-2">
                       <Calendar className="w-4 h-4 text-muted-foreground" />
                       <p className="text-base" data-testid="text-wedding-date">
-                        {formatDate(client.weddingDate)}
+                        {formatDate(client.eventDate)}
                       </p>
                     </div>
                   </div>
@@ -376,7 +376,7 @@ export default function ClientDetail() {
                 
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Client Since</p>
-                  <p className="text-base">{formatDate(client.createdAt)}</p>
+                  <p className="text-base">{client.createdAt ? formatDate(client.createdAt) : 'Unknown'}</p>
                 </div>
               </CardContent>
             </Card>
@@ -405,7 +405,11 @@ export default function ClientDetail() {
                           {stage ? (
                             <Badge 
                               className="text-xs px-2 py-1" 
-                              style={{backgroundColor: `${stage.color}20`, color: stage.color, borderColor: stage.color}}
+                              style={{
+                                backgroundColor: stage.color ? `${stage.color}20` : undefined, 
+                                color: stage.color || undefined, 
+                                borderColor: stage.color || undefined
+                              }}
                               data-testid={`badge-project-stage-${project.id}`}
                             >
                               {stage.name}

@@ -320,7 +320,7 @@ export default function DripCampaigns() {
                     return (
                       <Card key={index} className={`transition-opacity ${isEnabled ? 'opacity-100' : 'opacity-60'}`}>
                         <CardContent className="p-4">
-                          <div className="flex items-center justify-between">
+                          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
                             <div className="flex items-center space-x-4 flex-1">
                               {/* Email Toggle */}
                               <input
@@ -337,7 +337,7 @@ export default function DripCampaigns() {
                               
                               {/* Email Info */}
                               <div className="flex-1">
-                                <div className="flex items-center space-x-3">
+                                <div className="flex flex-wrap items-center space-x-3">
                                   <Mail className="h-4 w-4 text-muted-foreground" />
                                   <span className="font-medium">Email {index + 1}</span>
                                   <Badge variant="outline" className="text-xs">
@@ -352,18 +352,20 @@ export default function DripCampaigns() {
                             </div>
                             
                             {/* Preview Button */}
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => {
-                                setSelectedEmailForPreview(email);
-                                setPreviewDialogOpen(true);
-                              }}
-                              data-testid={`button-preview-email-${index}`}
-                            >
-                              <Eye className="h-4 w-4 mr-1" />
-                              Preview
-                            </Button>
+                            <div className="flex justify-center sm:justify-start">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => {
+                                  setSelectedEmailForPreview(email);
+                                  setPreviewDialogOpen(true);
+                                }}
+                                data-testid={`button-preview-email-${index}`}
+                              >
+                                <Eye className="h-4 w-4 mr-1" />
+                                Preview
+                              </Button>
+                            </div>
                           </div>
                         </CardContent>
                       </Card>
