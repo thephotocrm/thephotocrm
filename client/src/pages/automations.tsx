@@ -960,7 +960,7 @@ export default function Automations() {
   }
 
   return (
-    <div>
+    <>
         {/* Header */}
         <header className="bg-card border-b border-border px-4 md:px-6 py-4 relative">
           
@@ -1510,7 +1510,6 @@ export default function Automations() {
                         </div>
                       )}
                     </div>
-                    )}
 
                     {/* Pipeline Action Fields - Simplified */}
                     {enablePipeline && (
@@ -1552,7 +1551,6 @@ export default function Automations() {
                         />
                       </div>
                     )}
-                    </div>
                     <div className="sticky bottom-0 bg-background px-6 py-4 border-t flex justify-end space-x-2">
                       <Button
                         type="button" 
@@ -2056,6 +2054,6 @@ export default function Automations() {
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
