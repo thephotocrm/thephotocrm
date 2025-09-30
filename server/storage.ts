@@ -635,9 +635,27 @@ export class DatabaseStorage implements IStorage {
 
   async deleteAutomation(id: string): Promise<void> {
     // Delete in proper order to respect foreign key constraints
+    
+    // First, get all automation steps for this automation
+    const steps = await this.getAutomationSteps(id);
+    const stepIds = steps.map(s => s.id);
+    
+    // Delete logs that reference these steps
+    if (stepIds.length > 0) {
+      await db.delete(emailLogs).where(inArray(emailLogs.automationStepId, stepIds));
+      await db.delete(smsLogs).where(inArray(smsLogs.automationStepId, stepIds));
+    }
+    
+    // Delete execution records
     await db.delete(automationExecutions).where(eq(automationExecutions.automationId, id));
+    
+    // Delete steps
     await db.delete(automationSteps).where(eq(automationSteps.automationId, id));
+    
+    // Delete business triggers
     await db.delete(automationBusinessTriggers).where(eq(automationBusinessTriggers.automationId, id));
+    
+    // Finally, delete the automation itself
     await db.delete(automations).where(eq(automations.id, id));
   }
 
