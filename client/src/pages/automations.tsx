@@ -582,6 +582,89 @@ function StageChangeAutomationCard({ automation, onDelete }: { automation: any, 
   );
 }
 
+// Automation Steps Display Component
+function AutomationStepsDisplay({ automationId, channel }: { automationId: string; channel: string }) {
+  const { data: steps = [], isLoading } = useQuery<any[]>({
+    queryKey: ["/api/automations", automationId, "steps"],
+    enabled: !!automationId
+  });
+
+  const { data: templates } = useQuery<any[]>({
+    queryKey: ["/api/templates"],
+    enabled: !!automationId
+  });
+
+  const formatDelay = (minutes: number) => {
+    if (minutes === 0) return 'Immediately';
+    if (minutes < 60) return `${minutes} minute${minutes !== 1 ? 's' : ''}`;
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    if (hours < 24) {
+      return mins > 0 ? `${hours}h ${mins}m` : `${hours} hour${hours !== 1 ? 's' : ''}`;
+    }
+    const days = Math.floor(hours / 24);
+    const remainingHours = hours % 24;
+    return remainingHours > 0 ? `${days}d ${remainingHours}h` : `${days} day${days !== 1 ? 's' : ''}`;
+  };
+
+  if (isLoading) {
+    return (
+      <div className="border-t p-4 bg-accent/5">
+        <p className="text-sm text-muted-foreground">Loading steps...</p>
+      </div>
+    );
+  }
+
+  if (steps.length === 0) {
+    return (
+      <div className="border-t p-4 bg-accent/5">
+        <p className="text-sm text-muted-foreground">No steps configured</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="border-t p-4 bg-accent/5 space-y-3">
+      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Steps:</p>
+      {steps.map((step: any, index: number) => {
+        const template = templates?.find(t => t.id === step.templateId);
+        
+        return (
+          <div key={step.id} className="bg-background border rounded-lg p-3 space-y-2">
+            <div className="flex items-center space-x-2">
+              <span className="text-xs bg-primary text-primary-foreground px-2 py-0.5 rounded font-medium">
+                {index + 1}
+              </span>
+              <div className="flex items-center space-x-2 text-sm">
+                <Clock className="w-3.5 h-3.5 text-muted-foreground" />
+                <span className="font-medium">{formatDelay(step.delayMinutes)}</span>
+                <span className="text-muted-foreground">→</span>
+                <span>
+                  {channel === 'EMAIL' ? '📧 Email' : '📱 SMS'}
+                </span>
+              </div>
+            </div>
+            
+            {template && (
+              <div className="pl-7 space-y-1">
+                <p className="text-xs font-medium text-muted-foreground">Message Preview:</p>
+                <div className="bg-muted border rounded p-2.5 text-xs">
+                  {template.subject && (
+                    <p className="font-semibold mb-1.5 text-foreground">📋 {template.subject}</p>
+                  )}
+                  <p className="text-muted-foreground line-clamp-2 leading-relaxed">
+                    {template.textBody || 'No message content'}
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 // Business Triggers Manager Component
 function BusinessTriggersManager({ automation }: { automation: any }) {
   const { toast } = useToast();
@@ -2629,6 +2712,11 @@ export default function Automations() {
                                 </Button>
                               </div>
                             </div>
+                            
+                            {/* Communication Steps - Show for communication automations */}
+                            {automation.automationType === 'COMMUNICATION' && (
+                              <AutomationStepsDisplay automationId={automation.id} channel={automation.channel} />
+                            )}
                             
                             {/* Business Triggers Section - Only shown for business event automations */}
                             {automation.triggerMode === 'BUSINESS' && (
