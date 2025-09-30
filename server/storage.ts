@@ -639,11 +639,12 @@ export class DatabaseStorage implements IStorage {
     // First, get all automation steps for this automation
     const steps = await this.getAutomationSteps(id);
     
-    // Delete logs that reference these steps (one by one to avoid inArray issues with nullable columns)
-    for (const step of steps) {
-      await db.delete(emailLogs).where(eq(emailLogs.automationStepId, step.id));
-      await db.delete(smsLogs).where(eq(smsLogs.automationStepId, step.id));
-    }
+    // Delete logs that reference these steps - use Promise.all to ensure all deletes complete
+    const logDeletions = steps.flatMap(step => [
+      db.delete(emailLogs).where(eq(emailLogs.automationStepId, step.id)),
+      db.delete(smsLogs).where(eq(smsLogs.automationStepId, step.id))
+    ]);
+    await Promise.all(logDeletions);
     
     // Delete execution records
     await db.delete(automationExecutions).where(eq(automationExecutions.automationId, id));
