@@ -754,6 +754,10 @@ export const automationsRelations = relations(automations, ({ one, many }) => ({
     fields: [automations.stageId],
     references: [stages.id]
   }),
+  targetStage: one(stages, {
+    fields: [automations.targetStageId],
+    references: [stages.id]
+  }),
   steps: many(automationSteps),
   businessTriggers: many(automationBusinessTriggers)
 }));

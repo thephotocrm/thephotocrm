@@ -613,11 +613,19 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAutomationsByPhotographer(photographerId: string, projectType?: string): Promise<Automation[]> {
-    return await db.select().from(automations)
-      .where(projectType ? 
+    const result = await db.query.automations.findMany({
+      where: projectType ? 
         and(eq(automations.photographerId, photographerId), eq(automations.projectType, projectType)) :
-        eq(automations.photographerId, photographerId)
-      );
+        eq(automations.photographerId, photographerId),
+      with: {
+        steps: {
+          orderBy: (steps, { asc }) => [asc(steps.stepIndex)]
+        },
+        stage: true,
+        targetStage: true
+      }
+    });
+    return result as any;
   }
 
   async createAutomation(insertAutomation: InsertAutomation): Promise<Automation> {
