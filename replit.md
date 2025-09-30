@@ -4,6 +4,14 @@
 
 Lazy Photog is a comprehensive multi-tenant CRM system designed specifically for wedding photographers. The application provides a complete business management solution with client pipeline management, automated communication workflows, estimate creation, payment processing, and scheduling capabilities. Built as a production-ready MVP, it focuses on streamlining photographer workflows from initial client inquiry through project completion.
 
+## Recent Changes (September 30, 2025)
+
+### Automations UI Enhancements
+- **Simplified Tab Organization**: Removed "All" tab to create streamlined 2-tab layout (Stage-Based/Global) for clearer automation categorization
+- **Compact Card Design**: Reduced automation card padding (p-3), spacing (space-y-2), and added max-width constraints (max-w-4xl) for improved visual density and better organization
+- **Pipeline Visibility**: Added target stage display showing "→ Moves to [Stage Name]" on pipeline automation cards for clearer workflow understanding
+- **TypeScript Stability**: Fixed Switch component type errors by coalescing boolean values to ensure compilation stability
+
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
