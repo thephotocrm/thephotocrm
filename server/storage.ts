@@ -634,6 +634,8 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteAutomation(id: string): Promise<void> {
+    // Delete in proper order to respect foreign key constraints
+    await db.delete(automationExecutions).where(eq(automationExecutions.automationId, id));
     await db.delete(automationSteps).where(eq(automationSteps.automationId, id));
     await db.delete(automationBusinessTriggers).where(eq(automationBusinessTriggers.automationId, id));
     await db.delete(automations).where(eq(automations.id, id));
