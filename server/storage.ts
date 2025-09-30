@@ -641,25 +641,25 @@ export class DatabaseStorage implements IStorage {
     
     // Get all automation steps for this automation
     const steps = await this.getAutomationSteps(id);
+    const stepIds = steps.map(s => s.id);
     
-    // Delete logs that reference these steps - use Promise.all to ensure all deletes complete
-    const logDeletions = steps.flatMap(step => [
-      db.delete(emailLogs).where(eq(emailLogs.automationStepId, step.id)),
-      db.delete(smsLogs).where(eq(smsLogs.automationStepId, step.id))
-    ]);
-    await Promise.all(logDeletions);
+    // Use raw SQL to delete logs - Drizzle ORM delete isn't working properly
+    for (const stepId of stepIds) {
+      await db.execute(sql`DELETE FROM email_logs WHERE automation_step_id = ${stepId}`);
+      await db.execute(sql`DELETE FROM sms_logs WHERE automation_step_id = ${stepId}`);
+    }
     
     // Delete execution records
-    await db.delete(automationExecutions).where(eq(automationExecutions.automationId, id));
+    await db.execute(sql`DELETE FROM automation_executions WHERE automation_id = ${id}`);
     
     // Delete steps
-    await db.delete(automationSteps).where(eq(automationSteps.automationId, id));
+    await db.execute(sql`DELETE FROM automation_steps WHERE automation_id = ${id}`);
     
     // Delete business triggers
-    await db.delete(automationBusinessTriggers).where(eq(automationBusinessTriggers.automationId, id));
+    await db.execute(sql`DELETE FROM automation_business_triggers WHERE automation_id = ${id}`);
     
     // Finally, delete the automation itself
-    await db.delete(automations).where(eq(automations.id, id));
+    await db.execute(sql`DELETE FROM automations WHERE id = ${id}`);
   }
 
   async getAutomationSteps(automationId: string): Promise<AutomationStep[]> {
