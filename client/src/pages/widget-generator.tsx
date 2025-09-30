@@ -20,6 +20,8 @@ interface Photographer {
 export default function WidgetGenerator() {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("setup");
+  const [noDateYet, setNoDateYet] = useState(false);
+  const [eventDate, setEventDate] = useState("");
   
   const [config, setConfig] = useState({
     title: "Get In Touch",
@@ -64,69 +66,90 @@ export default function WidgetGenerator() {
   };
 
   const renderWidgetPreview = () => (
-    <div 
-      className="max-w-md mx-auto p-6 rounded-lg shadow-lg border"
-      style={{ 
-        backgroundColor: config.backgroundColor,
-        borderColor: config.primaryColor + "33"
-      }}
-    >
-      <div className="text-center mb-6">
-        <h3 className="text-xl font-semibold mb-2" style={{ color: config.primaryColor }}>
-          {config.title}
-        </h3>
-        <p className="text-gray-600">{config.description}</p>
-      </div>
-      
-      <form className="space-y-4">
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium mb-1">First Name *</label>
-            <input 
-              type="text" 
-              className="w-full p-2 border rounded-md" 
-              placeholder="John"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Last Name *</label>
-            <input 
-              type="text" 
-              className="w-full p-2 border rounded-md" 
-              placeholder="Doe"
-            />
-          </div>
+      <div 
+        className="max-w-md mx-auto p-6 rounded-lg shadow-lg border"
+        style={{ 
+          backgroundColor: config.backgroundColor,
+          borderColor: config.primaryColor + "33"
+        }}
+      >
+        <div className="text-center mb-6">
+          <h3 className="text-xl font-semibold mb-2" style={{ color: config.primaryColor }}>
+            {config.title}
+          </h3>
+          <p className="text-gray-600">{config.description}</p>
         </div>
         
-        <div>
-          <label className="block text-sm font-medium mb-1">Email *</label>
-          <input 
-            type="email" 
-            className="w-full p-2 border rounded-md" 
-            placeholder="john@example.com"
-          />
-        </div>
-        
-        {config.showPhone && (
+        <form className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">First Name *</label>
+              <input 
+                type="text" 
+                className="w-full p-2 border rounded-md" 
+                placeholder="John"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Last Name *</label>
+              <input 
+                type="text" 
+                className="w-full p-2 border rounded-md" 
+                placeholder="Doe"
+              />
+            </div>
+          </div>
+          
           <div>
-            <label className="block text-sm font-medium mb-1">Phone</label>
+            <label className="block text-sm font-medium mb-1">Email *</label>
             <input 
-              type="tel" 
+              type="email" 
               className="w-full p-2 border rounded-md" 
-              placeholder="(555) 123-4567"
+              placeholder="john@example.com"
             />
           </div>
-        )}
-        
-        {config.showEventDate && (
-          <div>
-            <label className="block text-sm font-medium mb-1">Event Date</label>
-            <input 
-              type="date" 
-              className="w-full p-2 border rounded-md"
-            />
-          </div>
-        )}
+          
+          {config.showPhone && (
+            <div>
+              <label className="block text-sm font-medium mb-1">Phone</label>
+              <input 
+                type="tel" 
+                className="w-full p-2 border rounded-md" 
+                placeholder="(555) 123-4567"
+              />
+            </div>
+          )}
+          
+          {config.showEventDate && (
+            <div>
+              <label className="block text-sm font-medium mb-1">Event Date</label>
+              <input 
+                type="date" 
+                className="w-full p-2 border rounded-md"
+                value={eventDate}
+                onChange={(e) => {
+                  setEventDate(e.target.value);
+                  if (e.target.value) setNoDateYet(false);
+                }}
+                disabled={noDateYet}
+                style={{ opacity: noDateYet ? 0.5 : 1, cursor: noDateYet ? 'not-allowed' : 'text' }}
+              />
+              <div className="mt-2">
+                <label className="flex items-center cursor-pointer">
+                  <input 
+                    type="checkbox"
+                    checked={noDateYet}
+                    onChange={(e) => {
+                      setNoDateYet(e.target.checked);
+                      if (e.target.checked) setEventDate("");
+                    }}
+                    className="mr-2"
+                  />
+                  <span className="text-sm">I don't have a date yet</span>
+                </label>
+              </div>
+            </div>
+          )}
         
         {config.showMessage && (
           <div>
