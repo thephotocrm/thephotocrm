@@ -2919,71 +2919,11 @@ export default function Automations() {
                                     
                                     <div className="space-y-2 pl-4">
                                       {group.automations.map((automation: any) => (
-                                        <div
-                                          key={automation.id}
-                                          className="border rounded-lg bg-card hover:bg-accent/50 transition-colors max-w-4xl"
-                                        >
-                                          {/* Automation Header */}
-                                          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 space-y-2 sm:space-y-0 bg-blue-50 dark:bg-blue-950/30">
-                                            <div className="flex items-center space-x-3">
-                                              <div className={`p-2 rounded-full ${automation.enabled ? 'bg-green-100 text-green-600 dark:bg-green-900 dark:text-green-400' : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'}`}>
-                                                {automation.automationType === 'COMMUNICATION' ? <Mail className="h-4 w-4" /> : <ArrowRight className="h-4 w-4" />}
-                                              </div>
-                                              <div>
-                                                <div className="flex flex-wrap items-center gap-2">
-                                                  <p className="font-medium">{automation.name}</p>
-                                                  <Badge variant={automation.automationType === 'COMMUNICATION' ? 'default' : 'secondary'}>
-                                                    {automation.automationType === 'COMMUNICATION' ? 'Communication' : 'Pipeline'}
-                                                  </Badge>
-                                                </div>
-                                                {automation.automationType === 'PIPELINE' && automation.targetStage && (
-                                                  <p className="text-sm text-muted-foreground mt-1">
-                                                    <ArrowRight className="inline h-3 w-3 mr-1" />
-                                                    Moves to "{automation.targetStage.name}"
-                                                  </p>
-                                                )}
-                                              </div>
-                                            </div>
-                                            <div className="flex items-center justify-center sm:justify-start space-x-2">
-                                              <span className="text-xs text-muted-foreground">
-                                                {automation.enabled ? "On" : "Off"}
-                                              </span>
-                                              <Switch
-                                                checked={automation.enabled}
-                                                onCheckedChange={(enabled) => handleToggleAutomation(automation.id, enabled)}
-                                                data-testid={`switch-automation-${automation.id}`}
-                                              />
-                                              <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                onClick={() => handleEditAutomation(automation)}
-                                                data-testid={`button-edit-automation-${automation.id}`}
-                                              >
-                                                <Edit2 className="h-4 w-4" />
-                                              </Button>
-                                              <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                onClick={() => handleDeleteAutomation(automation.id)}
-                                                data-testid={`button-delete-automation-${automation.id}`}
-                                              >
-                                                <Trash2 className="h-4 w-4" />
-                                              </Button>
-                                            </div>
-                                          </div>
-                                          
-                                          {/* Communication Steps - Show for communication automations */}
-                                          {automation.automationType === 'COMMUNICATION' && (
-                                            <AutomationStepsDisplay automationId={automation.id} channel={automation.channel} />
-                                          )}
-                                          
-                                          {/* Business Triggers Section - Only shown for business event automations */}
-                                          {automation.triggerMode === 'BUSINESS' && (
-                                            <div className="border-t p-4 bg-accent/5">
-                                              <BusinessTriggersManager automation={automation} />
-                                            </div>
-                                          )}
-                                        </div>
+                                        automation.automationType === 'COMMUNICATION' ? (
+                                          <AutomationStepManager key={automation.id} automation={automation} onDelete={handleDeleteAutomation} />
+                                        ) : (
+                                          <StageChangeAutomationCard key={automation.id} automation={automation} onDelete={handleDeleteAutomation} />
+                                        )
                                       ))}
                                     </div>
                                   </div>
@@ -3009,90 +2949,12 @@ export default function Automations() {
                             return globalAutomations.length > 0 ? (
                               <div className="space-y-2">
                                 {globalAutomations.map((automation: any) => (
-                                    <div
-                                      key={automation.id}
-                                      className="border rounded-lg bg-card hover:bg-accent/50 transition-colors max-w-4xl"
-                                    >
-                                      {/* Automation Header */}
-                                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 space-y-2 sm:space-y-0 bg-blue-50 dark:bg-blue-950/30">
-                                        <div className="flex items-center space-x-3">
-                                          <div className={`p-2 rounded-full ${automation.enabled ? 'bg-green-100 text-green-600 dark:bg-green-900 dark:text-green-400' : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'}`}>
-                                            {automation.automationType === 'COMMUNICATION' ? <Mail className="h-4 w-4" /> : <ArrowRight className="h-4 w-4" />}
-                                          </div>
-                                          <div>
-                                            <div className="flex flex-wrap items-center gap-2">
-                                              <p className="font-medium">{automation.name}</p>
-                                              <Badge 
-                                                variant="outline" 
-                                                className={`text-xs ${
-                                                  automation.triggerMode === 'BUSINESS' ? 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-950 dark:text-purple-300' :
-                                                  'bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-950 dark:text-orange-300'
-                                                }`}
-                                              >
-                                                {automation.triggerMode === 'BUSINESS' ? 'Business Event' : 'Time-based'}
-                                              </Badge>
-                                              <Badge variant={automation.automationType === 'COMMUNICATION' ? 'default' : 'secondary'}>
-                                                {automation.automationType === 'COMMUNICATION' ? 'Communication' : 'Pipeline'}
-                                              </Badge>
-                                            </div>
-                                            {(automation.triggerMode === 'BUSINESS' && automation.triggerEvent) ||
-                                             (automation.triggerMode === 'TIME') ? (
-                                              <p className="text-sm text-muted-foreground">
-                                                {automation.triggerMode === 'BUSINESS' && automation.triggerEvent ?
-                                                  `Triggers on ${automation.triggerEvent.replace(/_/g, ' ').toLowerCase()}` :
-                                                  `Time-based trigger after ${automation.delayAmount} ${automation.delayUnit}`
-                                                }
-                                              </p>
-                                            ) : null}
-                                            {automation.automationType === 'PIPELINE' && automation.targetStage && (
-                                              <p className="text-sm text-muted-foreground mt-1">
-                                                <ArrowRight className="inline h-3 w-3 mr-1" />
-                                                Moves to "{automation.targetStage.name}"
-                                              </p>
-                                            )}
-                                          </div>
-                                        </div>
-                                        <div className="flex items-center justify-center sm:justify-start space-x-2">
-                                          <span className="text-xs text-muted-foreground">
-                                            {automation.enabled ? "On" : "Off"}
-                                          </span>
-                                          <Switch
-                                            checked={automation.enabled}
-                                            onCheckedChange={(enabled) => handleToggleAutomation(automation.id, enabled)}
-                                            data-testid={`switch-automation-${automation.id}`}
-                                          />
-                                          <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() => handleEditAutomation(automation)}
-                                            data-testid={`button-edit-automation-${automation.id}`}
-                                          >
-                                            <Edit2 className="h-4 w-4" />
-                                          </Button>
-                                          <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() => handleDeleteAutomation(automation.id)}
-                                            data-testid={`button-delete-automation-${automation.id}`}
-                                          >
-                                            <Trash2 className="h-4 w-4" />
-                                          </Button>
-                                        </div>
-                                      </div>
-                                      
-                                      {/* Communication Steps - Show for communication automations */}
-                                      {automation.automationType === 'COMMUNICATION' && (
-                                        <AutomationStepsDisplay automationId={automation.id} channel={automation.channel} />
-                                      )}
-                                      
-                                      {/* Business Triggers Section - Only shown for business event automations */}
-                                      {automation.triggerMode === 'BUSINESS' && (
-                                        <div className="border-t p-4 bg-accent/5">
-                                          <BusinessTriggersManager automation={automation} />
-                                        </div>
-                                      )}
-                                    </div>
-                                  ))}
+                                  automation.automationType === 'COMMUNICATION' ? (
+                                    <AutomationStepManager key={automation.id} automation={automation} onDelete={handleDeleteAutomation} />
+                                  ) : (
+                                    <StageChangeAutomationCard key={automation.id} automation={automation} onDelete={handleDeleteAutomation} />
+                                  )
+                                ))}
                                 </div>
                             ) : (
                               <div className="text-center py-8">
