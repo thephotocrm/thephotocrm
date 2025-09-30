@@ -1535,7 +1535,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       }
 
       // Create a safe update schema that only allows specific fields
-      const updateSchema = validateAutomationSchema.partial().omit({
+      const updateSchema = insertAutomationSchema.partial().omit({
         photographerId: true,
         id: true
       });
@@ -1563,7 +1563,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       }
 
       // Create a safe update schema that only allows specific fields
-      const updateSchema = validateAutomationSchema.partial().omit({
+      const updateSchema = insertAutomationSchema.partial().omit({
         photographerId: true,
         id: true
       });

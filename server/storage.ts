@@ -634,32 +634,36 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteAutomation(id: string): Promise<void> {
-    // CRITICAL: Disable the automation first to prevent cron job from creating new logs
-    await db.update(automations)
-      .set({ enabled: false })
-      .where(eq(automations.id, id));
-    
-    // Get all automation steps for this automation
-    const steps = await this.getAutomationSteps(id);
-    const stepIds = steps.map(s => s.id);
-    
-    // Use raw SQL to delete logs - Drizzle ORM delete isn't working properly
-    for (const stepId of stepIds) {
-      await db.execute(sql`DELETE FROM email_logs WHERE automation_step_id = ${stepId}`);
-      await db.execute(sql`DELETE FROM sms_logs WHERE automation_step_id = ${stepId}`);
-    }
-    
-    // Delete execution records
-    await db.execute(sql`DELETE FROM automation_executions WHERE automation_id = ${id}`);
-    
-    // Delete steps
-    await db.execute(sql`DELETE FROM automation_steps WHERE automation_id = ${id}`);
-    
-    // Delete business triggers
-    await db.execute(sql`DELETE FROM automation_business_triggers WHERE automation_id = ${id}`);
-    
-    // Finally, delete the automation itself
-    await db.execute(sql`DELETE FROM automations WHERE id = ${id}`);
+    // Use a transaction to ensure atomicity and prevent race conditions with cron job
+    await db.transaction(async (tx) => {
+      // CRITICAL: Disable the automation FIRST within the transaction
+      await tx.update(automations)
+        .set({ enabled: false })
+        .where(eq(automations.id, id));
+      
+      // Get all automation steps for this automation
+      const steps = await tx.select().from(automationSteps)
+        .where(eq(automationSteps.automationId, id));
+      const stepIds = steps.map(s => s.id);
+      
+      // Delete all child records in proper order
+      for (const stepId of stepIds) {
+        await tx.execute(sql`DELETE FROM email_logs WHERE automation_step_id = ${stepId}`);
+        await tx.execute(sql`DELETE FROM sms_logs WHERE automation_step_id = ${stepId}`);
+      }
+      
+      // Delete execution records
+      await tx.execute(sql`DELETE FROM automation_executions WHERE automation_id = ${id}`);
+      
+      // Delete steps
+      await tx.execute(sql`DELETE FROM automation_steps WHERE automation_id = ${id}`);
+      
+      // Delete business triggers
+      await tx.execute(sql`DELETE FROM automation_business_triggers WHERE automation_id = ${id}`);
+      
+      // Finally, delete the automation itself
+      await tx.execute(sql`DELETE FROM automations WHERE id = ${id}`);
+    });
   }
 
   async getAutomationSteps(automationId: string): Promise<AutomationStep[]> {
