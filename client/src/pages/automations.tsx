@@ -2726,30 +2726,45 @@ export default function Automations() {
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-6">
-                      {automations === undefined ? (
-                        <div className="text-center py-8">
-                          <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto" />
-                          <p className="text-muted-foreground mt-2">Loading automations...</p>
-                        </div>
-                      ) : automations.length === 0 ? (
-                        <div className="text-center py-8">
-                          <Zap className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                          <h3 className="text-lg font-semibold mb-2">No automations yet</h3>
-                          <p className="text-muted-foreground mb-4">
-                            Create your first automation to streamline your workflow
-                          </p>
-                          <Button 
-                            onClick={() => setCreateDialogOpen(true)}
-                            data-testid="button-create-first-automation"
-                          >
-                            <Plus className="w-4 h-4 mr-2" />
-                            Create First Automation
-                          </Button>
-                        </div>
-                      ) : (
-                        <>
-                          {/* Stage-Based Automations - Grouped by Stage */}
+                    {automations === undefined ? (
+                      <div className="text-center py-8">
+                        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto" />
+                        <p className="text-muted-foreground mt-2">Loading automations...</p>
+                      </div>
+                    ) : automations.length === 0 ? (
+                      <div className="text-center py-8">
+                        <Zap className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                        <h3 className="text-lg font-semibold mb-2">No automations yet</h3>
+                        <p className="text-muted-foreground mb-4">
+                          Create your first automation to streamline your workflow
+                        </p>
+                        <Button 
+                          onClick={() => setCreateDialogOpen(true)}
+                          data-testid="button-create-first-automation"
+                        >
+                          <Plus className="w-4 h-4 mr-2" />
+                          Create First Automation
+                        </Button>
+                      </div>
+                    ) : (
+                      <Tabs defaultValue="all" className="w-full">
+                        <TabsList className="grid w-full grid-cols-3">
+                          <TabsTrigger value="all" data-testid="tab-all">
+                            All
+                          </TabsTrigger>
+                          <TabsTrigger value="stage-based" data-testid="tab-stage-based">
+                            <Settings className="w-4 h-4 mr-2" />
+                            Stage-Based
+                          </TabsTrigger>
+                          <TabsTrigger value="global" data-testid="tab-global">
+                            <Zap className="w-4 h-4 mr-2" />
+                            Global
+                          </TabsTrigger>
+                        </TabsList>
+
+                        {/* All Automations Tab */}
+                        <TabsContent value="all" className="space-y-6 mt-4">
+                          {/* Stage-Based Section */}
                           {(() => {
                             const stageBased = automations.filter((a: any) => a.triggerStageId);
                             const stageGroups = stages?.reduce((acc: any, stage: any) => {
@@ -2767,6 +2782,189 @@ export default function Automations() {
                                   <h3 className="font-semibold text-lg">Stage-Based Automations</h3>
                                 </div>
                                 
+                                {Object.values(stageGroups).map((group: any) => (
+                                  <div key={group.stage.id} className="space-y-3">
+                                    <div className="flex items-center space-x-2 px-3 py-2 bg-muted/50 rounded-lg">
+                                      <div className="h-2 w-2 rounded-full bg-primary" />
+                                      <h4 className="font-medium text-sm">{group.stage.name}</h4>
+                                      <Badge variant="outline" className="ml-auto text-xs">
+                                        {group.automations.length} automation{group.automations.length !== 1 ? 's' : ''}
+                                      </Badge>
+                                    </div>
+                                    
+                                    <div className="space-y-3 pl-4">
+                                      {group.automations.map((automation: any) => (
+                                        <div
+                                          key={automation.id}
+                                          className="border rounded-lg bg-card hover:bg-accent/50 transition-colors"
+                                        >
+                                          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 space-y-3 sm:space-y-0 bg-blue-50 dark:bg-blue-950/30">
+                                            <div className="flex items-center space-x-3">
+                                              <div className={`p-2 rounded-full ${automation.enabled ? 'bg-green-100 text-green-600 dark:bg-green-900 dark:text-green-400' : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'}`}>
+                                                {automation.automationType === 'COMMUNICATION' ? <Mail className="h-4 w-4" /> : <ArrowRight className="h-4 w-4" />}
+                                              </div>
+                                              <div>
+                                                <div className="flex flex-wrap items-center gap-2">
+                                                  <p className="font-medium">{automation.name}</p>
+                                                  <Badge variant={automation.automationType === 'COMMUNICATION' ? 'default' : 'secondary'}>
+                                                    {automation.automationType === 'COMMUNICATION' ? 'Communication' : 'Pipeline'}
+                                                  </Badge>
+                                                </div>
+                                              </div>
+                                            </div>
+                                            <div className="flex items-center justify-center sm:justify-start space-x-2">
+                                              <span className="text-xs text-muted-foreground">
+                                                {automation.enabled ? "On" : "Off"}
+                                              </span>
+                                              <Switch
+                                                checked={automation.enabled}
+                                                onCheckedChange={(enabled) => handleToggleAutomation(automation.id, enabled)}
+                                                data-testid={`switch-automation-${automation.id}`}
+                                              />
+                                              <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() => handleEditAutomation(automation)}
+                                                data-testid={`button-edit-automation-${automation.id}`}
+                                              >
+                                                <Edit2 className="h-4 w-4" />
+                                              </Button>
+                                              <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() => handleDeleteAutomation(automation.id)}
+                                                data-testid={`button-delete-automation-${automation.id}`}
+                                              >
+                                                <Trash2 className="h-4 w-4" />
+                                              </Button>
+                                            </div>
+                                          </div>
+                                          {automation.automationType === 'COMMUNICATION' && (
+                                            <AutomationStepsDisplay automationId={automation.id} channel={automation.channel} />
+                                          )}
+                                          {automation.triggerMode === 'BUSINESS' && (
+                                            <div className="border-t p-4 bg-accent/5">
+                                              <BusinessTriggersManager automation={automation} />
+                                            </div>
+                                          )}
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            ) : null;
+                          })()}
+
+                          {/* Global Automations Section */}
+                          {(() => {
+                            const globalAutomations = automations.filter((a: any) => !a.triggerStageId);
+                            
+                            return globalAutomations.length > 0 ? (
+                              <div className="space-y-4">
+                                <div className="flex items-center space-x-2">
+                                  <Zap className="h-4 w-4 text-purple-600" />
+                                  <h3 className="font-semibold text-lg">Global Automations</h3>
+                                  <Badge variant="outline" className="text-xs">
+                                    Always active
+                                  </Badge>
+                                </div>
+                                
+                                <div className="space-y-3">
+                                  {globalAutomations.map((automation: any) => (
+                                    <div
+                                      key={automation.id}
+                                      className="border rounded-lg bg-card hover:bg-accent/50 transition-colors"
+                                    >
+                                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 space-y-3 sm:space-y-0 bg-blue-50 dark:bg-blue-950/30">
+                                        <div className="flex items-center space-x-3">
+                                          <div className={`p-2 rounded-full ${automation.enabled ? 'bg-green-100 text-green-600 dark:bg-green-900 dark:text-green-400' : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'}`}>
+                                            {automation.automationType === 'COMMUNICATION' ? <Mail className="h-4 w-4" /> : <ArrowRight className="h-4 w-4" />}
+                                          </div>
+                                          <div>
+                                            <div className="flex flex-wrap items-center gap-2">
+                                              <p className="font-medium">{automation.name}</p>
+                                              <Badge 
+                                                variant="outline" 
+                                                className={`text-xs ${
+                                                  automation.triggerMode === 'BUSINESS' ? 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-950 dark:text-purple-300' :
+                                                  'bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-950 dark:text-orange-300'
+                                                }`}
+                                              >
+                                                {automation.triggerMode === 'BUSINESS' ? 'Business Event' : 'Time-based'}
+                                              </Badge>
+                                              <Badge variant={automation.automationType === 'COMMUNICATION' ? 'default' : 'secondary'}>
+                                                {automation.automationType === 'COMMUNICATION' ? 'Communication' : 'Pipeline'}
+                                              </Badge>
+                                            </div>
+                                            {(automation.triggerMode === 'BUSINESS' && automation.triggerEvent) ||
+                                             (automation.triggerMode === 'TIME') ? (
+                                              <p className="text-sm text-muted-foreground">
+                                                {automation.triggerMode === 'BUSINESS' && automation.triggerEvent ?
+                                                  `Triggers on ${automation.triggerEvent.replace(/_/g, ' ').toLowerCase()}` :
+                                                  `Time-based trigger after ${automation.delayAmount} ${automation.delayUnit}`
+                                                }
+                                              </p>
+                                            ) : null}
+                                          </div>
+                                        </div>
+                                        <div className="flex items-center justify-center sm:justify-start space-x-2">
+                                          <span className="text-xs text-muted-foreground">
+                                            {automation.enabled ? "On" : "Off"}
+                                          </span>
+                                          <Switch
+                                            checked={automation.enabled}
+                                            onCheckedChange={(enabled) => handleToggleAutomation(automation.id, enabled)}
+                                            data-testid={`switch-automation-${automation.id}`}
+                                          />
+                                          <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => handleEditAutomation(automation)}
+                                            data-testid={`button-edit-automation-${automation.id}`}
+                                          >
+                                            <Edit2 className="h-4 w-4" />
+                                          </Button>
+                                          <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => handleDeleteAutomation(automation.id)}
+                                            data-testid={`button-delete-automation-${automation.id}`}
+                                          >
+                                            <Trash2 className="h-4 w-4" />
+                                          </Button>
+                                        </div>
+                                      </div>
+                                      {automation.automationType === 'COMMUNICATION' && (
+                                        <AutomationStepsDisplay automationId={automation.id} channel={automation.channel} />
+                                      )}
+                                      {automation.triggerMode === 'BUSINESS' && (
+                                        <div className="border-t p-4 bg-accent/5">
+                                          <BusinessTriggersManager automation={automation} />
+                                        </div>
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            ) : null;
+                          })()}
+                        </TabsContent>
+
+                        {/* Stage-Based Automations Tab */}
+                        <TabsContent value="stage-based" className="space-y-4 mt-4">
+                          {(() => {
+                            const stageBased = automations.filter((a: any) => a.triggerStageId);
+                            const stageGroups = stages?.reduce((acc: any, stage: any) => {
+                              const stageAutomations = stageBased.filter((a: any) => a.triggerStageId === stage.id);
+                              if (stageAutomations.length > 0) {
+                                acc[stage.id] = { stage, automations: stageAutomations };
+                              }
+                              return acc;
+                            }, {});
+
+                            return stageGroups && Object.keys(stageGroups).length > 0 ? (
+                              <div className="space-y-4">
                                 {Object.values(stageGroups).map((group: any) => (
                                   <div key={group.stage.id} className="space-y-3">
                                     <div className="flex items-center space-x-2 px-3 py-2 bg-muted/50 rounded-lg">
@@ -2843,25 +3041,26 @@ export default function Automations() {
                                   </div>
                                 ))}
                               </div>
-                            ) : null;
+                            ) : (
+                              <div className="text-center py-8">
+                                <Settings className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                                <h3 className="text-lg font-semibold mb-2">No stage-based automations</h3>
+                                <p className="text-muted-foreground">
+                                  Create automations that trigger when clients enter specific pipeline stages
+                                </p>
+                              </div>
+                            );
                           })()}
+                        </TabsContent>
 
-                          {/* Global Automations - No trigger stage */}
+                        {/* Global Automations Tab */}
+                        <TabsContent value="global" className="space-y-4 mt-4">
                           {(() => {
                             const globalAutomations = automations.filter((a: any) => !a.triggerStageId);
                             
                             return globalAutomations.length > 0 ? (
-                              <div className="space-y-4">
-                                <div className="flex items-center space-x-2">
-                                  <Zap className="h-4 w-4 text-purple-600" />
-                                  <h3 className="font-semibold text-lg">Global Automations</h3>
-                                  <Badge variant="outline" className="text-xs">
-                                    Always active
-                                  </Badge>
-                                </div>
-                                
-                                <div className="space-y-3">
-                                  {globalAutomations.map((automation: any) => (
+                              <div className="space-y-3">
+                                {globalAutomations.map((automation: any) => (
                                     <div
                                       key={automation.id}
                                       className="border rounded-lg bg-card hover:bg-accent/50 transition-colors"
@@ -2941,12 +3140,19 @@ export default function Automations() {
                                     </div>
                                   ))}
                                 </div>
+                            ) : (
+                              <div className="text-center py-8">
+                                <Zap className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                                <h3 className="text-lg font-semibold mb-2">No global automations</h3>
+                                <p className="text-muted-foreground">
+                                  Create automations that run globally without stage triggers
+                                </p>
                               </div>
-                            ) : null;
+                            );
                           })()}
-                        </>
-                      )}
-                    </div>
+                        </TabsContent>
+                      </Tabs>
+                    )}
                   </CardContent>
                 </Card>
               </div>
