@@ -304,15 +304,16 @@ function AutomationStepManager({ automation, onDelete }: { automation: any, onDe
 
       {/* Edit Automation Dialog */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Edit Automation</DialogTitle>
+            <DialogTitle>Edit Communication Automation</DialogTitle>
             <DialogDescription>
-              Modify the automation settings and click Save to apply changes.
+              Modify the automation settings. The automation type, trigger, and communication steps cannot be changed after creation.
             </DialogDescription>
           </DialogHeader>
           
           <div className="space-y-4">
+            {/* Basic Settings */}
             <div className="space-y-2">
               <Label htmlFor="edit-name">Automation Name</Label>
               <Input
@@ -324,65 +325,128 @@ function AutomationStepManager({ automation, onDelete }: { automation: any, onDe
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="edit-channel">Channel</Label>
-              <Select
-                value={editForm.channel}
-                onValueChange={(value) => setEditForm({...editForm, channel: value})}
-              >
-                <SelectTrigger data-testid={`select-edit-channel-${automation.id}`}>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="EMAIL">Email</SelectItem>
-                  <SelectItem value="SMS">SMS</SelectItem>
-                </SelectContent>
-              </Select>
+            {/* Automation Configuration Overview */}
+            <div className="space-y-3 p-4 border rounded-lg bg-muted/50">
+              <div className="flex items-center gap-2 mb-2">
+                <Mail className="w-4 h-4 text-primary" />
+                <Label className="font-medium">Automation Configuration</Label>
+              </div>
+              
+              <div className="space-y-2 text-sm">
+                <div className="flex items-center justify-between">
+                  <span className="font-medium">Type:</span>
+                  <Badge variant="outline" className="bg-purple-50 dark:bg-purple-950 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800">
+                    Communication
+                  </Badge>
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <span className="font-medium">Channel:</span>
+                  <Badge 
+                    variant="outline"
+                    className={automation.channel === 'EMAIL' 
+                      ? "bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800" 
+                      : "bg-teal-50 dark:bg-teal-950 text-teal-700 dark:text-teal-300 border-teal-200 dark:border-teal-800"
+                    }
+                  >
+                    {automation.channel === 'EMAIL' ? '📧 Email' : '📱 SMS'}
+                  </Badge>
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <span className="font-medium">Trigger:</span>
+                  <span className="text-muted-foreground">
+                    {automation.stageId ? `When entering ${automation.stage?.name || 'stage'}` : 'Global automation'}
+                  </span>
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <span className="font-medium">Total Steps:</span>
+                  <Badge variant="secondary">{steps.length}</Badge>
+                </div>
+              </div>
             </div>
 
-            {/* Template Content Preview */}
+            {/* Communication Steps Timeline */}
             <div className="space-y-2">
-              <Label>Message Content</Label>
-              <div className="border rounded-lg p-3 bg-muted max-h-40 overflow-y-auto">
-                {steps.length > 0 ? (
-                  <div className="space-y-2">
+              <Label className="flex items-center gap-2">
+                <Clock className="w-4 h-4" />
+                Message Steps Timeline
+              </Label>
+              <div className="border rounded-lg p-3 bg-background max-h-60 overflow-y-auto">
+                {isLoading ? (
+                  <div className="text-center py-4">
+                    <p className="text-sm text-muted-foreground">Loading steps...</p>
+                  </div>
+                ) : steps.length > 0 ? (
+                  <div className="space-y-3">
                     {steps.map((step: any, index: number) => {
                       const template = templates?.find(t => t.id === step.templateId);
                       return (
-                        <div key={step.id} className="border-l-2 border-primary pl-3">
-                          <p className="text-sm font-medium">Step {index + 1} ({step.delayMinutes} min delay)</p>
-                          {template ? (
-                            <div className="text-sm text-muted-foreground">
-                              <p className="font-medium">{template.name}</p>
-                              {template.subject && <p className="italic">Subject: {template.subject}</p>}
-                              <p className="mt-1 text-xs bg-background rounded p-2 border">
-                                {template.textBody?.substring(0, 150) + (template.textBody?.length > 150 ? '...' : '')}
-                              </p>
+                        <div key={step.id} className="relative pl-6 pb-3 border-l-2 border-primary/30 last:border-0">
+                          {/* Step Number Badge */}
+                          <div className="absolute -left-3 top-0 w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold">
+                            {index + 1}
+                          </div>
+                          
+                          <div className="space-y-1.5">
+                            {/* Timing */}
+                            <div className="flex items-center gap-2">
+                              <Badge variant="secondary" className="text-xs">
+                                <Clock className="w-3 h-3 mr-1" />
+                                {step.delayMinutes === 0 ? 'Immediately' : `After ${step.delayMinutes} min`}
+                              </Badge>
+                              <span className="text-xs text-muted-foreground">→</span>
+                              <span className="text-xs font-medium">
+                                {automation.channel === 'EMAIL' ? '📧 Send Email' : '📱 Send SMS'}
+                              </span>
                             </div>
-                          ) : (
-                            <p className="text-sm text-muted-foreground">Template not found</p>
-                          )}
+                            
+                            {/* Template Info */}
+                            {template ? (
+                              <div className="bg-muted/50 rounded-md p-2 text-xs space-y-1">
+                                <p className="font-medium">{template.name}</p>
+                                {template.subject && (
+                                  <p className="text-muted-foreground">
+                                    <span className="font-medium">Subject:</span> {template.subject}
+                                  </p>
+                                )}
+                                <p className="text-muted-foreground line-clamp-2">
+                                  {template.textBody || 'No message content'}
+                                </p>
+                              </div>
+                            ) : (
+                              <p className="text-xs text-muted-foreground italic">Template not found</p>
+                            )}
+                          </div>
                         </div>
                       );
                     })}
                   </div>
                 ) : (
-                  <p className="text-sm text-muted-foreground">No message steps configured</p>
+                  <p className="text-sm text-muted-foreground text-center py-4">No message steps configured</p>
                 )}
               </div>
+              <p className="text-xs text-muted-foreground">
+                To modify steps, delete this automation and create a new one with the desired configuration.
+              </p>
             </div>
 
-            <div className="flex items-center space-x-2">
+            {/* Enable/Disable Toggle */}
+            <div className="flex items-center space-x-2 p-3 border rounded-lg bg-background">
               <Switch
                 checked={editForm.enabled}
                 onCheckedChange={(checked) => setEditForm({...editForm, enabled: checked})}
                 data-testid={`switch-edit-enabled-${automation.id}`}
               />
-              <Label>Enable automation</Label>
+              <div className="flex-1">
+                <Label className="cursor-pointer">Enable automation</Label>
+                <p className="text-xs text-muted-foreground">When enabled, this automation will run automatically</p>
+              </div>
             </div>
           </div>
 
-          <div className="flex justify-end space-x-2 pt-4">
+          <div className="flex justify-end space-x-2 pt-4 border-t">
             <Button
               variant="outline"
               onClick={handleCancelEdit}
@@ -529,63 +593,102 @@ function StageChangeAutomationCard({ automation, onDelete }: { automation: any, 
       </div>
 
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent data-testid={`dialog-edit-automation-${automation.id}`}>
+        <DialogContent className="sm:max-w-2xl" data-testid={`dialog-edit-automation-${automation.id}`}>
           <DialogHeader>
             <DialogTitle>Edit Pipeline Automation</DialogTitle>
             <DialogDescription>
-              Update the pipeline automation settings
+              Modify the automation settings. The trigger type and destination stage cannot be changed after creation.
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
+            {/* Basic Settings */}
             <div>
               <Label htmlFor={`edit-name-${automation.id}`}>Automation Name</Label>
               <Input
                 id={`edit-name-${automation.id}`}
                 value={editForm.name}
                 onChange={(e) => setEditForm({...editForm, name: e.target.value})}
+                placeholder="Enter automation name"
                 data-testid={`input-edit-name-${automation.id}`}
               />
             </div>
 
-            {/* Pipeline Automation Details */}
-            <div className="space-y-2">
-              <Label>Automation Details</Label>
-              <div className="border rounded-lg p-3 bg-muted">
-                <div className="space-y-2 text-sm">
-                  <div className="flex items-center justify-between">
-                    <span className="font-medium">Type:</span>
-                    <span>Pipeline Stage Automation</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="font-medium">Trigger:</span>
-                    <span>{getTriggerLabel(automation.triggerType)}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="font-medium">Action:</span>
-                    <span>Move to "{automation.targetStage?.name || 'Unknown Stage'}"</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="font-medium">Status:</span>
-                    <Badge variant={automation.enabled ? "default" : "secondary"}>
-                      {automation.enabled ? "Active" : "Inactive"}
-                    </Badge>
-                  </div>
+            {/* Pipeline Automation Configuration Overview */}
+            <div className="space-y-3 p-4 border rounded-lg bg-muted/50">
+              <div className="flex items-center gap-2 mb-2">
+                <ArrowRight className="w-4 h-4 text-primary" />
+                <Label className="font-medium">Automation Configuration</Label>
+              </div>
+              
+              <div className="space-y-2 text-sm">
+                <div className="flex items-center justify-between">
+                  <span className="font-medium">Type:</span>
+                  <Badge variant="outline" className="bg-purple-50 dark:bg-purple-950 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800">
+                    Pipeline Change
+                  </Badge>
                 </div>
+                
+                <div className="flex items-center justify-between">
+                  <span className="font-medium">Trigger:</span>
+                  <Badge variant="outline" className="bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800">
+                    {getTriggerLabel(automation.triggerType)}
+                  </Badge>
+                </div>
+
+                {automation.stage && automation.targetStage && (
+                  <div className="flex items-center justify-between">
+                    <span className="font-medium">Stage Flow:</span>
+                    <div className="flex items-center gap-1.5">
+                      <Badge variant="secondary" className="text-xs">
+                        {automation.stage.name}
+                      </Badge>
+                      <ArrowRight className="w-3 h-3 text-muted-foreground" />
+                      <Badge variant="secondary" className="text-xs">
+                        {automation.targetStage.name}
+                      </Badge>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
-            <div className="flex items-center space-x-2">
+            {/* Action Details */}
+            <div className="space-y-2 p-4 border rounded-lg bg-green-50/50 dark:bg-green-950/20">
+              <div className="flex items-center gap-2 mb-2">
+                <ArrowRight className="w-4 h-4 text-green-600 dark:text-green-400" />
+                <Label className="font-medium text-green-900 dark:text-green-100">Pipeline Action</Label>
+              </div>
+              
+              <div className="space-y-2">
+                <div className="text-sm">
+                  <span className="font-medium">Action:</span>
+                  <div className="mt-1 p-2 bg-background border rounded-md">
+                    Move project to <span className="font-medium text-green-600 dark:text-green-400">"{automation.targetStage?.name || 'Unknown Stage'}"</span>
+                  </div>
+                </div>
+                
+                <p className="text-xs text-muted-foreground">
+                  When this automation triggers, projects will automatically move to the destination stage. To change the destination, delete this automation and create a new one.
+                </p>
+              </div>
+            </div>
+
+            {/* Enable/Disable Toggle */}
+            <div className="flex items-center space-x-2 p-3 border rounded-lg bg-background">
               <Switch
                 checked={editForm.enabled}
                 onCheckedChange={(checked) => setEditForm({...editForm, enabled: checked})}
                 data-testid={`switch-edit-enabled-${automation.id}`}
               />
-              <Label>Enable automation</Label>
+              <div className="flex-1">
+                <Label className="cursor-pointer">Enable automation</Label>
+                <p className="text-xs text-muted-foreground">When enabled, this automation will run automatically</p>
+              </div>
             </div>
           </div>
 
-          <div className="flex justify-end space-x-2 pt-4">
+          <div className="flex justify-end space-x-2 pt-4 border-t">
             <Button
               variant="outline"
               onClick={handleCancelEdit}
@@ -2902,16 +3005,16 @@ export default function Automations() {
                                   });
                                   
                                   return (
-                                    <div key={group.stage.id} className="space-y-3">
-                                      <div className="flex items-center space-x-2 px-3 py-2 bg-muted/50 rounded-lg">
+                                    <div key={group.stage.id} className="border-2 border-muted rounded-lg p-4 bg-card shadow-sm">
+                                      <div className="flex items-center space-x-2 mb-4">
                                         <div className="h-2 w-2 rounded-full bg-primary" />
-                                        <h4 className="font-medium text-sm">{group.stage.name}</h4>
+                                        <h4 className="font-medium text-base">{group.stage.name}</h4>
                                         <Badge variant="outline" className="ml-auto text-xs">
                                           {group.automations.length} automation{group.automations.length !== 1 ? 's' : ''}
                                         </Badge>
                                       </div>
                                       
-                                      <div className="space-y-3 pl-4">
+                                      <div className="space-y-3">
                                         {/* Immediate Automations */}
                                         {immediateAutomations.length > 0 && (
                                           <div className="space-y-2">
