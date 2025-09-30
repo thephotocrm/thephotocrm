@@ -3022,18 +3022,23 @@ export default function Automations() {
                                               <Zap className="w-3 h-3 text-amber-600 dark:text-amber-400" />
                                               <h5 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Immediate</h5>
                                             </div>
-                                            {immediateAutomations.map((automation: any, index: number) => (
-                                              <div key={automation.id}>
-                                                {automation.automationType === 'COMMUNICATION' ? (
-                                                  <AutomationStepManager automation={automation} onDelete={handleDeleteAutomation} />
-                                                ) : (
-                                                  <StageChangeAutomationCard automation={automation} onDelete={handleDeleteAutomation} />
-                                                )}
-                                                {index < immediateAutomations.length - 1 && (
-                                                  <div className="h-px bg-gradient-to-r from-transparent via-border to-transparent my-3" />
-                                                )}
+                                            <div className="relative pl-6">
+                                              {/* Vertical connecting line */}
+                                              <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-border" />
+                                              <div className="space-y-6">
+                                                {immediateAutomations.map((automation: any, index: number) => (
+                                                  <div key={automation.id} className="relative">
+                                                    {/* Connection dot */}
+                                                    <div className="absolute -left-[26px] top-6 w-3 h-3 rounded-full bg-primary border-2 border-background" />
+                                                    {automation.automationType === 'COMMUNICATION' ? (
+                                                      <AutomationStepManager automation={automation} onDelete={handleDeleteAutomation} />
+                                                    ) : (
+                                                      <StageChangeAutomationCard automation={automation} onDelete={handleDeleteAutomation} />
+                                                    )}
+                                                  </div>
+                                                ))}
                                               </div>
-                                            ))}
+                                            </div>
                                           </div>
                                         )}
                                         
@@ -3044,14 +3049,19 @@ export default function Automations() {
                                               <Clock className="w-3 h-3 text-blue-600 dark:text-blue-400" />
                                               <h5 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Time-Based</h5>
                                             </div>
-                                            {timeBasedAutomations.map((automation: any, index: number) => (
-                                              <div key={automation.id}>
-                                                <AutomationStepManager automation={automation} onDelete={handleDeleteAutomation} />
-                                                {index < timeBasedAutomations.length - 1 && (
-                                                  <div className="h-px bg-gradient-to-r from-transparent via-border to-transparent my-3" />
-                                                )}
+                                            <div className="relative pl-6">
+                                              {/* Vertical connecting line */}
+                                              <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-border" />
+                                              <div className="space-y-6">
+                                                {timeBasedAutomations.map((automation: any, index: number) => (
+                                                  <div key={automation.id} className="relative">
+                                                    {/* Connection dot */}
+                                                    <div className="absolute -left-[26px] top-6 w-3 h-3 rounded-full bg-primary border-2 border-background" />
+                                                    <AutomationStepManager automation={automation} onDelete={handleDeleteAutomation} />
+                                                  </div>
+                                                ))}
                                               </div>
-                                            ))}
+                                            </div>
                                           </div>
                                         )}
                                       </div>
@@ -3077,19 +3087,22 @@ export default function Automations() {
                             const globalAutomations = automations.filter((a: any) => !a.stageId);
                             
                             return globalAutomations.length > 0 ? (
-                              <div className="space-y-3">
-                                {globalAutomations.map((automation: any, index: number) => (
-                                  <div key={automation.id}>
-                                    {automation.automationType === 'COMMUNICATION' ? (
-                                      <AutomationStepManager automation={automation} onDelete={handleDeleteAutomation} />
-                                    ) : (
-                                      <StageChangeAutomationCard automation={automation} onDelete={handleDeleteAutomation} />
-                                    )}
-                                    {index < globalAutomations.length - 1 && (
-                                      <div className="h-px bg-gradient-to-r from-transparent via-border to-transparent my-3" />
-                                    )}
-                                  </div>
-                                ))}
+                              <div className="relative pl-6">
+                                {/* Vertical connecting line */}
+                                <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-border" />
+                                <div className="space-y-6">
+                                  {globalAutomations.map((automation: any) => (
+                                    <div key={automation.id} className="relative">
+                                      {/* Connection dot */}
+                                      <div className="absolute -left-[26px] top-6 w-3 h-3 rounded-full bg-primary border-2 border-background" />
+                                      {automation.automationType === 'COMMUNICATION' ? (
+                                        <AutomationStepManager automation={automation} onDelete={handleDeleteAutomation} />
+                                      ) : (
+                                        <StageChangeAutomationCard automation={automation} onDelete={handleDeleteAutomation} />
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
                               </div>
                             ) : (
                               <div className="text-center py-8">
