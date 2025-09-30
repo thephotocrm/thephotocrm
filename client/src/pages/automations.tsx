@@ -16,7 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Plus, Zap, Clock, Mail, Smartphone, Settings, Edit2, ArrowRight, Calendar, Users, AlertCircle, Trash2 } from "lucide-react";
+import { Plus, Zap, Clock, Mail, Smartphone, Settings, Edit2, ArrowRight, Calendar, Users, AlertCircle, Trash2, Target, CheckCircle2, Briefcase } from "lucide-react";
 import { insertAutomationSchema, projectTypeEnum, automationTypeEnum, triggerTypeEnum, insertAutomationBusinessTriggerSchema } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -596,7 +596,12 @@ function EditAutomationDetails({ automationId, automation }: { automationId: str
 
   const { data: stages = [] } = useQuery<any[]>({
     queryKey: ["/api/stages"],
-    enabled: !!automationId && automation.automationType === 'PIPELINE'
+    enabled: !!automationId
+  });
+
+  const { data: businessTriggers = [] } = useQuery<any[]>({
+    queryKey: ["/api/automations", automationId, "business-triggers"],
+    enabled: !!automationId
   });
 
   const formatDelay = (minutes: number) => {
@@ -612,75 +617,156 @@ function EditAutomationDetails({ automationId, automation }: { automationId: str
     return remainingHours > 0 ? `${days}d ${remainingHours}h` : `${days} day${days !== 1 ? 's' : ''}`;
   };
 
-  // Show communication steps and delays
-  if (automation.automationType === 'COMMUNICATION' && steps.length > 0) {
-    return (
-      <div className="space-y-2">
-        <Label>Communication Steps ({steps.length})</Label>
-        <div className="border rounded-lg p-3 bg-muted max-h-64 overflow-y-auto space-y-2">
-          {steps.map((step: any, index: number) => {
-            const template = templates.find(t => t.id === step.templateId);
-            return (
-              <div key={step.id} className="bg-background border rounded-lg p-3 space-y-2">
-                <div className="flex items-center space-x-2">
-                  <span className="text-xs bg-primary text-primary-foreground px-2 py-0.5 rounded font-medium">
-                    {index + 1}
-                  </span>
-                  <div className="flex items-center space-x-2 text-sm">
-                    <Clock className="w-3.5 h-3.5 text-muted-foreground" />
-                    <span className="font-medium">{formatDelay(step.delayMinutes)}</span>
-                    <span className="text-muted-foreground">→</span>
-                    <span>
-                      {automation.channel === 'EMAIL' ? '📧 Email' : '📱 SMS'}
-                    </span>
-                  </div>
-                </div>
-                
-                {template && (
-                  <div className="pl-7 space-y-1">
-                    <p className="text-xs font-medium text-muted-foreground">Message:</p>
-                    <div className="bg-accent border rounded p-2 text-xs">
-                      {template.subject && (
-                        <p className="font-semibold mb-1 text-foreground">📋 {template.subject}</p>
-                      )}
-                      <p className="text-muted-foreground line-clamp-3 leading-relaxed">
-                        {template.textBody || 'No message content'}
-                      </p>
-                    </div>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    );
-  }
+  // Find trigger stage if this is a stage-based automation
+  const triggerStage = automation.stageId ? stages.find(s => s.id === automation.stageId) : null;
 
-  // Show pipeline target stage
-  if (automation.automationType === 'PIPELINE' && automation.targetStageId) {
-    const targetStage = stages.find(s => s.id === automation.targetStageId);
-    return (
+  return (
+    <div className="space-y-4">
+      {/* Trigger Conditions Section - Always show */}
       <div className="space-y-2">
-        <Label>Pipeline Action</Label>
-        <div className="border rounded-lg p-3 bg-muted">
-          <div className="space-y-2 text-sm">
-            <div className="flex items-center justify-between">
-              <span className="font-medium">Target Stage:</span>
-              <span className="font-semibold">
-                {targetStage ? `"${targetStage.name}"` : 'Unknown Stage'}
-              </span>
+        <Label className="text-base font-semibold">Trigger Conditions</Label>
+        <div className="border rounded-lg p-4 bg-muted/50 space-y-3">
+          {/* Stage Requirement */}
+          {triggerStage ? (
+            <div className="flex items-start space-x-3">
+              <div className="p-1.5 rounded bg-blue-100 dark:bg-blue-950">
+                <Target className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-medium">Stage Requirement</p>
+                <p className="text-sm text-muted-foreground">
+                  Triggers when client enters: <span className="font-semibold text-foreground">"{triggerStage.name}"</span>
+                </p>
+              </div>
             </div>
-            <p className="text-xs text-muted-foreground">
-              Clients will be automatically moved to this stage when the automation triggers.
-            </p>
+          ) : (
+            <div className="flex items-start space-x-3">
+              <div className="p-1.5 rounded bg-purple-100 dark:bg-purple-950">
+                <Zap className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-medium">Global Automation</p>
+                <p className="text-sm text-muted-foreground">
+                  No specific stage requirement - runs independently
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Business Event Triggers */}
+          {businessTriggers.length > 0 && (
+            <div className="flex items-start space-x-3">
+              <div className="p-1.5 rounded bg-green-100 dark:bg-green-950">
+                <CheckCircle2 className="w-4 h-4 text-green-600 dark:text-green-400" />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-medium">Business Events</p>
+                <ul className="text-sm text-muted-foreground space-y-1 mt-1">
+                  {businessTriggers.map((trigger: any) => (
+                    <li key={trigger.id} className="flex items-center space-x-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                      <span>{trigger.triggerType.replace(/_/g, ' ').toLowerCase()}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          )}
+
+          {/* Countdown/Time-based info */}
+          {automation.daysBefore && (
+            <div className="flex items-start space-x-3">
+              <div className="p-1.5 rounded bg-orange-100 dark:bg-orange-950">
+                <Clock className="w-4 h-4 text-orange-600 dark:text-orange-400" />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-medium">Time-Based Trigger</p>
+                <p className="text-sm text-muted-foreground">
+                  Sends {automation.daysBefore} day{automation.daysBefore !== 1 ? 's' : ''} {automation.triggerTiming === 'BEFORE' ? 'before' : 'after'} event date
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Project Type */}
+          <div className="flex items-start space-x-3">
+            <div className="p-1.5 rounded bg-slate-100 dark:bg-slate-800">
+              <Briefcase className="w-4 h-4 text-slate-600 dark:text-slate-400" />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-medium">Project Type</p>
+              <p className="text-sm text-muted-foreground">
+                {automation.projectType || 'WEDDING'}
+              </p>
+            </div>
           </div>
         </div>
       </div>
-    );
-  }
 
-  return null;
+      {/* Communication Steps */}
+      {automation.automationType === 'COMMUNICATION' && steps.length > 0 && (
+        <div className="space-y-2">
+          <Label>Communication Steps ({steps.length})</Label>
+          <div className="border rounded-lg p-3 bg-muted max-h-64 overflow-y-auto space-y-2">
+            {steps.map((step: any, index: number) => {
+              const template = templates.find(t => t.id === step.templateId);
+              return (
+                <div key={step.id} className="bg-background border rounded-lg p-3 space-y-2">
+                  <div className="flex items-center space-x-2">
+                    <span className="text-xs bg-primary text-primary-foreground px-2 py-0.5 rounded font-medium">
+                      {index + 1}
+                    </span>
+                    <div className="flex items-center space-x-2 text-sm">
+                      <Clock className="w-3.5 h-3.5 text-muted-foreground" />
+                      <span className="font-medium">{formatDelay(step.delayMinutes)}</span>
+                      <span className="text-muted-foreground">→</span>
+                      <span>
+                        {automation.channel === 'EMAIL' ? '📧 Email' : '📱 SMS'}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  {template && (
+                    <div className="pl-7 space-y-1">
+                      <p className="text-xs font-medium text-muted-foreground">Message:</p>
+                      <div className="bg-accent border rounded p-2 text-xs">
+                        {template.subject && (
+                          <p className="font-semibold mb-1 text-foreground">📋 {template.subject}</p>
+                        )}
+                        <p className="text-muted-foreground line-clamp-3 leading-relaxed">
+                          {template.textBody || 'No message content'}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Pipeline Action */}
+      {automation.automationType === 'PIPELINE' && automation.targetStageId && (
+        <div className="space-y-2">
+          <Label>Pipeline Action</Label>
+          <div className="border rounded-lg p-3 bg-muted">
+            <div className="space-y-2 text-sm">
+              <div className="flex items-center justify-between">
+                <span className="font-medium">Target Stage:</span>
+                <span className="font-semibold">
+                  {stages.find(s => s.id === automation.targetStageId)?.name || 'Unknown Stage'}
+                </span>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Clients will be automatically moved to this stage when the automation triggers.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }
 
 // Automation Steps Display Component
@@ -2766,9 +2852,9 @@ export default function Automations() {
                         <TabsContent value="all" className="space-y-6 mt-4">
                           {/* Stage-Based Section */}
                           {(() => {
-                            const stageBased = automations.filter((a: any) => a.triggerStageId);
+                            const stageBased = automations.filter((a: any) => a.stageId);
                             const stageGroups = stages?.reduce((acc: any, stage: any) => {
-                              const stageAutomations = stageBased.filter((a: any) => a.triggerStageId === stage.id);
+                              const stageAutomations = stageBased.filter((a: any) => a.stageId === stage.id);
                               if (stageAutomations.length > 0) {
                                 acc[stage.id] = { stage, automations: stageAutomations };
                               }
@@ -2858,7 +2944,7 @@ export default function Automations() {
 
                           {/* Global Automations Section */}
                           {(() => {
-                            const globalAutomations = automations.filter((a: any) => !a.triggerStageId);
+                            const globalAutomations = automations.filter((a: any) => !a.stageId);
                             
                             return globalAutomations.length > 0 ? (
                               <div className="space-y-4">
@@ -2954,9 +3040,9 @@ export default function Automations() {
                         {/* Stage-Based Automations Tab */}
                         <TabsContent value="stage-based" className="space-y-4 mt-4">
                           {(() => {
-                            const stageBased = automations.filter((a: any) => a.triggerStageId);
+                            const stageBased = automations.filter((a: any) => a.stageId);
                             const stageGroups = stages?.reduce((acc: any, stage: any) => {
-                              const stageAutomations = stageBased.filter((a: any) => a.triggerStageId === stage.id);
+                              const stageAutomations = stageBased.filter((a: any) => a.stageId === stage.id);
                               if (stageAutomations.length > 0) {
                                 acc[stage.id] = { stage, automations: stageAutomations };
                               }
@@ -3056,7 +3142,7 @@ export default function Automations() {
                         {/* Global Automations Tab */}
                         <TabsContent value="global" className="space-y-4 mt-4">
                           {(() => {
-                            const globalAutomations = automations.filter((a: any) => !a.triggerStageId);
+                            const globalAutomations = automations.filter((a: any) => !a.stageId);
                             
                             return globalAutomations.length > 0 ? (
                               <div className="space-y-3">
