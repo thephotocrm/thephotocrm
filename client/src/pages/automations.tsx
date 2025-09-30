@@ -161,11 +161,6 @@ function AutomationStepManager({ automation, onDelete }: { automation: any, onDe
             )}
           </div>
           <div className="flex items-center gap-2 flex-wrap">
-            {automation.stage && (
-              <Badge variant="outline" className="bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800">
-                {automation.stage.name}
-              </Badge>
-            )}
             <Badge 
               variant="outline" 
               className={automation.channel === 'EMAIL' 
@@ -263,52 +258,29 @@ function AutomationStepManager({ automation, onDelete }: { automation: any, onDe
                 {/* Step Content */}
                 <div className="space-y-2">
                   {/* Step Info Line */}
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-2 flex-wrap flex-1 min-w-0">
-                      <Badge variant="secondary" className="text-xs shrink-0">
-                        <Clock className="w-3 h-3 mr-1" />
-                        {formatDelay(step.delayMinutes)}
-                      </Badge>
-                      <span className="text-muted-foreground">→</span>
-                      <Badge 
-                        variant="outline"
-                        className={automation.channel === 'EMAIL' 
-                          ? "bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800 text-xs shrink-0" 
-                          : "bg-teal-50 dark:bg-teal-950 text-teal-700 dark:text-teal-300 border-teal-200 dark:border-teal-800 text-xs shrink-0"
-                        }
-                      >
-                        {automation.channel === 'EMAIL' ? '📧 Send Email' : '📱 Send SMS'}
-                      </Badge>
-                      {template && (
-                        <>
-                          <span className="text-muted-foreground">→</span>
-                          <span className="text-sm text-muted-foreground truncate">
-                            {template.subject || template.textBody?.substring(0, 50) + '...' || 'Message'}
-                          </span>
-                        </>
-                      )}
-                    </div>
-                    
-                    {/* Step Controls */}
-                    <div className="flex items-center gap-1 shrink-0">
-                      <Switch
-                        checked={step.enabled}
-                        disabled={toggleStepMutation.isPending}
-                        data-testid={`switch-step-${step.id}`}
-                        onCheckedChange={(enabled) => handleToggleStep(step.id, enabled)}
-                        className="scale-75"
-                      />
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-6 w-6 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
-                        disabled={deleteStepMutation.isPending}
-                        data-testid={`button-delete-step-${step.id}`}
-                        onClick={() => handleDeleteStep(step.id)}
-                      >
-                        <Trash2 className="w-3 h-3" />
-                      </Button>
-                    </div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <Badge variant="secondary" className="text-xs shrink-0">
+                      <Clock className="w-3 h-3 mr-1" />
+                      {formatDelay(step.delayMinutes)}
+                    </Badge>
+                    <span className="text-muted-foreground">→</span>
+                    <Badge 
+                      variant="outline"
+                      className={automation.channel === 'EMAIL' 
+                        ? "bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800 text-xs shrink-0" 
+                        : "bg-teal-50 dark:bg-teal-950 text-teal-700 dark:text-teal-300 border-teal-200 dark:border-teal-800 text-xs shrink-0"
+                      }
+                    >
+                      {automation.channel === 'EMAIL' ? '📧 Send Email' : '📱 Send SMS'}
+                    </Badge>
+                    {template && (
+                      <>
+                        <span className="text-muted-foreground">→</span>
+                        <span className="text-sm text-muted-foreground truncate">
+                          {template.subject || template.textBody?.substring(0, 50) + '...' || 'Message'}
+                        </span>
+                      </>
+                    )}
                   </div>
                   
                   {/* Message Preview */}
