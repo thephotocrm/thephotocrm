@@ -204,41 +204,81 @@ function AutomationStepManager({ automation, onDelete }: { automation: any, onDe
         ) : steps.length === 0 ? (
           <p className="text-sm text-muted-foreground">No steps configured</p>
         ) : (
-          <div className="space-y-1">
+          <div className="space-y-2">
             <p className="text-xs font-medium text-muted-foreground">STEPS:</p>
-            {steps.map((step: any, index: number) => (
-              <div key={step.id} className="flex items-center justify-between text-sm p-2 bg-muted rounded">
-                <div className="flex items-center space-x-2">
-                  <span className="text-xs bg-primary text-primary-foreground px-1.5 py-0.5 rounded">
-                    {index + 1}
-                  </span>
-                  <span>
-                    Wait {step.delayMinutes} min, then send {automation.channel.toLowerCase()}
-                  </span>
+            {steps.map((step: any, index: number) => {
+              const template = templates?.find(t => t.id === step.templateId);
+              const formatDelay = (minutes: number) => {
+                if (minutes === 0) return 'Immediately';
+                if (minutes < 60) return `${minutes} minute${minutes !== 1 ? 's' : ''}`;
+                const hours = Math.floor(minutes / 60);
+                const mins = minutes % 60;
+                if (hours < 24) {
+                  return mins > 0 ? `${hours}h ${mins}m` : `${hours} hour${hours !== 1 ? 's' : ''}`;
+                }
+                const days = Math.floor(hours / 24);
+                const remainingHours = hours % 24;
+                return remainingHours > 0 ? `${days}d ${remainingHours}h` : `${days} day${days !== 1 ? 's' : ''}`;
+              };
+              
+              return (
+                <div key={step.id} className="p-3 bg-muted rounded-lg space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <span className="text-xs bg-primary text-primary-foreground px-1.5 py-0.5 rounded font-medium">
+                        {index + 1}
+                      </span>
+                      <div className="flex items-center space-x-2">
+                        <Clock className="w-3 h-3 text-muted-foreground" />
+                        <span className="text-sm font-medium">
+                          {formatDelay(step.delayMinutes)}
+                        </span>
+                        <span className="text-sm text-muted-foreground">→</span>
+                        <span className="text-sm">
+                          {automation.channel === 'EMAIL' ? '📧' : '📱'} {automation.channel === 'EMAIL' ? 'Email' : 'SMS'}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-1">
+                      <span className="text-xs text-muted-foreground">
+                        {step.enabled ? "On" : "Off"}
+                      </span>
+                      <Switch
+                        checked={step.enabled}
+                        disabled={toggleStepMutation.isPending}
+                        data-testid={`switch-step-${step.id}`}
+                        onCheckedChange={(enabled) => handleToggleStep(step.id, enabled)}
+                      />
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 w-6 p-0"
+                        disabled={deleteStepMutation.isPending}
+                        data-testid={`button-delete-step-${step.id}`}
+                        onClick={() => handleDeleteStep(step.id)}
+                      >
+                        ×
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  {/* Message Preview */}
+                  {template && (
+                    <div className="pl-7 space-y-1">
+                      <p className="text-xs font-medium text-muted-foreground">Message Preview:</p>
+                      <div className="bg-background border rounded p-2 text-xs">
+                        {template.subject && (
+                          <p className="font-medium mb-1">📋 {template.subject}</p>
+                        )}
+                        <p className="text-muted-foreground line-clamp-2">
+                          {template.textBody || 'No message content'}
+                        </p>
+                      </div>
+                    </div>
+                  )}
                 </div>
-                <div className="flex items-center space-x-1">
-                  <span className="text-xs text-muted-foreground">
-                    {step.enabled ? "On" : "Off"}
-                  </span>
-                  <Switch
-                    checked={step.enabled}
-                    disabled={toggleStepMutation.isPending}
-                    data-testid={`switch-step-${step.id}`}
-                    onCheckedChange={(enabled) => handleToggleStep(step.id, enabled)}
-                  />
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-6 w-6 p-0"
-                    disabled={deleteStepMutation.isPending}
-                    data-testid={`button-delete-step-${step.id}`}
-                    onClick={() => handleDeleteStep(step.id)}
-                  >
-                    ×
-                  </Button>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
