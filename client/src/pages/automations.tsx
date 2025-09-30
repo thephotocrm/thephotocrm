@@ -2650,7 +2650,7 @@ export default function Automations() {
                             className="border rounded-lg bg-card hover:bg-accent/50 transition-colors"
                           >
                             {/* Automation Header */}
-                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 space-y-3 sm:space-y-0 bg-accent/30">
+                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 space-y-3 sm:space-y-0 bg-blue-50 dark:bg-blue-950/30">
                               <div className="flex items-center space-x-3">
                                 <div className={`p-2 rounded-full ${automation.enabled ? 'bg-green-100 text-green-600 dark:bg-green-900 dark:text-green-400' : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'}`}>
                                   {automation.automationType === 'COMMUNICATION' ? <Mail className="h-4 w-4" /> : <ArrowRight className="h-4 w-4" />}
