@@ -1,183 +1,66 @@
 # Lazy Photog - Wedding Photographer CRM
 
 ## Overview
-
-Lazy Photog is a comprehensive multi-tenant CRM system designed specifically for wedding photographers. The application provides a complete business management solution with client pipeline management, automated communication workflows, estimate creation, payment processing, and scheduling capabilities. Built as a production-ready MVP, it focuses on streamlining photographer workflows from initial client inquiry through project completion.
-
-## Recent Changes (September 30, 2025)
-
-### Comprehensive Automations UI Redesign
-Professional-grade automation card interface following modern UX best practices:
-
-**Enhanced Visual Hierarchy:**
-- **Bold, Larger Titles**: Automation names displayed in text-lg font-bold for immediate recognition
-- **Semantic Badge System**: Color-coded badges using semantic palette:
-  - Stage badges: Blue outline (bg-blue-50/dark:bg-blue-950)
-  - Email channel: Amber badges (bg-amber-50/dark:bg-amber-950)
-  - SMS channel: Teal badges (bg-teal-50/dark:bg-teal-950)
-  - Type indicators: Purple badges for Communication/Pipeline Change
-  - Step count chips: Secondary badges showing total steps
-- **Compact Action Bar**: Controls (toggle, edit, delete) moved to right side with icon-only buttons for space efficiency
-
-**Timeline-Style Step Display:**
-- **Visual Timeline**: Numbered dots (1, 2, 3) with connecting vertical lines for clear step progression
-- **Inline Information Flow**: Each step shows delay → channel → action → preview in scannable one-line format
-- **Color-Coded Channels**: Consistent color application (amber=email, teal=SMS) for instant recognition
-- **Smart Truncation**: Long messages truncated with ellipsis and lighter text for cleaner presentation
-- **Lighter Preview Backgrounds**: Message previews use bg-muted/50 for visual separation from metadata
-
-**Collapsible Card Functionality:**
-- **Default Collapsed State**: Cards start minimized to reduce visual overwhelm (isExpanded = false)
-- **Expandable Details**: Click title area to reveal full step timeline with chevron indicator
-- **Preserved Context**: Step count badge visible even when collapsed
-- **Smooth Interaction**: Toggle chevron (ChevronUp/ChevronDown) provides clear affordance
-
-**Professional Polish:**
-- **Subtle Shadows**: shadow-sm on cards for depth without distraction
-- **Consistent Spacing**: Standardized p-4 padding and gap-2 spacing throughout
-- **Max-Width Constraint**: max-w-4xl prevents overwhelming horizontal stretch
-- **Rounded Corners**: rounded-lg maintains modern, friendly aesthetic
+Lazy Photog is a comprehensive multi-tenant CRM system designed for wedding photographers. It provides a complete business management solution, streamlining workflows from client inquiry to project completion. Key capabilities include client pipeline management, automated communication, estimate creation, payment processing, and scheduling. The project aims to deliver a production-ready MVP that empowers photographers with efficient tools.
 
 ## User Preferences
-
 Preferred communication style: Simple, everyday language.
 
 ## System Architecture
 
 ### Multi-Tenant Architecture
-The system implements tenant isolation at the photographer level, where each photographer has completely segregated data access. This is achieved through a hierarchical data model where photographers serve as the primary tenant boundary, with all related data (clients, stages, templates, etc.) linked through photographer IDs.
+The system employs a multi-tenant architecture with strict data isolation per photographer, achieved through a hierarchical data model where photographer IDs link all associated data (clients, stages, templates, etc.).
 
 ### Static Email Marketing Platform
-Professional-grade drip campaign system featuring research-backed timing and pre-written content:
-- **Static Templates**: 24 professionally crafted wedding email templates with strategic content progression covering the entire client journey
-- **Research-Backed Timing**: 3-phase delivery schedule optimized for engagement:
-  - Phase 1 (High-interest): Days 0, 3, 7, 14, 21 for immediate engagement
-  - Phase 2 (Relationship building): Weekly delivery (days 28-91) for consistent touchpoints  
-  - Phase 3 (Long-term nurturing): Bi-weekly delivery (days 105-217) for extended engagement
-- **Day-0 Scheduling**: Immediate welcome email delivery upon campaign activation
-- **Project Type Support**: Dedicated campaign templates for Wedding, Portrait, and Commercial photography
-- **5 Platform-Inspired Email Themes**: Each email uses one of 5 completely distinct visual themes to prevent visual fatigue and provide premium variety:
-  - **Editorial Minimalist**: Clean serif typography with classic magazine layout, elegant borders, and sophisticated color palettes
-  - **Bold Color Block**: Vibrant gradients with modern sans-serif fonts, geometric elements, and dynamic visual containers
-  - **Scrapbook Textured**: Playful design with decorative elements, dashed borders, rotated elements, and craft-inspired styling
-  - **Luxury Magazine**: Premium typography with gold accents, refined spacing, and high-end editorial aesthetics
-  - **Modern Dark Tech**: Sleek dark mode design with neon accent colors, grid patterns, and contemporary tech-inspired elements
-- **Subject-Forward Headers**: Email subject lines serve as the primary headline with photographer business name as supporting subheadline, creating attention-grabbing, content-focused messaging
-- **Theme-Specific Visual Modules**: Smart content enhancement with semantic keyword detection that triggers themed visual containers:
-  - **Editorial**: Information icons with bordered insights, timeline elements with gradient accents
-  - **Vibrant**: Colorful tip badges, emoji-enhanced reminders with gradient backgrounds
-  - **Scrapbook**: Decorative tape elements, rotated wisdom boxes with dashed borders
-  - **Luxury**: Ornate quote boxes with gold dividers, exclusive insight containers
-  - **Dark**: Neon-accented insight boxes, tech-styled warning notifications
-- **NURTURE Integration**: Seamless automation system integration for sequential email delivery to inquiry-stage clients
-- **Campaign Management**: Full activation, preview, and status tracking capabilities with backend persistence
+A professional-grade drip campaign system with 24 pre-written wedding email templates. It features research-backed 3-phase timing (Day 0, High-interest, Relationship building, Long-term nurturing), Day-0 scheduling, and support for Wedding, Portrait, and Commercial project types. Emails utilize 5 distinct visual themes (Editorial Minimalist, Bold Color Block, Scrapbook Textured, Luxury Magazine, Modern Dark Tech) to prevent visual fatigue. Subject lines are attention-grabbing with photographer business names as subheadlines. Semantic keyword detection triggers theme-specific visual modules for enhanced content. It integrates with the NURTURE automation system for sequential email delivery and offers full campaign management.
 
-### Frontend Architecture
-- **Framework**: React with Vite for fast development and optimized builds
-- **Routing**: Wouter for lightweight client-side routing
-- **UI Components**: Shadcn/ui component library built on Radix UI primitives
-- **Styling**: Tailwind CSS with custom design tokens and CSS variables
-- **State Management**: TanStack Query for server state management and caching
-- **Forms**: React Hook Form with Zod validation for type-safe form handling
-
-### Backend Architecture
-- **Runtime**: Node.js with Express.js framework
-- **Database ORM**: Drizzle ORM with PostgreSQL for type-safe database operations
-- **Authentication**: JWT tokens stored in httpOnly cookies with bcrypt for password hashing
-- **API Design**: RESTful endpoints with role-based access control middleware
-
-### Database Design
-The schema centers around a photographer-tenant model with the following key entities:
-- **Photographers**: Primary tenant boundary with business settings
-- **Users**: Authentication with role-based access (PHOTOGRAPHER, CLIENT, ADMIN)
-- **Clients**: Customer management with stage-based pipeline tracking
-- **Stages**: Customizable pipeline stages with drag-and-drop kanban interface
-- **Templates**: Email and SMS templates for automated communications
-- **Automations**: Time-based workflow triggers for stage transitions
-- **Estimates**: Proposal generation with line items and payment integration
-- **Packages**: Reusable pricing templates for estimates
-
-### Authentication & Authorization
-Three-tier role system:
-- **PHOTOGRAPHER**: Full access to their tenant data
-- **CLIENT**: Limited access to their own portal and assigned content
-- **ADMIN**: System-wide administrative access
-
-JWT tokens provide stateless authentication with role-based middleware enforcing access controls at the route level.
+### Comprehensive Automations UI
+The Automations UI features a professional, modern design with enhanced visual hierarchy, including bold titles and a semantic, color-coded badge system for stages, channels (Email, SMS), and types. It uses a timeline-style display for steps with numbered dots and connecting lines, showing delay, channel, action, and preview. Cards are collapsible by default, expanding to reveal full details, with smooth interactions and consistent styling for a polished look. It also includes a Wedding Date Conditional Logic System for date-based automation filtering, enhancing UI and database schema for event date tracking and conditional execution.
 
 ### Automation System
-Event-driven automation engine using node-cron for scheduled tasks:
-- **Stage-based Triggers**: Automated emails/SMS when clients enter specific stages
-- **Time Delays**: Configurable delays (minutes/hours/days) before automation execution
-- **Template Integration**: Dynamic content rendering with variable substitution including {scheduling_link} for shortened booking URLs
-- **Multi-channel Support**: Both email and SMS delivery channels
-- **Unified Creation Interface**: Single modal allowing users to create communication-only, pipeline-only, or combined automations with optional section toggles
-- **Questionnaire Support**: Automated questionnaire assignments with proper step creation for both template-based and questionnaire-only communications
-- **NURTURE Automation**: AI-powered drip campaigns with sequential email delivery for approved campaigns, automatic client subscription for inquiry-stage projects, and campaign completion tracking
-- **URL Shortening System**: Internal short link generator for booking calendar URLs optimized for SMS character limits:
-  - 6-character alphanumeric codes (e.g., `thephotocrm.com/s/abc123`)
-  - Automatic reuse of existing links for same photographer's booking calendar
-  - Collision-resistant generation with 10-attempt retry logic
-  - Click tracking and analytics built-in
-  - Graceful fallback to full URLs if generation fails
-  - Template variable `{scheduling_link}` available in all automation types
+An event-driven automation engine using `node-cron` for scheduled tasks. It supports stage-based triggers, configurable time delays, dynamic content rendering with variable substitution (e.g., `{scheduling_link}`), and multi-channel delivery (email and SMS). A unified interface allows creation of communication-only, pipeline-only, or combined automations, including questionnaire assignments. It integrates with NURTURE for AI-powered drip campaigns and features an internal URL shortening system for booking calendar links, optimized for SMS and with click tracking.
 
 ### Two-Way SMS Communication System
-Comprehensive SMS platform powered by SimpleTexting for seamless client-photographer communication:
-- **SimpleTexting API Integration**: Complete SMS sending and receiving capabilities using the SimpleTexting v2 API
-- **Two-Way Relay System**: Inbound client SMS messages are automatically forwarded to photographers with full context including client name and project type
-- **Message Context Preservation**: All forwarded messages include client identification and project details for clear communication context
-- **Complete SMS Logging**: Comprehensive tracking of all inbound and outbound SMS messages with status, timestamps, and metadata
-- **Client Lookup System**: Phone number-based client identification for accurate message routing and context
-- **Webhook Infrastructure**: Dedicated `/webhooks/simpletexting/inbound` endpoint for processing incoming SMS messages
-- **Environment Variables Required**:
-  - `SIMPLETEXTING_API_TOKEN`: Authentication token for SimpleTexting API access
-  - `SIMPLETEXTING_PHONE_NUMBER`: Business phone number configured in SimpleTexting for message sending/receiving
-- **Database Integration**: Enhanced SMS logging with direction tracking (INBOUND/OUTBOUND), forwarding status, and message relationship mapping
+A comprehensive SMS platform leveraging the SimpleTexting API for sending and receiving messages. It includes a two-way relay system that forwards inbound client SMS messages to photographers with full context (client name, project type). All SMS messages are logged with status, timestamps, and metadata. A phone number-based client lookup system ensures accurate message routing. Webhooks handle incoming SMS messages, and it requires `SIMPLETEXTING_API_TOKEN` and `SIMPLETEXTING_PHONE_NUMBER` environment variables.
 
 ### Payment Processing
-Stripe integration for secure payment handling:
-- **Deposit Collection**: Configurable deposit percentages on estimates
-- **Full Payment Processing**: Complete payment flows with webhook validation
-- **E-signature Support**: Digital signature capture for estimate approval
-- **Payment Status Tracking**: Real-time payment status updates via webhooks
+Integration with Stripe for secure payment handling, supporting configurable deposit collection, full payment processing with webhook validation, and e-signature support for estimate approval. Real-time payment status tracking is included.
 
 ### Google Calendar Integration
-Dedicated business calendar system with automatic event creation:
-- **Dedicated Calendars**: Each photographer gets a separate "📸 [Business Name] - Client Bookings" calendar
-- **Business/Personal Separation**: Booking events don't clutter the photographer's primary calendar
-- **Automatic Calendar Creation**: Dedicated calendars created during OAuth connection or first booking
-- **Timezone Awareness**: Uses photographer's timezone settings for calendar creation and events
-- **Google Meet Integration**: Automatic Google Meet link generation for virtual appointments
-- **Idempotent Operations**: Prevents duplicate calendar creation on reconnection
-- **Lazy Migration**: Existing users automatically get dedicated calendars on first booking
-- **Graceful Fallback**: Falls back to primary calendar if dedicated creation fails
+Provides a dedicated business calendar system for each photographer ("📸 [Business Name] - Client Bookings") to separate business and personal events. Calendars are automatically created during OAuth or on first booking, are timezone-aware, and generate Google Meet links for virtual appointments. Operations are idempotent, with graceful fallback to the primary calendar if dedicated creation fails.
+
+### Frontend Architecture
+Built with React and Vite for development and optimized builds. It uses Wouter for routing, Shadcn/ui (based on Radix UI) for components, and Tailwind CSS for styling with custom design tokens. TanStack Query manages server state and caching, while React Hook Form with Zod validation handles type-safe forms.
+
+### Backend Architecture
+Utilizes Node.js with Express.js. Drizzle ORM manages PostgreSQL database operations. Authentication is handled via JWT tokens stored in httpOnly cookies, with bcrypt for password hashing. The API is RESTful with role-based access control middleware.
+
+### Database Design
+The schema is centered around a photographer-tenant model, featuring key entities such as Photographers, Users (with PHOTOGRAPHER, CLIENT, ADMIN roles), Clients (with stage-based pipeline), customizable Stages, Templates (email/SMS), Automations, Estimates, and Packages.
+
+### Authentication & Authorization
+A three-tier role system (PHOTOGRAPHER, CLIENT, ADMIN) is implemented. JWT tokens provide stateless authentication, and role-based middleware enforces access controls at the route level.
 
 ## External Dependencies
 
 ### Communication Services
-- **SendGrid**: Email delivery service for transactional emails and marketing communications
-- **SimpleTexting**: SMS messaging service for automated text notifications, reminders, and two-way client communication with photographer relay functionality
+- **SendGrid**: Email delivery for transactional and marketing communications.
+- **SimpleTexting**: SMS messaging for automated texts and two-way client communication.
 
 ### Payment Processing
-- **Stripe**: Complete payment infrastructure including payment intents, checkout sessions, and webhook processing for deposit and full payment collection
+- **Stripe**: Complete payment infrastructure for deposits and full payments.
 
 ### Database Infrastructure
-- **Neon Database**: PostgreSQL hosting with serverless scaling and connection pooling
-- **Drizzle Kit**: Database migration and schema management tooling
+- **Neon Database**: PostgreSQL hosting with serverless scaling.
+- **Drizzle Kit**: Database migration and schema management.
 
 ### Development & Deployment
-- **Replit**: Development environment with integrated deployment capabilities
-- **Vite**: Frontend build tool with hot module replacement and optimized production builds
-- **TypeScript**: Type safety across the entire application stack
+- **Replit**: Development environment and deployment.
+- **Vite**: Frontend build tool.
+- **TypeScript**: Type safety across the stack.
 
 ### UI & Design System
-- **Radix UI**: Unstyled, accessible component primitives
-- **Tailwind CSS**: Utility-first CSS framework with custom design tokens
-- **Lucide React**: Icon library for consistent iconography
-- **Class Variance Authority**: Type-safe component variant management
-
-### Monitoring & Development Tools
-- **React Query Devtools**: Client-side state inspection and debugging
-- **ESBuild**: Fast JavaScript bundling for production builds
-- **PostCSS**: CSS processing pipeline with Tailwind integration
+- **Radix UI**: Unstyled, accessible component primitives.
+- **Tailwind CSS**: Utility-first CSS framework.
+- **Lucide React**: Icon library.
+- **Class Variance Authority**: Type-safe component variant management.
