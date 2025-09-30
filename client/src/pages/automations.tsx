@@ -582,6 +582,107 @@ function StageChangeAutomationCard({ automation, onDelete }: { automation: any, 
   );
 }
 
+// Edit Automation Details Component
+function EditAutomationDetails({ automationId, automation }: { automationId: string; automation: any }) {
+  const { data: steps = [] } = useQuery<any[]>({
+    queryKey: ["/api/automations", automationId, "steps"],
+    enabled: !!automationId && automation.automationType === 'COMMUNICATION'
+  });
+
+  const { data: templates = [] } = useQuery<any[]>({
+    queryKey: ["/api/templates"],
+    enabled: !!automationId && automation.automationType === 'COMMUNICATION'
+  });
+
+  const { data: stages = [] } = useQuery<any[]>({
+    queryKey: ["/api/stages"],
+    enabled: !!automationId && automation.automationType === 'PIPELINE'
+  });
+
+  const formatDelay = (minutes: number) => {
+    if (minutes === 0) return 'Immediately';
+    if (minutes < 60) return `${minutes} minute${minutes !== 1 ? 's' : ''}`;
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    if (hours < 24) {
+      return mins > 0 ? `${hours}h ${mins}m` : `${hours} hour${hours !== 1 ? 's' : ''}`;
+    }
+    const days = Math.floor(hours / 24);
+    const remainingHours = hours % 24;
+    return remainingHours > 0 ? `${days}d ${remainingHours}h` : `${days} day${days !== 1 ? 's' : ''}`;
+  };
+
+  // Show communication steps and delays
+  if (automation.automationType === 'COMMUNICATION' && steps.length > 0) {
+    return (
+      <div className="space-y-2">
+        <Label>Communication Steps ({steps.length})</Label>
+        <div className="border rounded-lg p-3 bg-muted max-h-64 overflow-y-auto space-y-2">
+          {steps.map((step: any, index: number) => {
+            const template = templates.find(t => t.id === step.templateId);
+            return (
+              <div key={step.id} className="bg-background border rounded-lg p-3 space-y-2">
+                <div className="flex items-center space-x-2">
+                  <span className="text-xs bg-primary text-primary-foreground px-2 py-0.5 rounded font-medium">
+                    {index + 1}
+                  </span>
+                  <div className="flex items-center space-x-2 text-sm">
+                    <Clock className="w-3.5 h-3.5 text-muted-foreground" />
+                    <span className="font-medium">{formatDelay(step.delayMinutes)}</span>
+                    <span className="text-muted-foreground">→</span>
+                    <span>
+                      {automation.channel === 'EMAIL' ? '📧 Email' : '📱 SMS'}
+                    </span>
+                  </div>
+                </div>
+                
+                {template && (
+                  <div className="pl-7 space-y-1">
+                    <p className="text-xs font-medium text-muted-foreground">Message:</p>
+                    <div className="bg-accent border rounded p-2 text-xs">
+                      {template.subject && (
+                        <p className="font-semibold mb-1 text-foreground">📋 {template.subject}</p>
+                      )}
+                      <p className="text-muted-foreground line-clamp-3 leading-relaxed">
+                        {template.textBody || 'No message content'}
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
+
+  // Show pipeline target stage
+  if (automation.automationType === 'PIPELINE' && automation.targetStageId) {
+    const targetStage = stages.find(s => s.id === automation.targetStageId);
+    return (
+      <div className="space-y-2">
+        <Label>Pipeline Action</Label>
+        <div className="border rounded-lg p-3 bg-muted">
+          <div className="space-y-2 text-sm">
+            <div className="flex items-center justify-between">
+              <span className="font-medium">Target Stage:</span>
+              <span className="font-semibold">
+                {targetStage ? `"${targetStage.name}"` : 'Unknown Stage'}
+              </span>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Clients will be automatically moved to this stage when the automation triggers.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return null;
+}
+
 // Automation Steps Display Component
 function AutomationStepsDisplay({ automationId, channel }: { automationId: string; channel: string }) {
   const { data: steps = [], isLoading } = useQuery<any[]>({
@@ -2383,7 +2484,7 @@ export default function Automations() {
                       )}
                       {editingAutomation.stageName && (
                         <div className="flex items-center justify-between">
-                          <span className="font-medium">Stage:</span>
+                          <span className="font-medium">Trigger Stage:</span>
                           <span>"{editingAutomation.stageName}"</span>
                         </div>
                       )}
@@ -2396,6 +2497,9 @@ export default function Automations() {
                     </div>
                   </div>
                 </div>
+
+                {/* Enhanced Details Component */}
+                <EditAutomationDetails automationId={editingAutomation.id} automation={editingAutomation} />
 
                 <div className="flex items-center space-x-2">
                   <Switch
