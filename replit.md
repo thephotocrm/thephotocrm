@@ -6,11 +6,37 @@ Lazy Photog is a comprehensive multi-tenant CRM system designed specifically for
 
 ## Recent Changes (September 30, 2025)
 
-### Automations UI Enhancements
-- **Simplified Tab Organization**: Removed "All" tab to create streamlined 2-tab layout (Stage-Based/Global) for clearer automation categorization
-- **Compact Card Design**: Reduced automation card padding (p-3), spacing (space-y-2), and added max-width constraints (max-w-4xl) for improved visual density and better organization
-- **Pipeline Visibility**: Added target stage display showing "→ Moves to [Stage Name]" on pipeline automation cards for clearer workflow understanding
-- **TypeScript Stability**: Fixed Switch component type errors by coalescing boolean values to ensure compilation stability
+### Comprehensive Automations UI Redesign
+Professional-grade automation card interface following modern UX best practices:
+
+**Enhanced Visual Hierarchy:**
+- **Bold, Larger Titles**: Automation names displayed in text-lg font-bold for immediate recognition
+- **Semantic Badge System**: Color-coded badges using semantic palette:
+  - Stage badges: Blue outline (bg-blue-50/dark:bg-blue-950)
+  - Email channel: Amber badges (bg-amber-50/dark:bg-amber-950)
+  - SMS channel: Teal badges (bg-teal-50/dark:bg-teal-950)
+  - Type indicators: Purple badges for Communication/Pipeline Change
+  - Step count chips: Secondary badges showing total steps
+- **Compact Action Bar**: Controls (toggle, edit, delete) moved to right side with icon-only buttons for space efficiency
+
+**Timeline-Style Step Display:**
+- **Visual Timeline**: Numbered dots (1, 2, 3) with connecting vertical lines for clear step progression
+- **Inline Information Flow**: Each step shows delay → channel → action → preview in scannable one-line format
+- **Color-Coded Channels**: Consistent color application (amber=email, teal=SMS) for instant recognition
+- **Smart Truncation**: Long messages truncated with ellipsis and lighter text for cleaner presentation
+- **Lighter Preview Backgrounds**: Message previews use bg-muted/50 for visual separation from metadata
+
+**Collapsible Card Functionality:**
+- **Default Collapsed State**: Cards start minimized to reduce visual overwhelm (isExpanded = false)
+- **Expandable Details**: Click title area to reveal full step timeline with chevron indicator
+- **Preserved Context**: Step count badge visible even when collapsed
+- **Smooth Interaction**: Toggle chevron (ChevronUp/ChevronDown) provides clear affordance
+
+**Professional Polish:**
+- **Subtle Shadows**: shadow-sm on cards for depth without distraction
+- **Consistent Spacing**: Standardized p-4 padding and gap-2 spacing throughout
+- **Max-Width Constraint**: max-w-4xl prevents overwhelming horizontal stretch
+- **Rounded Corners**: rounded-lg maintains modern, friendly aesthetic
 
 ## User Preferences
 
