@@ -16,7 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Plus, Zap, Clock, Mail, Smartphone, Settings, Edit2, ArrowRight, Calendar, Users, AlertCircle, Trash2, Target, CheckCircle2, Briefcase } from "lucide-react";
+import { Plus, Zap, Clock, Mail, Smartphone, Settings, Edit2, ArrowRight, Calendar, Users, AlertCircle, Trash2, Target, CheckCircle2, Briefcase, ChevronDown, ChevronUp } from "lucide-react";
 import { insertAutomationSchema, projectTypeEnum, automationTypeEnum, triggerTypeEnum, insertAutomationBusinessTriggerSchema } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -33,6 +33,7 @@ type CreateBusinessTriggerFormData = z.infer<typeof createBusinessTriggerFormSch
 function AutomationStepManager({ automation, onDelete }: { automation: any, onDelete: (id: string) => void }) {
   const { toast } = useToast();
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
   const [editForm, setEditForm] = useState({
     name: automation.name,
     stageId: automation.stageId || 'global',
@@ -143,34 +144,56 @@ function AutomationStepManager({ automation, onDelete }: { automation: any, onDe
   };
 
   return (
-    <div className="border rounded-lg p-4 space-y-3">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-3">
-          {automation.channel === 'EMAIL' ? 
-            <Mail className="w-4 h-4 text-blue-500" /> : 
-            <Smartphone className="w-4 h-4 text-green-500" />
-          }
-          <div>
-            <p className="font-medium">{automation.name}</p>
-            <p className="text-sm text-muted-foreground">
-              {automation.channel === 'EMAIL' ? 'Email' : 'SMS'} automation
-            </p>
+    <div className="border rounded-lg shadow-sm p-4 space-y-3 max-w-4xl">
+      {/* Card Header */}
+      <div className="flex items-start justify-between">
+        <button 
+          className="flex-1 text-left"
+          onClick={() => setIsExpanded(!isExpanded)}
+          data-testid={`button-expand-automation-${automation.id}`}
+        >
+          <div className="flex items-center gap-2 mb-2">
+            <h3 className="text-lg font-bold">{automation.name}</h3>
+            {isExpanded ? (
+              <ChevronUp className="w-4 h-4 text-muted-foreground" />
+            ) : (
+              <ChevronDown className="w-4 h-4 text-muted-foreground" />
+            )}
           </div>
-        </div>
-        <div className="flex items-center space-x-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-8 w-8 p-0 text-destructive hover:text-destructive"
-            data-testid={`button-delete-automation-${automation.id}`}
-            onClick={() => {
-              if (confirm('Are you sure you want to delete this automation? This cannot be undone.')) {
-                onDelete(automation.id);
+          <div className="flex items-center gap-2 flex-wrap">
+            {automation.stage && (
+              <Badge variant="outline" className="bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800">
+                {automation.stage.name}
+              </Badge>
+            )}
+            <Badge 
+              variant="outline" 
+              className={automation.channel === 'EMAIL' 
+                ? "bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800" 
+                : "bg-teal-50 dark:bg-teal-950 text-teal-700 dark:text-teal-300 border-teal-200 dark:border-teal-800"
               }
-            }}
-          >
-            ×
-          </Button>
+            >
+              {automation.channel === 'EMAIL' ? '📧 Email' : '📱 SMS'}
+            </Badge>
+            <Badge variant="outline" className="bg-purple-50 dark:bg-purple-950 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800">
+              Communication
+            </Badge>
+            {steps.length > 0 && (
+              <Badge variant="secondary" className="text-xs">
+                {steps.length} step{steps.length !== 1 ? 's' : ''}
+              </Badge>
+            )}
+          </div>
+        </button>
+        
+        {/* Compact Action Bar */}
+        <div className="flex items-center gap-1 ml-4">
+          <Switch 
+            checked={automation.enabled}
+            disabled={toggleAutomationMutation.isPending}
+            data-testid={`switch-automation-${automation.id}`}
+            onCheckedChange={handleToggleAutomation}
+          />
           <Button
             variant="ghost"
             size="sm"
@@ -178,110 +201,134 @@ function AutomationStepManager({ automation, onDelete }: { automation: any, onDe
             data-testid={`button-edit-automation-${automation.id}`}
             onClick={() => setEditDialogOpen(true)}
           >
-            <Edit2 className="w-3 h-3" />
+            <Edit2 className="w-4 h-4" />
           </Button>
-          <div className="flex items-center space-x-2">
-            <span className="text-sm text-muted-foreground">
-              {automation.enabled ? "On" : "Off"}
-            </span>
-            <Switch 
-              checked={automation.enabled}
-              disabled={toggleAutomationMutation.isPending}
-              data-testid={`switch-automation-${automation.id}`}
-              onCheckedChange={handleToggleAutomation}
-            />
-          </div>
-          <Badge variant={automation.enabled ? "default" : "secondary"}>
-            {automation.enabled ? "Active" : "Inactive"}
-          </Badge>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+            data-testid={`button-delete-automation-${automation.id}`}
+            onClick={() => {
+              if (confirm('Are you sure you want to delete this automation? This cannot be undone.')) {
+                onDelete(automation.id);
+              }
+            }}
+          >
+            <Trash2 className="w-4 h-4" />
+          </Button>
         </div>
       </div>
 
-      {/* Automation Steps */}
-      <div className="ml-7 space-y-2">
-        {isLoading ? (
-          <p className="text-sm text-muted-foreground">Loading steps...</p>
-        ) : steps.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No steps configured</p>
-        ) : (
-          <div className="space-y-2">
-            <p className="text-xs font-medium text-muted-foreground">STEPS:</p>
-            {steps.map((step: any, index: number) => {
-              const template = templates?.find(t => t.id === step.templateId);
-              const formatDelay = (minutes: number) => {
-                if (minutes === 0) return 'Immediately';
-                if (minutes < 60) return `${minutes} minute${minutes !== 1 ? 's' : ''}`;
-                const hours = Math.floor(minutes / 60);
-                const mins = minutes % 60;
-                if (hours < 24) {
-                  return mins > 0 ? `${hours}h ${mins}m` : `${hours} hour${hours !== 1 ? 's' : ''}`;
-                }
-                const days = Math.floor(hours / 24);
-                const remainingHours = hours % 24;
-                return remainingHours > 0 ? `${days}d ${remainingHours}h` : `${days} day${days !== 1 ? 's' : ''}`;
-              };
-              
-              return (
-                <div key={step.id} className="p-3 bg-muted rounded-lg space-y-2">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <span className="text-xs bg-primary text-primary-foreground px-1.5 py-0.5 rounded font-medium">
-                        {index + 1}
-                      </span>
-                      <div className="flex items-center space-x-2">
-                        <Clock className="w-3 h-3 text-muted-foreground" />
-                        <span className="text-sm font-medium">
-                          {formatDelay(step.delayMinutes)}
-                        </span>
-                        <span className="text-sm text-muted-foreground">→</span>
-                        <span className="text-sm">
-                          {automation.channel === 'EMAIL' ? '📧' : '📱'} {automation.channel === 'EMAIL' ? 'Email' : 'SMS'}
-                        </span>
-                      </div>
+      {/* Timeline Steps */}
+      {isExpanded && (
+        <div className="relative pl-8 space-y-3">
+          {isLoading ? (
+            <p className="text-sm text-muted-foreground">Loading steps...</p>
+          ) : steps.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No steps configured</p>
+          ) : (
+            steps.map((step: any, index: number) => {
+            const template = templates?.find(t => t.id === step.templateId);
+            const formatDelay = (minutes: number) => {
+              if (minutes === 0) return 'Immediately';
+              if (minutes < 60) return `${minutes}min`;
+              const hours = Math.floor(minutes / 60);
+              const mins = minutes % 60;
+              if (hours < 24) {
+                return mins > 0 ? `${hours}h ${mins}m` : `${hours}h`;
+              }
+              const days = Math.floor(hours / 24);
+              const remainingHours = hours % 24;
+              return remainingHours > 0 ? `${days}d ${remainingHours}h` : `${days}d`;
+            };
+            
+            const isLastStep = index === steps.length - 1;
+            
+            return (
+              <div key={step.id} className="relative">
+                {/* Timeline dot and line */}
+                <div className="absolute -left-8 top-0 flex flex-col items-center">
+                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+                    step.enabled 
+                      ? 'bg-primary text-primary-foreground' 
+                      : 'bg-muted text-muted-foreground'
+                  }`}>
+                    {index + 1}
+                  </div>
+                  {!isLastStep && (
+                    <div className="w-0.5 h-full bg-border mt-1" style={{ minHeight: '2rem' }}></div>
+                  )}
+                </div>
+                
+                {/* Step Content */}
+                <div className="space-y-2">
+                  {/* Step Info Line */}
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-2 flex-wrap flex-1 min-w-0">
+                      <Badge variant="secondary" className="text-xs shrink-0">
+                        <Clock className="w-3 h-3 mr-1" />
+                        {formatDelay(step.delayMinutes)}
+                      </Badge>
+                      <span className="text-muted-foreground">→</span>
+                      <Badge 
+                        variant="outline"
+                        className={automation.channel === 'EMAIL' 
+                          ? "bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800 text-xs shrink-0" 
+                          : "bg-teal-50 dark:bg-teal-950 text-teal-700 dark:text-teal-300 border-teal-200 dark:border-teal-800 text-xs shrink-0"
+                        }
+                      >
+                        {automation.channel === 'EMAIL' ? '📧 Send Email' : '📱 Send SMS'}
+                      </Badge>
+                      {template && (
+                        <>
+                          <span className="text-muted-foreground">→</span>
+                          <span className="text-sm text-muted-foreground truncate">
+                            {template.subject || template.textBody?.substring(0, 50) + '...' || 'Message'}
+                          </span>
+                        </>
+                      )}
                     </div>
-                    <div className="flex items-center space-x-1">
-                      <span className="text-xs text-muted-foreground">
-                        {step.enabled ? "On" : "Off"}
-                      </span>
+                    
+                    {/* Step Controls */}
+                    <div className="flex items-center gap-1 shrink-0">
                       <Switch
                         checked={step.enabled}
                         disabled={toggleStepMutation.isPending}
                         data-testid={`switch-step-${step.id}`}
                         onCheckedChange={(enabled) => handleToggleStep(step.id, enabled)}
+                        className="scale-75"
                       />
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="h-6 w-6 p-0"
+                        className="h-6 w-6 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
                         disabled={deleteStepMutation.isPending}
                         data-testid={`button-delete-step-${step.id}`}
                         onClick={() => handleDeleteStep(step.id)}
                       >
-                        ×
+                        <Trash2 className="w-3 h-3" />
                       </Button>
                     </div>
                   </div>
                   
                   {/* Message Preview */}
                   {template && (
-                    <div className="pl-7 space-y-1">
-                      <p className="text-xs font-medium text-muted-foreground">Message Preview:</p>
-                      <div className="bg-background border rounded p-2 text-xs">
-                        {template.subject && (
-                          <p className="font-medium mb-1">📋 {template.subject}</p>
-                        )}
-                        <p className="text-muted-foreground line-clamp-2">
-                          {template.textBody || 'No message content'}
-                        </p>
-                      </div>
+                    <div className="bg-muted/50 border rounded-md p-2 text-xs">
+                      {template.subject && (
+                        <p className="font-medium mb-1 truncate">📋 {template.subject}</p>
+                      )}
+                      <p className="text-muted-foreground line-clamp-2">
+                        {template.textBody || 'No message content'}
+                      </p>
                     </div>
                   )}
                 </div>
-              );
-            })}
-          </div>
+              </div>
+            );
+          })
         )}
-      </div>
+        </div>
+      )}
 
       {/* Edit Automation Dialog */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
@@ -454,52 +501,53 @@ function StageChangeAutomationCard({ automation, onDelete }: { automation: any, 
   };
 
   return (
-    <div className="border rounded-lg p-4 space-y-3">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-3">
-          <ArrowRight className="w-4 h-4 text-purple-500" />
-          <div>
-            <p className="font-medium">{automation.name}</p>
-            <p className="text-sm text-muted-foreground">
-              Pipeline stage automation
-            </p>
+    <div className="border rounded-lg shadow-sm p-4 space-y-3 max-w-4xl">
+      {/* Card Header */}
+      <div className="flex items-start justify-between">
+        <div className="flex-1">
+          <h3 className="text-lg font-bold mb-2">{automation.name}</h3>
+          <div className="flex items-center gap-2 flex-wrap">
+            <Badge variant="outline" className="bg-purple-50 dark:bg-purple-950 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800">
+              Pipeline Change
+            </Badge>
+            <Badge variant="outline" className="bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800">
+              {getTriggerLabel(automation.triggerType)}
+            </Badge>
+            {automation.targetStage && (
+              <Badge variant="secondary" className="text-xs">
+                → {automation.targetStage.name}
+              </Badge>
+            )}
           </div>
         </div>
-        <div className="flex items-center space-x-2">
+        
+        {/* Compact Action Bar */}
+        <div className="flex items-center gap-1 ml-4">
+          <Switch
+            checked={automation.enabled}
+            onCheckedChange={handleToggleAutomation}
+            disabled={toggleAutomationMutation.isPending}
+            data-testid={`switch-toggle-automation-${automation.id}`}
+          />
           <Button
             variant="ghost"
             size="sm"
+            className="h-8 w-8 p-0"
             onClick={() => setEditDialogOpen(true)}
             data-testid={`button-edit-automation-${automation.id}`}
           >
             <Edit2 className="w-4 h-4" />
           </Button>
-          <div className="flex items-center space-x-2">
-            <span className="text-sm text-muted-foreground">
-              {automation.enabled ? "On" : "Off"}
-            </span>
-            <Switch
-              checked={automation.enabled}
-              onCheckedChange={handleToggleAutomation}
-              disabled={toggleAutomationMutation.isPending}
-              data-testid={`switch-toggle-automation-${automation.id}`}
-            />
-          </div>
           <Button
             variant="ghost"
             size="sm"
+            className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
             onClick={() => onDelete(automation.id)}
-            className="text-destructive hover:text-destructive"
             data-testid={`button-delete-automation-${automation.id}`}
           >
-            Delete
+            <Trash2 className="w-4 h-4" />
           </Button>
         </div>
-      </div>
-
-      <div className="text-sm text-muted-foreground space-y-1">
-        <p><strong>Trigger:</strong> {getTriggerLabel(automation.triggerType)}</p>
-        <p><strong>Action:</strong> Move to "{automation.targetStage?.name || 'Unknown Stage'}"</p>
       </div>
 
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
