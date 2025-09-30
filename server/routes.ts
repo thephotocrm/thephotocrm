@@ -1590,9 +1590,9 @@ ${photographer?.businessName || 'Your Photography Team'}`;
         return res.status(404).json({ message: "Automation not found" });
       }
 
-      // For now, just disable the automation since we don't have deleteAutomation in storage yet
-      const updated = await storage.updateAutomation(req.params.id, { enabled: false });
-      res.json({ message: "Automation disabled successfully", automation: updated });
+      // Actually delete the automation and all related data
+      await storage.deleteAutomation(req.params.id);
+      res.json({ message: "Automation deleted successfully" });
     } catch (error) {
       console.error('Delete automation error:', error);
       res.status(500).json({ message: "Internal server error" });

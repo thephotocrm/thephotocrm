@@ -86,6 +86,7 @@ export interface IStorage {
   getAutomationsByPhotographer(photographerId: string, projectType?: string): Promise<Automation[]>;
   createAutomation(automation: InsertAutomation): Promise<Automation>;
   updateAutomation(id: string, automation: Partial<Automation>): Promise<Automation>;
+  deleteAutomation(id: string): Promise<void>;
   
   // Automation Steps
   getAutomationSteps(automationId: string): Promise<AutomationStep[]>;
@@ -630,6 +631,12 @@ export class DatabaseStorage implements IStorage {
       .where(eq(automations.id, id))
       .returning();
     return updated;
+  }
+
+  async deleteAutomation(id: string): Promise<void> {
+    await db.delete(automationSteps).where(eq(automationSteps.automationId, id));
+    await db.delete(automationBusinessTriggers).where(eq(automationBusinessTriggers.automationId, id));
+    await db.delete(automations).where(eq(automations.id, id));
   }
 
   async getAutomationSteps(automationId: string): Promise<AutomationStep[]> {
