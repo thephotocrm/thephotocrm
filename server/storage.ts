@@ -634,9 +634,12 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteAutomation(id: string): Promise<void> {
-    // Delete in proper order to respect foreign key constraints
+    // CRITICAL: Disable the automation first to prevent cron job from creating new logs
+    await db.update(automations)
+      .set({ enabled: false })
+      .where(eq(automations.id, id));
     
-    // First, get all automation steps for this automation
+    // Get all automation steps for this automation
     const steps = await this.getAutomationSteps(id);
     
     // Delete logs that reference these steps - use Promise.all to ensure all deletes complete
