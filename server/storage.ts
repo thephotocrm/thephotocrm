@@ -2031,7 +2031,8 @@ export class DatabaseStorage implements IStorage {
     const projectData = {
       ...insertProject,
       stageId: finalStageId,
-      stageEnteredAt: finalStageId ? new Date() : null
+      stageEnteredAt: finalStageId ? new Date() : null,
+      hasEventDate: !!insertProject.eventDate
     };
     
     const [project] = await db.insert(projects).values(projectData).returning();
@@ -2062,10 +2063,14 @@ export class DatabaseStorage implements IStorage {
 
   async updateProject(id: string, projectUpdate: Partial<Project>): Promise<Project> {
     // If stageId is being updated, set stageEnteredAt timestamp
+    // If eventDate is being updated, set hasEventDate based on whether date exists
     const updateData = {
       ...projectUpdate,
       ...(projectUpdate.stageId !== undefined && {
         stageEnteredAt: projectUpdate.stageId ? new Date() : null
+      }),
+      ...(projectUpdate.eventDate !== undefined && {
+        hasEventDate: !!projectUpdate.eventDate
       })
     };
     

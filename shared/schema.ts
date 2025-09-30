@@ -118,6 +118,7 @@ export const clients = pgTable("clients", {
   email: text("email"),
   phone: text("phone"),
   eventDate: timestamp("event_date"),
+  hasEventDate: boolean("has_event_date").notNull().default(false),
   notes: text("notes"),
   stageId: varchar("stage_id").references(() => stages.id),
   stageEnteredAt: timestamp("stage_entered_at"),
@@ -136,6 +137,7 @@ export const projects = pgTable("projects", {
   title: text("title").notNull(),
   leadSource: text("lead_source").default("MANUAL"),
   eventDate: timestamp("event_date"),
+  hasEventDate: boolean("has_event_date").notNull().default(false),
   notes: text("notes"),
   stageId: varchar("stage_id").references(() => stages.id),
   stageEnteredAt: timestamp("stage_entered_at"),
@@ -178,6 +180,8 @@ export const automations = pgTable("automations", {
   templateId: varchar("template_id").references(() => templates.id), // Template for countdown automations
   // Questionnaire assignment fields (for communication automations)
   questionnaireTemplateId: varchar("questionnaire_template_id").references(() => questionnaireTemplates.id),
+  // Conditional logic fields
+  eventDateCondition: text("event_date_condition").default("ANY"), // DECLARED, UNDECLARED, ANY - filter by whether wedding date is set
   enabled: boolean("enabled").default(true)
 });
 

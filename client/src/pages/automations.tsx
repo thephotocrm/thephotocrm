@@ -170,9 +170,6 @@ function AutomationStepManager({ automation, onDelete }: { automation: any, onDe
             >
               {automation.channel === 'EMAIL' ? '📧 Email' : '📱 SMS'}
             </Badge>
-            <Badge variant="outline" className="bg-purple-50 dark:bg-purple-950 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800">
-              Communication
-            </Badge>
             {steps.length > 0 && (
               <Badge variant="secondary" className="text-xs">
                 {steps.length} step{steps.length !== 1 ? 's' : ''}
