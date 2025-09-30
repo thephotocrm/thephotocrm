@@ -445,14 +445,26 @@ export class DatabaseStorage implements IStorage {
 
   async createClient(insertClient: InsertClient): Promise<Client> {
     // Simply create the client with basic info - project data is handled separately
-    const [client] = await db.insert(clients).values(insertClient).returning();
+    // Automatically set hasEventDate based on whether eventDate is provided
+    const clientData = {
+      ...insertClient,
+      hasEventDate: !!insertClient.eventDate
+    };
+    const [client] = await db.insert(clients).values(clientData).returning();
     return client;
   }
 
   async updateClient(id: string, clientUpdate: Partial<Client>): Promise<Client> {
     // Update basic client info only - project data is handled separately
+    // If eventDate is being updated, set hasEventDate based on whether date exists
+    const updateData = {
+      ...clientUpdate,
+      ...(clientUpdate.eventDate !== undefined && {
+        hasEventDate: !!clientUpdate.eventDate
+      })
+    };
     const [updated] = await db.update(clients)
-      .set(clientUpdate)
+      .set(updateData)
       .where(eq(clients.id, id))
       .returning();
     return updated;
@@ -1900,6 +1912,7 @@ export class DatabaseStorage implements IStorage {
       title: projects.title,
       projectType: projects.projectType,
       eventDate: projects.eventDate,
+      hasEventDate: projects.hasEventDate,
       stageId: projects.stageId,
       stageEnteredAt: projects.stageEnteredAt,
       leadSource: projects.leadSource,
@@ -1960,6 +1973,7 @@ export class DatabaseStorage implements IStorage {
       title: projects.title,
       projectType: projects.projectType,
       eventDate: projects.eventDate,
+      hasEventDate: projects.hasEventDate,
       stageId: projects.stageId,
       stageEnteredAt: projects.stageEnteredAt,
       leadSource: projects.leadSource,

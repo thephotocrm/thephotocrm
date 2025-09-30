@@ -57,6 +57,7 @@ export default function Projects() {
   const [projectType, setProjectType] = useState("");
   const [clientId, setClientId] = useState("");
   const [eventDate, setEventDate] = useState("");
+  const [noDateYet, setNoDateYet] = useState(false);
   const [notes, setNotes] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState<string>("ALL");
@@ -110,6 +111,7 @@ export default function Projects() {
     setProjectType("");
     setClientId("");
     setEventDate("");
+    setNoDateYet(false);
     setNotes("");
   };
 
@@ -245,9 +247,33 @@ export default function Projects() {
                         id="eventDate"
                         type="date"
                         value={eventDate}
-                        onChange={(e) => setEventDate(e.target.value)}
+                        onChange={(e) => {
+                          setEventDate(e.target.value);
+                          if (e.target.value) {
+                            setNoDateYet(false);
+                          }
+                        }}
+                        disabled={noDateYet}
                         data-testid="input-event-date"
                       />
+                      <div className="flex items-center space-x-2 mt-2">
+                        <input
+                          type="checkbox"
+                          id="noDateYet"
+                          checked={noDateYet}
+                          onChange={(e) => {
+                            setNoDateYet(e.target.checked);
+                            if (e.target.checked) {
+                              setEventDate("");
+                            }
+                          }}
+                          data-testid="checkbox-no-date-yet"
+                          className="rounded border-gray-300"
+                        />
+                        <Label htmlFor="noDateYet" className="text-sm font-normal cursor-pointer">
+                          I don't have a date yet
+                        </Label>
+                      </div>
                     </div>
 
                     <div className="space-y-2">
