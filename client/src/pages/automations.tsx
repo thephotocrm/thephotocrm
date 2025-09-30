@@ -1172,7 +1172,7 @@ function BusinessTriggersManager({ automation }: { automation: any }) {
                     </div>
                     <FormControl>
                       <Switch
-                        checked={field.value}
+                        checked={!!field.value}
                         onCheckedChange={field.onChange}
                         data-testid="switch-trigger-enabled"
                       />
@@ -1305,7 +1305,7 @@ function BusinessTriggersManager({ automation }: { automation: any }) {
                     </div>
                     <FormControl>
                       <Switch
-                        checked={field.value}
+                        checked={!!field.value}
                         onCheckedChange={field.onChange}
                         data-testid="switch-edit-trigger-enabled"
                       />
@@ -2888,6 +2888,12 @@ export default function Automations() {
                                                     {automation.automationType === 'COMMUNICATION' ? 'Communication' : 'Pipeline'}
                                                   </Badge>
                                                 </div>
+                                                {automation.automationType === 'PIPELINE' && automation.targetStage && (
+                                                  <p className="text-sm text-muted-foreground mt-1">
+                                                    <ArrowRight className="inline h-3 w-3 mr-1" />
+                                                    Moves to "{automation.targetStage.name}"
+                                                  </p>
+                                                )}
                                               </div>
                                             </div>
                                             <div className="flex items-center justify-center sm:justify-start space-x-2">
@@ -2990,6 +2996,12 @@ export default function Automations() {
                                                 }
                                               </p>
                                             ) : null}
+                                            {automation.automationType === 'PIPELINE' && automation.targetStage && (
+                                              <p className="text-sm text-muted-foreground mt-1">
+                                                <ArrowRight className="inline h-3 w-3 mr-1" />
+                                                Moves to "{automation.targetStage.name}"
+                                              </p>
+                                            )}
                                           </div>
                                         </div>
                                         <div className="flex items-center justify-center sm:justify-start space-x-2">
