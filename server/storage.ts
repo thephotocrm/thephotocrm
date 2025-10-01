@@ -635,6 +635,7 @@ export class DatabaseStorage implements IStorage {
         },
         stage: true,
         targetStage: true,
+        conditionStage: true,
         businessTriggers: true
       }
     });

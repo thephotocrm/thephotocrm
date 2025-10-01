@@ -550,20 +550,15 @@ function StageChangeAutomationCard({ automation, onDelete }: { automation: any, 
           
           <div className="flex items-center gap-2">
             <span className="text-sm text-muted-foreground font-medium">Action:</span>
-            <Badge variant="outline" className="bg-purple-50 dark:bg-purple-950 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800 text-xs">
-              🔄 Pipeline Change
+            <Badge variant="outline" className="bg-purple-50 dark:bg-purple-950 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800 text-xs flex items-center gap-1">
+              {(automation.conditionStage || automation.stage) && automation.targetStage && (
+                <>
+                  <span>{(automation.conditionStage || automation.stage).name}</span>
+                  <ArrowRight className="w-3 h-3" />
+                </>
+              )}
+              <span>{automation.targetStage?.name || 'Unknown Stage'}</span>
             </Badge>
-            {automation.targetStage && (
-              <Badge variant="secondary" className="text-xs flex items-center gap-1">
-                {automation.stage && (
-                  <>
-                    <span>{automation.stage.name}</span>
-                    <ArrowRight className="w-3 h-3" />
-                  </>
-                )}
-                <span>{automation.targetStage.name}</span>
-              </Badge>
-            )}
           </div>
         </div>
       </div>
