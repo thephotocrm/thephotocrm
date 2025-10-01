@@ -1708,7 +1708,7 @@ export default function Automations() {
             ? (data.triggerStageId && data.triggerStageId !== 'global' ? data.triggerStageId : null)
             : null;
 
-          const commAutomationData = {
+          const commAutomationData: any = {
             name: data.name + (data.enablePipeline ? " (Communication)" : ""),
             stageId: stageId,
             enabled: data.enabled,
@@ -1718,10 +1718,24 @@ export default function Automations() {
             templateId: data.templateId && data.templateId !== "unavailable" ? data.templateId : null,
             questionnaireTemplateId: data.questionnaireTemplateId && data.questionnaireTemplateId !== "unavailable" && data.questionnaireTemplateId !== "none" ? data.questionnaireTemplateId : null
           };
+          
+          // Add stageCondition for business event triggers
+          if (data.triggerMode === 'BUSINESS' && data.stageCondition && data.stageCondition !== 'all') {
+            commAutomationData.stageCondition = data.stageCondition;
+          }
 
           const commResponse = await apiRequest("POST", "/api/automations", commAutomationData);
           const commAutomation = await commResponse.json();
           createdAutomations.push(commAutomation);
+          
+          // Create business trigger if this is a business event trigger
+          if (data.triggerMode === 'BUSINESS' && data.triggerEvent) {
+            await apiRequest("POST", "/api/business-triggers", {
+              automationId: commAutomation.id,
+              triggerType: data.triggerEvent,
+              enabled: true
+            });
+          }
           
           // Create automation step for communication (with templates or questionnaires)
           const hasTemplate = data.templateId && data.templateId !== "unavailable";
@@ -2040,36 +2054,67 @@ export default function Automations() {
 
                     {/* Business Event Trigger Fields */}
                     {form.watch('triggerMode') === 'BUSINESS' && (
-                      <FormField
-                        control={form.control}
-                        name="triggerEvent"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Which business event?</FormLabel>
-                            <Select onValueChange={field.onChange} value={field.value || ""}>
-                              <FormControl>
-                                <SelectTrigger data-testid="select-trigger-event">
-                                  <SelectValue placeholder="Select the business event" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                <SelectItem value="DEPOSIT_PAID">💳 Deposit Payment Received</SelectItem>
-                                <SelectItem value="FULL_PAYMENT_MADE">✅ Full Payment Completed</SelectItem>
-                                <SelectItem value="PROJECT_BOOKED">📋 Project Booked/Contract Signed</SelectItem>
-                                <SelectItem value="ESTIMATE_ACCEPTED">📄 Estimate Accepted</SelectItem>
-                                <SelectItem value="EVENT_DATE_REACHED">📅 Event Date Reached</SelectItem>
-                                <SelectItem value="PROJECT_DELIVERED">📦 Project Delivered</SelectItem>
-                                <SelectItem value="CLIENT_ONBOARDED">🎯 Client Onboarded</SelectItem>
-                                <SelectItem value="APPOINTMENT_BOOKED">📅 Appointment Booked</SelectItem>
-                              </SelectContent>
-                            </Select>
-                            <FormDescription>
-                              The automation starts when this happens in your business
-                            </FormDescription>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+                      <div className="space-y-4">
+                        <FormField
+                          control={form.control}
+                          name="triggerEvent"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Which business event?</FormLabel>
+                              <Select onValueChange={field.onChange} value={field.value || ""}>
+                                <FormControl>
+                                  <SelectTrigger data-testid="select-trigger-event">
+                                    <SelectValue placeholder="Select the business event" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="DEPOSIT_PAID">💳 Deposit Payment Received</SelectItem>
+                                  <SelectItem value="FULL_PAYMENT_MADE">✅ Full Payment Completed</SelectItem>
+                                  <SelectItem value="PROJECT_BOOKED">📋 Project Booked/Contract Signed</SelectItem>
+                                  <SelectItem value="ESTIMATE_ACCEPTED">📄 Estimate Accepted</SelectItem>
+                                  <SelectItem value="EVENT_DATE_REACHED">📅 Event Date Reached</SelectItem>
+                                  <SelectItem value="PROJECT_DELIVERED">📦 Project Delivered</SelectItem>
+                                  <SelectItem value="CLIENT_ONBOARDED">🎯 Client Onboarded</SelectItem>
+                                  <SelectItem value="APPOINTMENT_BOOKED">📅 Appointment Booked</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <FormDescription>
+                                The automation starts when this happens in your business
+                              </FormDescription>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <FormField
+                          control={form.control}
+                          name="stageCondition"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Only trigger when client is in stage (optional)</FormLabel>
+                              <Select onValueChange={field.onChange} value={field.value || "all"}>
+                                <FormControl>
+                                  <SelectTrigger data-testid="select-stage-condition">
+                                    <SelectValue placeholder="Select a stage or leave as 'All Stages'" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="all">All Stages</SelectItem>
+                                  {stages?.map((stage: any) => (
+                                    <SelectItem key={stage.id} value={stage.id}>
+                                      {stage.name}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <FormDescription>
+                                Limit this trigger to only fire when the client is in a specific stage
+                              </FormDescription>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
                     )}
 
                     {/* Time-based Trigger Fields */}
