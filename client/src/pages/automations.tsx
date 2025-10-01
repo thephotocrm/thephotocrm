@@ -553,7 +553,7 @@ function StageChangeAutomationCard({ automation, onDelete }: { automation: any, 
             <Badge variant="outline" className="bg-purple-50 dark:bg-purple-950 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800 text-xs flex items-center gap-1">
               {(automation.conditionStage || automation.stage) && automation.targetStage && (
                 <>
-                  <span><span className="font-semibold">Pipeline:</span> {(automation.conditionStage || automation.stage).name}</span>
+                  <span><span className="font-bold">Pipeline:</span> {(automation.conditionStage || automation.stage).name}</span>
                   <ArrowRight className="w-3 h-3" />
                 </>
               )}
