@@ -3008,10 +3008,17 @@ export default function Automations() {
                           // Include automations with stageId, stageCondition, OR targetStageId (for pipeline automations)
                           const stageBased = automations.filter((a: any) => a.stageId || a.stageCondition || a.targetStageId);
                           const stageGroups = stages?.reduce((acc: any, stage: any) => {
-                            // Group by stageId, stageCondition, OR targetStageId
-                            const stageAutomations = stageBased.filter((a: any) => 
-                              a.stageId === stage.id || a.stageCondition === stage.id || a.targetStageId === stage.id
-                            );
+                            // Group by priority: stageCondition > stageId > targetStageId
+                            // This ensures business event triggers with stage conditions appear under the condition stage
+                            const stageAutomations = stageBased.filter((a: any) => {
+                              // Priority 1: stageCondition (where the automation checks if client is in this stage)
+                              if (a.stageCondition === stage.id) return true;
+                              // Priority 2: stageId (communication automations triggered when entering this stage)
+                              if (!a.stageCondition && a.stageId === stage.id) return true;
+                              // Priority 3: targetStageId (pipeline automations that move TO this stage, but only if no stageCondition)
+                              if (!a.stageCondition && !a.stageId && a.targetStageId === stage.id) return true;
+                              return false;
+                            });
                             if (stageAutomations.length > 0) {
                               acc[stage.id] = { stage, automations: stageAutomations };
                             }
