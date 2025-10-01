@@ -603,16 +603,16 @@ function StageChangeAutomationCard({ automation, onDelete }: { automation: any, 
                 <div className="flex items-center justify-between">
                   <span className="font-medium">Trigger:</span>
                   <Badge variant="outline" className="bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800">
-                    {getTriggerLabel(automation.triggerType)}
+                    {automation.businessTriggers?.[0]?.triggerType?.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, (l: string) => l.toUpperCase()) || getTriggerLabel(automation.triggerType) || 'Unknown'}
                   </Badge>
                 </div>
 
-                {automation.stage && automation.targetStage && (
+                {(automation.conditionStage || automation.stage) && automation.targetStage && (
                   <div className="flex items-center justify-between">
                     <span className="font-medium">Stage Flow:</span>
                     <div className="flex items-center gap-1.5">
                       <Badge variant="secondary" className="text-xs">
-                        {automation.stage.name}
+                        {(automation.conditionStage || automation.stage).name}
                       </Badge>
                       <ArrowRight className="w-3 h-3 text-muted-foreground" />
                       <Badge variant="secondary" className="text-xs">
