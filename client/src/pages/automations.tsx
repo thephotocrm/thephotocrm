@@ -3005,12 +3005,12 @@ export default function Automations() {
                       {/* Stage-Based Automations Tab */}
                       <TabsContent value="stage-based" className="space-y-4 mt-4">
                         {(() => {
-                          // Include automations with stageId OR stageCondition
-                          const stageBased = automations.filter((a: any) => a.stageId || a.stageCondition);
+                          // Include automations with stageId, stageCondition, OR targetStageId (for pipeline automations)
+                          const stageBased = automations.filter((a: any) => a.stageId || a.stageCondition || a.targetStageId);
                           const stageGroups = stages?.reduce((acc: any, stage: any) => {
-                            // Group by either stageId or stageCondition
+                            // Group by stageId, stageCondition, OR targetStageId
                             const stageAutomations = stageBased.filter((a: any) => 
-                              a.stageId === stage.id || a.stageCondition === stage.id
+                              a.stageId === stage.id || a.stageCondition === stage.id || a.targetStageId === stage.id
                             );
                             if (stageAutomations.length > 0) {
                               acc[stage.id] = { stage, automations: stageAutomations };
@@ -3141,7 +3141,7 @@ export default function Automations() {
                       {/* Global Automations Tab */}
                       <TabsContent value="global" className="space-y-4 mt-4">
                         {(() => {
-                          const globalAutomations = automations.filter((a: any) => !a.stageId);
+                          const globalAutomations = automations.filter((a: any) => !a.stageId && !a.stageCondition && !a.targetStageId);
                           
                           return globalAutomations.length > 0 ? (
                             <div className="flex flex-wrap gap-2 justify-center">
