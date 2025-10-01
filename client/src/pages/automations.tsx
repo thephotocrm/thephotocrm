@@ -3168,19 +3168,13 @@ export default function Automations() {
                           const globalAutomations = automations.filter((a: any) => !a.stageId);
                           
                           return globalAutomations.length > 0 ? (
-                            <div className="flex flex-col items-center">
-                              {globalAutomations.map((automation: any, index: number) => (
-                                <div key={automation.id} className="w-full">
+                            <div className="flex flex-wrap gap-2 justify-center">
+                              {globalAutomations.map((automation: any) => (
+                                <div key={automation.id} className="w-full md:w-auto">
                                   {automation.automationType === 'COMMUNICATION' ? (
                                     <AutomationStepManager automation={automation} onDelete={handleDeleteAutomation} />
                                   ) : (
                                     <StageChangeAutomationCard automation={automation} onDelete={handleDeleteAutomation} />
-                                  )}
-                                  {/* Vertical connector between cards */}
-                                  {index < globalAutomations.length - 1 && (
-                                    <div className="flex justify-center py-3">
-                                      <div className="w-0.5 h-8 bg-border" />
-                                    </div>
                                   )}
                                 </div>
                               ))}
