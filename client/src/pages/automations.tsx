@@ -147,19 +147,8 @@ function AutomationStepManager({ automation, onDelete }: { automation: any, onDe
     <div className="border-2 border-gray-800 dark:border-gray-300 rounded-lg shadow-sm p-4 space-y-3 max-w-[375px] mx-auto bg-gray-50 dark:bg-gray-800">
       {/* Card Header */}
       <div className="flex items-start justify-between">
-        <button 
-          className="flex-1 text-left"
-          onClick={() => setIsExpanded(!isExpanded)}
-          data-testid={`button-expand-automation-${automation.id}`}
-        >
-          <div className="flex items-center gap-2 mb-2">
-            <h3 className="text-lg font-bold">{automation.name}</h3>
-            {isExpanded ? (
-              <ChevronUp className="w-4 h-4 text-muted-foreground" />
-            ) : (
-              <ChevronDown className="w-4 h-4 text-muted-foreground" />
-            )}
-          </div>
+        <div className="flex-1">
+          <h3 className="text-lg font-bold mb-2">{automation.name}</h3>
           <div className="space-y-1">
             <div className="flex items-center gap-2">
               {/* Type Badge: Immediate, Time-Based, or Trigger-Based */}
@@ -205,7 +194,21 @@ function AutomationStepManager({ automation, onDelete }: { automation: any, onDe
               )}
             </div>
           </div>
-        </button>
+          
+          {/* View Details button */}
+          <button
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="flex items-center gap-1 mt-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+            data-testid={`button-expand-automation-${automation.id}`}
+          >
+            <span>View Details</span>
+            {isExpanded ? (
+              <ChevronUp className="w-4 h-4" />
+            ) : (
+              <ChevronDown className="w-4 h-4" />
+            )}
+          </button>
+        </div>
         
         {/* Compact Action Bar */}
         <div className="flex items-center gap-2 ml-4">
