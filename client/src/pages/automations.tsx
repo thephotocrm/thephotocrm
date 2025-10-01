@@ -1641,6 +1641,12 @@ export default function Automations() {
         throw new Error('Failed to fetch automations');
       }
       const data = await res.json();
+      // Debug log
+      const bigPeen = data.find((a: any) => a.name === 'big peen');
+      if (bigPeen) {
+        console.log('RAW API Response for big peen:', JSON.stringify(bigPeen, null, 2));
+      }
+      console.log('Total automations fetched:', data.length);
       return Array.isArray(data) ? data : [];
     },
     enabled: !!user
