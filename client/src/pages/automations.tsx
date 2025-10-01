@@ -273,39 +273,13 @@ function AutomationStepManager({ automation, onDelete }: { automation: any, onDe
                 
                 {/* Step Content */}
                 <div className="space-y-2">
-                  {/* Step Info Line */}
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <Badge variant="secondary" className="text-xs shrink-0">
-                      <Clock className="w-3 h-3 mr-1" />
-                      {formatDelay(step.delayMinutes)}
-                    </Badge>
-                    <span className="text-muted-foreground">→</span>
-                    <Badge 
-                      variant="outline"
-                      className={automation.channel === 'EMAIL' 
-                        ? "bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800 text-xs shrink-0" 
-                        : "bg-teal-50 dark:bg-teal-950 text-teal-700 dark:text-teal-300 border-teal-200 dark:border-teal-800 text-xs shrink-0"
-                      }
-                    >
-                      {automation.channel === 'EMAIL' ? '📧 Send Email' : '📱 Send SMS'}
-                    </Badge>
-                    {template && (
-                      <>
-                        <span className="text-muted-foreground">→</span>
-                        <span className="text-sm text-muted-foreground truncate">
-                          {template.subject || template.textBody?.substring(0, 50) + '...' || 'Message'}
-                        </span>
-                      </>
-                    )}
-                  </div>
-                  
                   {/* Message Preview */}
                   {template && (
-                    <div className="bg-muted/50 border rounded-md p-2 text-xs">
+                    <div className="bg-muted/50 border rounded-md p-3 text-sm">
                       {template.subject && (
-                        <p className="font-medium mb-1 truncate">📋 {template.subject}</p>
+                        <p className="font-semibold mb-2">{template.subject}</p>
                       )}
-                      <p className="text-muted-foreground line-clamp-2">
+                      <p className="text-muted-foreground whitespace-pre-wrap">
                         {template.textBody || 'No message content'}
                       </p>
                     </div>
