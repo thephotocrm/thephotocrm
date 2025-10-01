@@ -146,13 +146,13 @@ function AutomationStepManager({ automation, onDelete }: { automation: any, onDe
   return (
     <div className="border-2 border-gray-800 dark:border-gray-300 rounded-lg shadow-sm overflow-hidden min-w-[350px] max-w-[375px] mx-auto bg-gray-50 dark:bg-gray-800">
       {/* Card Header - Blue Background */}
-      <div className="bg-gray-700 text-white py-2 px-4 flex items-center justify-between">
+      <div className="bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white py-2 px-4 flex items-center justify-between">
         <h3 className="text-lg font-bold flex-1">{automation.name}</h3>
         <div className="flex items-center gap-2">
           <Button
             variant="outline"
             size="sm"
-            className="bg-white text-gray-700 hover:bg-gray-100"
+            className="bg-white text-gray-900 hover:bg-gray-100 dark:bg-gray-600 dark:text-white dark:hover:bg-gray-500"
             data-testid={`button-edit-automation-${automation.id}`}
             onClick={() => setEditDialogOpen(true)}
           >
@@ -570,13 +570,13 @@ function StageChangeAutomationCard({ automation, onDelete }: { automation: any, 
   return (
     <div className="border-2 border-gray-800 dark:border-gray-300 rounded-lg shadow-sm overflow-hidden min-w-[350px] max-w-[375px] mx-auto bg-gray-50 dark:bg-gray-800">
       {/* Card Header - Blue Background */}
-      <div className="bg-gray-700 text-white py-2 px-4 flex items-center justify-between">
+      <div className="bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white py-2 px-4 flex items-center justify-between">
         <h3 className="text-lg font-bold flex-1">{automation.name}</h3>
         <div className="flex items-center gap-2">
           <Button
             variant="outline"
             size="sm"
-            className="bg-white text-gray-700 hover:bg-gray-100"
+            className="bg-white text-gray-900 hover:bg-gray-100 dark:bg-gray-600 dark:text-white dark:hover:bg-gray-500"
             onClick={() => setEditDialogOpen(true)}
             data-testid={`button-edit-automation-${automation.id}`}
           >
