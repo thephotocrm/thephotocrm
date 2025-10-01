@@ -187,26 +187,6 @@ function AutomationStepManager({ automation, onDelete }: { automation: any, onDe
                 Immediately
               </Badge>
             ) : null}
-            
-            {/* Show channel and step count only when expanded */}
-            {isExpanded && (
-              <>
-                <Badge 
-                  variant="outline" 
-                  className={automation.channel === 'EMAIL' 
-                    ? "bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800" 
-                    : "bg-teal-50 dark:bg-teal-950 text-teal-700 dark:text-teal-300 border-teal-200 dark:border-teal-800"
-                  }
-                >
-                  {automation.channel === 'EMAIL' ? '📧 Email' : '📱 SMS'}
-                </Badge>
-                {steps.length > 0 && (
-                  <Badge variant="secondary" className="text-xs">
-                    {steps.length} step{steps.length !== 1 ? 's' : ''}
-                  </Badge>
-                )}
-              </>
-            )}
           </div>
         </button>
         
