@@ -1788,6 +1788,15 @@ export default function Automations() {
           const pipelineResponse = await apiRequest("POST", "/api/automations", pipelineAutomationData);
           const pipelineAutomation = await pipelineResponse.json();
           createdAutomations.push(pipelineAutomation);
+          
+          // Create business trigger for pipeline automation
+          if (data.triggerEvent) {
+            await apiRequest("POST", "/api/business-triggers", {
+              automationId: pipelineAutomation.id,
+              triggerType: data.triggerEvent,
+              enabled: true
+            });
+          }
         }
         
         return createdAutomations;
