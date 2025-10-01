@@ -3073,7 +3073,7 @@ export default function Automations() {
                                               {immediateAutomations.length}
                                             </Badge>
                                           </div>
-                                          <div className="flex flex-wrap justify-around gap-4">
+                                          <div className="flex flex-wrap justify-center gap-4">
                                             {immediateAutomations.map((automation: any) => (
                                               <div key={automation.id}>
                                                 {automation.automationType === 'COMMUNICATION' ? (
@@ -3123,7 +3123,7 @@ export default function Automations() {
                                               {triggerBasedAutomations.length}
                                             </Badge>
                                           </div>
-                                          <div className="flex flex-wrap justify-around gap-4">
+                                          <div className="flex flex-wrap justify-center gap-4">
                                             {triggerBasedAutomations.map((automation: any) => (
                                               <div key={automation.id}>
                                                 {automation.automationType === 'COMMUNICATION' ? (
@@ -3161,7 +3161,7 @@ export default function Automations() {
                           const globalAutomations = automations.filter((a: any) => !a.stageId && !a.stageCondition);
                           
                           return globalAutomations.length > 0 ? (
-                            <div className="flex flex-wrap justify-around gap-4">
+                            <div className="flex flex-wrap justify-center gap-4">
                               {globalAutomations.map((automation: any) => (
                                 <div key={automation.id}>
                                   {automation.automationType === 'COMMUNICATION' ? (
