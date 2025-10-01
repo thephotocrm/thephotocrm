@@ -3014,18 +3014,16 @@ export default function Automations() {
                       {/* Stage-Based Automations Tab */}
                       <TabsContent value="stage-based" className="space-y-4 mt-4">
                         {(() => {
-                          // Include automations with stageId, stageCondition, OR targetStageId (for pipeline automations)
-                          const stageBased = automations.filter((a: any) => a.stageId || a.stageCondition || a.targetStageId);
+                          // Include automations with stageId OR stageCondition (not targetStageId alone)
+                          const stageBased = automations.filter((a: any) => a.stageId || a.stageCondition);
                           const stageGroups = stages?.reduce((acc: any, stage: any) => {
-                            // Group by priority: stageCondition > stageId > targetStageId
-                            // This ensures business event triggers with stage conditions appear under the condition stage
+                            // Group by priority: stageCondition > stageId
+                            // Pipeline automations only show if they have a stageCondition set
                             const stageAutomations = stageBased.filter((a: any) => {
                               // Priority 1: stageCondition (where the automation checks if client is in this stage)
                               if (a.stageCondition === stage.id) return true;
                               // Priority 2: stageId (communication automations triggered when entering this stage)
                               if (!a.stageCondition && a.stageId === stage.id) return true;
-                              // Priority 3: targetStageId (pipeline automations that move TO this stage, but only if no stageCondition)
-                              if (!a.stageCondition && !a.stageId && a.targetStageId === stage.id) return true;
                               return false;
                             });
                             if (stageAutomations.length > 0) {
@@ -3157,7 +3155,9 @@ export default function Automations() {
                       {/* Global Automations Tab */}
                       <TabsContent value="global" className="space-y-4 mt-4">
                         {(() => {
-                          const globalAutomations = automations.filter((a: any) => !a.stageId && !a.stageCondition && !a.targetStageId);
+                          // Global automations: no stageId and no stageCondition
+                          // This includes pipeline automations without stage conditions
+                          const globalAutomations = automations.filter((a: any) => !a.stageId && !a.stageCondition);
                           
                           return globalAutomations.length > 0 ? (
                             <div className="flex flex-wrap gap-2 justify-center">
