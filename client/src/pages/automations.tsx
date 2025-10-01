@@ -144,7 +144,7 @@ function AutomationStepManager({ automation, onDelete }: { automation: any, onDe
   };
 
   return (
-    <div className="border rounded-lg shadow-sm p-4 space-y-3 max-w-2xl mx-auto bg-gray-50 dark:bg-gray-800">
+    <div className="border-2 border-gray-800 dark:border-gray-300 rounded-lg shadow-sm p-4 space-y-3 max-w-2xl mx-auto bg-gray-50 dark:bg-gray-800">
       {/* Card Header */}
       <div className="flex items-start justify-between">
         <button 
@@ -534,7 +534,7 @@ function StageChangeAutomationCard({ automation, onDelete }: { automation: any, 
   };
 
   return (
-    <div className="border rounded-lg shadow-sm p-4 space-y-3 max-w-2xl mx-auto bg-gray-50 dark:bg-gray-800">
+    <div className="border-2 border-gray-800 dark:border-gray-300 rounded-lg shadow-sm p-4 space-y-3 max-w-2xl mx-auto bg-gray-50 dark:bg-gray-800">
       {/* Card Header */}
       <div className="flex items-start justify-between">
         <div className="flex-1">
