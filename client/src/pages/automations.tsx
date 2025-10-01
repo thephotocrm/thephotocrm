@@ -3002,10 +3002,10 @@ export default function Automations() {
                                   });
                                   
                                   return (
-                                    <div key={group.stage.id} className="border-l-4 border-blue-500 rounded-lg p-4 bg-gray-100 dark:bg-gray-800 shadow-sm">
+                                    <div key={group.stage.id} className="border-l-4 border-blue-500 rounded-lg p-4 bg-blue-50 dark:bg-blue-950 shadow-sm">
                                       <div className="flex items-center space-x-2 mb-4">
                                         <div className="h-2 w-2 rounded-full bg-primary" />
-                                        <h4 className="font-medium text-base">{group.stage.name}</h4>
+                                        <h4 className="font-semibold text-2xl">{group.stage.name}</h4>
                                         <Badge variant="outline" className="ml-auto text-xs">
                                           {group.automations.length} automation{group.automations.length !== 1 ? 's' : ''}
                                         </Badge>
