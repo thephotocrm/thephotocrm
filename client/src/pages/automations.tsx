@@ -3012,10 +3012,10 @@ export default function Automations() {
                                         {/* Immediate Automations */}
                                         {immediateAutomations.length > 0 && (
                                           <div className="space-y-3">
-                                            <div className="flex items-center gap-2">
-                                              <Zap className="w-3 h-3 text-amber-600 dark:text-amber-400" />
-                                              <h5 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Immediate</h5>
-                                              <Badge variant="outline" className="text-xs ml-auto">
+                                            <div className="flex items-center justify-center gap-2">
+                                              <Zap className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+                                              <h5 className="text-base font-semibold text-muted-foreground uppercase tracking-wide">Immediate</h5>
+                                              <Badge variant="outline" className="text-sm">
                                                 {immediateAutomations.length}
                                               </Badge>
                                             </div>
@@ -3036,10 +3036,10 @@ export default function Automations() {
                                         {/* Time-Based Automations */}
                                         {timeBasedAutomations.length > 0 && (
                                           <div className="space-y-3">
-                                            <div className="flex items-center gap-2">
-                                              <Clock className="w-3 h-3 text-blue-600 dark:text-blue-400" />
-                                              <h5 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Time-Based</h5>
-                                              <Badge variant="outline" className="text-xs ml-auto">
+                                            <div className="flex items-center justify-center gap-2">
+                                              <Clock className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                                              <h5 className="text-base font-semibold text-muted-foreground uppercase tracking-wide">Time-Based</h5>
+                                              <Badge variant="outline" className="text-sm">
                                                 {timeBasedAutomations.length}
                                               </Badge>
                                             </div>
