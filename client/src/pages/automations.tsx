@@ -513,16 +513,6 @@ function StageChangeAutomationCard({ automation, onDelete }: { automation: any, 
     return triggers[triggerType as keyof typeof triggers] || triggerType;
   };
 
-  // Debug log
-  console.log('StageChangeAutomationCard data:', {
-    id: automation.id,
-    name: automation.name,
-    stage: automation.stage,
-    conditionStage: automation.conditionStage,
-    targetStage: automation.targetStage,
-    businessTriggers: automation.businessTriggers
-  });
-
   return (
     <div className="border-2 border-gray-800 dark:border-gray-300 rounded-lg shadow-sm overflow-hidden min-w-[350px] max-w-[375px] mx-auto bg-gray-50 dark:bg-gray-800">
       {/* Card Header - Blue Background */}
@@ -1641,12 +1631,6 @@ export default function Automations() {
         throw new Error('Failed to fetch automations');
       }
       const data = await res.json();
-      // Debug log
-      const bigPeen = data.find((a: any) => a.name === 'big peen');
-      if (bigPeen) {
-        console.log('RAW API Response for big peen:', JSON.stringify(bigPeen, null, 2));
-      }
-      console.log('Total automations fetched:', data.length);
       return Array.isArray(data) ? data : [];
     },
     enabled: !!user
@@ -3028,6 +3012,7 @@ export default function Automations() {
                         {(() => {
                           // Include automations with stageId OR stageCondition (not targetStageId alone)
                           const stageBased = automations.filter((a: any) => a.stageId || a.stageCondition);
+                          
                           const stageGroups = stages?.reduce((acc: any, stage: any) => {
                             // Group by priority: stageCondition > stageId
                             // Pipeline automations only show if they have a stageCondition set
@@ -3141,7 +3126,11 @@ export default function Automations() {
                                           <div className="flex flex-wrap gap-2 justify-center">
                                             {triggerBasedAutomations.map((automation: any) => (
                                               <div key={automation.id} className="w-full md:w-auto">
-                                                <AutomationStepManager automation={automation} onDelete={handleDeleteAutomation} />
+                                                {automation.automationType === 'COMMUNICATION' ? (
+                                                  <AutomationStepManager automation={automation} onDelete={handleDeleteAutomation} />
+                                                ) : (
+                                                  <StageChangeAutomationCard automation={automation} onDelete={handleDeleteAutomation} />
+                                                )}
                                               </div>
                                             ))}
                                           </div>
