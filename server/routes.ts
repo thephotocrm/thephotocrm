@@ -1606,6 +1606,14 @@ ${photographer?.businessName || 'Your Photography Team'}`;
         req.user!.photographerId!, 
         projectType as string | undefined
       );
+      // Debug log to see what data we're returning
+      console.log('API returning automations count:', automations.length);
+      const bigPeen = automations.find((a: any) => a.name === 'big peen');
+      if (bigPeen) {
+        console.log('Big peen automation found:', JSON.stringify(bigPeen, null, 2));
+      } else {
+        console.log('Big peen automation NOT found in results');
+      }
       res.json(automations);
     } catch (error) {
       console.error('Get automations error:', error);
