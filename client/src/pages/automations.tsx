@@ -191,7 +191,7 @@ function AutomationStepManager({ automation, onDelete }: { automation: any, onDe
         </button>
         
         {/* Compact Action Bar */}
-        <div className="flex items-center gap-1 ml-4">
+        <div className="flex items-center gap-2 ml-4">
           <Switch 
             checked={automation.enabled}
             disabled={toggleAutomationMutation.isPending}
@@ -199,26 +199,12 @@ function AutomationStepManager({ automation, onDelete }: { automation: any, onDe
             onCheckedChange={handleToggleAutomation}
           />
           <Button
-            variant="ghost"
+            variant="outline"
             size="sm"
-            className="h-8 w-8 p-0"
             data-testid={`button-edit-automation-${automation.id}`}
             onClick={() => setEditDialogOpen(true)}
           >
-            <Edit2 className="w-4 h-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
-            data-testid={`button-delete-automation-${automation.id}`}
-            onClick={() => {
-              if (confirm('Are you sure you want to delete this automation? This cannot be undone.')) {
-                onDelete(automation.id);
-              }
-            }}
-          >
-            <Trash2 className="w-4 h-4" />
+            Edit
           </Button>
         </div>
       </div>
@@ -455,22 +441,37 @@ function AutomationStepManager({ automation, onDelete }: { automation: any, onDe
             </div>
           </div>
 
-          <div className="flex justify-end space-x-2 pt-4 border-t">
+          <div className="flex justify-between pt-4 border-t">
             <Button
-              variant="outline"
-              onClick={handleCancelEdit}
+              variant="destructive"
+              onClick={() => {
+                if (confirm('Are you sure you want to delete this automation? This cannot be undone.')) {
+                  onDelete(automation.id);
+                  setEditDialogOpen(false);
+                }
+              }}
               disabled={updateAutomationMutation.isPending}
-              data-testid={`button-cancel-edit-${automation.id}`}
+              data-testid={`button-delete-automation-${automation.id}`}
             >
-              Cancel
+              Delete
             </Button>
-            <Button
-              onClick={handleSaveEdit}
-              disabled={updateAutomationMutation.isPending || !editForm.name.trim()}
-              data-testid={`button-save-edit-${automation.id}`}
-            >
-              {updateAutomationMutation.isPending ? "Saving..." : "Save Changes"}
-            </Button>
+            <div className="flex space-x-2">
+              <Button
+                variant="outline"
+                onClick={handleCancelEdit}
+                disabled={updateAutomationMutation.isPending}
+                data-testid={`button-cancel-edit-${automation.id}`}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleSaveEdit}
+                disabled={updateAutomationMutation.isPending || !editForm.name.trim()}
+                data-testid={`button-save-edit-${automation.id}`}
+              >
+                {updateAutomationMutation.isPending ? "Saving..." : "Save Changes"}
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
@@ -573,7 +574,7 @@ function StageChangeAutomationCard({ automation, onDelete }: { automation: any, 
         </div>
         
         {/* Compact Action Bar */}
-        <div className="flex items-center gap-1 ml-4">
+        <div className="flex items-center gap-2 ml-4">
           <Switch
             checked={automation.enabled}
             onCheckedChange={handleToggleAutomation}
@@ -581,22 +582,12 @@ function StageChangeAutomationCard({ automation, onDelete }: { automation: any, 
             data-testid={`switch-toggle-automation-${automation.id}`}
           />
           <Button
-            variant="ghost"
+            variant="outline"
             size="sm"
-            className="h-8 w-8 p-0"
             onClick={() => setEditDialogOpen(true)}
             data-testid={`button-edit-automation-${automation.id}`}
           >
-            <Edit2 className="w-4 h-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
-            onClick={() => onDelete(automation.id)}
-            data-testid={`button-delete-automation-${automation.id}`}
-          >
-            <Trash2 className="w-4 h-4" />
+            Edit
           </Button>
         </div>
       </div>
@@ -697,22 +688,37 @@ function StageChangeAutomationCard({ automation, onDelete }: { automation: any, 
             </div>
           </div>
 
-          <div className="flex justify-end space-x-2 pt-4 border-t">
+          <div className="flex justify-between pt-4 border-t">
             <Button
-              variant="outline"
-              onClick={handleCancelEdit}
+              variant="destructive"
+              onClick={() => {
+                if (confirm('Are you sure you want to delete this automation? This cannot be undone.')) {
+                  onDelete(automation.id);
+                  setEditDialogOpen(false);
+                }
+              }}
               disabled={updateAutomationMutation.isPending}
-              data-testid={`button-cancel-edit-${automation.id}`}
+              data-testid={`button-delete-automation-${automation.id}`}
             >
-              Cancel
+              Delete
             </Button>
-            <Button
-              onClick={handleSaveEdit}
-              disabled={updateAutomationMutation.isPending || !editForm.name.trim()}
-              data-testid={`button-save-edit-${automation.id}`}
-            >
-              {updateAutomationMutation.isPending ? "Saving..." : "Save Changes"}
-            </Button>
+            <div className="flex space-x-2">
+              <Button
+                variant="outline"
+                onClick={handleCancelEdit}
+                disabled={updateAutomationMutation.isPending}
+                data-testid={`button-cancel-edit-${automation.id}`}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleSaveEdit}
+                disabled={updateAutomationMutation.isPending || !editForm.name.trim()}
+                data-testid={`button-save-edit-${automation.id}`}
+              >
+                {updateAutomationMutation.isPending ? "Saving..." : "Save Changes"}
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
