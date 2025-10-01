@@ -161,28 +161,18 @@ function AutomationStepManager({ automation, onDelete }: { automation: any, onDe
             )}
           </div>
           <div className="flex items-center gap-2 flex-wrap">
-            <Badge 
-              variant="outline" 
-              className={automation.channel === 'EMAIL' 
-                ? "bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800" 
-                : "bg-teal-50 dark:bg-teal-950 text-teal-700 dark:text-teal-300 border-teal-200 dark:border-teal-800"
-              }
-            >
-              {automation.channel === 'EMAIL' ? '📧 Email' : '📱 SMS'}
-            </Badge>
-            
             {/* Type Badge: Immediate, Time-Based, or Trigger-Based */}
             {automation.businessTriggers && automation.businessTriggers.length > 0 ? (
               // Trigger-based automation
               <Badge variant="default" className="bg-purple-500 dark:bg-purple-600 text-white text-xs">
                 <Target className="w-3 h-3 mr-1" />
-                {automation.businessTriggers[0].triggerType.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, (l: string) => l.toUpperCase())}
+                Trigger: {automation.businessTriggers[0].triggerType.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, (l: string) => l.toUpperCase())}
               </Badge>
             ) : steps.length > 0 && steps[0].delayMinutes > 0 ? (
               // Time-based automation (has delay)
               <Badge variant="default" className="bg-blue-500 dark:bg-blue-600 text-white text-xs">
                 <Clock className="w-3 h-3 mr-1" />
-                {steps[0].delayMinutes < 60 
+                Delay: {steps[0].delayMinutes < 60 
                   ? `${steps[0].delayMinutes} minute${steps[0].delayMinutes !== 1 ? 's' : ''}`
                   : steps[0].delayMinutes < 1440
                   ? `${Math.floor(steps[0].delayMinutes / 60)} hour${Math.floor(steps[0].delayMinutes / 60) !== 1 ? 's' : ''}`
@@ -197,10 +187,24 @@ function AutomationStepManager({ automation, onDelete }: { automation: any, onDe
               </Badge>
             ) : null}
             
-            {steps.length > 0 && (
-              <Badge variant="secondary" className="text-xs">
-                {steps.length} step{steps.length !== 1 ? 's' : ''}
-              </Badge>
+            {/* Show channel and step count only when expanded */}
+            {isExpanded && (
+              <>
+                <Badge 
+                  variant="outline" 
+                  className={automation.channel === 'EMAIL' 
+                    ? "bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800" 
+                    : "bg-teal-50 dark:bg-teal-950 text-teal-700 dark:text-teal-300 border-teal-200 dark:border-teal-800"
+                  }
+                >
+                  {automation.channel === 'EMAIL' ? '📧 Email' : '📱 SMS'}
+                </Badge>
+                {steps.length > 0 && (
+                  <Badge variant="secondary" className="text-xs">
+                    {steps.length} step{steps.length !== 1 ? 's' : ''}
+                  </Badge>
+                )}
+              </>
             )}
           </div>
         </button>
