@@ -3075,7 +3075,7 @@ export default function Automations() {
                                           </div>
                                           <div className="flex flex-wrap justify-center gap-4">
                                             {immediateAutomations.map((automation: any) => (
-                                              <div key={automation.id}>
+                                              <div key={automation.id} className="w-[400px]">
                                                 {automation.automationType === 'COMMUNICATION' ? (
                                                   <AutomationStepManager automation={automation} onDelete={handleDeleteAutomation} />
                                                 ) : (
@@ -3099,7 +3099,7 @@ export default function Automations() {
                                           </div>
                                           <div className="flex flex-col items-center">
                                             {timeBasedAutomations.map((automation: any, index: number) => (
-                                              <div key={automation.id} className="w-full">
+                                              <div key={automation.id} className="w-[400px]">
                                                 <AutomationStepManager automation={automation} onDelete={handleDeleteAutomation} />
                                                 {/* Vertical connector between cards */}
                                                 {index < timeBasedAutomations.length - 1 && (
@@ -3125,7 +3125,7 @@ export default function Automations() {
                                           </div>
                                           <div className="flex flex-wrap justify-center gap-4">
                                             {triggerBasedAutomations.map((automation: any) => (
-                                              <div key={automation.id}>
+                                              <div key={automation.id} className="w-[400px]">
                                                 {automation.automationType === 'COMMUNICATION' ? (
                                                   <AutomationStepManager automation={automation} onDelete={handleDeleteAutomation} />
                                                 ) : (
@@ -3163,7 +3163,7 @@ export default function Automations() {
                           return globalAutomations.length > 0 ? (
                             <div className="flex flex-wrap justify-center gap-4">
                               {globalAutomations.map((automation: any) => (
-                                <div key={automation.id}>
+                                <div key={automation.id} className="w-[400px]">
                                   {automation.automationType === 'COMMUNICATION' ? (
                                     <AutomationStepManager automation={automation} onDelete={handleDeleteAutomation} />
                                   ) : (
