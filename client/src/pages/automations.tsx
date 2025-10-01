@@ -513,6 +513,16 @@ function StageChangeAutomationCard({ automation, onDelete }: { automation: any, 
     return triggers[triggerType as keyof typeof triggers] || triggerType;
   };
 
+  // Debug log
+  console.log('StageChangeAutomationCard data:', {
+    id: automation.id,
+    name: automation.name,
+    stage: automation.stage,
+    conditionStage: automation.conditionStage,
+    targetStage: automation.targetStage,
+    businessTriggers: automation.businessTriggers
+  });
+
   return (
     <div className="border-2 border-gray-800 dark:border-gray-300 rounded-lg shadow-sm overflow-hidden min-w-[350px] max-w-[375px] mx-auto bg-gray-50 dark:bg-gray-800">
       {/* Card Header - Blue Background */}
