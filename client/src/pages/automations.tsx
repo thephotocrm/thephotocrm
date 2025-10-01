@@ -144,89 +144,90 @@ function AutomationStepManager({ automation, onDelete }: { automation: any, onDe
   };
 
   return (
-    <div className="border-2 border-gray-800 dark:border-gray-300 rounded-lg shadow-sm p-4 space-y-3 max-w-[375px] mx-auto bg-gray-50 dark:bg-gray-800">
-      {/* Card Header */}
-      <div className="flex items-start justify-between">
-        <div className="flex-1">
-          <h3 className="text-lg font-bold mb-2">{automation.name}</h3>
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              {/* Type Badge: Immediate, Time-Based, or Trigger-Based */}
-              <span className="text-sm text-muted-foreground font-medium">Trigger:</span>
-              {automation.businessTriggers && automation.businessTriggers.length > 0 ? (
-                // Trigger-based automation
-                <Badge variant="default" className="bg-purple-500 dark:bg-purple-600 text-white text-xs">
-                  <Target className="w-3 h-3 mr-1" />
-                  {automation.businessTriggers[0].triggerType.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, (l: string) => l.toUpperCase())}
-                </Badge>
-              ) : steps.length > 0 && steps[0].delayMinutes > 0 ? (
-                // Time-based automation (has delay)
-                <Badge variant="default" className="bg-blue-500 dark:bg-blue-600 text-white text-xs">
-                  <Clock className="w-3 h-3 mr-1" />
-                  Delay: {steps[0].delayMinutes < 60 
-                    ? `${steps[0].delayMinutes} minute${steps[0].delayMinutes !== 1 ? 's' : ''}`
-                    : steps[0].delayMinutes < 1440
-                    ? `${Math.floor(steps[0].delayMinutes / 60)} hour${Math.floor(steps[0].delayMinutes / 60) !== 1 ? 's' : ''}`
-                    : `${Math.floor(steps[0].delayMinutes / 1440)} day${Math.floor(steps[0].delayMinutes / 1440) !== 1 ? 's' : ''}`
-                  }
-                </Badge>
-              ) : steps.length > 0 && steps[0].delayMinutes === 0 ? (
-                // Immediate automation (delay is 0)
-                <Badge variant="default" className="bg-amber-500 dark:bg-amber-600 text-white text-xs">
-                  <Zap className="w-3 h-3 mr-1" />
-                  Immediately
-                </Badge>
-              ) : null}
-            </div>
-            
-            {/* Action badges */}
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground font-medium">Action:</span>
-              {automation.channel === 'EMAIL' && (
-                <Badge variant="outline" className="bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800 text-xs">
-                  📧 Email
-                </Badge>
-              )}
-              {automation.channel === 'SMS' && (
-                <Badge variant="outline" className="bg-teal-50 dark:bg-teal-950 text-teal-700 dark:text-teal-300 border-teal-200 dark:border-teal-800 text-xs">
-                  📱 SMS
-                </Badge>
-              )}
-            </div>
-          </div>
-          
-          {/* View Details button */}
-          <button
-            onClick={() => setIsExpanded(!isExpanded)}
-            className="flex items-center gap-1 mt-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
-            data-testid={`button-expand-automation-${automation.id}`}
+    <div className="border-2 border-gray-800 dark:border-gray-300 rounded-lg shadow-sm overflow-hidden max-w-[375px] mx-auto bg-gray-50 dark:bg-gray-800">
+      {/* Card Header - Blue Background */}
+      <div className="bg-blue-900 text-white p-4 flex items-center justify-between">
+        <h3 className="text-lg font-bold flex-1">{automation.name}</h3>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className="bg-white text-blue-900 hover:bg-gray-100"
+            data-testid={`button-edit-automation-${automation.id}`}
+            onClick={() => setEditDialogOpen(true)}
           >
-            <span>View Details</span>
-            {isExpanded ? (
-              <ChevronUp className="w-4 h-4" />
-            ) : (
-              <ChevronDown className="w-4 h-4" />
-            )}
-          </button>
-        </div>
-        
-        {/* Compact Action Bar */}
-        <div className="flex items-center gap-2 ml-4">
+            Edit
+          </Button>
           <Switch 
             checked={automation.enabled}
             disabled={toggleAutomationMutation.isPending}
             data-testid={`switch-automation-${automation.id}`}
             onCheckedChange={handleToggleAutomation}
           />
-          <Button
-            variant="outline"
-            size="sm"
-            data-testid={`button-edit-automation-${automation.id}`}
-            onClick={() => setEditDialogOpen(true)}
-          >
-            Edit
-          </Button>
         </div>
+      </div>
+      
+      {/* Card Content */}
+      <div className="p-4 space-y-3">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            {/* Type Badge: Immediate, Time-Based, or Trigger-Based */}
+            <span className="text-sm text-muted-foreground font-medium">Trigger:</span>
+            {automation.businessTriggers && automation.businessTriggers.length > 0 ? (
+              // Trigger-based automation
+              <Badge variant="default" className="bg-purple-500 dark:bg-purple-600 text-white text-xs">
+                <Target className="w-3 h-3 mr-1" />
+                {automation.businessTriggers[0].triggerType.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, (l: string) => l.toUpperCase())}
+              </Badge>
+            ) : steps.length > 0 && steps[0].delayMinutes > 0 ? (
+              // Time-based automation (has delay)
+              <Badge variant="default" className="bg-blue-500 dark:bg-blue-600 text-white text-xs">
+                <Clock className="w-3 h-3 mr-1" />
+                Delay: {steps[0].delayMinutes < 60 
+                  ? `${steps[0].delayMinutes} minute${steps[0].delayMinutes !== 1 ? 's' : ''}`
+                  : steps[0].delayMinutes < 1440
+                  ? `${Math.floor(steps[0].delayMinutes / 60)} hour${Math.floor(steps[0].delayMinutes / 60) !== 1 ? 's' : ''}`
+                  : `${Math.floor(steps[0].delayMinutes / 1440)} day${Math.floor(steps[0].delayMinutes / 1440) !== 1 ? 's' : ''}`
+                }
+              </Badge>
+            ) : steps.length > 0 && steps[0].delayMinutes === 0 ? (
+              // Immediate automation (delay is 0)
+              <Badge variant="default" className="bg-amber-500 dark:bg-amber-600 text-white text-xs">
+                <Zap className="w-3 h-3 mr-1" />
+                Immediately
+              </Badge>
+            ) : null}
+          </div>
+          
+          {/* Action badges */}
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground font-medium">Action:</span>
+            {automation.channel === 'EMAIL' && (
+              <Badge variant="outline" className="bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800 text-xs">
+                📧 Email
+              </Badge>
+            )}
+            {automation.channel === 'SMS' && (
+              <Badge variant="outline" className="bg-teal-50 dark:bg-teal-950 text-teal-700 dark:text-teal-300 border-teal-200 dark:border-teal-800 text-xs">
+                📱 SMS
+              </Badge>
+            )}
+          </div>
+        </div>
+        
+        {/* View Details button */}
+        <button
+          onClick={() => setIsExpanded(!isExpanded)}
+          className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
+          data-testid={`button-expand-automation-${automation.id}`}
+        >
+          <span>View Details</span>
+          {isExpanded ? (
+            <ChevronUp className="w-4 h-4" />
+          ) : (
+            <ChevronDown className="w-4 h-4" />
+          )}
+        </button>
       </div>
 
       {/* Timeline Steps */}
@@ -567,56 +568,57 @@ function StageChangeAutomationCard({ automation, onDelete }: { automation: any, 
   };
 
   return (
-    <div className="border-2 border-gray-800 dark:border-gray-300 rounded-lg shadow-sm p-4 space-y-3 max-w-[375px] mx-auto bg-gray-50 dark:bg-gray-800">
-      {/* Card Header */}
-      <div className="flex items-start justify-between">
-        <div className="flex-1">
-          <h3 className="text-lg font-bold mb-2">{automation.name}</h3>
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground font-medium">Trigger:</span>
-              <Badge variant="default" className="bg-purple-500 dark:bg-purple-600 text-white text-xs">
-                <Target className="w-3 h-3 mr-1" />
-                {automation.businessTriggers?.[0]?.triggerType?.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, (l: string) => l.toUpperCase()) || 'Stage Entry'}
-              </Badge>
-            </div>
-            
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground font-medium">Action:</span>
-              <Badge variant="outline" className="bg-purple-50 dark:bg-purple-950 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800 text-xs">
-                🔄 Pipeline Change
-              </Badge>
-              {automation.targetStage && (
-                <Badge variant="secondary" className="text-xs flex items-center gap-1">
-                  {automation.stage && (
-                    <>
-                      <span>{automation.stage.name}</span>
-                      <ArrowRight className="w-3 h-3" />
-                    </>
-                  )}
-                  <span>{automation.targetStage.name}</span>
-                </Badge>
-              )}
-            </div>
-          </div>
-        </div>
-        
-        {/* Compact Action Bar */}
-        <div className="flex items-center gap-2 ml-4">
+    <div className="border-2 border-gray-800 dark:border-gray-300 rounded-lg shadow-sm overflow-hidden max-w-[375px] mx-auto bg-gray-50 dark:bg-gray-800">
+      {/* Card Header - Blue Background */}
+      <div className="bg-blue-900 text-white p-4 flex items-center justify-between">
+        <h3 className="text-lg font-bold flex-1">{automation.name}</h3>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className="bg-white text-blue-900 hover:bg-gray-100"
+            onClick={() => setEditDialogOpen(true)}
+            data-testid={`button-edit-automation-${automation.id}`}
+          >
+            Edit
+          </Button>
           <Switch
             checked={automation.enabled}
             onCheckedChange={handleToggleAutomation}
             disabled={toggleAutomationMutation.isPending}
             data-testid={`switch-toggle-automation-${automation.id}`}
           />
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setEditDialogOpen(true)}
-            data-testid={`button-edit-automation-${automation.id}`}
-          >
-            Edit
-          </Button>
+        </div>
+      </div>
+      
+      {/* Card Content */}
+      <div className="p-4 space-y-3">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground font-medium">Trigger:</span>
+            <Badge variant="default" className="bg-purple-500 dark:bg-purple-600 text-white text-xs">
+              <Target className="w-3 h-3 mr-1" />
+              {automation.businessTriggers?.[0]?.triggerType?.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, (l: string) => l.toUpperCase()) || 'Stage Entry'}
+            </Badge>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground font-medium">Action:</span>
+            <Badge variant="outline" className="bg-purple-50 dark:bg-purple-950 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800 text-xs">
+              🔄 Pipeline Change
+            </Badge>
+            {automation.targetStage && (
+              <Badge variant="secondary" className="text-xs flex items-center gap-1">
+                {automation.stage && (
+                  <>
+                    <span>{automation.stage.name}</span>
+                    <ArrowRight className="w-3 h-3" />
+                  </>
+                )}
+                <span>{automation.targetStage.name}</span>
+              </Badge>
+            )}
+          </div>
         </div>
       </div>
 
