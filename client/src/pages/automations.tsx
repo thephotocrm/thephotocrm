@@ -3002,7 +3002,7 @@ export default function Automations() {
                                   });
                                   
                                   return (
-                                    <div key={group.stage.id} className="border-2 border-primary/20 rounded-lg p-4 bg-primary/5 shadow-sm">
+                                    <div key={group.stage.id} className="border-l-4 border-blue-500 rounded-lg p-4 bg-gray-100 dark:bg-gray-800 shadow-sm">
                                       <div className="flex items-center space-x-2 mb-4">
                                         <div className="h-2 w-2 rounded-full bg-primary" />
                                         <h4 className="font-medium text-base">{group.stage.name}</h4>
