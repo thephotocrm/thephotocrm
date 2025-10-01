@@ -3073,9 +3073,9 @@ export default function Automations() {
                                               {immediateAutomations.length}
                                             </Badge>
                                           </div>
-                                          <div className="flex flex-col items-center gap-2">
+                                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                                             {immediateAutomations.map((automation: any) => (
-                                              <div key={automation.id} className="w-full">
+                                              <div key={automation.id} className="flex justify-center">
                                                 {automation.automationType === 'COMMUNICATION' ? (
                                                   <AutomationStepManager automation={automation} onDelete={handleDeleteAutomation} />
                                                 ) : (
@@ -3123,9 +3123,9 @@ export default function Automations() {
                                               {triggerBasedAutomations.length}
                                             </Badge>
                                           </div>
-                                          <div className="flex flex-col items-center gap-2">
+                                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                                             {triggerBasedAutomations.map((automation: any) => (
-                                              <div key={automation.id} className="w-full">
+                                              <div key={automation.id} className="flex justify-center">
                                                 {automation.automationType === 'COMMUNICATION' ? (
                                                   <AutomationStepManager automation={automation} onDelete={handleDeleteAutomation} />
                                                 ) : (
@@ -3161,9 +3161,9 @@ export default function Automations() {
                           const globalAutomations = automations.filter((a: any) => !a.stageId && !a.stageCondition);
                           
                           return globalAutomations.length > 0 ? (
-                            <div className="flex flex-col items-center gap-2">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                               {globalAutomations.map((automation: any) => (
-                                <div key={automation.id} className="w-full">
+                                <div key={automation.id} className="flex justify-center">
                                   {automation.automationType === 'COMMUNICATION' ? (
                                     <AutomationStepManager automation={automation} onDelete={handleDeleteAutomation} />
                                   ) : (
