@@ -3058,7 +3058,7 @@ export default function Automations() {
                                                 <AutomationStepManager automation={automation} onDelete={handleDeleteAutomation} />
                                                 {/* Vertical connector between cards */}
                                                 {index < timeBasedAutomations.length - 1 && (
-                                                  <div className="flex justify-center py-3">
+                                                  <div className="flex justify-center py-3 pt-[1px] pb-[1px]">
                                                     <div className="w-0.5 h-8 bg-border" />
                                                   </div>
                                                 )}
