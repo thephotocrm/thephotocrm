@@ -3102,7 +3102,7 @@ export default function Automations() {
                                           </div>
                                           <div className="flex flex-wrap gap-4 justify-center">
                                             {immediateAutomations.map((automation: any) => (
-                                              <div key={automation.id} className="w-full md:w-[calc(50%-0.5rem)] lg:w-[calc(33.333%-0.667rem)]">
+                                              <div key={automation.id} className="w-full md:w-[calc(50%-0.5rem)]">
                                                 {automation.automationType === 'COMMUNICATION' ? (
                                                   <AutomationStepManager automation={automation} onDelete={handleDeleteAutomation} />
                                                 ) : (
@@ -3152,7 +3152,7 @@ export default function Automations() {
                                           </div>
                                           <div className="flex flex-wrap gap-4 justify-center">
                                             {triggerBasedAutomations.map((automation: any) => (
-                                              <div key={automation.id} className="w-full md:w-[calc(50%-0.5rem)] lg:w-[calc(33.333%-0.667rem)]">
+                                              <div key={automation.id} className="w-full md:w-[calc(50%-0.5rem)]">
                                                 <AutomationStepManager automation={automation} onDelete={handleDeleteAutomation} />
                                               </div>
                                             ))}
