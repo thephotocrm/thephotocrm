@@ -170,7 +170,16 @@ function AutomationStepManager({ automation, onDelete }: { automation: any, onDe
             >
               {automation.channel === 'EMAIL' ? '📧 Email' : '📱 SMS'}
             </Badge>
-            {automation.triggerTiming && automation.triggerTiming !== 'IMMEDIATE' && (
+            
+            {/* Type Badge: Immediate, Time-Based, or Trigger-Based */}
+            {automation.businessTriggers && automation.businessTriggers.length > 0 ? (
+              // Trigger-based automation
+              <Badge variant="default" className="bg-purple-500 dark:bg-purple-600 text-white text-xs">
+                <Target className="w-3 h-3 mr-1" />
+                {automation.businessTriggers[0].triggerType.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, (l: string) => l.toUpperCase())}
+              </Badge>
+            ) : automation.triggerTiming && automation.triggerTiming !== 'IMMEDIATE' ? (
+              // Time-based automation
               <Badge variant="default" className="bg-blue-500 dark:bg-blue-600 text-white text-xs">
                 <Clock className="w-3 h-3 mr-1" />
                 {automation.daysBefore > 0 
@@ -178,7 +187,14 @@ function AutomationStepManager({ automation, onDelete }: { automation: any, onDe
                   : `On ${automation.triggerTiming?.toLowerCase()}`
                 }
               </Badge>
-            )}
+            ) : steps.length > 0 && steps[0].delayMinutes === 0 ? (
+              // Immediate automation (delay is 0)
+              <Badge variant="default" className="bg-amber-500 dark:bg-amber-600 text-white text-xs">
+                <Zap className="w-3 h-3 mr-1" />
+                Immediately
+              </Badge>
+            ) : null}
+            
             {steps.length > 0 && (
               <Badge variant="secondary" className="text-xs">
                 {steps.length} step{steps.length !== 1 ? 's' : ''}
@@ -3072,7 +3088,7 @@ export default function Automations() {
                                         <div className="space-y-3">
                                           <div className="flex items-center justify-center gap-2">
                                             <Zap className="w-5 h-5 text-amber-600 dark:text-amber-400" />
-                                            <h5 className="text-base font-semibold text-muted-foreground uppercase tracking-wide">Immediate</h5>
+                                            <h5 className="text-lg font-semibold text-muted-foreground uppercase tracking-wide">Immediate</h5>
                                             <Badge variant="outline" className="text-sm">
                                               {immediateAutomations.length}
                                             </Badge>
@@ -3096,7 +3112,7 @@ export default function Automations() {
                                         <div className="space-y-3 mt-[30px] mb-[30px]">
                                           <div className="flex items-center justify-center gap-2">
                                             <Clock className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                                            <h5 className="text-base font-semibold text-muted-foreground uppercase tracking-wide">Time-Based</h5>
+                                            <h5 className="text-lg font-semibold text-muted-foreground uppercase tracking-wide">Time-Based</h5>
                                             <Badge variant="outline" className="text-sm">
                                               {timeBasedAutomations.length}
                                             </Badge>
@@ -3122,7 +3138,7 @@ export default function Automations() {
                                         <div className="space-y-3 mt-[30px] mb-[30px]">
                                           <div className="flex items-center justify-center gap-2">
                                             <Target className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-                                            <h5 className="text-base font-semibold text-muted-foreground uppercase tracking-wide">Trigger-Based</h5>
+                                            <h5 className="text-lg font-semibold text-muted-foreground uppercase tracking-wide">Trigger-Based</h5>
                                             <Badge variant="outline" className="text-sm">
                                               {triggerBasedAutomations.length}
                                             </Badge>
