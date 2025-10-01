@@ -144,7 +144,7 @@ function AutomationStepManager({ automation, onDelete }: { automation: any, onDe
   };
 
   return (
-    <div className="border-2 border-gray-800 dark:border-gray-300 rounded-lg shadow-sm overflow-hidden min-w-[350px] max-w-[375px] mx-auto bg-gray-50 dark:bg-gray-800">
+    <div className="border-2 border-gray-800 dark:border-gray-300 rounded-lg shadow-sm overflow-hidden min-w-[350px] max-w-[400px] mx-auto bg-gray-50 dark:bg-gray-800">
       {/* Card Header - Blue Background */}
       <div className="bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white py-2 px-4 flex items-center justify-between">
         <h3 className="text-lg font-bold flex-1">{automation.name}</h3>
@@ -514,7 +514,7 @@ function StageChangeAutomationCard({ automation, onDelete }: { automation: any, 
   };
 
   return (
-    <div className="border-2 border-gray-800 dark:border-gray-300 rounded-lg shadow-sm overflow-hidden min-w-[350px] max-w-[375px] mx-auto bg-gray-50 dark:bg-gray-800">
+    <div className="border-2 border-gray-800 dark:border-gray-300 rounded-lg shadow-sm overflow-hidden min-w-[350px] max-w-[400px] mx-auto bg-gray-50 dark:bg-gray-800">
       {/* Card Header - Blue Background */}
       <div className="bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white py-2 px-4 flex items-center justify-between">
         <h3 className="text-lg font-bold flex-1">{automation.name}</h3>
