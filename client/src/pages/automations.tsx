@@ -3019,19 +3019,13 @@ export default function Automations() {
                                               <Zap className="w-3 h-3 text-amber-600 dark:text-amber-400" />
                                               <h5 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Immediate</h5>
                                             </div>
-                                            <div className="flex flex-col items-center">
-                                              {immediateAutomations.map((automation: any, index: number) => (
-                                                <div key={automation.id} className="w-full">
+                                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                              {immediateAutomations.map((automation: any) => (
+                                                <div key={automation.id}>
                                                   {automation.automationType === 'COMMUNICATION' ? (
                                                     <AutomationStepManager automation={automation} onDelete={handleDeleteAutomation} />
                                                   ) : (
                                                     <StageChangeAutomationCard automation={automation} onDelete={handleDeleteAutomation} />
-                                                  )}
-                                                  {/* Vertical connector between cards */}
-                                                  {index < immediateAutomations.length - 1 && (
-                                                    <div className="flex justify-center py-3">
-                                                      <div className="w-0.5 h-8 bg-border" />
-                                                    </div>
                                                   )}
                                                 </div>
                                               ))}
