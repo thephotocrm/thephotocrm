@@ -828,7 +828,6 @@ function EditAutomationDetails({ automationId, automation }: { automationId: str
           </div>
         </div>
       </div>
-
       {/* Communication Steps */}
       {automation.automationType === 'COMMUNICATION' && steps.length > 0 && (
         <div className="space-y-2">
@@ -871,7 +870,6 @@ function EditAutomationDetails({ automationId, automation }: { automationId: str
           </div>
         </div>
       )}
-
       {/* Pipeline Action */}
       {automation.automationType === 'PIPELINE' && automation.targetStageId && (
         <div className="space-y-2">
@@ -1888,629 +1886,326 @@ export default function Automations() {
 
   return (
     <div>
-        {/* Header */}
-        <header className="bg-card border-b border-border px-4 md:px-6 py-4 relative">
-          
-          {/* Mobile layout */}
-          <div>
-            <h1 className="text-xl md:text-2xl font-semibold">Automations</h1>
-            <p className="text-sm md:text-base text-muted-foreground">Set up automated email and SMS workflows for each stage</p>
-          </div>
-        </header>
+      {/* Header */}
+      <header className="bg-card border-b border-border px-4 md:px-6 py-4 relative">
         
-        {/* Create Automation Dialog */}
-        <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-              <DialogContent className="w-[95vw] sm:max-w-2xl max-h-[92vh] p-0 flex flex-col overflow-hidden">
-                  <DialogHeader className="sticky top-0 z-10 bg-background px-6 py-4 border-b">
-                    <DialogTitle>Create Automation</DialogTitle>
-                    <DialogDescription>
-                      Save time by automating routine tasks for your clients
-                    </DialogDescription>
-                  </DialogHeader>
+        {/* Mobile layout */}
+        <div>
+          <h1 className="text-xl md:text-2xl font-semibold">Automations</h1>
+          <p className="text-sm md:text-base text-muted-foreground">Set up automated email and SMS workflows for each stage</p>
+        </div>
+      </header>
+      {/* Create Automation Dialog */}
+      <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+            <DialogContent className="w-[95vw] sm:max-w-2xl max-h-[92vh] p-0 flex flex-col overflow-hidden">
+                <DialogHeader className="sticky top-0 z-10 bg-background px-6 py-4 border-b">
+                  <DialogTitle>Create Automation</DialogTitle>
+                  <DialogDescription>
+                    Save time by automating routine tasks for your clients
+                  </DialogDescription>
+                </DialogHeader>
+                
+                <Form {...form}>
+                  <form onSubmit={form.handleSubmit(handleCreateAutomation)} className="flex flex-col min-h-0 flex-1">
+                    <div className="flex-1 min-h-0 overflow-y-auto px-6 py-4 space-y-8">
                   
-                  <Form {...form}>
-                    <form onSubmit={form.handleSubmit(handleCreateAutomation)} className="flex flex-col min-h-0 flex-1">
-                      <div className="flex-1 min-h-0 overflow-y-auto px-6 py-4 space-y-8">
-                    
-                    {/* Step 1: Basic Information */}
-                    <div className="space-y-4">
-                      <div className="flex items-center space-x-3">
-                        <div className="flex items-center justify-center w-8 h-8 bg-primary text-primary-foreground rounded-full text-sm font-semibold">
-                          1
-                        </div>
-                        <div>
-                          <h3 className="text-lg font-semibold">Basic Information</h3>
-                          <p className="text-sm text-muted-foreground">Give your automation a descriptive name</p>
-                        </div>
+                  {/* Step 1: Basic Information */}
+                  <div className="space-y-4">
+                    <div className="flex items-center space-x-3">
+                      <div className="flex items-center justify-center w-8 h-8 bg-primary text-primary-foreground rounded-full text-sm font-semibold">
+                        1
                       </div>
-                      
-                      <div className="ml-11 p-4 border rounded-lg bg-card">
-                        <FormField
-                          control={form.control}
-                          name="name"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Automation Name</FormLabel>
-                              <FormControl>
-                                <Input 
-                                  placeholder="e.g., Welcome Email, Follow-up SMS"
-                                  data-testid="input-automation-name"
-                                  {...field} 
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
+                      <div>
+                        <h3 className="text-lg font-semibold">Basic Information</h3>
+                        <p className="text-sm text-muted-foreground">Give your automation a descriptive name</p>
                       </div>
                     </div>
-
-                    {/* Step 2: When (Trigger) */}
-                    <div className="space-y-4">
-                      <div className="flex items-center space-x-3">
-                        <div className="flex items-center justify-center w-8 h-8 bg-primary text-primary-foreground rounded-full text-sm font-semibold">
-                          2
-                        </div>
-                        <div>
-                          <h3 className="text-lg font-semibold">When should this happen?</h3>
-                          <p className="text-sm text-muted-foreground">Choose what event will start this automation</p>
-                        </div>
-                      </div>
-                      
-                      <div className="ml-11 space-y-4 p-4 border rounded-lg bg-amber-50/50 dark:bg-amber-950/20">
-
-                      {/* Trigger Mode Radio Buttons */}
+                    
+                    <div className="ml-11 p-4 border rounded-lg bg-card">
                       <FormField
                         control={form.control}
-                        name="triggerMode"
+                        name="name"
                         render={({ field }) => (
-                          <FormItem className="space-y-3">
+                          <FormItem>
+                            <FormLabel>Automation Name</FormLabel>
                             <FormControl>
-                              <RadioGroup
-                                onValueChange={field.onChange}
-                                value={field.value}
-                                className="flex flex-col space-y-2"
-                                data-testid="radio-trigger-mode"
-                              >
-                                <div className="flex items-center space-x-2">
-                                  <RadioGroupItem value="STAGE" id="trigger-stage" data-testid="radio-trigger-stage" />
-                                  <Label htmlFor="trigger-stage" className="flex items-center space-x-2 cursor-pointer">
-                                    <Users className="h-4 w-4" />
-                                    <span>When a client enters a stage</span>
-                                  </Label>
-                                </div>
-                                <div className="flex items-center space-x-2">
-                                  <RadioGroupItem value="BUSINESS" id="trigger-business" data-testid="radio-trigger-business" />
-                                  <Label htmlFor="trigger-business" className="flex items-center space-x-2 cursor-pointer">
-                                    <Zap className="h-4 w-4" />
-                                    <span>When a business event happens</span>
-                                  </Label>
-                                </div>
-                                <div className="flex items-center space-x-2">
-                                  <RadioGroupItem value="TIME" id="trigger-time" data-testid="radio-trigger-time" />
-                                  <Label htmlFor="trigger-time" className="flex items-center space-x-2 cursor-pointer">
-                                    <Clock className="h-4 w-4" />
-                                    <span>Based on event date</span>
-                                  </Label>
-                                </div>
-                              </RadioGroup>
+                              <Input 
+                                placeholder="e.g., Welcome Email, Follow-up SMS"
+                                data-testid="input-automation-name"
+                                {...field} 
+                              />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
                         )}
                       />
+                    </div>
+                  </div>
 
-                      {/* Stage-based Trigger Fields */}
-                      {form.watch('triggerMode') === 'STAGE' && (
-                        <FormField
-                          control={form.control}
-                          name="triggerStageId"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Which stage triggers this?</FormLabel>
-                              <Select onValueChange={field.onChange} value={field.value || ""}>
-                                <FormControl>
-                                  <SelectTrigger data-testid="select-trigger-stage">
-                                    <SelectValue placeholder="Select the stage that triggers this" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  <SelectItem value="global">All Stages (Global trigger)</SelectItem>
-                                  {stages?.map((stage: any) => (
-                                    <SelectItem key={stage.id} value={stage.id}>
-                                      {stage.name}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                              <FormDescription>
-                                The automation starts when a client moves into this stage
-                              </FormDescription>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
+                  {/* Step 2: When (Trigger) */}
+                  <div className="space-y-4">
+                    <div className="flex items-center space-x-3">
+                      <div className="flex items-center justify-center w-8 h-8 bg-primary text-primary-foreground rounded-full text-sm font-semibold">
+                        2
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-semibold">When should this happen?</h3>
+                        <p className="text-sm text-muted-foreground">Choose what event will start this automation</p>
+                      </div>
+                    </div>
+                    
+                    <div className="ml-11 space-y-4 p-4 border rounded-lg bg-amber-50/50 dark:bg-amber-950/20">
+
+                    {/* Trigger Mode Radio Buttons */}
+                    <FormField
+                      control={form.control}
+                      name="triggerMode"
+                      render={({ field }) => (
+                        <FormItem className="space-y-3">
+                          <FormControl>
+                            <RadioGroup
+                              onValueChange={field.onChange}
+                              value={field.value}
+                              className="flex flex-col space-y-2"
+                              data-testid="radio-trigger-mode"
+                            >
+                              <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="STAGE" id="trigger-stage" data-testid="radio-trigger-stage" />
+                                <Label htmlFor="trigger-stage" className="flex items-center space-x-2 cursor-pointer">
+                                  <Users className="h-4 w-4" />
+                                  <span>When a client enters a stage</span>
+                                </Label>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="BUSINESS" id="trigger-business" data-testid="radio-trigger-business" />
+                                <Label htmlFor="trigger-business" className="flex items-center space-x-2 cursor-pointer">
+                                  <Zap className="h-4 w-4" />
+                                  <span>When a business event happens</span>
+                                </Label>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="TIME" id="trigger-time" data-testid="radio-trigger-time" />
+                                <Label htmlFor="trigger-time" className="flex items-center space-x-2 cursor-pointer">
+                                  <Clock className="h-4 w-4" />
+                                  <span>Based on event date</span>
+                                </Label>
+                              </div>
+                            </RadioGroup>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
                       )}
+                    />
 
-                      {/* Business Event Trigger Fields */}
-                      {form.watch('triggerMode') === 'BUSINESS' && (
-                        <FormField
-                          control={form.control}
-                          name="triggerEvent"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Which business event?</FormLabel>
-                              <Select onValueChange={field.onChange} value={field.value || ""}>
-                                <FormControl>
-                                  <SelectTrigger data-testid="select-trigger-event">
-                                    <SelectValue placeholder="Select the business event" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  <SelectItem value="DEPOSIT_PAID">💳 Deposit Payment Received</SelectItem>
-                                  <SelectItem value="FULL_PAYMENT_MADE">✅ Full Payment Completed</SelectItem>
-                                  <SelectItem value="PROJECT_BOOKED">📋 Project Booked/Contract Signed</SelectItem>
-                                  <SelectItem value="ESTIMATE_ACCEPTED">📄 Estimate Accepted</SelectItem>
-                                  <SelectItem value="EVENT_DATE_REACHED">📅 Event Date Reached</SelectItem>
-                                  <SelectItem value="PROJECT_DELIVERED">📦 Project Delivered</SelectItem>
-                                  <SelectItem value="CLIENT_ONBOARDED">🎯 Client Onboarded</SelectItem>
-                                  <SelectItem value="APPOINTMENT_BOOKED">📅 Appointment Booked</SelectItem>
-                                </SelectContent>
-                              </Select>
-                              <FormDescription>
-                                The automation starts when this happens in your business
-                              </FormDescription>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      )}
+                    {/* Stage-based Trigger Fields */}
+                    {form.watch('triggerMode') === 'STAGE' && (
+                      <FormField
+                        control={form.control}
+                        name="triggerStageId"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Which stage triggers this?</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value || ""}>
+                              <FormControl>
+                                <SelectTrigger data-testid="select-trigger-stage">
+                                  <SelectValue placeholder="Select the stage that triggers this" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="global">All Stages (Global trigger)</SelectItem>
+                                {stages?.map((stage: any) => (
+                                  <SelectItem key={stage.id} value={stage.id}>
+                                    {stage.name}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormDescription>
+                              The automation starts when a client moves into this stage
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    )}
 
-                      {/* Time-based Trigger Fields */}
-                      {form.watch('triggerMode') === 'TIME' && (
-                        <div className="space-y-4">
-                          <div className="grid grid-cols-2 gap-4">
-                            <FormField
-                              control={form.control}
-                              name="daysBefore"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Number of Days</FormLabel>
-                                  <FormControl>
-                                    <Input 
-                                      type="number"
-                                      min="1"
-                                      max="365"
-                                      placeholder="e.g., 7"
-                                      data-testid="input-days-before"
-                                      {...field}
-                                      onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                                    />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
+                    {/* Business Event Trigger Fields */}
+                    {form.watch('triggerMode') === 'BUSINESS' && (
+                      <FormField
+                        control={form.control}
+                        name="triggerEvent"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Which business event?</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value || ""}>
+                              <FormControl>
+                                <SelectTrigger data-testid="select-trigger-event">
+                                  <SelectValue placeholder="Select the business event" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="DEPOSIT_PAID">💳 Deposit Payment Received</SelectItem>
+                                <SelectItem value="FULL_PAYMENT_MADE">✅ Full Payment Completed</SelectItem>
+                                <SelectItem value="PROJECT_BOOKED">📋 Project Booked/Contract Signed</SelectItem>
+                                <SelectItem value="ESTIMATE_ACCEPTED">📄 Estimate Accepted</SelectItem>
+                                <SelectItem value="EVENT_DATE_REACHED">📅 Event Date Reached</SelectItem>
+                                <SelectItem value="PROJECT_DELIVERED">📦 Project Delivered</SelectItem>
+                                <SelectItem value="CLIENT_ONBOARDED">🎯 Client Onboarded</SelectItem>
+                                <SelectItem value="APPOINTMENT_BOOKED">📅 Appointment Booked</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormDescription>
+                              The automation starts when this happens in your business
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    )}
 
-                            <FormField
-                              control={form.control}
-                              name="triggerTiming"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Before or After?</FormLabel>
-                                  <Select onValueChange={field.onChange} value={field.value}>
-                                    <FormControl>
-                                      <SelectTrigger data-testid="select-trigger-timing">
-                                        <SelectValue placeholder="Select timing" />
-                                      </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                      <SelectItem value="BEFORE">Before</SelectItem>
-                                      <SelectItem value="AFTER">After</SelectItem>
-                                    </SelectContent>
-                                  </Select>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                          </div>
-
+                    {/* Time-based Trigger Fields */}
+                    {form.watch('triggerMode') === 'TIME' && (
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-2 gap-4">
                           <FormField
                             control={form.control}
-                            name="eventType"
+                            name="daysBefore"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>Based on which date?</FormLabel>
-                                <Select onValueChange={field.onChange} value={field.value || ""}>
-                                  <FormControl>
-                                    <SelectTrigger data-testid="select-event-type">
-                                      <SelectValue placeholder="Choose which date to count from" />
-                                    </SelectTrigger>
-                                  </FormControl>
-                                  <SelectContent>
-                                    <SelectItem value="placeholder" disabled>Select an event type...</SelectItem>
-                                    <SelectItem value="EVENT_DATE">📅 Event Date</SelectItem>
-                                    <SelectItem value="DELIVERY_DATE">📦 Delivery Date</SelectItem>
-                                    <SelectItem value="CONSULTATION_DATE">💬 Consultation Date</SelectItem>
-                                    <SelectItem value="SHOOT_DATE">📸 Shoot Date</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                                <FormDescription>
-                                  The automation will count days from this date
-                                </FormDescription>
+                                <FormLabel>Number of Days</FormLabel>
+                                <FormControl>
+                                  <Input 
+                                    type="number"
+                                    min="1"
+                                    max="365"
+                                    placeholder="e.g., 7"
+                                    data-testid="input-days-before"
+                                    {...field}
+                                    onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                                  />
+                                </FormControl>
                                 <FormMessage />
                               </FormItem>
                             )}
                           />
 
-                          <div className="grid grid-cols-2 gap-4">
-                            <FormField
-                              control={form.control}
-                              name="triggerHour"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>At what time? (Hour)</FormLabel>
-                                  <Select onValueChange={(value) => field.onChange(parseInt(value))} value={field.value?.toString()}>
-                                    <FormControl>
-                                      <SelectTrigger data-testid="select-trigger-hour">
-                                        <SelectValue placeholder="Select hour" />
-                                      </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                      {Array.from({ length: 24 }, (_, i) => (
-                                        <SelectItem key={i} value={i.toString()}>
-                                          {i.toString().padStart(2, '0')}:00 {i < 12 ? 'AM' : 'PM'}
-                                        </SelectItem>
-                                      ))}
-                                    </SelectContent>
-                                  </Select>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-
-                            <FormField
-                              control={form.control}
-                              name="triggerMinute"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Minute</FormLabel>
-                                  <Select onValueChange={(value) => field.onChange(parseInt(value))} value={field.value?.toString()}>
-                                    <FormControl>
-                                      <SelectTrigger data-testid="select-trigger-minute">
-                                        <SelectValue placeholder="Select minute" />
-                                      </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                      {[0, 15, 30, 45].map((minute) => (
-                                        <SelectItem key={minute} value={minute.toString()}>
-                                          :{minute.toString().padStart(2, '0')}
-                                        </SelectItem>
-                                      ))}
-                                    </SelectContent>
-                                  </Select>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                          </div>
-
                           <FormField
                             control={form.control}
-                            name="stageCondition"
+                            name="triggerTiming"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>Only for clients in (Optional)</FormLabel>
-                                <Select onValueChange={field.onChange} value={field.value || ""}>
+                                <FormLabel>Before or After?</FormLabel>
+                                <Select onValueChange={field.onChange} value={field.value}>
                                   <FormControl>
-                                    <SelectTrigger data-testid="select-stage-condition">
-                                      <SelectValue placeholder="Leave blank for all clients, or choose a stage" />
+                                    <SelectTrigger data-testid="select-trigger-timing">
+                                      <SelectValue placeholder="Select timing" />
                                     </SelectTrigger>
                                   </FormControl>
                                   <SelectContent>
-                                    <SelectItem value="all">All Stages</SelectItem>
-                                    {stages?.map((stage: any) => (
-                                      <SelectItem key={stage.id} value={stage.id}>
-                                        {stage.name}
+                                    <SelectItem value="BEFORE">Before</SelectItem>
+                                    <SelectItem value="AFTER">After</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+
+                        <FormField
+                          control={form.control}
+                          name="eventType"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Based on which date?</FormLabel>
+                              <Select onValueChange={field.onChange} value={field.value || ""}>
+                                <FormControl>
+                                  <SelectTrigger data-testid="select-event-type">
+                                    <SelectValue placeholder="Choose which date to count from" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="placeholder" disabled>Select an event type...</SelectItem>
+                                  <SelectItem value="EVENT_DATE">📅 Event Date</SelectItem>
+                                  <SelectItem value="DELIVERY_DATE">📦 Delivery Date</SelectItem>
+                                  <SelectItem value="CONSULTATION_DATE">💬 Consultation Date</SelectItem>
+                                  <SelectItem value="SHOOT_DATE">📸 Shoot Date</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <FormDescription>
+                                The automation will count days from this date
+                              </FormDescription>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <div className="grid grid-cols-2 gap-4">
+                          <FormField
+                            control={form.control}
+                            name="triggerHour"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>At what time? (Hour)</FormLabel>
+                                <Select onValueChange={(value) => field.onChange(parseInt(value))} value={field.value?.toString()}>
+                                  <FormControl>
+                                    <SelectTrigger data-testid="select-trigger-hour">
+                                      <SelectValue placeholder="Select hour" />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    {Array.from({ length: 24 }, (_, i) => (
+                                      <SelectItem key={i} value={i.toString()}>
+                                        {i.toString().padStart(2, '0')}:00 {i < 12 ? 'AM' : 'PM'}
                                       </SelectItem>
                                     ))}
                                   </SelectContent>
                                 </Select>
-                                <FormDescription>
-                                  Leave blank to include all clients, or pick a specific stage
-                                </FormDescription>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={form.control}
+                            name="triggerMinute"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Minute</FormLabel>
+                                <Select onValueChange={(value) => field.onChange(parseInt(value))} value={field.value?.toString()}>
+                                  <FormControl>
+                                    <SelectTrigger data-testid="select-trigger-minute">
+                                      <SelectValue placeholder="Select minute" />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    {[0, 15, 30, 45].map((minute) => (
+                                      <SelectItem key={minute} value={minute.toString()}>
+                                        :{minute.toString().padStart(2, '0')}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
                                 <FormMessage />
                               </FormItem>
                             )}
                           />
                         </div>
-                      )}
-                      </div>
-                    </div>
-
-                    {/* Step 3: What Actions */}
-                    <div className="space-y-4">
-                      <div className="flex items-center space-x-3">
-                        <div className="flex items-center justify-center w-8 h-8 bg-primary text-primary-foreground rounded-full text-sm font-semibold">
-                          3
-                        </div>
-                        <div>
-                          <h3 className="text-lg font-semibold">What should happen?</h3>
-                          <p className="text-sm text-muted-foreground">Choose what actions this automation should take</p>
-                        </div>
-                      </div>
-                      
-                      <div className="ml-11 space-y-4">
-                      
-                      {/* Communication Actions Toggle */}
-                      <div className="flex items-center space-x-2 p-3 border rounded-lg">
-                        <Switch
-                          checked={enableCommunication}
-                          onCheckedChange={setEnableCommunication}
-                          data-testid="switch-enable-communication"
-                        />
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-2">
-                            <Mail className="h-4 w-4" />
-                            <Label className="font-medium">Send Messages</Label>
-                          </div>
-                          <p className="text-xs text-muted-foreground">Send emails, texts, or assign forms to clients</p>
-                        </div>
-                      </div>
-
-                      {/* Pipeline Actions Toggle */}
-                      <div className="flex items-center space-x-2 p-3 border rounded-lg">
-                        <Switch
-                          checked={enablePipeline}
-                          onCheckedChange={setEnablePipeline}
-                          data-testid="switch-enable-pipeline"
-                        />
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-2">
-                            <ArrowRight className="h-4 w-4" />
-                            <Label className="font-medium">Move Projects</Label>
-                          </div>
-                          <p className="text-xs text-muted-foreground">
-                            {enablePipeline 
-                              ? "Move projects to the next stage automatically" 
-                              : "Automatically move projects through your pipeline"
-                            }
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Current Limitations Info */}
-                    {enablePipeline && form.watch('triggerMode') === 'STAGE' ? (
-                      <div className="p-3 bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
-                        <div className="flex items-start space-x-2">
-                          <AlertCircle className="h-4 w-4 text-yellow-600 mt-0.5 flex-shrink-0" />
-                          <div className="text-sm text-yellow-800 dark:text-yellow-200">
-                            <p className="font-medium mb-1">Current Limitations:</p>
-                            <ul className="text-xs space-y-1">
-                              <li>• Stage-based triggers for pipeline actions are coming soon</li>
-                            </ul>
-                            <p className="text-xs mt-2 opacity-75">Currently supported: Stage triggers for communication, Business events for pipeline</p>
-                          </div>
-                        </div>
-                      </div>
-                    ) : null}
-
-                    {/* Communication Automation Fields */}
-                    {enableCommunication && (
-                      <div className="space-y-4 p-4 border rounded-lg bg-blue-50/50 dark:bg-blue-950/20">
-                        <div className="flex items-center space-x-2">
-                          <Mail className="h-4 w-4 text-blue-600" />
-                          <Label className="font-medium text-blue-900 dark:text-blue-100">Message Settings</Label>
-                        </div>
-
-                    <FormField
-                      control={form.control}
-                      name="channel"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Contact method</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value}>
-                            <FormControl>
-                              <SelectTrigger data-testid="select-channel">
-                                <SelectValue />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="EMAIL">📧 Email</SelectItem>
-                              <SelectItem value="SMS">📱 SMS</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="templateId"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>What to send</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value || ""}>
-                            <FormControl>
-                              <SelectTrigger data-testid="select-template">
-                                <SelectValue placeholder="Choose a message template" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {templates
-                                .filter((t: any) => t.channel === form.watch('channel'))
-                                .map((template: any) => (
-                                  <SelectItem key={template.id} value={template.id}>
-                                    {template.name}
-                                  </SelectItem>
-                                ))}
-                              {templates.filter((t: any) => t.channel === form.watch('channel')).length === 0 && (
-                                <SelectItem value="unavailable" disabled>
-                                  No {form.watch('channel').toLowerCase()} templates available - create templates first
-                                </SelectItem>
-                              )}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="questionnaireTemplateId"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Forms to send (Optional)</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value || ""}>
-                            <FormControl>
-                              <SelectTrigger data-testid="select-questionnaire">
-                                <SelectValue placeholder="Choose a form to send (optional)" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="none">No forms to send</SelectItem>
-                              {questionnaireTemplates?.map((questionnaire: any) => (
-                                <SelectItem key={questionnaire.id} value={questionnaire.id}>
-                                  📋 {questionnaire.name}
-                                </SelectItem>
-                              ))}
-                              {questionnaireTemplates?.length === 0 && (
-                                <SelectItem value="unavailable" disabled>
-                                  No questionnaire templates available - create questionnaires first
-                                </SelectItem>
-                              )}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <div className="space-y-3">
-                      <FormLabel>Send Timing {timingMode === 'delayed' && <span className="text-blue-600 dark:text-blue-400 font-semibold">(Delay Active)</span>}</FormLabel>
-                      <div className="grid grid-cols-2 gap-2">
-                        <Button
-                          type="button"
-                          variant={timingMode === 'immediate' ? 'default' : 'outline'}
-                          className="w-full"
-                          onClick={() => {
-                            setTimingMode('immediate');
-                            form.setValue('delayMinutes', 0);
-                            form.setValue('delayHours', 0);
-                            form.setValue('delayDays', 0);
-                          }}
-                          data-testid="button-timing-immediate"
-                        >
-                          Send Immediately
-                        </Button>
-                        <Button
-                          type="button"
-                          variant={timingMode === 'delayed' ? 'default' : 'outline'}
-                          className="w-full"
-                          onClick={() => setTimingMode('delayed')}
-                          data-testid="button-timing-delayed"
-                        >
-                          Send After Delay
-                        </Button>
-                      </div>
-
-                      {timingMode === 'delayed' && (
-                        <div className="space-y-2 p-3 border rounded-lg bg-blue-50/50 dark:bg-blue-950/20">
-                          <p className="text-xs text-muted-foreground">Set the delay before sending the message</p>
-                          <div className="grid grid-cols-3 gap-2">
-                            <FormField
-                              control={form.control}
-                              name="delayDays"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel className="text-xs">Days</FormLabel>
-                                  <FormControl>
-                                    <Input
-                                      type="number"
-                                      min="0"
-                                      placeholder="0"
-                                      data-testid="input-delay-days"
-                                      {...field}
-                                      onChange={e => field.onChange(parseInt(e.target.value) || 0)}
-                                    />
-                                  </FormControl>
-                                </FormItem>
-                              )}
-                            />
-                            <FormField
-                              control={form.control}
-                              name="delayHours"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel className="text-xs">Hours</FormLabel>
-                                  <FormControl>
-                                    <Input
-                                      type="number"
-                                      min="0"
-                                      max="23"
-                                      placeholder="0"
-                                      data-testid="input-delay-hours"
-                                      {...field}
-                                      onChange={e => field.onChange(parseInt(e.target.value) || 0)}
-                                    />
-                                  </FormControl>
-                                </FormItem>
-                              )}
-                            />
-                            <FormField
-                              control={form.control}
-                              name="delayMinutes"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel className="text-xs">Minutes</FormLabel>
-                                  <FormControl>
-                                    <Input
-                                      type="number"
-                                      min="0"
-                                      max="59"
-                                      placeholder="0"
-                                      data-testid="input-delay-minutes"
-                                      {...field}
-                                      onChange={e => field.onChange(parseInt(e.target.value) || 0)}
-                                    />
-                                  </FormControl>
-                                </FormItem>
-                              )}
-                            />
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                        </div>
-                    )}
-
-                    {/* Pipeline Action Fields - Simplified */}
-                    {enablePipeline && (
-                      <div className="space-y-4 p-4 border rounded-lg bg-green-50/50 dark:bg-green-950/20">
-                        <div className="flex items-center space-x-2">
-                          <ArrowRight className="h-4 w-4 text-green-600" />
-                          <Label className="font-medium text-green-900 dark:text-green-100">Pipeline Action</Label>
-                        </div>
-                        <p className="text-xs text-muted-foreground">
-                          Configure what stage the project should move to when this automation triggers
-                        </p>
 
                         <FormField
                           control={form.control}
-                          name="targetStageId"
+                          name="stageCondition"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Move Project To Stage</FormLabel>
+                              <FormLabel>Only for clients in (Optional)</FormLabel>
                               <Select onValueChange={field.onChange} value={field.value || ""}>
                                 <FormControl>
-                                  <SelectTrigger data-testid="select-target-stage">
-                                    <SelectValue placeholder="Select destination stage" />
+                                  <SelectTrigger data-testid="select-stage-condition">
+                                    <SelectValue placeholder="Leave blank for all clients, or choose a stage" />
                                   </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
+                                  <SelectItem value="all">All Stages</SelectItem>
                                   {stages?.map((stage: any) => (
                                     <SelectItem key={stage.id} value={stage.id}>
                                       {stage.name}
@@ -2519,7 +2214,7 @@ export default function Automations() {
                                 </SelectContent>
                               </Select>
                               <FormDescription>
-                                Projects will automatically move to this stage when the automation triggers
+                                Leave blank to include all clients, or pick a specific stage
                               </FormDescription>
                               <FormMessage />
                             </FormItem>
@@ -2527,38 +2222,381 @@ export default function Automations() {
                         />
                       </div>
                     )}
+                    </div>
+                  </div>
+
+                  {/* Step 3: What Actions */}
+                  <div className="space-y-4">
+                    <div className="flex items-center space-x-3">
+                      <div className="flex items-center justify-center w-8 h-8 bg-primary text-primary-foreground rounded-full text-sm font-semibold">
+                        3
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-semibold">What should happen?</h3>
+                        <p className="text-sm text-muted-foreground">Choose what actions this automation should take</p>
+                      </div>
+                    </div>
+                    
+                    <div className="ml-11 space-y-4">
+                    
+                    {/* Communication Actions Toggle */}
+                    <div className="flex items-center space-x-2 p-3 border rounded-lg">
+                      <Switch
+                        checked={enableCommunication}
+                        onCheckedChange={setEnableCommunication}
+                        data-testid="switch-enable-communication"
+                      />
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-2">
+                          <Mail className="h-4 w-4" />
+                          <Label className="font-medium">Send Messages</Label>
+                        </div>
+                        <p className="text-xs text-muted-foreground">Send emails, texts, or assign forms to clients</p>
                       </div>
                     </div>
 
-                    {/* Footer with Submit Buttons */}
-                    <div className="sticky bottom-0 bg-background px-6 py-4 border-t flex justify-end space-x-2">
+                    {/* Pipeline Actions Toggle */}
+                    <div className="flex items-center space-x-2 p-3 border rounded-lg">
+                      <Switch
+                        checked={enablePipeline}
+                        onCheckedChange={setEnablePipeline}
+                        data-testid="switch-enable-pipeline"
+                      />
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-2">
+                          <ArrowRight className="h-4 w-4" />
+                          <Label className="font-medium">Move Projects</Label>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          {enablePipeline 
+                            ? "Move projects to the next stage automatically" 
+                            : "Automatically move projects through your pipeline"
+                          }
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Current Limitations Info */}
+                  {enablePipeline && form.watch('triggerMode') === 'STAGE' ? (
+                    <div className="p-3 bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+                      <div className="flex items-start space-x-2">
+                        <AlertCircle className="h-4 w-4 text-yellow-600 mt-0.5 flex-shrink-0" />
+                        <div className="text-sm text-yellow-800 dark:text-yellow-200">
+                          <p className="font-medium mb-1">Current Limitations:</p>
+                          <ul className="text-xs space-y-1">
+                            <li>• Stage-based triggers for pipeline actions are coming soon</li>
+                          </ul>
+                          <p className="text-xs mt-2 opacity-75">Currently supported: Stage triggers for communication, Business events for pipeline</p>
+                        </div>
+                      </div>
+                    </div>
+                  ) : null}
+
+                  {/* Communication Automation Fields */}
+                  {enableCommunication && (
+                    <div className="space-y-4 p-4 border rounded-lg bg-blue-50/50 dark:bg-blue-950/20">
+                      <div className="flex items-center space-x-2">
+                        <Mail className="h-4 w-4 text-blue-600" />
+                        <Label className="font-medium text-blue-900 dark:text-blue-100">Message Settings</Label>
+                      </div>
+
+                  <FormField
+                    control={form.control}
+                    name="channel"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Contact method</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger data-testid="select-channel">
+                              <SelectValue />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="EMAIL">📧 Email</SelectItem>
+                            <SelectItem value="SMS">📱 SMS</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="templateId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>What to send</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value || ""}>
+                          <FormControl>
+                            <SelectTrigger data-testid="select-template">
+                              <SelectValue placeholder="Choose a message template" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {templates
+                              .filter((t: any) => t.channel === form.watch('channel'))
+                              .map((template: any) => (
+                                <SelectItem key={template.id} value={template.id}>
+                                  {template.name}
+                                </SelectItem>
+                              ))}
+                            {templates.filter((t: any) => t.channel === form.watch('channel')).length === 0 && (
+                              <SelectItem value="unavailable" disabled>
+                                No {form.watch('channel').toLowerCase()} templates available - create templates first
+                              </SelectItem>
+                            )}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="questionnaireTemplateId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Forms to send (Optional)</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value || ""}>
+                          <FormControl>
+                            <SelectTrigger data-testid="select-questionnaire">
+                              <SelectValue placeholder="Choose a form to send (optional)" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="none">No forms to send</SelectItem>
+                            {questionnaireTemplates?.map((questionnaire: any) => (
+                              <SelectItem key={questionnaire.id} value={questionnaire.id}>
+                                📋 {questionnaire.name}
+                              </SelectItem>
+                            ))}
+                            {questionnaireTemplates?.length === 0 && (
+                              <SelectItem value="unavailable" disabled>
+                                No questionnaire templates available - create questionnaires first
+                              </SelectItem>
+                            )}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <div className="space-y-3">
+                    <FormLabel>Send Timing {timingMode === 'delayed' && <span className="text-blue-600 dark:text-blue-400 font-semibold">(Delay Active)</span>}</FormLabel>
+                    <div className="grid grid-cols-2 gap-2">
                       <Button
-                        type="button" 
-                        variant="outline"
-                        onClick={() => setCreateDialogOpen(false)}
-                        data-testid="button-cancel-automation"
+                        type="button"
+                        variant={timingMode === 'immediate' ? 'default' : 'outline'}
+                        className="w-full"
+                        onClick={() => {
+                          setTimingMode('immediate');
+                          form.setValue('delayMinutes', 0);
+                          form.setValue('delayHours', 0);
+                          form.setValue('delayDays', 0);
+                        }}
+                        data-testid="button-timing-immediate"
                       >
-                        Cancel
+                        Send Immediately
                       </Button>
-                      <Button 
-                        type="submit" 
-                        disabled={
-                          createAutomationMutation.isPending ||
-                          (() => {
+                      <Button
+                        type="button"
+                        variant={timingMode === 'delayed' ? 'default' : 'outline'}
+                        className="w-full"
+                        onClick={() => setTimingMode('delayed')}
+                        data-testid="button-timing-delayed"
+                      >
+                        Send After Delay
+                      </Button>
+                    </div>
+
+                    {timingMode === 'delayed' && (
+                      <div className="space-y-2 p-3 border rounded-lg bg-blue-50/50 dark:bg-blue-950/20">
+                        <p className="text-xs text-muted-foreground">Set the delay before sending the message</p>
+                        <div className="grid grid-cols-3 gap-2">
+                          <FormField
+                            control={form.control}
+                            name="delayDays"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-xs">Days</FormLabel>
+                                <FormControl>
+                                  <Input
+                                    type="number"
+                                    min="0"
+                                    placeholder="0"
+                                    data-testid="input-delay-days"
+                                    {...field}
+                                    onChange={e => field.onChange(parseInt(e.target.value) || 0)}
+                                  />
+                                </FormControl>
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="delayHours"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-xs">Hours</FormLabel>
+                                <FormControl>
+                                  <Input
+                                    type="number"
+                                    min="0"
+                                    max="23"
+                                    placeholder="0"
+                                    data-testid="input-delay-hours"
+                                    {...field}
+                                    onChange={e => field.onChange(parseInt(e.target.value) || 0)}
+                                  />
+                                </FormControl>
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="delayMinutes"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-xs">Minutes</FormLabel>
+                                <FormControl>
+                                  <Input
+                                    type="number"
+                                    min="0"
+                                    max="59"
+                                    placeholder="0"
+                                    data-testid="input-delay-minutes"
+                                    {...field}
+                                    onChange={e => field.onChange(parseInt(e.target.value) || 0)}
+                                  />
+                                </FormControl>
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                      </div>
+                  )}
+
+                  {/* Pipeline Action Fields - Simplified */}
+                  {enablePipeline && (
+                    <div className="space-y-4 p-4 border rounded-lg bg-green-50/50 dark:bg-green-950/20">
+                      <div className="flex items-center space-x-2">
+                        <ArrowRight className="h-4 w-4 text-green-600" />
+                        <Label className="font-medium text-green-900 dark:text-green-100">Pipeline Action</Label>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Configure what stage the project should move to when this automation triggers
+                      </p>
+
+                      <FormField
+                        control={form.control}
+                        name="targetStageId"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Move Project To Stage</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value || ""}>
+                              <FormControl>
+                                <SelectTrigger data-testid="select-target-stage">
+                                  <SelectValue placeholder="Select destination stage" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {stages?.map((stage: any) => (
+                                  <SelectItem key={stage.id} value={stage.id}>
+                                    {stage.name}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormDescription>
+                              Projects will automatically move to this stage when the automation triggers
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  )}
+                    </div>
+                  </div>
+
+                  {/* Footer with Submit Buttons */}
+                  <div className="sticky bottom-0 bg-background px-6 py-4 border-t flex justify-end space-x-2">
+                    <Button
+                      type="button" 
+                      variant="outline"
+                      onClick={() => setCreateDialogOpen(false)}
+                      data-testid="button-cancel-automation"
+                    >
+                      Cancel
+                    </Button>
+                    <Button 
+                      type="submit" 
+                      disabled={
+                        createAutomationMutation.isPending ||
+                        (() => {
+                          // At least one automation type must be enabled
+                          if (!enableCommunication && !enablePipeline) {
+                            return true;
+                          }
+                          
+                          // Validate unified trigger settings
+                          const triggerMode = form.watch('triggerMode');
+                          if (triggerMode === 'STAGE') {
+                            if (!form.watch('triggerStageId')) {
+                              return true;
+                            }
+                          } else if (triggerMode === 'BUSINESS') {
+                            if (!form.watch('triggerEvent')) {
+                              return true;
+                            }
+                          }
+                          
+                          // Validate communication fields if enabled
+                          if (enableCommunication) {
+                            const hasTemplate = form.watch('templateId') && form.watch('templateId') !== 'unavailable';
+                            const hasQuestionnaire = form.watch('questionnaireTemplateId') && form.watch('questionnaireTemplateId') !== 'unavailable' && form.watch('questionnaireTemplateId') !== 'none';
+                            if (!hasTemplate && !hasQuestionnaire) {
+                              return true;
+                            }
+                          }
+                          
+                          // Validate pipeline fields if enabled
+                          if (enablePipeline) {
+                            if (!form.watch('targetStageId')) {
+                              return true;
+                            }
+                          }
+                          
+                          return false;
+                        })()
+                      }
+                      data-testid="button-submit-automation"
+                    >
+                      {createAutomationMutation.isPending 
+                        ? "Creating..." 
+                        : (() => {
                             // At least one automation type must be enabled
                             if (!enableCommunication && !enablePipeline) {
-                              return true;
+                              return "Enable at least one action";
                             }
                             
                             // Validate unified trigger settings
                             const triggerMode = form.watch('triggerMode');
                             if (triggerMode === 'STAGE') {
                               if (!form.watch('triggerStageId')) {
-                                return true;
+                                return "Select trigger stage";
                               }
                             } else if (triggerMode === 'BUSINESS') {
                               if (!form.watch('triggerEvent')) {
-                                return true;
+                                return "Select business event";
                               }
                             }
                             
@@ -2567,557 +2605,510 @@ export default function Automations() {
                               const hasTemplate = form.watch('templateId') && form.watch('templateId') !== 'unavailable';
                               const hasQuestionnaire = form.watch('questionnaireTemplateId') && form.watch('questionnaireTemplateId') !== 'unavailable' && form.watch('questionnaireTemplateId') !== 'none';
                               if (!hasTemplate && !hasQuestionnaire) {
-                                return true;
+                                return "Select template or questionnaire";
                               }
                             }
                             
                             // Validate pipeline fields if enabled
                             if (enablePipeline) {
                               if (!form.watch('targetStageId')) {
-                                return true;
+                                return "Select target stage";
                               }
                             }
                             
-                            return false;
+                            const actions = [];
+                            if (enableCommunication) actions.push("Communication");
+                            if (enablePipeline) actions.push("Pipeline");
+                            
+                            return `Create ${actions.join(" + ")} Automation${actions.length > 1 ? "s" : ""}`;
                           })()
-                        }
-                        data-testid="button-submit-automation"
-                      >
-                        {createAutomationMutation.isPending 
-                          ? "Creating..." 
-                          : (() => {
-                              // At least one automation type must be enabled
-                              if (!enableCommunication && !enablePipeline) {
-                                return "Enable at least one action";
-                              }
-                              
-                              // Validate unified trigger settings
-                              const triggerMode = form.watch('triggerMode');
-                              if (triggerMode === 'STAGE') {
-                                if (!form.watch('triggerStageId')) {
-                                  return "Select trigger stage";
-                                }
-                              } else if (triggerMode === 'BUSINESS') {
-                                if (!form.watch('triggerEvent')) {
-                                  return "Select business event";
-                                }
-                              }
-                              
-                              // Validate communication fields if enabled
-                              if (enableCommunication) {
-                                const hasTemplate = form.watch('templateId') && form.watch('templateId') !== 'unavailable';
-                                const hasQuestionnaire = form.watch('questionnaireTemplateId') && form.watch('questionnaireTemplateId') !== 'unavailable' && form.watch('questionnaireTemplateId') !== 'none';
-                                if (!hasTemplate && !hasQuestionnaire) {
-                                  return "Select template or questionnaire";
-                                }
-                              }
-                              
-                              // Validate pipeline fields if enabled
-                              if (enablePipeline) {
-                                if (!form.watch('targetStageId')) {
-                                  return "Select target stage";
-                                }
-                              }
-                              
-                              const actions = [];
-                              if (enableCommunication) actions.push("Communication");
-                              if (enablePipeline) actions.push("Pipeline");
-                              
-                              return `Create ${actions.join(" + ")} Automation${actions.length > 1 ? "s" : ""}`;
-                            })()
-                        }
-                      </Button>
-                    </div>
-                    </form>
-                  </Form>
-              </DialogContent>
-            </Dialog>
-
-
-
-        {/* Edit Automation Dialog */}
-        {editingAutomation && (
-          <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-            <DialogContent className="sm:max-w-lg">
-              <DialogHeader>
-                <DialogTitle>Edit Automation</DialogTitle>
-                <DialogDescription>
-                  Update automation settings
-                </DialogDescription>
-              </DialogHeader>
-              
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label>Automation Name</Label>
-                  <Input
-                    value={editingAutomation.name}
-                    onChange={(e) => setEditingAutomation({...editingAutomation, name: e.target.value})}
-                    placeholder="Enter automation name"
-                    data-testid={`input-edit-name-${editingAutomation.id}`}
-                  />
-                </div>
-
-                {/* Show automation details based on type */}
-                {editingAutomation.automationType === 'COMMUNICATION' && (
-                  <div className="space-y-2">
-                    <Label>Channel</Label>
-                    <Select
-                      value={editingAutomation.channel}
-                      onValueChange={(value) => setEditingAutomation({...editingAutomation, channel: value})}
-                    >
-                      <SelectTrigger data-testid={`select-edit-channel-${editingAutomation.id}`}>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="EMAIL">Email</SelectItem>
-                        <SelectItem value="SMS">SMS</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
-
-                {/* Show automation type and trigger info */}
-                <div className="space-y-2">
-                  <Label>Automation Details</Label>
-                  <div className="border rounded-lg p-3 bg-muted">
-                    <div className="space-y-2 text-sm">
-                      <div className="flex items-center justify-between">
-                        <span className="font-medium">Type:</span>
-                        <span>{editingAutomation.automationType === 'COMMUNICATION' ? 'Communication' : 'Pipeline Stage'}</span>
-                      </div>
-                      {editingAutomation.triggerMode && (
-                        <div className="flex items-center justify-between">
-                          <span className="font-medium">Trigger:</span>
-                          <span>
-                            {editingAutomation.triggerMode === 'STAGE' ? 'Stage-based' :
-                             editingAutomation.triggerMode === 'BUSINESS' ? 'Business Event' : 'Time-based'}
-                          </span>
-                        </div>
-                      )}
-                      {editingAutomation.stageName && (
-                        <div className="flex items-center justify-between">
-                          <span className="font-medium">Trigger Stage:</span>
-                          <span>"{editingAutomation.stageName}"</span>
-                        </div>
-                      )}
-                      <div className="flex items-center justify-between">
-                        <span className="font-medium">Status:</span>
-                        <Badge variant={editingAutomation.enabled ? "default" : "secondary"}>
-                          {editingAutomation.enabled ? "Active" : "Inactive"}
-                        </Badge>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Enhanced Details Component */}
-                <EditAutomationDetails automationId={editingAutomation.id} automation={editingAutomation} />
-
-                <div className="flex items-center space-x-2">
-                  <Switch
-                    checked={editingAutomation.enabled}
-                    onCheckedChange={(checked) => setEditingAutomation({...editingAutomation, enabled: checked})}
-                    data-testid={`switch-edit-enabled-${editingAutomation.id}`}
-                  />
-                  <Label>Enable automation</Label>
-                </div>
-              </div>
-
-              <div className="flex justify-end space-x-2 pt-4">
-                <Button
-                  variant="outline"
-                  onClick={() => setEditDialogOpen(false)}
-                  data-testid={`button-cancel-edit-${editingAutomation.id}`}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  onClick={() => {
-                    editAutomationMutation.mutate({
-                      automationId: editingAutomation.id,
-                      data: {
-                        name: editingAutomation.name,
-                        enabled: editingAutomation.enabled,
-                        ...(editingAutomation.automationType === 'COMMUNICATION' && {
-                          channel: editingAutomation.channel
-                        })
                       }
-                    });
-                  }}
-                  disabled={editAutomationMutation.isPending || !editingAutomation.name.trim()}
-                  data-testid={`button-save-edit-${editingAutomation.id}`}
-                >
-                  {editAutomationMutation.isPending ? "Saving..." : "Save Changes"}
-                </Button>
-              </div>
+                    </Button>
+                  </div>
+                  </form>
+                </Form>
             </DialogContent>
           </Dialog>
-        )}
-
-        {/* Manage Rules Modal */}
-        <Dialog open={manageRulesDialogOpen} onOpenChange={setManageRulesDialogOpen}>
-          <DialogContent className="sm:max-w-2xl">
+      {/* Edit Automation Dialog */}
+      {editingAutomation && (
+        <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+          <DialogContent className="sm:max-w-lg">
             <DialogHeader>
-              <DialogTitle>
-                Manage Rules - {selectedStage?.name} Stage
-              </DialogTitle>
+              <DialogTitle>Edit Automation</DialogTitle>
               <DialogDescription>
-                Configure automation rules for clients in the {selectedStage?.name} stage
+                Update automation settings
               </DialogDescription>
             </DialogHeader>
             
             <div className="space-y-4">
-              {/* Existing automations for this stage */}
-              <div className="border rounded-lg p-4">
-                <h4 className="font-semibold mb-3">Current Rules</h4>
+              <div className="space-y-2">
+                <Label>Automation Name</Label>
+                <Input
+                  value={editingAutomation.name}
+                  onChange={(e) => setEditingAutomation({...editingAutomation, name: e.target.value})}
+                  placeholder="Enter automation name"
+                  data-testid={`input-edit-name-${editingAutomation.id}`}
+                />
+              </div>
+
+              {/* Show automation details based on type */}
+              {editingAutomation.automationType === 'COMMUNICATION' && (
                 <div className="space-y-2">
-                  {(() => {
-                    const stageAutomations = (automations ?? []).filter((a: any) => a.stageId === selectedStage?.id);
-                    return automations === undefined ? (
-                      <p className="text-muted-foreground text-center py-4">
-                        Loading automation rules...
-                      </p>
-                    ) : stageAutomations.length === 0 ? (
-                      <p className="text-muted-foreground text-center py-4">
-                        No automation rules configured for this stage yet.
-                      </p>
-                    ) : (
-                      stageAutomations.map((automation: any) => (
-                        automation.automationType === 'COMMUNICATION' ? (
-                          <AutomationStepManager key={automation.id} automation={automation} onDelete={handleDeleteAutomation} />
-                        ) : (
-                          <StageChangeAutomationCard key={automation.id} automation={automation} onDelete={handleDeleteAutomation} />
-                        )
-                      ))
-                    );
-                  })()}
+                  <Label>Channel</Label>
+                  <Select
+                    value={editingAutomation.channel}
+                    onValueChange={(value) => setEditingAutomation({...editingAutomation, channel: value})}
+                  >
+                    <SelectTrigger data-testid={`select-edit-channel-${editingAutomation.id}`}>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="EMAIL">Email</SelectItem>
+                      <SelectItem value="SMS">SMS</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
+              {/* Show automation type and trigger info */}
+              <div className="space-y-2">
+                <Label>Automation Details</Label>
+                <div className="border rounded-lg p-3 bg-muted">
+                  <div className="space-y-2 text-sm">
+                    <div className="flex items-center justify-between">
+                      <span className="font-medium">Type:</span>
+                      <span>{editingAutomation.automationType === 'COMMUNICATION' ? 'Communication' : 'Pipeline Stage'}</span>
+                    </div>
+                    {editingAutomation.triggerMode && (
+                      <div className="flex items-center justify-between">
+                        <span className="font-medium">Trigger:</span>
+                        <span>
+                          {editingAutomation.triggerMode === 'STAGE' ? 'Stage-based' :
+                           editingAutomation.triggerMode === 'BUSINESS' ? 'Business Event' : 'Time-based'}
+                        </span>
+                      </div>
+                    )}
+                    {editingAutomation.stageName && (
+                      <div className="flex items-center justify-between">
+                        <span className="font-medium">Trigger Stage:</span>
+                        <span>"{editingAutomation.stageName}"</span>
+                      </div>
+                    )}
+                    <div className="flex items-center justify-between">
+                      <span className="font-medium">Status:</span>
+                      <Badge variant={editingAutomation.enabled ? "default" : "secondary"}>
+                        {editingAutomation.enabled ? "Active" : "Inactive"}
+                      </Badge>
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              {/* Add new rule section */}
-              <div className="text-center py-4 border-t">
-                <p className="text-sm text-muted-foreground mb-2">
-                  To add more automation rules for this stage, use the main "Create Automation" button.
-                </p>
-              </div>
+              {/* Enhanced Details Component */}
+              <EditAutomationDetails automationId={editingAutomation.id} automation={editingAutomation} />
 
-              <div className="flex justify-end pt-4">
-                <Button
-                  variant="outline"
-                  onClick={() => setManageRulesDialogOpen(false)}
-                  data-testid="button-close-manage-rules"
-                >
-                  Close
-                </Button>
+              <div className="flex items-center space-x-2">
+                <Switch
+                  checked={editingAutomation.enabled}
+                  onCheckedChange={(checked) => setEditingAutomation({...editingAutomation, enabled: checked})}
+                  data-testid={`switch-edit-enabled-${editingAutomation.id}`}
+                />
+                <Label>Enable automation</Label>
               </div>
+            </div>
+
+            <div className="flex justify-end space-x-2 pt-4">
+              <Button
+                variant="outline"
+                onClick={() => setEditDialogOpen(false)}
+                data-testid={`button-cancel-edit-${editingAutomation.id}`}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={() => {
+                  editAutomationMutation.mutate({
+                    automationId: editingAutomation.id,
+                    data: {
+                      name: editingAutomation.name,
+                      enabled: editingAutomation.enabled,
+                      ...(editingAutomation.automationType === 'COMMUNICATION' && {
+                        channel: editingAutomation.channel
+                      })
+                    }
+                  });
+                }}
+                disabled={editAutomationMutation.isPending || !editingAutomation.name.trim()}
+                data-testid={`button-save-edit-${editingAutomation.id}`}
+              >
+                {editAutomationMutation.isPending ? "Saving..." : "Save Changes"}
+              </Button>
             </div>
           </DialogContent>
         </Dialog>
+      )}
+      {/* Manage Rules Modal */}
+      <Dialog open={manageRulesDialogOpen} onOpenChange={setManageRulesDialogOpen}>
+        <DialogContent className="sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>
+              Manage Rules - {selectedStage?.name} Stage
+            </DialogTitle>
+            <DialogDescription>
+              Configure automation rules for clients in the {selectedStage?.name} stage
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            {/* Existing automations for this stage */}
+            <div className="border rounded-lg p-4">
+              <h4 className="font-semibold mb-3">Current Rules</h4>
+              <div className="space-y-2">
+                {(() => {
+                  const stageAutomations = (automations ?? []).filter((a: any) => a.stageId === selectedStage?.id);
+                  return automations === undefined ? (
+                    <p className="text-muted-foreground text-center py-4">
+                      Loading automation rules...
+                    </p>
+                  ) : stageAutomations.length === 0 ? (
+                    <p className="text-muted-foreground text-center py-4">
+                      No automation rules configured for this stage yet.
+                    </p>
+                  ) : (
+                    stageAutomations.map((automation: any) => (
+                      automation.automationType === 'COMMUNICATION' ? (
+                        <AutomationStepManager key={automation.id} automation={automation} onDelete={handleDeleteAutomation} />
+                      ) : (
+                        <StageChangeAutomationCard key={automation.id} automation={automation} onDelete={handleDeleteAutomation} />
+                      )
+                    ))
+                  );
+                })()}
+              </div>
+            </div>
 
-        <div className="min-h-screen bg-background">
-          <div className="p-3 sm:p-6 space-y-6">
-          {/* Project Type Selection */}
-          <div className="w-full">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-              {/* Desktop project type buttons */}
-              <div className="hidden md:flex flex-wrap gap-2 max-w-5xl">
-                {(Object.keys(projectTypeEnum) as Array<keyof typeof projectTypeEnum>).map((value) => (
-                  <Button
-                    key={value}
-                    variant={activeProjectType === value ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setActiveProjectType(value)}
-                    data-testid={`tab-${value.toLowerCase()}`}
-                    className="flex items-center gap-2"
-                  >
-                    {value === "WEDDING" && "💒 Wedding"}
-                    {value === "ENGAGEMENT" && "💍 Engagement"}
-                    {value === "PROPOSAL" && "💍 Proposal"}
-                    {value === "PORTRAIT" && "🎭 Portrait"}
-                    {value === "CORPORATE" && "🏢 Corporate"}
-                    {value === "FAMILY" && "👨‍👩‍👧‍👦 Family"}
-                    {value === "MATERNITY" && "🤱 Maternity"}
-                    {value === "NEWBORN" && "👶 Newborn"}
-                    {value === "EVENT" && "🎉 Event"}
-                    {value === "COMMERCIAL" && "📸 Commercial"}
-                    {value === "OTHER" && "📁 Other"}
-                  </Button>
-                ))}
-              </div>
-              
-              {/* Mobile dropdown and button */}
-              <div className="flex flex-col sm:flex-row gap-4 md:hidden w-full">
-                <Select value={activeProjectType} onValueChange={setActiveProjectType}>
-                  <SelectTrigger className="w-full sm:max-w-xs" data-testid="select-project-type">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="WEDDING">💒 Wedding</SelectItem>
-                    <SelectItem value="ENGAGEMENT">💍 Engagement</SelectItem>
-                    <SelectItem value="PROPOSAL">💍 Proposal</SelectItem>
-                    <SelectItem value="PORTRAIT">🎭 Portrait</SelectItem>
-                    <SelectItem value="CORPORATE">🏢 Corporate</SelectItem>
-                    <SelectItem value="FAMILY">👨‍👩‍👧‍👦 Family</SelectItem>
-                    <SelectItem value="MATERNITY">🤱 Maternity</SelectItem>
-                    <SelectItem value="NEWBORN">👶 Newborn</SelectItem>
-                    <SelectItem value="EVENT">🎉 Event</SelectItem>
-                    <SelectItem value="COMMERCIAL">📸 Commercial</SelectItem>
-                    <SelectItem value="OTHER">📁 Other</SelectItem>
-                  </SelectContent>
-                </Select>
+            {/* Add new rule section */}
+            <div className="text-center py-4 border-t">
+              <p className="text-sm text-muted-foreground mb-2">
+                To add more automation rules for this stage, use the main "Create Automation" button.
+              </p>
+            </div>
+
+            <div className="flex justify-end pt-4">
+              <Button
+                variant="outline"
+                onClick={() => setManageRulesDialogOpen(false)}
+                data-testid="button-close-manage-rules"
+              >
+                Close
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+      <div className="min-h-screen bg-background">
+        <div className="p-3 sm:p-6 space-y-6">
+        {/* Project Type Selection */}
+        <div className="w-full">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+            {/* Desktop project type buttons */}
+            <div className="hidden md:flex flex-wrap gap-2 max-w-5xl">
+              {(Object.keys(projectTypeEnum) as Array<keyof typeof projectTypeEnum>).map((value) => (
                 <Button
-                  onClick={() => setCreateDialogOpen(true)}
-                  data-testid="button-create-automation"
-                  className="w-full sm:w-auto"
+                  key={value}
+                  variant={activeProjectType === value ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setActiveProjectType(value)}
+                  data-testid={`tab-${value.toLowerCase()}`}
+                  className="flex items-center gap-2"
                 >
-                  <Plus className="w-4 h-4 mr-2" />
-                  New Automation
+                  {value === "WEDDING" && "💒 Wedding"}
+                  {value === "ENGAGEMENT" && "💍 Engagement"}
+                  {value === "PROPOSAL" && "💍 Proposal"}
+                  {value === "PORTRAIT" && "🎭 Portrait"}
+                  {value === "CORPORATE" && "🏢 Corporate"}
+                  {value === "FAMILY" && "👨‍👩‍👧‍👦 Family"}
+                  {value === "MATERNITY" && "🤱 Maternity"}
+                  {value === "NEWBORN" && "👶 Newborn"}
+                  {value === "EVENT" && "🎉 Event"}
+                  {value === "COMMERCIAL" && "📸 Commercial"}
+                  {value === "OTHER" && "📁 Other"}
                 </Button>
-              </div>
-              
-              {/* Desktop button */}
+              ))}
+            </div>
+            
+            {/* Mobile dropdown and button */}
+            <div className="flex flex-col sm:flex-row gap-4 md:hidden w-full">
+              <Select value={activeProjectType} onValueChange={setActiveProjectType}>
+                <SelectTrigger className="w-full sm:max-w-xs" data-testid="select-project-type">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="WEDDING">💒 Wedding</SelectItem>
+                  <SelectItem value="ENGAGEMENT">💍 Engagement</SelectItem>
+                  <SelectItem value="PROPOSAL">💍 Proposal</SelectItem>
+                  <SelectItem value="PORTRAIT">🎭 Portrait</SelectItem>
+                  <SelectItem value="CORPORATE">🏢 Corporate</SelectItem>
+                  <SelectItem value="FAMILY">👨‍👩‍👧‍👦 Family</SelectItem>
+                  <SelectItem value="MATERNITY">🤱 Maternity</SelectItem>
+                  <SelectItem value="NEWBORN">👶 Newborn</SelectItem>
+                  <SelectItem value="EVENT">🎉 Event</SelectItem>
+                  <SelectItem value="COMMERCIAL">📸 Commercial</SelectItem>
+                  <SelectItem value="OTHER">📁 Other</SelectItem>
+                </SelectContent>
+              </Select>
               <Button
                 onClick={() => setCreateDialogOpen(true)}
                 data-testid="button-create-automation"
-                className="hidden md:flex"
+                className="w-full sm:w-auto"
               >
                 <Plus className="w-4 h-4 mr-2" />
                 New Automation
               </Button>
             </div>
+            
+            {/* Desktop button */}
+            <Button
+              onClick={() => setCreateDialogOpen(true)}
+              data-testid="button-create-automation"
+              className="hidden md:flex"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              New Automation
+            </Button>
+          </div>
 
 {activeProjectType && (
-              <div className="space-y-6">
-                {/* Stats Cards */}
-                <div className="hidden md:grid md:grid-cols-3 gap-6">
-                  <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">Active Automations</CardTitle>
-                      <Zap className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold">
-                        {automations?.filter((a: any) => a.enabled).length || 0}
-                      </div>
-                      <p className="text-xs text-muted-foreground">Running workflows</p>
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">Total Stages</CardTitle>
-                      <Settings className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold">{stages?.length || 0}</div>
-                      <p className="text-xs text-muted-foreground">Pipeline stages</p>
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">Templates</CardTitle>
-                      <Mail className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold">{templates?.length || 0}</div>
-                      <p className="text-xs text-muted-foreground">Available templates</p>
-                    </CardContent>
-                  </Card>
-                </div>
-
-                {/* Automation List */}
+            <div className="space-y-6">
+              {/* Stats Cards */}
+              <div className="hidden md:grid md:grid-cols-3 gap-6">
                 <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Zap className="h-5 w-5" />
-                      {activeProjectType.charAt(0) + activeProjectType.slice(1).toLowerCase()} Automations
-                    </CardTitle>
-                    <CardDescription>
-                      Automated workflows for {activeProjectType.toLowerCase()} projects
-                    </CardDescription>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Active Automations</CardTitle>
+                    <Zap className="h-4 w-4 text-muted-foreground" />
                   </CardHeader>
                   <CardContent>
-                    {automations === undefined ? (
-                      <div className="text-center py-8">
-                        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto" />
-                        <p className="text-muted-foreground mt-2">Loading automations...</p>
-                      </div>
-                    ) : automations.length === 0 ? (
-                      <div className="text-center py-8">
-                        <Zap className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                        <h3 className="text-lg font-semibold mb-2">No automations yet</h3>
-                        <p className="text-muted-foreground mb-4">
-                          Create your first automation to streamline your workflow
-                        </p>
-                        <Button 
-                          onClick={() => setCreateDialogOpen(true)}
-                          data-testid="button-create-first-automation"
-                        >
-                          <Plus className="w-4 h-4 mr-2" />
-                          Create First Automation
-                        </Button>
-                      </div>
-                    ) : (
-                      <Tabs defaultValue="stage-based" className="w-full">
-                        <TabsList className="grid w-full grid-cols-2">
-                          <TabsTrigger value="stage-based" data-testid="tab-stage-based">
-                            <Settings className="w-4 h-4 mr-2" />
-                            Stage-Based
-                          </TabsTrigger>
-                          <TabsTrigger value="global" data-testid="tab-global">
-                            <Zap className="w-4 h-4 mr-2" />
-                            Global
-                          </TabsTrigger>
-                        </TabsList>
+                    <div className="text-2xl font-bold">
+                      {automations?.filter((a: any) => a.enabled).length || 0}
+                    </div>
+                    <p className="text-xs text-muted-foreground">Running workflows</p>
+                  </CardContent>
+                </Card>
 
-                        {/* Stage-Based Automations Tab */}
-                        <TabsContent value="stage-based" className="space-y-4 mt-4">
-                          {(() => {
-                            const stageBased = automations.filter((a: any) => a.stageId);
-                            const stageGroups = stages?.reduce((acc: any, stage: any) => {
-                              const stageAutomations = stageBased.filter((a: any) => a.stageId === stage.id);
-                              if (stageAutomations.length > 0) {
-                                acc[stage.id] = { stage, automations: stageAutomations };
-                              }
-                              return acc;
-                            }, {});
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Total Stages</CardTitle>
+                    <Settings className="h-4 w-4 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">{stages?.length || 0}</div>
+                    <p className="text-xs text-muted-foreground">Pipeline stages</p>
+                  </CardContent>
+                </Card>
 
-                            return stageGroups && Object.keys(stageGroups).length > 0 ? (
-                              <div className="space-y-4">
-                                {Object.values(stageGroups).map((group: any) => {
-                                  // Separate automations by timing
-                                  const immediateAutomations = group.automations.filter((a: any) => {
-                                    if (a.automationType === 'STAGE_CHANGE') return true; // Stage change automations are immediate
-                                    // For communication automations, check first step delay
-                                    const firstStep = a.steps?.[0];
-                                    return firstStep && firstStep.delayMinutes === 0;
-                                  });
-                                  
-                                  const timeBasedAutomations = group.automations.filter((a: any) => {
-                                    if (a.automationType === 'STAGE_CHANGE') return false; // Stage change automations are immediate
-                                    // For communication automations, check first step delay
-                                    const firstStep = a.steps?.[0];
-                                    return firstStep && firstStep.delayMinutes > 0;
-                                  });
-                                  
-                                  return (
-                                    <div key={group.stage.id} className="border-l-4 border-blue-500 rounded-lg p-4 bg-blue-50 dark:bg-blue-950 shadow-sm">
-                                      <div className="flex items-center space-x-2 mb-4">
-                                        <div className="h-2 w-2 rounded-full bg-primary" />
-                                        <h4 className="font-semibold text-2xl">{group.stage.name} Stage Automations</h4>
-                                      </div>
-                                      
-                                      <div className="space-y-3">
-                                        {/* Immediate Automations */}
-                                        {immediateAutomations.length > 0 && (
-                                          <div className="space-y-3">
-                                            <div className="flex items-center justify-center gap-2">
-                                              <Zap className="w-5 h-5 text-amber-600 dark:text-amber-400" />
-                                              <h5 className="text-base font-semibold text-muted-foreground uppercase tracking-wide">Immediate</h5>
-                                              <Badge variant="outline" className="text-sm">
-                                                {immediateAutomations.length}
-                                              </Badge>
-                                            </div>
-                                            <div className="flex flex-wrap gap-4 justify-center">
-                                              {immediateAutomations.map((automation: any) => (
-                                                <div key={automation.id} className="w-full md:w-[calc(50%-0.5rem)] lg:w-[calc(33.333%-0.667rem)]">
-                                                  {automation.automationType === 'COMMUNICATION' ? (
-                                                    <AutomationStepManager automation={automation} onDelete={handleDeleteAutomation} />
-                                                  ) : (
-                                                    <StageChangeAutomationCard automation={automation} onDelete={handleDeleteAutomation} />
-                                                  )}
-                                                </div>
-                                              ))}
-                                            </div>
-                                          </div>
-                                        )}
-                                        
-                                        {/* Time-Based Automations */}
-                                        {timeBasedAutomations.length > 0 && (
-                                          <div className="space-y-3">
-                                            <div className="flex items-center justify-center gap-2">
-                                              <Clock className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                                              <h5 className="text-base font-semibold text-muted-foreground uppercase tracking-wide">Time-Based</h5>
-                                              <Badge variant="outline" className="text-sm">
-                                                {timeBasedAutomations.length}
-                                              </Badge>
-                                            </div>
-                                            <div className="flex flex-col items-center">
-                                              {timeBasedAutomations.map((automation: any, index: number) => (
-                                                <div key={automation.id} className="w-full">
-                                                  <AutomationStepManager automation={automation} onDelete={handleDeleteAutomation} />
-                                                  {/* Vertical connector between cards */}
-                                                  {index < timeBasedAutomations.length - 1 && (
-                                                    <div className="flex justify-center py-3">
-                                                      <div className="w-0.5 h-8 bg-border" />
-                                                    </div>
-                                                  )}
-                                                </div>
-                                              ))}
-                                            </div>
-                                          </div>
-                                        )}
-                                      </div>
-                                    </div>
-                                  );
-                                })}
-                              </div>
-                            ) : (
-                              <div className="text-center py-8">
-                                <Settings className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                                <h3 className="text-lg font-semibold mb-2">No stage-based automations</h3>
-                                <p className="text-muted-foreground">
-                                  Create automations that trigger when clients enter specific pipeline stages
-                                </p>
-                              </div>
-                            );
-                          })()}
-                        </TabsContent>
-
-                        {/* Global Automations Tab */}
-                        <TabsContent value="global" className="space-y-4 mt-4">
-                          {(() => {
-                            const globalAutomations = automations.filter((a: any) => !a.stageId);
-                            
-                            return globalAutomations.length > 0 ? (
-                              <div className="flex flex-col items-center">
-                                {globalAutomations.map((automation: any, index: number) => (
-                                  <div key={automation.id} className="w-full">
-                                    {automation.automationType === 'COMMUNICATION' ? (
-                                      <AutomationStepManager automation={automation} onDelete={handleDeleteAutomation} />
-                                    ) : (
-                                      <StageChangeAutomationCard automation={automation} onDelete={handleDeleteAutomation} />
-                                    )}
-                                    {/* Vertical connector between cards */}
-                                    {index < globalAutomations.length - 1 && (
-                                      <div className="flex justify-center py-3">
-                                        <div className="w-0.5 h-8 bg-border" />
-                                      </div>
-                                    )}
-                                  </div>
-                                ))}
-                              </div>
-                            ) : (
-                              <div className="text-center py-8">
-                                <Zap className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                                <h3 className="text-lg font-semibold mb-2">No global automations</h3>
-                                <p className="text-muted-foreground">
-                                  Create automations that run globally without stage triggers
-                                </p>
-                              </div>
-                            );
-                          })()}
-                        </TabsContent>
-                      </Tabs>
-                    )}
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Templates</CardTitle>
+                    <Mail className="h-4 w-4 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">{templates?.length || 0}</div>
+                    <p className="text-xs text-muted-foreground">Available templates</p>
                   </CardContent>
                 </Card>
               </div>
-            )}
-          </div>
+
+              {/* Automation List */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Zap className="h-5 w-5" />
+                    {activeProjectType.charAt(0) + activeProjectType.slice(1).toLowerCase()} Automations
+                  </CardTitle>
+                  <CardDescription>
+                    Automated workflows for {activeProjectType.toLowerCase()} projects
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {automations === undefined ? (
+                    <div className="text-center py-8">
+                      <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto" />
+                      <p className="text-muted-foreground mt-2">Loading automations...</p>
+                    </div>
+                  ) : automations.length === 0 ? (
+                    <div className="text-center py-8">
+                      <Zap className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                      <h3 className="text-lg font-semibold mb-2">No automations yet</h3>
+                      <p className="text-muted-foreground mb-4">
+                        Create your first automation to streamline your workflow
+                      </p>
+                      <Button 
+                        onClick={() => setCreateDialogOpen(true)}
+                        data-testid="button-create-first-automation"
+                      >
+                        <Plus className="w-4 h-4 mr-2" />
+                        Create First Automation
+                      </Button>
+                    </div>
+                  ) : (
+                    <Tabs defaultValue="stage-based" className="w-full">
+                      <TabsList className="grid w-full grid-cols-2">
+                        <TabsTrigger value="stage-based" data-testid="tab-stage-based">
+                          <Settings className="w-4 h-4 mr-2" />
+                          Stage-Based
+                        </TabsTrigger>
+                        <TabsTrigger value="global" data-testid="tab-global">
+                          <Zap className="w-4 h-4 mr-2" />
+                          Global
+                        </TabsTrigger>
+                      </TabsList>
+
+                      {/* Stage-Based Automations Tab */}
+                      <TabsContent value="stage-based" className="space-y-4 mt-4">
+                        {(() => {
+                          const stageBased = automations.filter((a: any) => a.stageId);
+                          const stageGroups = stages?.reduce((acc: any, stage: any) => {
+                            const stageAutomations = stageBased.filter((a: any) => a.stageId === stage.id);
+                            if (stageAutomations.length > 0) {
+                              acc[stage.id] = { stage, automations: stageAutomations };
+                            }
+                            return acc;
+                          }, {});
+
+                          return stageGroups && Object.keys(stageGroups).length > 0 ? (
+                            <div className="space-y-4">
+                              {Object.values(stageGroups).map((group: any) => {
+                                // Separate automations by timing
+                                const immediateAutomations = group.automations.filter((a: any) => {
+                                  if (a.automationType === 'STAGE_CHANGE') return true; // Stage change automations are immediate
+                                  // For communication automations, check first step delay
+                                  const firstStep = a.steps?.[0];
+                                  return firstStep && firstStep.delayMinutes === 0;
+                                });
+                                
+                                const timeBasedAutomations = group.automations.filter((a: any) => {
+                                  if (a.automationType === 'STAGE_CHANGE') return false; // Stage change automations are immediate
+                                  // For communication automations, check first step delay
+                                  const firstStep = a.steps?.[0];
+                                  return firstStep && firstStep.delayMinutes > 0;
+                                });
+                                
+                                return (
+                                  <div key={group.stage.id} className="border-l-4 border-blue-500 rounded-lg p-4 bg-blue-50 dark:bg-blue-950 shadow-sm">
+                                    <div className="flex items-center space-x-2 mb-4">
+                                      <div className="h-2 w-2 rounded-full bg-primary" />
+                                      <h4 className="font-semibold text-2xl">{group.stage.name} Stage Automations</h4>
+                                    </div>
+                                    <div className="space-y-3">
+                                      {/* Immediate Automations */}
+                                      {immediateAutomations.length > 0 && (
+                                        <div className="space-y-3">
+                                          <div className="flex items-center justify-center gap-2">
+                                            <Zap className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+                                            <h5 className="text-base font-semibold text-muted-foreground uppercase tracking-wide">Immediate</h5>
+                                            <Badge variant="outline" className="text-sm">
+                                              {immediateAutomations.length}
+                                            </Badge>
+                                          </div>
+                                          <div className="flex flex-wrap gap-4 justify-center">
+                                            {immediateAutomations.map((automation: any) => (
+                                              <div key={automation.id} className="w-full md:w-[calc(50%-0.5rem)] lg:w-[calc(33.333%-0.667rem)]">
+                                                {automation.automationType === 'COMMUNICATION' ? (
+                                                  <AutomationStepManager automation={automation} onDelete={handleDeleteAutomation} />
+                                                ) : (
+                                                  <StageChangeAutomationCard automation={automation} onDelete={handleDeleteAutomation} />
+                                                )}
+                                              </div>
+                                            ))}
+                                          </div>
+                                        </div>
+                                      )}
+                                      
+                                      {/* Time-Based Automations */}
+                                      {timeBasedAutomations.length > 0 && (
+                                        <div className="space-y-3 mt-[30px] mb-[30px]">
+                                          <div className="flex items-center justify-center gap-2">
+                                            <Clock className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                                            <h5 className="text-base font-semibold text-muted-foreground uppercase tracking-wide">Time-Based</h5>
+                                            <Badge variant="outline" className="text-sm">
+                                              {timeBasedAutomations.length}
+                                            </Badge>
+                                          </div>
+                                          <div className="flex flex-col items-center">
+                                            {timeBasedAutomations.map((automation: any, index: number) => (
+                                              <div key={automation.id} className="w-full">
+                                                <AutomationStepManager automation={automation} onDelete={handleDeleteAutomation} />
+                                                {/* Vertical connector between cards */}
+                                                {index < timeBasedAutomations.length - 1 && (
+                                                  <div className="flex justify-center py-3">
+                                                    <div className="w-0.5 h-8 bg-border" />
+                                                  </div>
+                                                )}
+                                              </div>
+                                            ))}
+                                          </div>
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          ) : (
+                            <div className="text-center py-8">
+                              <Settings className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                              <h3 className="text-lg font-semibold mb-2">No stage-based automations</h3>
+                              <p className="text-muted-foreground">
+                                Create automations that trigger when clients enter specific pipeline stages
+                              </p>
+                            </div>
+                          );
+                        })()}
+                      </TabsContent>
+
+                      {/* Global Automations Tab */}
+                      <TabsContent value="global" className="space-y-4 mt-4">
+                        {(() => {
+                          const globalAutomations = automations.filter((a: any) => !a.stageId);
+                          
+                          return globalAutomations.length > 0 ? (
+                            <div className="flex flex-col items-center">
+                              {globalAutomations.map((automation: any, index: number) => (
+                                <div key={automation.id} className="w-full">
+                                  {automation.automationType === 'COMMUNICATION' ? (
+                                    <AutomationStepManager automation={automation} onDelete={handleDeleteAutomation} />
+                                  ) : (
+                                    <StageChangeAutomationCard automation={automation} onDelete={handleDeleteAutomation} />
+                                  )}
+                                  {/* Vertical connector between cards */}
+                                  {index < globalAutomations.length - 1 && (
+                                    <div className="flex justify-center py-3">
+                                      <div className="w-0.5 h-8 bg-border" />
+                                    </div>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <div className="text-center py-8">
+                              <Zap className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                              <h3 className="text-lg font-semibold mb-2">No global automations</h3>
+                              <p className="text-muted-foreground">
+                                Create automations that run globally without stage triggers
+                              </p>
+                            </div>
+                          );
+                        })()}
+                      </TabsContent>
+                    </Tabs>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          )}
         </div>
       </div>
+    </div>
     </div>
   );
 }
