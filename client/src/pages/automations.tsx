@@ -1778,6 +1778,7 @@ export default function Automations() {
           const pipelineAutomationData = {
             name: data.name + (data.enableCommunication ? " (Pipeline)" : ""),
             stageId: null, // Pipeline automations don't use stageId
+            stageCondition: data.stageCondition && data.stageCondition !== 'all' ? data.stageCondition : null,
             enabled: data.enabled,
             projectType: activeProjectType,
             automationType: "STAGE_CHANGE" as const,
