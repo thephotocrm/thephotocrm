@@ -1456,6 +1456,21 @@ export default function Automations() {
   const { user, loading } = useAuth();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  
+  // Redirect to login if not authenticated (must be before other hooks)
+  if (!loading && !user) {
+    setLocation("/login");
+    return null;
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
+      </div>
+    );
+  }
+
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [manageRulesDialogOpen, setManageRulesDialogOpen] = useState(false);
   const [selectedStage, setSelectedStage] = useState<any>(null);
@@ -1465,6 +1480,7 @@ export default function Automations() {
   const [enablePipeline, setEnablePipeline] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editingAutomation, setEditingAutomation] = useState<any>(null);
+  const [selectedStageId, setSelectedStageId] = useState<string>('');
 
   // Reset modal state when dialog opens
   useEffect(() => {
@@ -1647,6 +1663,13 @@ export default function Automations() {
     queryFn: () => fetch(`/api/questionnaire-templates`).then(res => res.json()),
     enabled: !!user
   });
+
+  // Set initial selected stage when stages load
+  useEffect(() => {
+    if (stages && stages.length > 0 && !selectedStageId) {
+      setSelectedStageId(stages[0].id);
+    }
+  }, [stages, selectedStageId]);
 
   // Delete automation mutation
   const deleteAutomationMutation = useMutation({
@@ -1879,23 +1902,6 @@ export default function Automations() {
     setEditingAutomation(automation);
     setEditDialogOpen(true);
   };
-
-
-
-
-  // Redirect to login if not authenticated
-  if (!loading && !user) {
-    setLocation("/login");
-    return null;
-  }
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
-      </div>
-    );
-  }
 
   return (
     <div>
@@ -3012,14 +3018,6 @@ export default function Automations() {
                         {(() => {
                           // Include automations with stageId OR stageCondition (not targetStageId alone)
                           const stageBased = automations.filter((a: any) => a.stageId || a.stageCondition);
-                          const [selectedStageId, setSelectedStageId] = useState(stages?.[0]?.id || '');
-
-                          // Set initial selected stage when stages load
-                          useEffect(() => {
-                            if (stages && stages.length > 0 && !selectedStageId) {
-                              setSelectedStageId(stages[0].id);
-                            }
-                          }, [stages]);
 
                           // Get automations for the selected stage
                           const selectedStage = stages?.find((s: any) => s.id === selectedStageId);
