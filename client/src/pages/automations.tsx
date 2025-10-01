@@ -2987,8 +2987,10 @@ export default function Automations() {
                           return stageGroups && Object.keys(stageGroups).length > 0 ? (
                             <div className="space-y-4">
                               {Object.values(stageGroups).map((group: any) => {
-                                // Separate automations by timing
+                                // Separate automations by timing and triggers
                                 const immediateAutomations = group.automations.filter((a: any) => {
+                                  // Exclude trigger-based automations
+                                  if (a.businessTriggers && a.businessTriggers.length > 0) return false;
                                   if (a.automationType === 'STAGE_CHANGE') return true; // Stage change automations are immediate
                                   // For communication automations, check first step delay
                                   const firstStep = a.steps?.[0];
@@ -2996,10 +2998,17 @@ export default function Automations() {
                                 });
                                 
                                 const timeBasedAutomations = group.automations.filter((a: any) => {
+                                  // Exclude trigger-based automations
+                                  if (a.businessTriggers && a.businessTriggers.length > 0) return false;
                                   if (a.automationType === 'STAGE_CHANGE') return false; // Stage change automations are immediate
                                   // For communication automations, check first step delay
                                   const firstStep = a.steps?.[0];
                                   return firstStep && firstStep.delayMinutes > 0;
+                                });
+                                
+                                const triggerBasedAutomations = group.automations.filter((a: any) => {
+                                  // Automations with business triggers
+                                  return a.businessTriggers && a.businessTriggers.length > 0;
                                 });
                                 
                                 return (
@@ -3053,6 +3062,26 @@ export default function Automations() {
                                                     <div className="w-0.5 h-8 bg-border" />
                                                   </div>
                                                 )}
+                                              </div>
+                                            ))}
+                                          </div>
+                                        </div>
+                                      )}
+                                      
+                                      {/* Trigger-Based Automations */}
+                                      {triggerBasedAutomations.length > 0 && (
+                                        <div className="space-y-3 mt-[30px] mb-[30px]">
+                                          <div className="flex items-center justify-center gap-2">
+                                            <Target className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                                            <h5 className="text-base font-semibold text-muted-foreground uppercase tracking-wide">Trigger-Based</h5>
+                                            <Badge variant="outline" className="text-sm">
+                                              {triggerBasedAutomations.length}
+                                            </Badge>
+                                          </div>
+                                          <div className="flex flex-wrap gap-4 justify-center">
+                                            {triggerBasedAutomations.map((automation: any) => (
+                                              <div key={automation.id} className="w-full md:w-[calc(50%-0.5rem)] lg:w-[calc(33.333%-0.667rem)]">
+                                                <AutomationStepManager automation={automation} onDelete={handleDeleteAutomation} />
                                               </div>
                                             ))}
                                           </div>

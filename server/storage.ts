@@ -634,7 +634,8 @@ export class DatabaseStorage implements IStorage {
           orderBy: (steps, { asc }) => [asc(steps.stepIndex)]
         },
         stage: true,
-        targetStage: true
+        targetStage: true,
+        businessTriggers: true
       }
     });
     return result as any;
