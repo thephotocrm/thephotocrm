@@ -160,9 +160,9 @@ function AutomationStepManager({ automation, onDelete }: { automation: any, onDe
               <ChevronDown className="w-4 h-4 text-muted-foreground" />
             )}
           </div>
-          <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex items-center gap-2">
             {/* Type Badge: Immediate, Time-Based, or Trigger-Based */}
-            <span className="text-sm text-muted-foreground font-medium">Trigger</span>
+            <span className="text-sm text-muted-foreground font-medium">Trigger:</span>
             {automation.businessTriggers && automation.businessTriggers.length > 0 ? (
               // Trigger-based automation
               <Badge variant="default" className="bg-purple-500 dark:bg-purple-600 text-white text-xs">
