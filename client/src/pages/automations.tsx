@@ -178,13 +178,15 @@ function AutomationStepManager({ automation, onDelete }: { automation: any, onDe
                 <Target className="w-3 h-3 mr-1" />
                 {automation.businessTriggers[0].triggerType.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, (l: string) => l.toUpperCase())}
               </Badge>
-            ) : automation.triggerTiming && automation.triggerTiming !== 'IMMEDIATE' ? (
-              // Time-based automation
+            ) : steps.length > 0 && steps[0].delayMinutes > 0 ? (
+              // Time-based automation (has delay)
               <Badge variant="default" className="bg-blue-500 dark:bg-blue-600 text-white text-xs">
                 <Clock className="w-3 h-3 mr-1" />
-                {automation.daysBefore > 0 
-                  ? `${automation.daysBefore} day${automation.daysBefore !== 1 ? 's' : ''} before ${automation.eventType?.toLowerCase() || 'event'}`
-                  : `On ${automation.triggerTiming?.toLowerCase()}`
+                {steps[0].delayMinutes < 60 
+                  ? `${steps[0].delayMinutes} minute${steps[0].delayMinutes !== 1 ? 's' : ''}`
+                  : steps[0].delayMinutes < 1440
+                  ? `${Math.floor(steps[0].delayMinutes / 60)} hour${Math.floor(steps[0].delayMinutes / 60) !== 1 ? 's' : ''}`
+                  : `${Math.floor(steps[0].delayMinutes / 1440)} day${Math.floor(steps[0].delayMinutes / 1440) !== 1 ? 's' : ''}`
                 }
               </Badge>
             ) : steps.length > 0 && steps[0].delayMinutes === 0 ? (
