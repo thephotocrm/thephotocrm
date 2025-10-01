@@ -3020,9 +3020,13 @@ export default function Automations() {
                       {/* Stage-Based Automations Tab */}
                       <TabsContent value="stage-based" className="space-y-4 mt-4">
                         {(() => {
-                          const stageBased = automations.filter((a: any) => a.stageId);
+                          // Include automations with stageId OR stageCondition
+                          const stageBased = automations.filter((a: any) => a.stageId || a.stageCondition);
                           const stageGroups = stages?.reduce((acc: any, stage: any) => {
-                            const stageAutomations = stageBased.filter((a: any) => a.stageId === stage.id);
+                            // Group by either stageId or stageCondition
+                            const stageAutomations = stageBased.filter((a: any) => 
+                              a.stageId === stage.id || a.stageCondition === stage.id
+                            );
                             if (stageAutomations.length > 0) {
                               acc[stage.id] = { stage, automations: stageAutomations };
                             }
