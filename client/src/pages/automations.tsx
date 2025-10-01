@@ -3086,9 +3086,9 @@ export default function Automations() {
                                               {immediateAutomations.length}
                                             </Badge>
                                           </div>
-                                          <div className="flex flex-wrap gap-4 justify-center">
+                                          <div className="flex flex-wrap gap-2 justify-center">
                                             {immediateAutomations.map((automation: any) => (
-                                              <div key={automation.id} className="w-full md:w-[calc(50%-0.5rem)]">
+                                              <div key={automation.id} className="w-full md:w-auto">
                                                 {automation.automationType === 'COMMUNICATION' ? (
                                                   <AutomationStepManager automation={automation} onDelete={handleDeleteAutomation} />
                                                 ) : (
@@ -3136,9 +3136,9 @@ export default function Automations() {
                                               {triggerBasedAutomations.length}
                                             </Badge>
                                           </div>
-                                          <div className="flex flex-wrap gap-4 justify-center">
+                                          <div className="flex flex-wrap gap-2 justify-center">
                                             {triggerBasedAutomations.map((automation: any) => (
-                                              <div key={automation.id} className="w-full md:w-[calc(50%-0.5rem)]">
+                                              <div key={automation.id} className="w-full md:w-auto">
                                                 <AutomationStepManager automation={automation} onDelete={handleDeleteAutomation} />
                                               </div>
                                             ))}
