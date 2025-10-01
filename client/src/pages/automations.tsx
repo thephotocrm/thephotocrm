@@ -162,11 +162,12 @@ function AutomationStepManager({ automation, onDelete }: { automation: any, onDe
           </div>
           <div className="flex items-center gap-2 flex-wrap">
             {/* Type Badge: Immediate, Time-Based, or Trigger-Based */}
+            <span className="text-sm text-muted-foreground font-medium">Trigger</span>
             {automation.businessTriggers && automation.businessTriggers.length > 0 ? (
               // Trigger-based automation
               <Badge variant="default" className="bg-purple-500 dark:bg-purple-600 text-white text-xs">
                 <Target className="w-3 h-3 mr-1" />
-                Trigger: {automation.businessTriggers[0].triggerType.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, (l: string) => l.toUpperCase())}
+                {automation.businessTriggers[0].triggerType.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, (l: string) => l.toUpperCase())}
               </Badge>
             ) : steps.length > 0 && steps[0].delayMinutes > 0 ? (
               // Time-based automation (has delay)
