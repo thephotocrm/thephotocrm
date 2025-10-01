@@ -3029,9 +3029,20 @@ export default function Automations() {
                             return acc;
                           }, {});
 
+                          const stageGroupsArray = stageGroups ? Object.values(stageGroups) : [];
+                          const firstStageId = stageGroupsArray.length > 0 ? (stageGroupsArray[0] as any).stage.id : '';
+
                           return stageGroups && Object.keys(stageGroups).length > 0 ? (
-                            <div className="space-y-4">
-                              {Object.values(stageGroups).map((group: any) => {
+                            <Tabs defaultValue={firstStageId} className="w-full">
+                              <TabsList className="grid w-full" style={{ gridTemplateColumns: `repeat(${stageGroupsArray.length}, minmax(0, 1fr))` }}>
+                                {stageGroupsArray.map((group: any) => (
+                                  <TabsTrigger key={group.stage.id} value={group.stage.id} data-testid={`tab-stage-${group.stage.id}`}>
+                                    {group.stage.name}
+                                  </TabsTrigger>
+                                ))}
+                              </TabsList>
+
+                              {stageGroupsArray.map((group: any) => {
                                 // Separate automations by timing and triggers
                                 const immediateAutomations = group.automations.filter((a: any) => {
                                   // Exclude trigger-based automations
@@ -3057,12 +3068,9 @@ export default function Automations() {
                                 });
                                 
                                 return (
-                                  <div key={group.stage.id} className="border-l-4 border-blue-500 rounded-lg p-4 bg-blue-50 dark:bg-blue-950 shadow-sm">
-                                    <div className="flex items-center space-x-2 mb-4">
-                                      <div className="h-2 w-2 rounded-full bg-primary" />
-                                      <h4 className="font-semibold text-2xl">{group.stage.name} Stage Automations</h4>
-                                    </div>
-                                    <div className="space-y-3">
+                                  <TabsContent key={group.stage.id} value={group.stage.id} className="mt-4">
+                                    <div className="border-l-4 border-blue-500 rounded-lg p-4 bg-blue-50 dark:bg-blue-950 shadow-sm">
+                                      <div className="space-y-3">
                                       {/* Immediate Automations */}
                                       {immediateAutomations.length > 0 && (
                                         <div className="space-y-3">
@@ -3136,11 +3144,12 @@ export default function Automations() {
                                           </div>
                                         </div>
                                       )}
+                                      </div>
                                     </div>
-                                  </div>
+                                  </TabsContent>
                                 );
                               })}
-                            </div>
+                            </Tabs>
                           ) : (
                             <div className="text-center py-8">
                               <Settings className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
