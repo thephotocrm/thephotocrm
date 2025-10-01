@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRoute } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { updateMetaTags } from "@/lib/meta-tags";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -50,6 +51,7 @@ interface Photographer {
   timezone: string;
   brandPrimary?: string;
   profilePicture?: string;
+  logoUrl?: string;
 }
 
 interface PublicCalendarData {
@@ -97,6 +99,21 @@ export default function PublicBookingCalendar() {
       return await response.json();
     }
   });
+
+  // Update meta tags for social sharing when photographer data loads
+  useEffect(() => {
+    if (calendarData?.photographer) {
+      const { businessName, logoUrl } = calendarData.photographer;
+      const currentUrl = window.location.href;
+      
+      updateMetaTags({
+        title: `${businessName} - Schedule Your Photography Session`,
+        description: `Book your consultation with ${businessName}. Choose a time that works for you.`,
+        image: logoUrl || undefined, // Use photographer's logo if available
+        url: currentUrl
+      });
+    }
+  }, [calendarData]);
 
   // Helper function to format date for API calls (YYYY-MM-DD in local timezone)
   const formatDateForAPI = (date: Date) => {
