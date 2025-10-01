@@ -170,6 +170,15 @@ function AutomationStepManager({ automation, onDelete }: { automation: any, onDe
             >
               {automation.channel === 'EMAIL' ? '📧 Email' : '📱 SMS'}
             </Badge>
+            {automation.triggerTiming && automation.triggerTiming !== 'IMMEDIATE' && (
+              <Badge variant="default" className="bg-blue-500 dark:bg-blue-600 text-white text-xs">
+                <Clock className="w-3 h-3 mr-1" />
+                {automation.daysBefore > 0 
+                  ? `${automation.daysBefore} day${automation.daysBefore !== 1 ? 's' : ''} before ${automation.eventType?.toLowerCase() || 'event'}`
+                  : `On ${automation.triggerTiming?.toLowerCase()}`
+                }
+              </Badge>
+            )}
             {steps.length > 0 && (
               <Badge variant="secondary" className="text-xs">
                 {steps.length} step{steps.length !== 1 ? 's' : ''}
