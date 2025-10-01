@@ -3012,37 +3012,47 @@ export default function Automations() {
                         {(() => {
                           // Include automations with stageId OR stageCondition (not targetStageId alone)
                           const stageBased = automations.filter((a: any) => a.stageId || a.stageCondition);
-                          
-                          const stageGroups = stages?.reduce((acc: any, stage: any) => {
-                            // Group by priority: stageCondition > stageId
-                            // Pipeline automations only show if they have a stageCondition set
-                            const stageAutomations = stageBased.filter((a: any) => {
-                              // Priority 1: stageCondition (where the automation checks if client is in this stage)
-                              if (a.stageCondition === stage.id) return true;
-                              // Priority 2: stageId (communication automations triggered when entering this stage)
-                              if (!a.stageCondition && a.stageId === stage.id) return true;
-                              return false;
-                            });
-                            if (stageAutomations.length > 0) {
-                              acc[stage.id] = { stage, automations: stageAutomations };
+                          const [selectedStageId, setSelectedStageId] = useState(stages?.[0]?.id || '');
+
+                          // Set initial selected stage when stages load
+                          useEffect(() => {
+                            if (stages && stages.length > 0 && !selectedStageId) {
+                              setSelectedStageId(stages[0].id);
                             }
-                            return acc;
-                          }, {});
+                          }, [stages]);
 
-                          const stageGroupsArray = stageGroups ? Object.values(stageGroups) : [];
-                          const firstStageId = stageGroupsArray.length > 0 ? (stageGroupsArray[0] as any).stage.id : '';
+                          // Get automations for the selected stage
+                          const selectedStage = stages?.find((s: any) => s.id === selectedStageId);
+                          const stageAutomations = stageBased.filter((a: any) => {
+                            // Priority 1: stageCondition (where the automation checks if client is in this stage)
+                            if (a.stageCondition === selectedStageId) return true;
+                            // Priority 2: stageId (communication automations triggered when entering this stage)
+                            if (!a.stageCondition && a.stageId === selectedStageId) return true;
+                            return false;
+                          });
 
-                          return stageGroups && Object.keys(stageGroups).length > 0 ? (
-                            <Tabs defaultValue={firstStageId} className="w-full">
-                              <TabsList className="grid w-full" style={{ gridTemplateColumns: `repeat(${stageGroupsArray.length}, minmax(0, 1fr))` }}>
-                                {stageGroupsArray.map((group: any) => (
-                                  <TabsTrigger key={group.stage.id} value={group.stage.id} data-testid={`tab-stage-${group.stage.id}`}>
-                                    {group.stage.name}
-                                  </TabsTrigger>
-                                ))}
-                              </TabsList>
+                          return stages && stages.length > 0 ? (
+                            <div className="space-y-4">
+                              {/* Stage Selector Dropdown */}
+                              <div className="flex items-center gap-2">
+                                <Label className="text-sm font-medium">Select Stage:</Label>
+                                <Select value={selectedStageId} onValueChange={setSelectedStageId}>
+                                  <SelectTrigger className="w-[250px]" data-testid="select-stage">
+                                    <SelectValue placeholder="Select a stage" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {stages.map((stage: any) => (
+                                      <SelectItem key={stage.id} value={stage.id} data-testid={`select-stage-${stage.id}`}>
+                                        {stage.name}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
 
-                              {stageGroupsArray.map((group: any) => {
+                              {/* Stage Automations Content */}
+                              {stageAutomations.length > 0 ? (() => {
+                                const group = { stage: selectedStage, automations: stageAutomations };
                                 // Separate automations by timing and triggers
                                 const immediateAutomations = group.automations.filter((a: any) => {
                                   // Exclude trigger-based automations
@@ -3068,9 +3078,8 @@ export default function Automations() {
                                 });
                                 
                                 return (
-                                  <TabsContent key={group.stage.id} value={group.stage.id} className="mt-4">
-                                    <div className="border-l-4 border-blue-500 rounded-lg p-4 bg-blue-50 dark:bg-blue-950 shadow-sm">
-                                      <div className="space-y-3">
+                                  <div className="border-l-4 border-blue-500 rounded-lg p-4 bg-blue-50 dark:bg-blue-950 shadow-sm">
+                                    <div className="space-y-3">
                                       {/* Immediate Automations */}
                                       {immediateAutomations.length > 0 && (
                                         <div className="space-y-3">
@@ -3144,12 +3153,19 @@ export default function Automations() {
                                           </div>
                                         </div>
                                       )}
-                                      </div>
                                     </div>
-                                  </TabsContent>
+                                  </div>
                                 );
-                              })}
-                            </Tabs>
+                              })() : (
+                                <div className="text-center py-8 border rounded-lg bg-muted/30">
+                                  <Settings className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                                  <h3 className="text-lg font-semibold mb-2">No automations for {selectedStage?.name}</h3>
+                                  <p className="text-muted-foreground">
+                                    Create automations for this stage to automate your client communications and workflows
+                                  </p>
+                                </div>
+                              )}
+                            </div>
                           ) : (
                             <div className="text-center py-8">
                               <Settings className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
