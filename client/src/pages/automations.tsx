@@ -232,7 +232,7 @@ function AutomationStepManager({ automation, onDelete }: { automation: any, onDe
 
       {/* Timeline Steps */}
       {isExpanded && (
-        <div className="relative pl-8 space-y-3">
+        <div className="p-4 pt-0 space-y-3">
           {isLoading ? (
             <p className="text-sm text-muted-foreground">Loading steps...</p>
           ) : steps.length === 0 ? (
@@ -240,51 +240,23 @@ function AutomationStepManager({ automation, onDelete }: { automation: any, onDe
           ) : (
             steps.map((step: any, index: number) => {
             const template = templates?.find(t => t.id === step.templateId);
-            const formatDelay = (minutes: number) => {
-              if (minutes === 0) return 'Immediately';
-              if (minutes < 60) return `${minutes}min`;
-              const hours = Math.floor(minutes / 60);
-              const mins = minutes % 60;
-              if (hours < 24) {
-                return mins > 0 ? `${hours}h ${mins}m` : `${hours}h`;
-              }
-              const days = Math.floor(hours / 24);
-              const remainingHours = hours % 24;
-              return remainingHours > 0 ? `${days}d ${remainingHours}h` : `${days}d`;
-            };
-            
-            const isLastStep = index === steps.length - 1;
             
             return (
-              <div key={step.id} className="relative">
-                {/* Timeline dot and line */}
-                <div className="absolute -left-8 top-0 flex flex-col items-center">
-                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
-                    step.enabled 
-                      ? 'bg-primary text-primary-foreground' 
-                      : 'bg-muted text-muted-foreground'
-                  }`}>
-                    {index + 1}
+              <div key={step.id}>
+                {/* Message Preview */}
+                {template && (
+                  <div className="bg-muted/50 border rounded-md p-3 text-sm">
+                    <p className="font-semibold mb-2">
+                      {automation.channel === 'EMAIL' ? 'Email Message:' : 'Text Message:'}
+                    </p>
+                    {template.subject && automation.channel === 'EMAIL' && (
+                      <p className="font-medium mb-2 text-muted-foreground">Subject: {template.subject}</p>
+                    )}
+                    <p className="text-muted-foreground whitespace-pre-wrap">
+                      {template.textBody || 'No message content'}
+                    </p>
                   </div>
-                  {!isLastStep && (
-                    <div className="w-0.5 h-full bg-border mt-1" style={{ minHeight: '2rem' }}></div>
-                  )}
-                </div>
-                
-                {/* Step Content */}
-                <div className="space-y-2">
-                  {/* Message Preview */}
-                  {template && (
-                    <div className="bg-muted/50 border rounded-md p-3 text-sm">
-                      {template.subject && (
-                        <p className="font-semibold mb-2">{template.subject}</p>
-                      )}
-                      <p className="text-muted-foreground whitespace-pre-wrap">
-                        {template.textBody || 'No message content'}
-                      </p>
-                    </div>
-                  )}
-                </div>
+                )}
               </div>
             );
           })
