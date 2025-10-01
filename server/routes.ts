@@ -67,6 +67,113 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Start cron jobs
   startCronJobs();
 
+  // Public booking calendar route with server-side meta tag injection
+  // Note: Uses /booking/* path instead of /public/* to avoid Vite static file handler conflict
+  app.get("/booking/calendar/:publicToken", async (req, res, next) => {
+    console.log("🔍 BOOKING CALENDAR ROUTE HIT:", req.params.publicToken);
+    try {
+      const { publicToken } = req.params;
+      
+      // Fetch photographer data
+      const photographer = await storage.getPhotographerByPublicToken(publicToken);
+      console.log("📸 Photographer found:", photographer?.businessName);
+      
+      if (!photographer) {
+        // If photographer not found, let it fall through to the SPA
+        return next();
+      }
+
+      // Helper function to escape HTML attribute values to prevent injection attacks
+      const escapeAttr = (text: string) => {
+        return text
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#039;');
+      };
+
+      // Build the meta tags with proper escaping
+      const businessName = escapeAttr(photographer.businessName);
+      const title = `${businessName} - Schedule Your Photography Session`;
+      const description = `Book your consultation with ${businessName}. Choose a time that works for you.`;
+      const currentUrl = escapeAttr(`${req.protocol}://${req.get('host')}${req.originalUrl}`);
+      
+      // Build image URL - must be absolute for Open Graph and properly validated
+      let imageUrl = '';
+      if (photographer.logoUrl) {
+        // Validate that logoUrl is a proper HTTP(S) URL
+        let logoUrl = photographer.logoUrl.trim();
+        
+        // If logoUrl is already absolute, validate and use it
+        if (logoUrl.startsWith('http://') || logoUrl.startsWith('https://')) {
+          // Basic URL validation
+          try {
+            new URL(logoUrl);
+            imageUrl = escapeAttr(logoUrl);
+          } catch {
+            // Invalid URL, skip image
+            imageUrl = '';
+          }
+        } else {
+          // Make it absolute
+          imageUrl = escapeAttr(`${req.protocol}://${req.get('host')}${logoUrl}`);
+        }
+      }
+
+      // Create meta tags HTML with enhanced metadata
+      const metaTags = `
+    <!-- Dynamic Open Graph Meta Tags -->
+    <meta property="og:site_name" content="Lazy Photog" />
+    <meta property="og:title" content="${title}" />
+    <meta property="og:description" content="${description}" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="${currentUrl}" />
+    ${imageUrl ? `<meta property="og:image" content="${imageUrl}" />` : ''}
+    
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="${title}" />
+    <meta name="twitter:description" content="${description}" />
+    ${imageUrl ? `<meta name="twitter:image" content="${imageUrl}" />` : ''}
+    
+    <title>${title}</title>
+    <meta name="description" content="${description}" />
+  `;
+
+      // Read the index.html template
+      const fs = await import('fs/promises');
+      let htmlPath: string;
+      let html: string;
+      
+      if (app.get("env") === "development") {
+        // In development, read from client folder
+        htmlPath = path.resolve(import.meta.dirname, "../client/index.html");
+      } else {
+        // In production, read from build folder
+        htmlPath = path.resolve(import.meta.dirname, "public/index.html");
+      }
+      
+      html = await fs.readFile(htmlPath, 'utf-8');
+      
+      // Remove existing title and meta description tags to avoid duplicates
+      html = html.replace(/<title>.*?<\/title>/s, '');
+      html = html.replace(/<meta\s+name="description"\s+content="[^"]*"\s*\/?>/gi, '');
+      
+      // Inject meta tags before closing </head> tag for more robust insertion
+      html = html.replace(
+        /<\/head>/,
+        `${metaTags}\n  </head>`
+      );
+      
+      return res.status(200).set({ 'Content-Type': 'text/html' }).end(html);
+    } catch (error) {
+      console.error("Error generating meta tags:", error);
+      // If anything fails, fall through to regular SPA handling
+      next();
+    }
+  });
+
   // Auth routes
   app.post("/api/auth/register", async (req, res) => {
     try {
@@ -3913,7 +4020,8 @@ ${photographer.businessName}`
           businessName: photographer.businessName,
           timezone: photographer.timezone,
           brandPrimary: photographer.brandPrimary,
-          profilePicture: photographer.profilePicture // Add profile picture for branding
+          profilePicture: photographer.profilePicture, // Add profile picture for branding
+          logoUrl: photographer.logoUrl // Add logo for social sharing meta tags
         },
         dailyTemplates: dailyTemplates.filter(t => t.isEnabled) // Only return enabled templates
       });
@@ -4295,16 +4403,6 @@ ${photographer.businessName}
 
   // Add explicit route handler for public booking pages to serve the React app
   app.get("/public/booking/:token", async (req, res, next) => {
-    if (app.get("env") === "development") {
-      next();
-    } else {
-      const distPath = path.resolve(import.meta.dirname, "public");
-      res.sendFile(path.resolve(distPath, "index.html"));
-    }
-  });
-
-  // Add explicit route handler for public booking calendar pages to serve the React app
-  app.get("/public/booking/calendar/:publicToken", async (req, res, next) => {
     if (app.get("env") === "development") {
       next();
     } else {

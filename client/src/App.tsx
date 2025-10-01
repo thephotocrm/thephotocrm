@@ -44,7 +44,7 @@ function Router() {
       <Route path="/client-portal" component={ClientPortal} />
       <Route path="/public/proposals/:token" component={PublicProposal} />
       <Route path="/public/booking/:token" component={PublicBooking} />
-      <Route path="/public/booking/calendar/:publicToken" component={PublicBookingCalendar} />
+      <Route path="/booking/calendar/:publicToken" component={PublicBookingCalendar} />
       <Route>
         <SidebarProvider>
           <AppSidebar />

@@ -71,7 +71,7 @@ const bookingFormSchema = z.object({
 type BookingFormData = z.infer<typeof bookingFormSchema>;
 
 export default function PublicBookingCalendar() {
-  const [, params] = useRoute("/public/booking/calendar/:publicToken");
+  const [, params] = useRoute("/booking/calendar/:publicToken");
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null);
