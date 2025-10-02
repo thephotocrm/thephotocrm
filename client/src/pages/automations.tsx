@@ -1468,6 +1468,10 @@ export default function Automations() {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editingAutomation, setEditingAutomation] = useState<any>(null);
   const [selectedStageId, setSelectedStageId] = useState<string>('');
+  // Edit form states
+  const [editEnableCommunication, setEditEnableCommunication] = useState(true);
+  const [editEnablePipeline, setEditEnablePipeline] = useState(false);
+  const [editTimingMode, setEditTimingMode] = useState<'immediate' | 'delayed'>('immediate');
   
   // Redirect to login if not authenticated (after all hooks)
   if (!loading && !user) {
@@ -1563,7 +1567,7 @@ export default function Automations() {
   
   type UnifiedFormData = z.infer<typeof unifiedFormSchema>;
 
-  // Form setup
+  // Create form setup
   const form = useForm<UnifiedFormData>({
     resolver: zodResolver(unifiedFormSchema),
     defaultValues: {
@@ -1582,6 +1586,36 @@ export default function Automations() {
       channel: "EMAIL", 
       enabled: true,
       automationType: "COMMUNICATION", // Still needed for backend compatibility
+      enableCommunication: true,
+      enablePipeline: false,
+      templateId: "",
+      delayMinutes: 0,
+      delayHours: 0,
+      delayDays: 0,
+      questionnaireTemplateId: "",
+      targetStageId: ""
+    }
+  });
+
+  // Edit form setup
+  const editForm = useForm<UnifiedFormData>({
+    resolver: zodResolver(unifiedFormSchema),
+    defaultValues: {
+      name: "",
+      stageId: "",
+      triggerMode: "STAGE" as const,
+      triggerStageId: "",
+      triggerEvent: "",
+      daysBefore: 7,
+      triggerTiming: "BEFORE" as const,
+      triggerHour: 9,
+      triggerMinute: 0,
+      eventType: "placeholder",
+      stageCondition: "all",
+      eventDateCondition: "",
+      channel: "EMAIL",
+      enabled: true,
+      automationType: "COMMUNICATION",
       enableCommunication: true,
       enablePipeline: false,
       templateId: "",
@@ -1628,6 +1662,77 @@ export default function Automations() {
     });
     return () => subscription.unsubscribe();
   }, [form, timingMode]);
+
+  // Populate edit form when editing automation changes
+  useEffect(() => {
+    if (editingAutomation && editDialogOpen) {
+      const auto = editingAutomation;
+      
+      // Determine trigger mode
+      let triggerMode: 'STAGE' | 'BUSINESS' | 'TIME' = 'STAGE';
+      if (auto.daysBefore !== null && auto.daysBefore !== undefined) {
+        triggerMode = 'TIME';
+      } else if (auto.businessTriggers && auto.businessTriggers.length > 0) {
+        triggerMode = 'BUSINESS';
+      }
+      
+      // Set enable flags based on automation type
+      const isComm = auto.automationType === 'COMMUNICATION';
+      const isPipe = auto.automationType === 'PIPELINE_CHANGE';
+      setEditEnableCommunication(isComm);
+      setEditEnablePipeline(isPipe);
+      
+      // Populate form - use nullish coalescing to preserve 0 values
+      editForm.reset({
+        name: auto.name ?? "",
+        stageId: auto.stageId ?? "",
+        triggerMode: triggerMode,
+        triggerStageId: auto.stageId ?? "",
+        triggerEvent: auto.businessTriggers?.[0]?.triggerType ?? "",
+        daysBefore: auto.daysBefore ?? 7,
+        triggerTiming: auto.triggerTiming ?? "BEFORE",
+        triggerHour: auto.triggerHour ?? 9,
+        triggerMinute: auto.triggerMinute ?? 0,
+        eventType: auto.eventType ?? "placeholder",
+        stageCondition: auto.stageCondition ?? "all",
+        eventDateCondition: auto.eventDateCondition ?? "",
+        channel: auto.channel ?? "EMAIL",
+        enabled: auto.enabled ?? true,
+        automationType: auto.automationType ?? "COMMUNICATION",
+        enableCommunication: isComm,
+        enablePipeline: isPipe,
+        templateId: auto.templateId ?? "",
+        delayMinutes: 0,
+        delayHours: 0,
+        delayDays: 0,
+        questionnaireTemplateId: auto.questionnaireTemplateId ?? "",
+        // Extract ID from targetStage object (could be string ID or object with id property)
+        targetStageId: typeof auto.targetStage === 'string' ? auto.targetStage : (auto.targetStage?.id ?? "")
+      });
+      
+      // Set timing mode based on steps (will be handled separately)
+      setEditTimingMode('immediate');
+    }
+  }, [editingAutomation, editDialogOpen, editForm]);
+
+  // Update edit form when edit enable flags change
+  useEffect(() => {
+    editForm.clearErrors();
+    editForm.setValue('enableCommunication', editEnableCommunication);
+    editForm.setValue('enablePipeline', editEnablePipeline);
+    
+    if (!editEnableCommunication) {
+      editForm.setValue('templateId', '');
+      editForm.setValue('delayMinutes', 0);
+      editForm.setValue('delayHours', 0);
+      editForm.setValue('delayDays', 0);
+      editForm.setValue('questionnaireTemplateId', '');
+      editForm.setValue('channel', 'EMAIL');
+    }
+    if (!editEnablePipeline) {
+      editForm.setValue('targetStageId', '');
+    }
+  }, [editEnableCommunication, editEnablePipeline, editForm]);
 
   // ALL HOOKS MUST BE CALLED BEFORE ANY CONDITIONALS
   const { data: stages = [], isError: stagesError, isLoading: stagesLoading } = useQuery<any[]>({
@@ -1884,10 +1989,48 @@ export default function Automations() {
     }
   });
 
-  // Edit automation mutation
+  // Edit automation mutation - comprehensive update
   const editAutomationMutation = useMutation({
-    mutationFn: async ({ automationId, data }: { automationId: string; data: any }) => {
-      return apiRequest("PUT", `/api/automations/${automationId}`, data);
+    mutationFn: async (data: UnifiedFormData) => {
+      if (!editingAutomation) throw new Error("No automation selected");
+      
+      const automationId = editingAutomation.id;
+      
+      // Build update data based on form values
+      const updateData: any = {
+        name: data.name,
+        enabled: data.enabled,
+        eventDateCondition: data.eventDateCondition || null
+      };
+      
+      // Add trigger-specific fields
+      if (data.triggerMode === 'STAGE') {
+        updateData.stageId = data.triggerStageId && data.triggerStageId !== 'global' ? data.triggerStageId : null;
+      } else if (data.triggerMode === 'BUSINESS') {
+        updateData.stageCondition = data.stageCondition && data.stageCondition !== 'all' ? data.stageCondition : null;
+      } else if (data.triggerMode === 'TIME') {
+        updateData.daysBefore = data.daysBefore;
+        updateData.triggerTiming = data.triggerTiming;
+        updateData.triggerHour = data.triggerHour;
+        updateData.triggerMinute = data.triggerMinute;
+        updateData.eventType = data.eventType;
+        updateData.stageCondition = data.stageCondition && data.stageCondition !== 'all' ? data.stageCondition : null;
+        updateData.eventDateCondition = null; // Countdown automations can't have this condition
+      }
+      
+      // Add communication-specific fields
+      if (editingAutomation.automationType === 'COMMUNICATION') {
+        updateData.channel = data.channel;
+        updateData.templateId = data.templateId && data.templateId !== "unavailable" ? data.templateId : null;
+        updateData.questionnaireTemplateId = data.questionnaireTemplateId && data.questionnaireTemplateId !== "unavailable" && data.questionnaireTemplateId !== "none" ? data.questionnaireTemplateId : null;
+      }
+      
+      // Add pipeline-specific fields
+      if (editingAutomation.automationType === 'PIPELINE_CHANGE') {
+        updateData.targetStage = data.targetStageId;
+      }
+      
+      return apiRequest("PATCH", `/api/automations/${automationId}`, updateData);
     },
     onSuccess: () => {
       toast({ title: "Automation updated successfully" });
@@ -1895,8 +2038,12 @@ export default function Automations() {
       setEditDialogOpen(false);
       setEditingAutomation(null);
     },
-    onError: () => {
-      toast({ title: "Failed to update automation", variant: "destructive" });
+    onError: (error: any) => {
+      toast({ 
+        title: "Failed to update automation", 
+        description: error?.message || "Please try again",
+        variant: "destructive" 
+      });
     }
   });
 
@@ -2728,121 +2875,153 @@ export default function Automations() {
                 </Form>
             </DialogContent>
           </Dialog>
-      {/* Edit Automation Dialog */}
+      {/* Edit Automation Dialog - Comprehensive Edit */}
       {editingAutomation && (
         <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-          <DialogContent className="sm:max-w-lg">
-            <DialogHeader>
+          <DialogContent className="w-[95vw] sm:max-w-2xl max-h-[92vh] p-0 flex flex-col overflow-hidden">
+            <DialogHeader className="sticky top-0 z-10 bg-background px-6 py-4 border-b">
               <DialogTitle>Edit Automation</DialogTitle>
               <DialogDescription>
-                Update automation settings
+                Update your automation settings - all fields are editable
               </DialogDescription>
             </DialogHeader>
             
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label>Automation Name</Label>
-                <Input
-                  value={editingAutomation.name}
-                  onChange={(e) => setEditingAutomation({...editingAutomation, name: e.target.value})}
-                  placeholder="Enter automation name"
-                  data-testid={`input-edit-name-${editingAutomation.id}`}
-                />
-              </div>
+            <Form {...editForm}>
+              <form onSubmit={editForm.handleSubmit((data) => editAutomationMutation.mutate(data))} className="flex flex-col min-h-0 flex-1">
+                <div className="flex-1 min-h-0 overflow-y-auto px-6 py-4 space-y-6">
+                  {/* Basic Information */}
+                  <div className="space-y-3">
+                    <h3 className="font-semibold">Basic Information</h3>
+                    <FormField
+                      control={editForm.control}
+                      name="name"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Automation Name</FormLabel>
+                          <FormControl>
+                            <Input placeholder="e.g., Welcome Email, Follow-up SMS" data-testid="input-edit-automation-name" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
 
-              {/* Show automation details based on type */}
-              {editingAutomation.automationType === 'COMMUNICATION' && (
-                <div className="space-y-2">
-                  <Label>Channel</Label>
-                  <Select
-                    value={editingAutomation.channel}
-                    onValueChange={(value) => setEditingAutomation({...editingAutomation, channel: value})}
-                  >
-                    <SelectTrigger data-testid={`select-edit-channel-${editingAutomation.id}`}>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="EMAIL">Email</SelectItem>
-                      <SelectItem value="SMS">SMS</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
+                  {/* Enable/Disable */}
+                  <FormField
+                    control={editForm.control}
+                    name="enabled"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                        <div className="space-y-0.5">
+                          <FormLabel>Enable Automation</FormLabel>
+                          <FormDescription>
+                            When enabled, this automation will actively run
+                          </FormDescription>
+                        </div>
+                        <FormControl>
+                          <Switch
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                            data-testid="switch-edit-enabled"
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
 
-              {/* Show automation type and trigger info */}
-              <div className="space-y-2">
-                <Label>Automation Details</Label>
-                <div className="border rounded-lg p-3 bg-muted">
-                  <div className="space-y-2 text-sm">
-                    <div className="flex items-center justify-between">
-                      <span className="font-medium">Type:</span>
-                      <span>{editingAutomation.automationType === 'COMMUNICATION' ? 'Communication' : 'Pipeline Stage'}</span>
-                    </div>
-                    {editingAutomation.triggerMode && (
+                  {/* Automation Type Indicator */}
+                  <div className="border rounded-lg p-3 bg-muted/50">
+                    <div className="text-sm space-y-1">
                       <div className="flex items-center justify-between">
-                        <span className="font-medium">Trigger:</span>
-                        <span>
-                          {editingAutomation.triggerMode === 'STAGE' ? 'Stage-based' :
-                           editingAutomation.triggerMode === 'BUSINESS' ? 'Business Event' : 'Time-based'}
-                        </span>
+                        <span className="font-medium">Automation Type:</span>
+                        <Badge variant="outline">
+                          {editingAutomation.automationType === 'COMMUNICATION' ? 'Communication' : 'Pipeline Change'}
+                        </Badge>
                       </div>
-                    )}
-                    {editingAutomation.stageName && (
-                      <div className="flex items-center justify-between">
-                        <span className="font-medium">Trigger Stage:</span>
-                        <span>"{editingAutomation.stageName}"</span>
-                      </div>
-                    )}
-                    <div className="flex items-center justify-between">
-                      <span className="font-medium">Status:</span>
-                      <Badge variant={editingAutomation.enabled ? "default" : "secondary"}>
-                        {editingAutomation.enabled ? "Active" : "Inactive"}
-                      </Badge>
                     </div>
                   </div>
+                  
+                  {/* Communication-specific fields */}
+                  {editingAutomation.automationType === 'COMMUNICATION' && (
+                    <div className="space-y-3">
+                      <h3 className="font-semibold">Communication Settings</h3>
+                      <FormField
+                        control={editForm.control}
+                        name="channel"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Channel</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value}>
+                              <FormControl>
+                                <SelectTrigger data-testid="select-edit-channel">
+                                  <SelectValue />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="EMAIL">📧 Email</SelectItem>
+                                <SelectItem value="SMS">📱 SMS</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  )}
+
+                  {/* Wedding Date Condition - only for non-countdown automations */}
+                  {(!editingAutomation.daysBefore || editingAutomation.daysBefore === null) && (
+                    <div className="space-y-3">
+                      <h3 className="font-semibold">Conditions (Optional)</h3>
+                      <FormField
+                        control={editForm.control}
+                        name="eventDateCondition"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Wedding Date Requirement</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value || ""}>
+                              <FormControl>
+                                <SelectTrigger data-testid="select-edit-event-date-condition">
+                                  <SelectValue placeholder="No condition (run for all clients)" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="">No condition (run for all clients)</SelectItem>
+                                <SelectItem value="HAS_EVENT_DATE">Only if client has wedding date</SelectItem>
+                                <SelectItem value="NO_EVENT_DATE">Only if client does NOT have wedding date</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormDescription>
+                              Filter which clients this automation applies to based on wedding date
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  )}
                 </div>
-              </div>
 
-              {/* Enhanced Details Component */}
-              <EditAutomationDetails automationId={editingAutomation.id} automation={editingAutomation} />
-
-              <div className="flex items-center space-x-2">
-                <Switch
-                  checked={editingAutomation.enabled}
-                  onCheckedChange={(checked) => setEditingAutomation({...editingAutomation, enabled: checked})}
-                  data-testid={`switch-edit-enabled-${editingAutomation.id}`}
-                />
-                <Label>Enable automation</Label>
-              </div>
-            </div>
-
-            <div className="flex justify-end space-x-2 pt-4">
-              <Button
-                variant="outline"
-                onClick={() => setEditDialogOpen(false)}
-                data-testid={`button-cancel-edit-${editingAutomation.id}`}
-              >
-                Cancel
-              </Button>
-              <Button
-                onClick={() => {
-                  editAutomationMutation.mutate({
-                    automationId: editingAutomation.id,
-                    data: {
-                      name: editingAutomation.name,
-                      enabled: editingAutomation.enabled,
-                      ...(editingAutomation.automationType === 'COMMUNICATION' && {
-                        channel: editingAutomation.channel
-                      })
-                    }
-                  });
-                }}
-                disabled={editAutomationMutation.isPending || !editingAutomation.name.trim()}
-                data-testid={`button-save-edit-${editingAutomation.id}`}
-              >
-                {editAutomationMutation.isPending ? "Saving..." : "Save Changes"}
-              </Button>
-            </div>
+                <div className="sticky bottom-0 bg-background border-t px-6 py-4 flex justify-end space-x-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setEditDialogOpen(false)}
+                    data-testid="button-cancel-edit"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    disabled={editAutomationMutation.isPending}
+                    data-testid="button-save-edit"
+                  >
+                    {editAutomationMutation.isPending ? "Saving..." : "Save Changes"}
+                  </Button>
+                </div>
+              </form>
+            </Form>
           </DialogContent>
         </Dialog>
       )}
