@@ -7,8 +7,9 @@ import {
   messages, projectActivityLog, clientPortalTokens,
   dailyAvailabilityTemplates, dailyAvailabilityBreaks, dailyAvailabilityOverrides,
   dripCampaigns, dripCampaignEmails, dripCampaignSubscriptions, dripEmailDeliveries, staticCampaignSettings,
-  shortLinks,
+  shortLinks, adminActivityLog,
   type User, type InsertUser, type Photographer, type InsertPhotographer,
+  type AdminActivityLog, type InsertAdminActivityLog,
   type Client, type InsertClient, type Project, type InsertProject, type ProjectWithClientAndStage, type ClientWithProjects, type Stage, type InsertStage,
   type Template, type InsertTemplate, type Automation, type InsertAutomation,
   type AutomationStep, type InsertAutomationStep, type AutomationBusinessTrigger, type InsertAutomationBusinessTrigger, type Package, type InsertPackage,
@@ -292,6 +293,11 @@ export interface IStorage {
   getEmailHistoryByClient(clientId: string): Promise<EmailHistory[]>;
   getEmailHistoryByProject(projectId: string): Promise<EmailHistory[]>;
   getEmailHistoryByThread(gmailThreadId: string, photographerId?: string): Promise<EmailHistory[]>;
+  
+  // Admin Methods
+  getAllPhotographersWithStats(): Promise<Array<Photographer & { clientCount: number }>>;
+  logAdminActivity(activity: InsertAdminActivityLog): Promise<AdminActivityLog>;
+  getAdminActivityLog(adminUserId?: string, limit?: number): Promise<AdminActivityLog[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -2929,6 +2935,44 @@ export class DatabaseStorage implements IStorage {
       .from(emailHistory)
       .where(and(...conditions))
       .orderBy(asc(emailHistory.sentAt)); // Order chronologically for thread view
+  }
+  
+  // Admin Methods
+  async getAllPhotographersWithStats(): Promise<Array<Photographer & { clientCount: number }>> {
+    const photographersList = await db.select().from(photographers);
+    
+    // Get client counts for each photographer
+    const photographersWithStats = await Promise.all(
+      photographersList.map(async (photographer) => {
+        const clientCount = await db.select({ count: sql<number>`count(*)` })
+          .from(clients)
+          .where(eq(clients.photographerId, photographer.id));
+        
+        return {
+          ...photographer,
+          clientCount: Number(clientCount[0]?.count || 0)
+        };
+      })
+    );
+    
+    return photographersWithStats;
+  }
+  
+  async logAdminActivity(activity: InsertAdminActivityLog): Promise<AdminActivityLog> {
+    const [log] = await db.insert(adminActivityLog).values(activity).returning();
+    return log;
+  }
+  
+  async getAdminActivityLog(adminUserId?: string, limit: number = 100): Promise<AdminActivityLog[]> {
+    let query = db.select().from(adminActivityLog).orderBy(desc(adminActivityLog.createdAt));
+    
+    if (adminUserId) {
+      query = query.where(eq(adminActivityLog.adminUserId, adminUserId)) as any;
+    }
+    
+    query = query.limit(limit) as any;
+    
+    return await query;
   }
 }
 
