@@ -87,6 +87,12 @@ export const photographers = pgTable("photographers", {
   onboardingCompleted: boolean("onboarding_completed").default(false),
   stripeOnboardingCompletedAt: timestamp("stripe_onboarding_completed_at"),
   platformFeePercent: integer("platform_fee_percent").default(500), // 5.00% default platform fee
+  // Subscription (for photographers)
+  stripeCustomerId: text("stripe_customer_id"),
+  stripeSubscriptionId: text("stripe_subscription_id"),
+  subscriptionStatus: text("subscription_status"), // trialing, active, past_due, canceled, incomplete
+  trialEndsAt: timestamp("trial_ends_at"),
+  subscriptionCurrentPeriodEnd: timestamp("subscription_current_period_end"),
   createdAt: timestamp("created_at").defaultNow()
 });
 
