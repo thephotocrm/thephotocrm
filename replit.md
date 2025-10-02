@@ -47,11 +47,15 @@ A three-tier role system (PHOTOGRAPHER, CLIENT, ADMIN) is implemented. JWT token
 ### Super Admin Dashboard System
 A comprehensive administrative interface for platform management and customer support:
 - **Photographer Management**: View all registered photographers with client counts, creation dates, and account details through a searchable table interface
-- **Account Impersonation**: Admins can securely impersonate any photographer account to provide support or troubleshoot issues. Impersonation sessions use short-lived tokens (2 hours vs 7 days for regular sessions)
+- **Account Impersonation**: Admins can securely impersonate any photographer account to provide support or troubleshoot issues. Impersonation sessions use short-lived tokens (2 hours vs 7 days for regular sessions). Double-impersonation is prevented via guard (returns 409 Conflict)
 - **Impersonation Banner**: A prominent amber banner displays when admin is viewing as a photographer, with one-click exit functionality
 - **Activity Logging**: All admin actions (impersonation start/stop, dashboard views) are logged to `adminActivityLog` table for compliance and audit trail
-- **JWT Enhancement**: Impersonation tokens include both admin and photographer identities, preserving admin context for seamless exit from impersonation
-- **Route Protection**: Admin-only endpoints protected via `requireAdmin` middleware ensuring proper access control
+- **JWT Enhancement**: Impersonation tokens include both admin and photographer identities via `originalRole` field, preserving admin context for seamless exit from impersonation
+- **Route Protection**: Admin-only endpoints protected via `requireAdmin` middleware that checks both `role` and `originalRole` to ensure proper access control during impersonation
+- **Role-Based Navigation**: Dynamic sidebar menu system that switches based on user role and route:
+  - Admin menu (shown on /admin/* routes for ADMIN role when not impersonating): Overview, Photographers, Platform Analytics, Billing & Payouts, Activity Log, Support Cases
+  - Photographer menu (shown for all other cases): Dashboard, Clients, Projects, Proposals, Packages, Widget Generator, Questionnaires, Scheduling, Templates, Automations, Drip Campaigns, Reports, Earnings
+  - Menu automatically switches when entering/exiting impersonation with proper state synchronization
 
 ## External Dependencies
 
