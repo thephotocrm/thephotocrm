@@ -594,6 +594,7 @@ export const shortLinks = pgTable("short_links", {
 export const estimates = pgTable("estimates", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   photographerId: varchar("photographer_id").notNull().references(() => photographers.id),
+  clientId: varchar("client_id").notNull().references(() => clients.id),
   projectId: varchar("project_id").notNull().references(() => projects.id),
   title: text("title").notNull(),
   notes: text("notes"),

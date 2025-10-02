@@ -1452,12 +1452,18 @@ ${photographer?.businessName || 'Your Photography Team'}`;
             }
 
             // Log the proposal activity
-            await db.insert(clientActivityLog).values({
-              clientId: client.id,
-              type: 'proposal_sent',
+            await db.insert(projectActivityLog).values({
+              projectId: estimate.projectId,
+              action: 'SENT',
+              activityType: 'PROPOSAL_SENT',
               title: `Proposal Sent: ${estimate.title}`,
               description: `Proposal "${estimate.title}" was sent to the client ($${((estimate.totalCents || 0) / 100).toFixed(2)}).`,
-              createdAt: new Date()
+              metadata: {
+                estimateId: estimate.id,
+                totalCents: estimate.totalCents
+              },
+              relatedId: estimate.id,
+              relatedType: 'ESTIMATE'
             });
           }
         } catch (notificationError) {
@@ -1656,8 +1662,9 @@ ${photographer?.businessName || 'Your Photography Team'}`;
             }
 
             // Log the proposal activity
-            await db.insert(clientActivityLog).values({
-              clientId: client.id,
+            await db.insert(projectActivityLog).values({
+              projectId: proposal.projectId,
+              action: 'SENT',
               activityType: 'PROPOSAL_SENT',
               title: `Proposal Sent: ${proposal.title}`,
               description: `Proposal "${proposal.title}" was sent to the client ($${((proposal.totalCents || 0) / 100).toFixed(2)}).`,

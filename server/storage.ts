@@ -1051,9 +1051,10 @@ export class DatabaseStorage implements IStorage {
       await db.insert(estimateItems).values(estimateItemsData);
     }
     
-    // Log proposal creation to client activity history
-    await db.insert(clientActivityLog).values({
-      clientId: estimate.clientId,
+    // Log proposal creation to project activity history
+    await db.insert(projectActivityLog).values({
+      projectId: estimate.projectId,
+      action: 'CREATED',
       activityType: 'PROPOSAL_CREATED',
       title: `Proposal created: ${estimate.title}`,
       description: `New proposal "${estimate.title}" created with total of $${((estimate.totalCents || 0) / 100).toFixed(2)}`,
