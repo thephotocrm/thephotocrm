@@ -466,7 +466,12 @@ async function processAutomationStep(client: any, step: any, automation: any): P
       replyTo: `${fromName} <${replyToEmail}>`,
       subject,
       html: htmlBody,
-      text: textBody
+      text: textBody,
+      photographerId: client.photographerId,
+      clientId: client.clientId,
+      projectId: client.id,
+      automationStepId: step.id,
+      source: 'AUTOMATION' as const
     });
 
     console.log(`📧 Email ${success ? 'sent successfully' : 'FAILED'} to ${client.firstName} ${client.lastName}`);
@@ -1390,7 +1395,12 @@ async function processSubscriptionEmail(subscription: any, campaign: any, projec
       replyTo: `${fromName} <${replyToEmail}>`,
       subject,
       html: htmlBody,
-      text: textBody
+      text: textBody,
+      photographerId: client.photographerId,
+      clientId: client.clientId,
+      projectId: project.id,
+      automationStepId: null,
+      source: 'DRIP_CAMPAIGN' as const
     });
 
     if (success) {

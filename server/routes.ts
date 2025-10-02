@@ -654,6 +654,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const photographer = await storage.getPhotographer(client.photographerId);
       const loginUrl = `${process.env.FRONTEND_URL || 'http://localhost:5000'}/client-portal?token=${token}`;
       
+      // Get client's active projects for email tracking
+      const clientProjects = await storage.getProjectsByClient(client.id);
+      const activeProject = clientProjects.find(p => p.status === 'ACTIVE') || clientProjects[0];
+      
       console.log('=== ATTEMPTING TO SEND EMAIL & SMS ===');
       console.log('Login URL generated:', loginUrl);
       console.log('Client email:', client.email);
@@ -711,7 +715,11 @@ ${photographer?.businessName || 'Your Photography Team'}`;
               </p>
             </div>
           `,
-          text: emailText
+          text: emailText,
+          photographerId: photographer?.id,
+          clientId: client.id,
+          projectId: activeProject?.id,
+          source: 'MANUAL' as const
         }) : Promise.resolve(false),
         
         // Send SMS
@@ -1056,7 +1064,11 @@ ${photographer?.businessName || 'Your Photography Team'}`;
                   <p>You can view and electronically sign your proposal by clicking the link above.</p>
                   <p>Best regards,<br>${photographer.businessName}</p>
                 `,
-                text: `You have received a new proposal from ${photographer.businessName}!\n\nProposal: ${estimate.title}\nTotal: $${((estimate.totalCents || 0) / 100).toFixed(2)}\n\nView and sign at: ${proposalUrl}`
+                text: `You have received a new proposal from ${photographer.businessName}!\n\nProposal: ${estimate.title}\nTotal: $${((estimate.totalCents || 0) / 100).toFixed(2)}\n\nView and sign at: ${proposalUrl}`,
+                photographerId: photographer.id,
+                clientId: client.id,
+                projectId: estimate.projectId,
+                source: 'MANUAL' as const
               });
               
               if (emailSuccess) {
@@ -1249,7 +1261,11 @@ ${photographer?.businessName || 'Your Photography Team'}`;
                   <p>You can view and electronically sign your proposal by clicking the link above.</p>
                   <p>Best regards,<br>${photographer.businessName}</p>
                 `,
-                text: `You have received a new proposal from ${photographer.businessName}!\n\nProposal: ${estimate.title}\nTotal: $${((estimate.totalCents || 0) / 100).toFixed(2)}\n\nView and sign at: ${proposalUrl}`
+                text: `You have received a new proposal from ${photographer.businessName}!\n\nProposal: ${estimate.title}\nTotal: $${((estimate.totalCents || 0) / 100).toFixed(2)}\n\nView and sign at: ${proposalUrl}`,
+                photographerId: photographer.id,
+                clientId: client.id,
+                projectId: estimate.projectId,
+                source: 'MANUAL' as const
               });
               
               if (emailSuccess) {
@@ -2786,11 +2802,22 @@ ${photographer?.businessName || 'Your Photography Team'}`;
           // Get the final booking to ensure we have the Google Meet link
           const finalBooking = await storage.getBooking(booking.id);
           
+          // Get clientId from project if projectId exists
+          let clientId = null;
+          if (booking.projectId) {
+            const project = await storage.getProject(booking.projectId);
+            clientId = project?.clientId || null;
+          }
+          
           const emailSuccess = await sendEmail({
             to: validatedData.clientEmail,
             from: `${photographer.businessName} <${process.env.SENDGRID_FROM_EMAIL}>`,
             replyTo: photographer.emailFromAddr || process.env.SENDGRID_FROM_EMAIL,
             subject: `📸 Your appointment with ${photographer.businessName} is confirmed!`,
+            photographerId: photographer.id,
+            clientId: clientId || undefined,
+            projectId: booking.projectId || undefined,
+            source: 'MANUAL' as const,
             html: `
               <div style="max-width: 600px; margin: 0 auto; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333;">
                 <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; border-radius: 10px 10px 0 0;">
@@ -4216,11 +4243,22 @@ ${photographer.businessName}`
         const finalBooking = await storage.getBooking(booking.id);
         console.log(`📧 Calendar booking photographer: ${photographer.businessName}, Client: ${clientEmail}, Meet Link: ${!!finalBooking?.googleMeetLink}`);
         
+        // Get clientId from project if projectId exists
+        let clientIdForEmail = null;
+        if (booking.projectId) {
+          const project = await storage.getProject(booking.projectId);
+          clientIdForEmail = project?.clientId || null;
+        }
+        
         const emailSuccess = await sendEmail({
           to: clientEmail,
           from: `${photographer.businessName} <${process.env.SENDGRID_FROM_EMAIL}>`,
           replyTo: photographer.emailFromAddr || process.env.SENDGRID_FROM_EMAIL,
           subject: `📸 Your appointment with ${photographer.businessName} is confirmed!`,
+          photographerId: photographer.id,
+          clientId: clientIdForEmail || undefined,
+          projectId: booking.projectId || undefined,
+          source: 'MANUAL' as const,
           html: `
             <div style="max-width: 600px; margin: 0 auto; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333;">
               <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; border-radius: 10px 10px 0 0;">
