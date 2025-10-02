@@ -6,7 +6,7 @@ import { storage } from "./storage";
 import { db } from "./db";
 import { authenticateToken, requirePhotographer, requireRole } from "./middleware/auth";
 import { hashPassword, authenticateUser, generateToken } from "./services/auth";
-import { sendEmail } from "./services/email";
+import { sendEmail, fetchIncomingGmailMessage } from "./services/email";
 import { sendSms } from "./services/sms";
 import { generateDripCampaign, regenerateEmail } from "./services/openai";
 import { createPaymentIntent, createCheckoutSession, createConnectCheckoutSession, calculatePlatformFee, handleWebhook, stripe } from "./services/stripe";
@@ -25,6 +25,98 @@ import { startCronJobs } from "./jobs/cron";
 import { processAutomations } from "./services/automation";
 import path from "path";
 
+
+/**
+ * Process Gmail push notification asynchronously
+ */
+async function processGmailNotification(photographerId: string, emailAddress: string, historyId: string) {
+  try {
+    // Get the photographer's OAuth credentials
+    const { google } = await import('googleapis');
+    const { OAuth2Client } = await import('google-auth-library');
+    
+    const clientId = process.env.GOOGLE_CLIENT_ID;
+    const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+    
+    if (!clientId || !clientSecret) {
+      console.error('Google OAuth not configured');
+      return;
+    }
+
+    const oauth2Client = new google.auth.OAuth2(clientId, clientSecret);
+    const credentials = await storage.getGoogleCalendarCredentials(photographerId);
+    
+    if (!credentials || !credentials.accessToken) {
+      console.error(`No Google credentials found for photographer ${photographerId}`);
+      return;
+    }
+
+    oauth2Client.setCredentials({
+      access_token: credentials.accessToken,
+      refresh_token: credentials.refreshToken,
+      expiry_date: credentials.expiryDate?.getTime()
+    });
+
+    const gmail = google.gmail({ version: 'v1', auth: oauth2Client });
+    
+    // Use Gmail history API to get messages since the last historyId
+    // Note: In production, you should store the last historyId per photographer
+    // For now, we'll use the provided historyId from the notification
+    let historyResponse;
+    try {
+      historyResponse = await gmail.users.history.list({
+        userId: 'me',
+        startHistoryId: historyId,
+        historyTypes: ['messageAdded'],
+        labelId: 'INBOX'
+      });
+    } catch (error: any) {
+      // If historyId is too old or invalid, fall back to listing recent messages
+      console.warn('History API error, falling back to recent messages:', error.message);
+      const messagesResponse = await gmail.users.messages.list({
+        userId: 'me',
+        labelIds: ['INBOX'],
+        maxResults: 5
+      });
+      const messages = messagesResponse.data.messages || [];
+      
+      for (const message of messages) {
+        if (message.id) {
+          await fetchIncomingGmailMessage(photographerId, message.id);
+        }
+      }
+      return;
+    }
+
+    const history = historyResponse.data.history || [];
+    
+    if (history.length === 0) {
+      console.log('No new messages in history');
+      return;
+    }
+
+    // Extract all new message IDs from history
+    const newMessageIds = new Set<string>();
+    for (const historyItem of history) {
+      const messagesAdded = historyItem.messagesAdded || [];
+      for (const addedMessage of messagesAdded) {
+        if (addedMessage.message?.id) {
+          newMessageIds.add(addedMessage.message.id);
+        }
+      }
+    }
+
+    console.log(`Processing ${newMessageIds.size} new messages from Gmail history`);
+
+    // Fetch and process each new message
+    for (const messageId of newMessageIds) {
+      await fetchIncomingGmailMessage(photographerId, messageId);
+    }
+
+  } catch (error: any) {
+    console.error('Error processing Gmail notification:', error);
+  }
+}
 
 export async function registerRoutes(app: Express): Promise<Server> {
   app.use(cookieParser());
@@ -2536,6 +2628,58 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       res.status(200).json({ message: 'Message processed successfully' });
     } catch (error: any) {
       console.error('SimpleTexting webhook error:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+
+  // Gmail Push Notification Webhook
+  app.post("/webhooks/gmail/push", async (req, res) => {
+    try {
+      console.log('Received Gmail push notification:', req.body);
+      
+      const { message } = req.body;
+      
+      if (!message || !message.data) {
+        console.error('Invalid Gmail push notification payload:', req.body);
+        return res.status(400).json({ error: 'Invalid payload' });
+      }
+
+      // Decode the push notification data
+      const decodedData = Buffer.from(message.data, 'base64').toString('utf-8');
+      const notificationData = JSON.parse(decodedData);
+      
+      console.log('Decoded Gmail notification:', notificationData);
+
+      // Extract email address and history ID from notification
+      const { emailAddress, historyId } = notificationData;
+      
+      if (!emailAddress) {
+        console.error('No email address in notification');
+        return res.status(400).json({ error: 'No email address' });
+      }
+
+      // Find photographer by email address
+      const user = await storage.getUserByEmail(emailAddress);
+      if (!user || !user.photographerId) {
+        console.warn(`No photographer found for email: ${emailAddress}`);
+        return res.status(200).json({ message: 'Email address not recognized' });
+      }
+
+      // Get the photographer's Gmail history since the last known historyId
+      // For now, we'll fetch the latest message from the inbox
+      // In a production system, you'd store the last historyId and use gmail.users.history.list
+      
+      // Acknowledge the webhook immediately to prevent retries
+      res.status(200).json({ message: 'Push notification received' });
+
+      // Process the notification asynchronously
+      // Note: In production, you should use a queue system for this
+      processGmailNotification(user.photographerId, emailAddress, historyId).catch(error => {
+        console.error('Error processing Gmail notification:', error);
+      });
+
+    } catch (error: any) {
+      console.error('Gmail webhook error:', error);
       res.status(500).json({ error: 'Internal server error' });
     }
   });

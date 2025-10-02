@@ -302,5 +302,119 @@ async function sendViaSendGrid(params: EmailParams): Promise<EmailResult> {
   }
 }
 
+/**
+ * Fetch and process an incoming Gmail message
+ */
+export async function fetchIncomingGmailMessage(photographerId: string, messageId: string): Promise<EmailResult> {
+  try {
+    // Get Gmail client for this photographer
+    const oauth2Client = await getGmailClient(photographerId);
+    if (!oauth2Client) {
+      return {
+        success: false,
+        error: 'Gmail not connected for photographer'
+      };
+    }
+
+    const gmail = google.gmail({ version: 'v1', auth: oauth2Client });
+
+    // Fetch the message with full format to get headers and body
+    const messageResponse = await gmail.users.messages.get({
+      userId: 'me',
+      id: messageId,
+      format: 'full'
+    });
+
+    const message = messageResponse.data;
+    const payload = message.payload;
+    const headers = payload?.headers || [];
+
+    // Extract email metadata from headers
+    const fromHeader = headers.find(h => h.name?.toLowerCase() === 'from')?.value || '';
+    const toHeader = headers.find(h => h.name?.toLowerCase() === 'to')?.value || '';
+    const subjectHeader = headers.find(h => h.name?.toLowerCase() === 'subject')?.value || '';
+    const ccHeader = headers.find(h => h.name?.toLowerCase() === 'cc')?.value || '';
+
+    // Extract email address from "Name <email>" format
+    const extractEmail = (header: string): string => {
+      const match = header.match(/<(.+?)>/);
+      return match ? match[1] : header.trim();
+    };
+
+    const fromEmail = fromHeader ? extractEmail(fromHeader) : '';
+    const toEmails = toHeader ? toHeader.split(',').map(e => extractEmail(e)) : [];
+    const ccEmails = ccHeader ? ccHeader.split(',').map(e => extractEmail(e)) : [];
+
+    // Extract message body
+    let textBody = '';
+    let htmlBody = '';
+
+    const getBody = (part: any): void => {
+      if (part.mimeType === 'text/plain' && part.body?.data) {
+        textBody = Buffer.from(part.body.data, 'base64').toString('utf-8');
+      } else if (part.mimeType === 'text/html' && part.body?.data) {
+        htmlBody = Buffer.from(part.body.data, 'base64').toString('utf-8');
+      } else if (part.parts) {
+        part.parts.forEach(getBody);
+      }
+    };
+
+    if (payload) {
+      getBody(payload);
+    }
+
+    // Find the client by email
+    const client = await storage.getClientByEmail(fromEmail, photographerId);
+    
+    if (!client) {
+      console.warn(`Received email from unknown sender: ${fromEmail}`);
+      // Still log the email but without client association
+    }
+
+    // Get active project for this client if found
+    let projectId = null;
+    if (client) {
+      const projects = await storage.getProjectsByClient(client.id);
+      const activeProject = projects.find(p => p.status === 'ACTIVE') || projects[0];
+      projectId = activeProject?.id || null;
+    }
+
+    // Log to email history
+    await storage.createEmailHistory({
+      photographerId,
+      clientId: client?.id || null,
+      projectId: projectId,
+      automationStepId: null,
+      direction: 'INBOUND',
+      fromEmail,
+      toEmails,
+      ccEmails: ccEmails.length > 0 ? ccEmails : null,
+      bccEmails: null,
+      subject: subjectHeader,
+      htmlBody: htmlBody || null,
+      textBody: textBody || null,
+      gmailMessageId: message.id || null,
+      gmailThreadId: message.threadId || null,
+      source: 'CLIENT_REPLY',
+      status: 'RECEIVED'
+    });
+
+    console.log(`✅ Incoming email processed: ${subjectHeader} from ${fromEmail}`);
+
+    return {
+      success: true,
+      messageId: message.id || undefined,
+      threadId: message.threadId || undefined
+    };
+
+  } catch (error: any) {
+    console.error('Error fetching incoming Gmail message:', error);
+    return {
+      success: false,
+      error: error.message || 'Failed to fetch Gmail message'
+    };
+  }
+}
+
 // Re-export the shared template utility for backward compatibility
 export { renderTemplate } from '@shared/template-utils';
