@@ -206,6 +206,7 @@ export class GoogleCalendarService {
       });
 
       console.log(`Generated secure OAuth URL for photographer ${photographerId}`);
+      console.log(`🔗 Redirect URI configured: ${GoogleCalendarService.REDIRECT_URI}`);
       return { url, state: signedState };
     } catch (error) {
       console.error('Error generating auth URL:', error);

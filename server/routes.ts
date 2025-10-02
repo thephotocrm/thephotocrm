@@ -3541,9 +3541,16 @@ ${photographer.businessName}`
 
   app.get("/api/auth/google-calendar/callback", async (req, res) => {
     try {
+      console.log('🔵 Google Calendar OAuth callback hit!', { 
+        hasCode: !!req.query.code, 
+        hasState: !!req.query.state,
+        query: req.query 
+      });
+      
       const { code, state } = req.query;
       
       if (!code || !state) {
+        console.error('❌ Missing code or state in callback');
         return res.status(400).send(`
           <html>
             <body style="font-family: Arial, sans-serif; text-align: center; padding: 50px;">
