@@ -14,6 +14,7 @@ export interface JwtPayload {
   photographerId?: string | null;
   isImpersonating?: boolean;
   adminUserId?: string;
+  originalRole?: string;
 }
 
 export async function hashPassword(password: string): Promise<string> {

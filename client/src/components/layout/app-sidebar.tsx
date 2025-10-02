@@ -17,7 +17,12 @@ import {
   Settings,
   LogOut,
   Code,
-  Sparkles
+  Sparkles,
+  Shield,
+  TrendingUp,
+  CreditCard,
+  FileText as ActivityIcon,
+  Headphones
 } from "lucide-react";
 import {
   Sidebar,
@@ -47,7 +52,18 @@ export function AppSidebar() {
     }
   }, [location, isMobile, setOpenMobile]);
 
-  const navigation = [
+  // Admin navigation for /admin/* routes
+  const adminNavigation = [
+    { name: "Overview", href: "/admin/dashboard", icon: LayoutDashboard },
+    { name: "Photographers", href: "/admin/dashboard", icon: Users },
+    { name: "Platform Analytics", href: "/admin/analytics", icon: TrendingUp },
+    { name: "Billing & Payouts", href: "/admin/billing", icon: CreditCard },
+    { name: "Activity Log", href: "/admin/activity", icon: ActivityIcon },
+    { name: "Support Cases", href: "/admin/support", icon: Headphones }
+  ];
+
+  // Photographer navigation
+  const photographerNavigation = [
     { name: "Dashboard", href: "/", icon: LayoutDashboard },
     { name: "Clients", href: "/clients", icon: Users },
     { name: "Projects", href: "/projects", icon: FolderOpen },
@@ -62,6 +78,11 @@ export function AppSidebar() {
     { name: "Reports", href: "/reports", icon: BarChart3 },
     { name: "Earnings", href: "/earnings", icon: DollarSign }
   ];
+
+  // Determine which navigation to show
+  const isAdminRoute = location.startsWith('/admin');
+  const isAdmin = user?.role === 'ADMIN';
+  const navigation = (isAdmin && isAdminRoute && !user?.isImpersonating) ? adminNavigation : photographerNavigation;
 
   const handleLogout = async () => {
     try {

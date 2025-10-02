@@ -38,8 +38,9 @@ export default function AdminDashboard() {
     mutationFn: async (photographerId: string) => {
       return await apiRequest('POST', `/api/admin/impersonate/${photographerId}`);
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
+      await queryClient.refetchQueries({ queryKey: ['/api/auth/me'] });
       toast({
         title: 'Impersonation Started',
         description: 'You are now viewing as the selected photographer.',

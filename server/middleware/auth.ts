@@ -66,9 +66,11 @@ export function requireAdmin(req: Request, res: Response, next: NextFunction) {
     return res.status(401).json({ message: 'Authentication required' });
   }
 
-  if (req.user.role !== 'ADMIN') {
-    return res.status(403).json({ message: 'Admin access required' });
+  // Check for the original admin role when impersonating
+  if (req.user.originalRole === 'ADMIN' || req.user.role === 'ADMIN') {
+    next();
+    return;
   }
 
-  next();
+  return res.status(403).json({ message: 'Admin access required' });
 }

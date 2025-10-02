@@ -22,7 +22,8 @@ export function AdminHeader({ isImpersonating, photographerName, photographerEma
       return await apiRequest('POST', '/api/admin/exit-impersonation');
     },
     onSuccess: async () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
+      await queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
+      await queryClient.refetchQueries({ queryKey: ['/api/auth/me'] });
       await refetchUser();
       toast({
         title: 'Impersonation Ended',

@@ -372,6 +372,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/admin/impersonate/:photographerId", authenticateToken, requireAdmin, async (req, res) => {
     try {
       const { photographerId } = req.params;
+
+      // Prevent impersonation while already impersonating
+      if (req.user!.isImpersonating) {
+        return res.status(409).json({ message: "Cannot impersonate while already impersonating. Please exit impersonation first." });
+      }
+
       const adminUserId = req.user!.userId;
 
       // Verify photographer exists
@@ -395,7 +401,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         role: photographerUser.role,
         photographerId: photographer.id,
         isImpersonating: true,
-        adminUserId: adminUserId
+        adminUserId: adminUserId,
+        originalRole: req.user!.role
       });
 
       // Log admin activity
