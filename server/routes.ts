@@ -482,7 +482,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         id: user.id,
         email: user.email,
         role: user.role,
-        photographerId: user.photographerId
+        photographerId: user.photographerId,
+        isImpersonating: req.user!.isImpersonating || false,
+        adminUserId: req.user!.adminUserId
       };
 
       // If user is a photographer, include photographer metadata

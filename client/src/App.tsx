@@ -3,10 +3,11 @@ import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { AuthProvider } from "./hooks/use-auth";
+import { AuthProvider, useAuth } from "./hooks/use-auth";
 import { MobileHeader } from "@/components/layout/mobile-header";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/layout/app-sidebar";
+import { ImpersonationBanner } from "@/components/impersonation-banner";
 import Login from "@/pages/login";
 import Register from "@/pages/register";
 import Dashboard from "@/pages/dashboard";
@@ -31,9 +32,12 @@ import ClientPortal from "@/pages/client-portal";
 import PublicProposal from "@/pages/public-proposal";
 import PublicBooking from "@/pages/public-booking";
 import PublicBookingCalendar from "@/pages/public-booking-calendar";
+import AdminDashboard from "@/pages/admin-dashboard";
 import NotFound from "@/pages/not-found";
 
 function Router() {
+  const { user } = useAuth();
+
   return (
     <Switch>
       <Route path="/auth/login" component={Login} />
@@ -46,12 +50,16 @@ function Router() {
       <Route path="/public/booking/:token" component={PublicBooking} />
       <Route path="/booking/calendar/:publicToken" component={PublicBookingCalendar} />
       <Route>
+        {user?.isImpersonating && (
+          <ImpersonationBanner photographerBusinessName={user.businessName} />
+        )}
         <SidebarProvider>
           <AppSidebar />
           <SidebarInset>
             <MobileHeader />
             <Switch>
               <Route path="/" component={Dashboard} />
+              <Route path="/admin/dashboard" component={AdminDashboard} />
               <Route path="/clients" component={Clients} />
               <Route path="/clients/:id" component={ClientDetail} />
               <Route path="/projects" component={Projects} />

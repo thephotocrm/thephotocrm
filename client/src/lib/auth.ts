@@ -5,6 +5,9 @@ export interface User {
   email: string;
   role: string;
   photographerId?: string;
+  isImpersonating?: boolean;
+  adminUserId?: string;
+  businessName?: string;
 }
 
 export interface LoginCredentials {
