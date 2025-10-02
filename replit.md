@@ -44,6 +44,15 @@ The schema is centered around a photographer-tenant model, featuring key entitie
 ### Authentication & Authorization
 A three-tier role system (PHOTOGRAPHER, CLIENT, ADMIN) is implemented. JWT tokens provide stateless authentication, and role-based middleware enforces access controls at the route level.
 
+### Super Admin Dashboard System
+A comprehensive administrative interface for platform management and customer support:
+- **Photographer Management**: View all registered photographers with client counts, creation dates, and account details through a searchable table interface
+- **Account Impersonation**: Admins can securely impersonate any photographer account to provide support or troubleshoot issues. Impersonation sessions use short-lived tokens (2 hours vs 7 days for regular sessions)
+- **Impersonation Banner**: A prominent amber banner displays when admin is viewing as a photographer, with one-click exit functionality
+- **Activity Logging**: All admin actions (impersonation start/stop, dashboard views) are logged to `adminActivityLog` table for compliance and audit trail
+- **JWT Enhancement**: Impersonation tokens include both admin and photographer identities, preserving admin context for seamless exit from impersonation
+- **Route Protection**: Admin-only endpoints protected via `requireAdmin` middleware ensuring proper access control
+
 ## External Dependencies
 
 ### Communication Services
