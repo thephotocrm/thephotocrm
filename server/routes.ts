@@ -638,6 +638,72 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Email History Routes
+  app.get("/api/email-history", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      const { direction, source, clientId, projectId, limit } = req.query;
+      
+      const filters: any = {};
+      if (direction) filters.direction = direction as string;
+      if (source) filters.source = source as string;
+      if (clientId) filters.clientId = clientId as string;
+      if (projectId) filters.projectId = projectId as string;
+      if (limit) filters.limit = parseInt(limit as string);
+
+      const emails = await storage.getEmailHistoryByPhotographer(req.user!.photographerId!, filters);
+      res.json(emails);
+    } catch (error) {
+      console.error('Get email history error:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.get("/api/clients/:id/email-history", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      const client = await storage.getClient(req.params.id);
+      if (!client || client.photographerId !== req.user!.photographerId!) {
+        return res.status(404).json({ message: "Client not found" });
+      }
+
+      const emails = await storage.getEmailHistoryByClient(req.params.id);
+      res.json(emails);
+    } catch (error) {
+      console.error('Get client email history error:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.get("/api/projects/:id/email-history", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      const project = await storage.getProject(req.params.id);
+      if (!project || project.photographerId !== req.user!.photographerId!) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      const emails = await storage.getEmailHistoryByProject(req.params.id);
+      res.json(emails);
+    } catch (error) {
+      console.error('Get project email history error:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.get("/api/email-threads/:threadId", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      // Filter by photographer for security
+      const emails = await storage.getEmailHistoryByThread(req.params.threadId, req.user!.photographerId!);
+      
+      if (emails.length === 0) {
+        return res.status(404).json({ message: "Thread not found" });
+      }
+
+      res.json(emails);
+    } catch (error) {
+      console.error('Get email thread error:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   app.get("/api/clients/:id/messages", authenticateToken, requirePhotographer, async (req, res) => {
     try {
       const client = await storage.getClient(req.params.id);

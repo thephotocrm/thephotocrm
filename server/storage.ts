@@ -282,9 +282,16 @@ export interface IStorage {
   
   // Email History
   createEmailHistory(emailHistory: InsertEmailHistory): Promise<EmailHistory>;
+  getEmailHistoryByPhotographer(photographerId: string, filters?: {
+    direction?: 'INBOUND' | 'OUTBOUND';
+    source?: 'AUTOMATION' | 'DRIP_CAMPAIGN' | 'MANUAL' | 'CLIENT_REPLY';
+    clientId?: string;
+    projectId?: string;
+    limit?: number;
+  }): Promise<EmailHistory[]>;
   getEmailHistoryByClient(clientId: string): Promise<EmailHistory[]>;
   getEmailHistoryByProject(projectId: string): Promise<EmailHistory[]>;
-  getEmailHistoryByThread(gmailThreadId: string): Promise<EmailHistory[]>;
+  getEmailHistoryByThread(gmailThreadId: string, photographerId?: string): Promise<EmailHistory[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -2861,6 +2868,40 @@ export class DatabaseStorage implements IStorage {
     return created;
   }
 
+  async getEmailHistoryByPhotographer(photographerId: string, filters: {
+    direction?: 'INBOUND' | 'OUTBOUND';
+    source?: 'AUTOMATION' | 'DRIP_CAMPAIGN' | 'MANUAL' | 'CLIENT_REPLY';
+    clientId?: string;
+    projectId?: string;
+    limit?: number;
+  } = {}): Promise<EmailHistory[]> {
+    const conditions = [eq(emailHistory.photographerId, photographerId)];
+    
+    if (filters.direction) {
+      conditions.push(eq(emailHistory.direction, filters.direction));
+    }
+    if (filters.source) {
+      conditions.push(eq(emailHistory.source, filters.source));
+    }
+    if (filters.clientId) {
+      conditions.push(eq(emailHistory.clientId, filters.clientId));
+    }
+    if (filters.projectId) {
+      conditions.push(eq(emailHistory.projectId, filters.projectId));
+    }
+
+    let query = db.select()
+      .from(emailHistory)
+      .where(and(...conditions))
+      .orderBy(desc(emailHistory.sentAt));
+
+    if (filters.limit) {
+      query = query.limit(filters.limit) as any;
+    }
+
+    return await query;
+  }
+
   async getEmailHistoryByClient(clientId: string): Promise<EmailHistory[]> {
     return await db.select()
       .from(emailHistory)
@@ -2875,11 +2916,18 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(emailHistory.sentAt));
   }
 
-  async getEmailHistoryByThread(gmailThreadId: string): Promise<EmailHistory[]> {
+  async getEmailHistoryByThread(gmailThreadId: string, photographerId?: string): Promise<EmailHistory[]> {
+    const conditions = [eq(emailHistory.gmailThreadId, gmailThreadId)];
+    
+    // Filter by photographer for security if provided
+    if (photographerId) {
+      conditions.push(eq(emailHistory.photographerId, photographerId));
+    }
+    
     return await db.select()
       .from(emailHistory)
-      .where(eq(emailHistory.gmailThreadId, gmailThreadId))
-      .orderBy(emailHistory.sentAt);
+      .where(and(...conditions))
+      .orderBy(asc(emailHistory.sentAt)); // Order chronologically for thread view
   }
 }
 
