@@ -7,7 +7,7 @@ import { AuthProvider, useAuth } from "./hooks/use-auth";
 import { MobileHeader } from "@/components/layout/mobile-header";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/layout/app-sidebar";
-import { ImpersonationBanner } from "@/components/impersonation-banner";
+import { AdminHeader } from "@/components/admin-header";
 import Login from "@/pages/login";
 import Register from "@/pages/register";
 import Dashboard from "@/pages/dashboard";
@@ -50,8 +50,12 @@ function Router() {
       <Route path="/public/booking/:token" component={PublicBooking} />
       <Route path="/booking/calendar/:publicToken" component={PublicBookingCalendar} />
       <Route>
-        {user?.isImpersonating && (
-          <ImpersonationBanner photographerBusinessName={user.businessName} />
+        {(user?.role === 'ADMIN' || user?.isImpersonating) && (
+          <AdminHeader
+            isImpersonating={user?.isImpersonating}
+            photographerName={user?.businessName}
+            photographerEmail={user?.isImpersonating ? user?.email : undefined}
+          />
         )}
         <SidebarProvider>
           <AppSidebar />

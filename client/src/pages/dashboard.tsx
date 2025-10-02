@@ -218,7 +218,7 @@ export default function Dashboard() {
       stageForm.reset();
       stageForm.setValue('projectType', activeProjectType);
       // Set orderIndex to be next in sequence
-      const currentStages = stages || [];
+      const currentStages = Array.isArray(stages) ? stages : [];
       const maxOrder = currentStages.length > 0 ? Math.max(...currentStages.map((s: any) => s.orderIndex)) : -1;
       stageForm.setValue('orderIndex', maxOrder + 1);
     }
@@ -240,7 +240,7 @@ export default function Dashboard() {
   };
 
   // Filter projects based on search query
-  const filteredProjects = (projects || []).filter((project: any) => {
+  const filteredProjects = (Array.isArray(projects) ? projects : []).filter((project: any) => {
     if (!searchQuery.trim()) return true;
     
     const query = searchQuery.toLowerCase();
@@ -669,7 +669,7 @@ export default function Dashboard() {
               </div>
               
               <div className="space-y-2 max-h-[300px] overflow-y-auto">
-                {(stages || [])
+                {(Array.isArray(stages) ? stages : [])
                   .filter((stage: any) => stage.projectType === activeProjectType)
                   .sort((a: any, b: any) => a.orderIndex - b.orderIndex)
                   .map((stage: any) => (
