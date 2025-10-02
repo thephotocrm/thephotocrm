@@ -271,8 +271,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { email, password, businessName, role = "PHOTOGRAPHER" } = req.body;
       
+      const normalizedEmail = email.toLowerCase().trim();
+      
       // Check if user exists
-      const existingUser = await storage.getUserByEmail(email);
+      const existingUser = await storage.getUserByEmail(normalizedEmail);
       if (existingUser) {
         return res.status(400).json({ message: "User already exists" });
       }
@@ -307,7 +309,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Create user
       const passwordHash = await hashPassword(password);
       const user = await storage.createUser({
-        email,
+        email: normalizedEmail,
         passwordHash,
         role,
         photographerId
@@ -324,7 +326,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { email, password } = req.body;
       
-      const result = await authenticateUser(email, password);
+      const result = await authenticateUser(email.toLowerCase().trim(), password);
       if (!result) {
         return res.status(401).json({ message: "Invalid credentials" });
       }

@@ -37,6 +37,13 @@ export default function Dashboard() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  // Redirect admins to admin dashboard
+  useEffect(() => {
+    if (user && user.role === 'ADMIN' && !user.photographerId) {
+      setLocation('/admin/dashboard');
+    }
+  }, [user, setLocation]);
+
   // Form setup with proper schema validation
   const form = useForm<InsertProject>({
     resolver: zodResolver(insertProjectSchema),
