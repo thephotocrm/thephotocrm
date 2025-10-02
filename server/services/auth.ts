@@ -11,7 +11,9 @@ const JWT_SECRET = process.env.JWT_SECRET;
 export interface JwtPayload {
   userId: string;
   role: string;
-  photographerId?: string;
+  photographerId?: string | null;
+  isImpersonating?: boolean;
+  adminUserId?: string;
 }
 
 export async function hashPassword(password: string): Promise<string> {

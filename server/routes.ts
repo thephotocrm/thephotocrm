@@ -4,7 +4,7 @@ import cookieParser from 'cookie-parser';
 import Stripe from "stripe";
 import { storage } from "./storage";
 import { db } from "./db";
-import { authenticateToken, requirePhotographer, requireRole } from "./middleware/auth";
+import { authenticateToken, requirePhotographer, requireRole, requireAdmin } from "./middleware/auth";
 import { hashPassword, authenticateUser, generateToken } from "./services/auth";
 import { sendEmail, fetchIncomingGmailMessage } from "./services/email";
 import { sendSms } from "./services/sms";
@@ -354,6 +354,120 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/auth/logout", (req, res) => {
     res.clearCookie('token');
     res.json({ message: "Logged out successfully" });
+  });
+
+  // Admin Routes
+  app.get("/api/admin/photographers", authenticateToken, requireAdmin, async (req, res) => {
+    try {
+      const photographers = await storage.getAllPhotographersWithStats();
+      res.json(photographers);
+    } catch (error) {
+      console.error("Error fetching photographers:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.post("/api/admin/impersonate/:photographerId", authenticateToken, requireAdmin, async (req, res) => {
+    try {
+      const { photographerId } = req.params;
+      const adminUserId = req.user!.userId;
+
+      // Verify photographer exists
+      const photographer = await storage.getPhotographer(photographerId);
+      if (!photographer) {
+        return res.status(404).json({ message: "Photographer not found" });
+      }
+
+      // Get the user associated with this photographer
+      const photographerUser = await db.query.users.findFirst({
+        where: (users, { eq }) => eq(users.photographerId, photographerId)
+      });
+
+      if (!photographerUser) {
+        return res.status(404).json({ message: "Photographer user not found" });
+      }
+
+      // Generate impersonation token with both admin and photographer info
+      const impersonationToken = generateToken({
+        userId: photographerUser.id,
+        role: photographerUser.role,
+        photographerId: photographer.id,
+        isImpersonating: true,
+        adminUserId: adminUserId
+      });
+
+      // Log admin activity
+      await storage.logAdminActivity({
+        adminUserId,
+        action: 'IMPERSONATE',
+        targetPhotographerId: photographerId,
+        metadata: { details: `Admin impersonated photographer: ${photographer.businessName}` }
+      });
+
+      // Set impersonation cookie
+      res.cookie('token', impersonationToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 2 * 60 * 60 * 1000 // 2 hours for impersonation
+      });
+
+      res.json({
+        message: "Impersonation started",
+        photographer: {
+          id: photographer.id,
+          businessName: photographer.businessName,
+          email: photographerUser.email
+        }
+      });
+    } catch (error) {
+      console.error("Error during impersonation:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.post("/api/admin/exit-impersonation", authenticateToken, async (req, res) => {
+    try {
+      // Check if user is currently impersonating
+      if (!req.user?.isImpersonating || !req.user?.adminUserId) {
+        return res.status(400).json({ message: "Not currently impersonating" });
+      }
+
+      const adminUserId = req.user.adminUserId;
+
+      // Get the admin user
+      const adminUser = await storage.getUser(adminUserId);
+      if (!adminUser) {
+        return res.status(404).json({ message: "Admin user not found" });
+      }
+
+      // Generate regular admin token
+      const adminToken = generateToken({
+        userId: adminUser.id,
+        role: adminUser.role,
+        photographerId: null
+      });
+
+      // Log admin activity
+      await storage.logAdminActivity({
+        adminUserId,
+        action: 'EXIT_IMPERSONATION',
+        metadata: { details: 'Admin exited impersonation mode' }
+      });
+
+      // Set admin cookie
+      res.cookie('token', adminToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+      });
+
+      res.json({ message: "Exited impersonation mode" });
+    } catch (error) {
+      console.error("Error exiting impersonation:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
   });
 
   app.get("/api/auth/me", authenticateToken, async (req, res) => {
