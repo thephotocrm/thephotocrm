@@ -1457,7 +1457,19 @@ export default function Automations() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   
-  // Redirect to login if not authenticated (must be before other hooks)
+  // ALL STATE HOOKS MUST BE BEFORE ANY CONDITIONAL RETURNS
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [manageRulesDialogOpen, setManageRulesDialogOpen] = useState(false);
+  const [selectedStage, setSelectedStage] = useState<any>(null);
+  const [timingMode, setTimingMode] = useState<'immediate' | 'delayed'>('immediate');
+  const [activeProjectType, setActiveProjectType] = useState<string>('WEDDING');
+  const [enableCommunication, setEnableCommunication] = useState(true);
+  const [enablePipeline, setEnablePipeline] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editingAutomation, setEditingAutomation] = useState<any>(null);
+  const [selectedStageId, setSelectedStageId] = useState<string>('');
+  
+  // Redirect to login if not authenticated (after all hooks)
   if (!loading && !user) {
     setLocation("/login");
     return null;
@@ -1470,17 +1482,6 @@ export default function Automations() {
       </div>
     );
   }
-
-  const [createDialogOpen, setCreateDialogOpen] = useState(false);
-  const [manageRulesDialogOpen, setManageRulesDialogOpen] = useState(false);
-  const [selectedStage, setSelectedStage] = useState<any>(null);
-  const [timingMode, setTimingMode] = useState<'immediate' | 'delayed'>('immediate');
-  const [activeProjectType, setActiveProjectType] = useState<string>('WEDDING');
-  const [enableCommunication, setEnableCommunication] = useState(true);
-  const [enablePipeline, setEnablePipeline] = useState(false);
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [editingAutomation, setEditingAutomation] = useState<any>(null);
-  const [selectedStageId, setSelectedStageId] = useState<string>('');
 
   // Reset modal state when dialog opens
   useEffect(() => {
@@ -1639,7 +1640,7 @@ export default function Automations() {
     enabled: !!user
   });
 
-  const { data: automations = [] } = useQuery<any[]>({
+  const { data: automations = [], isLoading: automationsLoading } = useQuery<any[]>({
     queryKey: ["/api/automations", activeProjectType],
     queryFn: async () => {
       const res = await fetch(`/api/automations?projectType=${activeProjectType}`);
@@ -2980,7 +2981,7 @@ export default function Automations() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  {automations === undefined ? (
+                  {automationsLoading ? (
                     <div className="text-center py-8">
                       <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto" />
                       <p className="text-muted-foreground mt-2">Loading automations...</p>
