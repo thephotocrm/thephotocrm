@@ -52,6 +52,8 @@ export default function Templates() {
   const queryClient = useQueryClient();
   
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editingTemplateId, setEditingTemplateId] = useState<string | null>(null);
   const [name, setName] = useState("");
   const [channel, setChannel] = useState("");
   const [subject, setSubject] = useState("");
@@ -73,21 +75,45 @@ export default function Templates() {
 
   const createTemplateMutation = useMutation({
     mutationFn: async (templateData: any) => {
-      await apiRequest("POST", "/api/templates", templateData);
+      if (isEditMode && editingTemplateId) {
+        await apiRequest("PUT", `/api/templates/${editingTemplateId}`, templateData);
+      } else {
+        await apiRequest("POST", "/api/templates", templateData);
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/templates"] });
       setIsDialogOpen(false);
       resetForm();
       toast({
-        title: "Template created",
-        description: "New template has been added successfully.",
+        title: isEditMode ? "Template updated" : "Template created",
+        description: isEditMode ? "Template has been updated successfully." : "New template has been added successfully.",
       });
     },
     onError: () => {
       toast({
         title: "Error",
-        description: "Failed to create template. Please try again.",
+        description: `Failed to ${isEditMode ? 'update' : 'create'} template. Please try again.`,
+        variant: "destructive"
+      });
+    }
+  });
+
+  const deleteTemplateMutation = useMutation({
+    mutationFn: async (templateId: string) => {
+      await apiRequest("DELETE", `/api/templates/${templateId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/templates"] });
+      toast({
+        title: "Template deleted",
+        description: "Template has been removed successfully.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to delete template. Please try again.",
         variant: "destructive"
       });
     }
@@ -108,6 +134,25 @@ export default function Templates() {
     setSubject("");
     setHtmlBody("");
     setTextBody("");
+    setIsEditMode(false);
+    setEditingTemplateId(null);
+  };
+
+  const handleEdit = (template: Template) => {
+    setIsEditMode(true);
+    setEditingTemplateId(template.id);
+    setName(template.name);
+    setChannel(template.channel);
+    setSubject(template.subject || "");
+    setHtmlBody(template.htmlBody || "");
+    setTextBody(template.textBody || "");
+    setIsDialogOpen(true);
+  };
+
+  const handleDelete = (templateId: string) => {
+    if (confirm("Are you sure you want to delete this template?")) {
+      deleteTemplateMutation.mutate(templateId);
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -144,9 +189,9 @@ export default function Templates() {
               </DialogTrigger>
               <DialogContent className="max-w-2xl">
                 <DialogHeader>
-                  <DialogTitle>Create New Template</DialogTitle>
+                  <DialogTitle>{isEditMode ? "Edit Template" : "Create New Template"}</DialogTitle>
                   <DialogDescription>
-                    Create a reusable email or SMS template for your automation workflows.
+                    {isEditMode ? "Update your email or SMS template." : "Create a reusable email or SMS template for your automation workflows."}
                   </DialogDescription>
                 </DialogHeader>
                 
@@ -250,7 +295,9 @@ export default function Templates() {
                       disabled={createTemplateMutation.isPending}
                       data-testid="button-create-template-submit"
                     >
-                      {createTemplateMutation.isPending ? "Creating..." : "Create Template"}
+                      {createTemplateMutation.isPending 
+                        ? (isEditMode ? "Updating..." : "Creating...") 
+                        : (isEditMode ? "Update Template" : "Create Template")}
                     </Button>
                   </div>
                 </form>
@@ -319,10 +366,10 @@ export default function Templates() {
                               <p className="text-sm text-muted-foreground mt-1">{template.subject}</p>
                             </div>
                             <div className="flex items-center space-x-2 ml-4">
-                              <Button variant="outline" size="sm" data-testid={`button-edit-${template.id}`}>
+                              <Button variant="outline" size="sm" onClick={() => handleEdit(template)} data-testid={`button-edit-${template.id}`}>
                                 <Edit className="w-3 h-3" />
                               </Button>
-                              <Button variant="outline" size="sm" data-testid={`button-delete-${template.id}`}>
+                              <Button variant="outline" size="sm" onClick={() => handleDelete(template.id)} disabled={deleteTemplateMutation.isPending} data-testid={`button-delete-${template.id}`}>
                                 <Trash2 className="w-3 h-3" />
                               </Button>
                             </div>
@@ -372,10 +419,10 @@ export default function Templates() {
                               </p>
                             </div>
                             <div className="flex items-center space-x-2 ml-4">
-                              <Button variant="outline" size="sm" data-testid={`button-edit-${template.id}`}>
+                              <Button variant="outline" size="sm" onClick={() => handleEdit(template)} data-testid={`button-edit-${template.id}`}>
                                 <Edit className="w-3 h-3" />
                               </Button>
-                              <Button variant="outline" size="sm" data-testid={`button-delete-${template.id}`}>
+                              <Button variant="outline" size="sm" onClick={() => handleDelete(template.id)} disabled={deleteTemplateMutation.isPending} data-testid={`button-delete-${template.id}`}>
                                 <Trash2 className="w-3 h-3" />
                               </Button>
                             </div>
