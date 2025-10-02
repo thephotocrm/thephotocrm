@@ -181,8 +181,10 @@ export const automations = pgTable("automations", {
   // Questionnaire assignment fields (for communication automations)
   questionnaireTemplateId: varchar("questionnaire_template_id").references(() => questionnaireTemplates.id),
   // Conditional logic fields
-  eventDateCondition: text("event_date_condition").default("ANY"), // DECLARED, UNDECLARED, ANY - filter by whether wedding date is set
-  enabled: boolean("enabled").default(true)
+  eventDateCondition: text("event_date_condition"), // null = no condition, HAS_EVENT_DATE = must have date, NO_EVENT_DATE = must not have date
+  effectiveFrom: timestamp("effective_from").defaultNow(), // Only run on clients who entered stage at/after this time
+  enabled: boolean("enabled").default(true),
+  createdAt: timestamp("created_at").defaultNow()
 });
 
 // Business Triggers table - separate from automations to avoid null-handling issues

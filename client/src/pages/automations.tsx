@@ -1506,6 +1506,7 @@ export default function Automations() {
     triggerMinute: z.coerce.number().min(0).max(59).default(0),
     eventType: z.string().optional(),
     stageCondition: z.string().optional(),
+    eventDateCondition: z.string().optional(),
     // Optional automation type flags
     enableCommunication: z.boolean().default(true),
     enablePipeline: z.boolean().default(false),
@@ -1577,6 +1578,7 @@ export default function Automations() {
       triggerMinute: 0,
       eventType: "placeholder",
       stageCondition: "all",
+      eventDateCondition: "",
       channel: "EMAIL", 
       enabled: true,
       automationType: "COMMUNICATION", // Still needed for backend compatibility
@@ -1720,7 +1722,8 @@ export default function Automations() {
             automationType: "COMMUNICATION" as const,
             channel: data.channel,
             templateId: data.templateId && data.templateId !== "unavailable" ? data.templateId : null,
-            questionnaireTemplateId: data.questionnaireTemplateId && data.questionnaireTemplateId !== "unavailable" && data.questionnaireTemplateId !== "none" ? data.questionnaireTemplateId : null
+            questionnaireTemplateId: data.questionnaireTemplateId && data.questionnaireTemplateId !== "unavailable" && data.questionnaireTemplateId !== "none" ? data.questionnaireTemplateId : null,
+            eventDateCondition: data.eventDateCondition || null
           };
           
           // Add stageCondition for business event triggers
@@ -1774,7 +1777,8 @@ export default function Automations() {
               triggerHour: data.triggerHour,
               triggerMinute: data.triggerMinute,
               eventType: data.eventType,
-              stageCondition: data.stageCondition && data.stageCondition !== 'all' ? data.stageCondition : null
+              stageCondition: data.stageCondition && data.stageCondition !== 'all' ? data.stageCondition : null,
+              eventDateCondition: null // Countdown automations always require event dates, so no condition filtering
             };
             
             await apiRequest("PATCH", `/api/automations/${automation.id}`, timeData);
@@ -1802,7 +1806,8 @@ export default function Automations() {
             projectType: activeProjectType,
             automationType: "STAGE_CHANGE" as const,
             triggerType: triggerType,
-            targetStageId: data.targetStageId
+            targetStageId: data.targetStageId,
+            eventDateCondition: data.eventDateCondition || null
           };
 
           const pipelineResponse = await apiRequest("POST", "/api/automations", pipelineAutomationData);
@@ -2276,11 +2281,54 @@ export default function Automations() {
                     </div>
                   </div>
 
-                  {/* Step 3: What Actions */}
+                  {/* Step 3: Conditions (Optional) - Only for non-countdown automations */}
+                  {form.watch('triggerMode') !== 'TIME' && (
                   <div className="space-y-4">
                     <div className="flex items-center space-x-3">
                       <div className="flex items-center justify-center w-8 h-8 bg-primary text-primary-foreground rounded-full text-sm font-semibold">
                         3
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-semibold">Who should this affect? (Optional)</h3>
+                        <p className="text-sm text-muted-foreground">Filter which clients this automation applies to</p>
+                      </div>
+                    </div>
+                    
+                    <div className="ml-11 p-4 border rounded-lg bg-blue-50/50 dark:bg-blue-950/20">
+                      <FormField
+                        control={form.control}
+                        name="eventDateCondition"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Wedding Date Requirement</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value || ""}>
+                              <FormControl>
+                                <SelectTrigger data-testid="select-event-date-condition">
+                                  <SelectValue placeholder="No condition (run for all clients)" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="">No condition (run for all clients)</SelectItem>
+                                <SelectItem value="HAS_EVENT_DATE">Only if client has wedding date</SelectItem>
+                                <SelectItem value="NO_EVENT_DATE">Only if client does NOT have wedding date</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormDescription>
+                              Leave blank to run for all clients, or filter by whether they have a wedding date set
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </div>
+                  )}
+
+                  {/* Step 4: What Actions */}
+                  <div className="space-y-4">
+                    <div className="flex items-center space-x-3">
+                      <div className="flex items-center justify-center w-8 h-8 bg-primary text-primary-foreground rounded-full text-sm font-semibold">
+                        4
                       </div>
                       <div>
                         <h3 className="text-lg font-semibold">What should happen?</h3>

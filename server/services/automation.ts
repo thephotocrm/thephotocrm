@@ -284,6 +284,28 @@ async function processAutomationStep(client: any, step: any, automation: any): P
     return;
   }
 
+  // Check effectiveFrom: only run on clients who entered stage AFTER automation was created
+  if (automation.effectiveFrom) {
+    const stageEnteredAt = new Date(client.stageEnteredAt);
+    const effectiveFrom = new Date(automation.effectiveFrom);
+    if (stageEnteredAt < effectiveFrom) {
+      console.log(`⏸️ Client entered stage before automation was created (entered: ${stageEnteredAt.toISOString()}, effective: ${effectiveFrom.toISOString()}), skipping`);
+      return;
+    }
+  }
+
+  // Check event date condition
+  if (automation.eventDateCondition) {
+    if (automation.eventDateCondition === 'HAS_EVENT_DATE' && !client.eventDate) {
+      console.log(`📅 Client ${client.firstName} ${client.lastName} does not have event date (required by automation), skipping`);
+      return;
+    }
+    if (automation.eventDateCondition === 'NO_EVENT_DATE' && client.eventDate) {
+      console.log(`📅 Client ${client.firstName} ${client.lastName} has event date (automation requires no date), skipping`);
+      return;
+    }
+  }
+
   const now = new Date();
   const stageEnteredAt = new Date(client.stageEnteredAt);
   const delayMs = step.delayMinutes * 60 * 1000;
@@ -732,6 +754,7 @@ async function processCountdownAutomation(automation: any, photographerId: strin
       clientId: projects.clientId,
       eventDate: projects.eventDate,
       stageId: projects.stageId,
+      stageEnteredAt: projects.stageEnteredAt,
       smsOptIn: clients.smsOptIn,
       emailOptIn: clients.emailOptIn,
       photographerId: projects.photographerId,
@@ -777,8 +800,32 @@ async function processCountdownAutomation(automation: any, photographerId: strin
       //   break;
     }
 
+    // Check event date condition FIRST (before checking eventDate existence)
+    if (automation.eventDateCondition) {
+      if (automation.eventDateCondition === 'HAS_EVENT_DATE' && !eventDate) {
+        console.log(`📅 Project ${project.id} does not have event date (required by automation), skipping`);
+        continue;
+      }
+      if (automation.eventDateCondition === 'NO_EVENT_DATE' && eventDate) {
+        console.log(`📅 Project ${project.id} has event date (automation requires no date), skipping`);
+        continue;
+      }
+    }
+
+    // For countdown automations, we NEED an event date (unless explicitly filtered out by condition above)
     if (!eventDate) {
-      continue; // Skip projects without the relevant event date
+      console.log(`⏰ No ${automation.eventType || 'event date'} for project ${project.id}, skipping countdown automation`);
+      continue;
+    }
+
+    // Check effectiveFrom: only run on clients who entered stage AFTER automation was created
+    if (automation.effectiveFrom && project.stageEnteredAt) {
+      const stageEnteredAt = new Date(project.stageEnteredAt);
+      const effectiveFrom = new Date(automation.effectiveFrom);
+      if (stageEnteredAt < effectiveFrom) {
+        console.log(`⏸️ Project ${project.id} entered stage before automation was created (entered: ${stageEnteredAt.toISOString()}, effective: ${effectiveFrom.toISOString()}), skipping`);
+        continue;
+      }
     }
 
     // Convert event date to photographer's timezone using proper timezone handling
