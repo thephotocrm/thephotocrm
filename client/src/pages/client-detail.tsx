@@ -26,7 +26,7 @@ import {
   Plus,
   Trash2
 } from "lucide-react";
-import { type ClientWithProjects, type Estimate, type Message, type TimelineEvent, type Stage } from "@shared/schema";
+import { type ClientWithProjects, type Estimate, type Message, type TimelineEvent, type Stage, type EmailHistory } from "@shared/schema";
 import { useState } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -64,6 +64,11 @@ export default function ClientDetail() {
 
   const { data: messages = [], refetch: refetchMessages } = useQuery<Message[]>({
     queryKey: ["/api/clients", clientId, "messages"],
+    enabled: !!user && !!clientId
+  });
+
+  const { data: emailHistory = [] } = useQuery<EmailHistory[]>({
+    queryKey: ["/api/clients", clientId, "email-history"],
     enabled: !!user && !!clientId
   });
 
@@ -702,6 +707,94 @@ export default function ClientDetail() {
                     <p className="text-muted-foreground">No activity yet</p>
                     <p className="text-sm text-muted-foreground mt-1">
                       Messages, proposals, and other interactions will appear here
+                    </p>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Email History Section */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Email History</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {emailHistory && emailHistory.length > 0 ? (
+                  emailHistory.map((email: EmailHistory) => (
+                    <div key={email.id} className="flex items-start justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors" data-testid={`email-${email.id}`}>
+                      <div className="flex items-start space-x-3 flex-1">
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center mt-1 ${
+                          email.direction === 'OUTBOUND' ? 'bg-blue-100' : 'bg-green-100'
+                        }`}>
+                          <Mail className={`w-4 h-4 ${
+                            email.direction === 'OUTBOUND' ? 'text-blue-600' : 'text-green-600'
+                          }`} />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center space-x-2 mb-1">
+                            <p className="font-medium truncate">{email.subject || '(No Subject)'}</p>
+                            <Badge variant={email.direction === 'OUTBOUND' ? 'default' : 'secondary'} className="text-xs shrink-0">
+                              {email.direction === 'OUTBOUND' ? 'Sent' : 'Received'}
+                            </Badge>
+                          </div>
+                          
+                          <div className="text-sm text-muted-foreground space-y-1">
+                            <div className="flex items-center space-x-2 text-xs">
+                              {email.direction === 'OUTBOUND' ? (
+                                <>
+                                  <span>To:</span>
+                                  <span className="font-medium">{email.recipientEmail}</span>
+                                </>
+                              ) : (
+                                <>
+                                  <span>From:</span>
+                                  <span className="font-medium">{email.fromEmail}</span>
+                                </>
+                              )}
+                            </div>
+                            
+                            {email.source && (
+                              <div className="flex items-center space-x-2">
+                                <Badge variant="outline" className="text-xs">
+                                  {email.source === 'AUTOMATION' ? '🔄 Automation' :
+                                   email.source === 'DRIP_CAMPAIGN' ? '💧 Drip Campaign' :
+                                   email.source === 'MANUAL' ? '✍️ Manual' :
+                                   email.source === 'CLIENT_REPLY' ? '💬 Reply' : email.source}
+                                </Badge>
+                              </div>
+                            )}
+                            
+                            <p className="text-xs text-muted-foreground mt-2">
+                              {email.sentAt ? formatDate(email.sentAt) : 'Unknown'}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {email.gmailMessageId && (
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => {
+                            if (email.gmailThreadId) {
+                              window.open(`https://mail.google.com/mail/u/0/#all/${email.gmailThreadId}`, '_blank');
+                            }
+                          }}
+                          data-testid={`view-email-${email.id}`}
+                        >
+                          <ExternalLink className="w-4 h-4" />
+                        </Button>
+                      )}
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-8">
+                    <Mail className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                    <p className="text-muted-foreground">No emails sent or received yet</p>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Email communications will appear here once you start using automations or send manual emails
                     </p>
                   </div>
                 )}
