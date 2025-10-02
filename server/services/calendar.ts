@@ -41,7 +41,9 @@ export interface SignedOAuthState {
 export class GoogleCalendarService {
   private static readonly SCOPES = [
     'https://www.googleapis.com/auth/calendar',
-    'https://www.googleapis.com/auth/calendar.events'
+    'https://www.googleapis.com/auth/calendar.events',
+    'https://www.googleapis.com/auth/gmail.send',
+    'https://www.googleapis.com/auth/gmail.readonly'
   ];
 
   private static readonly REDIRECT_URI = process.env.GOOGLE_REDIRECT_URI || 

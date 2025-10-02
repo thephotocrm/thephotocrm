@@ -26,8 +26,11 @@ A comprehensive SMS platform leveraging the SimpleTexting API for sending and re
 ### Payment Processing
 Integration with Stripe for secure payment handling, supporting configurable deposit collection, full payment processing with webhook validation, and e-signature support for estimate approval. Real-time payment status tracking is included.
 
-### Google Calendar Integration
-Provides a dedicated business calendar system for each photographer ("📸 [Business Name] - Client Bookings") to separate business and personal events. Calendars are automatically created during OAuth or on first booking, are timezone-aware, and generate Google Meet links for virtual appointments. Operations are idempotent, with graceful fallback to the primary calendar if dedicated creation fails.
+### Google Integration
+Provides comprehensive Google Workspace integration through a single OAuth flow:
+- **Calendar**: Dedicated business calendar ("📸 [Business Name] - Client Bookings") with automatic creation, timezone support, and Google Meet links for virtual appointments.
+- **Gmail**: Direct email sending from photographer's personal email address with full conversation history tracking. All automated emails, drip campaigns, and manual communications are sent via Gmail API and logged to client history. Inbound client replies are captured via webhooks and automatically associated with the correct client.
+OAuth credentials (access token, refresh token) persist indefinitely and refresh automatically when expired.
 
 ### Frontend Architecture
 Built with React and Vite for development and optimized builds. It uses Wouter for routing, Shadcn/ui (based on Radix UI) for components, and Tailwind CSS for styling with custom design tokens. TanStack Query manages server state and caching, while React Hook Form with Zod validation handles type-safe forms.
@@ -44,7 +47,7 @@ A three-tier role system (PHOTOGRAPHER, CLIENT, ADMIN) is implemented. JWT token
 ## External Dependencies
 
 ### Communication Services
-- **SendGrid**: Email delivery for transactional and marketing communications.
+- **Gmail API**: Email delivery directly from photographer's personal email address for maximum personalization. All automated emails, drip campaigns, and manual communications use Gmail integration with complete conversation tracking.
 - **SimpleTexting**: SMS messaging for automated texts and two-way client communication.
 
 ### Payment Processing

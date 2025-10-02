@@ -245,6 +245,40 @@ export const smsLogs = pgTable("sms_logs", {
   createdAt: timestamp("created_at").defaultNow()
 });
 
+// Email history tracking for Gmail integration
+export const emailHistory = pgTable("email_history", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  photographerId: varchar("photographer_id").notNull().references(() => photographers.id),
+  clientId: varchar("client_id").references(() => clients.id),
+  projectId: varchar("project_id").references(() => projects.id),
+  automationStepId: varchar("automation_step_id").references(() => automationSteps.id),
+  // Email details
+  direction: text("direction").notNull().default("OUTBOUND"), // OUTBOUND, INBOUND
+  fromEmail: text("from_email").notNull(),
+  toEmails: text("to_emails").array().notNull(), // Array of recipient emails
+  ccEmails: text("cc_emails").array(), // CC recipients
+  bccEmails: text("bcc_emails").array(), // BCC recipients
+  subject: text("subject"),
+  htmlBody: text("html_body"),
+  textBody: text("text_body"),
+  // Gmail tracking
+  gmailMessageId: text("gmail_message_id"), // Gmail's unique message ID
+  gmailThreadId: text("gmail_thread_id"), // Gmail's thread ID for grouping conversations
+  // Source tracking
+  source: text("source").notNull().default("MANUAL"), // AUTOMATION, DRIP_CAMPAIGN, MANUAL, CLIENT_REPLY
+  status: text("status").notNull().default("SENT"), // SENT, DELIVERED, FAILED, BOUNCED
+  // Timestamps
+  sentAt: timestamp("sent_at").defaultNow(),
+  deliveredAt: timestamp("delivered_at"),
+  openedAt: timestamp("opened_at"),
+  createdAt: timestamp("created_at").defaultNow()
+}, (table) => ({
+  // Index for quick lookups by client
+  clientIdIdx: index("email_history_client_id_idx").on(table.clientId),
+  // Index for quick lookups by Gmail thread
+  gmailThreadIdIdx: index("email_history_gmail_thread_id_idx").on(table.gmailThreadId)
+}));
+
 // Bulletproof automation execution tracking to prevent duplicates
 export const automationExecutions = pgTable("automation_executions", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -692,7 +726,8 @@ export const photographersRelations = relations(photographers, ({ many }) => ({
   projects: many(projects),
   estimates: many(estimates),
   bookings: many(bookings),
-  messages: many(messages)
+  messages: many(messages),
+  emailHistory: many(emailHistory)
 }));
 
 export const usersRelations = relations(users, ({ one }) => ({
@@ -717,7 +752,8 @@ export const clientsRelations = relations(clients, ({ one, many }) => ({
     references: [photographers.id]
   }),
   projects: many(projects),
-  messages: many(messages)
+  messages: many(messages),
+  emailHistory: many(emailHistory)
 }));
 
 export const projectsRelations = relations(projects, ({ one, many }) => ({
@@ -734,6 +770,7 @@ export const projectsRelations = relations(projects, ({ one, many }) => ({
     references: [stages.id]
   }),
   emailLogs: many(emailLogs),
+  emailHistory: many(emailHistory),
   smsLogs: many(smsLogs),
   checklistItems: many(projectChecklistItems),
   questionnaires: many(projectQuestionnaires),
@@ -806,6 +843,25 @@ export const smsLogsRelations = relations(smsLogs, ({ one }) => ({
   }),
   automationStep: one(automationSteps, {
     fields: [smsLogs.automationStepId],
+    references: [automationSteps.id]
+  })
+}));
+
+export const emailHistoryRelations = relations(emailHistory, ({ one }) => ({
+  photographer: one(photographers, {
+    fields: [emailHistory.photographerId],
+    references: [photographers.id]
+  }),
+  client: one(clients, {
+    fields: [emailHistory.clientId],
+    references: [clients.id]
+  }),
+  project: one(projects, {
+    fields: [emailHistory.projectId],
+    references: [projects.id]
+  }),
+  automationStep: one(automationSteps, {
+    fields: [emailHistory.automationStepId],
     references: [automationSteps.id]
   })
 }));
@@ -1026,6 +1082,11 @@ export const insertSmsLogSchema = createInsertSchema(smsLogs).omit({
   createdAt: true
 });
 
+export const insertEmailHistorySchema = createInsertSchema(emailHistory).omit({
+  id: true,
+  createdAt: true
+});
+
 export const insertProjectActivityLogSchema = createInsertSchema(projectActivityLog).omit({
   id: true,
   createdAt: true
@@ -1122,6 +1183,8 @@ export type Message = typeof messages.$inferSelect;
 export type InsertMessage = z.infer<typeof insertMessageSchema>;
 export type SmsLog = typeof smsLogs.$inferSelect;
 export type InsertSmsLog = z.infer<typeof insertSmsLogSchema>;
+export type EmailHistory = typeof emailHistory.$inferSelect;
+export type InsertEmailHistory = z.infer<typeof insertEmailHistorySchema>;
 export type ProjectActivityLog = typeof projectActivityLog.$inferSelect;
 export type InsertProjectActivityLog = z.infer<typeof insertProjectActivityLogSchema>;
 export type ProjectChecklistItem = typeof projectChecklistItems.$inferSelect;

@@ -1,6 +1,6 @@
 import { 
   photographers, users, clients, projects, stages, templates, automations, automationSteps, automationBusinessTriggers,
-  emailLogs, smsLogs, automationExecutions, photographerLinks, checklistTemplateItems, projectChecklistItems,
+  emailLogs, emailHistory, smsLogs, automationExecutions, photographerLinks, checklistTemplateItems, projectChecklistItems,
   packages, packageItems, questionnaireTemplates, questionnaireQuestions, projectQuestionnaires,
   availabilitySlots, bookings, estimates, estimateItems, estimatePayments,
   photographerEarnings, photographerPayouts,
@@ -18,7 +18,7 @@ import {
   type QuestionnaireTemplate, type InsertQuestionnaireTemplate,
   type QuestionnaireQuestion, type InsertQuestionnaireQuestion,
   type ProjectQuestionnaire,
-  type Message, type InsertMessage, type SmsLog, type InsertSmsLog, type ProjectActivityLog, type TimelineEvent, type ClientPortalToken, type InsertClientPortalToken,
+  type Message, type InsertMessage, type SmsLog, type InsertSmsLog, type EmailHistory, type InsertEmailHistory, type ProjectActivityLog, type TimelineEvent, type ClientPortalToken, type InsertClientPortalToken,
   type Proposal, type InsertProposal, type ProposalItem, type ProposalPayment, type ProposalWithProject, type ProposalWithRelations,
   type DailyAvailabilityTemplate, type InsertDailyAvailabilityTemplate,
   type DailyAvailabilityBreak, type InsertDailyAvailabilityBreak,
@@ -278,6 +278,12 @@ export interface IStorage {
   
   // SMS Logging
   createSmsLog(smsLog: InsertSmsLog): Promise<SmsLog>;
+  
+  // Email History
+  createEmailHistory(emailHistory: InsertEmailHistory): Promise<EmailHistory>;
+  getEmailHistoryByClient(clientId: string): Promise<EmailHistory[]>;
+  getEmailHistoryByProject(projectId: string): Promise<EmailHistory[]>;
+  getEmailHistoryByThread(gmailThreadId: string): Promise<EmailHistory[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -2835,6 +2841,33 @@ export class DatabaseStorage implements IStorage {
   async createSmsLog(smsLog: InsertSmsLog): Promise<SmsLog> {
     const [created] = await db.insert(smsLogs).values(smsLog).returning();
     return created;
+  }
+
+  // Email History
+  async createEmailHistory(emailHistoryData: InsertEmailHistory): Promise<EmailHistory> {
+    const [created] = await db.insert(emailHistory).values(emailHistoryData).returning();
+    return created;
+  }
+
+  async getEmailHistoryByClient(clientId: string): Promise<EmailHistory[]> {
+    return await db.select()
+      .from(emailHistory)
+      .where(eq(emailHistory.clientId, clientId))
+      .orderBy(desc(emailHistory.sentAt));
+  }
+
+  async getEmailHistoryByProject(projectId: string): Promise<EmailHistory[]> {
+    return await db.select()
+      .from(emailHistory)
+      .where(eq(emailHistory.projectId, projectId))
+      .orderBy(desc(emailHistory.sentAt));
+  }
+
+  async getEmailHistoryByThread(gmailThreadId: string): Promise<EmailHistory[]> {
+    return await db.select()
+      .from(emailHistory)
+      .where(eq(emailHistory.gmailThreadId, gmailThreadId))
+      .orderBy(emailHistory.sentAt);
   }
 }
 
