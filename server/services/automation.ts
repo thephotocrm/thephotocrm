@@ -385,7 +385,7 @@ async function processAutomationStep(client: any, step: any, automation: any): P
     const baseUrl = process.env.REPLIT_DEV_DOMAIN 
       ? `https://${process.env.REPLIT_DEV_DOMAIN}`
       : 'https://thephotocrm.com';
-    const targetUrl = `${baseUrl}/public/booking/calendar/${photographer.publicToken}`;
+    const targetUrl = `${baseUrl}/booking/calendar/${photographer.publicToken}`;
     
     // Try to find existing short link for this photographer's booking calendar
     const existingLinks = await storage.getShortLinksByPhotographer(client.photographerId);
@@ -896,7 +896,7 @@ async function sendCountdownMessage(project: any, automation: any, photographerI
     const baseUrl = process.env.REPLIT_DEV_DOMAIN 
       ? `https://${process.env.REPLIT_DEV_DOMAIN}`
       : 'https://thephotocrm.com';
-    const targetUrl = `${baseUrl}/public/booking/calendar/${photographer.publicToken}`;
+    const targetUrl = `${baseUrl}/booking/calendar/${photographer.publicToken}`;
     
     const existingLinks = await storage.getShortLinksByPhotographer(photographerId);
     const existingBookingLink = existingLinks.find(link => 
@@ -1311,7 +1311,7 @@ async function processSubscriptionEmail(subscription: any, campaign: any, projec
     const baseUrl = process.env.REPLIT_DEV_DOMAIN 
       ? `https://${process.env.REPLIT_DEV_DOMAIN}`
       : 'https://thephotocrm.com';
-    const targetUrl = `${baseUrl}/public/booking/calendar/${photographer.publicToken}`;
+    const targetUrl = `${baseUrl}/booking/calendar/${photographer.publicToken}`;
     
     const existingLinks = await storage.getShortLinksByPhotographer(photographerId);
     const existingBookingLink = existingLinks.find(link => 
