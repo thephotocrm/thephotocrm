@@ -683,10 +683,10 @@ export default function Settings() {
                   </CardContent>
                 </Card>
 
-                {/* Google Calendar Integration */}
+                {/* Google Integration */}
                 <Card>
                   <CardHeader>
-                    <CardTitle>Calendar Integration</CardTitle>
+                    <CardTitle>Google Workspace Integration</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
@@ -694,9 +694,9 @@ export default function Settings() {
                         <div className="flex items-center space-x-3">
                           <Calendar className="w-8 h-8 text-primary" />
                           <div>
-                            <h3 className="font-medium">Google Calendar</h3>
+                            <h3 className="font-medium">Google Calendar & Gmail</h3>
                             <p className="text-sm text-muted-foreground">
-                              Sync your bookings with Google Calendar and generate Meet links
+                              Send emails from your Gmail & sync bookings to Calendar with Meet links
                             </p>
                             {isCalendarConnected && connectedEmail && (
                               <p className="text-xs text-muted-foreground mt-1">
@@ -753,10 +753,12 @@ export default function Settings() {
                           <div className="flex items-start space-x-2">
                             <CheckCircle className="w-4 h-4 text-green-600 mt-0.5" />
                             <div className="text-sm">
-                              <p className="font-medium text-green-800 dark:text-green-200">Calendar integration active</p>
-                              <p className="text-green-700 dark:text-green-300 mt-1">
-                                New bookings will automatically create calendar events with Google Meet links
-                              </p>
+                              <p className="font-medium text-green-800 dark:text-green-200">Google integration active</p>
+                              <ul className="text-green-700 dark:text-green-300 mt-1 list-disc list-inside space-y-1">
+                                <li>All emails sent from your personal Gmail address</li>
+                                <li>Bookings automatically create calendar events</li>
+                                <li>Google Meet links generated for virtual appointments</li>
+                              </ul>
                             </div>
                           </div>
                         </div>
@@ -767,9 +769,9 @@ export default function Settings() {
                           <div className="flex items-start space-x-2">
                             <Calendar className="w-4 h-4 text-blue-600 mt-0.5" />
                             <div className="text-sm">
-                              <p className="font-medium text-blue-800 dark:text-blue-200">Connect your calendar</p>
+                              <p className="font-medium text-blue-800 dark:text-blue-200">Connect Google Workspace</p>
                               <p className="text-blue-700 dark:text-blue-300 mt-1">
-                                Connect Google Calendar to automatically create events and Generate Meet links for client bookings
+                                One connection enables Gmail sending (from your personal email) + Calendar sync with Meet links
                               </p>
                             </div>
                           </div>
