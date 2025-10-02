@@ -100,6 +100,19 @@ export const users = pgTable("users", {
   createdAt: timestamp("created_at").defaultNow()
 });
 
+export const adminActivityLog = pgTable("admin_activity_log", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  adminUserId: varchar("admin_user_id").notNull().references(() => users.id),
+  action: text("action").notNull(), // IMPERSONATE, EXIT_IMPERSONATION, VIEW_DASHBOARD
+  targetPhotographerId: varchar("target_photographer_id").references(() => photographers.id),
+  metadata: json("metadata"), // Additional context (IP, user agent, etc.)
+  createdAt: timestamp("created_at").defaultNow()
+}, (table) => ({
+  adminUserIdx: index("admin_activity_log_admin_user_idx").on(table.adminUserId),
+  targetPhotographerIdx: index("admin_activity_log_target_photographer_idx").on(table.targetPhotographerId),
+  createdAtIdx: index("admin_activity_log_created_at_idx").on(table.createdAt)
+}));
+
 export const stages = pgTable("stages", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   photographerId: varchar("photographer_id").notNull().references(() => photographers.id),
@@ -985,6 +998,11 @@ export const insertUserSchema = createInsertSchema(users).omit({
   createdAt: true
 });
 
+export const insertAdminActivityLogSchema = createInsertSchema(adminActivityLog).omit({
+  id: true,
+  createdAt: true
+});
+
 export const insertClientSchema = createInsertSchema(clients).omit({
   id: true,
   createdAt: true
@@ -1156,6 +1174,8 @@ export type Photographer = typeof photographers.$inferSelect;
 export type InsertPhotographer = z.infer<typeof insertPhotographerSchema>;
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
+export type AdminActivityLog = typeof adminActivityLog.$inferSelect;
+export type InsertAdminActivityLog = z.infer<typeof insertAdminActivityLogSchema>;
 export type Client = typeof clients.$inferSelect;
 export type InsertClient = z.infer<typeof insertClientSchema>;
 export type Project = typeof projects.$inferSelect;
