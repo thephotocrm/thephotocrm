@@ -31,6 +31,7 @@ import communicationImage from "@assets/ChatGPT Image Oct 3, 2025, 03_45_04 PM_1
 import proposalImage from "@assets/ChatGPT Image Oct 3, 2025, 03_49_31 PM_1759524583669.png";
 import schedulingImage from "@assets/E7BF17EC-8882-4E01-BAD7-DE7BEB23322B_1759526130481.png";
 import smsImage from "@assets/3D55A8ED-E647-49A1-943C-420BD0096F6E_1759528182642.png";
+import questionnaireImage from "@assets/D80061BD-D8EF-4249-9B60-3EF75FA04DD6_1759528934938.png";
 
 export default function Landing() {
   const { user } = useAuth();
@@ -103,7 +104,7 @@ export default function Landing() {
     {
       title: "Client Questionnaires",
       description: "Collect wedding details automatically. Custom forms for every package you offer.",
-      screenshot: "https://picsum.photos/seed/forms/800/500"
+      screenshot: questionnaireImage
     },
     {
       title: "Reusable Templates",
