@@ -36,16 +36,54 @@ import PublicBookingCalendar from "@/pages/public-booking-calendar";
 import AdminDashboard from "@/pages/admin-dashboard";
 import NotFound from "@/pages/not-found";
 
+function ProtectedRoutes() {
+  const { user } = useAuth();
+  
+  return (
+    <>
+      {(user?.role === 'ADMIN' || user?.isImpersonating) && (
+        <AdminHeader
+          isImpersonating={user?.isImpersonating}
+          photographerName={user?.businessName}
+          photographerEmail={user?.isImpersonating ? user?.email : undefined}
+        />
+      )}
+      <SidebarProvider>
+        <AppSidebar />
+        <SidebarInset>
+          <MobileHeader />
+          <Switch>
+            <Route path="/dashboard" component={Dashboard} />
+            <Route path="/admin/dashboard" component={AdminDashboard} />
+            <Route path="/clients" component={Clients} />
+            <Route path="/clients/:id" component={ClientDetail} />
+            <Route path="/projects" component={Projects} />
+            <Route path="/projects/:id" component={ProjectDetail} />
+            <Route path="/proposals" component={Proposals} />
+            <Route path="/proposals/new" component={ProposalNew} />
+            <Route path="/templates" component={Templates} />
+            <Route path="/automations" component={Automations} />
+            <Route path="/drip-campaigns" component={DripCampaigns} />
+            <Route path="/packages" component={Packages} />
+            <Route path="/widget-generator" component={WidgetGenerator} />
+            <Route path="/questionnaires" component={Questionnaires} />
+            <Route path="/scheduling" component={Scheduling} />
+            <Route path="/reports" component={Reports} />
+            <Route path="/earnings" component={Earnings} />
+            <Route path="/settings" component={Settings} />
+            <Route component={NotFound} />
+          </Switch>
+        </SidebarInset>
+      </SidebarProvider>
+    </>
+  );
+}
+
 function Router() {
   const { user } = useAuth();
 
   return (
     <Switch>
-      {/* Public routes - Landing page for non-logged-in users */}
-      <Route path="/">
-        {!user ? <Landing /> : <Dashboard />}
-      </Route>
-      
       {/* Auth routes */}
       <Route path="/auth/login" component={Login} />
       <Route path="/auth/register" component={Register} />
@@ -59,43 +97,28 @@ function Router() {
       <Route path="/public/booking/:token" component={PublicBooking} />
       <Route path="/booking/calendar/:publicToken" component={PublicBookingCalendar} />
       
-      {/* Protected app routes */}
-      <Route>
-        {(user?.role === 'ADMIN' || user?.isImpersonating) && (
-          <AdminHeader
-            isImpersonating={user?.isImpersonating}
-            photographerName={user?.businessName}
-            photographerEmail={user?.isImpersonating ? user?.email : undefined}
-          />
-        )}
-        <SidebarProvider>
-          <AppSidebar />
-          <SidebarInset>
-            <MobileHeader />
-            <Switch>
-              <Route path="/dashboard" component={Dashboard} />
-              <Route path="/admin/dashboard" component={AdminDashboard} />
-              <Route path="/clients" component={Clients} />
-              <Route path="/clients/:id" component={ClientDetail} />
-              <Route path="/projects" component={Projects} />
-              <Route path="/projects/:id" component={ProjectDetail} />
-              <Route path="/proposals" component={Proposals} />
-              <Route path="/proposals/new" component={ProposalNew} />
-              <Route path="/templates" component={Templates} />
-              <Route path="/automations" component={Automations} />
-              <Route path="/drip-campaigns" component={DripCampaigns} />
-              <Route path="/packages" component={Packages} />
-              <Route path="/widget-generator" component={WidgetGenerator} />
-              <Route path="/questionnaires" component={Questionnaires} />
-              <Route path="/scheduling" component={Scheduling} />
-              <Route path="/reports" component={Reports} />
-              <Route path="/earnings" component={Earnings} />
-              <Route path="/settings" component={Settings} />
-              <Route component={NotFound} />
-            </Switch>
-          </SidebarInset>
-        </SidebarProvider>
-      </Route>
+      {/* Protected app routes - match specific paths */}
+      <Route path="/dashboard"><ProtectedRoutes /></Route>
+      <Route path="/admin/dashboard"><ProtectedRoutes /></Route>
+      <Route path="/clients"><ProtectedRoutes /></Route>
+      <Route path="/clients/:id"><ProtectedRoutes /></Route>
+      <Route path="/projects"><ProtectedRoutes /></Route>
+      <Route path="/projects/:id"><ProtectedRoutes /></Route>
+      <Route path="/proposals"><ProtectedRoutes /></Route>
+      <Route path="/proposals/new"><ProtectedRoutes /></Route>
+      <Route path="/templates"><ProtectedRoutes /></Route>
+      <Route path="/automations"><ProtectedRoutes /></Route>
+      <Route path="/drip-campaigns"><ProtectedRoutes /></Route>
+      <Route path="/packages"><ProtectedRoutes /></Route>
+      <Route path="/widget-generator"><ProtectedRoutes /></Route>
+      <Route path="/questionnaires"><ProtectedRoutes /></Route>
+      <Route path="/scheduling"><ProtectedRoutes /></Route>
+      <Route path="/reports"><ProtectedRoutes /></Route>
+      <Route path="/earnings"><ProtectedRoutes /></Route>
+      <Route path="/settings"><ProtectedRoutes /></Route>
+      
+      {/* Landing page - must be last so other routes match first */}
+      <Route path="/" component={Landing} />
     </Switch>
   );
 }
