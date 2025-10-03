@@ -27,6 +27,7 @@ import {
   Shield
 } from "lucide-react";
 import pipelineImage from "@assets/ChatGPT Image Oct 3, 2025, 03_42_16 PM_1759524152837.png";
+import communicationImage from "@assets/ChatGPT Image Oct 3, 2025, 03_45_04 PM_1759524321494.png";
 
 export default function Landing() {
   const { user } = useAuth();
@@ -79,7 +80,7 @@ export default function Landing() {
     {
       title: "Automated Communication",
       description: "Set it once, never touch it again. Email sequences run on autopilot based on client stage.",
-      screenshot: "https://picsum.photos/seed/email/800/500"
+      screenshot: communicationImage
     },
     {
       title: "Proposals & Payments",
