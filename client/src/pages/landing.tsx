@@ -28,6 +28,7 @@ import {
 } from "lucide-react";
 import pipelineImage from "@assets/ChatGPT Image Oct 3, 2025, 03_42_16 PM_1759524152837.png";
 import communicationImage from "@assets/ChatGPT Image Oct 3, 2025, 03_45_04 PM_1759524321494.png";
+import proposalImage from "@assets/ChatGPT Image Oct 3, 2025, 03_49_31 PM_1759524583669.png";
 
 export default function Landing() {
   const { user } = useAuth();
@@ -85,7 +86,7 @@ export default function Landing() {
     {
       title: "Proposals & Payments",
       description: "Beautiful proposals with instant Stripe payouts. Clients sign & pay in one click.",
-      screenshot: "https://picsum.photos/seed/proposal/800/500"
+      screenshot: proposalImage
     },
     {
       title: "Smart Scheduling",
