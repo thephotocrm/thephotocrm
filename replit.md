@@ -23,8 +23,17 @@ An event-driven automation engine using `node-cron` for scheduled tasks. It supp
 ### Two-Way SMS Communication System
 A comprehensive SMS platform leveraging the SimpleTexting API for sending and receiving messages. It includes a two-way relay system that forwards inbound client SMS messages to photographers with full context (client name, project type). All SMS messages are logged with status, timestamps, and metadata. A phone number-based client lookup system ensures accurate message routing. Webhooks handle incoming SMS messages, and it requires `SIMPLETEXTING_API_TOKEN` and `SIMPLETEXTING_PHONE_NUMBER` environment variables.
 
-### Payment Processing
-Integration with Stripe for secure payment handling, supporting configurable deposit collection, full payment processing with webhook validation, and e-signature support for estimate approval. Real-time payment status tracking is included.
+### Payment Processing & Stripe Connect
+**Stripe Connect is required** for all photographers to accept client payments. The system uses Stripe Connect Express accounts with:
+- **Mandatory Setup**: Photographers cannot send proposals until Stripe Connect is configured
+- **Platform Fee Model**: Automatic 5% platform fee on all transactions (configurable via `platformFeePercent`)
+- **Direct Deposits**: 95% of payments go directly to photographer's Stripe account
+- **Payment Flow**: Client payments trigger automatic platform fee deduction and earnings tracking
+- **Payout Options**: Standard (2-day, free) or Instant (1% fee, arrives in minutes)
+- **Onboarding**: Stripe-hosted onboarding handles compliance, identity verification, and bank account setup
+- **Validation**: Backend validates Stripe Connect status before allowing proposal sends
+- **Earnings Dashboard**: Real-time balance tracking, payout requests, and transaction history
+- **Webhook Integration**: Automatic sync of account status, payouts, and payment events
 
 ### Google Integration
 Provides comprehensive Google Workspace integration through a single OAuth flow:
