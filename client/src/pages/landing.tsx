@@ -374,11 +374,11 @@ export default function Landing() {
                 <div className="flex items-start gap-4 mb-4">
                   <img 
                     src="https://i.pravatar.cc/150?img=47" 
-                    alt="Jasmine K." 
+                    alt="Dillon P." 
                     className="w-12 h-12 rounded-full object-cover"
                   />
                   <div>
-                    <h3 className="font-bold">Jasmine K.</h3>
+                    <h3 className="font-bold">Dillon P.</h3>
                     <p className="text-sm text-slate-500">Wedding Photographer • Dallas, TX</p>
                   </div>
                 </div>
@@ -398,11 +398,11 @@ export default function Landing() {
                 <div className="flex items-start gap-4 mb-4">
                   <img 
                     src="https://i.pravatar.cc/150?img=12" 
-                    alt="Mateo R." 
+                    alt="Eddie G." 
                     className="w-12 h-12 rounded-full object-cover"
                   />
                   <div>
-                    <h3 className="font-bold">Mateo R.</h3>
+                    <h3 className="font-bold">Eddie G.</h3>
                     <p className="text-sm text-slate-500">Wedding Photographer • Austin, TX</p>
                   </div>
                 </div>
