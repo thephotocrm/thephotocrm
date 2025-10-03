@@ -47,14 +47,18 @@ export default function Landing() {
 
   // Rotate through project types every 3 seconds
   useEffect(() => {
+    let timeout: NodeJS.Timeout;
     const interval = setInterval(() => {
       setIsRotating(true);
-      setTimeout(() => {
+      timeout = setTimeout(() => {
         setCurrentProjectType((prev) => (prev + 1) % projectTypes.length);
         setIsRotating(false);
       }, 300);
     }, 3000);
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+      if (timeout) clearTimeout(timeout);
+    };
   }, []);
 
   const spotsRemaining = photographerCount !== null ? Math.max(0, 100 - photographerCount) : null;
