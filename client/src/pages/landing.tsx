@@ -26,6 +26,7 @@ import {
   BarChart,
   Shield
 } from "lucide-react";
+import pipelineImage from "@assets/ChatGPT Image Oct 3, 2025, 03_39_24 PM_1759524007874.png";
 
 export default function Landing() {
   const { user } = useAuth();
@@ -73,7 +74,7 @@ export default function Landing() {
     {
       title: "Smart Client Pipeline",
       description: "Drag-and-drop cards through stages from inquiry to booking. See your entire sales funnel at a glance.",
-      screenshot: "https://picsum.photos/seed/pipeline/800/500"
+      screenshot: pipelineImage
     },
     {
       title: "Automated Communication",
