@@ -364,9 +364,11 @@ export default function Landing() {
             <Card className="hover:shadow-xl transition-all">
               <CardContent className="pt-6">
                 <div className="flex items-start gap-4 mb-4">
-                  <div className="bg-gradient-to-br from-purple-500 to-pink-500 w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg">
-                    JK
-                  </div>
+                  <img 
+                    src="https://i.pravatar.cc/150?img=47" 
+                    alt="Jasmine K." 
+                    className="w-12 h-12 rounded-full object-cover"
+                  />
                   <div>
                     <h3 className="font-bold">Jasmine K.</h3>
                     <p className="text-sm text-slate-500">Wedding Photographer • Dallas, TX</p>
@@ -386,9 +388,11 @@ export default function Landing() {
             <Card className="hover:shadow-xl transition-all">
               <CardContent className="pt-6">
                 <div className="flex items-start gap-4 mb-4">
-                  <div className="bg-gradient-to-br from-blue-500 to-cyan-500 w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg">
-                    MR
-                  </div>
+                  <img 
+                    src="https://i.pravatar.cc/150?img=12" 
+                    alt="Mateo R." 
+                    className="w-12 h-12 rounded-full object-cover"
+                  />
                   <div>
                     <h3 className="font-bold">Mateo R.</h3>
                     <p className="text-sm text-slate-500">Wedding Photographer • Austin, TX</p>
