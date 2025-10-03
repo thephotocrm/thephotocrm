@@ -29,6 +29,7 @@ import {
 import pipelineImage from "@assets/ChatGPT Image Oct 3, 2025, 03_42_16 PM_1759524152837.png";
 import communicationImage from "@assets/ChatGPT Image Oct 3, 2025, 03_45_04 PM_1759524321494.png";
 import proposalImage from "@assets/ChatGPT Image Oct 3, 2025, 03_49_31 PM_1759524583669.png";
+import schedulingImage from "@assets/E7BF17EC-8882-4E01-BAD7-DE7BEB23322B_1759526130481.png";
 
 export default function Landing() {
   const { user } = useAuth();
@@ -91,7 +92,7 @@ export default function Landing() {
     {
       title: "Smart Scheduling",
       description: "Share your calendar link. Clients book consults when it works for both of you—syncs with Google Calendar.",
-      screenshot: "https://picsum.photos/seed/calendar/800/500"
+      screenshot: schedulingImage
     },
     {
       title: "Two-Way SMS",
