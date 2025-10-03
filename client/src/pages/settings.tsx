@@ -33,6 +33,31 @@ export default function Settings() {
     enabled: !!user
   });
 
+  // Subscription query for photographers
+  const { data: subscription } = useQuery({
+    queryKey: ["/api/subscription"],
+    enabled: !!user && user.role === 'PHOTOGRAPHER'
+  });
+
+  const portalMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest("POST", "/api/subscription/portal");
+      return response;
+    },
+    onSuccess: (data: any) => {
+      if (data.url) {
+        window.location.href = data.url;
+      }
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to open billing portal. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
   // Stripe Connect queries and mutations
   const { data: stripeStatus, refetch: refetchStripeStatus } = useQuery({
     queryKey: ["/api/stripe-connect/account-status"],
@@ -308,7 +333,7 @@ export default function Settings() {
         <div className="p-3 sm:p-6">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
             {/* Desktop tabs */}
-            <TabsList className="hidden md:grid w-full grid-cols-6">
+            <TabsList className="hidden md:grid w-full grid-cols-7">
               <TabsTrigger value="profile" className="flex items-center">
                 <User className="w-4 h-4 mr-2" />
                 Profile
@@ -333,6 +358,12 @@ export default function Settings() {
                 <Calendar className="w-4 h-4 mr-2" />
                 Integrations
               </TabsTrigger>
+              {user?.role === 'PHOTOGRAPHER' && (
+                <TabsTrigger value="billing" className="flex items-center">
+                  <CreditCard className="w-4 h-4 mr-2" />
+                  Billing
+                </TabsTrigger>
+              )}
             </TabsList>
             
             {/* Mobile dropdown */}
@@ -378,6 +409,14 @@ export default function Settings() {
                       Integrations
                     </div>
                   </SelectItem>
+                  {user?.role === 'PHOTOGRAPHER' && (
+                    <SelectItem value="billing">
+                      <div className="flex items-center">
+                        <CreditCard className="w-4 h-4 mr-2" />
+                        Billing
+                      </div>
+                    </SelectItem>
+                  )}
                 </SelectContent>
               </Select>
             </div>
@@ -804,6 +843,108 @@ export default function Settings() {
                 </CardContent>
               </Card>
             </TabsContent>
+
+            {user?.role === 'PHOTOGRAPHER' && (
+              <TabsContent value="billing">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Subscription & Billing</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    {/* Subscription Status */}
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h3 className="font-semibold text-lg">Current Plan</h3>
+                          <p className="text-sm text-muted-foreground">$5/month after trial</p>
+                        </div>
+                        <div>
+                          {subscription?.subscriptionStatus === 'trialing' && (
+                            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                              Free Trial
+                            </span>
+                          )}
+                          {subscription?.subscriptionStatus === 'active' && (
+                            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                              Active
+                            </span>
+                          )}
+                          {subscription?.subscriptionStatus === 'past_due' && (
+                            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
+                              Payment Due
+                            </span>
+                          )}
+                          {subscription?.subscriptionStatus === 'canceled' && (
+                            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">
+                              Canceled
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {subscription?.subscriptionStatus === 'trialing' && subscription?.trialEndsAt && (
+                        <div className="p-4 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg">
+                          <div className="flex items-start space-x-3">
+                            <AlertCircle className="w-5 h-5 text-blue-600 mt-0.5" />
+                            <div>
+                              <p className="font-medium text-blue-800 dark:text-blue-200">Free Trial Active</p>
+                              <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
+                                Your 14-day free trial ends on {new Date(subscription.trialEndsAt).toLocaleDateString()}. 
+                                Add a payment method to continue using Lazy Photog after your trial ends.
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {subscription?.subscriptionStatus === 'active' && subscription?.currentPeriodEnd && (
+                        <div className="p-4 bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded-lg">
+                          <div className="flex items-start space-x-3">
+                            <CheckCircle className="w-5 h-5 text-green-600 mt-0.5" />
+                            <div>
+                              <p className="font-medium text-green-800 dark:text-green-200">Subscription Active</p>
+                              <p className="text-sm text-green-700 dark:text-green-300 mt-1">
+                                Your next billing date is {new Date(subscription.currentPeriodEnd).toLocaleDateString()}.
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {subscription?.subscriptionStatus === 'past_due' && (
+                        <div className="p-4 bg-yellow-50 dark:bg-yellow-950 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+                          <div className="flex items-start space-x-3">
+                            <AlertCircle className="w-5 h-5 text-yellow-600 mt-0.5" />
+                            <div>
+                              <p className="font-medium text-yellow-800 dark:text-yellow-200">Payment Failed</p>
+                              <p className="text-sm text-yellow-700 dark:text-yellow-300 mt-1">
+                                Your last payment failed. Please update your payment method to continue using Lazy Photog.
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Manage Billing Button */}
+                    <div className="pt-4 border-t">
+                      <Button
+                        onClick={() => portalMutation.mutate()}
+                        disabled={portalMutation.isPending}
+                        data-testid="button-manage-billing"
+                        className="w-full sm:w-auto"
+                      >
+                        <CreditCard className="w-4 h-4 mr-2" />
+                        {portalMutation.isPending ? "Opening..." : "Manage Billing & Payment Method"}
+                      </Button>
+                      <p className="text-sm text-muted-foreground mt-2">
+                        Update your payment method, view invoices, or manage your subscription
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            )}
           </Tabs>
         </div>
     </div>

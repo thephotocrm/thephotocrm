@@ -4,7 +4,7 @@ import cookieParser from 'cookie-parser';
 import Stripe from "stripe";
 import { storage } from "./storage";
 import { db } from "./db";
-import { authenticateToken, requirePhotographer, requireRole, requireAdmin } from "./middleware/auth";
+import { authenticateToken, requirePhotographer, requireRole, requireAdmin, requireActiveSubscription } from "./middleware/auth";
 import { hashPassword, authenticateUser, generateToken } from "./services/auth";
 import { sendEmail, fetchIncomingGmailMessage } from "./services/email";
 import { sendSms } from "./services/sms";
@@ -280,42 +280,61 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       let photographerId: string | undefined;
+      let stripeData: { customerId: string; subscriptionId: string; status: string; trialEndsAt: Date; periodEnd: Date } | undefined;
       
+      // For photographers, create Stripe subscription FIRST before any database records
       if (role === "PHOTOGRAPHER") {
-        // Create Stripe customer with 14-day trial subscription
-        const customer = await stripe.customers.create({
-          email: normalizedEmail,
-          name: businessName,
-          metadata: {
-            businessName: businessName
-          }
-        });
+        try {
+          // Create Stripe customer
+          const customer = await stripe.customers.create({
+            email: normalizedEmail,
+            name: businessName,
+            metadata: {
+              businessName: businessName
+            }
+          });
 
-        // Create subscription with 14-day trial
-        const subscription = await stripe.subscriptions.create({
-          customer: customer.id,
-          items: [{
-            price: process.env.STRIPE_PRICE_ID!,
-          }],
-          trial_period_days: 14,
-          payment_behavior: 'default_incomplete',
-          payment_settings: { save_default_payment_method: 'on_subscription' },
-          expand: ['latest_invoice.payment_intent'],
-        });
+          // Create subscription with 14-day trial
+          const subscription = await stripe.subscriptions.create({
+            customer: customer.id,
+            items: [{
+              price: process.env.STRIPE_PRICE_ID!,
+            }],
+            trial_period_days: 14,
+            payment_behavior: 'default_incomplete',
+            payment_settings: { save_default_payment_method: 'on_subscription' },
+            expand: ['latest_invoice.payment_intent'],
+          });
 
-        // Calculate trial end date (14 days from now)
-        const trialEndsAt = new Date();
-        trialEndsAt.setDate(trialEndsAt.getDate() + 14);
+          // Calculate trial end date
+          const trialEndsAt = new Date();
+          trialEndsAt.setDate(trialEndsAt.getDate() + 14);
 
-        // Create photographer profile with subscription data
+          // Store Stripe data for database creation
+          stripeData = {
+            customerId: customer.id,
+            subscriptionId: subscription.id,
+            status: 'trialing',
+            trialEndsAt: trialEndsAt,
+            periodEnd: new Date(subscription.current_period_end * 1000)
+          };
+        } catch (stripeError: any) {
+          console.error("Stripe subscription creation failed:", stripeError);
+          return res.status(400).json({ 
+            message: "Failed to create subscription. Please try again or contact support.",
+            error: stripeError.message 
+          });
+        }
+
+        // Only create database records if Stripe succeeded
         const photographer = await storage.createPhotographer({
           businessName,
           timezone: "America/New_York",
-          stripeCustomerId: customer.id,
-          stripeSubscriptionId: subscription.id,
-          subscriptionStatus: 'trialing',
-          trialEndsAt: trialEndsAt,
-          subscriptionCurrentPeriodEnd: new Date(subscription.current_period_end * 1000)
+          stripeCustomerId: stripeData.customerId,
+          stripeSubscriptionId: stripeData.subscriptionId,
+          subscriptionStatus: stripeData.status,
+          trialEndsAt: stripeData.trialEndsAt,
+          subscriptionCurrentPeriodEnd: stripeData.periodEnd
         });
         photographerId = photographer.id;
 
@@ -548,7 +567,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Subscription Management
+  // Subscription Management (NO subscription check - must be accessible to manage billing)
   app.get("/api/subscription", authenticateToken, requirePhotographer, async (req, res) => {
     try {
       const photographer = await storage.getPhotographer(req.user!.photographerId!);
@@ -590,8 +609,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Photographer settings
-  app.get("/api/photographer", authenticateToken, requirePhotographer, async (req, res) => {
+  // Photographer settings (with subscription check)
+  app.get("/api/photographer", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       const photographer = await storage.getPhotographer(req.user!.photographerId!);
       if (!photographer) {
@@ -603,7 +622,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/photographer", authenticateToken, requirePhotographer, async (req, res) => {
+  app.put("/api/photographer", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       const updated = await storage.updatePhotographer(req.user!.photographerId!, req.body);
       res.json(updated);
@@ -613,7 +632,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Stages
-  app.get("/api/stages", authenticateToken, requirePhotographer, async (req, res) => {
+  app.get("/api/stages", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       const { projectType } = req.query;
       console.log(`[STAGES API] Getting stages for photographer: ${req.user!.photographerId}, projectType: ${projectType}`);
@@ -629,7 +648,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/stages", authenticateToken, requirePhotographer, async (req, res) => {
+  app.post("/api/stages", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       const stageData = insertStageSchema.parse({
         ...req.body,
@@ -643,7 +662,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Clients
-  app.get("/api/clients", authenticateToken, requirePhotographer, async (req, res) => {
+  app.get("/api/clients", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       const { projectType } = req.query;
       console.log('[CLIENTS API] Getting clients for photographer:', req.user!.photographerId!, 'projectType:', projectType);
@@ -659,7 +678,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/clients", authenticateToken, requirePhotographer, async (req, res) => {
+  app.post("/api/clients", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       console.log('[CLIENT CREATION] Request body:', req.body);
       
@@ -715,7 +734,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/clients/:id", authenticateToken, requirePhotographer, async (req, res) => {
+  app.put("/api/clients/:id", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       // Verify client belongs to this photographer
       const existingClient = await storage.getClient(req.params.id);
@@ -755,7 +774,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/clients/:id", authenticateToken, requirePhotographer, async (req, res) => {
+  app.delete("/api/clients/:id", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       // Verify client belongs to this photographer
       const existingClient = await storage.getClient(req.params.id);
@@ -776,7 +795,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/clients/:id/stage", authenticateToken, requirePhotographer, async (req, res) => {
+  app.put("/api/clients/:id/stage", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       const { stageId } = req.body;
       
@@ -806,7 +825,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/clients/:id", authenticateToken, requirePhotographer, async (req, res) => {
+  app.get("/api/clients/:id", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       const client = await storage.getClient(req.params.id);
       if (!client || client.photographerId !== req.user!.photographerId!) {
@@ -818,7 +837,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/clients/:id/history", authenticateToken, requirePhotographer, async (req, res) => {
+  app.get("/api/clients/:id/history", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       const client = await storage.getClient(req.params.id);
       if (!client || client.photographerId !== req.user!.photographerId!) {
@@ -836,7 +855,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Email History Routes
-  app.get("/api/email-history", authenticateToken, requirePhotographer, async (req, res) => {
+  app.get("/api/email-history", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       const { direction, source, clientId, projectId, limit } = req.query;
       
@@ -855,7 +874,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/clients/:id/email-history", authenticateToken, requirePhotographer, async (req, res) => {
+  app.get("/api/clients/:id/email-history", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       const client = await storage.getClient(req.params.id);
       if (!client || client.photographerId !== req.user!.photographerId!) {
@@ -870,7 +889,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/projects/:id/email-history", authenticateToken, requirePhotographer, async (req, res) => {
+  app.get("/api/projects/:id/email-history", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       const project = await storage.getProject(req.params.id);
       if (!project || project.photographerId !== req.user!.photographerId!) {
@@ -885,7 +904,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/email-threads/:threadId", authenticateToken, requirePhotographer, async (req, res) => {
+  app.get("/api/email-threads/:threadId", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       // Filter by photographer for security
       const emails = await storage.getEmailHistoryByThread(req.params.threadId, req.user!.photographerId!);
@@ -901,7 +920,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/clients/:id/messages", authenticateToken, requirePhotographer, async (req, res) => {
+  app.get("/api/clients/:id/messages", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       const client = await storage.getClient(req.params.id);
       if (!client || client.photographerId !== req.user!.photographerId!) {
@@ -915,7 +934,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/messages", authenticateToken, requirePhotographer, async (req, res) => {
+  app.post("/api/messages", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       // Add photographerId before validation since it's required by the schema
       const messageData = insertMessageSchema.parse({
@@ -968,7 +987,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/clients/:id/send-login-link", authenticateToken, requirePhotographer, async (req, res) => {
+  app.post("/api/clients/:id/send-login-link", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     console.log('=== SEND LOGIN LINK REQUEST RECEIVED ===');
     console.log('Client ID:', req.params.id);
     console.log('User:', req.user);
@@ -1164,7 +1183,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
   });
 
   // Projects - NEW CLIENT/PROJECT SEPARATION API
-  app.get("/api/projects", authenticateToken, requirePhotographer, async (req, res) => {
+  app.get("/api/projects", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       const { projectType } = req.query;
       const projects = await storage.getProjectsByPhotographer(
@@ -1178,7 +1197,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
     }
   });
 
-  app.post("/api/projects", authenticateToken, requirePhotographer, async (req, res) => {
+  app.post("/api/projects", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       // Import InsertProject schema
       const insertProjectSchema = z.object({
@@ -1218,7 +1237,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
     }
   });
 
-  app.get("/api/projects/:id", authenticateToken, requirePhotographer, async (req, res) => {
+  app.get("/api/projects/:id", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       const project = await storage.getProject(req.params.id);
       if (!project || project.photographerId !== req.user!.photographerId!) {
@@ -1231,7 +1250,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
     }
   });
 
-  app.put("/api/projects/:id", authenticateToken, requirePhotographer, async (req, res) => {
+  app.put("/api/projects/:id", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       // Verify project belongs to photographer
       const existingProject = await storage.getProject(req.params.id);
@@ -1265,7 +1284,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
     }
   });
 
-  app.put("/api/projects/:id/stage", authenticateToken, requirePhotographer, async (req, res) => {
+  app.put("/api/projects/:id/stage", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       const { stageId } = req.body;
       
@@ -1295,7 +1314,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
     }
   });
 
-  app.get("/api/projects/:id/history", authenticateToken, requirePhotographer, async (req, res) => {
+  app.get("/api/projects/:id/history", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       const project = await storage.getProject(req.params.id);
       if (!project || project.photographerId !== req.user!.photographerId!) {
@@ -1311,7 +1330,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
   });
 
   // Templates
-  app.get("/api/templates", authenticateToken, requirePhotographer, async (req, res) => {
+  app.get("/api/templates", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       const templates = await storage.getTemplatesByPhotographer(req.user!.photographerId!);
       res.json(templates);
@@ -1320,7 +1339,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
     }
   });
 
-  app.post("/api/templates", authenticateToken, requirePhotographer, async (req, res) => {
+  app.post("/api/templates", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       const templateData = insertTemplateSchema.parse({
         ...req.body,
@@ -1334,7 +1353,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
   });
 
   // Packages
-  app.get("/api/packages", authenticateToken, requirePhotographer, async (req, res) => {
+  app.get("/api/packages", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       const packages = await storage.getPackagesByPhotographer(req.user!.photographerId!);
       res.json(packages);
@@ -1343,7 +1362,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
     }
   });
 
-  app.post("/api/packages", authenticateToken, requirePhotographer, async (req, res) => {
+  app.post("/api/packages", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       const packageData = insertPackageSchema.parse({
         ...req.body,
@@ -1357,7 +1376,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
   });
 
   // Estimates
-  app.get("/api/estimates", authenticateToken, requirePhotographer, async (req, res) => {
+  app.get("/api/estimates", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       const estimates = await storage.getEstimatesByPhotographer(req.user!.photographerId!);
       res.json(estimates);
@@ -1367,7 +1386,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
   });
 
   // Get estimates by project ID
-  app.get("/api/estimates/project/:projectId", authenticateToken, requirePhotographer, async (req, res) => {
+  app.get("/api/estimates/project/:projectId", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       const { projectId } = req.params;
       
@@ -1385,7 +1404,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
     }
   });
 
-  app.post("/api/estimates", authenticateToken, requirePhotographer, async (req, res) => {
+  app.post("/api/estimates", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       const estimateData = insertEstimateSchema.parse({
         ...req.body,
@@ -1575,7 +1594,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
   });
 
   // Send proposal endpoint
-  app.post("/api/estimates/:id/send", authenticateToken, requirePhotographer, async (req, res) => {
+  app.post("/api/estimates/:id/send", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       const estimateId = req.params.id;
       
@@ -1677,7 +1696,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
   });
 
   // Proposals (route aliases for Estimates to enable terminology migration)
-  app.get("/api/proposals", authenticateToken, requirePhotographer, async (req, res) => {
+  app.get("/api/proposals", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       const proposals = await storage.getProposalsByPhotographer(req.user!.photographerId!);
       res.json(proposals);
@@ -1686,7 +1705,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
     }
   });
 
-  app.get("/api/proposals/client/:clientId", authenticateToken, requirePhotographer, async (req, res) => {
+  app.get("/api/proposals/client/:clientId", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       const { clientId } = req.params;
       
@@ -1703,7 +1722,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
     }
   });
 
-  app.post("/api/proposals", authenticateToken, requirePhotographer, async (req, res) => {
+  app.post("/api/proposals", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       // Preserve items before validation strips them out
       const items = req.body.items;
@@ -1789,7 +1808,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
   });
 
   // Send proposal endpoint
-  app.post("/api/proposals/:id/send", authenticateToken, requirePhotographer, async (req, res) => {
+  app.post("/api/proposals/:id/send", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       const proposalId = req.params.id;
       
@@ -1888,7 +1907,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
   });
 
   // Delete proposal endpoint
-  app.delete("/api/proposals/:id", authenticateToken, requirePhotographer, async (req, res) => {
+  app.delete("/api/proposals/:id", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       const proposalId = req.params.id;
       
@@ -1977,7 +1996,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
   });
 
   // Automations
-  app.get("/api/automations", authenticateToken, requirePhotographer, async (req, res) => {
+  app.get("/api/automations", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       const { projectType } = req.query;
       const automations = await storage.getAutomationsByPhotographer(
@@ -1991,7 +2010,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
     }
   });
 
-  app.post("/api/automations", authenticateToken, requirePhotographer, async (req, res) => {
+  app.post("/api/automations", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       const automationData = validateAutomationSchema.parse({
         ...req.body,
@@ -2009,7 +2028,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
     }
   });
 
-  app.patch("/api/automations/:id", authenticateToken, requirePhotographer, async (req, res) => {
+  app.patch("/api/automations/:id", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       // First verify the automation belongs to this photographer
       const automations = await storage.getAutomationsByPhotographer(req.user!.photographerId!);
@@ -2037,7 +2056,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
     }
   });
 
-  app.put("/api/automations/:id", authenticateToken, requirePhotographer, async (req, res) => {
+  app.put("/api/automations/:id", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       // First verify the automation belongs to this photographer
       const automations = await storage.getAutomationsByPhotographer(req.user!.photographerId!);
@@ -2065,7 +2084,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
     }
   });
 
-  app.delete("/api/automations/:id", authenticateToken, requirePhotographer, async (req, res) => {
+  app.delete("/api/automations/:id", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       // First verify the automation belongs to this photographer
       const automations = await storage.getAutomationsByPhotographer(req.user!.photographerId!);
@@ -2085,7 +2104,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
   });
 
   // Business Triggers
-  app.get("/api/business-triggers", authenticateToken, requirePhotographer, async (req, res) => {
+  app.get("/api/business-triggers", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       const businessTriggers = await storage.getBusinessTriggersByPhotographer(req.user!.photographerId!);
       res.json(businessTriggers);
@@ -2095,7 +2114,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
     }
   });
 
-  app.get("/api/automations/:automationId/business-triggers", authenticateToken, requirePhotographer, async (req, res) => {
+  app.get("/api/automations/:automationId/business-triggers", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       // First verify the automation belongs to this photographer
       const automations = await storage.getAutomationsByPhotographer(req.user!.photographerId!);
@@ -2113,7 +2132,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
     }
   });
 
-  app.post("/api/business-triggers", authenticateToken, requirePhotographer, async (req, res) => {
+  app.post("/api/business-triggers", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       // Verify the automation belongs to this photographer
       const automations = await storage.getAutomationsByPhotographer(req.user!.photographerId!);
@@ -2138,7 +2157,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
     }
   });
 
-  app.put("/api/business-triggers/:id", authenticateToken, requirePhotographer, async (req, res) => {
+  app.put("/api/business-triggers/:id", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       // Get the business trigger and verify ownership through automation
       const businessTriggers = await storage.getBusinessTriggersByPhotographer(req.user!.photographerId!);
@@ -2165,7 +2184,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
     }
   });
 
-  app.delete("/api/business-triggers/:id", authenticateToken, requirePhotographer, async (req, res) => {
+  app.delete("/api/business-triggers/:id", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       // Get the business trigger and verify ownership through automation
       const businessTriggers = await storage.getBusinessTriggersByPhotographer(req.user!.photographerId!);
@@ -2184,7 +2203,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
   });
 
   // Automation Steps
-  app.get("/api/automations/:id/steps", authenticateToken, requirePhotographer, async (req, res) => {
+  app.get("/api/automations/:id/steps", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       // First verify the automation belongs to this photographer
       const automations = await storage.getAutomationsByPhotographer(req.user!.photographerId!);
@@ -2202,7 +2221,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
     }
   });
 
-  app.post("/api/automations/:id/steps", authenticateToken, requirePhotographer, async (req, res) => {
+  app.post("/api/automations/:id/steps", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       // First verify the automation belongs to this photographer
       const automations = await storage.getAutomationsByPhotographer(req.user!.photographerId!);
@@ -2228,7 +2247,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
     }
   });
 
-  app.patch("/api/automation-steps/:id", authenticateToken, requirePhotographer, async (req, res) => {
+  app.patch("/api/automation-steps/:id", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       // Get the step and verify ownership through automation
       const step = await storage.getAutomationStepById(req.params.id);
@@ -2261,7 +2280,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
     }
   });
 
-  app.delete("/api/automation-steps/:id", authenticateToken, requirePhotographer, async (req, res) => {
+  app.delete("/api/automation-steps/:id", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       // Get the step and verify ownership through automation
       const step = await storage.getAutomationStepById(req.params.id);
@@ -2286,7 +2305,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
   });
 
   // Drip Campaign routes
-  app.get("/api/drip-campaigns", authenticateToken, requirePhotographer, async (req, res) => {
+  app.get("/api/drip-campaigns", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       const { projectType } = req.query;
       const campaigns = await storage.getDripCampaignsByPhotographer(
@@ -2301,7 +2320,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
   });
 
   // Get static campaign templates for display
-  app.get("/api/drip-campaigns/static-templates", authenticateToken, requirePhotographer, async (req, res) => {
+  app.get("/api/drip-campaigns/static-templates", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       const { projectType } = req.query;
       
@@ -2331,7 +2350,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
     }
   });
 
-  app.get("/api/drip-campaigns/:id", authenticateToken, requirePhotographer, async (req, res) => {
+  app.get("/api/drip-campaigns/:id", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       const campaign = await storage.getDripCampaign(req.params.id);
       if (!campaign || campaign.photographerId !== req.user!.photographerId!) {
@@ -2344,7 +2363,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
     }
   });
 
-  app.post("/api/drip-campaigns/activate", authenticateToken, requirePhotographer, async (req, res) => {
+  app.post("/api/drip-campaigns/activate", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       const { targetStageId, projectType } = req.body;
 
@@ -2400,7 +2419,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
     }
   });
 
-  app.post("/api/drip-campaigns", authenticateToken, requirePhotographer, async (req, res) => {
+  app.post("/api/drip-campaigns", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       const campaignData = insertDripCampaignSchema.parse({
         ...req.body,
@@ -2440,7 +2459,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
     }
   });
 
-  app.put("/api/drip-campaigns/:id", authenticateToken, requirePhotographer, async (req, res) => {
+  app.put("/api/drip-campaigns/:id", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       const campaign = await storage.getDripCampaign(req.params.id);
       if (!campaign || campaign.photographerId !== req.user!.photographerId!) {
@@ -2479,7 +2498,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
     }
   });
 
-  app.post("/api/drip-campaigns/:id/approve", authenticateToken, requirePhotographer, async (req, res) => {
+  app.post("/api/drip-campaigns/:id/approve", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       const campaign = await storage.getDripCampaign(req.params.id);
       if (!campaign || campaign.photographerId !== req.user!.photographerId!) {
@@ -2503,7 +2522,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
     }
   });
 
-  app.post("/api/drip-campaigns/:id/activate", authenticateToken, requirePhotographer, async (req, res) => {
+  app.post("/api/drip-campaigns/:id/activate", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       const campaign = await storage.getDripCampaign(req.params.id);
       if (!campaign || campaign.photographerId !== req.user!.photographerId!) {
@@ -2528,7 +2547,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
     }
   });
 
-  app.delete("/api/drip-campaigns/:id", authenticateToken, requirePhotographer, async (req, res) => {
+  app.delete("/api/drip-campaigns/:id", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       const campaign = await storage.getDripCampaign(req.params.id);
       if (!campaign || campaign.photographerId !== req.user!.photographerId!) {
@@ -2544,7 +2563,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
   });
 
   // Individual email approval routes
-  app.post("/api/drip-campaigns/:campaignId/emails/:emailId/approve", authenticateToken, requirePhotographer, async (req, res) => {
+  app.post("/api/drip-campaigns/:campaignId/emails/:emailId/approve", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       const { campaignId, emailId } = req.params;
       
@@ -2571,7 +2590,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
     }
   });
 
-  app.post("/api/drip-campaigns/:campaignId/emails/:emailId/reject", authenticateToken, requirePhotographer, async (req, res) => {
+  app.post("/api/drip-campaigns/:campaignId/emails/:emailId/reject", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       const { campaignId, emailId } = req.params;
       
@@ -2599,7 +2618,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
   });
 
   // Static Campaign Settings routes
-  app.get("/api/static-campaign-settings/:projectType", authenticateToken, requirePhotographer, async (req, res) => {
+  app.get("/api/static-campaign-settings/:projectType", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       const { projectType } = req.params;
       const settings = await storage.getStaticCampaignSettings(
@@ -2623,7 +2642,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
     }
   });
 
-  app.post("/api/static-campaign-settings", authenticateToken, requirePhotographer, async (req, res) => {
+  app.post("/api/static-campaign-settings", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       const { projectType, campaignEnabled, emailToggles } = req.body;
       
@@ -2642,7 +2661,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
   });
 
   // Drip Campaign Subscriptions routes
-  app.get("/api/drip-subscriptions", authenticateToken, requirePhotographer, async (req, res) => {
+  app.get("/api/drip-subscriptions", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       const subscriptions = await storage.getDripCampaignSubscriptionsByPhotographer(req.user!.photographerId!);
       res.json(subscriptions);
@@ -2652,7 +2671,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
     }
   });
 
-  app.post("/api/drip-subscriptions", authenticateToken, requirePhotographer, async (req, res) => {
+  app.post("/api/drip-subscriptions", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       const { campaignId, projectId } = req.body;
 
@@ -3012,7 +3031,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
   });
 
   // Reports
-  app.get("/api/reports/summary", authenticateToken, requirePhotographer, async (req, res) => {
+  app.get("/api/reports/summary", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       const photographerId = req.user!.photographerId!;
       
@@ -3031,7 +3050,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
   });
 
   // Booking routes
-  app.get("/api/bookings", authenticateToken, requirePhotographer, async (req, res) => {
+  app.get("/api/bookings", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       const bookings = await storage.getBookingsByPhotographer(req.user!.photographerId!);
       res.json(bookings);
@@ -3041,7 +3060,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
     }
   });
 
-  app.post("/api/bookings", authenticateToken, requirePhotographer, async (req, res) => {
+  app.post("/api/bookings", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       const photographerId = req.user!.photographerId!;
       const bookingData = insertBookingSchema.parse({
@@ -3080,7 +3099,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
     }
   });
 
-  app.get("/api/bookings/:id", authenticateToken, requirePhotographer, async (req, res) => {
+  app.get("/api/bookings/:id", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       const booking = await storage.getBooking(req.params.id);
       if (!booking) {
@@ -3099,7 +3118,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
     }
   });
 
-  app.put("/api/bookings/:id", authenticateToken, requirePhotographer, async (req, res) => {
+  app.put("/api/bookings/:id", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       const booking = await storage.getBooking(req.params.id);
       if (!booking) {
@@ -3124,7 +3143,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
     }
   });
 
-  app.delete("/api/bookings/:id", authenticateToken, requirePhotographer, async (req, res) => {
+  app.delete("/api/bookings/:id", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       const booking = await storage.getBooking(req.params.id);
       if (!booking) {
@@ -3425,7 +3444,7 @@ ${photographer.businessName}`
   });
 
   // Availability slots API routes for photographers
-  app.get("/api/availability", authenticateToken, requirePhotographer, async (req, res) => {
+  app.get("/api/availability", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       const slots = await storage.getAvailabilitySlotsByPhotographer(req.user!.photographerId!);
       res.json(slots);
@@ -3436,7 +3455,7 @@ ${photographer.businessName}`
   });
 
   // Get generated time slots for a specific date
-  app.get("/api/availability/slots/:date", authenticateToken, requirePhotographer, async (req, res) => {
+  app.get("/api/availability/slots/:date", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       const { date } = req.params;
       const photographerId = req.user!.photographerId!;
@@ -3459,7 +3478,7 @@ ${photographer.businessName}`
   // Use /api/availability/templates, /api/availability/overrides, and /api/availability/slots instead
 
   // Daily Availability Templates API routes for photographers
-  app.get("/api/availability/templates", authenticateToken, requirePhotographer, async (req, res) => {
+  app.get("/api/availability/templates", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       const photographerId = req.user!.photographerId!;
       const templates = await storage.getDailyAvailabilityTemplatesByPhotographer(photographerId);
@@ -3470,7 +3489,7 @@ ${photographer.businessName}`
     }
   });
 
-  app.post("/api/availability/templates", authenticateToken, requirePhotographer, async (req, res) => {
+  app.post("/api/availability/templates", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       const photographerId = req.user!.photographerId!;
       
@@ -3497,7 +3516,7 @@ ${photographer.businessName}`
     }
   });
 
-  app.put("/api/availability/templates/:id", authenticateToken, requirePhotographer, async (req, res) => {
+  app.put("/api/availability/templates/:id", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       const template = await storage.getDailyAvailabilityTemplate(req.params.id);
       if (!template) {
@@ -3525,7 +3544,7 @@ ${photographer.businessName}`
     }
   });
 
-  app.delete("/api/availability/templates/:id", authenticateToken, requirePhotographer, async (req, res) => {
+  app.delete("/api/availability/templates/:id", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       const template = await storage.getDailyAvailabilityTemplate(req.params.id);
       if (!template) {
@@ -3548,7 +3567,7 @@ ${photographer.businessName}`
   });
 
   // Daily Availability Template Breaks API routes
-  app.get("/api/availability/templates/:templateId/breaks", authenticateToken, requirePhotographer, async (req, res) => {
+  app.get("/api/availability/templates/:templateId/breaks", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       const template = await storage.getDailyAvailabilityTemplate(req.params.templateId);
       if (!template) {
@@ -3568,7 +3587,7 @@ ${photographer.businessName}`
     }
   });
 
-  app.post("/api/availability/templates/:templateId/breaks", authenticateToken, requirePhotographer, async (req, res) => {
+  app.post("/api/availability/templates/:templateId/breaks", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       const template = await storage.getDailyAvailabilityTemplate(req.params.templateId);
       if (!template) {
@@ -3601,7 +3620,7 @@ ${photographer.businessName}`
     }
   });
 
-  app.put("/api/availability/breaks/:id", authenticateToken, requirePhotographer, async (req, res) => {
+  app.put("/api/availability/breaks/:id", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       // Get the break to verify ownership through template
       const breakTime = await storage.getDailyAvailabilityBreak(req.params.id);
@@ -3631,7 +3650,7 @@ ${photographer.businessName}`
     }
   });
 
-  app.delete("/api/availability/breaks/:id", authenticateToken, requirePhotographer, async (req, res) => {
+  app.delete("/api/availability/breaks/:id", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       // Get the break to verify ownership through template
       const breakTime = await storage.getDailyAvailabilityBreak(req.params.id);
@@ -3658,7 +3677,7 @@ ${photographer.businessName}`
   });
 
   // Daily Availability Overrides API routes
-  app.get("/api/availability/overrides", authenticateToken, requirePhotographer, async (req, res) => {
+  app.get("/api/availability/overrides", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       const photographerId = req.user!.photographerId!;
       const { startDate, endDate } = req.query as { startDate?: string; endDate?: string };
@@ -3675,7 +3694,7 @@ ${photographer.businessName}`
     }
   });
 
-  app.post("/api/availability/overrides", authenticateToken, requirePhotographer, async (req, res) => {
+  app.post("/api/availability/overrides", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       const photographerId = req.user!.photographerId!;
       
@@ -3701,7 +3720,7 @@ ${photographer.businessName}`
     }
   });
 
-  app.put("/api/availability/overrides/:id", authenticateToken, requirePhotographer, async (req, res) => {
+  app.put("/api/availability/overrides/:id", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       const override = await storage.getDailyAvailabilityOverride(req.params.id);
       if (!override) {
@@ -3730,7 +3749,7 @@ ${photographer.businessName}`
     }
   });
 
-  app.delete("/api/availability/overrides/:id", authenticateToken, requirePhotographer, async (req, res) => {
+  app.delete("/api/availability/overrides/:id", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       const override = await storage.getDailyAvailabilityOverride(req.params.id);
       if (!override) {
@@ -3751,7 +3770,7 @@ ${photographer.businessName}`
   });
 
   // Slot Generation API routes
-  app.post("/api/availability/generate", authenticateToken, requirePhotographer, async (req, res) => {
+  app.post("/api/availability/generate", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       const { startDate, endDate, slotDurationMinutes = 60 } = req.body;
       const photographerId = req.user!.photographerId!;
@@ -3775,7 +3794,7 @@ ${photographer.businessName}`
   });
 
   // Google Calendar OAuth routes for photographers
-  app.get("/api/auth/google-calendar", authenticateToken, requirePhotographer, async (req, res) => {
+  app.get("/api/auth/google-calendar", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       const photographerId = req.user!.photographerId!;
       const authResult = await googleCalendarService.getAuthUrl(photographerId);
@@ -3869,7 +3888,7 @@ ${photographer.businessName}`
     }
   });
 
-  app.get("/api/calendar/status", authenticateToken, requirePhotographer, async (req, res) => {
+  app.get("/api/calendar/status", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       const photographerId = req.user!.photographerId!;
       const isConfigured = googleCalendarService.isConfigured();
@@ -3891,7 +3910,7 @@ ${photographer.businessName}`
   });
 
   // Disconnect Google Calendar
-  app.delete("/api/calendar/disconnect", authenticateToken, requirePhotographer, async (req, res) => {
+  app.delete("/api/calendar/disconnect", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       const photographerId = req.user!.photographerId!;
       await googleCalendarService.disconnect(photographerId);
@@ -3906,7 +3925,7 @@ ${photographer.businessName}`
   // === QUESTIONNAIRE TEMPLATE ROUTES ===
 
   // Get questionnaire templates for photographer
-  app.get("/api/questionnaire-templates", authenticateToken, requirePhotographer, async (req, res) => {
+  app.get("/api/questionnaire-templates", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       const templates = await storage.getQuestionnaireTemplatesByPhotographer(req.user!.photographerId!);
       res.json(templates);
@@ -3917,7 +3936,7 @@ ${photographer.businessName}`
   });
 
   // Get single questionnaire template
-  app.get("/api/questionnaire-templates/:id", authenticateToken, requirePhotographer, async (req, res) => {
+  app.get("/api/questionnaire-templates/:id", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       const template = await storage.getQuestionnaireTemplate(req.params.id);
       
@@ -3938,7 +3957,7 @@ ${photographer.businessName}`
   });
 
   // Create questionnaire template
-  app.post("/api/questionnaire-templates", authenticateToken, requirePhotographer, async (req, res) => {
+  app.post("/api/questionnaire-templates", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       const validatedData = insertQuestionnaireTemplateSchema.parse({
         ...req.body,
@@ -3957,7 +3976,7 @@ ${photographer.businessName}`
   });
 
   // Update questionnaire template
-  app.put("/api/questionnaire-templates/:id", authenticateToken, requirePhotographer, async (req, res) => {
+  app.put("/api/questionnaire-templates/:id", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       // First verify template exists and belongs to photographer
       const existingTemplate = await storage.getQuestionnaireTemplate(req.params.id);
@@ -3988,7 +4007,7 @@ ${photographer.businessName}`
   });
 
   // Delete questionnaire template
-  app.delete("/api/questionnaire-templates/:id", authenticateToken, requirePhotographer, async (req, res) => {
+  app.delete("/api/questionnaire-templates/:id", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       // First verify template exists and belongs to photographer
       const existingTemplate = await storage.getQuestionnaireTemplate(req.params.id);
@@ -4012,7 +4031,7 @@ ${photographer.businessName}`
   // Questionnaire Questions Routes
   
   // Get questions for a template
-  app.get("/api/questionnaire-templates/:templateId/questions", authenticateToken, requirePhotographer, async (req, res) => {
+  app.get("/api/questionnaire-templates/:templateId/questions", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       // First verify template exists and belongs to photographer
       const template = await storage.getQuestionnaireTemplate(req.params.templateId);
@@ -4034,7 +4053,7 @@ ${photographer.businessName}`
   });
 
   // Create a new question for a template
-  app.post("/api/questionnaire-templates/:templateId/questions", authenticateToken, requirePhotographer, async (req, res) => {
+  app.post("/api/questionnaire-templates/:templateId/questions", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       // First verify template exists and belongs to photographer
       const template = await storage.getQuestionnaireTemplate(req.params.templateId);
@@ -4064,7 +4083,7 @@ ${photographer.businessName}`
   });
 
   // Update a question
-  app.put("/api/questionnaire-questions/:id", authenticateToken, requirePhotographer, async (req, res) => {
+  app.put("/api/questionnaire-questions/:id", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       // Get the question to verify template ownership using storage method
       const question = await storage.getQuestionnaireQuestionById(req.params.id);
@@ -4094,7 +4113,7 @@ ${photographer.businessName}`
   });
 
   // Delete a question
-  app.delete("/api/questionnaire-questions/:id", authenticateToken, requirePhotographer, async (req, res) => {
+  app.delete("/api/questionnaire-questions/:id", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       // Get the question to verify template ownership using storage method
       const question = await storage.getQuestionnaireQuestionById(req.params.id);
@@ -4120,7 +4139,7 @@ ${photographer.businessName}`
   // Project Questionnaire Assignment Routes
   
   // Assign questionnaire template to a project
-  app.post("/api/projects/:projectId/questionnaires", authenticateToken, requirePhotographer, async (req, res) => {
+  app.post("/api/projects/:projectId/questionnaires", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       const { templateId } = req.body;
       
@@ -4169,7 +4188,7 @@ ${photographer.businessName}`
   });
   
   // Get questionnaires assigned to a project - with template details
-  app.get("/api/projects/:projectId/questionnaires", authenticateToken, requirePhotographer, async (req, res) => {
+  app.get("/api/projects/:projectId/questionnaires", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       // Verify project belongs to photographer
       const project = await storage.getProject(req.params.projectId);
@@ -4186,7 +4205,7 @@ ${photographer.businessName}`
   });
   
   // Get all questionnaire assignments for photographer
-  app.get("/api/questionnaire-assignments", authenticateToken, requirePhotographer, async (req, res) => {
+  app.get("/api/questionnaire-assignments", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       const assignments = await storage.getProjectQuestionnairesByPhotographer(req.user!.photographerId);
       res.json(assignments);
@@ -4197,7 +4216,7 @@ ${photographer.businessName}`
   });
   
   // Update questionnaire assignment (e.g., mark as completed, save answers)
-  app.put("/api/questionnaire-assignments/:id", authenticateToken, requirePhotographer, async (req, res) => {
+  app.put("/api/questionnaire-assignments/:id", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       // Get assignment and verify ownership
       const assignment = await storage.getProjectQuestionnaire(req.params.id);
@@ -4231,7 +4250,7 @@ ${photographer.businessName}`
   });
   
   // Delete questionnaire assignment
-  app.delete("/api/questionnaire-assignments/:id", authenticateToken, requirePhotographer, async (req, res) => {
+  app.delete("/api/questionnaire-assignments/:id", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       // Get assignment and verify ownership
       const assignment = await storage.getProjectQuestionnaire(req.params.id);
@@ -4850,7 +4869,7 @@ ${photographer.businessName}
   });
 
   // Short Link API - Create short link for booking calendar
-  app.post("/api/short-links", authenticateToken, requirePhotographer, async (req, res) => {
+  app.post("/api/short-links", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       const photographerId = req.user!.photographerId!;
       const { targetUrl, linkType } = req.body;
@@ -4943,7 +4962,7 @@ ${photographer.businessName}
   });
 
   // Stripe Connect API endpoints
-  app.post("/api/stripe-connect/create-account", authenticateToken, requirePhotographer, async (req, res) => {
+  app.post("/api/stripe-connect/create-account", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       const photographer = await storage.getPhotographer(req.user!.photographerId!);
       if (!photographer) {
@@ -4989,7 +5008,7 @@ ${photographer.businessName}
     }
   });
 
-  app.post("/api/stripe-connect/create-onboarding-link", authenticateToken, requirePhotographer, async (req, res) => {
+  app.post("/api/stripe-connect/create-onboarding-link", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       // Validate request body
       const validatedData = createOnboardingLinkSchema.parse(req.body);
@@ -5035,7 +5054,7 @@ ${photographer.businessName}
     }
   });
 
-  app.get("/api/stripe-connect/account-status", authenticateToken, requirePhotographer, async (req, res) => {
+  app.get("/api/stripe-connect/account-status", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       const photographer = await storage.getPhotographer(req.user!.photographerId!);
       if (!photographer) {
@@ -5091,7 +5110,7 @@ ${photographer.businessName}
     }
   });
 
-  app.get("/api/stripe-connect/balance", authenticateToken, requirePhotographer, async (req, res) => {
+  app.get("/api/stripe-connect/balance", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       const photographer = await storage.getPhotographer(req.user!.photographerId!);
       if (!photographer) {
@@ -5116,7 +5135,7 @@ ${photographer.businessName}
     }
   });
 
-  app.post("/api/stripe-connect/create-payout", authenticateToken, requirePhotographer, async (req, res) => {
+  app.post("/api/stripe-connect/create-payout", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       // Validate request body
       const validatedData = createPayoutSchema.parse(req.body);
@@ -5207,7 +5226,7 @@ ${photographer.businessName}
     }
   });
 
-  app.get("/api/stripe-connect/earnings", authenticateToken, requirePhotographer, async (req, res) => {
+  app.get("/api/stripe-connect/earnings", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       const photographer = await storage.getPhotographer(req.user!.photographerId!);
       if (!photographer) {
@@ -5226,7 +5245,7 @@ ${photographer.businessName}
     }
   });
 
-  app.get("/api/stripe-connect/payouts", authenticateToken, requirePhotographer, async (req, res) => {
+  app.get("/api/stripe-connect/payouts", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       const photographer = await storage.getPhotographer(req.user!.photographerId!);
       if (!photographer) {
