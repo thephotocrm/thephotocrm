@@ -32,6 +32,7 @@ import proposalImage from "@assets/ChatGPT Image Oct 3, 2025, 03_49_31 PM_175952
 import schedulingImage from "@assets/E7BF17EC-8882-4E01-BAD7-DE7BEB23322B_1759526130481.png";
 import smsImage from "@assets/3D55A8ED-E647-49A1-943C-420BD0096F6E_1759528182642.png";
 import questionnaireImage from "@assets/D80061BD-D8EF-4249-9B60-3EF75FA04DD6_1759528934938.png";
+import templatesImage from "@assets/27748FBD-CFCF-4C6D-8905-E877732DDE1B_1759529204307.png";
 
 export default function Landing() {
   const { user } = useAuth();
@@ -109,7 +110,7 @@ export default function Landing() {
     {
       title: "Reusable Templates",
       description: "Save your best emails, proposals, and workflows. Reuse them with one click for every new client.",
-      screenshot: "https://picsum.photos/seed/templates/800/500"
+      screenshot: templatesImage
     },
     {
       title: "Reports & Insights",
