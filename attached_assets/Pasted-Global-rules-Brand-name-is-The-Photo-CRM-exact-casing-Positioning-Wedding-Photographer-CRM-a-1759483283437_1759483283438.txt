@@ -1,0 +1,226 @@
+Global rules
+
+Brand name is The Photo CRM (exact casing).
+
+Positioning: “Wedding Photographer CRM” as a descriptor throughout the page.
+
+Primary CTA text must be identical everywhere: Start Free 14-Day Trial.
+
+Secondary CTA (ghost) when used: Watch 90-Second Demo.
+
+Reuse existing Tailwind/styles/components; no new dependencies.
+
+Replace decorative icons in feature cards with screenshot placeholders (use <img> with meaningful alt, loading="lazy", and current card shells).
+
+Keep one <h1> total on page (the existing hero). All other section headings are h2/h3.
+
+Decorative icons should have aria-hidden="true".
+
+Head/meta updates (outside hero)
+
+<title> → The Photo CRM — Wedding Photographer CRM
+
+<meta name="description"> → The Photo CRM: smart pipeline, automated email & SMS, beautiful proposals with Stripe payouts, and Google Calendar—for wedding photographers.
+
+(If OG is present)
+
+og:title: The Photo CRM — Wedding Photographer CRM
+
+og:description: same as meta description
+
+og:type: website
+
+Proof bar (single line, outside hero)
+
+Insert a small, subtle proof line once (e.g., under the next section title or as a thin bar after the hero, but not inside the hero):
+
+Integrates with Gmail • Stripe • Google Calendar
+
+SECTION BY SECTION CHANGES (non-hero only)
+1) Pain → Outcome (replace current “Tired of juggling…” content)
+
+Section heading (h2): Stop losing bookings to busywork.
+
+Replace the three cards’ body copy and swap icons → screenshot placeholders:
+
+Title: Missed follow-ups kill bookings.
+Body: Automations keep every lead warm.
+Image placeholder: <img src="/assets/pipeline-placeholder.jpg" alt="Automation follow-up sequence screenshot" loading="lazy" class="rounded-md">
+
+Title: Manual invoices eat your weekends.
+Body: Proposals, deposits, payouts—done.
+Image placeholder: <img src="/assets/proposals-placeholder.jpg" alt="Proposal and payment flow screenshot" loading="lazy" class="rounded-md">
+
+Title: Scattered emails = lost details.
+Body: Two-way SMS + Gmail sync, all in one timeline.
+Image placeholder: <img src="/assets/inbox-placeholder.jpg" alt="Unified messages and email timeline screenshot" loading="lazy" class="rounded-md">
+
+Keep the same layout/grid/shadows. Reduce heavy gradient saturation by ~15% if currently applied to these cards.
+
+2) Core Features (replace “Everything you need in one place” content + order)
+
+Section heading (h2): Everything you need for weddings—built in.
+Section subhead (p): Stop switching between 5 tools. Run your studio from one place.
+
+Reorder and replace each feature row (use existing two-column rows; left = card with gradient shell becomes a screenshot card; right = text; alternate orientation as you already do):
+
+Smart Client Pipeline
+h3: See every couple, stage by stage.
+Body: Visual kanban from inquiry to gallery delivery. Drag & drop. Never lose the thread.
+Image: <img src="/assets/pipeline.jpg" alt="Pipeline kanban view for wedding clients" loading="lazy" class="rounded-xl shadow-md">
+
+Automated Communication
+h3: Set it once, nurture forever.
+Body: Email + SMS automations, 24 pre-written wedding templates in 5 visual styles, research-backed drip timing. Sends via your Gmail address.
+Image: <img src="/assets/automations.jpg" alt="Automation builder with email and SMS steps" loading="lazy" class="rounded-xl shadow-md">
+
+Proposals & Payments
+h3: Proposals that get “Yes” + instant deposits.
+Body: Custom line items, e-sign, one-click pay. Stripe Connect pays your account directly. Track revenue and payouts.
+Image: <img src="/assets/proposals.jpg" alt="Wedding proposal with e-sign and Stripe payment" loading="lazy" class="rounded-xl shadow-md">
+
+Smart Scheduling
+h3: Bookings that book themselves.
+Body: Google Calendar business calendar, automatic confirmations, Meet links, no double-booking.
+Image: <img src="/assets/scheduling.jpg" alt="Booking calendar synced with Google Calendar" loading="lazy" class="rounded-xl shadow-md">
+
+Two-Way SMS
+h3: Text like a pro, with context.
+Body: Dedicated business number. Couples reply normally; you see the full timeline in their profile.
+Image: <img src="/assets/sms.jpg" alt="Two-way SMS conversation thread with client context" loading="lazy" class="rounded-xl shadow-md">
+
+Client Questionnaires
+h3: Details captured, automatically.
+Body: Venue, timeline, family formals—auto-assigned by stage. Everything lives in one place.
+Image: <img src="/assets/questionnaires.jpg" alt="Wedding day questionnaire form" loading="lazy" class="rounded-xl shadow-md">
+
+Reusable Templates
+h3: Your best work, templatized.
+Body: Save emails, packages, and messages. Reuse, then personalize in seconds.
+Image: <img src="/assets/templates.jpg" alt="Email and package templates gallery" loading="lazy" class="rounded-xl shadow-md">
+
+Reports & Insights
+h3: Clarity that grows your studio.
+Body: Bookings, revenue, pipeline health, bottlenecks by stage.
+Image: <img src="/assets/reports.jpg" alt="Studio performance dashboard and charts" loading="lazy" class="rounded-xl shadow-md">
+
+Remove bouncy hover:scale-105 if it causes jitter; keep soft hover shadow.
+
+3) How It Works (add a new section after Features)
+
+Section heading (h2): How it works
+Add a simple 3-step row or three equal cards:
+
+Import & set stages — or start with our wedding preset.
+
+Turn on automations — emails, SMS, proposals, and scheduling.
+
+Shoot more, stress less — we handle the busywork.
+
+Add a small proof line under this section:
+Integrates with Gmail • Stripe • Google Calendar
+
+4) Social Proof (replace “What you get when you join” grid)
+
+Replace the existing benefit tiles with two testimonial cards (keep your card styles/shadows):
+
+“I booked two weddings the first week from follow-ups I used to miss.”
+— Jasmine K., Dallas Wedding Photographer
+
+“Proposals look premium and deposits hit my Stripe the same day.”
+— Mateo R., Austin Elopements
+
+(Use placeholders for avatars if needed. Keep this section concise.)
+
+5) Pricing (keep your two-card layout; tighten copy)
+
+Section title (h2): Lock in Founder’s Pricing
+Subtitle: First 100 photographers only. 14-day free trial, no card required.
+
+Left card (Best Value):
+
+Title: Founder’s Price
+
+Price: $4.95 / month
+
+Bullets:
+
+All features unlocked
+
+Email & SMS automations
+
+Stripe Connect payouts
+
+Google Calendar & Gmail sync
+
+Cancel anytime
+
+CTA button (primary): Start Free 14-Day Trial
+
+Static counter text under button (no JS needed): 83 / 100 founder spots claimed
+
+Right card (Regular Price):
+
+Strikethrough price: $9.95 / month
+
+Subtext: After first 100 founders
+
+Bullets: Same features, standard rate
+
+CTA button disabled: Coming Soon
+
+6) FAQ (add above final CTA band)
+
+Section heading (h2): FAQs
+Add five Q&As:
+
+Can I use my own email? Yes—Gmail integration sends from your address.
+
+Will couples text my personal phone? No. You get a dedicated business number.
+
+How do payouts work? Stripe Connect pays directly to your Stripe account.
+
+Do I need to be techy? Nope. Use our wedding presets or customize in minutes.
+
+Can I cancel anytime? Yes—one click, no penalties.
+
+(If you have a head script area, you may add FAQ schema, otherwise skip.)
+
+7) Final CTA (keep your gradient band; replace copy only)
+
+Heading (h2): Take back your weekends.
+Subhead (p): Automate the busywork and focus on creating beautiful images.
+Button: Start Free 14-Day Trial
+Microcopy: No credit card • Cancel anytime
+
+Footer
+
+Ensure brand consistency: © 2025 The Photo CRM. All rights reserved. (keep if already present).
+
+ACCEPTANCE CRITERIA
+
+Hero section remains unchanged (DOM, classes, copy).
+
+Brand appears as The Photo CRM across title, body, and footer; any “Lazy Photog” or mismatched brand strings are replaced.
+
+Pain → Outcome section uses the 3 new statements and screenshot placeholders.
+
+Core Features reordered and reworded exactly as specified; each uses a screenshot placeholder with meaningful alt.
+
+New How It Works section present with 3 steps and the integrations proof line.
+
+Social Proof section shows 2 testimonial cards; previous “What you get” benefit tiles removed.
+
+Pricing reflects Founder’s $4.95 card with the exact bullets and static counter; Regular price card disabled.
+
+New FAQ section (5 items) inserted above the final CTA.
+
+Final CTA band uses the specified headline/subhead/button/microcopy.
+
+Primary CTA label is exactly “Start Free 14-Day Trial” everywhere (including pricing/footers).
+
+No new libraries; existing Tailwind and components reused.
+
+Accessibility: decorative icons aria-hidden="true"; images have descriptive alt; only one <h1> on the page.
+
+End of prompt.
