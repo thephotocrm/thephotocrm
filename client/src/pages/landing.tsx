@@ -86,7 +86,7 @@ export default function Landing() {
     },
     {
       title: "Automated Communication",
-      description: "Set it once, never touch it again. Email sequences run on autopilot based on client stage.",
+      description: "Set it once, never touch it again. Personalized email sequences run on autopilot—dynamically inserting client names, wedding dates, and project details at exactly the right moment.",
       screenshot: communicationImage
     },
     {
@@ -106,7 +106,7 @@ export default function Landing() {
     },
     {
       title: "Client Questionnaires",
-      description: "Collect wedding details automatically. Custom forms for every package you offer.",
+      description: "Collect wedding details automatically. Custom forms assigned based on package type, then responses help you prep for every shoot.",
       screenshot: questionnaireImage
     },
     {
@@ -363,6 +363,71 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* Complete Client Journey */}
+      <section className="py-16 px-4 bg-white dark:bg-slate-900">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              Personalized Automation from Inquiry to Delivery
+            </h2>
+            <p className="text-lg text-slate-600 dark:text-slate-400">
+              Every client gets a tailored experience. Your automations trigger based on wedding dates, project types, and booking stages—sending the right message at exactly the right time. No generic templates, no manual work.
+            </p>
+          </div>
+
+          <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-slate-800 dark:to-slate-800 rounded-xl p-8 border-2 border-blue-100 dark:border-slate-700">
+            <div className="flex flex-wrap items-center justify-center gap-3 text-sm md:text-base">
+              <div className="flex items-center gap-2 bg-white dark:bg-slate-900 px-4 py-2 rounded-lg shadow-sm">
+                <Mail className="h-5 w-5 text-blue-600" />
+                <span className="font-semibold">First Inquiry</span>
+              </div>
+              <ArrowRight className="h-5 w-5 text-slate-400 hidden sm:block" />
+              
+              <div className="flex items-center gap-2 bg-white dark:bg-slate-900 px-4 py-2 rounded-lg shadow-sm">
+                <Calendar className="h-5 w-5 text-green-600" />
+                <span className="font-semibold">Consult Booked</span>
+              </div>
+              <ArrowRight className="h-5 w-5 text-slate-400 hidden sm:block" />
+              
+              <div className="flex items-center gap-2 bg-white dark:bg-slate-900 px-4 py-2 rounded-lg shadow-sm">
+                <DollarSign className="h-5 w-5 text-emerald-600" />
+                <span className="font-semibold">Proposal Signed</span>
+              </div>
+              <ArrowRight className="h-5 w-5 text-slate-400 hidden sm:block" />
+              
+              <div className="flex items-center gap-2 bg-white dark:bg-slate-900 px-4 py-2 rounded-lg shadow-sm">
+                <CheckCircle2 className="h-5 w-5 text-purple-600" />
+                <span className="font-semibold">Questionnaire Sent</span>
+              </div>
+              <ArrowRight className="h-5 w-5 text-slate-400 hidden sm:block" />
+              
+              <div className="flex items-center gap-2 bg-white dark:bg-slate-900 px-4 py-2 rounded-lg shadow-sm">
+                <Camera className="h-5 w-5 text-pink-600" />
+                <span className="font-semibold">Shoot Day Reminder</span>
+              </div>
+              <ArrowRight className="h-5 w-5 text-slate-400 hidden sm:block" />
+              
+              <div className="flex items-center gap-2 bg-white dark:bg-slate-900 px-4 py-2 rounded-lg shadow-sm">
+                <Zap className="h-5 w-5 text-yellow-600" />
+                <span className="font-semibold">Editing Updates</span>
+              </div>
+              <ArrowRight className="h-5 w-5 text-slate-400 hidden sm:block" />
+              
+              <div className="flex items-center gap-2 bg-white dark:bg-slate-900 px-4 py-2 rounded-lg shadow-sm">
+                <TrendingUp className="h-5 w-5 text-indigo-600" />
+                <span className="font-semibold">Gallery Delivered</span>
+              </div>
+              <ArrowRight className="h-5 w-5 text-slate-400 hidden sm:block" />
+              
+              <div className="flex items-center gap-2 bg-white dark:bg-slate-900 px-4 py-2 rounded-lg shadow-sm">
+                <Sparkles className="h-5 w-5 text-orange-600" />
+                <span className="font-semibold">Review Request</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Social Proof */}
       <section className="py-16 px-4 bg-white dark:bg-slate-900">
         <div className="max-w-5xl mx-auto">
@@ -395,7 +460,7 @@ export default function Landing() {
                   ))}
                 </div>
                 <p className="text-slate-700 dark:text-slate-300">
-                  "I was drowning in spreadsheets and missed follow-ups. Now automations handle everything while I shoot. Booked 8 more weddings this season just from better follow-up timing!"
+                  "I was drowning in spreadsheets and missed follow-ups. Now automations handle everything from inquiry to gallery delivery while I shoot. Booked 8 more weddings this season!"
                 </p>
               </CardContent>
             </Card>
@@ -419,7 +484,7 @@ export default function Landing() {
                   ))}
                 </div>
                 <p className="text-slate-700 dark:text-slate-300">
-                  "The Stripe integration is a game changer. Clients pay deposits instantly instead of ghosting after I send a proposal. I get paid same-day and it looks so professional."
+                  "The questionnaire automation alone saves me 2 hours per wedding. Couples fill out details before the shoot, and the delivery reminders even get couples to leave reviews without me asking!"
                 </p>
               </CardContent>
             </Card>
