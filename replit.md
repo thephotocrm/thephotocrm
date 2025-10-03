@@ -57,6 +57,19 @@ A comprehensive administrative interface for platform management and customer su
   - Photographer menu (shown for all other cases): Dashboard, Clients, Projects, Proposals, Packages, Widget Generator, Questionnaires, Scheduling, Templates, Automations, Drip Campaigns, Reports, Earnings
   - Menu automatically switches when entering/exiting impersonation with proper state synchronization
 
+### Marketing Landing Page & Subscription System
+A conversion-optimized landing page with founder pricing campaign and subscription management:
+- **Landing Page Routing**: Non-authenticated users see the marketing landing page at "/", while logged-in users are automatically redirected to their dashboard
+- **Founder Pricing Campaign**: Limited-time founder pricing ($4.95/month) for the first 100 photographers, with real-time "spots remaining" counter powered by `/api/stats/photographer-count` endpoint
+- **Scarcity Messaging**: Prominent founder pricing banner, countdown of available spots, and multiple strategic CTAs throughout the page
+- **Pricing Tiers**: Founder's Price ($4.95/month, limited to 100 spots) and Regular Price ($9.95/month, locked after founder spots are claimed)
+- **Free Trial**: 14-day free trial period included with all subscriptions via Stripe
+- **Page Structure**: Hero section with founder banner, problem/pain points (3 cards), features showcase (6 features), benefits list (6 checkmarks), pricing comparison, final CTA section, and footer
+- **Subscription Enforcement**: Middleware enforces active subscription on all photographer routes except billing/subscription management endpoints
+- **Error-Safe Registration**: Stripe subscription created first, database records only created if Stripe succeeds (prevents orphaned accounts)
+- **Billing Access**: Subscription and billing portal endpoints remain accessible even when subscription is inactive, allowing users to reactivate or manage billing
+- **Domain**: Deployed at thephotocrm.com with custom domain configuration
+
 ## External Dependencies
 
 ### Communication Services

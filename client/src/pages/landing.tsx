@@ -32,7 +32,7 @@ export default function Landing() {
 
   // Fetch current photographer count for spots remaining
   useEffect(() => {
-    fetch("/api/photographer-count")
+    fetch("/api/stats/photographer-count")
       .then(res => res.json())
       .then(data => setPhotographerCount(data.count))
       .catch(() => setPhotographerCount(null));
