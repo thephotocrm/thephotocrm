@@ -24,7 +24,8 @@ import {
   ArrowRight,
   Target,
   BarChart,
-  Shield
+  Shield,
+  Heart
 } from "lucide-react";
 import pipelineImage from "@assets/ChatGPT Image Oct 3, 2025, 03_42_16 PM_1759524152837.png";
 import communicationImage from "@assets/ChatGPT Image Oct 3, 2025, 03_45_04 PM_1759524321494.png";
@@ -221,46 +222,52 @@ export default function Landing() {
             </p>
           </div>
           
-          <div className="grid md:grid-cols-3 gap-8">
-            <Card className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-              <CardContent className="p-0">
-                <div className="bg-slate-200 dark:bg-slate-800 aspect-video flex items-center justify-center">
-                  <img src="https://placehold.co/600x400/e2e8f0/64748b?text=Pipeline+View" alt="Smart client pipeline view" loading="lazy" className="w-full h-full object-cover" />
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <Card className="group hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 border-0 overflow-hidden">
+              <CardContent className="p-6">
+                <div className="bg-gradient-to-br from-blue-500 to-blue-600 w-14 h-14 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                  <Target className="h-7 w-7 text-white" />
                 </div>
-                <div className="p-6">
-                  <h3 className="font-bold text-lg mb-2">Book 2x more clients</h3>
-                  <p className="text-sm text-slate-600 dark:text-slate-400">
-                    No more lost leads. Automated follow-ups keep you top of mind.
-                  </p>
-                </div>
+                <h3 className="font-bold text-xl mb-2">Book 2x more clients</h3>
+                <p className="text-sm text-slate-600 dark:text-slate-400">
+                  No more lost leads. Automated follow-ups keep you top of mind.
+                </p>
               </CardContent>
             </Card>
             
-            <Card className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-              <CardContent className="p-0">
-                <div className="bg-slate-200 dark:bg-slate-800 aspect-video flex items-center justify-center">
-                  <img src="https://placehold.co/600x400/e2e8f0/64748b?text=Proposal+Screenshot" alt="Professional proposal with payment" loading="lazy" className="w-full h-full object-cover" />
+            <Card className="group hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 border-0 overflow-hidden">
+              <CardContent className="p-6">
+                <div className="bg-gradient-to-br from-green-500 to-green-600 w-14 h-14 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                  <DollarSign className="h-7 w-7 text-white" />
                 </div>
-                <div className="p-6">
-                  <h3 className="font-bold text-lg mb-2">Get paid instantly</h3>
-                  <p className="text-sm text-slate-600 dark:text-slate-400">
-                    Clients sign & pay on the spot. Money hits your account same day.
-                  </p>
-                </div>
+                <h3 className="font-bold text-xl mb-2">Get paid instantly</h3>
+                <p className="text-sm text-slate-600 dark:text-slate-400">
+                  Clients sign & pay on the spot. Money hits your account same day.
+                </p>
               </CardContent>
             </Card>
             
-            <Card className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-              <CardContent className="p-0">
-                <div className="bg-slate-200 dark:bg-slate-800 aspect-video flex items-center justify-center">
-                  <img src="https://placehold.co/600x400/e2e8f0/64748b?text=Calendar+Booking" alt="Automated calendar booking" loading="lazy" className="w-full h-full object-cover" />
+            <Card className="group hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 border-0 overflow-hidden">
+              <CardContent className="p-6">
+                <div className="bg-gradient-to-br from-purple-500 to-purple-600 w-14 h-14 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                  <Clock className="h-7 w-7 text-white" />
                 </div>
-                <div className="p-6">
-                  <h3 className="font-bold text-lg mb-2">Save 10+ hours per week</h3>
-                  <p className="text-sm text-slate-600 dark:text-slate-400">
-                    Stop copy-pasting emails. Automations handle the busywork for you.
-                  </p>
+                <h3 className="font-bold text-xl mb-2">Save 10+ hours per week</h3>
+                <p className="text-sm text-slate-600 dark:text-slate-400">
+                  Stop copy-pasting emails. Automations handle the busywork for you.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="group hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 border-0 overflow-hidden">
+              <CardContent className="p-6">
+                <div className="bg-gradient-to-br from-pink-500 to-pink-600 w-14 h-14 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                  <Heart className="h-7 w-7 text-white" />
                 </div>
+                <h3 className="font-bold text-xl mb-2">Delight clients after booking</h3>
+                <p className="text-sm text-slate-600 dark:text-slate-400">
+                  Automated questionnaires, shoot reminders, and gallery delivery emails keep couples excited from contract to final photo.
+                </p>
               </CardContent>
             </Card>
           </div>
