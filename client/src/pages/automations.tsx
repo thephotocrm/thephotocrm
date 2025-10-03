@@ -1473,19 +1473,12 @@ export default function Automations() {
   const [editEnablePipeline, setEditEnablePipeline] = useState(false);
   const [editTimingMode, setEditTimingMode] = useState<'immediate' | 'delayed'>('immediate');
   
-  // Redirect to login if not authenticated (after all hooks)
-  if (!loading && !user) {
-    setLocation("/login");
-    return null;
-  }
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
-      </div>
-    );
-  }
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!loading && !user) {
+      setLocation("/login");
+    }
+  }, [loading, user, setLocation]);
 
   // Reset modal state when dialog opens
   useEffect(() => {
@@ -2055,6 +2048,20 @@ export default function Automations() {
     setEditingAutomation(automation);
     setEditDialogOpen(true);
   };
+
+  // Show loading spinner
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
+      </div>
+    );
+  }
+
+  // Return null if not authenticated (redirect handled by useEffect)
+  if (!user) {
+    return null;
+  }
 
   return (
     <div>
