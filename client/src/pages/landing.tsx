@@ -73,42 +73,42 @@ export default function Landing() {
     {
       title: "Smart Client Pipeline",
       description: "Drag-and-drop cards through stages from inquiry to booking. See your entire sales funnel at a glance.",
-      screenshot: "https://placehold.co/800x500/e2e8f0/64748b?text=Client+Pipeline"
+      screenshot: "https://picsum.photos/seed/pipeline/800/500"
     },
     {
       title: "Automated Communication",
       description: "Set it once, never touch it again. Email sequences run on autopilot based on client stage.",
-      screenshot: "https://placehold.co/800x500/e2e8f0/64748b?text=Email+Automation"
+      screenshot: "https://picsum.photos/seed/email/800/500"
     },
     {
       title: "Proposals & Payments",
       description: "Beautiful proposals with instant Stripe payouts. Clients sign & pay in one click.",
-      screenshot: "https://placehold.co/800x500/e2e8f0/64748b?text=Proposal+Payment"
+      screenshot: "https://picsum.photos/seed/proposal/800/500"
     },
     {
       title: "Smart Scheduling",
       description: "Share your calendar link. Clients book consults when it works for both of you—syncs with Google Calendar.",
-      screenshot: "https://placehold.co/800x500/e2e8f0/64748b?text=Calendar+Scheduling"
+      screenshot: "https://picsum.photos/seed/calendar/800/500"
     },
     {
       title: "Two-Way SMS",
       description: "Text clients right from the CRM. Keep all conversations in one place—no more switching apps.",
-      screenshot: "https://placehold.co/800x500/e2e8f0/64748b?text=SMS+Messaging"
+      screenshot: "https://picsum.photos/seed/sms/800/500"
     },
     {
       title: "Client Questionnaires",
       description: "Collect wedding details automatically. Custom forms for every package you offer.",
-      screenshot: "https://placehold.co/800x500/e2e8f0/64748b?text=Client+Forms"
+      screenshot: "https://picsum.photos/seed/forms/800/500"
     },
     {
       title: "Reusable Templates",
       description: "Save your best emails, proposals, and workflows. Reuse them with one click for every new client.",
-      screenshot: "https://placehold.co/800x500/e2e8f0/64748b?text=Email+Templates"
+      screenshot: "https://picsum.photos/seed/templates/800/500"
     },
     {
       title: "Reports & Insights",
       description: "Track bookings, revenue, and conversion rates. Know exactly what's working in your business.",
-      screenshot: "https://placehold.co/800x500/e2e8f0/64748b?text=Analytics+Dashboard"
+      screenshot: "https://picsum.photos/seed/analytics/800/500"
     }
   ];
 
