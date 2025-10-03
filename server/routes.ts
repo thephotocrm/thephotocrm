@@ -1561,42 +1561,32 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       const successUrl = `${process.env.APP_BASE_URL}/payment-success?proposal=${req.params.token}`;
       const cancelUrl = `${process.env.APP_BASE_URL}/public/proposals/${req.params.token}`;
 
-      // Get photographer to check for Stripe Connect account
+      // Get photographer and require Stripe Connect
       const photographer = await storage.getPhotographer(estimate.photographerId);
       
-      let checkoutUrl: string;
-      
-      if (photographer?.stripeConnectAccountId && photographer.payoutEnabled) {
-        // Use Stripe Connect for connected photographers
-        const platformFeeCents = calculatePlatformFee(amount);
-        
-        checkoutUrl = await createConnectCheckoutSession({
-          amountCents: amount,
-          connectedAccountId: photographer.stripeConnectAccountId,
-          platformFeeCents,
-          successUrl,
-          cancelUrl,
-          productName: estimate.title,
-          metadata: {
-            estimateId: estimate.id,
-            paymentType: mode,
-            photographerId: estimate.photographerId,
-            platformFeeCents: platformFeeCents.toString()
-          }
-        });
-      } else {
-        // Fallback to standard checkout for non-connected accounts
-        checkoutUrl = await createCheckoutSession({
-          amountCents: amount,
-          successUrl,
-          cancelUrl,
-          metadata: {
-            estimateId: estimate.id,
-            paymentType: mode,
-            photographerId: estimate.photographerId
-          }
+      if (!photographer?.stripeConnectAccountId || !photographer.payoutEnabled) {
+        return res.status(400).json({ 
+          message: "Payment processing not available. The photographer needs to connect their Stripe account." 
         });
       }
+      
+      // Use Stripe Connect for all payments
+      const platformFeeCents = calculatePlatformFee(amount);
+      
+      const checkoutUrl = await createConnectCheckoutSession({
+        amountCents: amount,
+        connectedAccountId: photographer.stripeConnectAccountId,
+        platformFeeCents,
+        successUrl,
+        cancelUrl,
+        productName: estimate.title,
+        metadata: {
+          estimateId: estimate.id,
+          paymentType: mode,
+          photographerId: estimate.photographerId,
+          platformFeeCents: platformFeeCents.toString()
+        }
+      });
 
       res.json({ url: checkoutUrl });
     } catch (error: any) {
@@ -1613,6 +1603,14 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       const estimate = await storage.getEstimate(estimateId);
       if (!estimate || estimate.photographerId !== req.user!.photographerId!) {
         return res.status(404).json({ message: "Proposal not found" });
+      }
+
+      // Verify photographer has Stripe Connect set up
+      const photographer = await storage.getPhotographer(req.user!.photographerId!);
+      if (!photographer?.stripeConnectAccountId || !photographer.payoutEnabled) {
+        return res.status(400).json({ 
+          message: "You must connect your Stripe account before sending proposals. Go to Settings → Integrations to set up payment processing." 
+        });
       }
 
       // Update estimate with sent timestamp
