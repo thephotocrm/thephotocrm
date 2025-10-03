@@ -26,7 +26,7 @@ import {
   BarChart,
   Shield
 } from "lucide-react";
-import pipelineImage from "@assets/ChatGPT Image Oct 3, 2025, 03_39_24 PM_1759524007874.png";
+import pipelineImage from "@assets/ChatGPT Image Oct 3, 2025, 03_42_16 PM_1759524152837.png";
 
 export default function Landing() {
   const { user } = useAuth();
