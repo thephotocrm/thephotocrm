@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { Switch, Route } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -28,13 +29,14 @@ import Scheduling from "@/pages/scheduling";
 import Reports from "@/pages/reports";
 import Earnings from "@/pages/earnings";
 import Settings from "@/pages/settings";
-import Checkout from "@/pages/checkout";
 import ClientPortal from "@/pages/client-portal";
 import PublicProposal from "@/pages/public-proposal";
 import PublicBooking from "@/pages/public-booking";
 import PublicBookingCalendar from "@/pages/public-booking-calendar";
 import AdminDashboard from "@/pages/admin-dashboard";
 import NotFound from "@/pages/not-found";
+
+const Checkout = lazy(() => import("@/pages/checkout"));
 
 function ProtectedRoutes() {
   const { user } = useAuth();
@@ -91,7 +93,11 @@ function Router() {
       <Route path="/register" component={Register} />
       
       {/* Public pages */}
-      <Route path="/checkout" component={Checkout} />
+      <Route path="/checkout">
+        <Suspense fallback={<div className="flex items-center justify-center h-screen">Loading...</div>}>
+          <Checkout />
+        </Suspense>
+      </Route>
       <Route path="/client-portal" component={ClientPortal} />
       <Route path="/public/proposals/:token" component={PublicProposal} />
       <Route path="/public/booking/:token" component={PublicBooking} />
