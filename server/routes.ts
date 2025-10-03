@@ -282,10 +282,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let photographerId: string | undefined;
       
       if (role === "PHOTOGRAPHER") {
-        // Create photographer profile
+        // Create Stripe customer with 14-day trial subscription
+        const customer = await stripe.customers.create({
+          email: normalizedEmail,
+          name: businessName,
+          metadata: {
+            businessName: businessName
+          }
+        });
+
+        // Create subscription with 14-day trial
+        const subscription = await stripe.subscriptions.create({
+          customer: customer.id,
+          items: [{
+            price: process.env.STRIPE_PRICE_ID!,
+          }],
+          trial_period_days: 14,
+          payment_behavior: 'default_incomplete',
+          payment_settings: { save_default_payment_method: 'on_subscription' },
+          expand: ['latest_invoice.payment_intent'],
+        });
+
+        // Calculate trial end date (14 days from now)
+        const trialEndsAt = new Date();
+        trialEndsAt.setDate(trialEndsAt.getDate() + 14);
+
+        // Create photographer profile with subscription data
         const photographer = await storage.createPhotographer({
           businessName,
-          timezone: "America/New_York"
+          timezone: "America/New_York",
+          stripeCustomerId: customer.id,
+          stripeSubscriptionId: subscription.id,
+          subscriptionStatus: 'trialing',
+          trialEndsAt: trialEndsAt,
+          subscriptionCurrentPeriodEnd: new Date(subscription.current_period_end * 1000)
         });
         photographerId = photographer.id;
 
@@ -514,6 +544,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json(userData);
     } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Subscription Management
+  app.get("/api/subscription", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      const photographer = await storage.getPhotographer(req.user!.photographerId!);
+      if (!photographer) {
+        return res.status(404).json({ message: "Photographer not found" });
+      }
+
+      // Return subscription details
+      res.json({
+        subscriptionStatus: photographer.subscriptionStatus,
+        trialEndsAt: photographer.trialEndsAt,
+        currentPeriodEnd: photographer.subscriptionCurrentPeriodEnd,
+        stripeCustomerId: photographer.stripeCustomerId,
+        stripeSubscriptionId: photographer.stripeSubscriptionId
+      });
+    } catch (error) {
+      console.error("Subscription fetch error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.post("/api/subscription/portal", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      const photographer = await storage.getPhotographer(req.user!.photographerId!);
+      if (!photographer || !photographer.stripeCustomerId) {
+        return res.status(404).json({ message: "Stripe customer not found" });
+      }
+
+      // Create Stripe billing portal session
+      const session = await stripe.billingPortal.sessions.create({
+        customer: photographer.stripeCustomerId,
+        return_url: `${req.headers.origin}/settings`,
+      });
+
+      res.json({ url: session.url });
+    } catch (error) {
+      console.error("Portal session error:", error);
       res.status(500).json({ message: "Internal server error" });
     }
   });
@@ -2629,6 +2701,63 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       }
 
       switch (event.type) {
+        // Subscription lifecycle events
+        case 'customer.subscription.created':
+        case 'customer.subscription.updated':
+          const subscription = event.data.object as Stripe.Subscription;
+          const customer = await stripe.customers.retrieve(subscription.customer as string);
+          
+          if (customer.deleted) break;
+          
+          // Find photographer by stripe customer ID
+          const photographers = await storage.getAllPhotographers();
+          const photographer = photographers.find(p => p.stripeCustomerId === customer.id);
+          
+          if (photographer) {
+            await storage.updatePhotographer(photographer.id, {
+              stripeSubscriptionId: subscription.id,
+              subscriptionStatus: subscription.status,
+              subscriptionCurrentPeriodEnd: new Date(subscription.current_period_end * 1000),
+              trialEndsAt: subscription.trial_end ? new Date(subscription.trial_end * 1000) : null
+            });
+          }
+          break;
+
+        case 'customer.subscription.deleted':
+          const deletedSubscription = event.data.object as Stripe.Subscription;
+          const deletedCustomer = await stripe.customers.retrieve(deletedSubscription.customer as string);
+          
+          if (deletedCustomer.deleted) break;
+          
+          const photographersAll = await storage.getAllPhotographers();
+          const photographerDeleted = photographersAll.find(p => p.stripeCustomerId === deletedCustomer.id);
+          
+          if (photographerDeleted) {
+            await storage.updatePhotographer(photographerDeleted.id, {
+              subscriptionStatus: 'canceled'
+            });
+          }
+          break;
+
+        case 'invoice.payment_failed':
+          const failedInvoice = event.data.object as Stripe.Invoice;
+          if (failedInvoice.subscription) {
+            const failedSub = await stripe.subscriptions.retrieve(failedInvoice.subscription as string);
+            const failedCustomer = await stripe.customers.retrieve(failedSub.customer as string);
+            
+            if (failedCustomer.deleted) break;
+            
+            const allPhotographers = await storage.getAllPhotographers();
+            const photographerFailed = allPhotographers.find(p => p.stripeCustomerId === failedCustomer.id);
+            
+            if (photographerFailed) {
+              await storage.updatePhotographer(photographerFailed.id, {
+                subscriptionStatus: 'past_due'
+              });
+            }
+          }
+          break;
+
         case 'checkout.session.completed':
           const session = event.data.object as Stripe.Checkout.Session;
           const metadata = session.metadata;

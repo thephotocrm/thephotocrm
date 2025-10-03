@@ -74,3 +74,45 @@ export function requireAdmin(req: Request, res: Response, next: NextFunction) {
 
   return res.status(403).json({ message: 'Admin access required' });
 }
+
+export async function requireActiveSubscription(req: Request, res: Response, next: NextFunction) {
+  if (!req.user) {
+    return res.status(401).json({ message: 'Authentication required' });
+  }
+
+  // Admins bypass subscription check
+  if (req.user.role === 'ADMIN' || req.user.originalRole === 'ADMIN') {
+    next();
+    return;
+  }
+
+  // Only photographers need subscriptions
+  if (req.user.role !== 'PHOTOGRAPHER' || !req.user.photographerId) {
+    next();
+    return;
+  }
+
+  try {
+    const { storage } = await import('../storage');
+    const photographer = await storage.getPhotographer(req.user.photographerId);
+
+    if (!photographer) {
+      return res.status(404).json({ message: 'Photographer not found' });
+    }
+
+    // Check subscription status
+    const activeStatuses = ['trialing', 'active'];
+    if (!photographer.subscriptionStatus || !activeStatuses.includes(photographer.subscriptionStatus)) {
+      return res.status(402).json({ 
+        message: 'Active subscription required',
+        subscriptionStatus: photographer.subscriptionStatus,
+        trialEnded: photographer.trialEndsAt ? new Date(photographer.trialEndsAt) < new Date() : false
+      });
+    }
+
+    next();
+  } catch (error) {
+    console.error('Subscription check error:', error);
+    return res.status(500).json({ message: 'Internal server error' });
+  }
+}
