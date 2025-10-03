@@ -150,6 +150,23 @@ export default function Landing() {
         </div>
       </div>
 
+      {/* Header */}
+      <header className="sticky top-0 z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
+        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Camera className="h-6 w-6 text-blue-600" />
+            <span className="text-xl font-bold">The Photo CRM</span>
+          </div>
+          <Button
+            variant="outline"
+            onClick={() => setLocation("/login")}
+            data-testid="button-login"
+          >
+            Log In
+          </Button>
+        </div>
+      </header>
+
       {/* Hero Section */}
       <section className="pt-20 pb-16 px-4">
         <div className="max-w-5xl mx-auto text-center">
