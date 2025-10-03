@@ -35,6 +35,7 @@ import smsImage from "@assets/3D55A8ED-E647-49A1-943C-420BD0096F6E_1759528182642
 import questionnaireImage from "@assets/D80061BD-D8EF-4249-9B60-3EF75FA04DD6_1759528934938.png";
 import templatesImage from "@assets/27748FBD-CFCF-4C6D-8905-E877732DDE1B_1759529204307.png";
 import reportsImage from "@assets/BF61BA78-E366-4F99-A4B7-09A688E2C3E7_1759531405412.png";
+import { SiGmail, SiStripe, SiQuickbooks, SiFacebook } from "react-icons/si";
 
 export default function Landing() {
   const { user } = useAuth();
@@ -202,11 +203,29 @@ export default function Landing() {
       </section>
 
       {/* Proof Bar */}
-      <section className="py-4 px-4 bg-white dark:bg-slate-900 border-y border-slate-200 dark:border-slate-800">
-        <div className="max-w-5xl mx-auto text-center">
-          <p className="text-sm text-slate-600 dark:text-slate-400">
-            Integrates with <span className="font-semibold">Gmail</span> • <span className="font-semibold">Stripe</span> • <span className="font-semibold">Google Calendar</span>
+      <section className="py-6 px-4 bg-white dark:bg-slate-900 border-y border-slate-200 dark:border-slate-800">
+        <div className="max-w-5xl mx-auto">
+          <p className="text-xs text-slate-500 dark:text-slate-500 text-center mb-4 uppercase tracking-wider">
+            Integrates with
           </p>
+          <div className="flex flex-wrap items-center justify-center gap-8 md:gap-12">
+            <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300" data-testid="integration-gmail">
+              <SiGmail className="h-8 w-8" data-testid="icon-gmail" />
+              <span className="text-sm font-medium" data-testid="text-gmail">Gmail</span>
+            </div>
+            <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300" data-testid="integration-stripe">
+              <SiStripe className="h-8 w-8" data-testid="icon-stripe" />
+              <span className="text-sm font-medium" data-testid="text-stripe">Stripe</span>
+            </div>
+            <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300" data-testid="integration-quickbooks">
+              <SiQuickbooks className="h-8 w-8" data-testid="icon-quickbooks" />
+              <span className="text-sm font-medium" data-testid="text-quickbooks">QuickBooks</span>
+            </div>
+            <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300" data-testid="integration-facebook">
+              <SiFacebook className="h-8 w-8" data-testid="icon-facebook" />
+              <span className="text-sm font-medium" data-testid="text-facebook">Facebook</span>
+            </div>
+          </div>
         </div>
       </section>
 
