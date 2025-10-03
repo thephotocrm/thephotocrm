@@ -733,7 +733,7 @@ function EditAutomationDetails({ automationId, automation }: { automationId: str
   };
 
   // Find trigger stage if this is a stage-based automation
-  const triggerStage = automation.stageId ? stages.find(s => s.id === automation.stageId) : null;
+  const triggerStage = automation.stageId && Array.isArray(stages) ? stages.find(s => s.id === automation.stageId) : null;
 
   return (
     <div className="space-y-4">
@@ -868,7 +868,7 @@ function EditAutomationDetails({ automationId, automation }: { automationId: str
               <div className="flex items-center justify-between">
                 <span className="font-medium">Target Stage:</span>
                 <span className="font-semibold">
-                  {stages.find(s => s.id === automation.targetStageId)?.name || 'Unknown Stage'}
+                  {Array.isArray(stages) ? stages.find(s => s.id === automation.targetStageId)?.name || 'Unknown Stage' : 'Unknown Stage'}
                 </span>
               </div>
               <p className="text-xs text-muted-foreground">
@@ -2185,7 +2185,7 @@ export default function Automations() {
                               </FormControl>
                               <SelectContent>
                                 <SelectItem value="global">All Stages (Global trigger)</SelectItem>
-                                {stages?.map((stage: any) => (
+                                {Array.isArray(stages) && stages.map((stage: any) => (
                                   <SelectItem key={stage.id} value={stage.id}>
                                     {stage.name}
                                   </SelectItem>
@@ -3267,7 +3267,7 @@ export default function Automations() {
                                     <SelectValue placeholder="Select a stage" />
                                   </SelectTrigger>
                                   <SelectContent>
-                                    {stages.map((stage: any) => (
+                                    {Array.isArray(stages) && stages.map((stage: any) => (
                                       <SelectItem key={stage.id} value={stage.id} data-testid={`select-stage-${stage.id}`}>
                                         {stage.name}
                                       </SelectItem>
