@@ -8,6 +8,7 @@ import { MobileHeader } from "@/components/layout/mobile-header";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { AdminHeader } from "@/components/admin-header";
+import Landing from "@/pages/landing";
 import Login from "@/pages/login";
 import Register from "@/pages/register";
 import Dashboard from "@/pages/dashboard";
@@ -40,15 +41,25 @@ function Router() {
 
   return (
     <Switch>
+      {/* Public routes - Landing page for non-logged-in users */}
+      <Route path="/">
+        {!user ? <Landing /> : <Dashboard />}
+      </Route>
+      
+      {/* Auth routes */}
       <Route path="/auth/login" component={Login} />
       <Route path="/auth/register" component={Register} />
       <Route path="/login" component={Login} />
       <Route path="/register" component={Register} />
+      
+      {/* Public pages */}
       <Route path="/checkout" component={Checkout} />
       <Route path="/client-portal" component={ClientPortal} />
       <Route path="/public/proposals/:token" component={PublicProposal} />
       <Route path="/public/booking/:token" component={PublicBooking} />
       <Route path="/booking/calendar/:publicToken" component={PublicBookingCalendar} />
+      
+      {/* Protected app routes */}
       <Route>
         {(user?.role === 'ADMIN' || user?.isImpersonating) && (
           <AdminHeader
@@ -62,7 +73,7 @@ function Router() {
           <SidebarInset>
             <MobileHeader />
             <Switch>
-              <Route path="/" component={Dashboard} />
+              <Route path="/dashboard" component={Dashboard} />
               <Route path="/admin/dashboard" component={AdminDashboard} />
               <Route path="/clients" component={Clients} />
               <Route path="/clients/:id" component={ClientDetail} />

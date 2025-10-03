@@ -266,6 +266,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Public API for landing page
+  app.get("/api/photographer-count", async (req, res) => {
+    try {
+      const count = await storage.getPhotographerCount();
+      res.json({ count });
+    } catch (error) {
+      console.error("Error fetching photographer count:", error);
+      res.json({ count: 0 });
+    }
+  });
+
   // Auth routes
   app.post("/api/auth/register", async (req, res) => {
     try {

@@ -46,6 +46,7 @@ export interface IStorage {
   getAllPhotographers(): Promise<Photographer[]>;
   getPhotographer(id: string): Promise<Photographer | undefined>;
   getPhotographerByPublicToken(publicToken: string): Promise<Photographer | undefined>;
+  getPhotographerCount(): Promise<number>;
   createPhotographer(photographer: InsertPhotographer): Promise<Photographer>;
   updatePhotographer(id: string, photographer: Partial<Photographer>): Promise<Photographer>;
   
@@ -328,6 +329,11 @@ export class DatabaseStorage implements IStorage {
   async getPhotographerByPublicToken(publicToken: string): Promise<Photographer | undefined> {
     const [photographer] = await db.select().from(photographers).where(eq(photographers.publicToken, publicToken));
     return photographer || undefined;
+  }
+
+  async getPhotographerCount(): Promise<number> {
+    const result = await db.select({ count: sql<number>`count(*)::int` }).from(photographers);
+    return result[0]?.count || 0;
   }
 
   async createPhotographer(insertPhotographer: InsertPhotographer): Promise<Photographer> {
