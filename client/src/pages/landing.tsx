@@ -155,13 +155,18 @@ export default function Landing() {
           
           <h1 className="text-5xl md:text-6xl font-bold mb-6">
             <span className="bg-gradient-to-r from-slate-900 to-slate-700 dark:from-slate-100 dark:to-slate-300 bg-clip-text text-transparent">
-              Run Your{" "}
+              Run Your
             </span>
+            <br />
             <span className={`inline-block bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent transition-all duration-300 ${isRotating ? 'opacity-0 scale-95' : 'opacity-100 scale-100'}`}>
               {projectTypes[currentProjectType]}
             </span>
             <span className="bg-gradient-to-r from-slate-900 to-slate-700 dark:from-slate-100 dark:to-slate-300 bg-clip-text text-transparent">
-              {" "}Photography Business Like a Pro
+              {" "}Photography Business
+            </span>
+            <br className="md:hidden" />
+            <span className="bg-gradient-to-r from-slate-900 to-slate-700 dark:from-slate-100 dark:to-slate-300 bg-clip-text text-transparent">
+              {" "}Like a Pro
             </span>
           </h1>
           
