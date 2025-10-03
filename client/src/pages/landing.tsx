@@ -33,6 +33,7 @@ import schedulingImage from "@assets/E7BF17EC-8882-4E01-BAD7-DE7BEB23322B_175952
 import smsImage from "@assets/3D55A8ED-E647-49A1-943C-420BD0096F6E_1759528182642.png";
 import questionnaireImage from "@assets/D80061BD-D8EF-4249-9B60-3EF75FA04DD6_1759528934938.png";
 import templatesImage from "@assets/27748FBD-CFCF-4C6D-8905-E877732DDE1B_1759529204307.png";
+import reportsImage from "@assets/BF61BA78-E366-4F99-A4B7-09A688E2C3E7_1759531405412.png";
 
 export default function Landing() {
   const { user } = useAuth();
@@ -115,7 +116,7 @@ export default function Landing() {
     {
       title: "Reports & Insights",
       description: "Track bookings, revenue, and conversion rates. Know exactly what's working in your business.",
-      screenshot: "https://picsum.photos/seed/analytics/800/500"
+      screenshot: reportsImage
     }
   ];
 
