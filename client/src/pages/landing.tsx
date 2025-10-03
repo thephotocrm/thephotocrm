@@ -30,6 +30,7 @@ import pipelineImage from "@assets/ChatGPT Image Oct 3, 2025, 03_42_16 PM_175952
 import communicationImage from "@assets/ChatGPT Image Oct 3, 2025, 03_45_04 PM_1759524321494.png";
 import proposalImage from "@assets/ChatGPT Image Oct 3, 2025, 03_49_31 PM_1759524583669.png";
 import schedulingImage from "@assets/E7BF17EC-8882-4E01-BAD7-DE7BEB23322B_1759526130481.png";
+import smsImage from "@assets/3D55A8ED-E647-49A1-943C-420BD0096F6E_1759528182642.png";
 
 export default function Landing() {
   const { user } = useAuth();
@@ -97,7 +98,7 @@ export default function Landing() {
     {
       title: "Two-Way SMS",
       description: "Text clients right from the CRM. Keep all conversations in one place—no more switching apps.",
-      screenshot: "https://picsum.photos/seed/sms/800/500"
+      screenshot: smsImage
     },
     {
       title: "Client Questionnaires",
