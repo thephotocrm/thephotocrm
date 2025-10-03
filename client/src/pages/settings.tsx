@@ -600,7 +600,12 @@ export default function Settings() {
                 {/* Stripe Connect Integration */}
                 <Card>
                   <CardHeader>
-                    <CardTitle>Payment Processing</CardTitle>
+                    <CardTitle className="flex items-center gap-2">
+                      Payment Processing 
+                      <span className="inline-flex items-center rounded-md bg-red-50 dark:bg-red-950 px-2 py-1 text-xs font-medium text-red-700 dark:text-red-300 ring-1 ring-inset ring-red-600/20 dark:ring-red-400/20">
+                        Required
+                      </span>
+                    </CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
@@ -610,7 +615,7 @@ export default function Settings() {
                           <div>
                             <h3 className="font-medium">Stripe Connect</h3>
                             <p className="text-sm text-muted-foreground">
-                              Accept payments and receive instant payouts to your bank account
+                              Required to send proposals and accept client payments
                             </p>
                             {hasStripeAccount && accountStatus && (
                               <p className="text-xs text-muted-foreground mt-1">
@@ -706,13 +711,13 @@ export default function Settings() {
                       )}
                       
                       {!hasStripeAccount && (
-                        <div className="p-3 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg">
+                        <div className="p-3 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-lg">
                           <div className="flex items-start space-x-2">
-                            <CreditCard className="w-4 h-4 text-blue-600 mt-0.5" />
+                            <AlertCircle className="w-4 h-4 text-red-600 mt-0.5" />
                             <div className="text-sm">
-                              <p className="font-medium text-blue-800 dark:text-blue-200">Connect Stripe for payments</p>
-                              <p className="text-blue-700 dark:text-blue-300 mt-1">
-                                Create a Stripe Connect account to accept client payments and receive instant payouts (within minutes for a 1% fee)
+                              <p className="font-medium text-red-800 dark:text-red-200">⚠️ Action Required: Connect Stripe</p>
+                              <p className="text-red-700 dark:text-red-300 mt-1">
+                                You must connect Stripe before sending proposals to clients. Platform automatically collects 5% platform fee and deposits 95% to your account. Instant payouts available (1% fee).
                               </p>
                             </div>
                           </div>
