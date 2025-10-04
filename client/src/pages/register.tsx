@@ -98,7 +98,7 @@ export default function Register() {
               disabled={loading}
               data-testid="button-register"
             >
-              {loading ? "Creating account..." : "Create account"}
+              {loading ? "Creating account..." : "Create account and start 14 day trial"}
             </Button>
           </form>
 

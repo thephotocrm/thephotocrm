@@ -99,10 +99,14 @@ export default function Landing() {
     onSuccess: () => {
       toast({
         title: "Demo request sent!",
-        description: "We'll get back to you soon to confirm your demo time.",
+        description: "You'll need a free account for the demo. Let's create one now!",
       });
       setDemoDialogOpen(false);
       demoForm.reset();
+      // Redirect to registration after brief delay
+      setTimeout(() => {
+        setLocation("/register");
+      }, 1500);
     },
     onError: (error: Error) => {
       toast({
