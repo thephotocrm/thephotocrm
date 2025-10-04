@@ -577,12 +577,6 @@ export default function Landing() {
               </p>
             </div>
           </div>
-          
-          <div className="text-center border-t border-slate-300 dark:border-slate-700 pt-8">
-            <p className="text-sm text-slate-600 dark:text-slate-400">
-              Integrates seamlessly with <span className="font-semibold">Gmail</span> • <span className="font-semibold">Stripe</span> • <span className="font-semibold">Google Calendar</span> • <span className="font-semibold">SimpleTexting</span>
-            </p>
-          </div>
         </div>
       </section>
 
