@@ -125,6 +125,13 @@ export default function Landing() {
     }
   ];
 
+  // Mobile features: Show only the 3 most powerful features
+  const mobileFeatures = [
+    features[0], // Smart Client Pipeline
+    features[1], // Automated Communication
+    features[2]  // Proposals & Payments
+  ];
+
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white dark:from-slate-950 dark:to-slate-900 pb-20 md:pb-0">
@@ -301,7 +308,7 @@ export default function Landing() {
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Everything you need for weddings—built in
+              Everything you need for photography—built in
             </h2>
             <p className="text-lg text-slate-600 dark:text-slate-400">
               Stop switching between 5 tools. Run your studio from one place.
@@ -349,9 +356,9 @@ export default function Landing() {
             </Tabs>
           </div>
 
-          {/* Mobile: Grid */}
+          {/* Mobile: Condensed Grid (3 key features) */}
           <div className="grid md:hidden grid-cols-1 gap-8">
-            {features.map((feature, index) => (
+            {mobileFeatures.map((feature, index) => (
               <Card key={index} className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
                 <CardContent className="p-0">
                   <div className="bg-slate-200 dark:bg-slate-800 aspect-video flex items-center justify-center overflow-hidden">
