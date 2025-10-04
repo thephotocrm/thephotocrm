@@ -371,15 +371,11 @@ export default function Landing() {
             Integrates with
           </p>
           
-          {/* Mobile: Two-column grid */}
-          <div className="grid grid-cols-2 gap-x-4 gap-y-4 md:hidden">
+          {/* Mobile: Single row with 3 logos */}
+          <div className="flex items-center justify-center gap-8 md:hidden">
             <div className="flex items-center gap-3 text-slate-700 dark:text-slate-300" data-testid="integration-gmail">
               <SiGmail className="h-10 w-10 flex-shrink-0" data-testid="icon-gmail" />
               <span className="text-base font-medium" data-testid="text-gmail">Gmail</span>
-            </div>
-            <div className="flex items-center gap-3 text-slate-700 dark:text-slate-300" data-testid="integration-stripe">
-              <SiStripe className="h-10 w-10 flex-shrink-0" data-testid="icon-stripe" />
-              <span className="text-base font-medium" data-testid="text-stripe">Stripe</span>
             </div>
             <div className="flex items-center gap-3 text-slate-700 dark:text-slate-300" data-testid="integration-calendar">
               <SiGooglecalendar className="h-10 w-10 flex-shrink-0" data-testid="icon-calendar" />
@@ -388,34 +384,6 @@ export default function Landing() {
             <div className="flex items-center gap-3 text-slate-700 dark:text-slate-300" data-testid="integration-quickbooks">
               <SiQuickbooks className="h-10 w-10 flex-shrink-0" data-testid="icon-quickbooks" />
               <span className="text-base font-medium" data-testid="text-quickbooks">QuickBooks</span>
-            </div>
-            <div className="flex items-center gap-3 text-slate-700 dark:text-slate-300" data-testid="integration-zapier">
-              <SiZapier className="h-10 w-10 flex-shrink-0" data-testid="icon-zapier" />
-              <span className="text-base font-medium" data-testid="text-zapier">Zapier</span>
-            </div>
-            <div className="flex items-center gap-3 text-slate-700 dark:text-slate-300" data-testid="integration-slack">
-              <SiSlack className="h-10 w-10 flex-shrink-0" data-testid="icon-slack" />
-              <span className="text-base font-medium" data-testid="text-slack">Slack</span>
-            </div>
-            <div className="flex items-center gap-3 text-slate-700 dark:text-slate-300" data-testid="integration-mailchimp">
-              <SiMailchimp className="h-10 w-10 flex-shrink-0" data-testid="icon-mailchimp" />
-              <span className="text-base font-medium" data-testid="text-mailchimp">Mailchimp</span>
-            </div>
-            <div className="flex items-center gap-3 text-slate-700 dark:text-slate-300" data-testid="integration-dropbox">
-              <SiDropbox className="h-10 w-10 flex-shrink-0" data-testid="icon-dropbox" />
-              <span className="text-base font-medium" data-testid="text-dropbox">Dropbox</span>
-            </div>
-            <div className="flex items-center gap-3 text-slate-700 dark:text-slate-300" data-testid="integration-instagram">
-              <SiInstagram className="h-10 w-10 flex-shrink-0" data-testid="icon-instagram" />
-              <span className="text-base font-medium" data-testid="text-instagram">Instagram</span>
-            </div>
-            <div className="flex items-center gap-3 text-slate-700 dark:text-slate-300" data-testid="integration-facebook">
-              <SiFacebook className="h-10 w-10 flex-shrink-0" data-testid="icon-facebook" />
-              <span className="text-base font-medium" data-testid="text-facebook">Facebook</span>
-            </div>
-            <div className="flex items-center gap-3 text-slate-700 dark:text-slate-300 col-span-2 justify-center" data-testid="integration-twilio">
-              <SiTwilio className="h-10 w-10 flex-shrink-0" data-testid="icon-twilio" />
-              <span className="text-base font-medium" data-testid="text-twilio">Twilio</span>
             </div>
           </div>
 
