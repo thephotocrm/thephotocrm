@@ -60,7 +60,7 @@ import smsImage from "@assets/3D55A8ED-E647-49A1-943C-420BD0096F6E_1759528182642
 import questionnaireImage from "@assets/D80061BD-D8EF-4249-9B60-3EF75FA04DD6_1759528934938.png";
 import templatesImage from "@assets/27748FBD-CFCF-4C6D-8905-E877732DDE1B_1759529204307.png";
 import reportsImage from "@assets/BF61BA78-E366-4F99-A4B7-09A688E2C3E7_1759531405412.png";
-import { SiGmail, SiStripe, SiQuickbooks, SiFacebook } from "react-icons/si";
+import { SiGmail, SiStripe, SiQuickbooks, SiFacebook, SiGooglecalendar, SiZapier, SiSlack, SiMailchimp, SiDropbox, SiInstagram, SiTwilio } from "react-icons/si";
 
 export default function Landing() {
   const { user } = useAuth();
@@ -365,27 +365,73 @@ export default function Landing() {
       </section>
 
       {/* Proof Bar */}
-      <section className="py-6 px-4 bg-white dark:bg-slate-900 border-y border-slate-200 dark:border-slate-800">
-        <div className="max-w-5xl mx-auto">
-          <p className="text-xs text-slate-500 dark:text-slate-500 text-center mb-4 uppercase tracking-wider">
+      <section className="py-6 px-4 bg-white dark:bg-slate-900 border-y border-slate-200 dark:border-slate-800 overflow-hidden">
+        <div className="max-w-6xl mx-auto">
+          <p className="text-xs text-slate-500 dark:text-slate-500 text-center mb-6 uppercase tracking-wider">
             Integrates with
           </p>
-          <div className="flex flex-wrap items-center justify-center gap-8 md:gap-12">
-            <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300" data-testid="integration-gmail">
-              <SiGmail className="h-8 w-8" data-testid="icon-gmail" />
-              <span className="text-sm font-medium" data-testid="text-gmail">Gmail</span>
-            </div>
-            <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300" data-testid="integration-stripe">
-              <SiStripe className="h-8 w-8" data-testid="icon-stripe" />
-              <span className="text-sm font-medium" data-testid="text-stripe">Stripe</span>
-            </div>
-            <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300" data-testid="integration-quickbooks">
-              <SiQuickbooks className="h-8 w-8" data-testid="icon-quickbooks" />
-              <span className="text-sm font-medium" data-testid="text-quickbooks">QuickBooks</span>
-            </div>
-            <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300" data-testid="integration-facebook">
-              <SiFacebook className="h-8 w-8" data-testid="icon-facebook" />
-              <span className="text-sm font-medium" data-testid="text-facebook">Facebook</span>
+          <div className="relative">
+            <style>{`
+              @keyframes scroll {
+                0% { transform: translateX(0); }
+                100% { transform: translateX(-50%); }
+              }
+              .animate-scroll {
+                animation: scroll 30s linear infinite;
+              }
+              .animate-scroll:hover {
+                animation-play-state: paused;
+              }
+            `}</style>
+            <div className="flex items-center animate-scroll">
+              {[...Array(2)].map((_, duplicateIndex) => (
+                <div key={duplicateIndex} className="flex items-center gap-8 md:gap-12 px-4 md:px-6">
+                  <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300 whitespace-nowrap">
+                    <SiGmail className="h-8 w-8 flex-shrink-0" />
+                    <span className="text-sm font-medium">Gmail</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300 whitespace-nowrap">
+                    <SiStripe className="h-8 w-8 flex-shrink-0" />
+                    <span className="text-sm font-medium">Stripe</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300 whitespace-nowrap">
+                    <SiGooglecalendar className="h-8 w-8 flex-shrink-0" />
+                    <span className="text-sm font-medium">Google Calendar</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300 whitespace-nowrap">
+                    <SiQuickbooks className="h-8 w-8 flex-shrink-0" />
+                    <span className="text-sm font-medium">QuickBooks</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300 whitespace-nowrap">
+                    <SiZapier className="h-8 w-8 flex-shrink-0" />
+                    <span className="text-sm font-medium">Zapier</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300 whitespace-nowrap">
+                    <SiSlack className="h-8 w-8 flex-shrink-0" />
+                    <span className="text-sm font-medium">Slack</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300 whitespace-nowrap">
+                    <SiMailchimp className="h-8 w-8 flex-shrink-0" />
+                    <span className="text-sm font-medium">Mailchimp</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300 whitespace-nowrap">
+                    <SiDropbox className="h-8 w-8 flex-shrink-0" />
+                    <span className="text-sm font-medium">Dropbox</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300 whitespace-nowrap">
+                    <SiInstagram className="h-8 w-8 flex-shrink-0" />
+                    <span className="text-sm font-medium">Instagram</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300 whitespace-nowrap">
+                    <SiFacebook className="h-8 w-8 flex-shrink-0" />
+                    <span className="text-sm font-medium">Facebook</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300 whitespace-nowrap">
+                    <SiTwilio className="h-8 w-8 flex-shrink-0" />
+                    <span className="text-sm font-medium">Twilio</span>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </div>
