@@ -62,6 +62,66 @@ import templatesImage from "@assets/27748FBD-CFCF-4C6D-8905-E877732DDE1B_1759529
 import reportsImage from "@assets/BF61BA78-E366-4F99-A4B7-09A688E2C3E7_1759531405412.png";
 import { SiGmail, SiStripe, SiQuickbooks, SiFacebook, SiGooglecalendar, SiZapier, SiSlack, SiMailchimp, SiDropbox, SiInstagram, SiTwilio } from "react-icons/si";
 
+function MobileIntegrationSlideshow() {
+  const [currentSlide, setCurrentSlide] = useState(0);
+  
+  const slides = [
+    [
+      { icon: SiGmail, name: "Gmail" },
+      { icon: SiStripe, name: "Stripe" },
+      { icon: SiGooglecalendar, name: "Calendar" },
+    ],
+    [
+      { icon: SiQuickbooks, name: "QuickBooks" },
+      { icon: SiZapier, name: "Zapier" },
+      { icon: SiSlack, name: "Slack" },
+    ],
+    [
+      { icon: SiMailchimp, name: "Mailchimp" },
+      { icon: SiDropbox, name: "Dropbox" },
+      { icon: SiInstagram, name: "Instagram" },
+    ],
+    [
+      { icon: SiFacebook, name: "Facebook" },
+      { icon: SiTwilio, name: "Twilio" },
+    ],
+  ];
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % slides.length);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [slides.length]);
+
+  return (
+    <div className="relative h-16 overflow-hidden">
+      {slides.map((slide, slideIndex) => (
+        <div
+          key={slideIndex}
+          className={`absolute inset-0 flex items-center justify-center gap-8 transition-all duration-500 ${
+            slideIndex === currentSlide
+              ? "opacity-100 translate-y-0"
+              : slideIndex < currentSlide
+              ? "opacity-0 -translate-y-8"
+              : "opacity-0 translate-y-8"
+          }`}
+        >
+          {slide.map((integration, index) => (
+            <div
+              key={index}
+              className="flex items-center gap-3 text-slate-700 dark:text-slate-300"
+            >
+              <integration.icon className="h-10 w-10 flex-shrink-0" />
+              <span className="text-base font-medium">{integration.name}</span>
+            </div>
+          ))}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function Landing() {
   const { user } = useAuth();
   const [, setLocation] = useLocation();
@@ -371,20 +431,12 @@ export default function Landing() {
             Integrates with
           </p>
           
-          {/* Mobile: Single row with 3 logos */}
-          <div className="flex items-center justify-center gap-8 md:hidden">
-            <div className="flex items-center gap-3 text-slate-700 dark:text-slate-300" data-testid="integration-gmail">
-              <SiGmail className="h-10 w-10 flex-shrink-0" data-testid="icon-gmail" />
-              <span className="text-base font-medium" data-testid="text-gmail">Gmail</span>
-            </div>
-            <div className="flex items-center gap-3 text-slate-700 dark:text-slate-300" data-testid="integration-calendar">
-              <SiGooglecalendar className="h-10 w-10 flex-shrink-0" data-testid="icon-calendar" />
-              <span className="text-base font-medium" data-testid="text-calendar">Calendar</span>
-            </div>
-            <div className="flex items-center gap-3 text-slate-700 dark:text-slate-300" data-testid="integration-quickbooks">
-              <SiQuickbooks className="h-10 w-10 flex-shrink-0" data-testid="icon-quickbooks" />
-              <span className="text-base font-medium" data-testid="text-quickbooks">QuickBooks</span>
-            </div>
+          {/* Mobile: Rotating slideshow */}
+          <div className="md:hidden">
+            <MobileIntegrationSlideshow />
+            <p className="text-center text-sm text-slate-600 dark:text-slate-400 mt-4">
+              and much more
+            </p>
           </div>
 
           {/* Desktop: Scrolling carousel */}
