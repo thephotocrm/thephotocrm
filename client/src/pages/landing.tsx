@@ -94,7 +94,7 @@ export default function Landing() {
 
   const demoMutation = useMutation({
     mutationFn: async (data: z.infer<typeof demoFormSchema>) => {
-      return await apiRequest("/api/demo-request", "POST", data);
+      return await apiRequest("POST", "/api/demo-request", data);
     },
     onSuccess: () => {
       toast({
@@ -962,7 +962,7 @@ export default function Landing() {
               variant="outline"
               onClick={() => setDemoDialogOpen(true)}
               className="w-full"
-              data-testid="button-mobile-demo"
+              data-testid="button-book-demo"
             >
               <MessageSquare className="h-4 w-4 mr-2" />
               Book Demo

@@ -433,7 +433,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Send email notification to admin
       const emailResult = await sendEmail({
         to: "austinpacholek2014@gmail.com",
-        from: "noreply@thephotocrm.com",
+        from: process.env.SENDGRID_FROM_EMAIL || "noreply@example.com",
         subject: `Demo Request from ${data.firstName}`,
         html: `
           <h2>New Demo Request</h2>

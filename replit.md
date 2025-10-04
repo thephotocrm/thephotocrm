@@ -73,6 +73,7 @@ A conversion-optimized landing page with founder pricing campaign and subscripti
 - **Scarcity Messaging**: Prominent founder pricing banner, countdown of available spots, and multiple strategic CTAs throughout the page
 - **Pricing Tiers**: Founder's Price ($4.95/month, limited to 100 spots) and Regular Price ($9.95/month, locked after founder spots are claimed)
 - **Free Trial**: 14-day free trial period included with all subscriptions via Stripe
+- **Demo Booking System**: Interactive dialog form for demo requests with fields for first name, email, preferred date, and time. Submissions trigger email notifications via SendGrid to austinpacholek2014@gmail.com. Mobile sticky CTA includes "Book Demo" button that opens the dialog.
 - **Page Structure**: Hero section with founder banner, problem/pain points (3 cards), features showcase (6 features), benefits list (6 checkmarks), pricing comparison, final CTA section, and footer
 - **Subscription Enforcement**: Middleware enforces active subscription on all photographer routes except billing/subscription management endpoints
 - **Error-Safe Registration**: Stripe subscription created first, database records only created if Stripe succeeds (prevents orphaned accounts)
