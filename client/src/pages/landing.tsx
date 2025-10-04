@@ -46,6 +46,7 @@ export default function Landing() {
   const [photographerCount, setPhotographerCount] = useState<number | null>(null);
   const [currentProjectType, setCurrentProjectType] = useState(0);
   const [isRotating, setIsRotating] = useState(false);
+  const [expandedStage, setExpandedStage] = useState<number | null>(null);
   
   const projectTypes = ["Wedding", "Portrait", "Commercial"];
   
@@ -130,6 +131,90 @@ export default function Landing() {
     features[0], // Smart Client Pipeline
     features[1], // Automated Communication
     features[2]  // Proposals & Payments
+  ];
+
+  // Journey stages with automation details
+  const journeyStages = [
+    {
+      icon: Mail,
+      iconColor: "text-blue-600",
+      title: "First Inquiry",
+      automations: [
+        "✨ Auto-email sent via Gmail within seconds with pricing guide",
+        "📱 Day 2: AI-powered follow-up SMS check-in",
+        "📧 Day 5: Personalized email with availability + calendar link"
+      ]
+    },
+    {
+      icon: Calendar,
+      iconColor: "text-green-600",
+      title: "Consult Booked",
+      automations: [
+        "📅 Auto-calendar invite synced to Google Calendar",
+        "📝 Pre-consult questionnaire automatically assigned",
+        "⏰ Reminder emails sent 24 hours before meeting"
+      ]
+    },
+    {
+      icon: DollarSign,
+      iconColor: "text-emerald-600",
+      title: "Proposal Signed",
+      automations: [
+        "💰 Stripe payment link sent immediately",
+        "📬 Welcome email sequence triggers automatically",
+        "📄 Contract stored and tracked in your CRM"
+      ]
+    },
+    {
+      icon: CheckCircle2,
+      iconColor: "text-purple-600",
+      title: "Questionnaire Sent",
+      automations: [
+        "📝 Custom form auto-assigned based on package type",
+        "🎯 Responses populate your shoot prep checklist",
+        "🔔 Reminder if not completed within 3 days"
+      ]
+    },
+    {
+      icon: Camera,
+      iconColor: "text-pink-600",
+      title: "Shoot Day Reminder",
+      automations: [
+        "📸 7 days before: Location + timeline reminder email",
+        "🌤️ 2 days before: SMS weather check & preparation tips",
+        "💪 Day-of: Good luck text with final details"
+      ]
+    },
+    {
+      icon: Zap,
+      iconColor: "text-yellow-600",
+      title: "Editing Updates",
+      automations: [
+        "🎨 Auto-email: 'Your photos are being edited!'",
+        "📊 Weekly progress updates keep clients excited",
+        "👀 Sneak peek delivery with 2-3 highlight photos"
+      ]
+    },
+    {
+      icon: TrendingUp,
+      iconColor: "text-indigo-600",
+      title: "Gallery Delivered",
+      automations: [
+        "🎉 Gallery link sent via email + SMS simultaneously",
+        "💾 Download instructions and expiration reminder",
+        "📱 Social media sharing guide for easy tagging"
+      ]
+    },
+    {
+      icon: Sparkles,
+      iconColor: "text-orange-600",
+      title: "Review Request",
+      automations: [
+        "⭐ 7 days after delivery: Auto-testimonial request",
+        "💝 30 days: Referral incentive email campaign",
+        "🎁 90 days: Anniversary photo reminder"
+      ]
+    }
   ];
 
 
@@ -446,105 +531,91 @@ export default function Landing() {
             </p>
           </div>
 
-          <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-slate-800 dark:to-slate-800 rounded-xl p-8 border-2 border-blue-100 dark:border-slate-700">
+          <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-slate-800 dark:to-slate-800 rounded-xl p-4 md:p-8 border-2 border-blue-100 dark:border-slate-700">
+            <div className="text-center mb-8">
+              <p className="text-xl md:text-2xl font-bold text-slate-900 dark:text-white mb-2">
+                👆 Tap any stage to see the automation magic
+              </p>
+              <p className="text-sm md:text-base text-slate-600 dark:text-slate-400">
+                Every automation flow is fully customizable to match your brand and workflow
+              </p>
+            </div>
+            
             {/* Mobile: Vertical Stack */}
             <div className="flex flex-col items-center gap-3 sm:hidden">
-              <div className="flex items-center gap-2 bg-white dark:bg-slate-900 px-4 py-2 rounded-lg shadow-sm w-full max-w-xs">
-                <Mail className="h-5 w-5 text-blue-600" />
-                <span className="font-semibold text-sm">First Inquiry</span>
-              </div>
-              <ArrowDown className="h-5 w-5 text-slate-400" />
-              
-              <div className="flex items-center gap-2 bg-white dark:bg-slate-900 px-4 py-2 rounded-lg shadow-sm w-full max-w-xs">
-                <Calendar className="h-5 w-5 text-green-600" />
-                <span className="font-semibold text-sm">Consult Booked</span>
-              </div>
-              <ArrowDown className="h-5 w-5 text-slate-400" />
-              
-              <div className="flex items-center gap-2 bg-white dark:bg-slate-900 px-4 py-2 rounded-lg shadow-sm w-full max-w-xs">
-                <DollarSign className="h-5 w-5 text-emerald-600" />
-                <span className="font-semibold text-sm">Proposal Signed</span>
-              </div>
-              <ArrowDown className="h-5 w-5 text-slate-400" />
-              
-              <div className="flex items-center gap-2 bg-white dark:bg-slate-900 px-4 py-2 rounded-lg shadow-sm w-full max-w-xs">
-                <CheckCircle2 className="h-5 w-5 text-purple-600" />
-                <span className="font-semibold text-sm">Questionnaire Sent</span>
-              </div>
-              <ArrowDown className="h-5 w-5 text-slate-400" />
-              
-              <div className="flex items-center gap-2 bg-white dark:bg-slate-900 px-4 py-2 rounded-lg shadow-sm w-full max-w-xs">
-                <Camera className="h-5 w-5 text-pink-600" />
-                <span className="font-semibold text-sm">Shoot Day Reminder</span>
-              </div>
-              <ArrowDown className="h-5 w-5 text-slate-400" />
-              
-              <div className="flex items-center gap-2 bg-white dark:bg-slate-900 px-4 py-2 rounded-lg shadow-sm w-full max-w-xs">
-                <Zap className="h-5 w-5 text-yellow-600" />
-                <span className="font-semibold text-sm">Editing Updates</span>
-              </div>
-              <ArrowDown className="h-5 w-5 text-slate-400" />
-              
-              <div className="flex items-center gap-2 bg-white dark:bg-slate-900 px-4 py-2 rounded-lg shadow-sm w-full max-w-xs">
-                <TrendingUp className="h-5 w-5 text-indigo-600" />
-                <span className="font-semibold text-sm">Gallery Delivered</span>
-              </div>
-              <ArrowDown className="h-5 w-5 text-slate-400" />
-              
-              <div className="flex items-center gap-2 bg-white dark:bg-slate-900 px-4 py-2 rounded-lg shadow-sm w-full max-w-xs">
-                <Sparkles className="h-5 w-5 text-orange-600" />
-                <span className="font-semibold text-sm">Review Request</span>
-              </div>
+              {journeyStages.map((stage, index) => {
+                const Icon = stage.icon;
+                const isExpanded = expandedStage === index;
+                return (
+                  <div key={index} className="w-full max-w-xs">
+                    <button
+                      onClick={() => setExpandedStage(isExpanded ? null : index)}
+                      className={`flex items-center gap-2 bg-white dark:bg-slate-900 px-4 py-2 rounded-lg shadow-sm w-full transition-all duration-200 ${
+                        isExpanded ? 'ring-2 ring-blue-500 shadow-lg' : 'hover:shadow-md'
+                      }`}
+                      data-testid={`button-stage-${index}`}
+                    >
+                      <Icon className={`h-5 w-5 ${stage.iconColor}`} />
+                      <span className="font-semibold text-sm">{stage.title}</span>
+                    </button>
+                    {isExpanded && (
+                      <div className="mt-2 bg-white dark:bg-slate-900 rounded-lg p-3 shadow-md border-l-4 border-blue-500 animate-in slide-in-from-top-2 duration-200">
+                        <ul className="space-y-1.5 text-xs text-slate-700 dark:text-slate-300">
+                          {stage.automations.map((automation, i) => (
+                            <li key={i}>{automation}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {index < journeyStages.length - 1 && (
+                      <ArrowDown className="h-5 w-5 text-slate-400 mx-auto my-2" />
+                    )}
+                  </div>
+                );
+              })}
             </div>
 
             {/* Desktop: Horizontal Wrap */}
-            <div className="hidden sm:flex flex-wrap items-center justify-center gap-3 text-sm md:text-base">
-              <div className="flex items-center gap-2 bg-white dark:bg-slate-900 px-4 py-2 rounded-lg shadow-sm">
-                <Mail className="h-5 w-5 text-blue-600" />
-                <span className="font-semibold">First Inquiry</span>
+            <div className="hidden sm:block">
+              <div className="flex flex-wrap items-center justify-center gap-3 text-sm md:text-base mb-4">
+                {journeyStages.map((stage, index) => {
+                  const Icon = stage.icon;
+                  const isExpanded = expandedStage === index;
+                  return (
+                    <div key={index} className="flex items-center">
+                      <button
+                        onClick={() => setExpandedStage(isExpanded ? null : index)}
+                        className={`flex items-center gap-2 bg-white dark:bg-slate-900 px-4 py-2 rounded-lg shadow-sm transition-all duration-200 ${
+                          isExpanded ? 'ring-2 ring-blue-500 shadow-lg' : 'hover:shadow-md'
+                        }`}
+                        data-testid={`button-stage-${index}`}
+                      >
+                        <Icon className={`h-5 w-5 ${stage.iconColor}`} />
+                        <span className="font-semibold">{stage.title}</span>
+                      </button>
+                      {index < journeyStages.length - 1 && (
+                        <ArrowRight className="h-5 w-5 text-slate-400 mx-2" />
+                      )}
+                    </div>
+                  );
+                })}
               </div>
-              <ArrowRight className="h-5 w-5 text-slate-400" />
-              
-              <div className="flex items-center gap-2 bg-white dark:bg-slate-900 px-4 py-2 rounded-lg shadow-sm">
-                <Calendar className="h-5 w-5 text-green-600" />
-                <span className="font-semibold">Consult Booked</span>
-              </div>
-              <ArrowRight className="h-5 w-5 text-slate-400" />
-              
-              <div className="flex items-center gap-2 bg-white dark:bg-slate-900 px-4 py-2 rounded-lg shadow-sm">
-                <DollarSign className="h-5 w-5 text-emerald-600" />
-                <span className="font-semibold">Proposal Signed</span>
-              </div>
-              <ArrowRight className="h-5 w-5 text-slate-400" />
-              
-              <div className="flex items-center gap-2 bg-white dark:bg-slate-900 px-4 py-2 rounded-lg shadow-sm">
-                <CheckCircle2 className="h-5 w-5 text-purple-600" />
-                <span className="font-semibold">Questionnaire Sent</span>
-              </div>
-              <ArrowRight className="h-5 w-5 text-slate-400" />
-              
-              <div className="flex items-center gap-2 bg-white dark:bg-slate-900 px-4 py-2 rounded-lg shadow-sm">
-                <Camera className="h-5 w-5 text-pink-600" />
-                <span className="font-semibold">Shoot Day Reminder</span>
-              </div>
-              <ArrowRight className="h-5 w-5 text-slate-400" />
-              
-              <div className="flex items-center gap-2 bg-white dark:bg-slate-900 px-4 py-2 rounded-lg shadow-sm">
-                <Zap className="h-5 w-5 text-yellow-600" />
-                <span className="font-semibold">Editing Updates</span>
-              </div>
-              <ArrowRight className="h-5 w-5 text-slate-400" />
-              
-              <div className="flex items-center gap-2 bg-white dark:bg-slate-900 px-4 py-2 rounded-lg shadow-sm">
-                <TrendingUp className="h-5 w-5 text-indigo-600" />
-                <span className="font-semibold">Gallery Delivered</span>
-              </div>
-              <ArrowRight className="h-5 w-5 text-slate-400" />
-              
-              <div className="flex items-center gap-2 bg-white dark:bg-slate-900 px-4 py-2 rounded-lg shadow-sm">
-                <Sparkles className="h-5 w-5 text-orange-600" />
-                <span className="font-semibold">Review Request</span>
-              </div>
+              {expandedStage !== null && (
+                <div className="bg-white dark:bg-slate-900 rounded-lg p-6 shadow-lg border-l-4 border-blue-500 animate-in slide-in-from-top-4 duration-300">
+                  <h4 className="font-bold text-lg mb-3 flex items-center gap-2">
+                    <Zap className="h-5 w-5 text-blue-600" />
+                    {journeyStages[expandedStage].title} - Automation Details
+                  </h4>
+                  <ul className="space-y-2 text-sm text-slate-700 dark:text-slate-300">
+                    {journeyStages[expandedStage].automations.map((automation, i) => (
+                      <li key={i} className="flex items-start gap-2">
+                        <span className="text-blue-600">•</span>
+                        <span>{automation}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
           </div>
         </div>
