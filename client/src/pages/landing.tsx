@@ -867,46 +867,82 @@ export default function Landing() {
           <Accordion type="single" collapsible className="w-full">
             <AccordionItem value="item-1">
               <AccordionTrigger className="text-left">
-                Does this work with my Gmail account?
+                How fast can I actually get this set up?
               </AccordionTrigger>
               <AccordionContent>
-                Yes! The Photo CRM connects directly to Gmail. You can send emails from your own address, track opens, and all replies show up in the CRM automatically.
+                Most photographers are sending automated emails the same day they sign up. Connect your email in 2 clicks, set up Stripe in 5 minutes, and we have pre-built automation templates for wedding workflows. No steep learning curve like Dubsado.
               </AccordionContent>
             </AccordionItem>
 
             <AccordionItem value="item-2">
               <AccordionTrigger className="text-left">
-                How does SMS work? Do I need a separate phone number?
+                Will this actually save me time or just add more work?
               </AccordionTrigger>
               <AccordionContent>
-                We provide a dedicated business number through Twilio. Clients can text you, and you reply right from the CRM. All conversations are saved with the client's card.
+                Wedding photographers save 10-15 hours per week on admin. Automations handle: inquiry responses, contract reminders, payment follow-ups, questionnaires 30 days before weddings, and post-wedding review requests. You set it once, it runs forever.
               </AccordionContent>
             </AccordionItem>
 
             <AccordionItem value="item-3">
               <AccordionTrigger className="text-left">
-                When do I get paid after a client books?
+                How do payments work? Can clients pay me directly?
               </AccordionTrigger>
               <AccordionContent>
-                Stripe deposits funds directly to your bank account within 2 business days (sometimes same-day). You keep 100% of your rate—we don't take a cut of your bookings.
+                Yes. Clients pay via Stripe (credit card or ACH), money goes straight to your bank in 2 days. We take a 5% platform fee, you keep 95%. Automated payment reminders mean you never chase late deposits again.
               </AccordionContent>
             </AccordionItem>
 
             <AccordionItem value="item-4">
               <AccordionTrigger className="text-left">
-                I'm not tech-savvy. Is this hard to set up?
+                Can I cancel anytime?
               </AccordionTrigger>
               <AccordionContent>
-                Not at all. Connect your Gmail and Stripe in under 5 minutes. We have video tutorials for every feature, and most photographers are up and running the same day they sign up.
+                Absolutely. No contracts, no cancellation fees. Cancel with one click anytime. Your data is yours—export everything before you go.
               </AccordionContent>
             </AccordionItem>
 
             <AccordionItem value="item-5">
               <AccordionTrigger className="text-left">
-                Can I cancel anytime?
+                I'm not tech-savvy. Will I actually be able to use this?
               </AccordionTrigger>
               <AccordionContent>
-                Absolutely. No contracts, no cancellation fees. If you decide it's not for you, cancel with one click. Your data stays yours—you can export everything before you go.
+                If you can send an email, you can use this. Everything is drag-and-drop with visual editors. We have video tutorials for every feature, and most photographers who've never used a CRM are confidently running automations within their first day.
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="item-6">
+              <AccordionTrigger className="text-left">
+                What makes this different from HoneyBook or Dubsado?
+              </AccordionTrigger>
+              <AccordionContent>
+                We're built specifically for the wedding photography workflow—not generic service businesses. Your automations trigger based on wedding dates and project milestones automatically. Plus we're $4.95/month (founder pricing) vs. $16-32/month for competitors.
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="item-7">
+              <AccordionTrigger className="text-left">
+                Can I access client info on my phone during weddings?
+              </AccordionTrigger>
+              <AccordionContent>
+                Yes. Full mobile access means you can quickly look up client details, venue addresses, shot lists, and special requests right from the venue. Everything syncs in real-time.
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="item-8">
+              <AccordionTrigger className="text-left">
+                Do my clients need to create accounts or download anything?
+              </AccordionTrigger>
+              <AccordionContent>
+                Nope. Clients get a simple link to view proposals, sign contracts, and make payments. No login required, no app to download. They just click and go.
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="item-9">
+              <AccordionTrigger className="text-left">
+                What if I get stuck or need help?
+              </AccordionTrigger>
+              <AccordionContent>
+                Every feature has step-by-step video tutorials. Plus you can email support and we'll help you set things up. Most questions get answered same-day.
               </AccordionContent>
             </AccordionItem>
           </Accordion>
