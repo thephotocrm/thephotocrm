@@ -23,6 +23,7 @@ import {
   TrendingUp,
   Sparkles,
   ArrowRight,
+  ArrowDown,
   Target,
   BarChart,
   Shield,
@@ -439,48 +440,99 @@ export default function Landing() {
           </div>
 
           <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-slate-800 dark:to-slate-800 rounded-xl p-8 border-2 border-blue-100 dark:border-slate-700">
-            <div className="flex flex-wrap items-center justify-center gap-3 text-sm md:text-base">
+            {/* Mobile: Vertical Stack */}
+            <div className="flex flex-col items-center gap-3 sm:hidden">
+              <div className="flex items-center gap-2 bg-white dark:bg-slate-900 px-4 py-2 rounded-lg shadow-sm w-full max-w-xs">
+                <Mail className="h-5 w-5 text-blue-600" />
+                <span className="font-semibold text-sm">First Inquiry</span>
+              </div>
+              <ArrowDown className="h-5 w-5 text-slate-400" />
+              
+              <div className="flex items-center gap-2 bg-white dark:bg-slate-900 px-4 py-2 rounded-lg shadow-sm w-full max-w-xs">
+                <Calendar className="h-5 w-5 text-green-600" />
+                <span className="font-semibold text-sm">Consult Booked</span>
+              </div>
+              <ArrowDown className="h-5 w-5 text-slate-400" />
+              
+              <div className="flex items-center gap-2 bg-white dark:bg-slate-900 px-4 py-2 rounded-lg shadow-sm w-full max-w-xs">
+                <DollarSign className="h-5 w-5 text-emerald-600" />
+                <span className="font-semibold text-sm">Proposal Signed</span>
+              </div>
+              <ArrowDown className="h-5 w-5 text-slate-400" />
+              
+              <div className="flex items-center gap-2 bg-white dark:bg-slate-900 px-4 py-2 rounded-lg shadow-sm w-full max-w-xs">
+                <CheckCircle2 className="h-5 w-5 text-purple-600" />
+                <span className="font-semibold text-sm">Questionnaire Sent</span>
+              </div>
+              <ArrowDown className="h-5 w-5 text-slate-400" />
+              
+              <div className="flex items-center gap-2 bg-white dark:bg-slate-900 px-4 py-2 rounded-lg shadow-sm w-full max-w-xs">
+                <Camera className="h-5 w-5 text-pink-600" />
+                <span className="font-semibold text-sm">Shoot Day Reminder</span>
+              </div>
+              <ArrowDown className="h-5 w-5 text-slate-400" />
+              
+              <div className="flex items-center gap-2 bg-white dark:bg-slate-900 px-4 py-2 rounded-lg shadow-sm w-full max-w-xs">
+                <Zap className="h-5 w-5 text-yellow-600" />
+                <span className="font-semibold text-sm">Editing Updates</span>
+              </div>
+              <ArrowDown className="h-5 w-5 text-slate-400" />
+              
+              <div className="flex items-center gap-2 bg-white dark:bg-slate-900 px-4 py-2 rounded-lg shadow-sm w-full max-w-xs">
+                <TrendingUp className="h-5 w-5 text-indigo-600" />
+                <span className="font-semibold text-sm">Gallery Delivered</span>
+              </div>
+              <ArrowDown className="h-5 w-5 text-slate-400" />
+              
+              <div className="flex items-center gap-2 bg-white dark:bg-slate-900 px-4 py-2 rounded-lg shadow-sm w-full max-w-xs">
+                <Sparkles className="h-5 w-5 text-orange-600" />
+                <span className="font-semibold text-sm">Review Request</span>
+              </div>
+            </div>
+
+            {/* Desktop: Horizontal Wrap */}
+            <div className="hidden sm:flex flex-wrap items-center justify-center gap-3 text-sm md:text-base">
               <div className="flex items-center gap-2 bg-white dark:bg-slate-900 px-4 py-2 rounded-lg shadow-sm">
                 <Mail className="h-5 w-5 text-blue-600" />
                 <span className="font-semibold">First Inquiry</span>
               </div>
-              <ArrowRight className="h-5 w-5 text-slate-400 hidden sm:block" />
+              <ArrowRight className="h-5 w-5 text-slate-400" />
               
               <div className="flex items-center gap-2 bg-white dark:bg-slate-900 px-4 py-2 rounded-lg shadow-sm">
                 <Calendar className="h-5 w-5 text-green-600" />
                 <span className="font-semibold">Consult Booked</span>
               </div>
-              <ArrowRight className="h-5 w-5 text-slate-400 hidden sm:block" />
+              <ArrowRight className="h-5 w-5 text-slate-400" />
               
               <div className="flex items-center gap-2 bg-white dark:bg-slate-900 px-4 py-2 rounded-lg shadow-sm">
                 <DollarSign className="h-5 w-5 text-emerald-600" />
                 <span className="font-semibold">Proposal Signed</span>
               </div>
-              <ArrowRight className="h-5 w-5 text-slate-400 hidden sm:block" />
+              <ArrowRight className="h-5 w-5 text-slate-400" />
               
               <div className="flex items-center gap-2 bg-white dark:bg-slate-900 px-4 py-2 rounded-lg shadow-sm">
                 <CheckCircle2 className="h-5 w-5 text-purple-600" />
                 <span className="font-semibold">Questionnaire Sent</span>
               </div>
-              <ArrowRight className="h-5 w-5 text-slate-400 hidden sm:block" />
+              <ArrowRight className="h-5 w-5 text-slate-400" />
               
               <div className="flex items-center gap-2 bg-white dark:bg-slate-900 px-4 py-2 rounded-lg shadow-sm">
                 <Camera className="h-5 w-5 text-pink-600" />
                 <span className="font-semibold">Shoot Day Reminder</span>
               </div>
-              <ArrowRight className="h-5 w-5 text-slate-400 hidden sm:block" />
+              <ArrowRight className="h-5 w-5 text-slate-400" />
               
               <div className="flex items-center gap-2 bg-white dark:bg-slate-900 px-4 py-2 rounded-lg shadow-sm">
                 <Zap className="h-5 w-5 text-yellow-600" />
                 <span className="font-semibold">Editing Updates</span>
               </div>
-              <ArrowRight className="h-5 w-5 text-slate-400 hidden sm:block" />
+              <ArrowRight className="h-5 w-5 text-slate-400" />
               
               <div className="flex items-center gap-2 bg-white dark:bg-slate-900 px-4 py-2 rounded-lg shadow-sm">
                 <TrendingUp className="h-5 w-5 text-indigo-600" />
                 <span className="font-semibold">Gallery Delivered</span>
               </div>
-              <ArrowRight className="h-5 w-5 text-slate-400 hidden sm:block" />
+              <ArrowRight className="h-5 w-5 text-slate-400" />
               
               <div className="flex items-center gap-2 bg-white dark:bg-slate-900 px-4 py-2 rounded-lg shadow-sm">
                 <Sparkles className="h-5 w-5 text-orange-600" />
