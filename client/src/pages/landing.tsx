@@ -883,20 +883,20 @@ export default function Landing() {
 
       {/* Mobile Sticky CTA Bar */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 shadow-lg z-50 px-4 py-3">
-        <div className="flex gap-2">
+        <div className="flex flex-col gap-2">
           <Button
             size="lg"
             onClick={() => setLocation("/register")}
-            className="flex-1 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600"
+            className="w-full bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600"
             data-testid="button-mobile-trial"
           >
-            Start Free Trial
+            Start Free 14-Day Trial
           </Button>
           <Button
             size="lg"
             variant="outline"
             onClick={() => window.location.href = 'mailto:austinpacholek2014@gmail.com?subject=Book a Demo - The Photo CRM'}
-            className="flex-1"
+            className="w-full"
             data-testid="button-mobile-demo"
           >
             <MessageSquare className="h-4 w-4 mr-2" />
