@@ -374,17 +374,17 @@ export default function Landing() {
             <style>{`
               @keyframes scroll {
                 0% { transform: translateX(0); }
-                100% { transform: translateX(-50%); }
+                100% { transform: translateX(calc(-100% / 3)); }
               }
               .animate-scroll {
-                animation: scroll 30s linear infinite;
+                animation: scroll 40s linear infinite;
               }
               .animate-scroll:hover {
                 animation-play-state: paused;
               }
             `}</style>
             <div className="flex items-center animate-scroll">
-              {[...Array(2)].map((_, duplicateIndex) => (
+              {[...Array(3)].map((_, duplicateIndex) => (
                 <div key={duplicateIndex} className="flex items-center gap-16 md:gap-12 px-8 md:px-6">
                   <div className="flex items-center gap-3 text-slate-700 dark:text-slate-300 whitespace-nowrap">
                     <SiGmail className="h-10 w-10 md:h-8 md:w-8 flex-shrink-0" />
