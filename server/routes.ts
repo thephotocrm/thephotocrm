@@ -418,6 +418,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json({ message: "Logged out successfully" });
   });
 
+  // Demo Request Route (public)
+  app.post("/api/demo-request", async (req, res) => {
+    try {
+      const demoRequestSchema = z.object({
+        firstName: z.string().min(1),
+        email: z.string().email(),
+        date: z.string().min(1),
+        time: z.string().min(1),
+      });
+
+      const data = demoRequestSchema.parse(req.body);
+
+      // Send email notification to admin
+      const emailResult = await sendEmail({
+        to: "austinpacholek2014@gmail.com",
+        from: "noreply@thephotocrm.com",
+        subject: `Demo Request from ${data.firstName}`,
+        html: `
+          <h2>New Demo Request</h2>
+          <p><strong>Name:</strong> ${data.firstName}</p>
+          <p><strong>Email:</strong> ${data.email}</p>
+          <p><strong>Preferred Date:</strong> ${data.date}</p>
+          <p><strong>Preferred Time:</strong> ${data.time}</p>
+        `,
+        text: `
+          New Demo Request
+          
+          Name: ${data.firstName}
+          Email: ${data.email}
+          Preferred Date: ${data.date}
+          Preferred Time: ${data.time}
+        `
+      });
+
+      if (!emailResult.success) {
+        throw new Error(emailResult.error || "Failed to send email");
+      }
+
+      res.json({ message: "Demo request sent successfully" });
+    } catch (error: any) {
+      console.error("Demo request error:", error);
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ message: "Invalid demo request data" });
+      }
+      res.status(500).json({ message: error.message || "Failed to send demo request" });
+    }
+  });
+
   // Admin Routes
   app.get("/api/admin/photographers", authenticateToken, requireAdmin, async (req, res) => {
     try {

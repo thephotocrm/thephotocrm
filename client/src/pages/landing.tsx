@@ -12,6 +12,28 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { useMutation } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+import {
   Camera,
   Zap,
   Mail,
@@ -47,8 +69,49 @@ export default function Landing() {
   const [currentProjectType, setCurrentProjectType] = useState(0);
   const [isRotating, setIsRotating] = useState(false);
   const [expandedStage, setExpandedStage] = useState<number | null>(null);
+  const [demoDialogOpen, setDemoDialogOpen] = useState(false);
   
   const projectTypes = ["Wedding", "Portrait", "Commercial"];
+  const { toast } = useToast();
+
+  // Demo booking form schema
+  const demoFormSchema = z.object({
+    firstName: z.string().min(1, "First name is required"),
+    email: z.string().email("Invalid email address"),
+    date: z.string().min(1, "Preferred date is required"),
+    time: z.string().min(1, "Preferred time is required"),
+  });
+
+  const demoForm = useForm<z.infer<typeof demoFormSchema>>({
+    resolver: zodResolver(demoFormSchema),
+    defaultValues: {
+      firstName: "",
+      email: "",
+      date: "",
+      time: "",
+    },
+  });
+
+  const demoMutation = useMutation({
+    mutationFn: async (data: z.infer<typeof demoFormSchema>) => {
+      return await apiRequest("/api/demo-request", "POST", data);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Demo request sent!",
+        description: "We'll get back to you soon to confirm your demo time.",
+      });
+      setDemoDialogOpen(false);
+      demoForm.reset();
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to send demo request. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
   
   // Redirect logged-in users to dashboard
   useEffect(() => {
@@ -897,7 +960,7 @@ export default function Landing() {
             <Button
               size="lg"
               variant="outline"
-              onClick={() => window.location.href = 'mailto:austinpacholek2014@gmail.com?subject=Book a Demo - The Photo CRM'}
+              onClick={() => setDemoDialogOpen(true)}
               className="w-full"
               data-testid="button-mobile-demo"
             >
@@ -907,6 +970,77 @@ export default function Landing() {
           </div>
         </div>
       </div>
+
+      {/* Demo Booking Dialog */}
+      <Dialog open={demoDialogOpen} onOpenChange={setDemoDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Book a Demo</DialogTitle>
+            <DialogDescription>
+              Schedule a personalized demo of The Photo CRM. We'll show you how to automate your workflow and close more clients.
+            </DialogDescription>
+          </DialogHeader>
+          <Form {...demoForm}>
+            <form onSubmit={demoForm.handleSubmit((data) => demoMutation.mutate(data))} className="space-y-4">
+              <FormField
+                control={demoForm.control}
+                name="firstName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>First Name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="John" {...field} data-testid="input-demo-firstname" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={demoForm.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <Input type="email" placeholder="john@example.com" {...field} data-testid="input-demo-email" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={demoForm.control}
+                name="date"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Preferred Date</FormLabel>
+                    <FormControl>
+                      <Input type="date" {...field} data-testid="input-demo-date" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={demoForm.control}
+                name="time"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Preferred Time</FormLabel>
+                    <FormControl>
+                      <Input type="time" {...field} data-testid="input-demo-time" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <Button type="submit" className="w-full" disabled={demoMutation.isPending} data-testid="button-submit-demo">
+                {demoMutation.isPending ? "Sending..." : "Request Demo"}
+              </Button>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
