@@ -68,7 +68,7 @@ export default function Landing() {
   const [photographerCount, setPhotographerCount] = useState<number | null>(null);
   const [currentProjectType, setCurrentProjectType] = useState(0);
   const [isRotating, setIsRotating] = useState(false);
-  const [expandedStage, setExpandedStage] = useState<number | null>(null);
+  const [expandedStage, setExpandedStage] = useState<number | null>(0);
   const [demoDialogOpen, setDemoDialogOpen] = useState(false);
   
   const projectTypes = ["Wedding", "Portrait", "Commercial"];
@@ -617,17 +617,17 @@ export default function Landing() {
                   <div key={index} className="w-full max-w-xs">
                     <button
                       onClick={() => setExpandedStage(isExpanded ? null : index)}
-                      className={`flex items-center gap-2 bg-white dark:bg-slate-900 px-4 py-2 rounded-lg shadow-sm w-full transition-all duration-200 ${
+                      className={`flex items-center gap-2 bg-white dark:bg-slate-900 px-4 py-3 rounded-lg shadow-sm w-full transition-all duration-200 ${
                         isExpanded ? 'ring-2 ring-blue-500 shadow-lg' : 'hover:shadow-md'
                       }`}
                       data-testid={`button-stage-${index}`}
                     >
-                      <Icon className={`h-5 w-5 ${stage.iconColor}`} />
-                      <span className="font-semibold text-sm">{stage.title}</span>
+                      <Icon className={`h-6 w-6 ${stage.iconColor}`} />
+                      <span className="font-semibold text-base">{stage.title}</span>
                     </button>
                     {isExpanded && (
-                      <div className="mt-2 bg-white dark:bg-slate-900 rounded-lg p-3 shadow-md border-l-4 border-blue-500 animate-in slide-in-from-top-2 duration-200">
-                        <ul className="space-y-1.5 text-xs text-slate-700 dark:text-slate-300">
+                      <div className="mt-2 bg-white dark:bg-slate-900 rounded-lg p-4 shadow-md border-l-4 border-blue-500 animate-in slide-in-from-top-2 duration-200">
+                        <ul className="space-y-2.5 text-sm text-slate-700 dark:text-slate-300">
                           {stage.automations.map((automation, i) => (
                             <li key={i}>{automation}</li>
                           ))}
