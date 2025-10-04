@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Accordion,
   AccordionContent,
@@ -25,7 +26,8 @@ import {
   Target,
   BarChart,
   Shield,
-  Heart
+  Heart,
+  MessageSquare
 } from "lucide-react";
 import pipelineImage from "@assets/ChatGPT Image Oct 3, 2025, 03_42_16 PM_1759524152837.png";
 import communicationImage from "@assets/ChatGPT Image Oct 3, 2025, 03_45_04 PM_1759524321494.png";
@@ -124,7 +126,7 @@ export default function Landing() {
 
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white dark:from-slate-950 dark:to-slate-900">
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white dark:from-slate-950 dark:to-slate-900 pb-20 md:pb-0">
       {/* Founder Pricing Banner */}
       <div className="bg-gradient-to-r from-amber-500 to-orange-500 text-white py-3 px-4">
         <div className="max-w-7xl mx-auto flex items-center justify-center gap-2 text-sm md:text-base font-medium">
@@ -305,7 +307,49 @@ export default function Landing() {
             </p>
           </div>
           
-          <div className="grid md:grid-cols-2 gap-8">
+          {/* Desktop: Tabs */}
+          <div className="hidden md:block">
+            <Tabs defaultValue="0" className="w-full">
+              <TabsList className="grid w-full grid-cols-4 mb-8 h-auto">
+                {features.map((feature, index) => (
+                  <TabsTrigger 
+                    key={index} 
+                    value={index.toString()}
+                    className="text-sm py-3 data-[state=active]:bg-blue-600 data-[state=active]:text-white"
+                    data-testid={`tab-feature-${index}`}
+                  >
+                    {feature.title}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+              {features.map((feature, index) => (
+                <TabsContent key={index} value={index.toString()} className="mt-0">
+                  <Card className="border-2">
+                    <CardContent className="p-0">
+                      <div className="bg-slate-200 dark:bg-slate-800 aspect-video flex items-center justify-center overflow-hidden">
+                        <img 
+                          src={feature.screenshot} 
+                          alt={feature.title} 
+                          loading="lazy" 
+                          className="w-full h-full object-cover"
+                          data-testid={`img-feature-${index}`}
+                        />
+                      </div>
+                      <div className="p-6">
+                        <h3 className="font-bold text-2xl mb-3">{feature.title}</h3>
+                        <p className="text-base text-slate-600 dark:text-slate-400">
+                          {feature.description}
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+              ))}
+            </Tabs>
+          </div>
+
+          {/* Mobile: Grid */}
+          <div className="grid md:hidden grid-cols-1 gap-8">
             {features.map((feature, index) => (
               <Card key={index} className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
                 <CardContent className="p-0">
@@ -338,7 +382,7 @@ export default function Landing() {
               How it works
             </h2>
             <p className="text-lg text-slate-600 dark:text-slate-400">
-              Three steps to running your studio on autopilot
+              From first inquiry to final delivery—all automated
             </p>
           </div>
           
@@ -347,9 +391,9 @@ export default function Landing() {
               <div className="bg-blue-600 text-white w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-4">
                 1
               </div>
-              <h3 className="font-bold text-lg mb-2">Import & set stages</h3>
+              <h3 className="font-bold text-lg mb-2">Leads inquire</h3>
               <p className="text-sm text-slate-600 dark:text-slate-400">
-                Add your contacts from Gmail. Customize your pipeline stages to match your workflow.
+                Couples fill out your contact form and land in your pipeline. Track every lead from first touch to signed contract.
               </p>
             </div>
             
@@ -357,9 +401,9 @@ export default function Landing() {
               <div className="bg-blue-600 text-white w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-4">
                 2
               </div>
-              <h3 className="font-bold text-lg mb-2">Turn on automations</h3>
+              <h3 className="font-bold text-lg mb-2">Automation takes over</h3>
               <p className="text-sm text-slate-600 dark:text-slate-400">
-                Set up email sequences once. They run automatically when clients move through stages.
+                Personalized follow-up emails and SMS messages go out automatically. Your calendar link gets them booked without back-and-forth.
               </p>
             </div>
             
@@ -367,16 +411,16 @@ export default function Landing() {
               <div className="bg-blue-600 text-white w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-4">
                 3
               </div>
-              <h3 className="font-bold text-lg mb-2">Shoot more, stress less</h3>
+              <h3 className="font-bold text-lg mb-2">Close & deliver seamlessly</h3>
               <p className="text-sm text-slate-600 dark:text-slate-400">
-                The CRM handles follow-ups, booking, and payments while you focus on your craft.
+                Send proposals, collect payments via Stripe, assign questionnaires, and send shoot reminders—all triggered by your custom pipeline stages.
               </p>
             </div>
           </div>
           
           <div className="text-center border-t border-slate-300 dark:border-slate-700 pt-8">
             <p className="text-sm text-slate-600 dark:text-slate-400">
-              Integrates seamlessly with <span className="font-semibold">Gmail</span> • <span className="font-semibold">Stripe</span> • <span className="font-semibold">Google Calendar</span> • <span className="font-semibold">Twilio SMS</span>
+              Integrates seamlessly with <span className="font-semibold">Gmail</span> • <span className="font-semibold">Stripe</span> • <span className="font-semibold">Google Calendar</span> • <span className="font-semibold">SimpleTexting</span>
             </p>
           </div>
         </div>
@@ -706,6 +750,30 @@ export default function Landing() {
       <footer className="py-8 px-4 bg-slate-900 text-slate-400 text-center text-sm">
         <p>&copy; {new Date().getFullYear()} The Photo CRM. All rights reserved.</p>
       </footer>
+
+      {/* Mobile Sticky CTA Bar */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 shadow-lg z-50 px-4 py-3">
+        <div className="flex gap-2">
+          <Button
+            size="lg"
+            onClick={() => setLocation("/register")}
+            className="flex-1 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600"
+            data-testid="button-mobile-trial"
+          >
+            Start Free Trial
+          </Button>
+          <Button
+            size="lg"
+            variant="outline"
+            onClick={() => window.location.href = 'mailto:austinpacholek2014@gmail.com?subject=Book a Demo - The Photo CRM'}
+            className="flex-1"
+            data-testid="button-mobile-demo"
+          >
+            <MessageSquare className="h-4 w-4 mr-2" />
+            Book Demo
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }
