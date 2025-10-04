@@ -385,7 +385,7 @@ export default function Landing() {
             `}</style>
             <div className="flex items-center animate-scroll">
               {[...Array(2)].map((_, duplicateIndex) => (
-                <div key={duplicateIndex} className="flex items-center gap-10 md:gap-12 px-6 md:px-6">
+                <div key={duplicateIndex} className="flex items-center gap-16 md:gap-12 px-8 md:px-6">
                   <div className="flex items-center gap-3 text-slate-700 dark:text-slate-300 whitespace-nowrap">
                     <SiGmail className="h-10 w-10 md:h-8 md:w-8 flex-shrink-0" />
                     <span className="text-base md:text-sm font-medium">Gmail</span>
