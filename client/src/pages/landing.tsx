@@ -365,70 +365,120 @@ export default function Landing() {
       </section>
 
       {/* Proof Bar */}
-      <section className="py-6 px-4 bg-white dark:bg-slate-900 border-y border-slate-200 dark:border-slate-800 overflow-hidden">
+      <section className="py-8 px-4 bg-white dark:bg-slate-900 border-y border-slate-200 dark:border-slate-800 overflow-hidden">
         <div className="max-w-6xl mx-auto">
           <p className="text-xs text-slate-500 dark:text-slate-500 text-center mb-6 uppercase tracking-wider">
             Integrates with
           </p>
-          <div className="relative">
+          
+          {/* Mobile: Two-column grid */}
+          <div className="grid grid-cols-2 gap-x-4 gap-y-4 md:hidden">
+            <div className="flex items-center gap-3 text-slate-700 dark:text-slate-300" data-testid="integration-gmail">
+              <SiGmail className="h-10 w-10 flex-shrink-0" data-testid="icon-gmail" />
+              <span className="text-base font-medium" data-testid="text-gmail">Gmail</span>
+            </div>
+            <div className="flex items-center gap-3 text-slate-700 dark:text-slate-300" data-testid="integration-stripe">
+              <SiStripe className="h-10 w-10 flex-shrink-0" data-testid="icon-stripe" />
+              <span className="text-base font-medium" data-testid="text-stripe">Stripe</span>
+            </div>
+            <div className="flex items-center gap-3 text-slate-700 dark:text-slate-300" data-testid="integration-calendar">
+              <SiGooglecalendar className="h-10 w-10 flex-shrink-0" data-testid="icon-calendar" />
+              <span className="text-base font-medium" data-testid="text-calendar">Calendar</span>
+            </div>
+            <div className="flex items-center gap-3 text-slate-700 dark:text-slate-300" data-testid="integration-quickbooks">
+              <SiQuickbooks className="h-10 w-10 flex-shrink-0" data-testid="icon-quickbooks" />
+              <span className="text-base font-medium" data-testid="text-quickbooks">QuickBooks</span>
+            </div>
+            <div className="flex items-center gap-3 text-slate-700 dark:text-slate-300" data-testid="integration-zapier">
+              <SiZapier className="h-10 w-10 flex-shrink-0" data-testid="icon-zapier" />
+              <span className="text-base font-medium" data-testid="text-zapier">Zapier</span>
+            </div>
+            <div className="flex items-center gap-3 text-slate-700 dark:text-slate-300" data-testid="integration-slack">
+              <SiSlack className="h-10 w-10 flex-shrink-0" data-testid="icon-slack" />
+              <span className="text-base font-medium" data-testid="text-slack">Slack</span>
+            </div>
+            <div className="flex items-center gap-3 text-slate-700 dark:text-slate-300" data-testid="integration-mailchimp">
+              <SiMailchimp className="h-10 w-10 flex-shrink-0" data-testid="icon-mailchimp" />
+              <span className="text-base font-medium" data-testid="text-mailchimp">Mailchimp</span>
+            </div>
+            <div className="flex items-center gap-3 text-slate-700 dark:text-slate-300" data-testid="integration-dropbox">
+              <SiDropbox className="h-10 w-10 flex-shrink-0" data-testid="icon-dropbox" />
+              <span className="text-base font-medium" data-testid="text-dropbox">Dropbox</span>
+            </div>
+            <div className="flex items-center gap-3 text-slate-700 dark:text-slate-300" data-testid="integration-instagram">
+              <SiInstagram className="h-10 w-10 flex-shrink-0" data-testid="icon-instagram" />
+              <span className="text-base font-medium" data-testid="text-instagram">Instagram</span>
+            </div>
+            <div className="flex items-center gap-3 text-slate-700 dark:text-slate-300" data-testid="integration-facebook">
+              <SiFacebook className="h-10 w-10 flex-shrink-0" data-testid="icon-facebook" />
+              <span className="text-base font-medium" data-testid="text-facebook">Facebook</span>
+            </div>
+            <div className="flex items-center gap-3 text-slate-700 dark:text-slate-300 col-span-2 justify-center" data-testid="integration-twilio">
+              <SiTwilio className="h-10 w-10 flex-shrink-0" data-testid="icon-twilio" />
+              <span className="text-base font-medium" data-testid="text-twilio">Twilio</span>
+            </div>
+          </div>
+
+          {/* Desktop: Scrolling carousel */}
+          <div className="relative hidden md:block">
             <style>{`
               @keyframes scroll {
                 0% { transform: translateX(0); }
-                100% { transform: translateX(calc(-100% / 3)); }
+                100% { transform: translateX(-50%); }
               }
               .animate-scroll {
-                animation: scroll 40s linear infinite;
+                animation: scroll 30s linear infinite;
               }
               .animate-scroll:hover {
                 animation-play-state: paused;
               }
             `}</style>
             <div className="flex items-center animate-scroll">
-              {[...Array(3)].map((_, duplicateIndex) => (
-                <div key={duplicateIndex} className="flex items-center gap-16 md:gap-12 px-8 md:px-6">
-                  <div className="flex items-center gap-3 text-slate-700 dark:text-slate-300 whitespace-nowrap">
-                    <SiGmail className="h-10 w-10 md:h-8 md:w-8 flex-shrink-0" />
-                    <span className="text-base md:text-sm font-medium">Gmail</span>
+              {[...Array(2)].map((_, duplicateIndex) => (
+                <div key={duplicateIndex} className="flex items-center gap-12 px-6">
+                  <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300 whitespace-nowrap">
+                    <SiGmail className="h-8 w-8 flex-shrink-0" />
+                    <span className="text-sm font-medium">Gmail</span>
                   </div>
-                  <div className="flex items-center gap-3 text-slate-700 dark:text-slate-300 whitespace-nowrap">
-                    <SiStripe className="h-10 w-10 md:h-8 md:w-8 flex-shrink-0" />
-                    <span className="text-base md:text-sm font-medium">Stripe</span>
+                  <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300 whitespace-nowrap">
+                    <SiStripe className="h-8 w-8 flex-shrink-0" />
+                    <span className="text-sm font-medium">Stripe</span>
                   </div>
-                  <div className="flex items-center gap-3 text-slate-700 dark:text-slate-300 whitespace-nowrap">
-                    <SiGooglecalendar className="h-10 w-10 md:h-8 md:w-8 flex-shrink-0" />
-                    <span className="text-base md:text-sm font-medium">Google Calendar</span>
+                  <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300 whitespace-nowrap">
+                    <SiGooglecalendar className="h-8 w-8 flex-shrink-0" />
+                    <span className="text-sm font-medium">Google Calendar</span>
                   </div>
-                  <div className="flex items-center gap-3 text-slate-700 dark:text-slate-300 whitespace-nowrap">
-                    <SiQuickbooks className="h-10 w-10 md:h-8 md:w-8 flex-shrink-0" />
-                    <span className="text-base md:text-sm font-medium">QuickBooks</span>
+                  <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300 whitespace-nowrap">
+                    <SiQuickbooks className="h-8 w-8 flex-shrink-0" />
+                    <span className="text-sm font-medium">QuickBooks</span>
                   </div>
-                  <div className="flex items-center gap-3 text-slate-700 dark:text-slate-300 whitespace-nowrap">
-                    <SiZapier className="h-10 w-10 md:h-8 md:w-8 flex-shrink-0" />
-                    <span className="text-base md:text-sm font-medium">Zapier</span>
+                  <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300 whitespace-nowrap">
+                    <SiZapier className="h-8 w-8 flex-shrink-0" />
+                    <span className="text-sm font-medium">Zapier</span>
                   </div>
-                  <div className="flex items-center gap-3 text-slate-700 dark:text-slate-300 whitespace-nowrap">
-                    <SiSlack className="h-10 w-10 md:h-8 md:w-8 flex-shrink-0" />
-                    <span className="text-base md:text-sm font-medium">Slack</span>
+                  <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300 whitespace-nowrap">
+                    <SiSlack className="h-8 w-8 flex-shrink-0" />
+                    <span className="text-sm font-medium">Slack</span>
                   </div>
-                  <div className="flex items-center gap-3 text-slate-700 dark:text-slate-300 whitespace-nowrap">
-                    <SiMailchimp className="h-10 w-10 md:h-8 md:w-8 flex-shrink-0" />
-                    <span className="text-base md:text-sm font-medium">Mailchimp</span>
+                  <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300 whitespace-nowrap">
+                    <SiMailchimp className="h-8 w-8 flex-shrink-0" />
+                    <span className="text-sm font-medium">Mailchimp</span>
                   </div>
-                  <div className="flex items-center gap-3 text-slate-700 dark:text-slate-300 whitespace-nowrap">
-                    <SiDropbox className="h-10 w-10 md:h-8 md:w-8 flex-shrink-0" />
-                    <span className="text-base md:text-sm font-medium">Dropbox</span>
+                  <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300 whitespace-nowrap">
+                    <SiDropbox className="h-8 w-8 flex-shrink-0" />
+                    <span className="text-sm font-medium">Dropbox</span>
                   </div>
-                  <div className="flex items-center gap-3 text-slate-700 dark:text-slate-300 whitespace-nowrap">
-                    <SiInstagram className="h-10 w-10 md:h-8 md:w-8 flex-shrink-0" />
-                    <span className="text-base md:text-sm font-medium">Instagram</span>
+                  <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300 whitespace-nowrap">
+                    <SiInstagram className="h-8 w-8 flex-shrink-0" />
+                    <span className="text-sm font-medium">Instagram</span>
                   </div>
-                  <div className="flex items-center gap-3 text-slate-700 dark:text-slate-300 whitespace-nowrap">
-                    <SiFacebook className="h-10 w-10 md:h-8 md:w-8 flex-shrink-0" />
-                    <span className="text-base md:text-sm font-medium">Facebook</span>
+                  <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300 whitespace-nowrap">
+                    <SiFacebook className="h-8 w-8 flex-shrink-0" />
+                    <span className="text-sm font-medium">Facebook</span>
                   </div>
-                  <div className="flex items-center gap-3 text-slate-700 dark:text-slate-300 whitespace-nowrap">
-                    <SiTwilio className="h-10 w-10 md:h-8 md:w-8 flex-shrink-0" />
-                    <span className="text-base md:text-sm font-medium">Twilio</span>
+                  <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300 whitespace-nowrap">
+                    <SiTwilio className="h-8 w-8 flex-shrink-0" />
+                    <span className="text-sm font-medium">Twilio</span>
                   </div>
                 </div>
               ))}
