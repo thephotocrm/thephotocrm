@@ -136,7 +136,23 @@ export default function Landing() {
   const [isRotating, setIsRotating] = useState(false);
   const [expandedStage, setExpandedStage] = useState<number | null>(0);
   const [demoDialogOpen, setDemoDialogOpen] = useState(false);
-  const [visibleFeatures, setVisibleFeatures] = useState(4);
+  const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 1024);
+  const [visibleFeatures, setVisibleFeatures] = useState(window.innerWidth >= 1024 ? 6 : 4);
+
+  useEffect(() => {
+    const checkDesktop = () => {
+      const desktop = window.innerWidth >= 1024;
+      setIsDesktop(desktop);
+      if (desktop && visibleFeatures === 4) {
+        setVisibleFeatures(6);
+      } else if (!desktop && visibleFeatures === 6) {
+        setVisibleFeatures(4);
+      }
+    };
+    
+    window.addEventListener('resize', checkDesktop);
+    return () => window.removeEventListener('resize', checkDesktop);
+  }, [visibleFeatures]);
   
   const projectTypes = ["Wedding", "Portrait", "Commercial"];
   const { toast } = useToast();
@@ -1045,9 +1061,9 @@ export default function Landing() {
             ))}
           </div>
 
-          {/* Desktop: Show All */}
+          {/* Desktop: Progressive Disclosure */}
           <div className="hidden lg:grid lg:grid-cols-3 gap-6">
-            {allFeatures.map((feature) => (
+            {allFeatures.slice(0, visibleFeatures).map((feature) => (
               <div 
                 key={feature.testid} 
                 className="bg-white dark:bg-slate-900 rounded-lg p-6 shadow-lg hover:shadow-xl transition-all hover:scale-105" 
@@ -1064,11 +1080,11 @@ export default function Landing() {
             ))}
           </div>
 
-          {/* Show More Button (Mobile Only) */}
+          {/* Show More Button */}
           {visibleFeatures < allFeatures.length && (
-            <div className="mt-8 text-center lg:hidden">
+            <div className="mt-8 text-center">
               <Button
-                onClick={() => setVisibleFeatures(prev => Math.min(prev + 4, allFeatures.length))}
+                onClick={() => setVisibleFeatures(prev => Math.min(prev + (isDesktop ? 6 : 4), allFeatures.length))}
                 className="bg-white text-blue-600 hover:bg-blue-50"
                 size="lg"
                 data-testid="button-show-more-features"
