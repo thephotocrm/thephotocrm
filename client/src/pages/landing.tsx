@@ -736,7 +736,7 @@ export default function Landing() {
                       <span className="font-semibold text-base">{stage.title}</span>
                     </button>
                     {isExpanded && (
-                      <div className="mt-2 bg-white dark:bg-slate-900 rounded-lg shadow-md overflow-hidden animate-in slide-in-from-top-2 duration-200">
+                      <div className="mt-2 ml-6 bg-white dark:bg-slate-900 rounded-lg shadow-md overflow-hidden animate-in slide-in-from-top-2 duration-200">
                         <div className="bg-blue-600 text-white px-4 py-2 font-semibold text-sm">
                           Automations Example
                         </div>
@@ -783,7 +783,7 @@ export default function Landing() {
                 })}
               </div>
               {expandedStage !== null && (
-                <div className="bg-white dark:bg-slate-900 rounded-lg shadow-lg overflow-hidden animate-in slide-in-from-top-4 duration-300">
+                <div className="ml-8 bg-white dark:bg-slate-900 rounded-lg shadow-lg overflow-hidden animate-in slide-in-from-top-4 duration-300">
                   <div className="bg-blue-600 text-white px-6 py-3 font-semibold flex items-center gap-2">
                     <Zap className="h-5 w-5" />
                     Automations Example
