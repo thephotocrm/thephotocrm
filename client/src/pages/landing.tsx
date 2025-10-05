@@ -701,10 +701,10 @@ export default function Landing() {
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Personalized Automation from Inquiry to Delivery
+              Personalized Automation for Every Client Journey
             </h2>
             <p className="text-lg text-slate-600 dark:text-slate-400">
-              Every client gets a tailored experience. Your automations trigger based on wedding dates, project types, and booking stages—sending the right message at exactly the right time. No generic templates, no manual work.
+              Streamline leads, bookings, and delivery — all while keeping it personal.
             </p>
           </div>
 
