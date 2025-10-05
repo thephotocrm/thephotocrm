@@ -367,13 +367,22 @@ export default function Landing() {
             <Camera className="h-6 w-6 text-blue-600" />
             <span className="text-xl font-bold">The Photo CRM</span>
           </div>
-          <Button
-            variant="outline"
-            onClick={() => setLocation("/login")}
-            data-testid="button-login"
-          >
-            Log In
-          </Button>
+          <div className="flex items-center gap-3">
+            <Button
+              className="hidden md:inline-flex bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600"
+              onClick={() => setLocation("/register")}
+              data-testid="button-start-trial-header"
+            >
+              Start 14 Day Trial
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => setLocation("/login")}
+              data-testid="button-login"
+            >
+              Log In
+            </Button>
+          </div>
         </div>
       </header>
 
