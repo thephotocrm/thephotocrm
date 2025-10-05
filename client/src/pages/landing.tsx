@@ -1117,32 +1117,50 @@ export default function Landing() {
 
             <AccordionItem value="item-2">
               <AccordionTrigger className="text-left">
-                Will this actually save me time or just add more work?
+                How much time will this actually save me?
               </AccordionTrigger>
               <AccordionContent>
-                Wedding photographers save 10-15 hours per week on admin. Automations handle: inquiry responses, contract reminders, payment follow-ups, questionnaires 30 days before weddings, and post-wedding review requests. You set it once, it runs forever.
+                Wedding photographers save 10-15 hours per week on admin tasks. Automations handle inquiry responses, contract reminders, payment follow-ups, questionnaires 30 days before weddings, and post-wedding review requests. You set it once, it runs forever—even while you sleep.
               </AccordionContent>
             </AccordionItem>
 
             <AccordionItem value="item-3">
               <AccordionTrigger className="text-left">
-                How do payments work? Can clients pay me directly?
+                Will automated emails feel robotic or still sound like me?
               </AccordionTrigger>
               <AccordionContent>
-                Yes. Clients pay via Stripe (credit card or ACH), money goes straight to your bank in 2 days. We take a 5% platform fee, you keep 95%. Automated payment reminders mean you never chase late deposits again.
+                Every automation personalizes with client names, wedding dates, package details, and venue info—so it feels handwritten, not robotic. Plus they're sent from YOUR Gmail address (not a generic no-reply email), keeping your relationships authentic and personal.
               </AccordionContent>
             </AccordionItem>
 
             <AccordionItem value="item-4">
               <AccordionTrigger className="text-left">
-                Can I cancel anytime?
+                What automations run without me touching anything?
               </AccordionTrigger>
               <AccordionContent>
-                Absolutely. No contracts, no cancellation fees. Cancel with one click anytime. Your data is yours—export everything before you go.
+                Once set up: inquiry auto-responses, follow-up sequences, payment reminders, contract deadline alerts, pre-wedding questionnaires (triggered 30 days before), shoot-day reminders, gallery delivery notifications, and review requests. They trigger based on client actions, stage changes, or wedding dates—100% hands-free.
               </AccordionContent>
             </AccordionItem>
 
             <AccordionItem value="item-5">
+              <AccordionTrigger className="text-left">
+                How do payments work? Can clients pay me directly?
+              </AccordionTrigger>
+              <AccordionContent>
+                Yes. Clients pay via Stripe (credit card or ACH), money goes straight to your bank in 2 days. We take a 5% platform fee, you keep 95%. Automated payment reminders mean you never chase late deposits again—the system handles it for you.
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="item-6">
+              <AccordionTrigger className="text-left">
+                How do contracts and gallery delivery work?
+              </AccordionTrigger>
+              <AccordionContent>
+                Clients sign contracts digitally right in the proposal (no printing or scanning). Store all signed contracts in the CRM. For galleries, send delivery links via automated email + SMS when ready. Track when clients view and download their photos.
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="item-7">
               <AccordionTrigger className="text-left">
                 I'm not tech-savvy. Will I actually be able to use this?
               </AccordionTrigger>
@@ -1151,39 +1169,48 @@ export default function Landing() {
               </AccordionContent>
             </AccordionItem>
 
-            <AccordionItem value="item-6">
+            <AccordionItem value="item-8">
               <AccordionTrigger className="text-left">
                 What makes this different from HoneyBook or Dubsado?
               </AccordionTrigger>
               <AccordionContent>
-                We're built specifically for the wedding photography workflow—not generic service businesses. Your automations trigger based on wedding dates and project milestones automatically. Plus we're $4.95/month (founder pricing) vs. $16-32/month for competitors.
-              </AccordionContent>
-            </AccordionItem>
-
-            <AccordionItem value="item-7">
-              <AccordionTrigger className="text-left">
-                Can I access client info on my phone during weddings?
-              </AccordionTrigger>
-              <AccordionContent>
-                Yes. Full mobile access means you can quickly look up client details, venue addresses, shot lists, and special requests right from the venue. Everything syncs in real-time.
-              </AccordionContent>
-            </AccordionItem>
-
-            <AccordionItem value="item-8">
-              <AccordionTrigger className="text-left">
-                Do my clients need to create accounts or download anything?
-              </AccordionTrigger>
-              <AccordionContent>
-                Nope. Clients get a simple link to view proposals, sign contracts, and make payments. No login required, no app to download. They just click and go.
+                We're built specifically for the photography workflow—not generic service businesses. Your automations trigger based on wedding dates and project milestones automatically. Plus we're $4.95/month (founder pricing) vs. $16-32/month for competitors. And we send from your personal Gmail, not a branded domain.
               </AccordionContent>
             </AccordionItem>
 
             <AccordionItem value="item-9">
               <AccordionTrigger className="text-left">
+                Can I access client info on my phone during shoots?
+              </AccordionTrigger>
+              <AccordionContent>
+                Yes. Full mobile access means you can quickly look up client details, venue addresses, shot lists, and special requests right from the venue. Everything syncs in real-time across all your devices.
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="item-10">
+              <AccordionTrigger className="text-left">
+                Is my client data secure? What about privacy?
+              </AccordionTrigger>
+              <AccordionContent>
+                Your data is encrypted and stored securely on enterprise-grade servers. We never sell or share client information. You own your data—export everything anytime. Stripe handles all payment processing with bank-level security.
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="item-11">
+              <AccordionTrigger className="text-left">
+                Can I cancel anytime or am I locked into a contract?
+              </AccordionTrigger>
+              <AccordionContent>
+                No contracts, no cancellation fees. Cancel with one click anytime. Your data is yours—export everything before you go. We believe in earning your business every month, not locking you in.
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="item-12">
+              <AccordionTrigger className="text-left">
                 What if I get stuck or need help?
               </AccordionTrigger>
               <AccordionContent>
-                Every feature has step-by-step video tutorials. Plus you can email support and we'll help you set things up. Most questions get answered same-day.
+                Every feature has step-by-step video tutorials. Plus you can email support and we'll help you set things up. Most questions get answered same-day. We want you succeeding, not struggling.
               </AccordionContent>
             </AccordionItem>
           </Accordion>
