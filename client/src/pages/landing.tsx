@@ -736,12 +736,17 @@ export default function Landing() {
                       <span className="font-semibold text-base">{stage.title}</span>
                     </button>
                     {isExpanded && (
-                      <div className="mt-2 bg-white dark:bg-slate-900 rounded-lg p-4 shadow-md border-l-4 border-blue-500 animate-in slide-in-from-top-2 duration-200">
-                        <ul className="space-y-2.5 text-sm text-slate-700 dark:text-slate-300">
-                          {stage.automations.map((automation, i) => (
-                            <li key={i}>{automation}</li>
-                          ))}
-                        </ul>
+                      <div className="mt-2 bg-white dark:bg-slate-900 rounded-lg shadow-md overflow-hidden animate-in slide-in-from-top-2 duration-200">
+                        <div className="bg-blue-600 text-white px-4 py-2 font-semibold text-sm">
+                          Automations Example
+                        </div>
+                        <div className="p-4 border-l-4 border-blue-500">
+                          <ul className="space-y-2.5 text-sm text-slate-700 dark:text-slate-300">
+                            {stage.automations.map((automation, i) => (
+                              <li key={i}>{automation}</li>
+                            ))}
+                          </ul>
+                        </div>
                       </div>
                     )}
                     {index < journeyStages.length - 1 && (
@@ -778,19 +783,24 @@ export default function Landing() {
                 })}
               </div>
               {expandedStage !== null && (
-                <div className="bg-white dark:bg-slate-900 rounded-lg p-6 shadow-lg border-l-4 border-blue-500 animate-in slide-in-from-top-4 duration-300">
-                  <h4 className="font-bold text-lg mb-3 flex items-center gap-2">
-                    <Zap className="h-5 w-5 text-blue-600" />
-                    {journeyStages[expandedStage].title} - Automation Details
-                  </h4>
-                  <ul className="space-y-2 text-sm text-slate-700 dark:text-slate-300">
-                    {journeyStages[expandedStage].automations.map((automation, i) => (
-                      <li key={i} className="flex items-start gap-2">
-                        <span className="text-blue-600">•</span>
-                        <span>{automation}</span>
-                      </li>
-                    ))}
-                  </ul>
+                <div className="bg-white dark:bg-slate-900 rounded-lg shadow-lg overflow-hidden animate-in slide-in-from-top-4 duration-300">
+                  <div className="bg-blue-600 text-white px-6 py-3 font-semibold flex items-center gap-2">
+                    <Zap className="h-5 w-5" />
+                    Automations Example
+                  </div>
+                  <div className="p-6 border-l-4 border-blue-500">
+                    <h4 className="font-bold text-lg mb-3">
+                      {journeyStages[expandedStage].title}
+                    </h4>
+                    <ul className="space-y-2 text-sm text-slate-700 dark:text-slate-300">
+                      {journeyStages[expandedStage].automations.map((automation, i) => (
+                        <li key={i} className="flex items-start gap-2">
+                          <span className="text-blue-600">•</span>
+                          <span>{automation}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 </div>
               )}
             </div>
