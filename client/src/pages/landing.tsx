@@ -136,6 +136,7 @@ export default function Landing() {
   const [isRotating, setIsRotating] = useState(false);
   const [expandedStage, setExpandedStage] = useState<number | null>(0);
   const [demoDialogOpen, setDemoDialogOpen] = useState(false);
+  const [visibleFeatures, setVisibleFeatures] = useState(4);
   
   const projectTypes = ["Wedding", "Portrait", "Commercial"];
   const { toast } = useToast();
@@ -350,6 +351,23 @@ export default function Landing() {
     }
   ];
 
+  const allFeatures = [
+    { testid: "card-feature-payment", Icon: DollarSign, iconBg: "bg-blue-100 dark:bg-blue-900", iconColor: "text-blue-600 dark:text-blue-400", title: "Automated Payment Collection", description: "Stop chasing clients for deposits and final payments. Stripe integration handles it automatically with payment reminders" },
+    { testid: "card-feature-quickbooks", Icon: BarChart, iconBg: "bg-green-100 dark:bg-green-900", iconColor: "text-green-600 dark:text-green-400", title: "QuickBooks Sync", description: "Every payment, fee, and payout automatically syncs to QuickBooks. Tax season becomes painless" },
+    { testid: "card-feature-pipeline", Icon: Target, iconBg: "bg-purple-100 dark:bg-purple-900", iconColor: "text-purple-600 dark:text-purple-400", title: "Lead Pipeline Management", description: "Visual board shows exactly where every potential client is and how much revenue is in your pipeline" },
+    { testid: "card-feature-followup", Icon: Send, iconBg: "bg-orange-100 dark:bg-orange-900", iconColor: "text-orange-600 dark:text-orange-400", title: "Automated Follow-Up System", description: "Never lose a lead to \"forgot to follow up.\" System handles it 24/7 while you sleep" },
+    { testid: "card-feature-proposals", Icon: FileText, iconBg: "bg-pink-100 dark:bg-pink-900", iconColor: "text-pink-600 dark:text-pink-400", title: "Professional Proposal System", description: "Send branded proposals that make you look like a $10k+ photographer, not someone emailing price lists" },
+    { testid: "card-feature-communication", Icon: MessageSquare, iconBg: "bg-cyan-100 dark:bg-cyan-900", iconColor: "text-cyan-600 dark:text-cyan-400", title: "Two-Way Client Communication", description: "All emails, texts, and updates logged in one place. No more \"wait, did I tell them about the venue change?\"" },
+    { testid: "card-feature-revenue", Icon: Wallet, iconBg: "bg-indigo-100 dark:bg-indigo-900", iconColor: "text-indigo-600 dark:text-indigo-400", title: "Revenue Tracking & Earnings Dashboard", description: "See real-time income, outstanding payments, and monthly revenue at a glance" },
+    { testid: "card-feature-automation", Icon: Clock, iconBg: "bg-yellow-100 dark:bg-yellow-900", iconColor: "text-yellow-600 dark:text-yellow-400", title: "Time-Saving Automation", description: "Reclaim 10-15 hours per week by automating questionnaires, reminders, and check-ins" },
+    { testid: "card-feature-gmail", Icon: Mail, iconBg: "bg-red-100 dark:bg-red-900", iconColor: "text-red-600 dark:text-red-400", title: "Personal Email Sending (Gmail)", description: "Automated emails send from YOUR address, keeping relationships personal and authentic" },
+    { testid: "card-feature-calendar", Icon: Calendar, iconBg: "bg-teal-100 dark:bg-teal-900", iconColor: "text-teal-600 dark:text-teal-400", title: "Online Booking Calendar", description: "Clients self-schedule consultations without the \"when are you free?\" email tennis" },
+    { testid: "card-feature-nurture", Icon: TrendingUp, iconBg: "bg-violet-100 dark:bg-violet-900", iconColor: "text-violet-600 dark:text-violet-400", title: "Long-Term Nurture Campaigns", description: "Turn \"not ready yet\" leads into bookings 6-12 months later without manual effort" },
+    { testid: "card-feature-mobile", Icon: Smartphone, iconBg: "bg-lime-100 dark:bg-lime-900", iconColor: "text-lime-600 dark:text-lime-400", title: "Mobile Business Access", description: "Check client details, shot lists, and venue info from your phone during shoots" },
+    { testid: "card-feature-questionnaire", Icon: CheckCircle2, iconBg: "bg-emerald-100 dark:bg-emerald-900", iconColor: "text-emerald-600 dark:text-emerald-400", title: "Client Questionnaire Automation", description: "Get shot lists and details before the shoot, not scrambling day-of" },
+    { testid: "card-feature-wedding-dates", Icon: Zap, iconBg: "bg-rose-100 dark:bg-rose-900", iconColor: "text-rose-600 dark:text-rose-400", title: "Wedding Date Workflows", description: "Automations trigger based on the actual event date (30 days before, 7 days before, etc.)" },
+    { testid: "card-feature-templates", Icon: BookOpen, iconBg: "bg-amber-100 dark:bg-amber-900", iconColor: "text-amber-600 dark:text-amber-400", title: "Template Library", description: "Save your best-performing emails, packages, and workflows to reuse and scale" },
+  ];
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white dark:from-slate-950 dark:to-slate-900 pb-20 md:pb-0">
@@ -1008,172 +1026,57 @@ export default function Landing() {
             </p>
           </div>
 
-          <div className="grid grid-cols-2 lg:grid-cols-3 gap-6">
-            {/* Feature 1 */}
-            <div className="bg-white dark:bg-slate-900 rounded-lg p-6 shadow-lg hover:shadow-xl transition-all hover:scale-105" data-testid="card-feature-payment">
-              <div className="bg-blue-100 dark:bg-blue-900 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
-                <DollarSign className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+          {/* Mobile: Progressive Disclosure */}
+          <div className="grid grid-cols-2 gap-6 lg:hidden">
+            {allFeatures.slice(0, visibleFeatures).map((feature) => (
+              <div 
+                key={feature.testid} 
+                className="bg-white dark:bg-slate-900 rounded-lg p-6 shadow-lg hover:shadow-xl transition-all hover:scale-105" 
+                data-testid={feature.testid}
+              >
+                <div className={`${feature.iconBg} w-12 h-12 rounded-lg flex items-center justify-center mb-4`}>
+                  <feature.Icon className={`h-6 w-6 ${feature.iconColor}`} />
+                </div>
+                <h3 className="font-bold text-lg mb-2">{feature.title}</h3>
+                <p className="text-sm text-slate-600 dark:text-slate-400">
+                  {feature.description}
+                </p>
               </div>
-              <h3 className="font-bold text-lg mb-2">Automated Payment Collection</h3>
-              <p className="text-sm text-slate-600 dark:text-slate-400">
-                Stop chasing clients for deposits and final payments. Stripe integration handles it automatically with payment reminders
-              </p>
-            </div>
-
-            {/* Feature 2 */}
-            <div className="bg-white dark:bg-slate-900 rounded-lg p-6 shadow-lg hover:shadow-xl transition-all hover:scale-105" data-testid="card-feature-quickbooks">
-              <div className="bg-green-100 dark:bg-green-900 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
-                <BarChart className="h-6 w-6 text-green-600 dark:text-green-400" />
-              </div>
-              <h3 className="font-bold text-lg mb-2">QuickBooks Sync</h3>
-              <p className="text-sm text-slate-600 dark:text-slate-400">
-                Every payment, fee, and payout automatically syncs to QuickBooks. Tax season becomes painless
-              </p>
-            </div>
-
-            {/* Feature 3 */}
-            <div className="bg-white dark:bg-slate-900 rounded-lg p-6 shadow-lg hover:shadow-xl transition-all hover:scale-105" data-testid="card-feature-pipeline">
-              <div className="bg-purple-100 dark:bg-purple-900 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
-                <Target className="h-6 w-6 text-purple-600 dark:text-purple-400" />
-              </div>
-              <h3 className="font-bold text-lg mb-2">Lead Pipeline Management</h3>
-              <p className="text-sm text-slate-600 dark:text-slate-400">
-                Visual board shows exactly where every potential client is and how much revenue is in your pipeline
-              </p>
-            </div>
-
-            {/* Feature 4 */}
-            <div className="bg-white dark:bg-slate-900 rounded-lg p-6 shadow-lg hover:shadow-xl transition-all hover:scale-105" data-testid="card-feature-followup">
-              <div className="bg-orange-100 dark:bg-orange-900 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
-                <Send className="h-6 w-6 text-orange-600 dark:text-orange-400" />
-              </div>
-              <h3 className="font-bold text-lg mb-2">Automated Follow-Up System</h3>
-              <p className="text-sm text-slate-600 dark:text-slate-400">
-                Never lose a lead to "forgot to follow up." System handles it 24/7 while you sleep
-              </p>
-            </div>
-
-            {/* Feature 5 */}
-            <div className="bg-white dark:bg-slate-900 rounded-lg p-6 shadow-lg hover:shadow-xl transition-all hover:scale-105" data-testid="card-feature-proposals">
-              <div className="bg-pink-100 dark:bg-pink-900 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
-                <FileText className="h-6 w-6 text-pink-600 dark:text-pink-400" />
-              </div>
-              <h3 className="font-bold text-lg mb-2">Professional Proposal System</h3>
-              <p className="text-sm text-slate-600 dark:text-slate-400">
-                Send branded proposals that make you look like a $10k+ photographer, not someone emailing price lists
-              </p>
-            </div>
-
-            {/* Feature 6 */}
-            <div className="bg-white dark:bg-slate-900 rounded-lg p-6 shadow-lg hover:shadow-xl transition-all hover:scale-105" data-testid="card-feature-communication">
-              <div className="bg-cyan-100 dark:bg-cyan-900 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
-                <MessageSquare className="h-6 w-6 text-cyan-600 dark:text-cyan-400" />
-              </div>
-              <h3 className="font-bold text-lg mb-2">Two-Way Client Communication</h3>
-              <p className="text-sm text-slate-600 dark:text-slate-400">
-                All emails, texts, and updates logged in one place. No more "wait, did I tell them about the venue change?"
-              </p>
-            </div>
-
-            {/* Feature 7 */}
-            <div className="bg-white dark:bg-slate-900 rounded-lg p-6 shadow-lg hover:shadow-xl transition-all hover:scale-105" data-testid="card-feature-revenue">
-              <div className="bg-indigo-100 dark:bg-indigo-900 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
-                <Wallet className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />
-              </div>
-              <h3 className="font-bold text-lg mb-2">Revenue Tracking & Earnings Dashboard</h3>
-              <p className="text-sm text-slate-600 dark:text-slate-400">
-                See real-time income, outstanding payments, and monthly revenue at a glance
-              </p>
-            </div>
-
-            {/* Feature 8 */}
-            <div className="bg-white dark:bg-slate-900 rounded-lg p-6 shadow-lg hover:shadow-xl transition-all hover:scale-105" data-testid="card-feature-automation">
-              <div className="bg-yellow-100 dark:bg-yellow-900 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
-                <Clock className="h-6 w-6 text-yellow-600 dark:text-yellow-400" />
-              </div>
-              <h3 className="font-bold text-lg mb-2">Time-Saving Automation</h3>
-              <p className="text-sm text-slate-600 dark:text-slate-400">
-                Reclaim 10-15 hours per week by automating questionnaires, reminders, and check-ins
-              </p>
-            </div>
-
-            {/* Feature 9 */}
-            <div className="bg-white dark:bg-slate-900 rounded-lg p-6 shadow-lg hover:shadow-xl transition-all hover:scale-105" data-testid="card-feature-gmail">
-              <div className="bg-red-100 dark:bg-red-900 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
-                <Mail className="h-6 w-6 text-red-600 dark:text-red-400" />
-              </div>
-              <h3 className="font-bold text-lg mb-2">Personal Email Sending (Gmail)</h3>
-              <p className="text-sm text-slate-600 dark:text-slate-400">
-                Automated emails send from YOUR address, keeping relationships personal and authentic
-              </p>
-            </div>
-
-            {/* Feature 10 */}
-            <div className="bg-white dark:bg-slate-900 rounded-lg p-6 shadow-lg hover:shadow-xl transition-all hover:scale-105" data-testid="card-feature-calendar">
-              <div className="bg-teal-100 dark:bg-teal-900 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
-                <Calendar className="h-6 w-6 text-teal-600 dark:text-teal-400" />
-              </div>
-              <h3 className="font-bold text-lg mb-2">Online Booking Calendar</h3>
-              <p className="text-sm text-slate-600 dark:text-slate-400">
-                Clients self-schedule consultations without the "when are you free?" email tennis
-              </p>
-            </div>
-
-            {/* Feature 11 */}
-            <div className="bg-white dark:bg-slate-900 rounded-lg p-6 shadow-lg hover:shadow-xl transition-all hover:scale-105" data-testid="card-feature-nurture">
-              <div className="bg-violet-100 dark:bg-violet-900 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
-                <TrendingUp className="h-6 w-6 text-violet-600 dark:text-violet-400" />
-              </div>
-              <h3 className="font-bold text-lg mb-2">Long-Term Nurture Campaigns</h3>
-              <p className="text-sm text-slate-600 dark:text-slate-400">
-                Turn "not ready yet" leads into bookings 6-12 months later without manual effort
-              </p>
-            </div>
-
-            {/* Feature 12 */}
-            <div className="bg-white dark:bg-slate-900 rounded-lg p-6 shadow-lg hover:shadow-xl transition-all hover:scale-105" data-testid="card-feature-mobile">
-              <div className="bg-lime-100 dark:bg-lime-900 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
-                <Smartphone className="h-6 w-6 text-lime-600 dark:text-lime-400" />
-              </div>
-              <h3 className="font-bold text-lg mb-2">Mobile Business Access</h3>
-              <p className="text-sm text-slate-600 dark:text-slate-400">
-                Check client details, shot lists, and venue info from your phone during shoots
-              </p>
-            </div>
-
-            {/* Feature 13 */}
-            <div className="bg-white dark:bg-slate-900 rounded-lg p-6 shadow-lg hover:shadow-xl transition-all hover:scale-105" data-testid="card-feature-questionnaire">
-              <div className="bg-emerald-100 dark:bg-emerald-900 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
-                <CheckCircle2 className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
-              </div>
-              <h3 className="font-bold text-lg mb-2">Client Questionnaire Automation</h3>
-              <p className="text-sm text-slate-600 dark:text-slate-400">
-                Get shot lists and details before the shoot, not scrambling day-of
-              </p>
-            </div>
-
-            {/* Feature 14 */}
-            <div className="bg-white dark:bg-slate-900 rounded-lg p-6 shadow-lg hover:shadow-xl transition-all hover:scale-105" data-testid="card-feature-wedding-dates">
-              <div className="bg-rose-100 dark:bg-rose-900 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
-                <Zap className="h-6 w-6 text-rose-600 dark:text-rose-400" />
-              </div>
-              <h3 className="font-bold text-lg mb-2">Wedding Date Workflows</h3>
-              <p className="text-sm text-slate-600 dark:text-slate-400">
-                Automations trigger based on the actual event date (30 days before, 7 days before, etc.)
-              </p>
-            </div>
-
-            {/* Feature 15 */}
-            <div className="bg-white dark:bg-slate-900 rounded-lg p-6 shadow-lg hover:shadow-xl transition-all hover:scale-105" data-testid="card-feature-templates">
-              <div className="bg-amber-100 dark:bg-amber-900 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
-                <BookOpen className="h-6 w-6 text-amber-600 dark:text-amber-400" />
-              </div>
-              <h3 className="font-bold text-lg mb-2">Template Library</h3>
-              <p className="text-sm text-slate-600 dark:text-slate-400">
-                Save your best-performing emails, packages, and workflows to reuse and scale
-              </p>
-            </div>
+            ))}
           </div>
+
+          {/* Desktop: Show All */}
+          <div className="hidden lg:grid lg:grid-cols-3 gap-6">
+            {allFeatures.map((feature) => (
+              <div 
+                key={feature.testid} 
+                className="bg-white dark:bg-slate-900 rounded-lg p-6 shadow-lg hover:shadow-xl transition-all hover:scale-105" 
+                data-testid={feature.testid}
+              >
+                <div className={`${feature.iconBg} w-12 h-12 rounded-lg flex items-center justify-center mb-4`}>
+                  <feature.Icon className={`h-6 w-6 ${feature.iconColor}`} />
+                </div>
+                <h3 className="font-bold text-lg mb-2">{feature.title}</h3>
+                <p className="text-sm text-slate-600 dark:text-slate-400">
+                  {feature.description}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          {/* Show More Button (Mobile Only) */}
+          {visibleFeatures < allFeatures.length && (
+            <div className="mt-8 text-center lg:hidden">
+              <Button
+                onClick={() => setVisibleFeatures(prev => Math.min(prev + 4, allFeatures.length))}
+                className="bg-white text-blue-600 hover:bg-blue-50"
+                size="lg"
+                data-testid="button-show-more-features"
+              >
+                Show More Features
+              </Button>
+            </div>
+          )}
         </div>
       </section>
 
