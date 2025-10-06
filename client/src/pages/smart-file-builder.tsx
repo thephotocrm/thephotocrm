@@ -826,12 +826,20 @@ export default function SmartFileBuilder() {
     enabled: !!id
   });
 
-  const { data: packages } = useQuery<any[]>({
+  const { data: packages, refetch: refetchPackages } = useQuery<any[]>({
     queryKey: ['/api/packages'],
     staleTime: 0,
     refetchOnWindowFocus: true,
-    refetchOnMount: true
+    refetchOnMount: true,
+    refetchOnReconnect: true
   });
+
+  // Refetch packages when preview opens to ensure fresh data
+  useEffect(() => {
+    if (isPreviewOpen) {
+      refetchPackages();
+    }
+  }, [isPreviewOpen, refetchPackages]);
 
   useEffect(() => {
     if (smartFile?.pages) {
@@ -1269,7 +1277,7 @@ export default function SmartFileBuilder() {
                                       <div className="px-4 py-2 rounded-lg bg-primary/10 border border-primary/20">
                                         <p className="text-xs text-muted-foreground mb-0.5">Package Price</p>
                                         <p className="text-xl font-bold text-primary">
-                                          ${(pkg.priceCents / 100).toFixed(2)}
+                                          ${(pkg.basePriceCents / 100).toFixed(2)}
                                         </p>
                                       </div>
                                     </div>
