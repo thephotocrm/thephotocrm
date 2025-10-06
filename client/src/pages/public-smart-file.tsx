@@ -395,12 +395,31 @@ export default function PublicSmartFile() {
                 </div>
                 {/* TEXT Page */}
                 {page.pageType === "TEXT" && (
-                  <Card>
-                    <CardHeader>
-                      <CardTitle data-testid={`text-page-title-${index}`}>{page.displayTitle}</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-6">
-                      {page.content.sections && page.content.sections.length > 0 ? (
+                  <>
+                    {/* Hero Section */}
+                    {page.content.hero?.backgroundImage && (
+                      <div 
+                        className="relative w-full h-[400px] flex items-center justify-center bg-cover bg-center rounded-t-lg overflow-hidden mb-6"
+                        style={{ backgroundImage: `url(${page.content.hero.backgroundImage})` }}
+                      >
+                        <div className="absolute inset-0 bg-black/30" />
+                        <div className="relative z-10 text-center text-white px-6 max-w-3xl">
+                          {page.content.hero.title && (
+                            <h1 className="text-5xl font-bold mb-4">{page.content.hero.title}</h1>
+                          )}
+                          {page.content.hero.description && (
+                            <p className="text-xl">{page.content.hero.description}</p>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                    
+                    <Card>
+                      <CardHeader>
+                        <CardTitle data-testid={`text-page-title-${index}`}>{page.displayTitle}</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-6">
+                        {page.content.sections && page.content.sections.length > 0 ? (
                         // Sections-based rendering
                         page.content.sections.map((section: any, secIdx: number) => (
                           <div key={secIdx}>
@@ -493,6 +512,7 @@ export default function PublicSmartFile() {
                       )}
                     </CardContent>
                   </Card>
+                  </>
                 )}
 
                 {/* PACKAGE Page */}

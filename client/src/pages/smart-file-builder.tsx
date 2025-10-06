@@ -82,7 +82,14 @@ type Section = {
   blocks: ContentBlock[];
 };
 
+type HeroSection = {
+  backgroundImage?: string;
+  title?: string;
+  description?: string;
+};
+
 type TextPageContent = {
+  hero?: HeroSection;
   sections?: Section[];
   // Legacy fields (for backwards compatibility)
   blocks?: ContentBlock[];
@@ -506,6 +513,163 @@ function SectionEditor({
   );
 }
 
+// Hero Section Editor Component
+function HeroSectionEditor({
+  hero,
+  onUpdate
+}: {
+  hero?: HeroSection;
+  onUpdate: (hero?: HeroSection) => void;
+}) {
+  const [localHero, setLocalHero] = useState<HeroSection | undefined>(hero);
+  const [isExpanded, setIsExpanded] = useState(!!hero?.backgroundImage);
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      onUpdate(localHero);
+    }, 300);
+    return () => clearTimeout(timeout);
+  }, [localHero]);
+
+  if (!isExpanded) {
+    return (
+      <Card>
+        <CardContent className="pt-6">
+          <Button
+            variant="outline"
+            onClick={() => setIsExpanded(true)}
+            data-testid="button-add-hero-section"
+          >
+            <ImageIcon className="w-4 h-4 mr-2" />
+            Add Hero Section
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className="border-2 border-primary/20">
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <ImageIcon className="w-5 h-5 text-primary" />
+            <span className="font-semibold">Hero Section</span>
+          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => {
+              setLocalHero(undefined);
+              setIsExpanded(false);
+            }}
+            data-testid="button-remove-hero-section"
+          >
+            <Trash className="w-4 h-4" />
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {/* Background Image Upload */}
+        <div className="space-y-2">
+          <Label>Background Image</Label>
+          {!localHero?.backgroundImage ? (
+            <div className="border-2 border-dashed rounded-lg p-6 text-center">
+              <Label
+                htmlFor="hero-background-upload"
+                className="cursor-pointer flex flex-col items-center gap-2"
+              >
+                <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center">
+                  <ImageIcon className="w-6 h-6 text-muted-foreground" />
+                </div>
+                <div>
+                  <span className="text-sm font-medium text-primary hover:underline">
+                    Click to upload background image
+                  </span>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Recommended: Wide landscape image (1920x600px)
+                  </p>
+                </div>
+              </Label>
+              <input
+                id="hero-background-upload"
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    const reader = new FileReader();
+                    reader.onloadend = () => {
+                      setLocalHero({ ...localHero, backgroundImage: reader.result as string });
+                    };
+                    reader.readAsDataURL(file);
+                  }
+                }}
+              />
+            </div>
+          ) : (
+            <div className="relative">
+              <img 
+                src={localHero.backgroundImage} 
+                alt="Hero background" 
+                className="w-full h-32 object-cover rounded border" 
+              />
+              <div className="flex gap-2 mt-2">
+                <Label
+                  htmlFor="hero-background-upload"
+                  className="cursor-pointer text-sm text-primary hover:underline"
+                >
+                  Change Image
+                </Label>
+                <input
+                  id="hero-background-upload"
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      const reader = new FileReader();
+                      reader.onloadend = () => {
+                        setLocalHero({ ...localHero, backgroundImage: reader.result as string });
+                      };
+                      reader.readAsDataURL(file);
+                    }
+                  }}
+                />
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Title Input */}
+        <div className="space-y-2">
+          <Label>Title (optional)</Label>
+          <Input
+            value={localHero?.title || ''}
+            onChange={(e) => setLocalHero({ ...localHero, title: e.target.value })}
+            placeholder="Enter hero title..."
+            data-testid="input-hero-title"
+          />
+        </div>
+
+        {/* Description Input */}
+        <div className="space-y-2">
+          <Label>Description (optional)</Label>
+          <Textarea
+            value={localHero?.description || ''}
+            onChange={(e) => setLocalHero({ ...localHero, description: e.target.value })}
+            placeholder="Enter hero description..."
+            rows={3}
+            data-testid="input-hero-description"
+          />
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 // Text Page Editor Component (Section-based)
 function TextPageEditor({ 
   page, 
@@ -559,19 +723,21 @@ function TextPageEditor({
     return [];
   };
 
+  const [hero, setHero] = useState<HeroSection | undefined>(content.hero);
   const [sections, setSections] = useState<Section[]>(initializeSections);
 
   useEffect(() => {
+    setHero(content.hero);
     setSections(initializeSections());
   }, [page.id]);
 
   useEffect(() => {
-    // Auto-save sections when they change
+    // Auto-save hero and sections when they change
     const timeout = setTimeout(() => {
-      onUpdate({ sections });
+      onUpdate({ hero, sections });
     }, 500);
     return () => clearTimeout(timeout);
-  }, [sections]);
+  }, [hero, sections]);
 
   const addSection = (columns: 1 | 2) => {
     const newSection: Section = {
@@ -596,6 +762,10 @@ function TextPageEditor({
 
   return (
     <div className="space-y-4">
+      {/* Hero Section Editor */}
+      <HeroSectionEditor hero={hero} onUpdate={setHero} />
+
+      {/* Section Controls */}
       <div className="flex gap-2">
         <Button
           variant="outline"
@@ -1525,7 +1695,27 @@ export default function SmartFileBuilder() {
                     <div className="space-y-6">
                     {/* Text Page Preview */}
                     {currentPage.pageType === 'TEXT' && currentPage.content && (
-                      <div className="max-w-[800px] mx-auto space-y-6">
+                      <div className="space-y-0">
+                        {/* Hero Section */}
+                        {currentPage.content.hero?.backgroundImage && (
+                          <div 
+                            className="relative w-full h-[400px] flex items-center justify-center bg-cover bg-center"
+                            style={{ backgroundImage: `url(${currentPage.content.hero.backgroundImage})` }}
+                          >
+                            <div className="absolute inset-0 bg-black/30" />
+                            <div className="relative z-10 text-center text-white px-6 max-w-3xl">
+                              {currentPage.content.hero.title && (
+                                <h1 className="text-5xl font-bold mb-4">{currentPage.content.hero.title}</h1>
+                              )}
+                              {currentPage.content.hero.description && (
+                                <p className="text-xl">{currentPage.content.hero.description}</p>
+                              )}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Content Sections */}
+                        <div className="max-w-[800px] mx-auto space-y-6 py-6">
                         {currentPage.content.sections && currentPage.content.sections.length > 0 ? (
                           // Sections-based rendering
                           currentPage.content.sections.map((section: Section, secIdx: number) => (
@@ -1622,6 +1812,7 @@ export default function SmartFileBuilder() {
                             )}
                           </div>
                         )}
+                        </div>
                       </div>
                     )}
 
@@ -1711,7 +1902,7 @@ export default function SmartFileBuilder() {
                           </div>
                         ) : (
                           <div className="p-6 border-2 border-dashed border-border rounded-xl text-center">
-                            <PackageIcon className="w-12 h-12 text-muted-foreground/50 mx-auto mb-3" />
+                            <Package className="w-12 h-12 text-muted-foreground/50 mx-auto mb-3" />
                             <p className="text-sm text-muted-foreground font-medium">
                               No packages selected yet
                             </p>
