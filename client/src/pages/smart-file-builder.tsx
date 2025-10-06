@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { 
   ArrowLeft, 
   FileText, 
@@ -19,7 +20,8 @@ import {
   Trash, 
   Copy,
   Save,
-  Loader2
+  Loader2,
+  Eye
 } from "lucide-react";
 import { Reorder, useDragControls } from "framer-motion";
 import type { SmartFileWithPages, SmartFilePage, InsertSmartFilePage } from "@shared/schema";
@@ -605,6 +607,7 @@ export default function SmartFileBuilder() {
   const [selectedPageId, setSelectedPageId] = useState<string | null>(null);
   const [pages, setPages] = useState<SmartFilePage[]>([]);
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'idle'>('idle');
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
   const { data: smartFile, isLoading } = useQuery<SmartFileWithPages>({
     queryKey: ["/api/smart-files", id],
@@ -846,6 +849,14 @@ export default function SmartFileBuilder() {
               )}
               <Button 
                 variant="outline" 
+                onClick={() => setIsPreviewOpen(true)}
+                data-testid="button-preview"
+              >
+                <Eye className="w-4 h-4 mr-2" />
+                Preview
+              </Button>
+              <Button 
+                variant="outline" 
                 onClick={() => setLocation("/smart-files")}
                 data-testid="button-back"
               >
@@ -910,6 +921,146 @@ export default function SmartFileBuilder() {
           </div>
         </ScrollArea>
       </div>
+
+      {/* Preview Dialog */}
+      <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Smart File Preview</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-6 py-4">
+            {/* Preview Header */}
+            <div className="text-center pb-6 border-b">
+              <h2 className="text-2xl font-bold mb-2">{smartFile.name}</h2>
+              {smartFile.description && (
+                <p className="text-muted-foreground">{smartFile.description}</p>
+              )}
+            </div>
+
+            {/* Preview Pages */}
+            {pages.length === 0 ? (
+              <div className="text-center py-12">
+                <FileText className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
+                <p className="text-muted-foreground">
+                  No pages added yet. Add pages to see them in the preview.
+                </p>
+              </div>
+            ) : (
+              pages.map((page) => (
+                <Card key={page.id}>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      {PAGE_TYPES[page.pageType as PageType] && (
+                        (() => {
+                          const Icon = PAGE_TYPES[page.pageType as PageType].icon;
+                          return <Icon className="w-5 h-5" />;
+                        })()
+                      )}
+                      {page.displayTitle}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {/* Text Page Preview */}
+                    {page.pageType === 'TEXT' && page.content && (
+                      <div className="space-y-4">
+                        {page.content.heading && (
+                          <h3 className="text-xl font-semibold">{page.content.heading}</h3>
+                        )}
+                        {page.content.content && (
+                          <p className="text-muted-foreground whitespace-pre-wrap">{page.content.content}</p>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Package Page Preview */}
+                    {page.pageType === 'PACKAGE' && page.content && (
+                      <div className="space-y-4">
+                        {page.content.heading && (
+                          <h3 className="text-xl font-semibold">{page.content.heading}</h3>
+                        )}
+                        {page.content.description && (
+                          <p className="text-muted-foreground">{page.content.description}</p>
+                        )}
+                        {page.content.packageIds && page.content.packageIds.length > 0 ? (
+                          <div className="text-sm text-muted-foreground">
+                            {page.content.packageIds.length} package(s) configured
+                          </div>
+                        ) : (
+                          <p className="text-sm text-muted-foreground italic">No packages selected yet</p>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Add-on Page Preview */}
+                    {page.pageType === 'ADDON' && page.content && (
+                      <div className="space-y-4">
+                        {page.content.heading && (
+                          <h3 className="text-xl font-semibold">{page.content.heading}</h3>
+                        )}
+                        {page.content.description && (
+                          <p className="text-muted-foreground">{page.content.description}</p>
+                        )}
+                        {page.content.items && page.content.items.length > 0 ? (
+                          <div className="space-y-2">
+                            {page.content.items.map((item: any, idx: number) => (
+                              <div key={idx} className="flex justify-between items-center p-3 border rounded-lg">
+                                <div>
+                                  <p className="font-medium">{item.name}</p>
+                                  {item.description && (
+                                    <p className="text-sm text-muted-foreground">{item.description}</p>
+                                  )}
+                                </div>
+                                <p className="font-semibold">
+                                  ${(item.priceCents / 100).toFixed(2)}
+                                </p>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-sm text-muted-foreground italic">No add-ons configured yet</p>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Payment Page Preview */}
+                    {page.pageType === 'PAYMENT' && page.content && (
+                      <div className="space-y-4">
+                        {page.content.heading && (
+                          <h3 className="text-xl font-semibold">{page.content.heading}</h3>
+                        )}
+                        {page.content.description && (
+                          <p className="text-muted-foreground">{page.content.description}</p>
+                        )}
+                        <div className="space-y-2 text-sm">
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Deposit Required:</span>
+                            <span className="font-medium">{page.content.depositPercent || 50}%</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Online Payments:</span>
+                            <span className="font-medium">
+                              {page.content.acceptOnlinePayments ? 'Enabled' : 'Disabled'}
+                            </span>
+                          </div>
+                          {page.content.paymentTerms && (
+                            <div className="mt-4 p-3 bg-muted rounded-lg">
+                              <p className="text-sm font-medium mb-1">Payment Terms:</p>
+                              <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                                {page.content.paymentTerms}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              ))
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
