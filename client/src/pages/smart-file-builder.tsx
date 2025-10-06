@@ -1805,8 +1805,8 @@ export default function SmartFileBuilder() {
               </div>
 
               {/* Current Page Display - Full Screen */}
-              <div className="flex-1 overflow-y-auto p-8">
-                <div className="max-w-7xl mx-auto pb-8">
+              <div className="flex-1 overflow-y-auto md:p-8">
+                <div className="max-w-7xl mx-auto md:pb-8">
                   {(() => {
                     const currentPage = pages[currentPreviewPageIndex];
                     return (
@@ -1835,7 +1835,7 @@ export default function SmartFileBuilder() {
                         )}
 
                         {/* Content Sections */}
-                        <div className="max-w-[800px] mx-auto space-y-6 py-6">
+                        <div className="max-w-[800px] mx-auto space-y-6 py-6 px-4 md:px-0">
                         {currentPage.content.sections && currentPage.content.sections.length > 0 ? (
                           // Sections-based rendering
                           currentPage.content.sections.map((section: Section, secIdx: number) => (
