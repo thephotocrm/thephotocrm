@@ -5,6 +5,18 @@ import { db } from '../db';
 import { clients, automations, automationSteps, stages, templates, emailLogs, smsLogs, automationExecutions, photographers, estimates, estimatePayments, projects, bookings, projectQuestionnaires, dripCampaigns, dripCampaignEmails, dripCampaignSubscriptions, dripEmailDeliveries, automationBusinessTriggers } from '@shared/schema';
 import { eq, and, gte, lte, isNull } from 'drizzle-orm';
 
+async function getParticipantEmailsForBCC(projectId: string): Promise<string[]> {
+  try {
+    const participants = await storage.getProjectParticipants(projectId);
+    return participants
+      .filter(p => p.client.emailOptIn && p.client.email)
+      .map(p => p.client.email);
+  } catch (error) {
+    console.error(`Error fetching participants for project ${projectId}:`, error);
+    return [];
+  }
+}
+
 // Bulletproof automation execution tracking with reservation pattern
 async function reserveAutomationExecution(
   projectId: string, 
@@ -475,6 +487,12 @@ async function processAutomationStep(client: any, step: any, automation: any): P
 
     console.log(`📧 Sending email to ${client.firstName} ${client.lastName} (${client.email})...`);
     
+    // Get participant emails for BCC
+    const participantEmails = await getParticipantEmailsForBCC(client.id);
+    if (participantEmails.length > 0) {
+      console.log(`📧 Including ${participantEmails.length} participants in BCC`);
+    }
+    
     // Use environment-configured verified sender
     const fromEmail = process.env.SENDGRID_FROM_EMAIL || 'scoop@missionscoopable.com';
     const fromName = photographer?.emailFromName || photographer?.businessName || 'Scoop Photography';
@@ -489,6 +507,7 @@ async function processAutomationStep(client: any, step: any, automation: any): P
       subject,
       html: htmlBody,
       text: textBody,
+      bcc: participantEmails.length > 0 ? participantEmails : undefined,
       photographerId: client.photographerId,
       clientId: client.clientId,
       projectId: client.id,
@@ -1010,6 +1029,12 @@ async function sendCountdownMessage(project: any, automation: any, photographerI
 
     console.log(`📧 Sending countdown email to ${project.firstName} ${project.lastName} (${project.email})...`);
     
+    // Get participant emails for BCC
+    const participantEmails = await getParticipantEmailsForBCC(project.id);
+    if (participantEmails.length > 0) {
+      console.log(`📧 Including ${participantEmails.length} participants in BCC`);
+    }
+    
     // Use environment-configured verified sender
     const fromEmail = process.env.SENDGRID_FROM_EMAIL || 'scoop@missionscoopable.com';
     const fromName = photographer?.emailFromName || photographer?.businessName || 'Scoop Photography';
@@ -1021,7 +1046,8 @@ async function sendCountdownMessage(project: any, automation: any, photographerI
       replyTo: `${fromName} <${replyToEmail}>`,
       subject,
       html: htmlBody,
-      text: textBody
+      text: textBody,
+      bcc: participantEmails.length > 0 ? participantEmails : undefined
     });
 
     console.log(`📧 Countdown email ${success ? 'sent successfully' : 'FAILED'} to ${project.firstName} ${project.lastName}`);
@@ -1432,6 +1458,12 @@ async function processSubscriptionEmail(subscription: any, campaign: any, projec
     // Send email
     console.log(`📧 Sending drip email to ${client.firstName} ${client.lastName} (${client.email})...`);
     
+    // Get participant emails for BCC
+    const participantEmails = await getParticipantEmailsForBCC(project.id);
+    if (participantEmails.length > 0) {
+      console.log(`📧 Including ${participantEmails.length} participants in BCC`);
+    }
+    
     const fromEmail = process.env.SENDGRID_FROM_EMAIL || 'scoop@missionscoopable.com';
     const fromName = photographer?.emailFromName || photographer?.businessName || 'Scoop Photography';
     const replyToEmail = photographer?.emailFromAddr || process.env.SENDGRID_REPLY_TO || fromEmail;
@@ -1443,6 +1475,7 @@ async function processSubscriptionEmail(subscription: any, campaign: any, projec
       subject,
       html: htmlBody,
       text: textBody,
+      bcc: participantEmails.length > 0 ? participantEmails : undefined,
       photographerId: client.photographerId,
       clientId: client.clientId,
       projectId: project.id,
