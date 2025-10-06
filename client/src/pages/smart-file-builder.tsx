@@ -1855,14 +1855,15 @@ export default function SmartFileBuilder() {
                                         const imageData: ImageContent = typeof block.content === 'string' 
                                           ? { url: block.content, borderRadius: 'straight', size: 'medium' }
                                           : block.content;
+                                        const sizeClass = imageData.size === 'small' ? 'h-[100px] w-[100px]' : imageData.size === 'large' ? 'h-[300px] w-[300px]' : 'h-[150px] w-[150px]';
                                         return (
                                           <img 
                                             src={imageData.url} 
                                             alt="" 
                                             className={cn(
-                                              "w-full border border-border",
-                                              imageData.borderRadius === 'rounded' ? 'rounded-full aspect-square object-cover' : 'rounded-none object-contain',
-                                              imageData.size === 'small' ? 'max-h-[100px] max-w-[100px]' : imageData.size === 'large' ? 'max-h-[300px] max-w-[300px]' : 'max-h-[150px] max-w-[150px]'
+                                              "border border-border",
+                                              imageData.borderRadius === 'rounded' ? 'rounded-full aspect-square object-cover' : 'rounded-none object-contain max-w-full',
+                                              sizeClass
                                             )} 
                                           />
                                         );
