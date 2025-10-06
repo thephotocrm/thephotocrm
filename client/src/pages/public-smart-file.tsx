@@ -452,7 +452,7 @@ export default function PublicSmartFile() {
                                           src={imageData.url} 
                                           alt="" 
                                           className={cn(
-                                            "w-full",
+                                            "w-full border border-border",
                                             imageData.borderRadius === 'rounded' ? 'rounded-full aspect-square object-cover' : 'rounded-none object-contain',
                                             imageData.size === 'small' ? 'max-h-[100px] max-w-[100px]' : imageData.size === 'large' ? 'max-h-[300px] max-w-[300px]' : 'max-h-[150px] max-w-[150px]'
                                           )} 
