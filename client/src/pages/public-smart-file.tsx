@@ -546,7 +546,10 @@ export default function PublicSmartFile() {
                                 </div>
 
                                 {isSelected && (
-                                  <div className="flex items-center gap-3 mt-4 p-3 bg-background/50 rounded-lg border border-primary/20" onClick={(e) => e.stopPropagation()}>
+                                  <div 
+                                    className="flex items-center gap-3 mt-4 p-3 bg-gradient-to-br from-primary/5 to-background/50 rounded-lg border border-primary/30 shadow-sm animate-in slide-in-from-top-2 duration-300" 
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
                                     <div className="flex items-center gap-2">
                                       <Button
                                         type="button"
@@ -555,7 +558,7 @@ export default function PublicSmartFile() {
                                         onClick={() => handleAddOnQuantityChange(page, addOn, -1)}
                                         disabled={isAccepted || quantity <= 1}
                                         data-testid={`button-decrease-quantity-${addOn.id}`}
-                                        className="h-8 w-8 p-0 hover:bg-primary/10 hover:border-primary"
+                                        className="h-8 w-8 p-0 hover:bg-primary/10 hover:border-primary hover:scale-110 active:scale-95 transition-all duration-200"
                                       >
                                         <Minus className="w-3.5 h-3.5" />
                                       </Button>
@@ -564,8 +567,9 @@ export default function PublicSmartFile() {
                                           type="number"
                                           value={quantity}
                                           readOnly
-                                          className="h-8 text-center font-semibold border-primary/30"
+                                          className="h-8 text-center font-bold border-primary/40 bg-white dark:bg-background text-primary transition-all duration-200"
                                           data-testid={`input-quantity-${addOn.id}`}
+                                          key={quantity}
                                         />
                                       </div>
                                       <Button
@@ -575,15 +579,15 @@ export default function PublicSmartFile() {
                                         onClick={() => handleAddOnQuantityChange(page, addOn, 1)}
                                         disabled={isAccepted || quantity >= 10}
                                         data-testid={`button-increase-quantity-${addOn.id}`}
-                                        className="h-8 w-8 p-0 hover:bg-primary/10 hover:border-primary"
+                                        className="h-8 w-8 p-0 hover:bg-primary/10 hover:border-primary hover:scale-110 active:scale-95 transition-all duration-200"
                                       >
                                         <Plus className="w-3.5 h-3.5" />
                                       </Button>
                                     </div>
                                     <div className="flex-1" />
                                     <div className="text-right">
-                                      <p className="text-xs text-muted-foreground mb-0.5">Total</p>
-                                      <p className="font-bold text-base text-primary">
+                                      <p className="text-xs text-muted-foreground mb-0.5 font-medium">Total</p>
+                                      <p className="font-bold text-lg text-primary transition-all duration-300" key={`total-${quantity}`}>
                                         {formatPrice(addOn.priceCents * quantity)}
                                       </p>
                                     </div>
