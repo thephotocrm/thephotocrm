@@ -19,7 +19,8 @@ import { insertUserSchema, insertPhotographerSchema, insertClientSchema, insertS
          emailLogs, smsLogs, projectActivityLog,
          projectTypeEnum, createOnboardingLinkSchema, createPayoutSchema, insertDailyAvailabilityTemplateSchema,
          insertDailyAvailabilityBreakSchema, insertDailyAvailabilityOverrideSchema,
-         insertDripCampaignSchema, insertDripCampaignEmailSchema, insertDripCampaignSubscriptionSchema, insertProjectParticipantSchema } from "@shared/schema";
+         insertDripCampaignSchema, insertDripCampaignEmailSchema, insertDripCampaignSubscriptionSchema, insertProjectParticipantSchema,
+         insertSmartFileSchema, insertSmartFilePageSchema } from "@shared/schema";
 import { z } from "zod";
 import { startCronJobs } from "./jobs/cron";
 import { processAutomations } from "./services/automation";
@@ -2008,6 +2009,231 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       res.json(updatedEstimate);
     } catch (error) {
       console.error('Send proposal error:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Smart Files Routes
+  // GET /api/smart-files - Get all Smart Files for photographer
+  app.get("/api/smart-files", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      const smartFiles = await storage.getSmartFilesByPhotographer(req.user!.photographerId!);
+      res.json(smartFiles);
+    } catch (error) {
+      console.error("Get smart files error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // POST /api/smart-files - Create new Smart File
+  app.post("/api/smart-files", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      const smartFileData = insertSmartFileSchema.parse({
+        ...req.body,
+        photographerId: req.user!.photographerId!
+      });
+      const smartFile = await storage.createSmartFile(smartFileData);
+      res.status(201).json(smartFile);
+    } catch (error: any) {
+      console.error("Create smart file error:", error);
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ message: "Invalid smart file data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // GET /api/smart-files/:id - Get Smart File with pages
+  app.get("/api/smart-files/:id", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      const smartFile = await storage.getSmartFile(req.params.id);
+      
+      if (!smartFile) {
+        return res.status(404).json({ message: "Smart File not found" });
+      }
+
+      // Verify ownership
+      if (smartFile.photographerId !== req.user!.photographerId!) {
+        return res.status(404).json({ message: "Smart File not found" });
+      }
+
+      res.json(smartFile);
+    } catch (error) {
+      console.error("Get smart file error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // PATCH /api/smart-files/:id - Update Smart File
+  app.patch("/api/smart-files/:id", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      const smartFile = await storage.getSmartFile(req.params.id);
+      
+      if (!smartFile) {
+        return res.status(404).json({ message: "Smart File not found" });
+      }
+
+      // Verify ownership
+      if (smartFile.photographerId !== req.user!.photographerId!) {
+        return res.status(404).json({ message: "Smart File not found" });
+      }
+
+      const updatedSmartFile = await storage.updateSmartFile(req.params.id, req.body);
+      res.json(updatedSmartFile);
+    } catch (error) {
+      console.error("Update smart file error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // DELETE /api/smart-files/:id - Delete Smart File
+  app.delete("/api/smart-files/:id", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      const smartFile = await storage.getSmartFile(req.params.id);
+      
+      if (!smartFile) {
+        return res.status(404).json({ message: "Smart File not found" });
+      }
+
+      // Verify ownership
+      if (smartFile.photographerId !== req.user!.photographerId!) {
+        return res.status(404).json({ message: "Smart File not found" });
+      }
+
+      await storage.deleteSmartFile(req.params.id);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Delete smart file error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // POST /api/smart-files/:id/pages - Create new page
+  app.post("/api/smart-files/:id/pages", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      const smartFile = await storage.getSmartFile(req.params.id);
+      
+      if (!smartFile) {
+        return res.status(404).json({ message: "Smart File not found" });
+      }
+
+      // Verify ownership
+      if (smartFile.photographerId !== req.user!.photographerId!) {
+        return res.status(404).json({ message: "Smart File not found" });
+      }
+
+      const pageData = insertSmartFilePageSchema.parse({
+        ...req.body,
+        smartFileId: req.params.id
+      });
+      
+      const page = await storage.createSmartFilePage(pageData);
+      res.status(201).json(page);
+    } catch (error: any) {
+      console.error("Create smart file page error:", error);
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ message: "Invalid page data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // PATCH /api/smart-files/:id/pages/:pageId - Update page
+  app.patch("/api/smart-files/:id/pages/:pageId", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      const smartFile = await storage.getSmartFile(req.params.id);
+      
+      if (!smartFile) {
+        return res.status(404).json({ message: "Smart File not found" });
+      }
+
+      // Verify ownership
+      if (smartFile.photographerId !== req.user!.photographerId!) {
+        return res.status(404).json({ message: "Smart File not found" });
+      }
+
+      const updatedPage = await storage.updateSmartFilePage(req.params.pageId, req.body);
+      res.json(updatedPage);
+    } catch (error) {
+      console.error("Update smart file page error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // DELETE /api/smart-files/:id/pages/:pageId - Delete page
+  app.delete("/api/smart-files/:id/pages/:pageId", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      const smartFile = await storage.getSmartFile(req.params.id);
+      
+      if (!smartFile) {
+        return res.status(404).json({ message: "Smart File not found" });
+      }
+
+      // Verify ownership
+      if (smartFile.photographerId !== req.user!.photographerId!) {
+        return res.status(404).json({ message: "Smart File not found" });
+      }
+
+      await storage.deleteSmartFilePage(req.params.pageId);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Delete smart file page error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // POST /api/smart-files/:id/pages/reorder - Reorder pages
+  app.post("/api/smart-files/:id/pages/reorder", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      const smartFile = await storage.getSmartFile(req.params.id);
+      
+      if (!smartFile) {
+        return res.status(404).json({ message: "Smart File not found" });
+      }
+
+      // Verify ownership
+      if (smartFile.photographerId !== req.user!.photographerId!) {
+        return res.status(404).json({ message: "Smart File not found" });
+      }
+
+      const { pageOrders } = req.body;
+      
+      if (!Array.isArray(pageOrders)) {
+        return res.status(400).json({ message: "pageOrders must be an array" });
+      }
+
+      await storage.reorderSmartFilePages(req.params.id, pageOrders);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Reorder smart file pages error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // GET /api/projects/:id/smart-files - Get Smart Files attached to project
+  app.get("/api/projects/:id/smart-files", authenticateToken, async (req, res) => {
+    try {
+      const { id: projectId } = req.params;
+      
+      // Get the project to verify access
+      const project = await storage.getProject(projectId);
+      
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // Verify access - photographer or client portal
+      const isPhotographer = req.user?.photographerId === project.photographerId;
+      const isClient = req.user?.clientId === project.clientId;
+      
+      if (!isPhotographer && !isClient) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      const projectSmartFiles = await storage.getProjectSmartFilesByProject(projectId);
+      res.json(projectSmartFiles);
+    } catch (error) {
+      console.error("Get project smart files error:", error);
       res.status(500).json({ message: "Internal server error" });
     }
   });
