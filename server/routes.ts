@@ -2461,6 +2461,28 @@ ${photographer?.businessName || 'Your Photography Team'}`;
     }
   });
 
+  // GET /api/public/smart-files/:token/packages - Get fresh package data for Smart File (PUBLIC ROUTE)
+  app.get("/api/public/smart-files/:token/packages", async (req, res) => {
+    try {
+      const { token } = req.params;
+
+      // Find projectSmartFile by token
+      const projectSmartFile = await storage.getProjectSmartFileByToken(token);
+      
+      if (!projectSmartFile) {
+        return res.status(404).json({ message: "Smart File not found" });
+      }
+
+      // Get all packages for this photographer
+      const packages = await storage.getPackagesByPhotographer(projectSmartFile.photographerId);
+
+      res.json(packages);
+    } catch (error) {
+      console.error("Get smart file packages error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   // PATCH /api/public/smart-files/:token/accept - Accept Smart File and store selections (PUBLIC ROUTE)
   app.patch("/api/public/smart-files/:token/accept", async (req, res) => {
     try {

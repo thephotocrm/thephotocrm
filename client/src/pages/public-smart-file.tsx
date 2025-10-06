@@ -123,6 +123,49 @@ export default function PublicSmartFile() {
     }
   });
 
+  // Fetch fresh package data to show latest name, description, and images
+  const { data: freshPackages } = useQuery<any[]>({
+    queryKey: [`/api/public/smart-files/${params?.token}/packages`],
+    enabled: !!params?.token && !!data,
+    staleTime: 0, // Always consider data stale
+    refetchOnWindowFocus: true, // Refetch when user returns to tab
+    refetchOnMount: true, // Refetch when component mounts
+  });
+
+  // Helper function to merge fresh package data with page snapshots
+  const getMergedPages = () => {
+    if (!data || !freshPackages) return data?.smartFile.pages || [];
+    
+    return data.smartFile.pages.map(page => {
+      if (page.pageType !== 'PACKAGE' || !page.content.packages) {
+        return page;
+      }
+
+      // Merge fresh package data with snapshot packages
+      const mergedPackages = page.content.packages.map((snapshotPkg: any) => {
+        const freshPkg = freshPackages.find(fp => fp.id === snapshotPkg.id);
+        
+        if (!freshPkg) return snapshotPkg; // Package might have been deleted
+        
+        // Use fresh data for name, description, and image, but keep snapshot price
+        return {
+          ...snapshotPkg,
+          name: freshPkg.name,
+          description: freshPkg.description,
+          imageUrl: freshPkg.imageUrl
+        };
+      });
+
+      return {
+        ...page,
+        content: {
+          ...page.content,
+          packages: mergedPackages
+        }
+      };
+    });
+  };
+
   const acceptMutation = useMutation({
     mutationFn: async (acceptanceData: any) => {
       // First, accept the Smart File
@@ -297,7 +340,8 @@ export default function PublicSmartFile() {
     );
   }
 
-  const sortedPages = [...(data.smartFile.pages || [])].sort((a, b) => a.pageOrder - b.pageOrder);
+  const mergedPages = getMergedPages();
+  const sortedPages = [...mergedPages].sort((a, b) => a.pageOrder - b.pageOrder);
   const isAccepted = data.projectSmartFile.status === 'ACCEPTED';
 
   return (
