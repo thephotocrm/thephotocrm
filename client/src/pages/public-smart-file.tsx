@@ -342,7 +342,13 @@ export default function PublicSmartFile() {
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
             {sortedPages.map((page, index) => (
-              <div key={page.id} data-testid={`page-${page.pageType.toLowerCase()}-${index}`}>
+              <div key={page.id} data-testid={`page-${page.pageType.toLowerCase()}-${index}`} className="relative">
+                {/* Page Number Indicator */}
+                <div className="flex justify-center mb-3">
+                  <div className="text-sm font-medium text-muted-foreground bg-muted px-4 py-1.5 rounded-full">
+                    Page {index + 1} of {sortedPages.length}
+                  </div>
+                </div>
                 {/* TEXT Page */}
                 {page.pageType === "TEXT" && (
                   <Card>
@@ -382,11 +388,11 @@ export default function PublicSmartFile() {
                           <div key={pkg.id} data-testid={`card-package-${pkg.id}`}>
                             <label
                               className={`
-                                group relative block p-6 rounded-xl border-2 cursor-pointer
+                                group relative block rounded-xl border-2 cursor-pointer overflow-hidden
                                 transition-all duration-300 ease-out
                                 ${selectedPackage?.packageId === pkg.id
-                                  ? 'border-primary bg-gradient-to-br from-primary/10 via-primary/5 to-background shadow-lg shadow-primary/20 scale-[1.02]'
-                                  : 'border-border bg-card hover:border-primary/50 hover:shadow-md hover:scale-[1.01]'
+                                  ? 'border-primary bg-gradient-to-br from-primary/10 via-primary/5 to-background shadow-xl shadow-primary/20 scale-[1.02]'
+                                  : 'border-border bg-card hover:border-primary/50 hover:shadow-lg hover:scale-[1.01]'
                                 }
                                 ${isAccepted ? 'cursor-not-allowed opacity-60' : ''}
                               `}
@@ -395,9 +401,23 @@ export default function PublicSmartFile() {
                                 animationDelay: `${pkgIdx * 100}ms`
                               }}
                             >
+                              {/* Package Image */}
+                              {pkg.imageUrl && (
+                                <div className="-m-px mb-0">
+                                  <img 
+                                    src={pkg.imageUrl} 
+                                    alt={pkg.name}
+                                    className="w-full h-48 object-cover border-b-2 border-border"
+                                    onError={(e) => {
+                                      e.currentTarget.style.display = 'none';
+                                    }}
+                                  />
+                                </div>
+                              )}
+
                               {/* Selection Indicator - Top Right Badge */}
                               {selectedPackage?.packageId === pkg.id && (
-                                <div className="absolute top-4 right-4">
+                                <div className="absolute top-4 right-4 z-10">
                                   <div className="flex items-center gap-1.5 px-3 py-1.5 bg-primary text-primary-foreground rounded-full text-xs font-semibold shadow-lg">
                                     <CheckCircle className="w-3.5 h-3.5" />
                                     Selected
@@ -405,7 +425,7 @@ export default function PublicSmartFile() {
                                 </div>
                               )}
 
-                              <div className="flex items-start gap-4">
+                              <div className={`flex items-start gap-4 ${pkg.imageUrl ? 'p-6' : 'p-6'}`}>
                                 <RadioGroupItem 
                                   value={pkg.id} 
                                   id={pkg.id}

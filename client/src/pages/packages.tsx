@@ -34,6 +34,7 @@ interface Package {
   id: string;
   name: string;
   description?: string;
+  imageUrl?: string;
   basePriceCents: number;
   createdAt: string;
 }
@@ -47,6 +48,7 @@ export default function Packages() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+  const [imageUrl, setImageUrl] = useState("");
   const [basePrice, setBasePrice] = useState("");
 
   // ALL HOOKS MUST BE CALLED BEFORE ANY CONDITIONAL LOGIC
@@ -100,6 +102,7 @@ export default function Packages() {
   const resetForm = () => {
     setName("");
     setDescription("");
+    setImageUrl("");
     setBasePrice("");
   };
 
@@ -109,6 +112,7 @@ export default function Packages() {
     createPackageMutation.mutate({
       name,
       description: description || undefined,
+      imageUrl: imageUrl || undefined,
       basePriceCents: Math.round(parseFloat(basePrice) * 100)
     });
   };
@@ -174,6 +178,19 @@ export default function Packages() {
                       rows={3}
                       data-testid="textarea-description"
                     />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="imageUrl">Package Image URL (optional)</Label>
+                    <Input
+                      id="imageUrl"
+                      value={imageUrl}
+                      onChange={(e) => setImageUrl(e.target.value)}
+                      placeholder="https://example.com/package-image.jpg"
+                      type="url"
+                      data-testid="input-image-url"
+                    />
+                    <p className="text-xs text-muted-foreground">Add a beautiful image to showcase this package</p>
                   </div>
                   
                   <div className="space-y-2">

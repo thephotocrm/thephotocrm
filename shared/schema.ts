@@ -529,6 +529,7 @@ export const packages = pgTable("packages", {
   photographerId: varchar("photographer_id").notNull().references(() => photographers.id),
   name: text("name").notNull(),
   description: text("description"),
+  imageUrl: text("image_url"),
   basePriceCents: integer("base_price_cents").notNull(),
   createdAt: timestamp("created_at").defaultNow()
 });
