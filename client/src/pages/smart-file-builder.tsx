@@ -263,7 +263,7 @@ function BlockEditor({
                             alt="Uploaded" 
                             className={cn(
                               "w-full object-contain border",
-                              imageData.borderRadius === 'rounded' ? 'rounded-lg' : 'rounded-none',
+                              imageData.borderRadius === 'rounded' ? 'rounded-3xl' : 'rounded-none',
                               imageData.size === 'small' ? 'max-h-32' : imageData.size === 'large' ? 'max-h-96' : 'max-h-48'
                             )} 
                           />
@@ -1861,7 +1861,7 @@ export default function SmartFileBuilder() {
                                             alt="" 
                                             className={cn(
                                               "w-full object-contain",
-                                              imageData.borderRadius === 'rounded' ? 'rounded-lg' : 'rounded-none',
+                                              imageData.borderRadius === 'rounded' ? 'rounded-3xl' : 'rounded-none',
                                               imageData.size === 'small' ? 'max-h-[100px]' : imageData.size === 'large' ? 'max-h-[300px]' : 'max-h-[150px]'
                                             )} 
                                           />
@@ -1894,7 +1894,7 @@ export default function SmartFileBuilder() {
                                               alt="" 
                                               className={cn(
                                                 "w-full object-contain",
-                                                imageData.borderRadius === 'rounded' ? 'rounded-lg' : 'rounded-none',
+                                                imageData.borderRadius === 'rounded' ? 'rounded-3xl' : 'rounded-none',
                                                 imageData.size === 'small' ? 'max-h-[100px]' : imageData.size === 'large' ? 'max-h-[300px]' : 'max-h-[150px]'
                                               )} 
                                             />
@@ -1925,7 +1925,7 @@ export default function SmartFileBuilder() {
                                               alt="" 
                                               className={cn(
                                                 "w-full object-contain",
-                                                imageData.borderRadius === 'rounded' ? 'rounded-lg' : 'rounded-none',
+                                                imageData.borderRadius === 'rounded' ? 'rounded-3xl' : 'rounded-none',
                                                 imageData.size === 'small' ? 'max-h-[100px]' : imageData.size === 'large' ? 'max-h-[300px]' : 'max-h-[150px]'
                                               )} 
                                             />

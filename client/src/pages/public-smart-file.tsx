@@ -453,7 +453,7 @@ export default function PublicSmartFile() {
                                           alt="" 
                                           className={cn(
                                             "w-full object-contain",
-                                            imageData.borderRadius === 'rounded' ? 'rounded-lg' : 'rounded-none',
+                                            imageData.borderRadius === 'rounded' ? 'rounded-3xl' : 'rounded-none',
                                             imageData.size === 'small' ? 'max-h-[100px]' : imageData.size === 'large' ? 'max-h-[300px]' : 'max-h-[150px]'
                                           )} 
                                         />
