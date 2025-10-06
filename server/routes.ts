@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import cookieParser from 'cookie-parser';
 import Stripe from "stripe";
+import { eq } from "drizzle-orm";
 import { storage } from "./storage";
 import { db } from "./db";
 import { authenticateToken, requirePhotographer, requireRole, requireAdmin, requireActiveSubscription } from "./middleware/auth";
@@ -20,7 +21,7 @@ import { insertUserSchema, insertPhotographerSchema, insertClientSchema, insertS
          projectTypeEnum, createOnboardingLinkSchema, createPayoutSchema, insertDailyAvailabilityTemplateSchema,
          insertDailyAvailabilityBreakSchema, insertDailyAvailabilityOverrideSchema,
          insertDripCampaignSchema, insertDripCampaignEmailSchema, insertDripCampaignSubscriptionSchema, insertProjectParticipantSchema,
-         insertSmartFileSchema, insertSmartFilePageSchema } from "@shared/schema";
+         insertSmartFileSchema, insertSmartFilePageSchema, users } from "@shared/schema";
 import { z } from "zod";
 import { startCronJobs } from "./jobs/cron";
 import { processAutomations } from "./services/automation";
@@ -2317,7 +2318,39 @@ ${photographer?.businessName || 'Your Photography Team'}`;
         sentAt: new Date()
       });
 
-      // TODO: Send email to client with link to view Smart File
+      // Send email to client with link to view Smart File
+      try {
+        const [client, photographer, smartFile] = await Promise.all([
+          storage.getClient(project.clientId),
+          storage.getPhotographer(project.photographerId),
+          storage.getSmartFile(projectSmartFile.smartFileId)
+        ]);
+
+        if (client && client.email && client.emailOptIn && photographer && smartFile) {
+          const smartFileUrl = `${process.env.VITE_APP_URL || 'https://thephotocrm.com'}/smart-file/${updatedProjectSmartFile.token}`;
+          
+          await sendEmail({
+            photographerId: photographer.id,
+            clientId: client.id,
+            projectId: project.id,
+            to: client.email,
+            subject: `${photographer.businessName} sent you a proposal`,
+            html: `
+              <h2>You have a new proposal!</h2>
+              <p>Hi ${client.firstName},</p>
+              <p>${photographer.businessName} has sent you a proposal titled "${smartFile.name}".</p>
+              <p>Review your proposal, select your package and add-ons, and proceed to payment:</p>
+              <p><a href="${smartFileUrl}" style="background: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">View Proposal</a></p>
+              <p>If you have any questions, reply to this email.</p>
+              <p>Best regards,<br>${photographer.businessName}</p>
+            `,
+            text: `You have a new proposal from ${photographer.businessName}!\n\nProposal: ${smartFile.name}\n\nView and select your package at: ${smartFileUrl}\n\nIf you have any questions, reply to this email.\n\nBest regards,\n${photographer.businessName}`
+          });
+        }
+      } catch (emailError) {
+        console.error("Error sending Smart File email:", emailError);
+        // Don't fail the request if email fails
+      }
 
       res.json({ 
         success: true, 
@@ -2451,6 +2484,53 @@ ${photographer?.businessName || 'Your Photography Team'}`;
         totalCents,
         depositCents
       });
+
+      // Send notification to photographer
+      try {
+        const [project, client, photographer, smartFile] = await Promise.all([
+          storage.getProject(projectSmartFile.projectId),
+          storage.getClient(projectSmartFile.clientId),
+          storage.getPhotographer(projectSmartFile.photographerId),
+          storage.getSmartFile(projectSmartFile.smartFileId)
+        ]);
+
+        if (photographer && client && project && smartFile) {
+          // Get photographer's user email
+          const [photographerUser] = await db.select()
+            .from(users)
+            .where(eq(users.photographerId, photographer.id))
+            .limit(1);
+
+          if (photographerUser && photographerUser.email) {
+            const packageName = selectedPackages && selectedPackages.length > 0 
+              ? (Array.isArray(selectedPackages) ? selectedPackages[0]?.name : JSON.parse(selectedPackages)?.[0]?.name)
+              : 'Package';
+
+            await sendEmail({
+              photographerId: photographer.id,
+              clientId: client.id,
+              projectId: project.id,
+              to: photographerUser.email,
+              subject: `${client.firstName} ${client.lastName} accepted your proposal!`,
+              html: `
+                <h2>Great news! Your proposal was accepted!</h2>
+                <p>Hi ${photographer.businessName},</p>
+                <p>${client.firstName} ${client.lastName} has accepted your proposal "${smartFile.name}".</p>
+                <p><strong>Selected Package:</strong> ${packageName}</p>
+                <p><strong>Total Amount:</strong> $${((totalCents || 0) / 100).toFixed(2)}</p>
+                ${depositCents ? `<p><strong>Deposit Amount:</strong> $${(depositCents / 100).toFixed(2)}</p>` : ''}
+                <p>Your client will proceed to payment shortly.</p>
+                <p>View project details in your dashboard.</p>
+                <p>Best regards,<br>Your CRM System</p>
+              `,
+              text: `Great news! Your proposal was accepted!\n\n${client.firstName} ${client.lastName} has accepted your proposal "${smartFile.name}".\n\nSelected Package: ${packageName}\nTotal: $${((totalCents || 0) / 100).toFixed(2)}${depositCents ? `\nDeposit: $${(depositCents / 100).toFixed(2)}` : ''}\n\nYour client will proceed to payment shortly.\n\nView project details in your dashboard.`
+            });
+          }
+        }
+      } catch (emailError) {
+        console.error("Error sending acceptance notification:", emailError);
+        // Don't fail the request if email fails
+      }
 
       res.json(updated);
     } catch (error) {
