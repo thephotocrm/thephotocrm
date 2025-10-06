@@ -166,6 +166,23 @@ export const projects = pgTable("projects", {
   createdAt: timestamp("created_at").defaultNow()
 });
 
+export const projectParticipants = pgTable("project_participants", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  projectId: varchar("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
+  clientId: varchar("client_id").notNull().references(() => clients.id, { onDelete: "cascade" }),
+  addedBy: text("added_by").notNull(), // PHOTOGRAPHER or CLIENT
+  inviteSent: boolean("invite_sent").default(false),
+  inviteSentAt: timestamp("invite_sent_at"),
+  createdAt: timestamp("created_at").defaultNow()
+}, (table) => ({
+  // Index for quick lookups by project
+  projectIdIdx: index("project_participants_project_id_idx").on(table.projectId),
+  // Index for quick lookups by client (to find all projects they're a participant in)
+  clientIdIdx: index("project_participants_client_id_idx").on(table.clientId),
+  // Unique constraint: one participant can only be added once per project
+  uniqueProjectClientIdx: unique("project_participants_project_client_unique").on(table.projectId, table.clientId)
+}));
+
 export const templates = pgTable("templates", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   photographerId: varchar("photographer_id").notNull().references(() => photographers.id),
@@ -775,7 +792,8 @@ export const clientsRelations = relations(clients, ({ one, many }) => ({
   }),
   projects: many(projects),
   messages: many(messages),
-  emailHistory: many(emailHistory)
+  emailHistory: many(emailHistory),
+  participantProjects: many(projectParticipants)
 }));
 
 export const projectsRelations = relations(projects, ({ one, many }) => ({
@@ -797,7 +815,19 @@ export const projectsRelations = relations(projects, ({ one, many }) => ({
   checklistItems: many(projectChecklistItems),
   questionnaires: many(projectQuestionnaires),
   estimates: many(estimates),
-  activityLog: many(projectActivityLog)
+  activityLog: many(projectActivityLog),
+  participants: many(projectParticipants)
+}));
+
+export const projectParticipantsRelations = relations(projectParticipants, ({ one }) => ({
+  project: one(projects, {
+    fields: [projectParticipants.projectId],
+    references: [projects.id]
+  }),
+  client: one(clients, {
+    fields: [projectParticipants.clientId],
+    references: [clients.id]
+  })
 }));
 
 export const templatesRelations = relations(templates, ({ one, many }) => ({
@@ -1022,6 +1052,13 @@ export const insertProjectSchema = createInsertSchema(projects).omit({
   eventDate: z.string().optional().transform((val) => val ? new Date(val) : undefined)
 });
 
+export const insertProjectParticipantSchema = createInsertSchema(projectParticipants).omit({
+  id: true,
+  createdAt: true,
+  inviteSent: true,
+  inviteSentAt: true
+});
+
 export const insertStageSchema = createInsertSchema(stages).omit({
   id: true
 });
@@ -1186,6 +1223,8 @@ export type Client = typeof clients.$inferSelect;
 export type InsertClient = z.infer<typeof insertClientSchema>;
 export type Project = typeof projects.$inferSelect;
 export type InsertProject = z.infer<typeof insertProjectSchema>;
+export type ProjectParticipant = typeof projectParticipants.$inferSelect;
+export type InsertProjectParticipant = z.infer<typeof insertProjectParticipantSchema>;
 export type Stage = typeof stages.$inferSelect;
 export type InsertStage = z.infer<typeof insertStageSchema>;
 export type Template = typeof templates.$inferSelect;
