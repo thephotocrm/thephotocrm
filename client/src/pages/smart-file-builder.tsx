@@ -119,7 +119,7 @@ const BLOCK_TYPES = {
   HEADING: { icon: Type, label: 'Heading', placeholder: 'Enter heading...' },
   TEXT: { icon: AlignLeft, label: 'Text', placeholder: 'Enter text content...' },
   SPACER: { icon: MoveVertical, label: 'Spacer', placeholder: '' },
-  IMAGE: { icon: ImageIcon, label: 'Image', placeholder: 'Image URL...' }
+  IMAGE: { icon: ImageIcon, label: 'Image', placeholder: '' }
 } as const;
 
 // Block Editor Component
@@ -194,43 +194,74 @@ function BlockEditor({
               )}
               
               {block.type === 'IMAGE' && (
-                <div className="space-y-2">
-                  <Input
-                    value={localContent || ''}
-                    onChange={(e) => setLocalContent(e.target.value)}
-                    onBlur={handleBlur}
-                    placeholder={BLOCK_TYPES.IMAGE.placeholder}
-                    data-testid={`block-image-${block.id}`}
-                  />
-                  <div>
-                    <Label
-                      htmlFor={`image-upload-${block.id}`}
-                      className="cursor-pointer inline-flex items-center gap-2 text-sm text-primary hover:underline"
-                    >
-                      <ImageIcon className="w-4 h-4" />
-                      Upload Image
-                    </Label>
-                    <input
-                      id={`image-upload-${block.id}`}
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          const reader = new FileReader();
-                          reader.onloadend = () => {
-                            const base64String = reader.result as string;
-                            setLocalContent(base64String);
-                            onUpdate(base64String);
-                          };
-                          reader.readAsDataURL(file);
-                        }
-                      }}
-                    />
-                  </div>
-                  {localContent && localContent.startsWith('data:image') && (
-                    <img src={localContent} alt="Preview" className="w-full max-h-32 object-contain rounded border" />
+                <div className="space-y-3">
+                  {!localContent ? (
+                    <div className="border-2 border-dashed rounded-lg p-6 text-center">
+                      <Label
+                        htmlFor={`image-upload-${block.id}`}
+                        className="cursor-pointer flex flex-col items-center gap-2"
+                      >
+                        <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center">
+                          <ImageIcon className="w-6 h-6 text-muted-foreground" />
+                        </div>
+                        <div>
+                          <span className="text-sm font-medium text-primary hover:underline">
+                            Click to upload image
+                          </span>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            PNG, JPG, GIF up to 10MB
+                          </p>
+                        </div>
+                      </Label>
+                      <input
+                        id={`image-upload-${block.id}`}
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            const reader = new FileReader();
+                            reader.onloadend = () => {
+                              const base64String = reader.result as string;
+                              setLocalContent(base64String);
+                              onUpdate(base64String);
+                            };
+                            reader.readAsDataURL(file);
+                          }
+                        }}
+                      />
+                    </div>
+                  ) : (
+                    <div className="relative">
+                      <img src={localContent} alt="Uploaded" className="w-full max-h-48 object-contain rounded border" />
+                      <div className="flex gap-2 mt-2">
+                        <Label
+                          htmlFor={`image-upload-${block.id}`}
+                          className="cursor-pointer text-sm text-primary hover:underline"
+                        >
+                          Change Image
+                        </Label>
+                        <input
+                          id={`image-upload-${block.id}`}
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              const reader = new FileReader();
+                              reader.onloadend = () => {
+                                const base64String = reader.result as string;
+                                setLocalContent(base64String);
+                                onUpdate(base64String);
+                              };
+                              reader.readAsDataURL(file);
+                            }
+                          }}
+                        />
+                      </div>
+                    </div>
                   )}
                 </div>
               )}
