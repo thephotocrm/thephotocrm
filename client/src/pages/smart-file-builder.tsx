@@ -330,7 +330,10 @@ function PackagePageEditor({
   const [localContent, setLocalContent] = useState(content);
 
   const { data: packages, isLoading } = useQuery<any[]>({
-    queryKey: ['/api/packages']
+    queryKey: ['/api/packages'],
+    staleTime: 0,
+    refetchOnWindowFocus: true,
+    refetchOnMount: true
   });
 
   useEffect(() => {
@@ -824,7 +827,10 @@ export default function SmartFileBuilder() {
   });
 
   const { data: packages } = useQuery<any[]>({
-    queryKey: ['/api/packages']
+    queryKey: ['/api/packages'],
+    staleTime: 0,
+    refetchOnWindowFocus: true,
+    refetchOnMount: true
   });
 
   useEffect(() => {
