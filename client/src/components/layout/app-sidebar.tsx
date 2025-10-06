@@ -22,7 +22,8 @@ import {
   TrendingUp,
   CreditCard,
   FileText as ActivityIcon,
-  Headphones
+  Headphones,
+  Layers
 } from "lucide-react";
 import {
   Sidebar,
@@ -68,6 +69,7 @@ export function AppSidebar() {
     { name: "Clients", href: "/clients", icon: Users },
     { name: "Projects", href: "/projects", icon: FolderOpen },
     { name: "Proposals", href: "/proposals", icon: FileText },
+    { name: "Smart Files", href: "/smart-files", icon: Layers },
     { name: "Packages", href: "/packages", icon: Package },
     { name: "Widget Generator", href: "/widget-generator", icon: Code },
     { name: "Questionnaires", href: "/questionnaires", icon: ClipboardList },

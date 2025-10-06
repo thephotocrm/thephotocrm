@@ -212,7 +212,7 @@ export default function SmartFiles() {
                       <SelectValue placeholder="Universal (all project types)" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Universal (all project types)</SelectItem>
+                      <SelectItem value="UNIVERSAL">Universal (all project types)</SelectItem>
                       <SelectItem value="WEDDING">Wedding</SelectItem>
                       <SelectItem value="PORTRAIT">Portrait</SelectItem>
                       <SelectItem value="COMMERCIAL">Commercial</SelectItem>
