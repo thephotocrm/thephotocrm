@@ -11,6 +11,7 @@ import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
 import { 
   ArrowLeft, 
   FileText, 
@@ -72,12 +73,18 @@ type ContentBlock = {
   id: string;
   type: 'HEADING' | 'TEXT' | 'SPACER' | 'IMAGE';
   content: any;
-  width?: 'FULL' | 'HALF';
+};
+
+type Section = {
+  id: string;
+  columns: 1 | 2;
+  blocks: ContentBlock[];
 };
 
 type TextPageContent = {
-  blocks?: ContentBlock[];
+  sections?: Section[];
   // Legacy fields (for backwards compatibility)
+  blocks?: ContentBlock[];
   heading?: string;
   content?: string;
 };
@@ -118,12 +125,10 @@ const BLOCK_TYPES = {
 function BlockEditor({
   block,
   onUpdate,
-  onUpdateWidth,
   onDelete
 }: {
   block: ContentBlock;
   onUpdate: (content: any) => void;
-  onUpdateWidth: (width: 'FULL' | 'HALF') => void;
   onDelete: () => void;
 }) {
   const [localContent, setLocalContent] = useState(block.content);
@@ -241,81 +246,33 @@ function BlockEditor({
               </Button>
             </div>
           </div>
-          
-          {/* Width Selection */}
-          {block.type !== 'SPACER' && (
-            <div className="mt-3 flex gap-2 border-t pt-3">
-              <Button
-                variant={!block.width || block.width === 'FULL' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => onUpdateWidth('FULL')}
-                className="flex-1"
-              >
-                Full Width
-              </Button>
-              <Button
-                variant={block.width === 'HALF' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => onUpdateWidth('HALF')}
-                className="flex-1"
-              >
-                Half Width
-              </Button>
-            </div>
-          )}
         </CardContent>
       </Card>
     </Reorder.Item>
   );
 }
 
-// Text Page Editor Component (Block-based)
-function TextPageEditor({ 
-  page, 
-  onUpdate 
-}: { 
-  page: SmartFilePage; 
-  onUpdate: (content: TextPageContent) => void;
+// Section Editor Component
+function SectionEditor({
+  section,
+  onUpdate,
+  onDelete
+}: {
+  section: Section;
+  onUpdate: (section: Section) => void;
+  onDelete: () => void;
 }) {
-  const content = page.content as TextPageContent;
-  
-  // Convert legacy format to blocks on load
-  const initializeBlocks = (): ContentBlock[] => {
-    if (content.blocks && content.blocks.length > 0) {
-      return content.blocks;
-    }
-    
-    // Legacy format conversion
-    const legacyBlocks: ContentBlock[] = [];
-    if (content.heading) {
-      legacyBlocks.push({
-        id: `block-${Date.now()}-heading`,
-        type: 'HEADING',
-        content: content.heading
-      });
-    }
-    if (content.content) {
-      legacyBlocks.push({
-        id: `block-${Date.now()}-text`,
-        type: 'TEXT',
-        content: content.content
-      });
-    }
-    
-    return legacyBlocks.length > 0 ? legacyBlocks : [];
-  };
-
-  const [blocks, setBlocks] = useState<ContentBlock[]>(initializeBlocks);
+  const [blocks, setBlocks] = useState<ContentBlock[]>(section.blocks || []);
+  const dragControls = useDragControls();
 
   useEffect(() => {
-    setBlocks(initializeBlocks());
-  }, [page.id]);
+    setBlocks(section.blocks || []);
+  }, [section.id]);
 
   useEffect(() => {
-    // Auto-save blocks when they change
     const timeout = setTimeout(() => {
-      onUpdate({ blocks });
-    }, 500);
+      onUpdate({ ...section, blocks });
+    }, 300);
     return () => clearTimeout(timeout);
   }, [blocks]);
 
@@ -332,10 +289,6 @@ function TextPageEditor({
     setBlocks(blocks.map(b => b.id === blockId ? { ...b, content } : b));
   };
 
-  const updateBlockWidth = (blockId: string, width: 'FULL' | 'HALF') => {
-    setBlocks(blocks.map(b => b.id === blockId ? { ...b, width } : b));
-  };
-
   const deleteBlock = (blockId: string) => {
     setBlocks(blocks.filter(b => b.id !== blockId));
   };
@@ -345,40 +298,204 @@ function TextPageEditor({
   };
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap gap-2">
-        {Object.entries(BLOCK_TYPES).map(([type, config]) => {
-          const Icon = config.icon;
-          return (
-            <Button
-              key={type}
-              variant="outline"
-              size="sm"
-              onClick={() => addBlock(type as ContentBlock['type'])}
-              data-testid={`button-add-${type.toLowerCase()}-block`}
+    <Card className="border-2">
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              className="cursor-grab active:cursor-grabbing"
+              onPointerDown={(e) => dragControls.start(e)}
             >
-              <Icon className="w-4 h-4 mr-2" />
-              Add {config.label}
-            </Button>
-          );
-        })}
+              <GripVertical className="w-4 h-4 text-muted-foreground" />
+            </button>
+            <Badge variant="outline">
+              {section.columns === 1 ? '1 Column' : '2 Columns'}
+            </Badge>
+          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onDelete}
+            data-testid={`button-delete-section-${section.id}`}
+          >
+            <Trash className="w-4 h-4" />
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4">
+          <div className="flex flex-wrap gap-2">
+            {Object.entries(BLOCK_TYPES).map(([type, config]) => {
+              const Icon = config.icon;
+              return (
+                <Button
+                  key={type}
+                  variant="outline"
+                  size="sm"
+                  onClick={() => addBlock(type as ContentBlock['type'])}
+                  data-testid={`button-add-${type.toLowerCase()}-block-${section.id}`}
+                >
+                  <Icon className="w-4 h-4 mr-2" />
+                  {config.label}
+                </Button>
+              );
+            })}
+          </div>
+
+          {blocks.length === 0 ? (
+            <div className="text-center py-6 border-2 border-dashed rounded-lg bg-muted/20">
+              <p className="text-sm text-muted-foreground">No blocks yet. Add content above.</p>
+            </div>
+          ) : (
+            <div className={cn(
+              "gap-4",
+              section.columns === 2 ? "grid grid-cols-2" : "space-y-3"
+            )}>
+              <Reorder.Group axis="y" values={blocks} onReorder={handleReorder} className={section.columns === 2 ? "col-span-2" : ""}>
+                {blocks.map((block) => (
+                  <BlockEditor
+                    key={block.id}
+                    block={block}
+                    onUpdate={(content) => updateBlock(block.id, content)}
+                    onDelete={() => deleteBlock(block.id)}
+                  />
+                ))}
+              </Reorder.Group>
+            </div>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+// Text Page Editor Component (Section-based)
+function TextPageEditor({ 
+  page, 
+  onUpdate 
+}: { 
+  page: SmartFilePage; 
+  onUpdate: (content: TextPageContent) => void;
+}) {
+  const content = page.content as TextPageContent;
+  
+  // Convert legacy format to sections on load
+  const initializeSections = (): Section[] => {
+    if (content.sections && content.sections.length > 0) {
+      return content.sections;
+    }
+    
+    // Legacy block format conversion
+    if (content.blocks && content.blocks.length > 0) {
+      return [{
+        id: `section-${Date.now()}`,
+        columns: 1,
+        blocks: content.blocks
+      }];
+    }
+    
+    // Legacy heading/content format conversion
+    const legacyBlocks: ContentBlock[] = [];
+    if (content.heading) {
+      legacyBlocks.push({
+        id: `block-${Date.now()}-heading`,
+        type: 'HEADING',
+        content: content.heading
+      });
+    }
+    if (content.content) {
+      legacyBlocks.push({
+        id: `block-${Date.now()}-text`,
+        type: 'TEXT',
+        content: content.content
+      });
+    }
+    
+    if (legacyBlocks.length > 0) {
+      return [{
+        id: `section-${Date.now()}`,
+        columns: 1,
+        blocks: legacyBlocks
+      }];
+    }
+    
+    return [];
+  };
+
+  const [sections, setSections] = useState<Section[]>(initializeSections);
+
+  useEffect(() => {
+    setSections(initializeSections());
+  }, [page.id]);
+
+  useEffect(() => {
+    // Auto-save sections when they change
+    const timeout = setTimeout(() => {
+      onUpdate({ sections });
+    }, 500);
+    return () => clearTimeout(timeout);
+  }, [sections]);
+
+  const addSection = (columns: 1 | 2) => {
+    const newSection: Section = {
+      id: `section-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      columns,
+      blocks: []
+    };
+    setSections([...sections, newSection]);
+  };
+
+  const updateSection = (sectionId: string, updatedSection: Section) => {
+    setSections(sections.map(s => s.id === sectionId ? updatedSection : s));
+  };
+
+  const deleteSection = (sectionId: string) => {
+    setSections(sections.filter(s => s.id !== sectionId));
+  };
+
+  const handleReorder = (newSections: Section[]) => {
+    setSections(newSections);
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => addSection(1)}
+          data-testid="button-add-1-column-section"
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          Add 1-Column Section
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => addSection(2)}
+          data-testid="button-add-2-column-section"
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          Add 2-Column Section
+        </Button>
       </div>
 
-      {blocks.length === 0 ? (
+      {sections.length === 0 ? (
         <div className="text-center py-8 border-2 border-dashed rounded-lg">
           <FileText className="w-12 h-12 mx-auto mb-3 text-muted-foreground" />
-          <p className="text-muted-foreground">No content blocks yet. Add a block to get started.</p>
+          <p className="text-muted-foreground">No sections yet. Add a section to get started.</p>
         </div>
       ) : (
-        <Reorder.Group axis="y" values={blocks} onReorder={handleReorder}>
-          {blocks.map((block) => (
-            <BlockEditor
-              key={block.id}
-              block={block}
-              onUpdate={(content) => updateBlock(block.id, content)}
-              onUpdateWidth={(width) => updateBlockWidth(block.id, width)}
-              onDelete={() => deleteBlock(block.id)}
-            />
+        <Reorder.Group axis="y" values={sections} onReorder={handleReorder} className="space-y-4">
+          {sections.map((section) => (
+            <Reorder.Item key={section.id} value={section} className="cursor-move">
+              <SectionEditor
+                section={section}
+                onUpdate={(updatedSection) => updateSection(section.id, updatedSection)}
+                onDelete={() => deleteSection(section.id)}
+              />
+            </Reorder.Item>
           ))}
         </Reorder.Group>
       )}
@@ -1272,11 +1389,37 @@ export default function SmartFileBuilder() {
                     <div className="space-y-6">
                     {/* Text Page Preview */}
                     {currentPage.pageType === 'TEXT' && currentPage.content && (
-                      <div className="max-w-[800px] mx-auto">
-                        {currentPage.content.blocks && currentPage.content.blocks.length > 0 ? (
-                          <div className="grid grid-cols-2 gap-4">
+                      <div className="max-w-[800px] mx-auto space-y-6">
+                        {currentPage.content.sections && currentPage.content.sections.length > 0 ? (
+                          // Sections-based rendering
+                          currentPage.content.sections.map((section: Section, secIdx: number) => (
+                            <div key={secIdx} className={cn(
+                              "gap-4",
+                              section.columns === 2 ? "grid grid-cols-2" : "space-y-4"
+                            )}>
+                              {section.blocks.map((block: ContentBlock, blockIdx: number) => (
+                                <div key={blockIdx}>
+                                  {block.type === 'HEADING' && block.content && (
+                                    <h3 className="text-2xl font-bold mb-2">{block.content}</h3>
+                                  )}
+                                  {block.type === 'TEXT' && block.content && (
+                                    <p className="text-muted-foreground whitespace-pre-wrap">{block.content}</p>
+                                  )}
+                                  {block.type === 'SPACER' && (
+                                    <div className="py-6" />
+                                  )}
+                                  {block.type === 'IMAGE' && block.content && (
+                                    <img src={block.content} alt="" className="w-full max-h-[150px] object-contain rounded-lg" />
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          ))
+                        ) : currentPage.content.blocks && currentPage.content.blocks.length > 0 ? (
+                          // Legacy blocks format
+                          <div className="space-y-4">
                             {currentPage.content.blocks.map((block: ContentBlock, idx: number) => (
-                              <div key={idx} className={block.width === 'HALF' ? 'col-span-1' : 'col-span-2'}>
+                              <div key={idx}>
                                 {block.type === 'HEADING' && block.content && (
                                   <h3 className="text-2xl font-bold mb-2">{block.content}</h3>
                                 )}
@@ -1293,7 +1436,7 @@ export default function SmartFileBuilder() {
                             ))}
                           </div>
                         ) : (
-                          // Legacy format fallback
+                          // Legacy heading/content format
                           <div className="space-y-4">
                             {currentPage.content.heading && (
                               <h3 className="text-xl font-semibold">{currentPage.content.heading}</h3>

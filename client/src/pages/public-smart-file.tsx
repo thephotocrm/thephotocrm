@@ -399,11 +399,34 @@ export default function PublicSmartFile() {
                     <CardHeader>
                       <CardTitle data-testid={`text-page-title-${index}`}>{page.displayTitle}</CardTitle>
                     </CardHeader>
-                    <CardContent>
-                      {page.content.blocks && page.content.blocks.length > 0 ? (
-                        <div className="grid grid-cols-2 gap-4">
+                    <CardContent className="space-y-6">
+                      {page.content.sections && page.content.sections.length > 0 ? (
+                        // Sections-based rendering
+                        page.content.sections.map((section: any, secIdx: number) => (
+                          <div key={secIdx} className={section.columns === 2 ? "grid grid-cols-2 gap-4" : "space-y-4"}>
+                            {section.blocks.map((block: any, blockIdx: number) => (
+                              <div key={blockIdx}>
+                                {block.type === 'HEADING' && block.content && (
+                                  <h3 className="text-2xl font-bold mb-2">{block.content}</h3>
+                                )}
+                                {block.type === 'TEXT' && block.content && (
+                                  <p className="text-muted-foreground whitespace-pre-wrap">{block.content}</p>
+                                )}
+                                {block.type === 'SPACER' && (
+                                  <div className="py-6" />
+                                )}
+                                {block.type === 'IMAGE' && block.content && (
+                                  <img src={block.content} alt="" className="w-full max-h-[150px] object-contain rounded-lg" />
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        ))
+                      ) : page.content.blocks && page.content.blocks.length > 0 ? (
+                        // Legacy blocks format
+                        <div className="space-y-4">
                           {page.content.blocks.map((block: any, blockIdx: number) => (
-                            <div key={blockIdx} className={block.width === 'HALF' ? 'col-span-1' : 'col-span-2'}>
+                            <div key={blockIdx}>
                               {block.type === 'HEADING' && block.content && (
                                 <h3 className="text-2xl font-bold mb-2">{block.content}</h3>
                               )}
@@ -420,6 +443,7 @@ export default function PublicSmartFile() {
                           ))}
                         </div>
                       ) : (
+                        // Legacy heading/content format
                         <p className="whitespace-pre-wrap text-muted-foreground" data-testid={`text-page-content-${index}`}>
                           {page.content.content || page.content.text}
                         </p>
