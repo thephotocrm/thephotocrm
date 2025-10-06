@@ -8,6 +8,7 @@ import {
   dailyAvailabilityTemplates, dailyAvailabilityBreaks, dailyAvailabilityOverrides,
   dripCampaigns, dripCampaignEmails, dripCampaignSubscriptions, dripEmailDeliveries, staticCampaignSettings,
   shortLinks, adminActivityLog,
+  smartFiles, smartFilePages, projectSmartFiles,
   type User, type InsertUser, type Photographer, type InsertPhotographer,
   type AdminActivityLog, type InsertAdminActivityLog,
   type Client, type InsertClient, type Project, type InsertProject, type ProjectParticipant, type InsertProjectParticipant, type ProjectWithClientAndStage, type ClientWithProjects, type Stage, type InsertStage,
@@ -31,7 +32,11 @@ import {
   type DripCampaignSubscription, type InsertDripCampaignSubscription, type DripCampaignSubscriptionWithDetails,
   type DripEmailDelivery, type InsertDripEmailDelivery,
   type StaticCampaignSettings, type InsertStaticCampaignSettings,
-  type ShortLink, type InsertShortLink
+  type ShortLink, type InsertShortLink,
+  type SmartFile, type InsertSmartFile,
+  type SmartFilePage, type InsertSmartFilePage,
+  type ProjectSmartFile, type InsertProjectSmartFile,
+  type SmartFileWithPages
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, inArray, gte, lte, gt, sql } from "drizzle-orm";
@@ -300,6 +305,25 @@ export interface IStorage {
   getEmailHistoryByClient(clientId: string): Promise<EmailHistory[]>;
   getEmailHistoryByProject(projectId: string): Promise<EmailHistory[]>;
   getEmailHistoryByThread(gmailThreadId: string, photographerId?: string): Promise<EmailHistory[]>;
+  
+  // Smart Files
+  getSmartFilesByPhotographer(photographerId: string): Promise<SmartFile[]>;
+  getSmartFile(id: string): Promise<SmartFileWithPages | undefined>;
+  createSmartFile(smartFile: InsertSmartFile): Promise<SmartFile>;
+  updateSmartFile(id: string, smartFile: Partial<SmartFile>): Promise<SmartFile>;
+  deleteSmartFile(id: string): Promise<void>;
+  
+  // Smart File Pages
+  createSmartFilePage(page: InsertSmartFilePage): Promise<SmartFilePage>;
+  updateSmartFilePage(id: string, page: Partial<SmartFilePage>): Promise<SmartFilePage>;
+  deleteSmartFilePage(id: string): Promise<void>;
+  reorderSmartFilePages(smartFileId: string, pageOrders: { id: string, pageOrder: number }[]): Promise<void>;
+  
+  // Project Smart Files
+  getProjectSmartFilesByProject(projectId: string): Promise<ProjectSmartFile[]>;
+  attachSmartFileToProject(projectSmartFile: InsertProjectSmartFile): Promise<ProjectSmartFile>;
+  updateProjectSmartFile(id: string, update: Partial<ProjectSmartFile>): Promise<ProjectSmartFile>;
+  getProjectSmartFileByToken(token: string): Promise<ProjectSmartFile | undefined>;
   
   // Admin Methods
   getAllPhotographersWithStats(): Promise<Array<Photographer & { clientCount: number }>>;
@@ -3231,6 +3255,116 @@ export class DatabaseStorage implements IStorage {
       .from(emailHistory)
       .where(and(...conditions))
       .orderBy(asc(emailHistory.sentAt)); // Order chronologically for thread view
+  }
+  
+  // Smart Files
+  async getSmartFilesByPhotographer(photographerId: string): Promise<SmartFile[]> {
+    return await db.select()
+      .from(smartFiles)
+      .where(eq(smartFiles.photographerId, photographerId))
+      .orderBy(desc(smartFiles.createdAt));
+  }
+
+  async getSmartFile(id: string): Promise<SmartFileWithPages | undefined> {
+    const [smartFile] = await db.select()
+      .from(smartFiles)
+      .where(eq(smartFiles.id, id));
+    
+    if (!smartFile) return undefined;
+
+    const pages = await db.select()
+      .from(smartFilePages)
+      .where(eq(smartFilePages.smartFileId, id))
+      .orderBy(asc(smartFilePages.pageOrder));
+
+    return {
+      ...smartFile,
+      pages
+    };
+  }
+
+  async createSmartFile(smartFile: InsertSmartFile): Promise<SmartFile> {
+    const [created] = await db.insert(smartFiles)
+      .values(smartFile)
+      .returning();
+    return created;
+  }
+
+  async updateSmartFile(id: string, smartFile: Partial<SmartFile>): Promise<SmartFile> {
+    const [updated] = await db.update(smartFiles)
+      .set({ ...smartFile, updatedAt: new Date() })
+      .where(eq(smartFiles.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteSmartFile(id: string): Promise<void> {
+    await db.delete(smartFiles)
+      .where(eq(smartFiles.id, id));
+  }
+
+  // Smart File Pages
+  async createSmartFilePage(page: InsertSmartFilePage): Promise<SmartFilePage> {
+    const [created] = await db.insert(smartFilePages)
+      .values(page)
+      .returning();
+    return created;
+  }
+
+  async updateSmartFilePage(id: string, page: Partial<SmartFilePage>): Promise<SmartFilePage> {
+    const [updated] = await db.update(smartFilePages)
+      .set(page)
+      .where(eq(smartFilePages.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteSmartFilePage(id: string): Promise<void> {
+    await db.delete(smartFilePages)
+      .where(eq(smartFilePages.id, id));
+  }
+
+  async reorderSmartFilePages(smartFileId: string, pageOrders: { id: string, pageOrder: number }[]): Promise<void> {
+    await db.transaction(async (tx) => {
+      for (const { id, pageOrder } of pageOrders) {
+        await tx.update(smartFilePages)
+          .set({ pageOrder })
+          .where(and(
+            eq(smartFilePages.id, id),
+            eq(smartFilePages.smartFileId, smartFileId)
+          ));
+      }
+    });
+  }
+
+  // Project Smart Files
+  async getProjectSmartFilesByProject(projectId: string): Promise<ProjectSmartFile[]> {
+    return await db.select()
+      .from(projectSmartFiles)
+      .where(eq(projectSmartFiles.projectId, projectId))
+      .orderBy(desc(projectSmartFiles.createdAt));
+  }
+
+  async attachSmartFileToProject(projectSmartFile: InsertProjectSmartFile): Promise<ProjectSmartFile> {
+    const [created] = await db.insert(projectSmartFiles)
+      .values(projectSmartFile)
+      .returning();
+    return created;
+  }
+
+  async updateProjectSmartFile(id: string, update: Partial<ProjectSmartFile>): Promise<ProjectSmartFile> {
+    const [updated] = await db.update(projectSmartFiles)
+      .set({ ...update, updatedAt: new Date() })
+      .where(eq(projectSmartFiles.id, id))
+      .returning();
+    return updated;
+  }
+
+  async getProjectSmartFileByToken(token: string): Promise<ProjectSmartFile | undefined> {
+    const [projectSmartFile] = await db.select()
+      .from(projectSmartFiles)
+      .where(eq(projectSmartFiles.publicToken, token));
+    return projectSmartFile || undefined;
   }
   
   // Admin Methods
