@@ -1816,18 +1816,20 @@ export default function SmartFileBuilder() {
                       <div className="space-y-0">
                         {/* Hero Section */}
                         {currentPage.content.hero?.backgroundImage && (
-                          <div 
-                            className="relative w-full h-[400px] flex items-center justify-center bg-cover bg-center"
-                            style={{ backgroundImage: `url(${currentPage.content.hero.backgroundImage})` }}
-                          >
-                            <div className="absolute inset-0 bg-black/30" />
-                            <div className="relative z-10 text-center text-white px-6 max-w-3xl">
-                              {currentPage.content.hero.title && (
-                                <h1 className="text-5xl font-bold mb-4">{currentPage.content.hero.title}</h1>
-                              )}
-                              {currentPage.content.hero.description && (
-                                <p className="text-xl">{currentPage.content.hero.description}</p>
-                              )}
+                          <div className="p-8">
+                            <div 
+                              className="relative w-full h-[400px] flex items-center justify-center bg-cover bg-center border-4 border-border rounded-lg overflow-hidden"
+                              style={{ backgroundImage: `url(${currentPage.content.hero.backgroundImage})` }}
+                            >
+                              <div className="absolute inset-0 bg-black/30" />
+                              <div className="relative z-10 text-center text-white px-6 max-w-3xl">
+                                {currentPage.content.hero.title && (
+                                  <h1 className="text-5xl font-bold mb-4">{currentPage.content.hero.title}</h1>
+                                )}
+                                {currentPage.content.hero.description && (
+                                  <p className="text-xl">{currentPage.content.hero.description}</p>
+                                )}
+                              </div>
                             </div>
                           </div>
                         )}

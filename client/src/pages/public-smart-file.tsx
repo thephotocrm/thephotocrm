@@ -405,18 +405,20 @@ export default function PublicSmartFile() {
                   <>
                     {/* Hero Section */}
                     {page.content.hero?.backgroundImage && (
-                      <div 
-                        className="relative w-full h-[400px] flex items-center justify-center bg-cover bg-center rounded-t-lg overflow-hidden mb-6"
-                        style={{ backgroundImage: `url(${page.content.hero.backgroundImage})` }}
-                      >
-                        <div className="absolute inset-0 bg-black/30" />
-                        <div className="relative z-10 text-center text-white px-6 max-w-3xl">
-                          {page.content.hero.title && (
-                            <h1 className="text-5xl font-bold mb-4">{page.content.hero.title}</h1>
-                          )}
-                          {page.content.hero.description && (
-                            <p className="text-xl">{page.content.hero.description}</p>
-                          )}
+                      <div className="p-8 mb-6">
+                        <div 
+                          className="relative w-full h-[400px] flex items-center justify-center bg-cover bg-center border-4 border-border rounded-lg overflow-hidden"
+                          style={{ backgroundImage: `url(${page.content.hero.backgroundImage})` }}
+                        >
+                          <div className="absolute inset-0 bg-black/30" />
+                          <div className="relative z-10 text-center text-white px-6 max-w-3xl">
+                            {page.content.hero.title && (
+                              <h1 className="text-5xl font-bold mb-4">{page.content.hero.title}</h1>
+                            )}
+                            {page.content.hero.description && (
+                              <p className="text-xl">{page.content.hero.description}</p>
+                            )}
+                          </div>
                         </div>
                       </div>
                     )}
