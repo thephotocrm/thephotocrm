@@ -2054,7 +2054,7 @@ export default function SmartFileBuilder() {
 
                     {/* Package Page Preview */}
                     {currentPage.pageType === 'PACKAGE' && currentPage.content && (
-                      <div className="space-y-6">
+                      <div className="space-y-6 px-4 md:px-0">
                         {currentPage.content.heading && (
                           <h3 className="text-4xl font-bold mb-4 text-center">{currentPage.content.heading}</h3>
                         )}

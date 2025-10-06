@@ -613,7 +613,7 @@ export default function PublicSmartFile() {
 
                 {/* PACKAGE Page */}
                 {page.pageType === "PACKAGE" && (
-                  <Card className="overflow-hidden">
+                  <Card className="overflow-hidden mx-4 sm:mx-0">
                     <CardHeader className="bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border-b">
                       <CardTitle className="flex items-center gap-2">
                         <div className="p-2 bg-primary/10 rounded-lg">
