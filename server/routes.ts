@@ -2459,6 +2459,87 @@ ${photographer?.businessName || 'Your Photography Team'}`;
     }
   });
 
+  // POST /api/public/smart-files/:token/create-checkout - Create Stripe checkout session (PUBLIC ROUTE)
+  app.post("/api/public/smart-files/:token/create-checkout", async (req, res) => {
+    try {
+      const { token } = req.params;
+
+      // Get Smart File data
+      const projectSmartFile = await storage.getProjectSmartFileByToken(token);
+      
+      if (!projectSmartFile) {
+        return res.status(404).json({ message: "Smart File not found" });
+      }
+
+      // Verify Smart File has been accepted
+      if (projectSmartFile.status !== 'ACCEPTED') {
+        return res.status(400).json({ message: "Smart File must be accepted before checkout" });
+      }
+
+      // Get related data
+      const [smartFile, project] = await Promise.all([
+        storage.getSmartFile(projectSmartFile.smartFileId),
+        storage.getProject(projectSmartFile.projectId)
+      ]);
+
+      if (!smartFile || !project) {
+        return res.status(404).json({ message: "Smart File or project not found" });
+      }
+
+      // Get photographer and verify Stripe Connect account
+      const photographer = await storage.getPhotographer(project.photographerId);
+      
+      if (!photographer) {
+        return res.status(404).json({ message: "Photographer not found" });
+      }
+
+      if (!photographer.stripeConnectAccountId) {
+        return res.status(400).json({ 
+          message: "Photographer has not connected their Stripe account" 
+        });
+      }
+
+      // Validate deposit amount
+      const depositAmount = projectSmartFile.depositCents || 0;
+      if (depositAmount <= 0) {
+        return res.status(400).json({ 
+          message: "Invalid deposit amount. Smart File must have a deposit configured." 
+        });
+      }
+
+      // Calculate platform fee (5% as per system design)
+      const platformFeePercent = 5;
+      const platformFeeCents = calculatePlatformFee(depositAmount, platformFeePercent);
+
+      // Build success and cancel URLs
+      const baseUrl = process.env.VITE_APP_URL || `${req.protocol}://${req.get('host')}`;
+      const successUrl = `${baseUrl}/smart-file/${token}/success`;
+      const cancelUrl = `${baseUrl}/smart-file/${token}`;
+
+      // Create Stripe checkout session
+      const checkoutUrl = await createConnectCheckoutSession({
+        amountCents: depositAmount,
+        connectedAccountId: photographer.stripeConnectAccountId,
+        platformFeeCents,
+        successUrl,
+        cancelUrl,
+        productName: `${project.projectType} - ${smartFile.name}`,
+        metadata: {
+          projectSmartFileId: projectSmartFile.id,
+          projectId: project.id,
+          smartFileId: smartFile.id,
+          photographerId: photographer.id,
+          token
+        }
+      });
+
+      res.json({ checkoutUrl });
+    } catch (error) {
+      console.error("Create checkout error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   // Proposals (route aliases for Estimates to enable terminology migration)
   app.get("/api/proposals", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
@@ -3545,7 +3626,59 @@ ${photographer?.businessName || 'Your Photography Team'}`;
           const session = event.data.object as Stripe.Checkout.Session;
           const metadata = session.metadata;
           
-          if (metadata?.estimateId && metadata?.photographerId) {
+          // Handle Smart File payments
+          if (metadata?.projectSmartFileId && metadata?.photographerId) {
+            await storage.updateProjectSmartFile(metadata.projectSmartFileId, {
+              status: 'PAID',
+              paidAt: new Date()
+            });
+
+            const totalAmountCents = session.amount_total || 0;
+            const paymentIntentId = session.payment_intent as string;
+
+            try {
+              // Get payment intent details
+              const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId, {
+                expand: ['latest_charge', 'charges.data.balance_transaction']
+              });
+              
+              const actualAmountCents = paymentIntent.amount_received || paymentIntent.amount;
+              
+              let platformFeeCents = 0;
+              let photographerEarningsCents = actualAmountCents;
+              let earningStatus = 'available';
+
+              // For Connect payments, get actual platform fee from Stripe
+              if (paymentIntent.application_fee_amount) {
+                platformFeeCents = paymentIntent.application_fee_amount;
+                photographerEarningsCents = actualAmountCents - platformFeeCents;
+                earningStatus = 'available';
+              } else {
+                platformFeeCents = calculatePlatformFee(actualAmountCents);
+                photographerEarningsCents = actualAmountCents - platformFeeCents;
+                earningStatus = 'unconnected_pending';
+              }
+
+              // Create earnings record for Smart File payment
+              await storage.createEarnings({
+                photographerId: metadata.photographerId,
+                projectId: metadata.projectId || '',
+                estimatePaymentId: null,
+                paymentIntentId,
+                totalAmountCents: actualAmountCents,
+                platformFeeCents,
+                photographerEarningsCents,
+                currency: 'USD',
+                status: earningStatus
+              });
+
+            } catch (error: any) {
+              console.error('Smart File payment earnings error:', error);
+              // Continue even if earnings creation fails
+            }
+          }
+          // Handle Estimate payments
+          else if (metadata?.estimateId && metadata?.photographerId) {
             const status = metadata.paymentType === "FULL" ? "PAID_FULL" : "PAID_PARTIAL";
             await storage.updateEstimate(metadata.estimateId, { status });
 

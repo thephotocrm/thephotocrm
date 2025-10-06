@@ -125,21 +125,30 @@ export default function PublicSmartFile() {
 
   const acceptMutation = useMutation({
     mutationFn: async (acceptanceData: any) => {
+      // First, accept the Smart File
       await apiRequest("PATCH", `/api/public/smart-files/${params?.token}/accept`, acceptanceData);
+      
+      // Then, create checkout session
+      const response = await apiRequest("POST", `/api/public/smart-files/${params?.token}/create-checkout`, {});
+      return response;
     },
-    onSuccess: () => {
+    onSuccess: (data: any) => {
       toast({
         title: "Smart File Accepted",
-        description: "Your selections have been saved. Proceeding to payment...",
+        description: "Your selections have been saved. Redirecting to checkout...",
       });
+      
       queryClient.invalidateQueries({ queryKey: [`/api/public/smart-files/${params?.token}`] });
-      // TODO: Navigate to checkout page
-      // setLocation(`/checkout?smartFileToken=${params?.token}`);
+      
+      // Redirect to Stripe Checkout
+      if (data.checkoutUrl) {
+        window.location.href = data.checkoutUrl;
+      }
     },
-    onError: () => {
+    onError: (error: any) => {
       toast({
         title: "Error",
-        description: "Failed to accept Smart File. Please try again.",
+        description: error.message || "Failed to proceed to checkout. Please try again.",
         variant: "destructive"
       });
     }
