@@ -403,23 +403,66 @@ export default function PublicSmartFile() {
                       {page.content.sections && page.content.sections.length > 0 ? (
                         // Sections-based rendering
                         page.content.sections.map((section: any, secIdx: number) => (
-                          <div key={secIdx} className={section.columns === 2 ? "grid grid-cols-2 gap-4" : "space-y-4"}>
-                            {section.blocks.map((block: any, blockIdx: number) => (
-                              <div key={blockIdx}>
-                                {block.type === 'HEADING' && block.content && (
-                                  <h3 className="text-2xl font-bold mb-2">{block.content}</h3>
-                                )}
-                                {block.type === 'TEXT' && block.content && (
-                                  <p className="text-muted-foreground whitespace-pre-wrap">{block.content}</p>
-                                )}
-                                {block.type === 'SPACER' && (
-                                  <div className="py-6" />
-                                )}
-                                {block.type === 'IMAGE' && block.content && (
-                                  <img src={block.content} alt="" className="w-full max-h-[150px] object-contain rounded-lg" />
-                                )}
+                          <div key={secIdx}>
+                            {section.columns === 1 ? (
+                              <div className="space-y-4">
+                                {section.blocks.map((block: any, blockIdx: number) => (
+                                  <div key={blockIdx}>
+                                    {block.type === 'HEADING' && block.content && (
+                                      <h3 className="text-2xl font-bold mb-2">{block.content}</h3>
+                                    )}
+                                    {block.type === 'TEXT' && block.content && (
+                                      <p className="text-muted-foreground whitespace-pre-wrap">{block.content}</p>
+                                    )}
+                                    {block.type === 'SPACER' && (
+                                      <div className="py-6" />
+                                    )}
+                                    {block.type === 'IMAGE' && block.content && (
+                                      <img src={block.content} alt="" className="w-full max-h-[150px] object-contain rounded-lg" />
+                                    )}
+                                  </div>
+                                ))}
                               </div>
-                            ))}
+                            ) : (
+                              <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-4">
+                                  {section.blocks.filter((b: any) => b.column === 0).map((block: any, blockIdx: number) => (
+                                    <div key={blockIdx}>
+                                      {block.type === 'HEADING' && block.content && (
+                                        <h3 className="text-2xl font-bold mb-2">{block.content}</h3>
+                                      )}
+                                      {block.type === 'TEXT' && block.content && (
+                                        <p className="text-muted-foreground whitespace-pre-wrap">{block.content}</p>
+                                      )}
+                                      {block.type === 'SPACER' && (
+                                        <div className="py-6" />
+                                      )}
+                                      {block.type === 'IMAGE' && block.content && (
+                                        <img src={block.content} alt="" className="w-full max-h-[150px] object-contain rounded-lg" />
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
+                                <div className="space-y-4">
+                                  {section.blocks.filter((b: any) => b.column === 1).map((block: any, blockIdx: number) => (
+                                    <div key={blockIdx}>
+                                      {block.type === 'HEADING' && block.content && (
+                                        <h3 className="text-2xl font-bold mb-2">{block.content}</h3>
+                                      )}
+                                      {block.type === 'TEXT' && block.content && (
+                                        <p className="text-muted-foreground whitespace-pre-wrap">{block.content}</p>
+                                      )}
+                                      {block.type === 'SPACER' && (
+                                        <div className="py-6" />
+                                      )}
+                                      {block.type === 'IMAGE' && block.content && (
+                                        <img src={block.content} alt="" className="w-full max-h-[150px] object-contain rounded-lg" />
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
                           </div>
                         ))
                       ) : page.content.blocks && page.content.blocks.length > 0 ? (

@@ -73,6 +73,7 @@ type ContentBlock = {
   id: string;
   type: 'HEADING' | 'TEXT' | 'SPACER' | 'IMAGE';
   content: any;
+  column?: number; // For 2-column sections: 0 (left) or 1 (right)
 };
 
 type Section = {
@@ -276,11 +277,12 @@ function SectionEditor({
     return () => clearTimeout(timeout);
   }, [blocks]);
 
-  const addBlock = (type: ContentBlock['type']) => {
+  const addBlock = (type: ContentBlock['type'], column?: number) => {
     const newBlock: ContentBlock = {
       id: `block-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       type,
-      content: type === 'SPACER' ? null : ''
+      content: type === 'SPACER' ? null : '',
+      column: section.columns === 2 ? column : undefined
     };
     setBlocks([...blocks, newBlock]);
   };
@@ -293,9 +295,19 @@ function SectionEditor({
     setBlocks(blocks.filter(b => b.id !== blockId));
   };
 
+  const handleReorderColumn = (columnIndex: number, newBlocks: ContentBlock[]) => {
+    // Replace blocks for this column
+    const otherColumnBlocks = blocks.filter(b => b.column !== columnIndex);
+    setBlocks([...otherColumnBlocks, ...newBlocks]);
+  };
+
   const handleReorder = (newBlocks: ContentBlock[]) => {
     setBlocks(newBlocks);
   };
+
+  // For 2-column sections, separate blocks by column
+  const column0Blocks = section.columns === 2 ? blocks.filter(b => b.column === 0) : [];
+  const column1Blocks = section.columns === 2 ? blocks.filter(b => b.column === 1) : [];
 
   return (
     <Card className="border-2">
@@ -324,35 +336,33 @@ function SectionEditor({
         </div>
       </CardHeader>
       <CardContent>
-        <div className="space-y-4">
-          <div className="flex flex-wrap gap-2">
-            {Object.entries(BLOCK_TYPES).map(([type, config]) => {
-              const Icon = config.icon;
-              return (
-                <Button
-                  key={type}
-                  variant="outline"
-                  size="sm"
-                  onClick={() => addBlock(type as ContentBlock['type'])}
-                  data-testid={`button-add-${type.toLowerCase()}-block-${section.id}`}
-                >
-                  <Icon className="w-4 h-4 mr-2" />
-                  {config.label}
-                </Button>
-              );
-            })}
-          </div>
-
-          {blocks.length === 0 ? (
-            <div className="text-center py-6 border-2 border-dashed rounded-lg bg-muted/20">
-              <p className="text-sm text-muted-foreground">No blocks yet. Add content above.</p>
+        {section.columns === 1 ? (
+          // 1-Column Layout
+          <div className="space-y-4">
+            <div className="flex flex-wrap gap-2">
+              {Object.entries(BLOCK_TYPES).map(([type, config]) => {
+                const Icon = config.icon;
+                return (
+                  <Button
+                    key={type}
+                    variant="outline"
+                    size="sm"
+                    onClick={() => addBlock(type as ContentBlock['type'])}
+                    data-testid={`button-add-${type.toLowerCase()}-block-${section.id}`}
+                  >
+                    <Icon className="w-4 h-4 mr-2" />
+                    {config.label}
+                  </Button>
+                );
+              })}
             </div>
-          ) : (
-            <div className={cn(
-              "gap-4",
-              section.columns === 2 ? "grid grid-cols-2" : "space-y-3"
-            )}>
-              <Reorder.Group axis="y" values={blocks} onReorder={handleReorder} className={section.columns === 2 ? "col-span-2" : ""}>
+
+            {blocks.length === 0 ? (
+              <div className="text-center py-6 border-2 border-dashed rounded-lg bg-muted/20">
+                <p className="text-sm text-muted-foreground">No blocks yet. Add content above.</p>
+              </div>
+            ) : (
+              <Reorder.Group axis="y" values={blocks} onReorder={handleReorder} className="space-y-3">
                 {blocks.map((block) => (
                   <BlockEditor
                     key={block.id}
@@ -362,9 +372,104 @@ function SectionEditor({
                   />
                 ))}
               </Reorder.Group>
+            )}
+          </div>
+        ) : (
+          // 2-Column Layout
+          <div className="grid grid-cols-2 gap-4">
+            {/* Column 0 (Left) */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-semibold text-muted-foreground">Column 1</span>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {Object.entries(BLOCK_TYPES).map(([type, config]) => {
+                  const Icon = config.icon;
+                  return (
+                    <Button
+                      key={type}
+                      variant="outline"
+                      size="sm"
+                      onClick={() => addBlock(type as ContentBlock['type'], 0)}
+                      data-testid={`button-add-${type.toLowerCase()}-block-col0-${section.id}`}
+                      className="text-xs px-2 py-1 h-7"
+                    >
+                      <Icon className="w-3 h-3 mr-1" />
+                      {config.label}
+                    </Button>
+                  );
+                })}
+              </div>
+              {column0Blocks.length === 0 ? (
+                <div className="text-center py-6 border-2 border-dashed rounded-lg bg-muted/20">
+                  <p className="text-xs text-muted-foreground">Add content to column 1</p>
+                </div>
+              ) : (
+                <Reorder.Group 
+                  axis="y" 
+                  values={column0Blocks} 
+                  onReorder={(newBlocks) => handleReorderColumn(0, newBlocks)}
+                  className="space-y-3"
+                >
+                  {column0Blocks.map((block) => (
+                    <BlockEditor
+                      key={block.id}
+                      block={block}
+                      onUpdate={(content) => updateBlock(block.id, content)}
+                      onDelete={() => deleteBlock(block.id)}
+                    />
+                  ))}
+                </Reorder.Group>
+              )}
             </div>
-          )}
-        </div>
+
+            {/* Column 1 (Right) */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-semibold text-muted-foreground">Column 2</span>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {Object.entries(BLOCK_TYPES).map(([type, config]) => {
+                  const Icon = config.icon;
+                  return (
+                    <Button
+                      key={type}
+                      variant="outline"
+                      size="sm"
+                      onClick={() => addBlock(type as ContentBlock['type'], 1)}
+                      data-testid={`button-add-${type.toLowerCase()}-block-col1-${section.id}`}
+                      className="text-xs px-2 py-1 h-7"
+                    >
+                      <Icon className="w-3 h-3 mr-1" />
+                      {config.label}
+                    </Button>
+                  );
+                })}
+              </div>
+              {column1Blocks.length === 0 ? (
+                <div className="text-center py-6 border-2 border-dashed rounded-lg bg-muted/20">
+                  <p className="text-xs text-muted-foreground">Add content to column 2</p>
+                </div>
+              ) : (
+                <Reorder.Group 
+                  axis="y" 
+                  values={column1Blocks} 
+                  onReorder={(newBlocks) => handleReorderColumn(1, newBlocks)}
+                  className="space-y-3"
+                >
+                  {column1Blocks.map((block) => (
+                    <BlockEditor
+                      key={block.id}
+                      block={block}
+                      onUpdate={(content) => updateBlock(block.id, content)}
+                      onDelete={() => deleteBlock(block.id)}
+                    />
+                  ))}
+                </Reorder.Group>
+              )}
+            </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
@@ -1393,26 +1498,66 @@ export default function SmartFileBuilder() {
                         {currentPage.content.sections && currentPage.content.sections.length > 0 ? (
                           // Sections-based rendering
                           currentPage.content.sections.map((section: Section, secIdx: number) => (
-                            <div key={secIdx} className={cn(
-                              "gap-4",
-                              section.columns === 2 ? "grid grid-cols-2" : "space-y-4"
-                            )}>
-                              {section.blocks.map((block: ContentBlock, blockIdx: number) => (
-                                <div key={blockIdx}>
-                                  {block.type === 'HEADING' && block.content && (
-                                    <h3 className="text-2xl font-bold mb-2">{block.content}</h3>
-                                  )}
-                                  {block.type === 'TEXT' && block.content && (
-                                    <p className="text-muted-foreground whitespace-pre-wrap">{block.content}</p>
-                                  )}
-                                  {block.type === 'SPACER' && (
-                                    <div className="py-6" />
-                                  )}
-                                  {block.type === 'IMAGE' && block.content && (
-                                    <img src={block.content} alt="" className="w-full max-h-[150px] object-contain rounded-lg" />
-                                  )}
+                            <div key={secIdx}>
+                              {section.columns === 1 ? (
+                                <div className="space-y-4">
+                                  {section.blocks.map((block: ContentBlock, blockIdx: number) => (
+                                    <div key={blockIdx}>
+                                      {block.type === 'HEADING' && block.content && (
+                                        <h3 className="text-2xl font-bold mb-2">{block.content}</h3>
+                                      )}
+                                      {block.type === 'TEXT' && block.content && (
+                                        <p className="text-muted-foreground whitespace-pre-wrap">{block.content}</p>
+                                      )}
+                                      {block.type === 'SPACER' && (
+                                        <div className="py-6" />
+                                      )}
+                                      {block.type === 'IMAGE' && block.content && (
+                                        <img src={block.content} alt="" className="w-full max-h-[150px] object-contain rounded-lg" />
+                                      )}
+                                    </div>
+                                  ))}
                                 </div>
-                              ))}
+                              ) : (
+                                <div className="grid grid-cols-2 gap-4">
+                                  <div className="space-y-4">
+                                    {section.blocks.filter((b: ContentBlock) => b.column === 0).map((block: ContentBlock, blockIdx: number) => (
+                                      <div key={blockIdx}>
+                                        {block.type === 'HEADING' && block.content && (
+                                          <h3 className="text-2xl font-bold mb-2">{block.content}</h3>
+                                        )}
+                                        {block.type === 'TEXT' && block.content && (
+                                          <p className="text-muted-foreground whitespace-pre-wrap">{block.content}</p>
+                                        )}
+                                        {block.type === 'SPACER' && (
+                                          <div className="py-6" />
+                                        )}
+                                        {block.type === 'IMAGE' && block.content && (
+                                          <img src={block.content} alt="" className="w-full max-h-[150px] object-contain rounded-lg" />
+                                        )}
+                                      </div>
+                                    ))}
+                                  </div>
+                                  <div className="space-y-4">
+                                    {section.blocks.filter((b: ContentBlock) => b.column === 1).map((block: ContentBlock, blockIdx: number) => (
+                                      <div key={blockIdx}>
+                                        {block.type === 'HEADING' && block.content && (
+                                          <h3 className="text-2xl font-bold mb-2">{block.content}</h3>
+                                        )}
+                                        {block.type === 'TEXT' && block.content && (
+                                          <p className="text-muted-foreground whitespace-pre-wrap">{block.content}</p>
+                                        )}
+                                        {block.type === 'SPACER' && (
+                                          <div className="py-6" />
+                                        )}
+                                        {block.type === 'IMAGE' && block.content && (
+                                          <img src={block.content} alt="" className="w-full max-h-[150px] object-contain rounded-lg" />
+                                        )}
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
                             </div>
                           ))
                         ) : currentPage.content.blocks && currentPage.content.blocks.length > 0 ? (
