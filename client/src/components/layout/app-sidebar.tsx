@@ -98,12 +98,12 @@ export function AppSidebar() {
     <Sidebar collapsible="offcanvas">
       <SidebarHeader>
         <div className="flex items-center space-x-3 px-2 py-2">
-          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-            <Camera className="w-5 h-5 text-primary-foreground" />
+          <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
+            <Camera className="w-5 h-5 text-blue-600" />
           </div>
           <div>
-            <h1 className="text-lg font-semibold">thePhotoCRM</h1>
-            <p className="text-sm text-muted-foreground">Photography CRM</p>
+            <h1 className="text-lg font-semibold text-white">thePhotoCRM</h1>
+            <p className="text-sm text-white/70">Photography CRM</p>
           </div>
         </div>
       </SidebarHeader>
@@ -122,6 +122,7 @@ export function AppSidebar() {
                       asChild
                       isActive={isActive}
                       data-testid={`nav-${item.name.toLowerCase()}`}
+                      className="bg-slate-800/50 text-white hover:bg-slate-700/70 data-[active=true]:bg-slate-700 data-[active=true]:text-white"
                     >
                       <Link href={item.href}>
                         <Icon className="w-6 h-6" />
@@ -145,6 +146,7 @@ export function AppSidebar() {
                   asChild
                   isActive={location === "/settings"}
                   data-testid="nav-settings"
+                  className="bg-slate-800/50 text-white hover:bg-slate-700/70 data-[active=true]:bg-slate-700 data-[active=true]:text-white"
                 >
                   <Link href="/settings">
                     <Settings className="w-6 h-6" />
@@ -159,20 +161,20 @@ export function AppSidebar() {
 
       <SidebarFooter>
         <div className="flex items-center space-x-3 px-2 py-2">
-          <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
-            <span className="text-primary-foreground font-medium text-sm">
+          <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center">
+            <span className="text-blue-600 font-medium text-sm">
               {user?.email?.charAt(0).toUpperCase()}
             </span>
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium truncate">{user?.email}</p>
-            <p className="text-xs text-muted-foreground truncate">{user?.role}</p>
+            <p className="text-sm font-medium truncate text-white">{user?.email}</p>
+            <p className="text-xs text-white/70 truncate">{user?.role}</p>
           </div>
         </div>
         <Button
           variant="outline"
           size="sm"
-          className="mx-2 mb-2"
+          className="mx-2 mb-2 bg-slate-800/50 text-white border-white/20 hover:bg-slate-700/70 hover:text-white"
           onClick={handleLogout}
           data-testid="button-logout"
         >
