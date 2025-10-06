@@ -4491,14 +4491,24 @@ ${photographer.businessName}`
       // For now, assume user is a client - in production you'd have proper client auth
       const clientId = req.user!.id; // This should be the client ID in a real implementation
       
-      // Get client's project and related data
-      const projects = await storage.getProjectsByClient(clientId);
-      if (!projects || projects.length === 0) {
+      // Get client's own projects
+      const ownProjects = await storage.getProjectsByClient(clientId);
+      
+      // Get projects where user is a participant
+      const participantProjects = await storage.getProjectsByParticipant(clientId);
+      
+      // Combine all projects
+      const allProjects = [
+        ...ownProjects.map(p => ({ ...p, role: 'PRIMARY' as const })),
+        ...participantProjects.map(p => ({ ...p, role: 'PARTICIPANT' as const }))
+      ];
+      
+      if (allProjects.length === 0) {
         return res.status(404).json({ error: 'No projects found for client' });
       }
       
       // Use the first project for client portal data
-      const project = projects[0];
+      const project = allProjects[0];
       
       // Get questionnaires for this client's projects
       const questionnaires = await storage.getQuestionnairesByClient(clientId);
@@ -4514,6 +4524,22 @@ ${photographer.businessName}`
         completedAt: q.submittedAt
       }));
       
+      // Format projects for display
+      const formattedProjects = allProjects.map(p => ({
+        id: p.id,
+        title: p.title,
+        projectType: p.projectType,
+        eventDate: p.eventDate,
+        status: p.status,
+        role: p.role,
+        stage: p.stage ? { name: p.stage.name } : undefined,
+        primaryClient: {
+          firstName: p.client.firstName,
+          lastName: p.client.lastName,
+          email: p.client.email
+        }
+      }));
+      
       const portalData = {
         client: {
           firstName: project.client.firstName,
@@ -4527,6 +4553,7 @@ ${photographer.businessName}`
           businessName: "Wedding Photography Studio", // This would come from photographer data
           logoUrl: undefined
         },
+        projects: formattedProjects,
         questionnaires: formattedQuestionnaires,
         checklistItems: [], // TODO: Implement checklist items
         links: [], // TODO: Implement client links

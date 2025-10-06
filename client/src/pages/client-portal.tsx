@@ -36,6 +36,22 @@ interface ClientPortalData {
     businessName: string;
     logoUrl?: string;
   };
+  projects?: Array<{
+    id: string;
+    title: string;
+    projectType: string;
+    eventDate?: string;
+    status: string;
+    role: 'PRIMARY' | 'PARTICIPANT';
+    stage?: {
+      name: string;
+    };
+    primaryClient: {
+      firstName: string;
+      lastName: string;
+      email: string;
+    };
+  }>;
   checklistItems: Array<{
     id: string;
     title: string;
