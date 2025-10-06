@@ -21,7 +21,11 @@ import {
   Copy,
   Save,
   Loader2,
-  Eye
+  Eye,
+  Image as ImageIcon,
+  Type,
+  AlignLeft,
+  MoveVertical
 } from "lucide-react";
 import { Reorder, useDragControls } from "framer-motion";
 import type { SmartFileWithPages, SmartFilePage, InsertSmartFilePage } from "@shared/schema";
@@ -57,9 +61,17 @@ const PAGE_TYPES = {
 type PageType = keyof typeof PAGE_TYPES;
 
 // Type definitions for page content
+type ContentBlock = {
+  id: string;
+  type: 'HEADING' | 'TEXT' | 'SPACER' | 'IMAGE';
+  content: any;
+};
+
 type TextPageContent = {
-  heading: string;
-  content: string;
+  blocks?: ContentBlock[];
+  // Legacy fields (for backwards compatibility)
+  heading?: string;
+  content?: string;
 };
 
 type PackagePageContent = {
@@ -86,7 +98,112 @@ type PaymentPageContent = {
   acceptOnlinePayments: boolean;
 };
 
-// Text Page Editor Component
+// Block types for text pages
+const BLOCK_TYPES = {
+  HEADING: { icon: Type, label: 'Heading', placeholder: 'Enter heading...' },
+  TEXT: { icon: AlignLeft, label: 'Text', placeholder: 'Enter text content...' },
+  SPACER: { icon: MoveVertical, label: 'Spacer', placeholder: '' },
+  IMAGE: { icon: ImageIcon, label: 'Image', placeholder: 'Image URL...' }
+} as const;
+
+// Block Editor Component
+function BlockEditor({
+  block,
+  onUpdate,
+  onDelete
+}: {
+  block: ContentBlock;
+  onUpdate: (content: any) => void;
+  onDelete: () => void;
+}) {
+  const [localContent, setLocalContent] = useState(block.content);
+  const dragControls = useDragControls();
+
+  useEffect(() => {
+    setLocalContent(block.content);
+  }, [block.id, block.content]);
+
+  const handleBlur = () => {
+    if (JSON.stringify(localContent) !== JSON.stringify(block.content)) {
+      onUpdate(localContent);
+    }
+  };
+
+  return (
+    <Reorder.Item
+      value={block}
+      id={block.id}
+      dragListener={false}
+      dragControls={dragControls}
+      className="mb-3"
+    >
+      <Card>
+        <CardContent className="p-4">
+          <div className="flex items-start gap-3">
+            <button
+              type="button"
+              className="cursor-grab active:cursor-grabbing pt-2"
+              onPointerDown={(e) => dragControls.start(e)}
+            >
+              <GripVertical className="w-4 h-4 text-muted-foreground" />
+            </button>
+            
+            <div className="flex-1">
+              {block.type === 'HEADING' && (
+                <Input
+                  value={localContent || ''}
+                  onChange={(e) => setLocalContent(e.target.value)}
+                  onBlur={handleBlur}
+                  placeholder={BLOCK_TYPES.HEADING.placeholder}
+                  className="text-lg font-semibold"
+                  data-testid={`block-heading-${block.id}`}
+                />
+              )}
+              
+              {block.type === 'TEXT' && (
+                <Textarea
+                  value={localContent || ''}
+                  onChange={(e) => setLocalContent(e.target.value)}
+                  onBlur={handleBlur}
+                  placeholder={BLOCK_TYPES.TEXT.placeholder}
+                  rows={4}
+                  data-testid={`block-text-${block.id}`}
+                />
+              )}
+              
+              {block.type === 'SPACER' && (
+                <div className="py-4 border-t-2 border-dashed border-muted-foreground/30 flex items-center justify-center">
+                  <span className="text-xs text-muted-foreground">Spacer</span>
+                </div>
+              )}
+              
+              {block.type === 'IMAGE' && (
+                <Input
+                  value={localContent || ''}
+                  onChange={(e) => setLocalContent(e.target.value)}
+                  onBlur={handleBlur}
+                  placeholder={BLOCK_TYPES.IMAGE.placeholder}
+                  data-testid={`block-image-${block.id}`}
+                />
+              )}
+            </div>
+            
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onDelete}
+              data-testid={`button-delete-block-${block.id}`}
+            >
+              <Trash className="w-4 h-4" />
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    </Reorder.Item>
+  );
+}
+
+// Text Page Editor Component (Block-based)
 function TextPageEditor({ 
   page, 
   onUpdate 
@@ -95,43 +212,105 @@ function TextPageEditor({
   onUpdate: (content: TextPageContent) => void;
 }) {
   const content = page.content as TextPageContent;
-  const [localContent, setLocalContent] = useState(content);
+  
+  // Convert legacy format to blocks on load
+  const initializeBlocks = (): ContentBlock[] => {
+    if (content.blocks && content.blocks.length > 0) {
+      return content.blocks;
+    }
+    
+    // Legacy format conversion
+    const legacyBlocks: ContentBlock[] = [];
+    if (content.heading) {
+      legacyBlocks.push({
+        id: `block-${Date.now()}-heading`,
+        type: 'HEADING',
+        content: content.heading
+      });
+    }
+    if (content.content) {
+      legacyBlocks.push({
+        id: `block-${Date.now()}-text`,
+        type: 'TEXT',
+        content: content.content
+      });
+    }
+    
+    return legacyBlocks.length > 0 ? legacyBlocks : [];
+  };
+
+  const [blocks, setBlocks] = useState<ContentBlock[]>(initializeBlocks);
 
   useEffect(() => {
-    setLocalContent(content);
+    setBlocks(initializeBlocks());
   }, [page.id]);
 
-  const handleBlur = () => {
-    if (JSON.stringify(localContent) !== JSON.stringify(content)) {
-      onUpdate(localContent);
-    }
+  useEffect(() => {
+    // Auto-save blocks when they change
+    const timeout = setTimeout(() => {
+      onUpdate({ blocks });
+    }, 500);
+    return () => clearTimeout(timeout);
+  }, [blocks]);
+
+  const addBlock = (type: ContentBlock['type']) => {
+    const newBlock: ContentBlock = {
+      id: `block-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      type,
+      content: type === 'SPACER' ? null : ''
+    };
+    setBlocks([...blocks, newBlock]);
+  };
+
+  const updateBlock = (blockId: string, content: any) => {
+    setBlocks(blocks.map(b => b.id === blockId ? { ...b, content } : b));
+  };
+
+  const deleteBlock = (blockId: string) => {
+    setBlocks(blocks.filter(b => b.id !== blockId));
+  };
+
+  const handleReorder = (newBlocks: ContentBlock[]) => {
+    setBlocks(newBlocks);
   };
 
   return (
     <div className="space-y-4">
-      <div>
-        <Label htmlFor="heading" data-testid="label-heading">Heading</Label>
-        <Input
-          id="heading"
-          value={localContent.heading || ''}
-          onChange={(e) => setLocalContent({ ...localContent, heading: e.target.value })}
-          onBlur={handleBlur}
-          placeholder="Enter page heading"
-          data-testid="input-heading"
-        />
+      <div className="flex flex-wrap gap-2">
+        {Object.entries(BLOCK_TYPES).map(([type, config]) => {
+          const Icon = config.icon;
+          return (
+            <Button
+              key={type}
+              variant="outline"
+              size="sm"
+              onClick={() => addBlock(type as ContentBlock['type'])}
+              data-testid={`button-add-${type.toLowerCase()}-block`}
+            >
+              <Icon className="w-4 h-4 mr-2" />
+              Add {config.label}
+            </Button>
+          );
+        })}
       </div>
-      <div>
-        <Label htmlFor="content" data-testid="label-content">Content</Label>
-        <Textarea
-          id="content"
-          value={localContent.content || ''}
-          onChange={(e) => setLocalContent({ ...localContent, content: e.target.value })}
-          onBlur={handleBlur}
-          placeholder="Enter page content"
-          rows={10}
-          data-testid="textarea-content"
-        />
-      </div>
+
+      {blocks.length === 0 ? (
+        <div className="text-center py-8 border-2 border-dashed rounded-lg">
+          <FileText className="w-12 h-12 mx-auto mb-3 text-muted-foreground" />
+          <p className="text-muted-foreground">No content blocks yet. Add a block to get started.</p>
+        </div>
+      ) : (
+        <Reorder.Group axis="y" values={blocks} onReorder={handleReorder}>
+          {blocks.map((block) => (
+            <BlockEditor
+              key={block.id}
+              block={block}
+              onUpdate={(content) => updateBlock(block.id, content)}
+              onDelete={() => deleteBlock(block.id)}
+            />
+          ))}
+        </Reorder.Group>
+      )}
     </div>
   );
 }
@@ -608,6 +787,7 @@ export default function SmartFileBuilder() {
   const [pages, setPages] = useState<SmartFilePage[]>([]);
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'idle'>('idle');
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [currentPreviewPageIndex, setCurrentPreviewPageIndex] = useState(0);
 
   const { data: smartFile, isLoading } = useQuery<SmartFileWithPages>({
     queryKey: ["/api/smart-files", id],
@@ -686,7 +866,15 @@ export default function SmartFileBuilder() {
 
     switch (pageType) {
       case 'TEXT':
-        defaultContent = { heading: 'New Text Page', content: '' };
+        defaultContent = { 
+          blocks: [
+            {
+              id: `block-${Date.now()}-heading`,
+              type: 'HEADING',
+              content: 'New Text Page'
+            }
+          ]
+        };
         displayTitle = 'New Text Page';
         break;
       case 'PACKAGE':
@@ -922,69 +1110,111 @@ export default function SmartFileBuilder() {
         </ScrollArea>
       </div>
 
-      {/* Preview Dialog */}
-      <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Smart File Preview</DialogTitle>
-          </DialogHeader>
-          
-          <div className="space-y-6 py-4">
-            {/* Preview Header */}
-            <div className="text-center pb-6 border-b">
-              <h2 className="text-2xl font-bold mb-2">{smartFile.name}</h2>
-              {smartFile.description && (
-                <p className="text-muted-foreground">{smartFile.description}</p>
-              )}
-            </div>
-
-            {/* Preview Pages */}
-            {pages.length === 0 ? (
-              <div className="text-center py-12">
+      {/* Preview Dialog - Full Screen Paginated */}
+      <Dialog open={isPreviewOpen} onOpenChange={(open) => {
+        setIsPreviewOpen(open);
+        if (!open) setCurrentPreviewPageIndex(0);
+      }}>
+        <DialogContent className="max-w-full w-screen h-screen m-0 p-0 rounded-none">
+          {pages.length === 0 ? (
+            <div className="flex items-center justify-center h-full">
+              <div className="text-center">
                 <FileText className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
                 <p className="text-muted-foreground">
                   No pages added yet. Add pages to see them in the preview.
                 </p>
               </div>
-            ) : (
-              pages.map((page) => (
-                <Card key={page.id}>
+            </div>
+          ) : (
+            <>
+              {/* Navigation Buttons - Top Right */}
+              <div className="absolute top-6 right-6 z-10 flex gap-2">
+                <Button
+                  variant="default"
+                  size="sm"
+                  onClick={() => setCurrentPreviewPageIndex(Math.max(0, currentPreviewPageIndex - 1))}
+                  disabled={currentPreviewPageIndex === 0}
+                  data-testid="button-prev-top"
+                >
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Previous
+                </Button>
+                <Button
+                  variant="default"
+                  size="sm"
+                  onClick={() => setCurrentPreviewPageIndex(Math.min(pages.length - 1, currentPreviewPageIndex + 1))}
+                  disabled={currentPreviewPageIndex === pages.length - 1}
+                  data-testid="button-next-top"
+                >
+                  Next
+                  <ArrowLeft className="w-4 h-4 ml-2 rotate-180" />
+                </Button>
+              </div>
+
+              {/* Current Page Display - Full Screen */}
+              {(() => {
+                const currentPage = pages[currentPreviewPageIndex];
+                return (
+                <div className="h-full w-full flex items-center justify-center p-8">
+                <Card className="w-full max-w-4xl" key={currentPage.id}>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
-                      {PAGE_TYPES[page.pageType as PageType] && (
+                      {PAGE_TYPES[currentPage.pageType as PageType] && (
                         (() => {
-                          const Icon = PAGE_TYPES[page.pageType as PageType].icon;
+                          const Icon = PAGE_TYPES[currentPage.pageType as PageType].icon;
                           return <Icon className="w-5 h-5" />;
                         })()
                       )}
-                      {page.displayTitle}
+                      {currentPage.displayTitle}
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
                     {/* Text Page Preview */}
-                    {page.pageType === 'TEXT' && page.content && (
+                    {currentPage.pageType === 'TEXT' && currentPage.content && (
                       <div className="space-y-4">
-                        {page.content.heading && (
-                          <h3 className="text-xl font-semibold">{page.content.heading}</h3>
-                        )}
-                        {page.content.content && (
-                          <p className="text-muted-foreground whitespace-pre-wrap">{page.content.content}</p>
+                        {currentPage.content.blocks && currentPage.content.blocks.length > 0 ? (
+                          currentPage.content.blocks.map((block: ContentBlock, idx: number) => (
+                            <div key={idx}>
+                              {block.type === 'HEADING' && block.content && (
+                                <h3 className="text-2xl font-bold mb-2">{block.content}</h3>
+                              )}
+                              {block.type === 'TEXT' && block.content && (
+                                <p className="text-muted-foreground whitespace-pre-wrap">{block.content}</p>
+                              )}
+                              {block.type === 'SPACER' && (
+                                <div className="py-6" />
+                              )}
+                              {block.type === 'IMAGE' && block.content && (
+                                <img src={block.content} alt="" className="w-full rounded-lg" />
+                              )}
+                            </div>
+                          ))
+                        ) : (
+                          // Legacy format fallback
+                          <>
+                            {currentPage.content.heading && (
+                              <h3 className="text-xl font-semibold">{currentPage.content.heading}</h3>
+                            )}
+                            {currentPage.content.content && (
+                              <p className="text-muted-foreground whitespace-pre-wrap">{currentPage.content.content}</p>
+                            )}
+                          </>
                         )}
                       </div>
                     )}
 
                     {/* Package Page Preview */}
-                    {page.pageType === 'PACKAGE' && page.content && (
+                    {currentPage.pageType === 'PACKAGE' && currentPage.content && (
                       <div className="space-y-4">
-                        {page.content.heading && (
-                          <h3 className="text-xl font-semibold">{page.content.heading}</h3>
+                        {currentPage.content.heading && (
+                          <h3 className="text-xl font-semibold">{currentPage.content.heading}</h3>
                         )}
-                        {page.content.description && (
-                          <p className="text-muted-foreground">{page.content.description}</p>
+                        {currentPage.content.description && (
+                          <p className="text-muted-foreground">{currentPage.content.description}</p>
                         )}
-                        {page.content.packageIds && page.content.packageIds.length > 0 ? (
+                        {currentPage.content.packageIds && currentPage.content.packageIds.length > 0 ? (
                           <div className="text-sm text-muted-foreground">
-                            {page.content.packageIds.length} package(s) configured
+                            {currentPage.content.packageIds.length} package(s) configured
                           </div>
                         ) : (
                           <p className="text-sm text-muted-foreground italic">No packages selected yet</p>
@@ -993,17 +1223,17 @@ export default function SmartFileBuilder() {
                     )}
 
                     {/* Add-on Page Preview */}
-                    {page.pageType === 'ADDON' && page.content && (
+                    {currentPage.pageType === 'ADDON' && currentPage.content && (
                       <div className="space-y-4">
-                        {page.content.heading && (
-                          <h3 className="text-xl font-semibold">{page.content.heading}</h3>
+                        {currentPage.content.heading && (
+                          <h3 className="text-xl font-semibold">{currentPage.content.heading}</h3>
                         )}
-                        {page.content.description && (
-                          <p className="text-muted-foreground">{page.content.description}</p>
+                        {currentPage.content.description && (
+                          <p className="text-muted-foreground">{currentPage.content.description}</p>
                         )}
-                        {page.content.items && page.content.items.length > 0 ? (
+                        {currentPage.content.items && currentPage.content.items.length > 0 ? (
                           <div className="space-y-2">
-                            {page.content.items.map((item: any, idx: number) => (
+                            {currentPage.content.items.map((item: any, idx: number) => (
                               <div key={idx} className="flex justify-between items-center p-3 border rounded-lg">
                                 <div>
                                   <p className="font-medium">{item.name}</p>
@@ -1024,30 +1254,30 @@ export default function SmartFileBuilder() {
                     )}
 
                     {/* Payment Page Preview */}
-                    {page.pageType === 'PAYMENT' && page.content && (
+                    {currentPage.pageType === 'PAYMENT' && currentPage.content && (
                       <div className="space-y-4">
-                        {page.content.heading && (
-                          <h3 className="text-xl font-semibold">{page.content.heading}</h3>
+                        {currentPage.content.heading && (
+                          <h3 className="text-xl font-semibold">{currentPage.content.heading}</h3>
                         )}
-                        {page.content.description && (
-                          <p className="text-muted-foreground">{page.content.description}</p>
+                        {currentPage.content.description && (
+                          <p className="text-muted-foreground">{currentPage.content.description}</p>
                         )}
                         <div className="space-y-2 text-sm">
                           <div className="flex justify-between">
                             <span className="text-muted-foreground">Deposit Required:</span>
-                            <span className="font-medium">{page.content.depositPercent || 50}%</span>
+                            <span className="font-medium">{currentPage.content.depositPercent || 50}%</span>
                           </div>
                           <div className="flex justify-between">
                             <span className="text-muted-foreground">Online Payments:</span>
                             <span className="font-medium">
-                              {page.content.acceptOnlinePayments ? 'Enabled' : 'Disabled'}
+                              {currentPage.content.acceptOnlinePayments ? 'Enabled' : 'Disabled'}
                             </span>
                           </div>
-                          {page.content.paymentTerms && (
+                          {currentPage.content.paymentTerms && (
                             <div className="mt-4 p-3 bg-muted rounded-lg">
                               <p className="text-sm font-medium mb-1">Payment Terms:</p>
                               <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                                {page.content.paymentTerms}
+                                {currentPage.content.paymentTerms}
                               </p>
                             </div>
                           )}
@@ -1056,9 +1286,35 @@ export default function SmartFileBuilder() {
                     )}
                   </CardContent>
                 </Card>
-              ))
-            )}
-          </div>
+                </div>
+                );
+              })()}
+
+              {/* Navigation Buttons - Bottom Right */}
+              <div className="absolute bottom-6 right-6 z-10 flex gap-2">
+                <Button
+                  variant="default"
+                  size="sm"
+                  onClick={() => setCurrentPreviewPageIndex(Math.max(0, currentPreviewPageIndex - 1))}
+                  disabled={currentPreviewPageIndex === 0}
+                  data-testid="button-prev-bottom"
+                >
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Previous
+                </Button>
+                <Button
+                  variant="default"
+                  size="sm"
+                  onClick={() => setCurrentPreviewPageIndex(Math.min(pages.length - 1, currentPreviewPageIndex + 1))}
+                  disabled={currentPreviewPageIndex === pages.length - 1}
+                  data-testid="button-next-bottom"
+                >
+                  Next
+                  <ArrowLeft className="w-4 h-4 ml-2 rotate-180" />
+                </Button>
+              </div>
+            </>
+          )}
         </DialogContent>
       </Dialog>
     </div>
