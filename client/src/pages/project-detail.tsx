@@ -1,4 +1,4 @@
-import { useParams } from "wouter";
+import { useParams, useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { SidebarTrigger } from "@/components/ui/sidebar";
@@ -6,13 +6,36 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Calendar, User, Mail, Phone, MapPin, FileText, DollarSign, Clock, ArrowLeft, ClipboardCheck, UserPlus, X, History, Send, MessageSquare } from "lucide-react";
+import { Calendar, User, Mail, Phone, MapPin, FileText, DollarSign, Clock, ArrowLeft, ClipboardCheck, UserPlus, X, History, Send, MessageSquare, Plus, Copy, Eye, MoreVertical, Trash } from "lucide-react";
 import { Link } from "wouter";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface Project {
   id: string;
@@ -65,6 +88,29 @@ interface Participant {
   };
 }
 
+interface ProjectSmartFile {
+  id: string;
+  projectId: string;
+  smartFileId: string;
+  smartFileName: string;
+  token: string;
+  status: string;
+  sentAt?: string;
+  viewedAt?: string;
+  acceptedAt?: string;
+  paidAt?: string;
+  createdAt: string;
+}
+
+interface SmartFile {
+  id: string;
+  name: string;
+  description?: string;
+  projectType?: string;
+  status: string;
+  pages?: any[];
+}
+
 type TimelineEvent = 
   | {
       type: 'activity';
@@ -109,11 +155,16 @@ export default function ProjectDetail() {
   const { id } = useParams<{ id: string }>();
   const { user, loading } = useAuth();
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
   const [participantEmail, setParticipantEmail] = useState("");
   const [isAddingParticipant, setIsAddingParticipant] = useState(false);
   const [messageSubject, setMessageSubject] = useState("");
   const [messageBody, setMessageBody] = useState("");
   const [sendToParticipants, setSendToParticipants] = useState(true);
+  const [attachSmartFileOpen, setAttachSmartFileOpen] = useState(false);
+  const [selectedSmartFileId, setSelectedSmartFileId] = useState("");
+  const [smartFileToSend, setSmartFileToSend] = useState<ProjectSmartFile | null>(null);
+  const [smartFileToRemove, setSmartFileToRemove] = useState<ProjectSmartFile | null>(null);
 
   const { data: project, isLoading: projectLoading } = useQuery<Project>({
     queryKey: ["/api/projects", id],
@@ -138,6 +189,16 @@ export default function ProjectDetail() {
   const { data: history, isLoading: historyLoading } = useQuery<TimelineEvent[]>({
     queryKey: ["/api/projects", id, "history"],
     enabled: !!user && !!id
+  });
+
+  const { data: smartFiles } = useQuery<ProjectSmartFile[]>({
+    queryKey: ["/api/projects", id, "smart-files"],
+    enabled: !!user && !!id
+  });
+
+  const { data: allSmartFiles } = useQuery<SmartFile[]>({
+    queryKey: ["/api/smart-files"],
+    enabled: !!user && attachSmartFileOpen
   });
 
   const addParticipantMutation = useMutation({
@@ -198,6 +259,70 @@ export default function ProjectDetail() {
     onError: (error: any) => {
       toast({
         title: "Failed to send message",
+        description: error.message || "An error occurred",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const attachSmartFileMutation = useMutation({
+    mutationFn: async (smartFileId: string) => {
+      return await apiRequest("POST", `/api/projects/${id}/smart-files`, { smartFileId });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/projects", id, "smart-files"] });
+      setAttachSmartFileOpen(false);
+      setSelectedSmartFileId("");
+      toast({
+        title: "Smart File attached",
+        description: "The Smart File has been attached to this project."
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to attach Smart File",
+        description: error.message || "An error occurred",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const sendSmartFileMutation = useMutation({
+    mutationFn: async (projectSmartFileId: string) => {
+      return await apiRequest("POST", `/api/projects/${id}/smart-files/${projectSmartFileId}/send`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/projects", id, "smart-files"] });
+      setSmartFileToSend(null);
+      toast({
+        title: "Smart File sent",
+        description: "The Smart File has been sent to the client."
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to send Smart File",
+        description: error.message || "An error occurred",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const removeSmartFileMutation = useMutation({
+    mutationFn: async (projectSmartFileId: string) => {
+      return await apiRequest("DELETE", `/api/projects/${id}/smart-files/${projectSmartFileId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/projects", id, "smart-files"] });
+      setSmartFileToRemove(null);
+      toast({
+        title: "Smart File removed",
+        description: "The Smart File has been removed from this project."
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to remove Smart File",
         description: error.message || "An error occurred",
         variant: "destructive"
       });
@@ -306,6 +431,31 @@ export default function ProjectDetail() {
       return 'Completed';
     }
     return 'Pending';
+  };
+
+  const getSmartFileStatusColor = (status: string) => {
+    switch (status.toUpperCase()) {
+      case 'DRAFT': return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300';
+      case 'SENT': return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300';
+      case 'VIEWED': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300';
+      case 'ACCEPTED': return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
+      case 'PAID': return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
+      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300';
+    }
+  };
+
+  const handleAttachSmartFile = () => {
+    if (!selectedSmartFileId) return;
+    attachSmartFileMutation.mutate(selectedSmartFileId);
+  };
+
+  const handleCopyLink = (smartFile: ProjectSmartFile) => {
+    const link = `${window.location.origin}/smart-files/view/${smartFile.token}`;
+    navigator.clipboard.writeText(link);
+    toast({
+      title: "Link copied",
+      description: "Smart File link has been copied to clipboard."
+    });
   };
 
   return (
@@ -497,6 +647,104 @@ export default function ProjectDetail() {
                       Create First Proposal
                     </Button>
                   </Link>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Smart Files */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="w-5 h-5" />
+                  Smart Files
+                </CardTitle>
+                <Button size="sm" onClick={() => setAttachSmartFileOpen(true)} data-testid="button-attach-smart-file">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Attach Smart File
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {smartFiles && smartFiles.length > 0 ? (
+                <div className="space-y-3">
+                  {smartFiles.map((sf) => (
+                    <div 
+                      key={sf.id} 
+                      className="flex items-center justify-between p-4 border rounded-lg"
+                      data-testid={`smart-file-${sf.id}`}
+                    >
+                      <div className="space-y-1">
+                        <p className="font-medium" data-testid={`smart-file-name-${sf.id}`}>
+                          {sf.smartFileName}
+                        </p>
+                        <div className="flex items-center gap-2">
+                          <Badge 
+                            className={getSmartFileStatusColor(sf.status)}
+                            data-testid={`smart-file-status-${sf.id}`}
+                          >
+                            {sf.status}
+                          </Badge>
+                          {sf.sentAt && (
+                            <span className="text-sm text-muted-foreground">
+                              Sent {formatDate(sf.sentAt)}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="sm" data-testid={`button-smart-file-menu-${sf.id}`}>
+                            <MoreVertical className="w-4 h-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          {sf.status === 'DRAFT' && (
+                            <DropdownMenuItem 
+                              onClick={() => setSmartFileToSend(sf)}
+                              data-testid={`button-send-smart-file-${sf.id}`}
+                            >
+                              <Send className="w-4 h-4 mr-2" />
+                              Send to Client
+                            </DropdownMenuItem>
+                          )}
+                          {['SENT', 'VIEWED', 'ACCEPTED', 'PAID'].includes(sf.status) && (
+                            <DropdownMenuItem 
+                              onClick={() => handleCopyLink(sf)}
+                              data-testid={`button-copy-link-${sf.id}`}
+                            >
+                              <Copy className="w-4 h-4 mr-2" />
+                              Copy Link
+                            </DropdownMenuItem>
+                          )}
+                          <DropdownMenuItem 
+                            onClick={() => setLocation(`/smart-files/${sf.smartFileId}/edit`)}
+                            data-testid={`button-view-smart-file-${sf.id}`}
+                          >
+                            <Eye className="w-4 h-4 mr-2" />
+                            View Details
+                          </DropdownMenuItem>
+                          <DropdownMenuItem 
+                            onClick={() => setSmartFileToRemove(sf)}
+                            data-testid={`button-remove-smart-file-${sf.id}`}
+                          >
+                            <Trash className="w-4 h-4 mr-2" />
+                            Remove
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <FileText className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                  <p className="text-muted-foreground mb-4">No Smart Files attached yet</p>
+                  <Button onClick={() => setAttachSmartFileOpen(true)} data-testid="button-attach-first-smart-file">
+                    <Plus className="w-4 h-4 mr-2" />
+                    Attach First Smart File
+                  </Button>
                 </div>
               )}
             </CardContent>
@@ -838,6 +1086,133 @@ export default function ProjectDetail() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Attach Smart File Dialog */}
+        <Dialog open={attachSmartFileOpen} onOpenChange={setAttachSmartFileOpen}>
+          <DialogContent data-testid="dialog-attach-smart-file">
+            <DialogHeader>
+              <DialogTitle>Attach Smart File</DialogTitle>
+              <DialogDescription>
+                Select a Smart File to attach to this project
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              {allSmartFiles && allSmartFiles.length > 0 ? (
+                <div className="space-y-2 max-h-96 overflow-y-auto">
+                  {allSmartFiles
+                    .filter(sf => sf.status === 'ACTIVE')
+                    .map((smartFile) => (
+                      <div
+                        key={smartFile.id}
+                        className={`p-4 border rounded-lg cursor-pointer transition-colors ${
+                          selectedSmartFileId === smartFile.id
+                            ? 'border-primary bg-primary/5'
+                            : 'hover:bg-muted/50'
+                        }`}
+                        onClick={() => setSelectedSmartFileId(smartFile.id)}
+                        data-testid={`select-smart-file-${smartFile.id}`}
+                      >
+                        <div className="space-y-1">
+                          <p className="font-medium">{smartFile.name}</p>
+                          {smartFile.description && (
+                            <p className="text-sm text-muted-foreground">
+                              {smartFile.description}
+                            </p>
+                          )}
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            {smartFile.projectType && (
+                              <Badge variant="outline" className="text-xs">
+                                {smartFile.projectType}
+                              </Badge>
+                            )}
+                            {smartFile.pages && (
+                              <span>{smartFile.pages.length} pages</span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <FileText className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                  <p className="text-muted-foreground mb-4">No Smart Files available</p>
+                  <Button onClick={() => {
+                    setAttachSmartFileOpen(false);
+                    setLocation('/smart-files');
+                  }} data-testid="button-create-smart-file">
+                    <Plus className="w-4 h-4 mr-2" />
+                    Create Smart File
+                  </Button>
+                </div>
+              )}
+              <div className="flex justify-end gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setAttachSmartFileOpen(false);
+                    setSelectedSmartFileId("");
+                  }}
+                  data-testid="button-cancel-attach"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleAttachSmartFile}
+                  disabled={!selectedSmartFileId || attachSmartFileMutation.isPending}
+                  data-testid="button-confirm-attach"
+                >
+                  {attachSmartFileMutation.isPending ? "Attaching..." : "Attach"}
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Send Smart File Confirmation Dialog */}
+        <AlertDialog open={!!smartFileToSend} onOpenChange={(open) => !open && setSmartFileToSend(null)}>
+          <AlertDialogContent data-testid="dialog-send-smart-file">
+            <AlertDialogHeader>
+              <AlertDialogTitle>Send Smart File to Client</AlertDialogTitle>
+              <AlertDialogDescription>
+                This will send the Smart File "{smartFileToSend?.smartFileName}" to {project?.client.firstName} {project?.client.lastName} via email. Continue?
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel data-testid="button-cancel-send">Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => smartFileToSend && sendSmartFileMutation.mutate(smartFileToSend.id)}
+                disabled={sendSmartFileMutation.isPending}
+                data-testid="button-confirm-send"
+              >
+                {sendSmartFileMutation.isPending ? "Sending..." : "Send"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        {/* Remove Smart File Confirmation Dialog */}
+        <AlertDialog open={!!smartFileToRemove} onOpenChange={(open) => !open && setSmartFileToRemove(null)}>
+          <AlertDialogContent data-testid="dialog-remove-smart-file">
+            <AlertDialogHeader>
+              <AlertDialogTitle>Remove Smart File</AlertDialogTitle>
+              <AlertDialogDescription>
+                This will remove "{smartFileToRemove?.smartFileName}" from this project. The Smart File itself will not be deleted. Continue?
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel data-testid="button-cancel-remove">Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => smartFileToRemove && removeSmartFileMutation.mutate(smartFileToRemove.id)}
+                disabled={removeSmartFileMutation.isPending}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                data-testid="button-confirm-remove"
+              >
+                {removeSmartFileMutation.isPending ? "Removing..." : "Remove"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
     </>
   );
 }

@@ -323,6 +323,7 @@ export interface IStorage {
   getProjectSmartFilesByProject(projectId: string): Promise<ProjectSmartFile[]>;
   attachSmartFileToProject(projectSmartFile: InsertProjectSmartFile): Promise<ProjectSmartFile>;
   updateProjectSmartFile(id: string, update: Partial<ProjectSmartFile>): Promise<ProjectSmartFile>;
+  deleteProjectSmartFile(id: string): Promise<void>;
   getProjectSmartFileByToken(token: string): Promise<ProjectSmartFile | undefined>;
   
   // Admin Methods
@@ -3358,6 +3359,11 @@ export class DatabaseStorage implements IStorage {
       .where(eq(projectSmartFiles.id, id))
       .returning();
     return updated;
+  }
+
+  async deleteProjectSmartFile(id: string): Promise<void> {
+    await db.delete(projectSmartFiles)
+      .where(eq(projectSmartFiles.id, id));
   }
 
   async getProjectSmartFileByToken(token: string): Promise<ProjectSmartFile | undefined> {

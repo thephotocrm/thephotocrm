@@ -2238,6 +2238,129 @@ ${photographer?.businessName || 'Your Photography Team'}`;
     }
   });
 
+  // POST /api/projects/:projectId/smart-files - Attach Smart File to project
+  app.post("/api/projects/:projectId/smart-files", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      const { projectId } = req.params;
+      
+      // Validate request body
+      const bodySchema = z.object({
+        smartFileId: z.string()
+      });
+      const { smartFileId } = bodySchema.parse(req.body);
+
+      // Verify project ownership
+      const project = await storage.getProject(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+      if (project.photographerId !== req.user!.photographerId!) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // Verify Smart File ownership
+      const smartFile = await storage.getSmartFile(smartFileId);
+      if (!smartFile) {
+        return res.status(404).json({ message: "Smart File not found" });
+      }
+      if (smartFile.photographerId !== req.user!.photographerId!) {
+        return res.status(404).json({ message: "Smart File not found" });
+      }
+
+      // Attach Smart File to project
+      const projectSmartFile = await storage.attachSmartFileToProject({
+        projectId,
+        smartFileId,
+        photographerId: project.photographerId,
+        clientId: project.clientId,
+        smartFileName: smartFile.name,
+        pagesSnapshot: smartFile.pages,
+        token: nanoid(32),
+        status: 'DRAFT'
+      });
+
+      res.status(201).json(projectSmartFile);
+    } catch (error: any) {
+      console.error("Attach smart file to project error:", error);
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ message: "Invalid request data" });
+      }
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // POST /api/projects/:projectId/smart-files/:projectSmartFileId/send - Send Smart File to client
+  app.post("/api/projects/:projectId/smart-files/:projectSmartFileId/send", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      const { projectId, projectSmartFileId } = req.params;
+
+      // Verify project ownership
+      const project = await storage.getProject(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+      if (project.photographerId !== req.user!.photographerId!) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // Get ProjectSmartFile and verify it belongs to this project
+      const projectSmartFiles = await storage.getProjectSmartFilesByProject(projectId);
+      const projectSmartFile = projectSmartFiles.find(psf => psf.id === projectSmartFileId);
+      
+      if (!projectSmartFile) {
+        return res.status(404).json({ message: "Smart File not found for this project" });
+      }
+
+      // Update status to SENT and set sentAt date
+      const updatedProjectSmartFile = await storage.updateProjectSmartFile(projectSmartFileId, {
+        status: 'SENT',
+        sentAt: new Date()
+      });
+
+      // TODO: Send email to client with link to view Smart File
+
+      res.json({ 
+        success: true, 
+        token: updatedProjectSmartFile.token 
+      });
+    } catch (error) {
+      console.error("Send smart file error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // DELETE /api/projects/:projectId/smart-files/:projectSmartFileId - Remove Smart File from project
+  app.delete("/api/projects/:projectId/smart-files/:projectSmartFileId", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      const { projectId, projectSmartFileId } = req.params;
+
+      // Verify project ownership
+      const project = await storage.getProject(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+      if (project.photographerId !== req.user!.photographerId!) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // Get ProjectSmartFile and verify it belongs to this project
+      const projectSmartFiles = await storage.getProjectSmartFilesByProject(projectId);
+      const projectSmartFile = projectSmartFiles.find(psf => psf.id === projectSmartFileId);
+      
+      if (!projectSmartFile) {
+        return res.status(404).json({ message: "Smart File not found for this project" });
+      }
+
+      // Delete the project smart file attachment
+      await storage.deleteProjectSmartFile(projectSmartFileId);
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Remove smart file from project error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   // Proposals (route aliases for Estimates to enable terminology migration)
   app.get("/api/proposals", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
