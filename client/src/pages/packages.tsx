@@ -46,6 +46,7 @@ export default function Packages() {
   const queryClient = useQueryClient();
   
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingPackage, setEditingPackage] = useState<Package | null>(null);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [imageUrl, setImageUrl] = useState("");
@@ -79,6 +80,71 @@ export default function Packages() {
     }
   });
 
+  const updatePackageMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: any }) => {
+      await apiRequest("PATCH", `/api/packages/${id}`, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/packages"] });
+      setIsDialogOpen(false);
+      resetForm();
+      toast({
+        title: "Package updated",
+        description: "Package has been updated successfully.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to update package. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const deletePackageMutation = useMutation({
+    mutationFn: async (id: string) => {
+      await apiRequest("DELETE", `/api/packages/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/packages"] });
+      toast({
+        title: "Package deleted",
+        description: "Package has been removed successfully.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to delete package. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const copyPackageMutation = useMutation({
+    mutationFn: async (packageData: any) => {
+      await apiRequest("POST", "/api/packages", {
+        ...packageData,
+        name: `${packageData.name} (Copy)`
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/packages"] });
+      toast({
+        title: "Package copied",
+        description: "Package has been duplicated successfully.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to copy package. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
   // Redirect to login if not authenticated
   useEffect(() => {
     if (!loading && !user) {
@@ -104,17 +170,48 @@ export default function Packages() {
     setDescription("");
     setImageUrl("");
     setBasePrice("");
+    setEditingPackage(null);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    createPackageMutation.mutate({
+    const packageData = {
       name,
       description: description || undefined,
       imageUrl: imageUrl || undefined,
       basePriceCents: Math.round(parseFloat(basePrice) * 100)
+    };
+
+    if (editingPackage) {
+      updatePackageMutation.mutate({ id: editingPackage.id, data: packageData });
+    } else {
+      createPackageMutation.mutate(packageData);
+    }
+  };
+
+  const handleEdit = (pkg: Package) => {
+    setEditingPackage(pkg);
+    setName(pkg.name);
+    setDescription(pkg.description || "");
+    setImageUrl(pkg.imageUrl || "");
+    setBasePrice((pkg.basePriceCents / 100).toString());
+    setIsDialogOpen(true);
+  };
+
+  const handleCopy = (pkg: Package) => {
+    copyPackageMutation.mutate({
+      name: pkg.name,
+      description: pkg.description,
+      imageUrl: pkg.imageUrl,
+      basePriceCents: pkg.basePriceCents
     });
+  };
+
+  const handleDelete = (pkg: Package) => {
+    if (confirm(`Are you sure you want to delete "${pkg.name}"? This action cannot be undone.`)) {
+      deletePackageMutation.mutate(pkg.id);
+    }
   };
 
   const formatPrice = (cents: number) => {
@@ -140,7 +237,10 @@ export default function Packages() {
               </div>
             </div>
             
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <Dialog open={isDialogOpen} onOpenChange={(open) => {
+              setIsDialogOpen(open);
+              if (!open) resetForm();
+            }}>
               <DialogTrigger asChild>
                 <Button data-testid="button-create-package">
                   <Plus className="w-5 h-5 mr-2" />
@@ -149,9 +249,12 @@ export default function Packages() {
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>Create New Package</DialogTitle>
+                  <DialogTitle>{editingPackage ? "Edit Package" : "Create New Package"}</DialogTitle>
                   <DialogDescription>
-                    Create a pricing package that can be imported into client estimates.
+                    {editingPackage 
+                      ? "Update the package details below."
+                      : "Create a pricing package that can be imported into client estimates."
+                    }
                   </DialogDescription>
                 </DialogHeader>
                 
@@ -218,10 +321,13 @@ export default function Packages() {
                     </Button>
                     <Button
                       type="submit"
-                      disabled={createPackageMutation.isPending}
+                      disabled={createPackageMutation.isPending || updatePackageMutation.isPending}
                       data-testid="button-create-package-submit"
                     >
-                      {createPackageMutation.isPending ? "Creating..." : "Create Package"}
+                      {editingPackage
+                        ? updatePackageMutation.isPending ? "Updating..." : "Update Package"
+                        : createPackageMutation.isPending ? "Creating..." : "Create Package"
+                      }
                     </Button>
                   </div>
                 </form>
@@ -319,13 +425,30 @@ export default function Packages() {
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center space-x-2">
-                            <Button variant="outline" size="sm" data-testid={`button-edit-${pkg.id}`}>
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              onClick={() => handleEdit(pkg)}
+                              data-testid={`button-edit-${pkg.id}`}
+                            >
                               <Edit className="w-3 h-3" />
                             </Button>
-                            <Button variant="outline" size="sm" data-testid={`button-copy-${pkg.id}`}>
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              onClick={() => handleCopy(pkg)}
+                              disabled={copyPackageMutation.isPending}
+                              data-testid={`button-copy-${pkg.id}`}
+                            >
                               <Copy className="w-3 h-3" />
                             </Button>
-                            <Button variant="outline" size="sm" data-testid={`button-delete-${pkg.id}`}>
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              onClick={() => handleDelete(pkg)}
+                              disabled={deletePackageMutation.isPending}
+                              data-testid={`button-delete-${pkg.id}`}
+                            >
                               <Trash2 className="w-3 h-3" />
                             </Button>
                           </div>
