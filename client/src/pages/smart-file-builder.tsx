@@ -1242,10 +1242,10 @@ export default function SmartFileBuilder() {
                     {currentPage.pageType === 'PACKAGE' && currentPage.content && (
                       <div className="space-y-4">
                         {currentPage.content.heading && (
-                          <h3 className="text-2xl font-bold mb-2">{currentPage.content.heading}</h3>
+                          <h3 className="text-2xl font-bold mb-2 text-center">{currentPage.content.heading}</h3>
                         )}
                         {currentPage.content.description && (
-                          <p className="text-muted-foreground mb-4 leading-relaxed">{currentPage.content.description}</p>
+                          <p className="text-muted-foreground mb-4 leading-relaxed text-center">{currentPage.content.description}</p>
                         )}
                         {currentPage.content.packageIds && currentPage.content.packageIds.length > 0 ? (
                           <div className="space-y-4">
