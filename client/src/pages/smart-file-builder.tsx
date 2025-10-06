@@ -118,10 +118,12 @@ const BLOCK_TYPES = {
 function BlockEditor({
   block,
   onUpdate,
+  onUpdateWidth,
   onDelete
 }: {
   block: ContentBlock;
   onUpdate: (content: any) => void;
+  onUpdateWidth: (width: 'FULL' | 'HALF') => void;
   onDelete: () => void;
 }) {
   const [localContent, setLocalContent] = useState(block.content);
@@ -186,25 +188,81 @@ function BlockEditor({
               )}
               
               {block.type === 'IMAGE' && (
-                <Input
-                  value={localContent || ''}
-                  onChange={(e) => setLocalContent(e.target.value)}
-                  onBlur={handleBlur}
-                  placeholder={BLOCK_TYPES.IMAGE.placeholder}
-                  data-testid={`block-image-${block.id}`}
-                />
+                <div className="space-y-2">
+                  <Input
+                    value={localContent || ''}
+                    onChange={(e) => setLocalContent(e.target.value)}
+                    onBlur={handleBlur}
+                    placeholder={BLOCK_TYPES.IMAGE.placeholder}
+                    data-testid={`block-image-${block.id}`}
+                  />
+                  <div>
+                    <Label
+                      htmlFor={`image-upload-${block.id}`}
+                      className="cursor-pointer inline-flex items-center gap-2 text-sm text-primary hover:underline"
+                    >
+                      <ImageIcon className="w-4 h-4" />
+                      Upload Image
+                    </Label>
+                    <input
+                      id={`image-upload-${block.id}`}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          const reader = new FileReader();
+                          reader.onloadend = () => {
+                            const base64String = reader.result as string;
+                            setLocalContent(base64String);
+                            onUpdate(base64String);
+                          };
+                          reader.readAsDataURL(file);
+                        }
+                      }}
+                    />
+                  </div>
+                  {localContent && localContent.startsWith('data:image') && (
+                    <img src={localContent} alt="Preview" className="w-full max-h-32 object-contain rounded border" />
+                  )}
+                </div>
               )}
             </div>
             
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={onDelete}
-              data-testid={`button-delete-block-${block.id}`}
-            >
-              <Trash className="w-4 h-4" />
-            </Button>
+            <div className="flex flex-col gap-2">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={onDelete}
+                data-testid={`button-delete-block-${block.id}`}
+              >
+                <Trash className="w-4 h-4" />
+              </Button>
+            </div>
           </div>
+          
+          {/* Width Selection */}
+          {block.type !== 'SPACER' && (
+            <div className="mt-3 flex gap-2 border-t pt-3">
+              <Button
+                variant={!block.width || block.width === 'FULL' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => onUpdateWidth('FULL')}
+                className="flex-1"
+              >
+                Full Width
+              </Button>
+              <Button
+                variant={block.width === 'HALF' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => onUpdateWidth('HALF')}
+                className="flex-1"
+              >
+                Half Width
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
     </Reorder.Item>
@@ -274,6 +332,10 @@ function TextPageEditor({
     setBlocks(blocks.map(b => b.id === blockId ? { ...b, content } : b));
   };
 
+  const updateBlockWidth = (blockId: string, width: 'FULL' | 'HALF') => {
+    setBlocks(blocks.map(b => b.id === blockId ? { ...b, width } : b));
+  };
+
   const deleteBlock = (blockId: string) => {
     setBlocks(blocks.filter(b => b.id !== blockId));
   };
@@ -314,6 +376,7 @@ function TextPageEditor({
               key={block.id}
               block={block}
               onUpdate={(content) => updateBlock(block.id, content)}
+              onUpdateWidth={(width) => updateBlockWidth(block.id, width)}
               onDelete={() => deleteBlock(block.id)}
             />
           ))}
@@ -1210,10 +1273,10 @@ export default function SmartFileBuilder() {
                     {/* Text Page Preview */}
                     {currentPage.pageType === 'TEXT' && currentPage.content && (
                       <div className="max-w-[800px] mx-auto">
-                        <div className="space-y-4">
-                          {currentPage.content.blocks && currentPage.content.blocks.length > 0 ? (
-                            currentPage.content.blocks.map((block: ContentBlock, idx: number) => (
-                              <div key={idx}>
+                        {currentPage.content.blocks && currentPage.content.blocks.length > 0 ? (
+                          <div className="grid grid-cols-2 gap-4">
+                            {currentPage.content.blocks.map((block: ContentBlock, idx: number) => (
+                              <div key={idx} className={block.width === 'HALF' ? 'col-span-1' : 'col-span-2'}>
                                 {block.type === 'HEADING' && block.content && (
                                   <h3 className="text-2xl font-bold mb-2">{block.content}</h3>
                                 )}
@@ -1227,19 +1290,19 @@ export default function SmartFileBuilder() {
                                   <img src={block.content} alt="" className="w-full max-h-[150px] object-contain rounded-lg" />
                                 )}
                               </div>
-                            ))
-                          ) : (
-                            // Legacy format fallback
-                            <>
-                              {currentPage.content.heading && (
-                                <h3 className="text-xl font-semibold">{currentPage.content.heading}</h3>
-                              )}
-                              {currentPage.content.content && (
-                                <p className="text-muted-foreground whitespace-pre-wrap">{currentPage.content.content}</p>
-                              )}
-                            </>
-                          )}
-                        </div>
+                            ))}
+                          </div>
+                        ) : (
+                          // Legacy format fallback
+                          <div className="space-y-4">
+                            {currentPage.content.heading && (
+                              <h3 className="text-xl font-semibold">{currentPage.content.heading}</h3>
+                            )}
+                            {currentPage.content.content && (
+                              <p className="text-muted-foreground whitespace-pre-wrap">{currentPage.content.content}</p>
+                            )}
+                          </div>
+                        )}
                       </div>
                     )}
 
