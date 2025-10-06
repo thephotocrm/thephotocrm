@@ -1855,14 +1855,17 @@ export default function SmartFileBuilder() {
                                         const imageData: ImageContent = typeof block.content === 'string' 
                                           ? { url: block.content, borderRadius: 'straight', size: 'medium' }
                                           : block.content;
-                                        const sizeClass = imageData.size === 'small' ? 'h-[100px] w-[100px]' : imageData.size === 'large' ? 'h-[300px] w-[300px]' : 'h-[150px] w-[150px]';
+                                        const isRounded = imageData.borderRadius === 'rounded';
+                                        const sizeClass = imageData.size === 'small' ? (isRounded ? 'h-[100px] w-[100px]' : 'max-h-[100px]') 
+                                          : imageData.size === 'large' ? (isRounded ? 'h-[300px] w-[300px]' : 'max-h-[300px]') 
+                                          : (isRounded ? 'h-[150px] w-[150px]' : 'max-h-[150px]');
                                         return (
                                           <img 
                                             src={imageData.url} 
                                             alt="" 
                                             className={cn(
                                               "border border-border",
-                                              imageData.borderRadius === 'rounded' ? 'rounded-full aspect-square object-cover' : 'rounded-none object-contain max-w-full',
+                                              isRounded ? 'rounded-full aspect-square object-cover' : 'rounded-none object-contain w-full',
                                               sizeClass
                                             )} 
                                           />
