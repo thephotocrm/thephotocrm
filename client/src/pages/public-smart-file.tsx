@@ -503,7 +503,7 @@ export default function PublicSmartFile() {
                                         
                                         if (isRounded) {
                                           return (
-                                            <div className={cn("rounded-full overflow-hidden border border-border mx-auto", sizeClass)}>
+                                            <div className={cn("rounded-full overflow-hidden border-4 border-border shadow-lg mx-auto", sizeClass)}>
                                               <img 
                                                 src={imageData.url} 
                                                 alt="" 
@@ -520,7 +520,7 @@ export default function PublicSmartFile() {
                                           <img 
                                             src={imageData.url} 
                                             alt="" 
-                                            className={cn("w-full rounded-none object-contain border border-border", maxHeightClass)} 
+                                            className={cn("w-full rounded-none object-contain border-2 border-border shadow-md", maxHeightClass)} 
                                           />
                                         );
                                       })()}
@@ -550,7 +550,7 @@ export default function PublicSmartFile() {
                                         
                                         if (isRounded) {
                                           return (
-                                            <div className={cn("rounded-full overflow-hidden border border-border mx-auto", sizeClass)}>
+                                            <div className={cn("rounded-full overflow-hidden border-4 border-border shadow-lg mx-auto", sizeClass)}>
                                               <img 
                                                 src={imageData.url} 
                                                 alt="" 
@@ -567,7 +567,7 @@ export default function PublicSmartFile() {
                                           <img 
                                             src={imageData.url} 
                                             alt="" 
-                                            className={cn("w-full rounded-none object-contain border border-border", maxHeightClass)} 
+                                            className={cn("w-full rounded-none object-contain border-2 border-border shadow-md", maxHeightClass)} 
                                           />
                                         );
                                       })()}
