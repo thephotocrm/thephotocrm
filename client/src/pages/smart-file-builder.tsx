@@ -1199,7 +1199,7 @@ export default function SmartFileBuilder() {
 
               {/* Current Page Display - Full Screen */}
               <div className="h-full w-full overflow-y-auto p-8 pt-0">
-                <div className="max-w-7xl mx-auto py-8">
+                <div className="max-w-7xl mx-auto pb-8">
                   {(() => {
                     const currentPage = pages[currentPreviewPageIndex];
                     return (
@@ -1240,12 +1240,12 @@ export default function SmartFileBuilder() {
 
                     {/* Package Page Preview */}
                     {currentPage.pageType === 'PACKAGE' && currentPage.content && (
-                      <div className="space-y-4">
+                      <div className="space-y-6">
                         {currentPage.content.heading && (
-                          <h3 className="text-2xl font-bold mb-2 text-center">{currentPage.content.heading}</h3>
+                          <h3 className="text-4xl font-bold mb-4 text-center">{currentPage.content.heading}</h3>
                         )}
                         {currentPage.content.description && (
-                          <p className="text-muted-foreground mb-4 leading-relaxed text-center">{currentPage.content.description}</p>
+                          <p className="text-xl text-muted-foreground mb-6 leading-relaxed text-center">{currentPage.content.description}</p>
                         )}
                         {currentPage.content.packageIds && currentPage.content.packageIds.length > 0 ? (
                           <div className="space-y-4">
