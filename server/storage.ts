@@ -3369,7 +3369,7 @@ export class DatabaseStorage implements IStorage {
   async getProjectSmartFileByToken(token: string): Promise<ProjectSmartFile | undefined> {
     const [projectSmartFile] = await db.select()
       .from(projectSmartFiles)
-      .where(eq(projectSmartFiles.publicToken, token));
+      .where(eq(projectSmartFiles.token, token));
     return projectSmartFile || undefined;
   }
   

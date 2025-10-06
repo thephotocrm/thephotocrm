@@ -2361,6 +2361,104 @@ ${photographer?.businessName || 'Your Photography Team'}`;
     }
   });
 
+  // GET /api/public/smart-files/:token - Get Smart File by token for client viewing (PUBLIC ROUTE)
+  app.get("/api/public/smart-files/:token", async (req, res) => {
+    try {
+      const { token } = req.params;
+
+      // Find projectSmartFile by token
+      const projectSmartFile = await storage.getProjectSmartFileByToken(token);
+      
+      if (!projectSmartFile) {
+        return res.status(404).json({ message: "Smart File not found" });
+      }
+
+      // Update status to VIEWED and set viewedAt if this is the first view
+      if (projectSmartFile.status === 'SENT' && !projectSmartFile.viewedAt) {
+        await storage.updateProjectSmartFile(projectSmartFile.id, {
+          status: 'VIEWED',
+          viewedAt: new Date()
+        });
+        projectSmartFile.status = 'VIEWED';
+        projectSmartFile.viewedAt = new Date();
+      }
+
+      // Fetch the Smart File with pages
+      const smartFile = await storage.getSmartFile(projectSmartFile.smartFileId);
+      
+      if (!smartFile) {
+        return res.status(404).json({ message: "Smart File not found" });
+      }
+
+      // Fetch related data
+      const project = await storage.getProject(projectSmartFile.projectId);
+      const client = await storage.getClient(projectSmartFile.clientId);
+      const photographer = await storage.getPhotographer(projectSmartFile.photographerId);
+
+      if (!project || !client || !photographer) {
+        return res.status(404).json({ message: "Smart File not found" });
+      }
+
+      // Return enriched response
+      res.json({
+        projectSmartFile,
+        smartFile,
+        project: {
+          id: project.id,
+          title: project.title,
+          projectType: project.projectType,
+          eventDate: project.eventDate
+        },
+        client: {
+          id: client.id,
+          firstName: client.firstName,
+          lastName: client.lastName,
+          email: client.email
+        },
+        photographer: {
+          id: photographer.id,
+          businessName: photographer.businessName,
+          email: photographer.emailFromAddr,
+          phone: photographer.phone
+        }
+      });
+    } catch (error) {
+      console.error("Get public smart file error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // PATCH /api/public/smart-files/:token/accept - Accept Smart File and store selections (PUBLIC ROUTE)
+  app.patch("/api/public/smart-files/:token/accept", async (req, res) => {
+    try {
+      const { token } = req.params;
+      const { selectedPackages, selectedAddOns, subtotalCents, totalCents, depositCents } = req.body;
+
+      // Find projectSmartFile by token
+      const projectSmartFile = await storage.getProjectSmartFileByToken(token);
+      
+      if (!projectSmartFile) {
+        return res.status(404).json({ message: "Smart File not found" });
+      }
+
+      // Update status to ACCEPTED and store selections
+      const updated = await storage.updateProjectSmartFile(projectSmartFile.id, {
+        status: 'ACCEPTED',
+        acceptedAt: new Date(),
+        selectedPackages,
+        selectedAddOns,
+        subtotalCents,
+        totalCents,
+        depositCents
+      });
+
+      res.json(updated);
+    } catch (error) {
+      console.error("Accept smart file error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   // Proposals (route aliases for Estimates to enable terminology migration)
   app.get("/api/proposals", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {

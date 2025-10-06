@@ -33,6 +33,7 @@ import Earnings from "@/pages/earnings";
 import Settings from "@/pages/settings";
 import ClientPortal from "@/pages/client-portal";
 import PublicProposal from "@/pages/public-proposal";
+import PublicSmartFile from "@/pages/public-smart-file";
 import PublicBooking from "@/pages/public-booking";
 import PublicBookingCalendar from "@/pages/public-booking-calendar";
 import AdminDashboard from "@/pages/admin-dashboard";
@@ -104,6 +105,7 @@ function Router() {
       </Route>
       <Route path="/client-portal" component={ClientPortal} />
       <Route path="/public/proposals/:token" component={PublicProposal} />
+      <Route path="/smart-file/:token" component={PublicSmartFile} />
       <Route path="/public/booking/:token" component={PublicBooking} />
       <Route path="/booking/calendar/:publicToken" component={PublicBookingCalendar} />
       
