@@ -1253,7 +1253,7 @@ export default function SmartFileBuilder() {
                               const pkg = packages.find((p: any) => p.id === pkgId);
                               if (!pkg) return null;
                               return (
-                                <Card key={pkg.id} className="overflow-hidden border-2 hover:border-primary/40 hover:shadow-lg transition-all duration-300 max-w-[750px] mx-auto">
+                                <Card key={pkg.id} className="overflow-hidden border-2 hover:border-primary/40 hover:shadow-lg transition-all duration-300 max-w-[800px] mx-auto">
                                   <CardContent className="p-6">
                                     <div className="flex gap-6">
                                       {/* Package Image - Left Side */}
@@ -1271,15 +1271,15 @@ export default function SmartFileBuilder() {
                                       )}
                                       
                                       {/* Content - Right Side */}
-                                      <div className="flex-1 flex flex-col">
+                                      <div className="flex-1 flex flex-col min-w-0">
                                         {/* Package Title */}
-                                        <h4 className="text-xl font-bold mb-4">{pkg.name}</h4>
+                                        <h4 className="text-xl font-bold mb-4 break-words">{pkg.name}</h4>
                                         
                                         {/* Package Description */}
                                         {pkg.description && (
                                           <div className="mb-4">
                                             <p className="font-semibold text-sm mb-2">Includes:</p>
-                                            <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">
+                                            <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap break-words">
                                               {pkg.description}
                                             </p>
                                           </div>
@@ -1290,19 +1290,24 @@ export default function SmartFileBuilder() {
                                           <ul className="space-y-2 mb-4">
                                             {pkg.features.map((feature: string, idx: number) => (
                                               <li key={idx} className="text-sm flex items-start gap-2">
-                                                <span className="text-primary mt-1">•</span>
-                                                <span>{feature}</span>
+                                                <span className="text-primary mt-1 flex-shrink-0">•</span>
+                                                <span className="break-words">{feature}</span>
                                               </li>
                                             ))}
                                           </ul>
                                         )}
                                         
                                         {/* Price and Selection */}
-                                        <div className="flex items-center justify-between pt-4 border-t mt-auto">
-                                          <div className="text-2xl font-bold text-primary">
+                                        <div className="flex items-center justify-between gap-4 pt-4 border-t mt-auto">
+                                          <div className="text-2xl font-bold text-primary flex-shrink-0">
                                             ${(pkg.basePriceCents / 100).toFixed(2)}
                                           </div>
-                                          <Button variant="default" size="default" disabled className="pointer-events-none">
+                                          <Button 
+                                            variant="default" 
+                                            size="default" 
+                                            disabled 
+                                            className="pointer-events-none flex-shrink-0"
+                                          >
                                             Select
                                           </Button>
                                         </div>
