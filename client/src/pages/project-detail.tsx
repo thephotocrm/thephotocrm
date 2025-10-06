@@ -1,12 +1,16 @@
 import { useParams } from "wouter";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar, User, Mail, Phone, MapPin, FileText, DollarSign, Clock, ArrowLeft, ClipboardCheck } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Calendar, User, Mail, Phone, MapPin, FileText, DollarSign, Clock, ArrowLeft, ClipboardCheck, UserPlus, X } from "lucide-react";
 import { Link } from "wouter";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
 
 interface Project {
   id: string;
@@ -46,9 +50,25 @@ interface ProjectQuestionnaire {
   templateTitle: string;
 }
 
+interface Participant {
+  id: string;
+  projectId: string;
+  clientId: string;
+  addedAt: string;
+  client: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+  };
+}
+
 export default function ProjectDetail() {
   const { id } = useParams<{ id: string }>();
   const { user, loading } = useAuth();
+  const { toast } = useToast();
+  const [participantEmail, setParticipantEmail] = useState("");
+  const [isAddingParticipant, setIsAddingParticipant] = useState(false);
 
   const { data: project, isLoading: projectLoading } = useQuery<Project>({
     queryKey: ["/api/projects", id],
@@ -64,6 +84,59 @@ export default function ProjectDetail() {
     queryKey: ["/api/projects", id, "questionnaires"],
     enabled: !!user && !!id
   });
+
+  const { data: participants, isLoading: participantsLoading } = useQuery<Participant[]>({
+    queryKey: ["/api/projects", id, "participants"],
+    enabled: !!user && !!id
+  });
+
+  const addParticipantMutation = useMutation({
+    mutationFn: async (email: string) => {
+      return await apiRequest("POST", `/api/projects/${id}/participants`, { email });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/projects", id, "participants"] });
+      setParticipantEmail("");
+      setIsAddingParticipant(false);
+      toast({
+        title: "Participant added",
+        description: "The participant has been added and will receive automated emails."
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to add participant",
+        description: error.message || "An error occurred",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const removeParticipantMutation = useMutation({
+    mutationFn: async (participantId: string) => {
+      return await apiRequest("DELETE", `/api/projects/${id}/participants/${participantId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/projects", id, "participants"] });
+      toast({
+        title: "Participant removed",
+        description: "The participant has been removed from the project."
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to remove participant",
+        description: error.message || "An error occurred",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const handleAddParticipant = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!participantEmail.trim()) return;
+    addParticipantMutation.mutate(participantEmail.trim());
+  };
 
   if (loading || projectLoading) {
     return (
@@ -409,6 +482,128 @@ export default function ProjectDetail() {
                       Manage Questionnaires
                     </Button>
                   </Link>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Participants */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2">
+                  <UserPlus className="w-5 h-5" />
+                  Participants
+                </CardTitle>
+                {!isAddingParticipant && (
+                  <Button 
+                    onClick={() => setIsAddingParticipant(true)} 
+                    size="sm"
+                    data-testid="button-add-participant"
+                  >
+                    <UserPlus className="w-4 h-4 mr-2" />
+                    Add Participant
+                  </Button>
+                )}
+              </div>
+            </CardHeader>
+            <CardContent>
+              {isAddingParticipant && (
+                <form onSubmit={handleAddParticipant} className="mb-4 p-4 border rounded-lg bg-muted/50">
+                  <div className="space-y-3">
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">
+                        Participant Email
+                      </label>
+                      <Input
+                        type="email"
+                        placeholder="participant@example.com"
+                        value={participantEmail}
+                        onChange={(e) => setParticipantEmail(e.target.value)}
+                        required
+                        data-testid="input-participant-email"
+                      />
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Participants receive automated emails and can view project details through their own portal.
+                      </p>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button 
+                        type="submit" 
+                        size="sm"
+                        disabled={addParticipantMutation.isPending}
+                        data-testid="button-confirm-add-participant"
+                      >
+                        {addParticipantMutation.isPending ? "Adding..." : "Add"}
+                      </Button>
+                      <Button 
+                        type="button"
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => {
+                          setIsAddingParticipant(false);
+                          setParticipantEmail("");
+                        }}
+                        data-testid="button-cancel-add-participant"
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+                </form>
+              )}
+
+              {participantsLoading ? (
+                <div className="text-center py-8">
+                  <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto" />
+                </div>
+              ) : participants && participants.length > 0 ? (
+                <div className="space-y-3">
+                  {participants.map((participant) => (
+                    <div 
+                      key={participant.id} 
+                      className="flex items-center justify-between p-4 border rounded-lg"
+                      data-testid={`participant-${participant.id}`}
+                    >
+                      <div className="space-y-1">
+                        <p className="font-medium" data-testid={`participant-name-${participant.id}`}>
+                          {participant.client.firstName} {participant.client.lastName}
+                        </p>
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <Mail className="w-4 h-4" />
+                          <span data-testid={`participant-email-${participant.id}`}>
+                            {participant.client.email}
+                          </span>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          Added {formatDate(participant.addedAt)}
+                        </p>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeParticipantMutation.mutate(participant.id)}
+                        disabled={removeParticipantMutation.isPending}
+                        data-testid={`button-remove-participant-${participant.id}`}
+                      >
+                        <X className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <UserPlus className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                  <p className="text-muted-foreground mb-2">No participants added yet</p>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Add family members, friends, or wedding planners who should receive automated updates
+                  </p>
+                  {!isAddingParticipant && (
+                    <Button onClick={() => setIsAddingParticipant(true)} data-testid="button-add-first-participant">
+                      <UserPlus className="w-4 h-4 mr-2" />
+                      Add First Participant
+                    </Button>
+                  )}
                 </div>
               )}
             </CardContent>
