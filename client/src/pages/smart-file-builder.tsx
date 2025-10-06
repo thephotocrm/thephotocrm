@@ -1260,29 +1260,63 @@ export default function SmartFileBuilder() {
                           <p className="text-muted-foreground mb-4 leading-relaxed">{currentPage.content.description}</p>
                         )}
                         {currentPage.content.packageIds && currentPage.content.packageIds.length > 0 ? (
-                          <div className="space-y-3">
+                          <div className="space-y-4">
                             {packages && currentPage.content.packageIds.map((pkgId: string) => {
                               const pkg = packages.find((p: any) => p.id === pkgId);
                               if (!pkg) return null;
                               return (
-                                <div key={pkg.id} className="group relative p-5 rounded-xl border-2 border-border bg-gradient-to-br from-white to-gray-50 dark:from-background dark:to-muted/30 hover:border-primary/40 hover:shadow-lg hover:scale-[1.02] transition-all duration-300 ease-out">
-                                  <div className="flex items-start justify-between gap-4">
-                                    <div className="flex-1">
-                                      <h4 className="font-bold text-lg mb-2 group-hover:text-primary transition-colors">{pkg.name}</h4>
-                                      {pkg.description && (
-                                        <p className="text-sm text-muted-foreground leading-relaxed">{pkg.description}</p>
-                                      )}
+                                <Card key={pkg.id} className="overflow-hidden border-2 hover:border-primary/40 hover:shadow-lg transition-all duration-300">
+                                  {/* Package Image */}
+                                  {pkg.imageUrl && (
+                                    <div className="w-full h-48 overflow-hidden border-b">
+                                      <img 
+                                        src={pkg.imageUrl} 
+                                        alt={pkg.name}
+                                        className="w-full h-full object-cover"
+                                        onError={(e) => {
+                                          e.currentTarget.style.display = 'none';
+                                        }}
+                                      />
                                     </div>
-                                    <div className="flex-shrink-0 text-right">
-                                      <div className="px-4 py-2 rounded-lg bg-primary/10 border border-primary/20">
-                                        <p className="text-xs text-muted-foreground mb-0.5">Package Price</p>
-                                        <p className="text-xl font-bold text-primary">
+                                  )}
+                                  
+                                  <CardContent className="p-6">
+                                    {/* Package Title */}
+                                    <h4 className="text-xl font-bold mb-4">{pkg.name}</h4>
+                                    
+                                    {/* Package Description */}
+                                    {pkg.description && (
+                                      <div className="mb-4">
+                                        <p className="font-semibold text-sm mb-2">Includes:</p>
+                                        <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">
+                                          {pkg.description}
+                                        </p>
+                                      </div>
+                                    )}
+                                    
+                                    {/* Package Features */}
+                                    {pkg.features && pkg.features.length > 0 && (
+                                      <ul className="space-y-2 mb-4">
+                                        {pkg.features.map((feature: string, idx: number) => (
+                                          <li key={idx} className="text-sm flex items-start gap-2">
+                                            <span className="text-primary mt-1">•</span>
+                                            <span>{feature}</span>
+                                          </li>
+                                        ))}
+                                      </ul>
+                                    )}
+                                    
+                                    {/* Price and Selection */}
+                                    <div className="flex items-center justify-between pt-4 border-t">
+                                      <div className="text-right">
+                                        <p className="text-sm text-muted-foreground">Quantity: 1</p>
+                                        <p className="text-2xl font-bold text-primary">
                                           ${(pkg.basePriceCents / 100).toFixed(2)}
                                         </p>
                                       </div>
                                     </div>
-                                  </div>
-                                </div>
+                                  </CardContent>
+                                </Card>
                               );
                             })}
                             <p className="text-xs text-muted-foreground flex items-center gap-1 mt-2 pl-1">
