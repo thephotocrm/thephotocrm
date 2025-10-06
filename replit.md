@@ -35,6 +35,36 @@ A comprehensive SMS platform leveraging the SimpleTexting API for sending and re
 - **Earnings Dashboard**: Real-time balance tracking, payout requests, and transaction history
 - **Webhook Integration**: Automatic sync of account status, payouts, and payment events
 
+### Smart Files System
+A comprehensive drag-and-drop invoice/proposal builder similar to Honeybook, allowing photographers to create reusable, customizable client proposals:
+
+**Core Features:**
+- **Template System**: Create reusable Smart File templates with multiple page types
+- **Drag-and-Drop Builder**: Visual page builder with real-time reordering and editing
+- **4 Page Types**:
+  - **Text Pages**: Custom headings and content for introductions, terms, etc.
+  - **Package Selection**: Display photographer packages with pricing for client selection
+  - **Add-ons**: Additional services/products clients can add with quantity controls
+  - **Payment**: Configure deposit percentage, payment terms, and online payment options
+- **Project Integration**: Attach Smart Files to projects and send to clients with unique token URLs
+- **Client Experience**: Public, responsive Smart File view with package/add-on selection and real-time price calculator
+- **Status Tracking**: DRAFT → SENT → VIEWED → ACCEPTED → PAID workflow with automatic status updates
+- **Payment Processing**: Integrated Stripe Connect checkout with 5% platform fee and zero-deposit support
+- **Email Notifications**: 
+  - Client receives Smart File link when sent (Gmail API → SendGrid fallback)
+  - Photographer notified when client accepts with selection details
+- **Flexible Payment Options**: Supports online payments, offline payments, zero deposits, and configurable deposit percentages
+- **Selection Persistence**: Client selections saved to database with package/add-on details and total amounts
+- **Success Flow**: Conditional checkout - only triggers Stripe when online payments enabled and deposit > 0
+
+**Technical Implementation:**
+- Multi-tenant isolation via photographerId
+- Token-based public access (no authentication required for clients)
+- Page snapshots stored when attached to projects (preserves content even if template changes)
+- Defensive null handling for edge cases (0% deposits, missing data)
+- Duplicate submission prevention
+- Cache invalidation for real-time updates
+
 ### Google Integration
 Provides comprehensive Google Workspace integration through a single OAuth flow:
 - **Calendar**: Dedicated business calendar ("📸 [Business Name] - Client Bookings") with automatic creation, timezone support, and Google Meet links for virtual appointments.
