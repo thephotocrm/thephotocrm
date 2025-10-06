@@ -1865,7 +1865,7 @@ export default function SmartFileBuilder() {
                                             alt="" 
                                             className={cn(
                                               "border border-border",
-                                              isRounded ? 'rounded-full aspect-square object-cover' : 'rounded-none object-contain w-full',
+                                              isRounded ? 'rounded-full aspect-square object-cover mx-auto' : 'rounded-none object-contain w-full',
                                               sizeClass
                                             )} 
                                           />
