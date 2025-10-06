@@ -262,9 +262,9 @@ function BlockEditor({
                             src={imageData.url} 
                             alt="Uploaded" 
                             className={cn(
-                              "w-full object-contain border",
-                              imageData.borderRadius === 'rounded' ? 'rounded-3xl' : 'rounded-none',
-                              imageData.size === 'small' ? 'max-h-32' : imageData.size === 'large' ? 'max-h-96' : 'max-h-48'
+                              "w-full object-cover border",
+                              imageData.borderRadius === 'rounded' ? 'rounded-full aspect-square' : 'rounded-none object-contain',
+                              imageData.size === 'small' ? 'max-h-32 max-w-32' : imageData.size === 'large' ? 'max-h-96 max-w-96' : 'max-h-48 max-w-48'
                             )} 
                           />
                           <div className="flex gap-2 mt-2">
@@ -1860,9 +1860,9 @@ export default function SmartFileBuilder() {
                                             src={imageData.url} 
                                             alt="" 
                                             className={cn(
-                                              "w-full object-contain",
-                                              imageData.borderRadius === 'rounded' ? 'rounded-3xl' : 'rounded-none',
-                                              imageData.size === 'small' ? 'max-h-[100px]' : imageData.size === 'large' ? 'max-h-[300px]' : 'max-h-[150px]'
+                                              "w-full",
+                                              imageData.borderRadius === 'rounded' ? 'rounded-full aspect-square object-cover' : 'rounded-none object-contain',
+                                              imageData.size === 'small' ? 'max-h-[100px] max-w-[100px]' : imageData.size === 'large' ? 'max-h-[300px] max-w-[300px]' : 'max-h-[150px] max-w-[150px]'
                                             )} 
                                           />
                                         );

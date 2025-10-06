@@ -452,9 +452,9 @@ export default function PublicSmartFile() {
                                           src={imageData.url} 
                                           alt="" 
                                           className={cn(
-                                            "w-full object-contain",
-                                            imageData.borderRadius === 'rounded' ? 'rounded-3xl' : 'rounded-none',
-                                            imageData.size === 'small' ? 'max-h-[100px]' : imageData.size === 'large' ? 'max-h-[300px]' : 'max-h-[150px]'
+                                            "w-full",
+                                            imageData.borderRadius === 'rounded' ? 'rounded-full aspect-square object-cover' : 'rounded-none object-contain',
+                                            imageData.size === 'small' ? 'max-h-[100px] max-w-[100px]' : imageData.size === 'large' ? 'max-h-[300px] max-w-[300px]' : 'max-h-[150px] max-w-[150px]'
                                           )} 
                                         />
                                       );
