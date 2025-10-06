@@ -1208,35 +1208,37 @@ export default function SmartFileBuilder() {
                     <div className="space-y-6">
                     {/* Text Page Preview */}
                     {currentPage.pageType === 'TEXT' && currentPage.content && (
-                      <div className="space-y-4">
-                        {currentPage.content.blocks && currentPage.content.blocks.length > 0 ? (
-                          currentPage.content.blocks.map((block: ContentBlock, idx: number) => (
-                            <div key={idx}>
-                              {block.type === 'HEADING' && block.content && (
-                                <h3 className="text-2xl font-bold mb-2">{block.content}</h3>
+                      <div className="max-w-[800px] mx-auto">
+                        <div className="space-y-4">
+                          {currentPage.content.blocks && currentPage.content.blocks.length > 0 ? (
+                            currentPage.content.blocks.map((block: ContentBlock, idx: number) => (
+                              <div key={idx}>
+                                {block.type === 'HEADING' && block.content && (
+                                  <h3 className="text-2xl font-bold mb-2">{block.content}</h3>
+                                )}
+                                {block.type === 'TEXT' && block.content && (
+                                  <p className="text-muted-foreground whitespace-pre-wrap">{block.content}</p>
+                                )}
+                                {block.type === 'SPACER' && (
+                                  <div className="py-6" />
+                                )}
+                                {block.type === 'IMAGE' && block.content && (
+                                  <img src={block.content} alt="" className="w-full rounded-lg" />
+                                )}
+                              </div>
+                            ))
+                          ) : (
+                            // Legacy format fallback
+                            <>
+                              {currentPage.content.heading && (
+                                <h3 className="text-xl font-semibold">{currentPage.content.heading}</h3>
                               )}
-                              {block.type === 'TEXT' && block.content && (
-                                <p className="text-muted-foreground whitespace-pre-wrap">{block.content}</p>
+                              {currentPage.content.content && (
+                                <p className="text-muted-foreground whitespace-pre-wrap">{currentPage.content.content}</p>
                               )}
-                              {block.type === 'SPACER' && (
-                                <div className="py-6" />
-                              )}
-                              {block.type === 'IMAGE' && block.content && (
-                                <img src={block.content} alt="" className="w-full rounded-lg" />
-                              )}
-                            </div>
-                          ))
-                        ) : (
-                          // Legacy format fallback
-                          <>
-                            {currentPage.content.heading && (
-                              <h3 className="text-xl font-semibold">{currentPage.content.heading}</h3>
-                            )}
-                            {currentPage.content.content && (
-                              <p className="text-muted-foreground whitespace-pre-wrap">{currentPage.content.content}</p>
-                            )}
-                          </>
-                        )}
+                            </>
+                          )}
+                        </div>
                       </div>
                     )}
 
