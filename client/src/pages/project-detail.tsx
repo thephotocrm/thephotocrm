@@ -6,11 +6,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Calendar, User, Mail, Phone, MapPin, FileText, DollarSign, Clock, ArrowLeft, ClipboardCheck, UserPlus, X } from "lucide-react";
+import { Calendar, User, Mail, Phone, MapPin, FileText, DollarSign, Clock, ArrowLeft, ClipboardCheck, UserPlus, X, History, Send, MessageSquare } from "lucide-react";
 import { Link } from "wouter";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 
 interface Project {
   id: string;
@@ -63,12 +65,55 @@ interface Participant {
   };
 }
 
+type TimelineEvent = 
+  | {
+      type: 'activity';
+      id: string;
+      title: string;
+      description?: string;
+      activityType: string;
+      metadata?: any;
+      createdAt: string;
+    }
+  | {
+      type: 'email';
+      id: string;
+      title: string;
+      description: string;
+      status: string;
+      sentAt?: string;
+      openedAt?: string;
+      clickedAt?: string;
+      bouncedAt?: string;
+      createdAt: string;
+      templateName?: string;
+      templateSubject?: string;
+      automationName?: string;
+    }
+  | {
+      type: 'sms';
+      id: string;
+      title: string;
+      description: string;
+      status: string;
+      sentAt?: string;
+      deliveredAt?: string;
+      createdAt: string;
+      direction?: string;
+      messageBody?: string;
+      templateName?: string;
+      automationName?: string;
+    };
+
 export default function ProjectDetail() {
   const { id } = useParams<{ id: string }>();
   const { user, loading } = useAuth();
   const { toast } = useToast();
   const [participantEmail, setParticipantEmail] = useState("");
   const [isAddingParticipant, setIsAddingParticipant] = useState(false);
+  const [messageSubject, setMessageSubject] = useState("");
+  const [messageBody, setMessageBody] = useState("");
+  const [sendToParticipants, setSendToParticipants] = useState(true);
 
   const { data: project, isLoading: projectLoading } = useQuery<Project>({
     queryKey: ["/api/projects", id],
@@ -87,6 +132,11 @@ export default function ProjectDetail() {
 
   const { data: participants, isLoading: participantsLoading } = useQuery<Participant[]>({
     queryKey: ["/api/projects", id, "participants"],
+    enabled: !!user && !!id
+  });
+
+  const { data: history, isLoading: historyLoading } = useQuery<TimelineEvent[]>({
+    queryKey: ["/api/projects", id, "history"],
     enabled: !!user && !!id
   });
 
@@ -132,10 +182,42 @@ export default function ProjectDetail() {
     }
   });
 
+  const sendMessageMutation = useMutation({
+    mutationFn: async (data: { subject: string; body: string; sendToParticipants: boolean }) => {
+      return await apiRequest("POST", `/api/projects/${id}/send-message`, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/projects", id, "history"] });
+      setMessageSubject("");
+      setMessageBody("");
+      toast({
+        title: "Message sent",
+        description: "Your email has been sent successfully."
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to send message",
+        description: error.message || "An error occurred",
+        variant: "destructive"
+      });
+    }
+  });
+
   const handleAddParticipant = (e: React.FormEvent) => {
     e.preventDefault();
     if (!participantEmail.trim()) return;
     addParticipantMutation.mutate(participantEmail.trim());
+  };
+
+  const handleSendMessage = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!messageSubject.trim() || !messageBody.trim()) return;
+    sendMessageMutation.mutate({
+      subject: messageSubject.trim(),
+      body: messageBody.trim(),
+      sendToParticipants
+    });
   };
 
   if (loading || projectLoading) {
@@ -604,6 +686,153 @@ export default function ProjectDetail() {
                       Add First Participant
                     </Button>
                   )}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Message Composer */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Send className="w-5 h-5" />
+                Send Message
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleSendMessage} className="space-y-4">
+                <div>
+                  <Label htmlFor="message-subject">Subject</Label>
+                  <Input
+                    id="message-subject"
+                    type="text"
+                    placeholder="Enter email subject"
+                    value={messageSubject}
+                    onChange={(e) => setMessageSubject(e.target.value)}
+                    required
+                    data-testid="input-message-subject"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="message-body">Message</Label>
+                  <Textarea
+                    id="message-body"
+                    placeholder="Type your message here..."
+                    value={messageBody}
+                    onChange={(e) => setMessageBody(e.target.value)}
+                    required
+                    rows={6}
+                    data-testid="textarea-message-body"
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id="send-to-participants"
+                    checked={sendToParticipants}
+                    onChange={(e) => setSendToParticipants(e.target.checked)}
+                    className="w-4 h-4"
+                    data-testid="checkbox-send-participants"
+                  />
+                  <Label htmlFor="send-to-participants" className="text-sm font-normal cursor-pointer">
+                    BCC participants ({participants?.length || 0} participants)
+                  </Label>
+                </div>
+                <div className="flex gap-2">
+                  <Button 
+                    type="submit" 
+                    disabled={sendMessageMutation.isPending}
+                    data-testid="button-send-message"
+                  >
+                    <Send className="w-4 h-4 mr-2" />
+                    {sendMessageMutation.isPending ? "Sending..." : "Send Email"}
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Email will be sent via Gmail (or SendGrid if Gmail is unavailable) to {project.client.email}
+                  {sendToParticipants && participants && participants.length > 0 && ` with ${participants.length} participant(s) BCC'd`}
+                </p>
+              </form>
+            </CardContent>
+          </Card>
+
+          {/* Project History Timeline */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <History className="w-5 h-5" />
+                Project History
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {historyLoading ? (
+                <div className="text-center py-8">
+                  <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto" />
+                </div>
+              ) : history && history.length > 0 ? (
+                <div className="space-y-4">
+                  {history.map((event) => (
+                    <div 
+                      key={event.id} 
+                      className="border-l-2 border-muted pl-4 pb-4 last:pb-0"
+                      data-testid={`timeline-event-${event.id}`}
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className="flex-shrink-0 mt-1">
+                          {event.type === 'email' && <Mail className="w-4 h-4 text-blue-500" />}
+                          {event.type === 'sms' && <MessageSquare className="w-4 h-4 text-green-500" />}
+                          {event.type === 'activity' && <Clock className="w-4 h-4 text-gray-500" />}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="flex-1">
+                              <p className="font-medium text-sm" data-testid={`timeline-title-${event.id}`}>
+                                {event.title}
+                              </p>
+                              {event.description && (
+                                <p className="text-sm text-muted-foreground mt-1" data-testid={`timeline-description-${event.id}`}>
+                                  {event.description}
+                                </p>
+                              )}
+                              <div className="flex items-center gap-2 mt-2">
+                                <Badge variant="secondary" className="text-xs">
+                                  {event.type}
+                                </Badge>
+                                {event.type === 'email' && (
+                                  <>
+                                    <Badge variant="outline" className="text-xs">
+                                      {event.status}
+                                    </Badge>
+                                    {event.openedAt && (
+                                      <Badge variant="outline" className="text-xs bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-300">
+                                        Opened
+                                      </Badge>
+                                    )}
+                                  </>
+                                )}
+                                {event.type === 'sms' && (
+                                  <Badge variant="outline" className="text-xs">
+                                    {event.status}
+                                  </Badge>
+                                )}
+                              </div>
+                            </div>
+                            <span className="text-xs text-muted-foreground whitespace-nowrap">
+                              {formatDate(event.createdAt)}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <History className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                  <p className="text-muted-foreground">No activity yet</p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Project communications and updates will appear here
+                  </p>
                 </div>
               )}
             </CardContent>
