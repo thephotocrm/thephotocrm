@@ -1253,7 +1253,7 @@ export default function SmartFileBuilder() {
                               const pkg = packages.find((p: any) => p.id === pkgId);
                               if (!pkg) return null;
                               return (
-                                <Card key={pkg.id} className="overflow-hidden border-2 hover:border-primary/40 hover:shadow-lg transition-all duration-300">
+                                <Card key={pkg.id} className="overflow-hidden border-2 hover:border-primary/40 hover:shadow-lg transition-all duration-300 max-w-[750px] mx-auto">
                                   <CardContent className="p-6">
                                     <div className="flex gap-6">
                                       {/* Package Image - Left Side */}
@@ -1271,7 +1271,7 @@ export default function SmartFileBuilder() {
                                       )}
                                       
                                       {/* Content - Right Side */}
-                                      <div className="flex-1">
+                                      <div className="flex-1 flex flex-col">
                                         {/* Package Title */}
                                         <h4 className="text-xl font-bold mb-4">{pkg.name}</h4>
                                         
@@ -1299,12 +1299,12 @@ export default function SmartFileBuilder() {
                                         
                                         {/* Price and Selection */}
                                         <div className="flex items-center justify-between pt-4 border-t mt-auto">
-                                          <div className="text-sm text-muted-foreground">Quantity: 1</div>
-                                          <div className="text-right">
-                                            <p className="text-2xl font-bold text-primary">
-                                              ${(pkg.basePriceCents / 100).toFixed(2)}
-                                            </p>
+                                          <div className="text-2xl font-bold text-primary">
+                                            ${(pkg.basePriceCents / 100).toFixed(2)}
                                           </div>
+                                          <Button variant="default" size="default" disabled className="pointer-events-none">
+                                            Select
+                                          </Button>
                                         </div>
                                       </div>
                                     </div>
