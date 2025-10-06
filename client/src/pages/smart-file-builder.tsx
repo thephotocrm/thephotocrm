@@ -391,32 +391,55 @@ function PackagePageEditor({
             <Loader2 className="w-6 h-6 animate-spin" data-testid="loading-packages" />
           </div>
         ) : (
-          <div className="space-y-2 mt-2">
+          <div className="space-y-3 mt-2">
             {packages && packages.length > 0 ? (
               packages.map((pkg) => (
                 <Card 
                   key={pkg.id}
                   className={cn(
-                    "cursor-pointer transition-colors",
-                    (localContent.packageIds || []).includes(pkg.id) && "border-primary bg-primary/5"
+                    "cursor-pointer transition-all overflow-hidden",
+                    (localContent.packageIds || []).includes(pkg.id) 
+                      ? "border-2 border-primary bg-primary/5" 
+                      : "border hover:border-primary/50"
                   )}
                   onClick={() => togglePackage(pkg.id)}
                   data-testid={`card-package-${pkg.id}`}
                 >
-                  <CardContent className="p-4 flex items-center justify-between">
-                    <div>
-                      <p className="font-medium" data-testid={`text-package-name-${pkg.id}`}>{pkg.name}</p>
-                      <p className="text-sm text-muted-foreground" data-testid={`text-package-price-${pkg.id}`}>
-                        ${(pkg.priceCents / 100).toFixed(2)}
-                      </p>
+                  {pkg.imageUrl && (
+                    <div className="aspect-video w-full overflow-hidden border-b">
+                      <img 
+                        src={pkg.imageUrl} 
+                        alt={pkg.name}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                        }}
+                      />
                     </div>
-                    <div className={cn(
-                      "w-5 h-5 rounded border-2 flex items-center justify-center",
-                      (localContent.packageIds || []).includes(pkg.id) ? "border-primary bg-primary" : "border-muted"
-                    )}>
-                      {(localContent.packageIds || []).includes(pkg.id) && (
-                        <div className="w-2 h-2 bg-white rounded-sm" />
-                      )}
+                  )}
+                  <CardContent className="p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-base mb-1" data-testid={`text-package-name-${pkg.id}`}>
+                          {pkg.name}
+                        </p>
+                        {pkg.description && (
+                          <p className="text-sm text-muted-foreground mb-2 line-clamp-2" data-testid={`text-package-description-${pkg.id}`}>
+                            {pkg.description}
+                          </p>
+                        )}
+                        <p className="text-base font-semibold text-primary" data-testid={`text-package-price-${pkg.id}`}>
+                          ${(pkg.basePriceCents / 100).toFixed(2)}
+                        </p>
+                      </div>
+                      <div className={cn(
+                        "w-6 h-6 rounded border-2 flex items-center justify-center flex-shrink-0 mt-1",
+                        (localContent.packageIds || []).includes(pkg.id) ? "border-primary bg-primary" : "border-muted"
+                      )}>
+                        {(localContent.packageIds || []).includes(pkg.id) && (
+                          <CheckCircle className="w-4 h-4 text-white" />
+                        )}
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
@@ -433,16 +456,19 @@ function PackagePageEditor({
         <>
           <Separator />
           <div>
-            <Label data-testid="label-selected-packages">Selected Packages</Label>
+            <Label data-testid="label-selected-packages">Selected Packages ({selectedPackages.length})</Label>
             <div className="space-y-2 mt-2">
               {selectedPackages.map((pkg) => (
                 <div 
                   key={pkg.id} 
-                  className="flex items-center justify-between p-2 bg-muted rounded"
+                  className="flex items-center justify-between p-3 bg-primary/10 border border-primary/20 rounded-lg"
                   data-testid={`selected-package-${pkg.id}`}
                 >
-                  <span className="font-medium">{pkg.name}</span>
-                  <span className="text-sm">${(pkg.priceCents / 100).toFixed(2)}</span>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-primary" />
+                    <span className="font-medium">{pkg.name}</span>
+                  </div>
+                  <span className="text-sm font-semibold text-primary">${(pkg.basePriceCents / 100).toFixed(2)}</span>
                 </div>
               ))}
             </div>
