@@ -624,15 +624,12 @@ export default function SmartFileBuilder() {
   const createPageMutation = useMutation({
     mutationFn: async (data: { pageType: PageType; displayTitle: string; content: any }) => {
       const maxOrder = pages.length > 0 ? Math.max(...pages.map(p => p.pageOrder)) : -1;
-      return apiRequest(`/api/smart-files/${id}/pages`, {
-        method: 'POST',
-        body: JSON.stringify({
-          smartFileId: id,
-          pageType: data.pageType,
-          pageOrder: maxOrder + 1,
-          displayTitle: data.displayTitle,
-          content: data.content
-        })
+      return apiRequest('POST', `/api/smart-files/${id}/pages`, {
+        smartFileId: id,
+        pageType: data.pageType,
+        pageOrder: maxOrder + 1,
+        displayTitle: data.displayTitle,
+        content: data.content
       });
     },
     onSuccess: () => {
@@ -646,10 +643,7 @@ export default function SmartFileBuilder() {
 
   const updatePageMutation = useMutation({
     mutationFn: async ({ pageId, updates }: { pageId: string; updates: Partial<SmartFilePage> }) => {
-      return apiRequest(`/api/smart-files/${id}/pages/${pageId}`, {
-        method: 'PATCH',
-        body: JSON.stringify(updates)
-      });
+      return apiRequest('PATCH', `/api/smart-files/${id}/pages/${pageId}`, updates);
     },
     onMutate: () => {
       setSaveStatus('saving');
@@ -663,9 +657,7 @@ export default function SmartFileBuilder() {
 
   const deletePageMutation = useMutation({
     mutationFn: async (pageId: string) => {
-      return apiRequest(`/api/smart-files/${id}/pages/${pageId}`, {
-        method: 'DELETE'
-      });
+      return apiRequest('DELETE', `/api/smart-files/${id}/pages/${pageId}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/smart-files", id] });
@@ -678,10 +670,7 @@ export default function SmartFileBuilder() {
 
   const reorderPagesMutation = useMutation({
     mutationFn: async (pageOrders: { id: string; pageOrder: number }[]) => {
-      return apiRequest(`/api/smart-files/${id}/pages/reorder`, {
-        method: 'POST',
-        body: JSON.stringify({ pageOrders })
-      });
+      return apiRequest('POST', `/api/smart-files/${id}/pages/reorder`, { pageOrders });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/smart-files", id] });
