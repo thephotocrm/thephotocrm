@@ -359,66 +359,96 @@ export default function PublicSmartFile() {
 
                 {/* PACKAGE Page */}
                 {page.pageType === "PACKAGE" && (
-                  <Card>
-                    <CardHeader>
+                  <Card className="overflow-hidden">
+                    <CardHeader className="bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border-b">
                       <CardTitle className="flex items-center gap-2">
-                        <PackageIcon className="w-5 h-5" />
+                        <div className="p-2 bg-primary/10 rounded-lg">
+                          <PackageIcon className="w-5 h-5 text-primary" />
+                        </div>
                         {page.displayTitle}
                       </CardTitle>
                       {page.content.description && (
-                        <CardDescription>{page.content.description}</CardDescription>
+                        <CardDescription className="mt-2">{page.content.description}</CardDescription>
                       )}
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className="pt-6">
                       <RadioGroup
                         value={selectedPackage?.packageId || ""}
                         onValueChange={() => {}}
                         disabled={isAccepted}
                         className="space-y-4"
                       >
-                        {page.content.packages?.map((pkg: any) => (
+                        {page.content.packages?.map((pkg: any, pkgIdx: number) => (
                           <div key={pkg.id} data-testid={`card-package-${pkg.id}`}>
                             <label
-                              className={`flex items-start gap-4 p-4 rounded-lg border-2 cursor-pointer transition-all ${
-                                selectedPackage?.packageId === pkg.id
-                                  ? 'border-primary bg-primary/5'
-                                  : 'border-border hover:border-primary/50'
-                              } ${isAccepted ? 'cursor-not-allowed opacity-60' : ''}`}
+                              className={`
+                                group relative block p-6 rounded-xl border-2 cursor-pointer
+                                transition-all duration-300 ease-out
+                                ${selectedPackage?.packageId === pkg.id
+                                  ? 'border-primary bg-gradient-to-br from-primary/10 via-primary/5 to-background shadow-lg shadow-primary/20 scale-[1.02]'
+                                  : 'border-border bg-card hover:border-primary/50 hover:shadow-md hover:scale-[1.01]'
+                                }
+                                ${isAccepted ? 'cursor-not-allowed opacity-60' : ''}
+                              `}
                               onClick={() => !isAccepted && handlePackageSelect(page, pkg)}
+                              style={{
+                                animationDelay: `${pkgIdx * 100}ms`
+                              }}
                             >
-                              <RadioGroupItem 
-                                value={pkg.id} 
-                                id={pkg.id}
-                                disabled={isAccepted}
-                                className="mt-1"
-                              />
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-start justify-between gap-4">
-                                  <div className="flex-1">
-                                    <h4 className="font-semibold text-base" data-testid={`text-package-name-${pkg.id}`}>
-                                      {pkg.name}
-                                    </h4>
-                                    {pkg.description && (
-                                      <p className="text-sm text-muted-foreground mt-1">
-                                        {pkg.description}
-                                      </p>
-                                    )}
-                                    {pkg.features && pkg.features.length > 0 && (
-                                      <ul className="mt-3 space-y-1">
-                                        {pkg.features.map((feature: string, idx: number) => (
-                                          <li key={idx} className="text-sm flex items-start gap-2">
-                                            <CheckCircle className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
-                                            <span>{feature}</span>
-                                          </li>
-                                        ))}
-                                      </ul>
-                                    )}
+                              {/* Selection Indicator - Top Right Badge */}
+                              {selectedPackage?.packageId === pkg.id && (
+                                <div className="absolute top-4 right-4">
+                                  <div className="flex items-center gap-1.5 px-3 py-1.5 bg-primary text-primary-foreground rounded-full text-xs font-semibold shadow-lg">
+                                    <CheckCircle className="w-3.5 h-3.5" />
+                                    Selected
                                   </div>
-                                  <div className="text-right flex-shrink-0">
-                                    <p className="font-semibold text-lg" data-testid={`text-package-price-${pkg.id}`}>
-                                      {formatPrice(pkg.priceCents)}
+                                </div>
+                              )}
+
+                              <div className="flex items-start gap-4">
+                                <RadioGroupItem 
+                                  value={pkg.id} 
+                                  id={pkg.id}
+                                  disabled={isAccepted}
+                                  className="mt-1.5 data-[state=checked]:border-primary data-[state=checked]:text-primary"
+                                />
+                                <div className="flex-1 min-w-0 pr-24">
+                                  <h4 className="font-bold text-lg mb-1 group-hover:text-primary transition-colors" data-testid={`text-package-name-${pkg.id}`}>
+                                    {pkg.name}
+                                  </h4>
+                                  {pkg.description && (
+                                    <p className="text-sm text-muted-foreground leading-relaxed">
+                                      {pkg.description}
                                     </p>
-                                  </div>
+                                  )}
+                                  {pkg.features && pkg.features.length > 0 && (
+                                    <ul className="mt-4 space-y-2.5">
+                                      {pkg.features.map((feature: string, idx: number) => (
+                                        <li key={idx} className="text-sm flex items-start gap-2.5">
+                                          <div className="mt-0.5 p-0.5 bg-primary/10 rounded-full">
+                                            <CheckCircle className="w-4 h-4 text-primary flex-shrink-0" />
+                                          </div>
+                                          <span className="flex-1 leading-relaxed">{feature}</span>
+                                        </li>
+                                      ))}
+                                    </ul>
+                                  )}
+                                </div>
+                              </div>
+
+                              {/* Price Tag - Styled */}
+                              <div className="absolute bottom-6 right-6">
+                                <div className={`
+                                  px-4 py-2.5 rounded-lg font-bold text-xl
+                                  ${selectedPackage?.packageId === pkg.id
+                                    ? 'bg-primary text-primary-foreground shadow-lg'
+                                    : 'bg-muted text-foreground'
+                                  }
+                                  transition-all duration-300
+                                `}>
+                                  <span data-testid={`text-package-price-${pkg.id}`}>
+                                    {formatPrice(pkg.priceCents)}
+                                  </span>
                                 </div>
                               </div>
                             </label>
@@ -431,18 +461,20 @@ export default function PublicSmartFile() {
 
                 {/* ADDON Page */}
                 {page.pageType === "ADDON" && (
-                  <Card>
-                    <CardHeader>
+                  <Card className="overflow-hidden">
+                    <CardHeader className="bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border-b">
                       <CardTitle className="flex items-center gap-2">
-                        <Plus className="w-5 h-5" />
+                        <div className="p-2 bg-primary/10 rounded-lg">
+                          <Plus className="w-5 h-5 text-primary" />
+                        </div>
                         {page.displayTitle}
                       </CardTitle>
                       {page.content.description && (
-                        <CardDescription>{page.content.description}</CardDescription>
+                        <CardDescription className="mt-2">{page.content.description}</CardDescription>
                       )}
                     </CardHeader>
-                    <CardContent className="space-y-4">
-                      {page.content.addOns?.map((addOn: any) => {
+                    <CardContent className="pt-6 space-y-4">
+                      {page.content.addOns?.map((addOn: any, addonIdx: number) => {
                         const key = `${page.id}-${addOn.id}`;
                         const isSelected = selectedAddOns.has(key);
                         const quantity = selectedAddOns.get(key)?.quantity || 1;
@@ -450,10 +482,20 @@ export default function PublicSmartFile() {
                         return (
                           <div 
                             key={addOn.id} 
-                            className={`p-4 rounded-lg border-2 transition-all ${
-                              isSelected ? 'border-primary bg-primary/5' : 'border-border'
-                            } ${isAccepted ? 'opacity-60' : ''}`}
+                            className={`
+                              group relative p-5 rounded-xl border-2 cursor-pointer
+                              transition-all duration-300 ease-out
+                              ${isSelected 
+                                ? 'border-primary bg-gradient-to-br from-primary/10 via-primary/5 to-background shadow-lg shadow-primary/10' 
+                                : 'border-border bg-card hover:border-primary/30 hover:shadow-md'
+                              } 
+                              ${isAccepted ? 'opacity-60 cursor-not-allowed' : ''}
+                            `}
                             data-testid={`card-addon-${addOn.id}`}
+                            style={{
+                              animationDelay: `${addonIdx * 80}ms`
+                            }}
+                            onClick={() => !isAccepted && !isSelected && handleAddOnToggle(page, addOn, true)}
                           >
                             <div className="flex items-start gap-4">
                               <Checkbox
@@ -463,65 +505,88 @@ export default function PublicSmartFile() {
                                   !isAccepted && handleAddOnToggle(page, addOn, checked as boolean)
                                 }
                                 disabled={isAccepted}
-                                className="mt-1"
+                                className="mt-1.5 data-[state=checked]:border-primary data-[state=checked]:bg-primary"
                                 data-testid={`checkbox-addon-${addOn.id}`}
+                                onClick={(e) => e.stopPropagation()}
                               />
                               <div className="flex-1 min-w-0">
-                                <div className="flex items-start justify-between gap-4">
+                                <div className="flex items-start justify-between gap-4 mb-3">
                                   <div className="flex-1">
-                                    <Label htmlFor={addOn.id} className="font-semibold text-base cursor-pointer">
+                                    <Label 
+                                      htmlFor={addOn.id} 
+                                      className="font-bold text-base cursor-pointer group-hover:text-primary transition-colors"
+                                    >
                                       {addOn.name}
                                     </Label>
                                     {addOn.description && (
-                                      <p className="text-sm text-muted-foreground mt-1">
+                                      <p className="text-sm text-muted-foreground mt-1.5 leading-relaxed">
                                         {addOn.description}
                                       </p>
                                     )}
                                   </div>
                                   <div className="text-right flex-shrink-0">
-                                    <p className="font-semibold" data-testid={`text-addon-price-${addOn.id}`}>
-                                      {formatPrice(addOn.priceCents)}
-                                    </p>
-                                    {isSelected && (
-                                      <p className="text-xs text-muted-foreground">
-                                        each
+                                    <div className={`
+                                      px-3 py-1.5 rounded-lg font-semibold text-sm
+                                      ${isSelected 
+                                        ? 'bg-primary/20 text-primary' 
+                                        : 'bg-muted text-foreground'
+                                      }
+                                      transition-all duration-300
+                                    `}>
+                                      <span data-testid={`text-addon-price-${addOn.id}`}>
+                                        {formatPrice(addOn.priceCents)}
+                                      </span>
+                                    </div>
+                                    {!isSelected && (
+                                      <p className="text-xs text-muted-foreground mt-1">
+                                        per item
                                       </p>
                                     )}
                                   </div>
                                 </div>
 
                                 {isSelected && (
-                                  <div className="flex items-center gap-2 mt-3">
-                                    <Button
-                                      type="button"
-                                      variant="outline"
-                                      size="sm"
-                                      onClick={() => handleAddOnQuantityChange(page, addOn, -1)}
-                                      disabled={isAccepted || quantity <= 1}
-                                      data-testid={`button-decrease-quantity-${addOn.id}`}
-                                    >
-                                      <Minus className="w-3 h-3" />
-                                    </Button>
-                                    <Input
-                                      type="number"
-                                      value={quantity}
-                                      readOnly
-                                      className="w-16 text-center"
-                                      data-testid={`input-quantity-${addOn.id}`}
-                                    />
-                                    <Button
-                                      type="button"
-                                      variant="outline"
-                                      size="sm"
-                                      onClick={() => handleAddOnQuantityChange(page, addOn, 1)}
-                                      disabled={isAccepted || quantity >= 10}
-                                      data-testid={`button-increase-quantity-${addOn.id}`}
-                                    >
-                                      <Plus className="w-3 h-3" />
-                                    </Button>
-                                    <span className="text-sm text-muted-foreground ml-2">
-                                      = {formatPrice(addOn.priceCents * quantity)}
-                                    </span>
+                                  <div className="flex items-center gap-3 mt-4 p-3 bg-background/50 rounded-lg border border-primary/20" onClick={(e) => e.stopPropagation()}>
+                                    <div className="flex items-center gap-2">
+                                      <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => handleAddOnQuantityChange(page, addOn, -1)}
+                                        disabled={isAccepted || quantity <= 1}
+                                        data-testid={`button-decrease-quantity-${addOn.id}`}
+                                        className="h-8 w-8 p-0 hover:bg-primary/10 hover:border-primary"
+                                      >
+                                        <Minus className="w-3.5 h-3.5" />
+                                      </Button>
+                                      <div className="w-14 text-center">
+                                        <Input
+                                          type="number"
+                                          value={quantity}
+                                          readOnly
+                                          className="h-8 text-center font-semibold border-primary/30"
+                                          data-testid={`input-quantity-${addOn.id}`}
+                                        />
+                                      </div>
+                                      <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => handleAddOnQuantityChange(page, addOn, 1)}
+                                        disabled={isAccepted || quantity >= 10}
+                                        data-testid={`button-increase-quantity-${addOn.id}`}
+                                        className="h-8 w-8 p-0 hover:bg-primary/10 hover:border-primary"
+                                      >
+                                        <Plus className="w-3.5 h-3.5" />
+                                      </Button>
+                                    </div>
+                                    <div className="flex-1" />
+                                    <div className="text-right">
+                                      <p className="text-xs text-muted-foreground mb-0.5">Total</p>
+                                      <p className="font-bold text-base text-primary">
+                                        {formatPrice(addOn.priceCents * quantity)}
+                                      </p>
+                                    </div>
                                   </div>
                                 )}
                               </div>

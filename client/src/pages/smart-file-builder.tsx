@@ -1206,50 +1206,80 @@ export default function SmartFileBuilder() {
                     {/* Package Page Preview */}
                     {currentPage.pageType === 'PACKAGE' && currentPage.content && (
                       <div className="space-y-4">
-                        {currentPage.content.heading && (
-                          <h3 className="text-xl font-semibold">{currentPage.content.heading}</h3>
-                        )}
-                        {currentPage.content.description && (
-                          <p className="text-muted-foreground">{currentPage.content.description}</p>
-                        )}
-                        {currentPage.content.packageIds && currentPage.content.packageIds.length > 0 ? (
-                          <div className="text-sm text-muted-foreground">
-                            {currentPage.content.packageIds.length} package(s) configured
+                        <div className="p-4 rounded-lg bg-gradient-to-br from-primary/5 to-transparent border border-primary/20">
+                          {currentPage.content.heading && (
+                            <h3 className="text-lg font-bold mb-2 flex items-center gap-2">
+                              <PackageIcon className="w-5 h-5 text-primary" />
+                              {currentPage.content.heading}
+                            </h3>
+                          )}
+                          {currentPage.content.description && (
+                            <p className="text-sm text-muted-foreground leading-relaxed">{currentPage.content.description}</p>
+                          )}
+                          <div className="mt-4 pt-4 border-t border-border">
+                            {currentPage.content.packageIds && currentPage.content.packageIds.length > 0 ? (
+                              <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-1.5 px-3 py-1.5 bg-primary/10 text-primary rounded-full text-xs font-semibold">
+                                  <CheckCircle className="w-3.5 h-3.5" />
+                                  {currentPage.content.packageIds.length} package{currentPage.content.packageIds.length !== 1 ? 's' : ''} configured
+                                </div>
+                                <p className="text-xs text-muted-foreground">
+                                  Clients will see full package details here
+                                </p>
+                              </div>
+                            ) : (
+                              <p className="text-sm text-muted-foreground italic flex items-center gap-2">
+                                <FileText className="w-4 h-4" />
+                                No packages selected yet. Add packages to show them to clients.
+                              </p>
+                            )}
                           </div>
-                        ) : (
-                          <p className="text-sm text-muted-foreground italic">No packages selected yet</p>
-                        )}
+                        </div>
                       </div>
                     )}
 
                     {/* Add-on Page Preview */}
                     {currentPage.pageType === 'ADDON' && currentPage.content && (
                       <div className="space-y-4">
-                        {currentPage.content.heading && (
-                          <h3 className="text-xl font-semibold">{currentPage.content.heading}</h3>
-                        )}
-                        {currentPage.content.description && (
-                          <p className="text-muted-foreground">{currentPage.content.description}</p>
-                        )}
-                        {currentPage.content.items && currentPage.content.items.length > 0 ? (
-                          <div className="space-y-2">
-                            {currentPage.content.items.map((item: any, idx: number) => (
-                              <div key={idx} className="flex justify-between items-center p-3 border rounded-lg">
-                                <div>
-                                  <p className="font-medium">{item.name}</p>
-                                  {item.description && (
-                                    <p className="text-sm text-muted-foreground">{item.description}</p>
-                                  )}
-                                </div>
-                                <p className="font-semibold">
-                                  ${(item.priceCents / 100).toFixed(2)}
+                        <div className="p-4 rounded-lg bg-gradient-to-br from-primary/5 to-transparent border border-primary/20">
+                          {currentPage.content.heading && (
+                            <h3 className="text-lg font-bold mb-2 flex items-center gap-2">
+                              <Plus className="w-5 h-5 text-primary" />
+                              {currentPage.content.heading}
+                            </h3>
+                          )}
+                          {currentPage.content.description && (
+                            <p className="text-sm text-muted-foreground leading-relaxed">{currentPage.content.description}</p>
+                          )}
+                          <div className="mt-4 pt-4 border-t border-border">
+                            {currentPage.content.items && currentPage.content.items.length > 0 ? (
+                              <div className="space-y-3">
+                                {currentPage.content.items.map((item: any, idx: number) => (
+                                  <div key={idx} className="flex items-start justify-between gap-4 p-3.5 border-2 border-border rounded-xl bg-card hover:border-primary/30 transition-colors">
+                                    <div className="flex-1">
+                                      <p className="font-bold text-sm">{item.name}</p>
+                                      {item.description && (
+                                        <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{item.description}</p>
+                                      )}
+                                    </div>
+                                    <div className="px-3 py-1 rounded-lg bg-muted font-semibold text-sm flex-shrink-0">
+                                      ${(item.priceCents / 100).toFixed(2)}
+                                    </div>
+                                  </div>
+                                ))}
+                                <p className="text-xs text-muted-foreground flex items-center gap-1 mt-2">
+                                  <CheckCircle className="w-3.5 h-3.5 text-primary" />
+                                  Clients can select add-ons with quantity controls
                                 </p>
                               </div>
-                            ))}
+                            ) : (
+                              <p className="text-sm text-muted-foreground italic flex items-center gap-2">
+                                <FileText className="w-4 h-4" />
+                                No add-ons configured yet. Add items to show them to clients.
+                              </p>
+                            )}
                           </div>
-                        ) : (
-                          <p className="text-sm text-muted-foreground italic">No add-ons configured yet</p>
-                        )}
+                        </div>
                       </div>
                     )}
 
