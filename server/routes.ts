@@ -1696,6 +1696,43 @@ ${photographer?.businessName || 'Your Photography Team'}`;
     }
   });
 
+  app.patch("/api/packages/:id", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      // Verify package belongs to this photographer
+      const existingPackage = await storage.getPackage(id);
+      if (!existingPackage || existingPackage.photographerId !== req.user!.photographerId!) {
+        return res.status(404).json({ message: "Package not found" });
+      }
+
+      const updates = insertPackageSchema.partial().parse(req.body);
+      const updatedPackage = await storage.updatePackage(id, updates);
+      res.json(updatedPackage);
+    } catch (error) {
+      console.error("Update package error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.delete("/api/packages/:id", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      // Verify package belongs to this photographer
+      const existingPackage = await storage.getPackage(id);
+      if (!existingPackage || existingPackage.photographerId !== req.user!.photographerId!) {
+        return res.status(404).json({ message: "Package not found" });
+      }
+
+      await storage.deletePackage(id);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Delete package error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   // Estimates
   app.get("/api/estimates", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
