@@ -481,7 +481,7 @@ export default function PublicSmartFile() {
                                 ))}
                               </div>
                             ) : (
-                              <div className="grid grid-cols-2 gap-4">
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="space-y-4">
                                   {section.blocks.filter((b: any) => b.column === 0).map((block: any, blockIdx: number) => (
                                     <div key={blockIdx}>

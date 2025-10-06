@@ -1889,7 +1889,7 @@ export default function SmartFileBuilder() {
                                   ))}
                                 </div>
                               ) : (
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                   <div className="space-y-4">
                                     {section.blocks.filter((b: ContentBlock) => b.column === 0).map((block: ContentBlock, blockIdx: number) => (
                                       <div key={blockIdx}>
