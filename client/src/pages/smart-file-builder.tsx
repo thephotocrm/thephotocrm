@@ -1198,12 +1198,12 @@ export default function SmartFileBuilder() {
               </div>
 
               {/* Current Page Display - Full Screen */}
-              {(() => {
-                const currentPage = pages[currentPreviewPageIndex];
-                return (
-                <div className="h-full w-full overflow-y-auto p-8 pt-0">
+              <div className="h-full w-full overflow-y-auto p-8 pt-0">
                 <div className="max-w-7xl mx-auto py-8">
-                  <CardContent className="p-0">
+                  {(() => {
+                    const currentPage = pages[currentPreviewPageIndex];
+                    return (
+                    <div className="space-y-6">
                     {/* Text Page Preview */}
                     {currentPage.pageType === 'TEXT' && currentPage.content && (
                       <div className="space-y-4">
@@ -1413,10 +1413,11 @@ export default function SmartFileBuilder() {
                         </div>
                       </div>
                     )}
-                  </CardContent>
+                    </div>
+                    );
+                  })()}
                 </div>
-                );
-              })()}
+              </div>
 
               {/* Navigation Buttons - Bottom Right */}
               <div className="absolute bottom-6 right-6 z-10 flex gap-2">
