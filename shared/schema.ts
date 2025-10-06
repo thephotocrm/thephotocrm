@@ -45,6 +45,26 @@ export const automationTypeEnum = {
   NURTURE: "NURTURE"
 } as const;
 
+export const smartFileStatusEnum = {
+  ACTIVE: "ACTIVE",
+  ARCHIVED: "ARCHIVED"
+} as const;
+
+export const smartFilePageTypeEnum = {
+  TEXT: "TEXT",
+  PACKAGE: "PACKAGE",
+  ADDON: "ADDON",
+  PAYMENT: "PAYMENT"
+} as const;
+
+export const projectSmartFileStatusEnum = {
+  DRAFT: "DRAFT",
+  SENT: "SENT",
+  VIEWED: "VIEWED",
+  ACCEPTED: "ACCEPTED",
+  PAID: "PAID"
+} as const;
+
 export const triggerTypeEnum = {
   DEPOSIT_PAID: "DEPOSIT_PAID",
   FULL_PAYMENT_MADE: "FULL_PAYMENT_MADE", 
@@ -629,6 +649,85 @@ export const shortLinks = pgTable("short_links", {
   photographerIdx: index("short_links_photographer_idx").on(table.photographerId)
 }));
 
+// Smart Files (Custom Invoice/Checkout Builder)
+export const smartFiles = pgTable("smart_files", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  photographerId: varchar("photographer_id").notNull().references(() => photographers.id),
+  name: text("name").notNull(),
+  description: text("description"),
+  projectType: text("project_type"), // WEDDING, PORTRAIT, etc - can be null for universal templates
+  status: text("status").notNull().default("ACTIVE"), // ACTIVE, ARCHIVED
+  defaultDepositPercent: integer("default_deposit_percent").default(50),
+  allowFullPayment: boolean("allow_full_payment").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+}, (table) => ({
+  photographerIdx: index("smart_files_photographer_idx").on(table.photographerId),
+  projectTypeIdx: index("smart_files_project_type_idx").on(table.projectType)
+}));
+
+export const smartFilePages = pgTable("smart_file_pages", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  smartFileId: varchar("smart_file_id").notNull().references(() => smartFiles.id, { onDelete: 'cascade' }),
+  pageType: text("page_type").notNull(), // TEXT, PACKAGE, ADDON, PAYMENT
+  pageOrder: integer("page_order").notNull(),
+  displayTitle: text("display_title").notNull(),
+  content: json("content").notNull(), // Flexible JSON structure per page type
+  createdAt: timestamp("created_at").defaultNow()
+}, (table) => ({
+  smartFileIdx: index("smart_file_pages_smart_file_idx").on(table.smartFileId),
+  orderIdx: index("smart_file_pages_order_idx").on(table.smartFileId, table.pageOrder),
+  uniqueOrder: unique("smart_file_pages_unique_order").on(table.smartFileId, table.pageOrder)
+}));
+
+export const projectSmartFiles = pgTable("project_smart_files", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  projectId: varchar("project_id").notNull().references(() => projects.id),
+  smartFileId: varchar("smart_file_id").notNull().references(() => smartFiles.id),
+  photographerId: varchar("photographer_id").notNull().references(() => photographers.id),
+  clientId: varchar("client_id").notNull().references(() => clients.id),
+  
+  // Snapshot metadata
+  smartFileName: text("smart_file_name").notNull(),
+  pagesSnapshot: json("pages_snapshot").notNull(), // Full snapshot of pages at time of sending
+  
+  // Status tracking
+  status: text("status").notNull().default("DRAFT"), // DRAFT, SENT, VIEWED, ACCEPTED, PAID
+  sentAt: timestamp("sent_at"),
+  viewedAt: timestamp("viewed_at"),
+  acceptedAt: timestamp("accepted_at"),
+  paidAt: timestamp("paid_at"),
+  
+  // Client selections (JSONB)
+  selectedPackages: json("selected_packages"), // [{ pageId, packageId, name, priceCents }]
+  selectedAddOns: json("selected_add_ons"), // [{ pageId, addOnId, name, priceCents, quantity }]
+  
+  // Pricing breakdown
+  subtotalCents: integer("subtotal_cents").default(0),
+  taxCents: integer("tax_cents").default(0),
+  feesCents: integer("fees_cents").default(0),
+  totalCents: integer("total_cents").default(0),
+  depositPercent: integer("deposit_percent"),
+  depositCents: integer("deposit_cents"),
+  
+  // Payment tracking
+  stripePaymentIntentId: text("stripe_payment_intent_id"),
+  stripeChargeId: text("stripe_charge_id"),
+  paymentType: text("payment_type"), // DEPOSIT, FULL
+  
+  // Access token for client view
+  token: varchar("token").default(sql`gen_random_uuid()`),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+}, (table) => ({
+  projectIdx: index("project_smart_files_project_idx").on(table.projectId),
+  smartFileIdx: index("project_smart_files_smart_file_idx").on(table.smartFileId),
+  photographerIdx: index("project_smart_files_photographer_idx").on(table.photographerId),
+  statusIdx: index("project_smart_files_status_idx").on(table.status),
+  tokenIdx: index("project_smart_files_token_idx").on(table.token)
+}));
+
 export const estimates = pgTable("estimates", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   photographerId: varchar("photographer_id").notNull().references(() => photographers.id),
@@ -1175,6 +1274,23 @@ export const insertShortLinkSchema = createInsertSchema(shortLinks).omit({
   clicks: true
 });
 
+export const insertSmartFileSchema = createInsertSchema(smartFiles).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true
+});
+
+export const insertSmartFilePageSchema = createInsertSchema(smartFilePages).omit({
+  id: true,
+  createdAt: true
+});
+
+export const insertProjectSmartFileSchema = createInsertSchema(projectSmartFiles).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true
+});
+
 // Booking confirmation validation schema
 export const bookingConfirmationSchema = z.object({
   clientName: z.string().min(2, "Name must be at least 2 characters").max(100, "Name too long"),
@@ -1515,6 +1631,32 @@ export const createPayoutSchema = z.object({
 // Short Link Types
 export type ShortLink = typeof shortLinks.$inferSelect;
 export type InsertShortLink = z.infer<typeof insertShortLinkSchema>;
+
+// Smart Files Types
+export type SmartFile = typeof smartFiles.$inferSelect;
+export type InsertSmartFile = z.infer<typeof insertSmartFileSchema>;
+export type SmartFilePage = typeof smartFilePages.$inferSelect;
+export type InsertSmartFilePage = z.infer<typeof insertSmartFilePageSchema>;
+export type ProjectSmartFile = typeof projectSmartFiles.$inferSelect;
+export type InsertProjectSmartFile = z.infer<typeof insertProjectSmartFileSchema>;
+
+// Smart File with pages
+export type SmartFileWithPages = SmartFile & {
+  pages: SmartFilePage[];
+};
+
+// Project Smart File with relations
+export type ProjectSmartFileWithRelations = ProjectSmartFile & {
+  project: {
+    title: string;
+    eventDate: Date | null;
+  };
+  client: {
+    firstName: string;
+    lastName: string;
+    email: string | null;
+  };
+};
 
 // Proposal type aliases (for terminology migration from "Estimate" to "Proposal")
 // These aliases enable gradual UI/API migration while maintaining backend consistency
