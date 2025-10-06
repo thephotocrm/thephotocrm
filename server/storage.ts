@@ -2377,16 +2377,170 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getProjectHistory(projectId: string): Promise<TimelineEvent[]> {
-    // Get the project to find the client ID
-    const project = await this.getProject(projectId);
-    if (!project || !project.clientId) return [];
-    
-    // Use the existing client history method but filter for this project
-    const clientHistory = await this.getClientHistory(project.clientId);
-    
-    // TODO: In the future, we could filter timeline events specifically related to this project
-    // For now, return all client history as it's project-scoped in the new architecture
-    return clientHistory;
+    // Fetch all project-specific events in parallel
+    const [activityLogs, emailLogEntries, smsLogEntries, emailHistoryEntries] = await Promise.all([
+      // Activity log entries (stage changes, proposals, etc.)
+      db.select({
+        id: projectActivityLog.id,
+        activityType: projectActivityLog.activityType,
+        title: projectActivityLog.title,
+        description: projectActivityLog.description,
+        metadata: projectActivityLog.metadata,
+        relatedId: projectActivityLog.relatedId,
+        relatedType: projectActivityLog.relatedType,
+        createdAt: projectActivityLog.createdAt
+      }).from(projectActivityLog)
+        .where(eq(projectActivityLog.projectId, projectId))
+        .orderBy(desc(projectActivityLog.createdAt)),
+      
+      // Automated email logs (from automations)
+      db.select({
+        id: emailLogs.id,
+        automationStepId: emailLogs.automationStepId,
+        status: emailLogs.status,
+        providerId: emailLogs.providerId,
+        sentAt: emailLogs.sentAt,
+        openedAt: emailLogs.openedAt,
+        clickedAt: emailLogs.clickedAt,
+        bouncedAt: emailLogs.bouncedAt,
+        templateName: templates.name,
+        templateSubject: templates.subject,
+        automationName: automations.name
+      })
+        .from(emailLogs)
+        .leftJoin(automationSteps, eq(emailLogs.automationStepId, automationSteps.id))
+        .leftJoin(templates, eq(automationSteps.templateId, templates.id))
+        .leftJoin(automations, eq(automationSteps.automationId, automations.id))
+        .where(eq(emailLogs.projectId, projectId))
+        .orderBy(desc(emailLogs.sentAt)),
+      
+      // SMS logs
+      db.select({
+        id: smsLogs.id,
+        automationStepId: smsLogs.automationStepId,
+        status: smsLogs.status,
+        sentAt: smsLogs.sentAt,
+        deliveredAt: smsLogs.deliveredAt,
+        direction: smsLogs.direction,
+        messageBody: smsLogs.messageBody,
+        fromPhone: smsLogs.fromPhone,
+        toPhone: smsLogs.toPhone,
+        createdAt: smsLogs.createdAt,
+        templateName: templates.name,
+        automationName: automations.name
+      })
+        .from(smsLogs)
+        .leftJoin(automationSteps, eq(smsLogs.automationStepId, automationSteps.id))
+        .leftJoin(templates, eq(automationSteps.templateId, templates.id))
+        .leftJoin(automations, eq(automationSteps.automationId, automations.id))
+        .where(eq(smsLogs.projectId, projectId))
+        .orderBy(desc(smsLogs.createdAt)),
+      
+      // Email history (manual emails via Gmail/SendGrid)
+      db.select({
+        id: emailHistory.id,
+        direction: emailHistory.direction,
+        subject: emailHistory.subject,
+        fromEmail: emailHistory.fromEmail,
+        toEmails: emailHistory.toEmails,
+        ccEmails: emailHistory.ccEmails,
+        bccEmails: emailHistory.bccEmails,
+        bodyPreview: emailHistory.bodyPreview,
+        source: emailHistory.source,
+        sentAt: emailHistory.sentAt,
+        createdAt: emailHistory.createdAt
+      })
+        .from(emailHistory)
+        .where(eq(emailHistory.projectId, projectId))
+        .orderBy(desc(emailHistory.createdAt))
+    ]);
+
+    // Transform to TimelineEvent format
+    const timeline: TimelineEvent[] = [];
+
+    // Add activity log events
+    for (const log of activityLogs) {
+      timeline.push({
+        type: 'activity',
+        id: log.id,
+        title: log.title,
+        description: log.description || undefined,
+        activityType: log.activityType,
+        metadata: log.metadata,
+        createdAt: log.createdAt!
+      });
+    }
+
+    // Add automated email events
+    for (const email of emailLogEntries) {
+      const subject = email.templateSubject || 'Email';
+      const preview = email.templateName || email.automationName || 'Automated email';
+      
+      timeline.push({
+        type: 'email',
+        id: email.id,
+        title: subject,
+        description: preview,
+        status: email.status,
+        sentAt: email.sentAt || undefined,
+        openedAt: email.openedAt || undefined,
+        clickedAt: email.clickedAt || undefined,
+        bouncedAt: email.bouncedAt || undefined,
+        createdAt: email.sentAt || new Date(),
+        templateName: email.templateName || undefined,
+        templateSubject: email.templateSubject || undefined,
+        automationName: email.automationName || undefined
+      });
+    }
+
+    // Add manual email events (from emailHistory)
+    for (const email of emailHistoryEntries) {
+      const recipients = email.toEmails?.join(', ') || 'Unknown';
+      const source = email.source === 'GMAIL' ? '📧 Gmail' : email.source === 'SENDGRID' ? '📧 SendGrid' : '📧 Email';
+      
+      timeline.push({
+        type: 'email',
+        id: email.id,
+        title: email.subject || 'Email',
+        description: `${source} to ${recipients}${email.bodyPreview ? ': ' + email.bodyPreview.substring(0, 100) : ''}`,
+        status: 'sent',
+        sentAt: email.sentAt || email.createdAt || undefined,
+        createdAt: email.createdAt || new Date(),
+        templateName: undefined,
+        templateSubject: email.subject || undefined
+      });
+    }
+
+    // Add SMS events
+    for (const sms of smsLogEntries) {
+      const isInbound = sms.direction === 'INBOUND';
+      const title = isInbound ? `📱 SMS from ${sms.fromPhone || 'client'}` : `📱 SMS to ${sms.toPhone || 'client'}`;
+      const preview = sms.messageBody ? sms.messageBody.substring(0, 100) : (sms.templateName || sms.automationName || 'SMS message');
+      
+      timeline.push({
+        type: 'sms',
+        id: sms.id,
+        title,
+        description: preview,
+        status: sms.status,
+        sentAt: sms.sentAt || undefined,
+        deliveredAt: sms.deliveredAt || undefined,
+        createdAt: sms.createdAt || new Date(),
+        direction: sms.direction,
+        messageBody: sms.messageBody || undefined,
+        templateName: sms.templateName || undefined,
+        automationName: sms.automationName || undefined
+      });
+    }
+
+    // Sort all events by date (most recent first)
+    timeline.sort((a, b) => {
+      const dateA = a.createdAt.getTime();
+      const dateB = b.createdAt.getTime();
+      return dateB - dateA;
+    });
+
+    return timeline;
   }
 
   // Stripe Connect Integration methods

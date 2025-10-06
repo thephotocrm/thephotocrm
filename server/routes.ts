@@ -1355,6 +1355,10 @@ ${photographer?.businessName || 'Your Photography Team'}`;
         return res.status(404).json({ message: "Project not found" });
       }
       
+      // Get old and new stage names for logging
+      const oldStageName = existingProject.stage?.name || 'None';
+      let newStageName = 'None';
+      
       // Verify stage belongs to same photographer and matches project type
       if (stageId) {
         const stage = await storage.getStage(stageId);
@@ -1365,9 +1369,29 @@ ${photographer?.businessName || 'Your Photography Team'}`;
         if (stage.projectType !== existingProject.projectType) {
           return res.status(400).json({ message: "Stage project type doesn't match project" });
         }
+        
+        newStageName = stage.name;
       }
       
       const project = await storage.updateProject(req.params.id, { stageId });
+      
+      // Log the stage change to project activity log
+      await storage.addProjectActivityLog({
+        projectId: req.params.id,
+        activityType: 'STAGE_CHANGE',
+        action: 'UPDATED',
+        title: `Stage changed from "${oldStageName}" to "${newStageName}"`,
+        description: `Project stage updated by photographer`,
+        metadata: JSON.stringify({
+          oldStageId: existingProject.stageId,
+          oldStageName,
+          newStageId: stageId || null,
+          newStageName
+        }),
+        relatedId: stageId || null,
+        relatedType: 'STAGE'
+      });
+      
       res.json(project);
     } catch (error) {
       console.error("Update project stage error:", error);
@@ -1386,6 +1410,86 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       res.json(history);
     } catch (error) {
       console.error("Get project history error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Send message to project (primary client + participants)
+  app.post("/api/projects/:id/send-message", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
+    try {
+      const { subject, body, sendToParticipants = true } = req.body;
+      
+      if (!subject || !body) {
+        return res.status(400).json({ message: "Subject and body are required" });
+      }
+      
+      // Verify project belongs to photographer
+      const project = await storage.getProject(req.params.id);
+      if (!project || project.photographerId !== req.user!.photographerId!) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+      
+      // Get primary client email
+      const primaryEmail = project.client.email;
+      if (!primaryEmail) {
+        return res.status(400).json({ message: "Client has no email address" });
+      }
+      
+      // Get participant emails if requested
+      let bccEmails: string[] = [];
+      if (sendToParticipants) {
+        const participants = await storage.getProjectParticipants(req.params.id);
+        bccEmails = participants
+          .filter(p => p.client.emailOptIn && p.client.email)
+          .map(p => p.client.email);
+      }
+      
+      // Send email via Gmail (fallback to SendGrid)
+      const { sendEmail } = await import('./services/email');
+      const result = await sendEmail({
+        to: primaryEmail,
+        subject,
+        html: body.replace(/\n/g, '<br>'),
+        text: body,
+        bcc: bccEmails.length > 0 ? bccEmails : undefined,
+        photographerId: req.user!.photographerId!,
+        clientId: project.clientId,
+        projectId: project.id,
+        source: 'MANUAL'
+      });
+      
+      if (!result.success) {
+        return res.status(500).json({ message: "Failed to send email", error: result.error });
+      }
+      
+      // Log to activity log
+      await storage.addProjectActivityLog({
+        projectId: req.params.id,
+        activityType: 'EMAIL_SENT',
+        action: 'SENT',
+        title: `Manual email: ${subject}`,
+        description: `Email sent to ${primaryEmail}${bccEmails.length > 0 ? ` + ${bccEmails.length} participants` : ''}`,
+        metadata: JSON.stringify({
+          subject,
+          recipients: [primaryEmail, ...bccEmails],
+          participantCount: bccEmails.length,
+          source: result.source || 'MANUAL'
+        }),
+        relatedId: result.messageId || null,
+        relatedType: 'EMAIL'
+      });
+      
+      res.json({ 
+        success: true, 
+        message: "Email sent successfully",
+        recipients: {
+          primary: primaryEmail,
+          participants: bccEmails
+        },
+        source: result.source
+      });
+    } catch (error) {
+      console.error("Send project message error:", error);
       res.status(500).json({ message: "Internal server error" });
     }
   });
