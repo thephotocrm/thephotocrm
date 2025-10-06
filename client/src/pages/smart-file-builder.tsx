@@ -2069,10 +2069,10 @@ export default function SmartFileBuilder() {
                               return (
                                 <Card key={pkg.id} className="overflow-hidden border-2 hover:border-primary/40 hover:shadow-lg transition-all duration-300 max-w-[800px] mx-auto">
                                   <CardContent className="p-6">
-                                    <div className="flex gap-6">
+                                    <div className="flex flex-col md:flex-row gap-6">
                                       {/* Package Image - Left Side */}
                                       {pkg.imageUrl && (
-                                        <div className="w-48 h-48 flex-shrink-0 overflow-hidden rounded-lg border">
+                                        <div className="w-full md:w-48 h-48 flex-shrink-0 overflow-hidden rounded-lg border">
                                           <img 
                                             src={pkg.imageUrl} 
                                             alt={pkg.name}
