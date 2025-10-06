@@ -492,9 +492,38 @@ export default function PublicSmartFile() {
                                       {block.type === 'SPACER' && (
                                         <div className="py-6" />
                                       )}
-                                      {block.type === 'IMAGE' && block.content && (
-                                        <img src={block.content} alt="" className="w-full max-h-[150px] object-contain rounded-lg" />
-                                      )}
+                                      {block.type === 'IMAGE' && block.content && (() => {
+                                        const imageData: ImageContent = typeof block.content === 'string' 
+                                          ? { url: block.content, borderRadius: 'straight', size: 'medium' }
+                                          : block.content;
+                                        const isRounded = imageData.borderRadius === 'rounded';
+                                        const sizeClass = imageData.size === 'small' ? 'h-[100px] w-[100px]' 
+                                          : imageData.size === 'large' ? 'h-[300px] w-[300px]' 
+                                          : 'h-[150px] w-[150px]';
+                                        
+                                        if (isRounded) {
+                                          return (
+                                            <div className={cn("rounded-full overflow-hidden border border-border mx-auto", sizeClass)}>
+                                              <img 
+                                                src={imageData.url} 
+                                                alt="" 
+                                                className="w-full h-full object-cover"
+                                              />
+                                            </div>
+                                          );
+                                        }
+                                        
+                                        const maxHeightClass = imageData.size === 'small' ? 'max-h-[100px]' 
+                                          : imageData.size === 'large' ? 'max-h-[300px]' 
+                                          : 'max-h-[150px]';
+                                        return (
+                                          <img 
+                                            src={imageData.url} 
+                                            alt="" 
+                                            className={cn("w-full rounded-none object-contain border border-border", maxHeightClass)} 
+                                          />
+                                        );
+                                      })()}
                                     </div>
                                   ))}
                                 </div>
@@ -510,9 +539,38 @@ export default function PublicSmartFile() {
                                       {block.type === 'SPACER' && (
                                         <div className="py-6" />
                                       )}
-                                      {block.type === 'IMAGE' && block.content && (
-                                        <img src={block.content} alt="" className="w-full max-h-[150px] object-contain rounded-lg" />
-                                      )}
+                                      {block.type === 'IMAGE' && block.content && (() => {
+                                        const imageData: ImageContent = typeof block.content === 'string' 
+                                          ? { url: block.content, borderRadius: 'straight', size: 'medium' }
+                                          : block.content;
+                                        const isRounded = imageData.borderRadius === 'rounded';
+                                        const sizeClass = imageData.size === 'small' ? 'h-[100px] w-[100px]' 
+                                          : imageData.size === 'large' ? 'h-[300px] w-[300px]' 
+                                          : 'h-[150px] w-[150px]';
+                                        
+                                        if (isRounded) {
+                                          return (
+                                            <div className={cn("rounded-full overflow-hidden border border-border mx-auto", sizeClass)}>
+                                              <img 
+                                                src={imageData.url} 
+                                                alt="" 
+                                                className="w-full h-full object-cover"
+                                              />
+                                            </div>
+                                          );
+                                        }
+                                        
+                                        const maxHeightClass = imageData.size === 'small' ? 'max-h-[100px]' 
+                                          : imageData.size === 'large' ? 'max-h-[300px]' 
+                                          : 'max-h-[150px]';
+                                        return (
+                                          <img 
+                                            src={imageData.url} 
+                                            alt="" 
+                                            className={cn("w-full rounded-none object-contain border border-border", maxHeightClass)} 
+                                          />
+                                        );
+                                      })()}
                                     </div>
                                   ))}
                                 </div>
