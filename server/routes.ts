@@ -1702,9 +1702,11 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       
       console.log("[PATCH /api/packages/:id] Received body:", JSON.stringify(req.body, null, 2));
       
-      // Verify package belongs to this photographer
-      const existingPackage = await storage.getPackage(id);
-      if (!existingPackage || existingPackage.photographerId !== req.user!.photographerId!) {
+      // Verify package belongs to this photographer by fetching all their packages
+      const photographerPackages = await storage.getPackagesByPhotographer(req.user!.photographerId!);
+      const existingPackage = photographerPackages.find(pkg => pkg.id === id);
+      
+      if (!existingPackage) {
         return res.status(404).json({ message: "Package not found" });
       }
 
@@ -1727,9 +1729,11 @@ ${photographer?.businessName || 'Your Photography Team'}`;
     try {
       const { id } = req.params;
       
-      // Verify package belongs to this photographer
-      const existingPackage = await storage.getPackage(id);
-      if (!existingPackage || existingPackage.photographerId !== req.user!.photographerId!) {
+      // Verify package belongs to this photographer by fetching all their packages
+      const photographerPackages = await storage.getPackagesByPhotographer(req.user!.photographerId!);
+      const existingPackage = photographerPackages.find(pkg => pkg.id === id);
+      
+      if (!existingPackage) {
         return res.status(404).json({ message: "Package not found" });
       }
 
