@@ -22,6 +22,13 @@ import {
   CreditCard,
   Package as PackageIcon
 } from "lucide-react";
+import { cn } from "@/lib/utils";
+
+type ImageContent = {
+  url: string;
+  borderRadius?: 'straight' | 'rounded';
+  size?: 'small' | 'medium' | 'large';
+};
 
 interface SmartFilePage {
   id: string;
@@ -436,9 +443,22 @@ export default function PublicSmartFile() {
                                     {block.type === 'SPACER' && (
                                       <div className="py-6" />
                                     )}
-                                    {block.type === 'IMAGE' && block.content && (
-                                      <img src={block.content} alt="" className="w-full max-h-[150px] object-contain rounded-lg" />
-                                    )}
+                                    {block.type === 'IMAGE' && block.content && (() => {
+                                      const imageData: ImageContent = typeof block.content === 'string' 
+                                        ? { url: block.content, borderRadius: 'straight', size: 'medium' }
+                                        : block.content;
+                                      return (
+                                        <img 
+                                          src={imageData.url} 
+                                          alt="" 
+                                          className={cn(
+                                            "w-full object-contain",
+                                            imageData.borderRadius === 'rounded' ? 'rounded-lg' : 'rounded-none',
+                                            imageData.size === 'small' ? 'max-h-[100px]' : imageData.size === 'large' ? 'max-h-[300px]' : 'max-h-[150px]'
+                                          )} 
+                                        />
+                                      );
+                                    })()}
                                   </div>
                                 ))}
                               </div>

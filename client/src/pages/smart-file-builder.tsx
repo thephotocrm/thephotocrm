@@ -69,10 +69,16 @@ const PAGE_TYPES = {
 type PageType = keyof typeof PAGE_TYPES;
 
 // Type definitions for page content
+type ImageContent = {
+  url: string;
+  borderRadius?: 'straight' | 'rounded';
+  size?: 'small' | 'medium' | 'large';
+};
+
 type ContentBlock = {
   id: string;
   type: 'HEADING' | 'TEXT' | 'SPACER' | 'IMAGE';
-  content: any;
+  content: any; // string for HEADING/TEXT, null for SPACER, ImageContent for IMAGE
   column?: number; // For 2-column sections: 0 (left) or 1 (right)
 };
 
@@ -202,52 +208,35 @@ function BlockEditor({
               
               {block.type === 'IMAGE' && (
                 <div className="space-y-3">
-                  {!localContent ? (
-                    <div className="border-2 border-dashed rounded-lg p-6 text-center">
-                      <Label
-                        htmlFor={`image-upload-${block.id}`}
-                        className="cursor-pointer flex flex-col items-center gap-2"
-                      >
-                        <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center">
-                          <ImageIcon className="w-6 h-6 text-muted-foreground" />
-                        </div>
-                        <div>
-                          <span className="text-sm font-medium text-primary hover:underline">
-                            Click to upload image
-                          </span>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            PNG, JPG, GIF up to 10MB
-                          </p>
-                        </div>
-                      </Label>
-                      <input
-                        id={`image-upload-${block.id}`}
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) {
-                            const reader = new FileReader();
-                            reader.onloadend = () => {
-                              const base64String = reader.result as string;
-                              setLocalContent(base64String);
-                              onUpdate(base64String);
-                            };
-                            reader.readAsDataURL(file);
-                          }
-                        }}
-                      />
-                    </div>
-                  ) : (
-                    <div className="relative">
-                      <img src={localContent} alt="Uploaded" className="w-full max-h-48 object-contain rounded border" />
-                      <div className="flex gap-2 mt-2">
+                  {/* Handle legacy string format and convert to ImageContent */}
+                  {(() => {
+                    const imageData: ImageContent = typeof localContent === 'string' 
+                      ? { url: localContent, borderRadius: 'straight', size: 'medium' }
+                      : (localContent || { url: '', borderRadius: 'straight', size: 'medium' });
+                    
+                    const updateImageData = (updates: Partial<ImageContent>) => {
+                      const newData = { ...imageData, ...updates };
+                      setLocalContent(newData);
+                      onUpdate(newData);
+                    };
+
+                    return !imageData.url ? (
+                      <div className="border-2 border-dashed rounded-lg p-6 text-center">
                         <Label
                           htmlFor={`image-upload-${block.id}`}
-                          className="cursor-pointer text-sm text-primary hover:underline"
+                          className="cursor-pointer flex flex-col items-center gap-2"
                         >
-                          Change Image
+                          <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center">
+                            <ImageIcon className="w-6 h-6 text-muted-foreground" />
+                          </div>
+                          <div>
+                            <span className="text-sm font-medium text-primary hover:underline">
+                              Click to upload image
+                            </span>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              PNG, JPG, GIF up to 10MB
+                            </p>
+                          </div>
                         </Label>
                         <input
                           id={`image-upload-${block.id}`}
@@ -259,17 +248,117 @@ function BlockEditor({
                             if (file) {
                               const reader = new FileReader();
                               reader.onloadend = () => {
-                                const base64String = reader.result as string;
-                                setLocalContent(base64String);
-                                onUpdate(base64String);
+                                updateImageData({ url: reader.result as string });
                               };
                               reader.readAsDataURL(file);
                             }
                           }}
                         />
                       </div>
-                    </div>
-                  )}
+                    ) : (
+                      <div className="space-y-3">
+                        <div className="relative">
+                          <img 
+                            src={imageData.url} 
+                            alt="Uploaded" 
+                            className={cn(
+                              "w-full object-contain border",
+                              imageData.borderRadius === 'rounded' ? 'rounded-lg' : 'rounded-none',
+                              imageData.size === 'small' ? 'max-h-32' : imageData.size === 'large' ? 'max-h-96' : 'max-h-48'
+                            )} 
+                          />
+                          <div className="flex gap-2 mt-2">
+                            <Label
+                              htmlFor={`image-upload-${block.id}`}
+                              className="cursor-pointer text-sm text-primary hover:underline"
+                            >
+                              Change Image
+                            </Label>
+                            <input
+                              id={`image-upload-${block.id}`}
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) {
+                                  const reader = new FileReader();
+                                  reader.onloadend = () => {
+                                    updateImageData({ url: reader.result as string });
+                                  };
+                                  reader.readAsDataURL(file);
+                                }
+                              }}
+                            />
+                          </div>
+                        </div>
+
+                        {/* Image Options */}
+                        <div className="grid grid-cols-2 gap-3 pt-2 border-t">
+                          <div className="space-y-2">
+                            <Label className="text-xs font-medium">Border Radius</Label>
+                            <div className="flex gap-2">
+                              <Button
+                                type="button"
+                                variant={imageData.borderRadius === 'straight' ? 'default' : 'outline'}
+                                size="sm"
+                                onClick={() => updateImageData({ borderRadius: 'straight' })}
+                                className="flex-1"
+                                data-testid={`button-border-straight-${block.id}`}
+                              >
+                                Straight
+                              </Button>
+                              <Button
+                                type="button"
+                                variant={imageData.borderRadius === 'rounded' ? 'default' : 'outline'}
+                                size="sm"
+                                onClick={() => updateImageData({ borderRadius: 'rounded' })}
+                                className="flex-1"
+                                data-testid={`button-border-rounded-${block.id}`}
+                              >
+                                Rounded
+                              </Button>
+                            </div>
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-xs font-medium">Size</Label>
+                            <div className="flex gap-1">
+                              <Button
+                                type="button"
+                                variant={imageData.size === 'small' ? 'default' : 'outline'}
+                                size="sm"
+                                onClick={() => updateImageData({ size: 'small' })}
+                                className="flex-1 text-xs"
+                                data-testid={`button-size-small-${block.id}`}
+                              >
+                                S
+                              </Button>
+                              <Button
+                                type="button"
+                                variant={imageData.size === 'medium' ? 'default' : 'outline'}
+                                size="sm"
+                                onClick={() => updateImageData({ size: 'medium' })}
+                                className="flex-1 text-xs"
+                                data-testid={`button-size-medium-${block.id}`}
+                              >
+                                M
+                              </Button>
+                              <Button
+                                type="button"
+                                variant={imageData.size === 'large' ? 'default' : 'outline'}
+                                size="sm"
+                                onClick={() => updateImageData({ size: 'large' })}
+                                className="flex-1 text-xs"
+                                data-testid={`button-size-large-${block.id}`}
+                              >
+                                L
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })()}
                 </div>
               )}
             </div>
@@ -1762,9 +1851,22 @@ export default function SmartFileBuilder() {
                                       {block.type === 'SPACER' && (
                                         <div className="py-6" />
                                       )}
-                                      {block.type === 'IMAGE' && block.content && (
-                                        <img src={block.content} alt="" className="w-full max-h-[150px] object-contain rounded-lg" />
-                                      )}
+                                      {block.type === 'IMAGE' && block.content && (() => {
+                                        const imageData: ImageContent = typeof block.content === 'string' 
+                                          ? { url: block.content, borderRadius: 'straight', size: 'medium' }
+                                          : block.content;
+                                        return (
+                                          <img 
+                                            src={imageData.url} 
+                                            alt="" 
+                                            className={cn(
+                                              "w-full object-contain",
+                                              imageData.borderRadius === 'rounded' ? 'rounded-lg' : 'rounded-none',
+                                              imageData.size === 'small' ? 'max-h-[100px]' : imageData.size === 'large' ? 'max-h-[300px]' : 'max-h-[150px]'
+                                            )} 
+                                          />
+                                        );
+                                      })()}
                                     </div>
                                   ))}
                                 </div>
@@ -1782,9 +1884,22 @@ export default function SmartFileBuilder() {
                                         {block.type === 'SPACER' && (
                                           <div className="py-6" />
                                         )}
-                                        {block.type === 'IMAGE' && block.content && (
-                                          <img src={block.content} alt="" className="w-full max-h-[150px] object-contain rounded-lg" />
-                                        )}
+                                        {block.type === 'IMAGE' && block.content && (() => {
+                                          const imageData: ImageContent = typeof block.content === 'string' 
+                                            ? { url: block.content, borderRadius: 'straight', size: 'medium' }
+                                            : block.content;
+                                          return (
+                                            <img 
+                                              src={imageData.url} 
+                                              alt="" 
+                                              className={cn(
+                                                "w-full object-contain",
+                                                imageData.borderRadius === 'rounded' ? 'rounded-lg' : 'rounded-none',
+                                                imageData.size === 'small' ? 'max-h-[100px]' : imageData.size === 'large' ? 'max-h-[300px]' : 'max-h-[150px]'
+                                              )} 
+                                            />
+                                          );
+                                        })()}
                                       </div>
                                     ))}
                                   </div>
@@ -1800,9 +1915,22 @@ export default function SmartFileBuilder() {
                                         {block.type === 'SPACER' && (
                                           <div className="py-6" />
                                         )}
-                                        {block.type === 'IMAGE' && block.content && (
-                                          <img src={block.content} alt="" className="w-full max-h-[150px] object-contain rounded-lg" />
-                                        )}
+                                        {block.type === 'IMAGE' && block.content && (() => {
+                                          const imageData: ImageContent = typeof block.content === 'string' 
+                                            ? { url: block.content, borderRadius: 'straight', size: 'medium' }
+                                            : block.content;
+                                          return (
+                                            <img 
+                                              src={imageData.url} 
+                                              alt="" 
+                                              className={cn(
+                                                "w-full object-contain",
+                                                imageData.borderRadius === 'rounded' ? 'rounded-lg' : 'rounded-none',
+                                                imageData.size === 'small' ? 'max-h-[100px]' : imageData.size === 'large' ? 'max-h-[300px]' : 'max-h-[150px]'
+                                              )} 
+                                            />
+                                          );
+                                        })()}
                                       </div>
                                     ))}
                                   </div>
@@ -1824,9 +1952,22 @@ export default function SmartFileBuilder() {
                                 {block.type === 'SPACER' && (
                                   <div className="py-6" />
                                 )}
-                                {block.type === 'IMAGE' && block.content && (
-                                  <img src={block.content} alt="" className="w-full max-h-[150px] object-contain rounded-lg" />
-                                )}
+                                {block.type === 'IMAGE' && block.content && (() => {
+                                  const imageData: ImageContent = typeof block.content === 'string' 
+                                    ? { url: block.content, borderRadius: 'straight', size: 'medium' }
+                                    : block.content;
+                                  return (
+                                    <img 
+                                      src={imageData.url} 
+                                      alt="" 
+                                      className={cn(
+                                        "w-full object-contain",
+                                        imageData.borderRadius === 'rounded' ? 'rounded-lg' : 'rounded-none',
+                                        imageData.size === 'small' ? 'max-h-[100px]' : imageData.size === 'large' ? 'max-h-[300px]' : 'max-h-[150px]'
+                                      )} 
+                                    />
+                                  );
+                                })()}
                               </div>
                             ))}
                           </div>
