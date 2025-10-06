@@ -797,6 +797,10 @@ export default function SmartFileBuilder() {
     enabled: !!id
   });
 
+  const { data: packages } = useQuery<any[]>({
+    queryKey: ['/api/packages']
+  });
+
   useEffect(() => {
     if (smartFile?.pages) {
       const sortedPages = [...smartFile.pages].sort((a, b) => a.pageOrder - b.pageOrder);
