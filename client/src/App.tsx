@@ -23,6 +23,8 @@ import Templates from "@/pages/templates";
 import Automations from "@/pages/automations";
 import DripCampaigns from "@/pages/drip-campaigns";
 import Packages from "@/pages/packages";
+import SmartFiles from "@/pages/smart-files";
+import SmartFileBuilder from "@/pages/smart-file-builder";
 import WidgetGenerator from "@/pages/widget-generator";
 import Questionnaires from "@/pages/questionnaires";
 import Scheduling from "@/pages/scheduling";
@@ -67,6 +69,8 @@ function ProtectedRoutes() {
             <Route path="/automations" component={Automations} />
             <Route path="/drip-campaigns" component={DripCampaigns} />
             <Route path="/packages" component={Packages} />
+            <Route path="/smart-files" component={SmartFiles} />
+            <Route path="/smart-files/:id/edit" component={SmartFileBuilder} />
             <Route path="/widget-generator" component={WidgetGenerator} />
             <Route path="/questionnaires" component={Questionnaires} />
             <Route path="/scheduling" component={Scheduling} />
@@ -116,6 +120,8 @@ function Router() {
       <Route path="/automations"><ProtectedRoutes /></Route>
       <Route path="/drip-campaigns"><ProtectedRoutes /></Route>
       <Route path="/packages"><ProtectedRoutes /></Route>
+      <Route path="/smart-files"><ProtectedRoutes /></Route>
+      <Route path="/smart-files/:id/edit"><ProtectedRoutes /></Route>
       <Route path="/widget-generator"><ProtectedRoutes /></Route>
       <Route path="/questionnaires"><ProtectedRoutes /></Route>
       <Route path="/scheduling"><ProtectedRoutes /></Route>
