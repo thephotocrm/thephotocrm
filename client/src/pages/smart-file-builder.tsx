@@ -29,7 +29,9 @@ import {
   MoveVertical,
   Sparkles,
   CheckCircle,
-  Camera
+  Camera,
+  Shield,
+  CreditCard
 } from "lucide-react";
 import { Reorder, useDragControls } from "framer-motion";
 import type { SmartFileWithPages, SmartFilePage, InsertSmartFilePage } from "@shared/schema";
@@ -1389,33 +1391,163 @@ export default function SmartFileBuilder() {
 
                     {/* Payment Page Preview */}
                     {currentPage.pageType === 'PAYMENT' && currentPage.content && (
-                      <div className="space-y-4">
-                        {currentPage.content.heading && (
-                          <h3 className="text-xl font-semibold">{currentPage.content.heading}</h3>
-                        )}
-                        {currentPage.content.description && (
-                          <p className="text-muted-foreground">{currentPage.content.description}</p>
-                        )}
-                        <div className="space-y-2 text-sm">
-                          <div className="flex justify-between">
-                            <span className="text-muted-foreground">Deposit Required:</span>
-                            <span className="font-medium">{currentPage.content.depositPercent || 50}%</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-muted-foreground">Online Payments:</span>
-                            <span className="font-medium">
-                              {currentPage.content.acceptOnlinePayments ? 'Enabled' : 'Disabled'}
-                            </span>
-                          </div>
-                          {currentPage.content.paymentTerms && (
-                            <div className="mt-4 p-3 bg-muted rounded-lg">
-                              <p className="text-sm font-medium mb-1">Payment Terms:</p>
-                              <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                                {currentPage.content.paymentTerms}
-                              </p>
+                      <div className="max-w-2xl mx-auto">
+                        {/* Payment Card */}
+                        <Card className="border-2">
+                          <CardContent className="p-8 space-y-6">
+                            {/* Payment Header */}
+                            <div className="flex items-center justify-between pb-6 border-b">
+                              <div className="flex items-center gap-3">
+                                <div className="w-12 h-12 bg-muted rounded-lg flex items-center justify-center">
+                                  <CreditCard className="w-6 h-6 text-muted-foreground" />
+                                </div>
+                                <div>
+                                  <div className="font-semibold text-sm">Payment 1 of 4</div>
+                                  <div className="text-xs text-muted-foreground">Due: Oct 8, 2025</div>
+                                </div>
+                              </div>
+                              <Button variant="ghost" size="sm" className="text-sm">
+                                View Invoice
+                              </Button>
                             </div>
-                          )}
-                        </div>
+
+                            {/* Amount Due */}
+                            <div>
+                              <div className="text-sm text-muted-foreground mb-1">Amount due</div>
+                              <div className="text-4xl font-bold">$450.00</div>
+                            </div>
+
+                            {/* Tip Section */}
+                            <div className="space-y-3">
+                              <div className="text-sm font-medium">Would you like to leave a tip?</div>
+                              <div className="flex gap-2 flex-wrap">
+                                <Button variant="outline" size="sm" className="flex-1 min-w-[80px]">
+                                  No thanks
+                                </Button>
+                                <Button variant="outline" size="sm" className="flex-1 min-w-[80px]">
+                                  <div className="text-center">
+                                    <div className="font-semibold">10%</div>
+                                    <div className="text-xs text-muted-foreground">$45</div>
+                                  </div>
+                                </Button>
+                                <Button variant="outline" size="sm" className="flex-1 min-w-[80px]">
+                                  <div className="text-center">
+                                    <div className="font-semibold">15%</div>
+                                    <div className="text-xs text-muted-foreground">$67.50</div>
+                                  </div>
+                                </Button>
+                                <Button variant="outline" size="sm" className="flex-1 min-w-[80px]">
+                                  <div className="text-center">
+                                    <div className="font-semibold">20%</div>
+                                    <div className="text-xs text-muted-foreground">$90</div>
+                                  </div>
+                                </Button>
+                                <Button variant="outline" size="sm" className="flex-1 min-w-[80px]">
+                                  Custom
+                                </Button>
+                              </div>
+                            </div>
+
+                            {/* Autopay Notice */}
+                            <div className="flex items-start gap-2 p-3 bg-muted/50 rounded-lg">
+                              <Shield className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                              <div className="text-sm text-muted-foreground">
+                                Use Autopay, never make a late payment
+                              </div>
+                            </div>
+
+                            {/* Overpay Checkbox */}
+                            <div className="flex items-start gap-2">
+                              <input type="checkbox" className="mt-1" />
+                              <label className="text-xs text-muted-foreground leading-relaxed">
+                                Overpay? Pay the invoice now. Upcoming payments will be charged automatically per the invoice payment schedule.
+                              </label>
+                            </div>
+
+                            {/* Google Pay Button (Mock) */}
+                            <Button className="w-full bg-black hover:bg-black/90 text-white h-12">
+                              <div className="flex items-center gap-2">
+                                <span className="font-medium">G Pay</span>
+                                <span>•••• 7303</span>
+                              </div>
+                            </Button>
+
+                            {/* Divider */}
+                            <div className="relative">
+                              <div className="absolute inset-0 flex items-center">
+                                <div className="w-full border-t"></div>
+                              </div>
+                              <div className="relative flex justify-center text-xs uppercase">
+                                <span className="bg-card px-2 text-muted-foreground">OR</span>
+                              </div>
+                            </div>
+
+                            {/* Payment Method Tabs */}
+                            <div className="flex gap-2">
+                              <Button variant="outline" className="flex-1 h-11">
+                                Debit or credit card
+                              </Button>
+                              <Button variant="ghost" className="flex-1 h-11">
+                                Bank account
+                              </Button>
+                            </div>
+
+                            {/* Card Input Fields (Mock) */}
+                            <div className="space-y-4">
+                              <div>
+                                <label className="text-sm font-medium mb-2 block">Card number</label>
+                                <div className="relative">
+                                  <input 
+                                    type="text" 
+                                    placeholder="1234 1234 1234 1234" 
+                                    className="w-full px-3 py-2 border rounded-md"
+                                    disabled
+                                  />
+                                  <div className="absolute right-3 top-2.5 flex gap-1">
+                                    <CreditCard className="w-5 h-5 text-blue-600" />
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                  <label className="text-sm font-medium mb-2 block">Expiration date</label>
+                                  <input 
+                                    type="text" 
+                                    placeholder="MM / YY" 
+                                    className="w-full px-3 py-2 border rounded-md"
+                                    disabled
+                                  />
+                                </div>
+                                <div>
+                                  <label className="text-sm font-medium mb-2 block">Security code</label>
+                                  <input 
+                                    type="text" 
+                                    placeholder="CVC" 
+                                    className="w-full px-3 py-2 border rounded-md"
+                                    disabled
+                                  />
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* SSL Security Badge */}
+                            <div className="flex items-center gap-2 text-xs text-muted-foreground pt-4 border-t">
+                              <Shield className="w-4 h-4" />
+                              <span>We use the same SSL encryption technology that banks use to protect your sensitive data.</span>
+                            </div>
+
+                            {/* Pay Button */}
+                            <div className="flex items-center justify-end gap-3 pt-4">
+                              <div className="text-xs text-muted-foreground flex items-center gap-1">
+                                <Shield className="w-3 h-3" />
+                                <span>Secured by <span className="font-semibold">HONEYBOOK</span></span>
+                              </div>
+                              <Button className="bg-primary hover:bg-primary/90 h-11 px-8">
+                                Pay $450.00
+                              </Button>
+                            </div>
+                          </CardContent>
+                        </Card>
                       </div>
                     )}
                     </div>
