@@ -400,9 +400,30 @@ export default function PublicSmartFile() {
                       <CardTitle data-testid={`text-page-title-${index}`}>{page.displayTitle}</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <p className="whitespace-pre-wrap text-muted-foreground" data-testid={`text-page-content-${index}`}>
-                        {page.content.content || page.content.text}
-                      </p>
+                      {page.content.blocks && page.content.blocks.length > 0 ? (
+                        <div className="grid grid-cols-2 gap-4">
+                          {page.content.blocks.map((block: any, blockIdx: number) => (
+                            <div key={blockIdx} className={block.width === 'HALF' ? 'col-span-1' : 'col-span-2'}>
+                              {block.type === 'HEADING' && block.content && (
+                                <h3 className="text-2xl font-bold mb-2">{block.content}</h3>
+                              )}
+                              {block.type === 'TEXT' && block.content && (
+                                <p className="text-muted-foreground whitespace-pre-wrap">{block.content}</p>
+                              )}
+                              {block.type === 'SPACER' && (
+                                <div className="py-6" />
+                              )}
+                              {block.type === 'IMAGE' && block.content && (
+                                <img src={block.content} alt="" className="w-full max-h-[150px] object-contain rounded-lg" />
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="whitespace-pre-wrap text-muted-foreground" data-testid={`text-page-content-${index}`}>
+                          {page.content.content || page.content.text}
+                        </p>
+                      )}
                     </CardContent>
                   </Card>
                 )}
