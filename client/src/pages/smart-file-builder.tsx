@@ -28,13 +28,15 @@ import {
   AlignLeft,
   MoveVertical,
   Sparkles,
-  CheckCircle
+  CheckCircle,
+  Camera
 } from "lucide-react";
 import { Reorder, useDragControls } from "framer-motion";
 import type { SmartFileWithPages, SmartFilePage, InsertSmartFilePage } from "@shared/schema";
 import { useState, useEffect } from "react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
 
 // Page type configurations
@@ -821,6 +823,8 @@ export default function SmartFileBuilder() {
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [currentPreviewPageIndex, setCurrentPreviewPageIndex] = useState(0);
 
+  const { user } = useAuth();
+
   const { data: smartFile, isLoading } = useQuery<SmartFileWithPages>({
     queryKey: ["/api/smart-files", id],
     enabled: !!id
@@ -1174,48 +1178,32 @@ export default function SmartFileBuilder() {
             </div>
           ) : (
             <>
-              {/* Navigation Buttons - Top Right */}
-              <div className="absolute top-6 right-6 z-10 flex gap-2">
-                <Button
-                  variant="default"
-                  size="sm"
-                  onClick={() => setCurrentPreviewPageIndex(Math.max(0, currentPreviewPageIndex - 1))}
-                  disabled={currentPreviewPageIndex === 0}
-                  data-testid="button-prev-top"
-                >
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  Previous
-                </Button>
-                <Button
-                  variant="default"
-                  size="sm"
-                  onClick={() => setCurrentPreviewPageIndex(Math.min(pages.length - 1, currentPreviewPageIndex + 1))}
-                  disabled={currentPreviewPageIndex === pages.length - 1}
-                  data-testid="button-next-top"
-                >
-                  Next
-                  <ArrowLeft className="w-4 h-4 ml-2 rotate-180" />
-                </Button>
+              {/* Header with Logo and Page Indicator */}
+              <div className="bg-card border-b px-8 py-6">
+                <div className="max-w-7xl mx-auto flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 bg-primary rounded-lg flex items-center justify-center">
+                      <Camera className="w-7 h-7 text-primary-foreground" />
+                    </div>
+                    <div>
+                      <h1 className="text-xl font-semibold">{user?.businessName || 'Photography Studio'}</h1>
+                      <p className="text-sm text-muted-foreground">Photography Proposal</p>
+                    </div>
+                  </div>
+                  {/* Page Indicator */}
+                  <div className="text-sm font-medium text-muted-foreground bg-muted px-4 py-2 rounded-full">
+                    Page {currentPreviewPageIndex + 1} of {pages.length}
+                  </div>
+                </div>
               </div>
 
               {/* Current Page Display - Full Screen */}
               {(() => {
                 const currentPage = pages[currentPreviewPageIndex];
                 return (
-                <div className="h-full w-full flex items-center justify-center p-8">
-                <Card className="w-full max-w-4xl" key={currentPage.id}>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      {PAGE_TYPES[currentPage.pageType as PageType] && (
-                        (() => {
-                          const Icon = PAGE_TYPES[currentPage.pageType as PageType].icon;
-                          return <Icon className="w-5 h-5" />;
-                        })()
-                      )}
-                      {currentPage.displayTitle}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
+                <div className="h-full w-full overflow-y-auto p-8 pt-0">
+                <div className="max-w-7xl mx-auto py-8">
+                  <CardContent className="p-0">
                     {/* Text Page Preview */}
                     {currentPage.pageType === 'TEXT' && currentPage.content && (
                       <div className="space-y-4">
@@ -1266,53 +1254,58 @@ export default function SmartFileBuilder() {
                               if (!pkg) return null;
                               return (
                                 <Card key={pkg.id} className="overflow-hidden border-2 hover:border-primary/40 hover:shadow-lg transition-all duration-300">
-                                  {/* Package Image */}
-                                  {pkg.imageUrl && (
-                                    <div className="w-full h-48 overflow-hidden border-b">
-                                      <img 
-                                        src={pkg.imageUrl} 
-                                        alt={pkg.name}
-                                        className="w-full h-full object-cover"
-                                        onError={(e) => {
-                                          e.currentTarget.style.display = 'none';
-                                        }}
-                                      />
-                                    </div>
-                                  )}
-                                  
                                   <CardContent className="p-6">
-                                    {/* Package Title */}
-                                    <h4 className="text-xl font-bold mb-4">{pkg.name}</h4>
-                                    
-                                    {/* Package Description */}
-                                    {pkg.description && (
-                                      <div className="mb-4">
-                                        <p className="font-semibold text-sm mb-2">Includes:</p>
-                                        <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">
-                                          {pkg.description}
-                                        </p>
-                                      </div>
-                                    )}
-                                    
-                                    {/* Package Features */}
-                                    {pkg.features && pkg.features.length > 0 && (
-                                      <ul className="space-y-2 mb-4">
-                                        {pkg.features.map((feature: string, idx: number) => (
-                                          <li key={idx} className="text-sm flex items-start gap-2">
-                                            <span className="text-primary mt-1">•</span>
-                                            <span>{feature}</span>
-                                          </li>
-                                        ))}
-                                      </ul>
-                                    )}
-                                    
-                                    {/* Price and Selection */}
-                                    <div className="flex items-center justify-between pt-4 border-t">
-                                      <div className="text-right">
-                                        <p className="text-sm text-muted-foreground">Quantity: 1</p>
-                                        <p className="text-2xl font-bold text-primary">
-                                          ${(pkg.basePriceCents / 100).toFixed(2)}
-                                        </p>
+                                    <div className="flex gap-6">
+                                      {/* Package Image - Left Side */}
+                                      {pkg.imageUrl && (
+                                        <div className="w-48 h-48 flex-shrink-0 overflow-hidden rounded-lg border">
+                                          <img 
+                                            src={pkg.imageUrl} 
+                                            alt={pkg.name}
+                                            className="w-full h-full object-cover"
+                                            onError={(e) => {
+                                              e.currentTarget.style.display = 'none';
+                                            }}
+                                          />
+                                        </div>
+                                      )}
+                                      
+                                      {/* Content - Right Side */}
+                                      <div className="flex-1">
+                                        {/* Package Title */}
+                                        <h4 className="text-xl font-bold mb-4">{pkg.name}</h4>
+                                        
+                                        {/* Package Description */}
+                                        {pkg.description && (
+                                          <div className="mb-4">
+                                            <p className="font-semibold text-sm mb-2">Includes:</p>
+                                            <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">
+                                              {pkg.description}
+                                            </p>
+                                          </div>
+                                        )}
+                                        
+                                        {/* Package Features */}
+                                        {pkg.features && pkg.features.length > 0 && (
+                                          <ul className="space-y-2 mb-4">
+                                            {pkg.features.map((feature: string, idx: number) => (
+                                              <li key={idx} className="text-sm flex items-start gap-2">
+                                                <span className="text-primary mt-1">•</span>
+                                                <span>{feature}</span>
+                                              </li>
+                                            ))}
+                                          </ul>
+                                        )}
+                                        
+                                        {/* Price and Selection */}
+                                        <div className="flex items-center justify-between pt-4 border-t mt-auto">
+                                          <div className="text-sm text-muted-foreground">Quantity: 1</div>
+                                          <div className="text-right">
+                                            <p className="text-2xl font-bold text-primary">
+                                              ${(pkg.basePriceCents / 100).toFixed(2)}
+                                            </p>
+                                          </div>
+                                        </div>
                                       </div>
                                     </div>
                                   </CardContent>
@@ -1421,7 +1414,6 @@ export default function SmartFileBuilder() {
                       </div>
                     )}
                   </CardContent>
-                </Card>
                 </div>
                 );
               })()}
