@@ -1,8 +1,7 @@
 import { useParams } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
-import { AppSidebar } from "@/components/layout/app-sidebar";
-import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -76,23 +75,18 @@ export default function ProjectDetail() {
 
   if (!project) {
     return (
-      <SidebarProvider>
-        <AppSidebar />
-        <SidebarInset>
-          <div className="flex items-center justify-center min-h-screen">
-            <div className="text-center">
-              <h2 className="text-2xl font-semibold mb-2">Project Not Found</h2>
-              <p className="text-muted-foreground mb-4">The project you're looking for doesn't exist.</p>
-              <Link href="/projects">
-                <Button>
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  Back to Projects
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </SidebarInset>
-      </SidebarProvider>
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <h2 className="text-2xl font-semibold mb-2">Project Not Found</h2>
+          <p className="text-muted-foreground mb-4">The project you're looking for doesn't exist.</p>
+          <Link href="/projects">
+            <Button>
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Projects
+            </Button>
+          </Link>
+        </div>
+      </div>
     );
   }
 
@@ -160,13 +154,11 @@ export default function ProjectDetail() {
   };
 
   return (
-    <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset>
-        {/* Header */}
-        <header className="bg-card border-b border-border px-6 py-4">
-          <div className="flex items-center gap-3">
-            <SidebarTrigger data-testid="button-menu-toggle" />
+    <>
+      {/* Header */}
+      <header className="bg-card border-b border-border px-6 py-4">
+        <div className="flex items-center gap-3">
+          <SidebarTrigger data-testid="button-menu-toggle" />
             <Link href="/projects">
               <Button variant="ghost" size="sm" data-testid="button-back-projects">
                 <ArrowLeft className="w-4 h-4 mr-2" />
@@ -422,7 +414,6 @@ export default function ProjectDetail() {
             </CardContent>
           </Card>
         </div>
-      </SidebarInset>
-    </SidebarProvider>
+    </>
   );
 }
