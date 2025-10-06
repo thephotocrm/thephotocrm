@@ -128,27 +128,43 @@ export default function PublicSmartFile() {
       // First, accept the Smart File
       await apiRequest("PATCH", `/api/public/smart-files/${params?.token}/accept`, acceptanceData);
       
-      // Then, create checkout session
-      const response = await apiRequest("POST", `/api/public/smart-files/${params?.token}/create-checkout`, {});
-      return response;
-    },
-    onSuccess: (data: any) => {
-      toast({
-        title: "Smart File Accepted",
-        description: "Your selections have been saved. Redirecting to checkout...",
-      });
+      // Check if payment is required
+      const paymentPage = data?.smartFile.pages?.find((p: SmartFilePage) => p.pageType === 'PAYMENT');
+      const acceptOnlinePayments = paymentPage?.content?.acceptOnlinePayments || false;
+      const depositAmount = acceptanceData.depositCents || 0;
       
+      // Only create checkout session if online payments are enabled AND deposit amount > 0
+      if (acceptOnlinePayments && depositAmount > 0) {
+        const response = await apiRequest("POST", `/api/public/smart-files/${params?.token}/create-checkout`, {});
+        return { ...response, requiresPayment: true };
+      }
+      
+      // No payment required - return success
+      return { requiresPayment: false };
+    },
+    onSuccess: (response: any) => {
       queryClient.invalidateQueries({ queryKey: [`/api/public/smart-files/${params?.token}`] });
       
-      // Redirect to Stripe Checkout
-      if (data.checkoutUrl) {
-        window.location.href = data.checkoutUrl;
+      if (response.requiresPayment && response.checkoutUrl) {
+        // Redirect to Stripe Checkout
+        toast({
+          title: "Smart File Accepted",
+          description: "Redirecting to secure checkout...",
+        });
+        window.location.href = response.checkoutUrl;
+      } else {
+        // No payment required - redirect to success page
+        toast({
+          title: "Smart File Accepted",
+          description: "Your selections have been saved successfully!",
+        });
+        setLocation(`/smart-file/${params?.token}/success`);
       }
     },
     onError: (error: any) => {
       toast({
         title: "Error",
-        description: error.message || "Failed to proceed to checkout. Please try again.",
+        description: error.message || "Failed to accept Smart File. Please try again.",
         variant: "destructive"
       });
     }
