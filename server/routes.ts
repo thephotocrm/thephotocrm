@@ -19,11 +19,13 @@ import { insertUserSchema, insertPhotographerSchema, insertClientSchema, insertS
          emailLogs, smsLogs, projectActivityLog,
          projectTypeEnum, createOnboardingLinkSchema, createPayoutSchema, insertDailyAvailabilityTemplateSchema,
          insertDailyAvailabilityBreakSchema, insertDailyAvailabilityOverrideSchema,
-         insertDripCampaignSchema, insertDripCampaignEmailSchema, insertDripCampaignSubscriptionSchema } from "@shared/schema";
+         insertDripCampaignSchema, insertDripCampaignEmailSchema, insertDripCampaignSubscriptionSchema, insertProjectParticipantSchema } from "@shared/schema";
 import { z } from "zod";
 import { startCronJobs } from "./jobs/cron";
 import { processAutomations } from "./services/automation";
 import path from "path";
+import bcrypt from "bcrypt";
+import { nanoid } from "nanoid";
 
 
 /**
@@ -1384,6 +1386,160 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       res.json(history);
     } catch (error) {
       console.error("Get project history error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Project Participants
+  app.get("/api/projects/:id/participants", authenticateToken, async (req, res) => {
+    try {
+      const project = await storage.getProject(req.params.id);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+      
+      // Verify access: either photographer or primary client or participant
+      const isPhotographer = req.user!.photographerId === project.photographerId;
+      
+      // For clients, verify they belong to the same photographer as the project
+      let isPrimaryClient = false;
+      let isParticipant = false;
+      
+      if (req.user!.clientId) {
+        // Get client to verify photographer ownership
+        const client = await storage.getClient(req.user!.clientId);
+        if (!client || client.photographerId !== project.photographerId) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+        
+        // Check if primary client
+        isPrimaryClient = req.user!.clientId === project.clientId;
+        
+        // If not primary client, check if participant
+        if (!isPrimaryClient) {
+          const participantProjects = await storage.getParticipantProjects(req.user!.clientId);
+          isParticipant = participantProjects.some(p => p.projectId === req.params.id);
+        }
+      }
+      
+      if (!isPhotographer && !isPrimaryClient && !isParticipant) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      const participants = await storage.getProjectParticipants(req.params.id);
+      res.json(participants);
+    } catch (error) {
+      console.error("Get project participants error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.post("/api/projects/:id/participants", authenticateToken, async (req, res) => {
+    try {
+      const { email, firstName, lastName } = req.body;
+      
+      if (!email || !firstName || !lastName) {
+        return res.status(400).json({ message: "Email, first name, and last name are required" });
+      }
+      
+      const project = await storage.getProject(req.params.id);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+      
+      // Verify access: either photographer or primary client
+      const isPhotographer = req.user!.photographerId === project.photographerId;
+      let isPrimaryClient = false;
+      
+      // For clients, verify they belong to the same photographer as the project
+      if (req.user!.clientId) {
+        const client = await storage.getClient(req.user!.clientId);
+        if (!client || client.photographerId !== project.photographerId) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+        isPrimaryClient = req.user!.clientId === project.clientId;
+      }
+      
+      if (!isPhotographer && !isPrimaryClient) {
+        return res.status(403).json({ message: "Access denied. Only photographers and primary clients can add participants." });
+      }
+      
+      // Check if participant already exists for this project
+      const existingParticipants = await storage.getProjectParticipants(req.params.id);
+      const alreadyAdded = existingParticipants.some(p => p.client.email === email.toLowerCase());
+      
+      if (alreadyAdded) {
+        return res.status(400).json({ message: "This person is already a participant on this project" });
+      }
+      
+      // Look up or create client
+      let client = await storage.getClientByEmail(email.toLowerCase(), project.photographerId);
+      
+      if (!client) {
+        // Create new client (they'll use portal tokens for authentication)
+        const newClientData = insertClientSchema.parse({
+          photographerId: project.photographerId,
+          firstName,
+          lastName,
+          email: email.toLowerCase(),
+          emailOptIn: true
+        });
+        
+        client = await storage.createClient(newClientData);
+        
+        // TODO: Send invite email with portal access link (task 9)
+        console.log(`[PARTICIPANT] Created new client for participant: ${client.id}, email: ${email}`);
+      }
+      
+      // Add participant with validation
+      const participantData = insertProjectParticipantSchema.parse({
+        projectId: req.params.id,
+        clientId: client.id,
+        addedBy: isPhotographer ? 'photographer' : 'client',
+        inviteSent: false
+      });
+      
+      const participant = await storage.addProjectParticipant(participantData);
+      
+      // Fetch full participant with client data
+      const participants = await storage.getProjectParticipants(req.params.id);
+      const fullParticipant = participants.find(p => p.id === participant.id);
+      
+      res.status(201).json(fullParticipant);
+    } catch (error) {
+      console.error("Add project participant error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.delete("/api/projects/:projectId/participants/:clientId", authenticateToken, async (req, res) => {
+    try {
+      const project = await storage.getProject(req.params.projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+      
+      // Verify access: either photographer or primary client
+      const isPhotographer = req.user!.photographerId === project.photographerId;
+      let isPrimaryClient = false;
+      
+      // For clients, verify they belong to the same photographer as the project
+      if (req.user!.clientId) {
+        const client = await storage.getClient(req.user!.clientId);
+        if (!client || client.photographerId !== project.photographerId) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+        isPrimaryClient = req.user!.clientId === project.clientId;
+      }
+      
+      if (!isPhotographer && !isPrimaryClient) {
+        return res.status(403).json({ message: "Access denied. Only photographers and primary clients can remove participants." });
+      }
+      
+      await storage.removeProjectParticipant(req.params.projectId, req.params.clientId);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Remove project participant error:", error);
       res.status(500).json({ message: "Internal server error" });
     }
   });
