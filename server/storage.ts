@@ -1,5 +1,5 @@
 import { 
-  photographers, users, clients, projects, stages, templates, automations, automationSteps, automationBusinessTriggers,
+  photographers, users, clients, projects, projectParticipants, stages, templates, automations, automationSteps, automationBusinessTriggers,
   emailLogs, emailHistory, smsLogs, automationExecutions, photographerLinks, checklistTemplateItems, projectChecklistItems,
   packages, packageItems, questionnaireTemplates, questionnaireQuestions, projectQuestionnaires,
   availabilitySlots, bookings, estimates, estimateItems, estimatePayments,
@@ -10,7 +10,7 @@ import {
   shortLinks, adminActivityLog,
   type User, type InsertUser, type Photographer, type InsertPhotographer,
   type AdminActivityLog, type InsertAdminActivityLog,
-  type Client, type InsertClient, type Project, type InsertProject, type ProjectWithClientAndStage, type ClientWithProjects, type Stage, type InsertStage,
+  type Client, type InsertClient, type Project, type InsertProject, type ProjectParticipant, type InsertProjectParticipant, type ProjectWithClientAndStage, type ClientWithProjects, type Stage, type InsertStage,
   type Template, type InsertTemplate, type Automation, type InsertAutomation,
   type AutomationStep, type InsertAutomationStep, type AutomationBusinessTrigger, type InsertAutomationBusinessTrigger, type Package, type InsertPackage,
   type Estimate, type InsertEstimate, type EstimateItem, type EstimateWithProject, type EstimateWithRelations,
@@ -67,6 +67,12 @@ export interface IStorage {
   getProjectHistory(projectId: string): Promise<TimelineEvent[]>;
   getClientMessages(clientId: string): Promise<Message[]>;
   createMessage(message: InsertMessage): Promise<Message>;
+  
+  // Project Participants
+  getProjectParticipants(projectId: string): Promise<(ProjectParticipant & { client: Client })[]>;
+  getParticipantProjects(clientId: string): Promise<(ProjectParticipant & { project: ProjectWithClientAndStage })[]>;
+  addProjectParticipant(participant: InsertProjectParticipant): Promise<ProjectParticipant>;
+  removeProjectParticipant(projectId: string, clientId: string): Promise<void>;
   
   // Client Portal Tokens
   getClientPortalTokensByClient(clientId: string, after?: Date): Promise<ClientPortalToken[]>;
@@ -2139,6 +2145,136 @@ export class DatabaseStorage implements IStorage {
     }
     
     return updated;
+  }
+
+  async getProjectParticipants(projectId: string): Promise<(ProjectParticipant & { client: Client })[]> {
+    const rows = await db.select({
+      id: projectParticipants.id,
+      projectId: projectParticipants.projectId,
+      clientId: projectParticipants.clientId,
+      addedBy: projectParticipants.addedBy,
+      inviteSent: projectParticipants.inviteSent,
+      inviteSentAt: projectParticipants.inviteSentAt,
+      createdAt: projectParticipants.createdAt,
+      client: clients
+    })
+      .from(projectParticipants)
+      .innerJoin(clients, eq(projectParticipants.clientId, clients.id))
+      .where(eq(projectParticipants.projectId, projectId))
+      .orderBy(desc(projectParticipants.createdAt));
+      
+    return rows.map(row => ({
+      id: row.id,
+      projectId: row.projectId,
+      clientId: row.clientId,
+      addedBy: row.addedBy,
+      inviteSent: row.inviteSent,
+      inviteSentAt: row.inviteSentAt,
+      createdAt: row.createdAt,
+      client: row.client
+    }));
+  }
+
+  async getParticipantProjects(clientId: string): Promise<(ProjectParticipant & { project: ProjectWithClientAndStage })[]> {
+    const rows = await db.select({
+      participantId: projectParticipants.id,
+      participantProjectId: projectParticipants.projectId,
+      participantClientId: projectParticipants.clientId,
+      participantAddedBy: projectParticipants.addedBy,
+      participantInviteSent: projectParticipants.inviteSent,
+      participantInviteSentAt: projectParticipants.inviteSentAt,
+      participantCreatedAt: projectParticipants.createdAt,
+      // Project fields
+      id: projects.id,
+      photographerId: projects.photographerId,
+      clientId: projects.clientId,
+      title: projects.title,
+      projectType: projects.projectType,
+      eventDate: projects.eventDate,
+      hasEventDate: projects.hasEventDate,
+      stageId: projects.stageId,
+      stageEnteredAt: projects.stageEnteredAt,
+      leadSource: projects.leadSource,
+      status: projects.status,
+      smsOptIn: projects.smsOptIn,
+      emailOptIn: projects.emailOptIn,
+      notes: projects.notes,
+      createdAt: projects.createdAt,
+      // Client fields
+      clientData: {
+        id: clients.id,
+        firstName: clients.firstName,
+        lastName: clients.lastName,
+        email: clients.email,
+        phone: clients.phone
+      },
+      // Stage fields
+      stageData: {
+        id: stages.id,
+        name: stages.name,
+        isDefault: stages.isDefault,
+        orderIndex: stages.orderIndex
+      }
+    })
+      .from(projectParticipants)
+      .innerJoin(projects, eq(projectParticipants.projectId, projects.id))
+      .leftJoin(clients, eq(projects.clientId, clients.id))
+      .leftJoin(stages, eq(projects.stageId, stages.id))
+      .where(eq(projectParticipants.clientId, clientId))
+      .orderBy(desc(projectParticipants.createdAt));
+      
+    return rows.map(row => ({
+      id: row.participantId,
+      projectId: row.participantProjectId,
+      clientId: row.participantClientId,
+      addedBy: row.participantAddedBy,
+      inviteSent: row.participantInviteSent,
+      inviteSentAt: row.participantInviteSentAt,
+      createdAt: row.participantCreatedAt,
+      project: {
+        id: row.id,
+        photographerId: row.photographerId,
+        clientId: row.clientId,
+        title: row.title,
+        projectType: row.projectType,
+        eventDate: row.eventDate,
+        hasEventDate: row.hasEventDate,
+        stageId: row.stageId,
+        stageEnteredAt: row.stageEnteredAt,
+        leadSource: row.leadSource,
+        status: row.status,
+        smsOptIn: row.smsOptIn,
+        emailOptIn: row.emailOptIn,
+        notes: row.notes,
+        createdAt: row.createdAt,
+        client: row.clientData ? {
+          id: row.clientData.id,
+          firstName: row.clientData.firstName,
+          lastName: row.clientData.lastName,
+          email: row.clientData.email,
+          phone: row.clientData.phone
+        } : null,
+        stage: row.stageData?.id ? {
+          id: row.stageData.id,
+          name: row.stageData.name,
+          isDefault: row.stageData.isDefault,
+          orderIndex: row.stageData.orderIndex
+        } : null
+      }
+    }));
+  }
+
+  async addProjectParticipant(participant: InsertProjectParticipant): Promise<ProjectParticipant> {
+    const [created] = await db.insert(projectParticipants).values(participant).returning();
+    return created;
+  }
+
+  async removeProjectParticipant(projectId: string, clientId: string): Promise<void> {
+    await db.delete(projectParticipants)
+      .where(and(
+        eq(projectParticipants.projectId, projectId),
+        eq(projectParticipants.clientId, clientId)
+      ));
   }
 
   private async checkAndSubscribeToWeddingCampaign(project: Project): Promise<void> {
