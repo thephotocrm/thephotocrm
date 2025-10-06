@@ -72,6 +72,7 @@ type ContentBlock = {
   id: string;
   type: 'HEADING' | 'TEXT' | 'SPACER' | 'IMAGE';
   content: any;
+  width?: 'FULL' | 'HALF';
 };
 
 type TextPageContent = {
@@ -1223,7 +1224,7 @@ export default function SmartFileBuilder() {
                                   <div className="py-6" />
                                 )}
                                 {block.type === 'IMAGE' && block.content && (
-                                  <img src={block.content} alt="" className="w-full rounded-lg" />
+                                  <img src={block.content} alt="" className="w-full max-h-[150px] object-contain rounded-lg" />
                                 )}
                               </div>
                             ))
