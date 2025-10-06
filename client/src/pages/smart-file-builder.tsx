@@ -295,14 +295,15 @@ function BlockEditor({
 function SectionEditor({
   section,
   onUpdate,
-  onDelete
+  onDelete,
+  dragControls
 }: {
   section: Section;
   onUpdate: (section: Section) => void;
   onDelete: () => void;
+  dragControls: ReturnType<typeof useDragControls>;
 }) {
   const [blocks, setBlocks] = useState<ContentBlock[]>(section.blocks || []);
-  const dragControls = useDragControls();
 
   useEffect(() => {
     setBlocks(section.blocks || []);
@@ -670,6 +671,35 @@ function HeroSectionEditor({
   );
 }
 
+// Section Item Component (wrapper with drag controls)
+function SectionItem({
+  section,
+  onUpdate,
+  onDelete
+}: {
+  section: Section;
+  onUpdate: (section: Section) => void;
+  onDelete: () => void;
+}) {
+  const dragControls = useDragControls();
+  
+  return (
+    <Reorder.Item 
+      key={section.id} 
+      value={section} 
+      dragListener={false}
+      dragControls={dragControls}
+    >
+      <SectionEditor
+        section={section}
+        onUpdate={onUpdate}
+        onDelete={onDelete}
+        dragControls={dragControls}
+      />
+    </Reorder.Item>
+  );
+}
+
 // Text Page Editor Component (Section-based)
 function TextPageEditor({ 
   page, 
@@ -795,13 +825,12 @@ function TextPageEditor({
       ) : (
         <Reorder.Group axis="y" values={sections} onReorder={handleReorder} className="space-y-4">
           {sections.map((section) => (
-            <Reorder.Item key={section.id} value={section} className="cursor-move">
-              <SectionEditor
-                section={section}
-                onUpdate={(updatedSection) => updateSection(section.id, updatedSection)}
-                onDelete={() => deleteSection(section.id)}
-              />
-            </Reorder.Item>
+            <SectionItem
+              key={section.id}
+              section={section}
+              onUpdate={(updatedSection) => updateSection(section.id, updatedSection)}
+              onDelete={() => deleteSection(section.id)}
+            />
           ))}
         </Reorder.Group>
       )}
