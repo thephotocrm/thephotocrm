@@ -44,6 +44,7 @@ export function AuthProvider({ children }: PropsWithChildren): JSX.Element {
   const logout = async () => {
     await authLogout();
     setUser(null);
+    window.location.href = '/login';
   };
 
   const refetchUser = async () => {
