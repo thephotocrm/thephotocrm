@@ -105,7 +105,6 @@ export function AppSidebar() {
           </div>
           <div>
             <h1 className="text-lg font-semibold text-white">thePhotoCRM</h1>
-            <p className="text-sm text-white/70">Photography CRM</p>
           </div>
         </div>
       </SidebarHeader>
