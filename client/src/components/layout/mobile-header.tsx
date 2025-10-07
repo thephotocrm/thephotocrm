@@ -2,7 +2,7 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 
 export function MobileHeader() {
   return (
-    <div className="md:hidden bg-gradient-to-r from-blue-500 to-white dark:from-blue-600 dark:to-gray-800 border-b border-border px-2 py-2 flex items-center gap-2 sticky top-0 z-50">
+    <div className="md:hidden bg-gradient-to-r from-blue-500 to-white dark:from-blue-600 dark:to-gray-800 border-b border-border px-2 py-2 flex items-center gap-2 sticky top-0 z-40">
       <span 
         className="font-bold text-2xl text-white truncate flex-1" 
         style={{ textShadow: '1px 1px 1px rgba(0, 0, 0, 0.5)' }}
