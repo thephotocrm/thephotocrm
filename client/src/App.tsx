@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect } from "react";
-import { Switch, Route, useLocation } from "wouter";
+import { Switch, Route, useLocation, Redirect } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -46,13 +46,6 @@ const Checkout = lazy(() => import("@/pages/checkout"));
 
 function ProtectedRoutes() {
   const { user, loading } = useAuth();
-  const [, setLocation] = useLocation();
-  
-  useEffect(() => {
-    if (!user && !loading) {
-      setLocation('/login');
-    }
-  }, [user, loading, setLocation]);
 
   if (loading) {
     return (
@@ -63,7 +56,7 @@ function ProtectedRoutes() {
   }
 
   if (!user) {
-    return null;
+    return <Redirect to="/login" />;
   }
   
   return (

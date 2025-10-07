@@ -1,6 +1,7 @@
-import { createContext, useContext, useState, useEffect, type PropsWithChildren } from "react";
+import { createContext, useContext, useState, useEffect, useCallback, type PropsWithChildren } from "react";
 import { getCurrentUser, login as authLogin, logout as authLogout, register as authRegister } from "@/lib/auth";
 import type { User, LoginCredentials, RegisterData } from "@/lib/auth";
+import { useAuthBroadcast } from "./use-auth-broadcast";
 
 interface AuthContextType {
   user: User | null;
@@ -16,6 +17,17 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: PropsWithChildren): JSX.Element {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const handleLogoutRequired = useCallback(async () => {
+    await authLogout();
+    setUser(null);
+    window.location.href = '/login';
+  }, []);
+
+  const { broadcastLogin, broadcastLogout } = useAuthBroadcast(
+    user?.id || null,
+    handleLogoutRequired
+  );
 
   useEffect(() => {
     async function loadUser() {
@@ -35,6 +47,7 @@ export function AuthProvider({ children }: PropsWithChildren): JSX.Element {
   const login = async (credentials: LoginCredentials) => {
     const user = await authLogin(credentials);
     setUser(user);
+    broadcastLogin(user.id);
   };
 
   const register = async (data: RegisterData) => {
@@ -42,6 +55,7 @@ export function AuthProvider({ children }: PropsWithChildren): JSX.Element {
   };
 
   const logout = async () => {
+    broadcastLogout();
     await authLogout();
     setUser(null);
     window.location.href = '/login';
