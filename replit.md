@@ -37,7 +37,8 @@ Preferred communication style: Simple, everyday language.
 **Authentication & Authorization:** A three-tier role system (PHOTOGRAPHER, CLIENT, ADMIN) with stateless JWT authentication and role-based middleware for access control.
 
 **Super Admin Dashboard System:** Comprehensive interface for platform management.
-*   **Features:** Photographer management (view, search), account impersonation with short-lived tokens and impersonation banner, activity logging (`adminActivityLog`), JWT enhancement for admin/photographer identities, route protection via `requireAdmin` middleware, and dynamic sidebar menu based on user role and route.
+*   **Features:** Photographer management (view, search), subscription management with unlimited access grants, account impersonation with short-lived tokens and impersonation banner, activity logging (`adminActivityLog`), JWT enhancement for admin/photographer identities, route protection via `requireAdmin` middleware, and dynamic sidebar menu based on user role and route.
+*   **Subscription Management:** Admins can update photographer subscription status via dropdown in the dashboard. Supports statuses: trialing, active, past_due, canceled, and unlimited. The "unlimited" status bypasses all subscription checks, providing unrestricted platform access. All subscription changes are logged to admin activity log.
 
 **Marketing Landing Page & Subscription System:** Conversion-optimized landing page with founder pricing campaign and subscription management.
 *   **Features:** Routing for authenticated/unauthenticated users, founder pricing ($4.95/month, limited to 100 spots) with "spots remaining" counter, scarcity messaging, regular pricing ($9.95/month), 14-day free trial via Stripe, demo booking system with SendGrid notifications, and structured page content.
