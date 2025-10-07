@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Elements, PaymentElement, useStripe, useElements } from "@stripe/react-stripe-js";
 import { loadStripe, StripeElementsOptions } from "@stripe/stripe-js";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Loader2, Shield, ArrowLeft } from "lucide-react";
+import { Loader2, Shield } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useQuery } from "@tanstack/react-query";
 
@@ -11,12 +11,11 @@ interface PaymentFormProps {
   token: string;
   paymentType: 'DEPOSIT' | 'FULL' | 'BALANCE';
   baseAmount: number;
-  tipCents: number;
   onSuccess: () => void;
   onError: (error: string) => void;
 }
 
-function StripePaymentForm({ token, paymentType, baseAmount, tipCents, onSuccess, onError }: PaymentFormProps) {
+function StripePaymentForm({ token, paymentType, baseAmount, tipCents, onSuccess, onError }: PaymentFormProps & { tipCents: number }) {
   const stripe = useStripe();
   const elements = useElements();
   const [isProcessing, setIsProcessing] = useState(false);
@@ -79,22 +78,6 @@ function StripePaymentForm({ token, paymentType, baseAmount, tipCents, onSuccess
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Amount Due - Large Display */}
-      <div>
-        <div className="text-sm text-muted-foreground mb-1">Amount due</div>
-        <div className="text-4xl font-bold" data-testid="text-amount-due">{formatPrice(totalAmount)}</div>
-      </div>
-
-      {/* Divider */}
-      <div className="relative">
-        <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t"></div>
-        </div>
-        <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-card px-2 text-muted-foreground">OR</span>
-        </div>
-      </div>
-
       {/* Stripe Payment Element */}
       <div className="space-y-4">
         <PaymentElement />
@@ -132,9 +115,10 @@ function StripePaymentForm({ token, paymentType, baseAmount, tipCents, onSuccess
   );
 }
 
-function TipSelector({ baseAmount, onContinue }: { baseAmount: number; onContinue: (tipCents: number) => void }) {
+export function EmbeddedPaymentForm(props: PaymentFormProps & { publishableKey: string }) {
   const [selectedTip, setSelectedTip] = useState<number | 'custom' | null>(null);
   const [customTip, setCustomTip] = useState("");
+  const [stripePromise] = useState(() => loadStripe(props.publishableKey));
 
   const tipPercentages = [10, 15, 20];
 
@@ -143,7 +127,7 @@ function TipSelector({ baseAmount, onContinue }: { baseAmount: number; onContinu
       const customAmount = parseFloat(customTip) || 0;
       return Math.round(customAmount * 100);
     } else if (typeof selectedTip === 'number') {
-      return Math.round((baseAmount * selectedTip) / 100);
+      return Math.round((props.baseAmount * selectedTip) / 100);
     }
     return 0;
   };
@@ -157,12 +141,46 @@ function TipSelector({ baseAmount, onContinue }: { baseAmount: number; onContinu
     }).format(cents / 100);
   };
 
+  // Fetch payment intent when tip changes
+  const { data: paymentIntentData, isLoading, error } = useQuery({
+    queryKey: ['/api/public/smart-files', props.token, 'payment-intent', props.paymentType, tipCents],
+    queryFn: async () => {
+      const response = await apiRequest(
+        'POST',
+        `/api/public/smart-files/${props.token}/create-payment-intent`,
+        { paymentType: props.paymentType, tipCents }
+      );
+      return response.json();
+    },
+  });
+
+  if (error) {
+    return (
+      <div className="space-y-4">
+        <div className="p-4 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-lg">
+          <p className="text-sm text-red-800 dark:text-red-400">
+            {(error as any)?.message || "Failed to initialize payment. Please try again."}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  const options: StripeElementsOptions = paymentIntentData?.clientSecret ? {
+    clientSecret: paymentIntentData.clientSecret,
+    appearance: {
+      theme: 'stripe',
+    },
+  } : undefined as any;
+
   return (
     <div className="space-y-6">
       {/* Amount Due - Large Display */}
-      <div>
+      <div className="text-center">
         <div className="text-sm text-muted-foreground mb-1">Amount due</div>
-        <div className="text-4xl font-bold" data-testid="text-base-amount">{formatPrice(baseAmount)}</div>
+        <div className="text-4xl font-bold" data-testid="text-amount-due">
+          {formatPrice(props.baseAmount + tipCents)}
+        </div>
       </div>
 
       {/* Tip Section */}
@@ -173,7 +191,7 @@ function TipSelector({ baseAmount, onContinue }: { baseAmount: number; onContinu
             type="button"
             variant={selectedTip === null ? "default" : "outline"} 
             size="sm" 
-            className="flex-1 min-w-[80px]"
+            className="flex-1 min-w-[70px]"
             onClick={() => {
               setSelectedTip(null);
               setCustomTip("");
@@ -183,21 +201,21 @@ function TipSelector({ baseAmount, onContinue }: { baseAmount: number; onContinu
             No thanks
           </Button>
           {tipPercentages.map((percentage) => {
-            const tipAmount = Math.round((baseAmount * percentage) / 100);
+            const tipAmount = Math.round((props.baseAmount * percentage) / 100);
             return (
               <Button
                 key={percentage}
                 type="button"
                 variant={selectedTip === percentage ? "default" : "outline"}
                 size="sm"
-                className="flex-1 min-w-[80px]"
+                className="flex-1 min-w-[70px]"
                 onClick={() => {
                   setSelectedTip(percentage);
                   setCustomTip("");
                 }}
                 data-testid={`button-tip-${percentage}`}
               >
-                <div className="text-center">
+                <div className="text-center w-full">
                   <div className="font-semibold">{percentage}%</div>
                   <div className="text-xs text-muted-foreground">{formatPrice(tipAmount)}</div>
                 </div>
@@ -208,7 +226,7 @@ function TipSelector({ baseAmount, onContinue }: { baseAmount: number; onContinu
             type="button"
             variant={selectedTip === 'custom' ? "default" : "outline"}
             size="sm"
-            className="flex-1 min-w-[80px]"
+            className="flex-1 min-w-[70px]"
             onClick={() => setSelectedTip('custom')}
             data-testid="button-tip-custom"
           >
@@ -229,90 +247,26 @@ function TipSelector({ baseAmount, onContinue }: { baseAmount: number; onContinu
         )}
       </div>
 
-      <div className="flex justify-end">
-        <Button
-          type="button"
-          className="h-11 px-8"
-          onClick={() => onContinue(tipCents)}
-          data-testid="button-continue-payment"
-        >
-          Continue to payment
-        </Button>
-      </div>
-    </div>
-  );
-}
-
-export function EmbeddedPaymentForm(props: PaymentFormProps & { publishableKey: string }) {
-  const [tipCents, setTipCents] = useState<number | null>(null);
-  const [stripePromise] = useState(() => loadStripe(props.publishableKey));
-
-  const { data: paymentIntentData, isLoading, error } = useQuery({
-    queryKey: ['/api/public/smart-files', props.token, 'payment-intent', props.paymentType, tipCents],
-    enabled: tipCents !== null,
-    queryFn: async () => {
-      const response = await apiRequest(
-        'POST',
-        `/api/public/smart-files/${props.token}/create-payment-intent`,
-        { paymentType: props.paymentType, tipCents }
-      );
-      return response.json();
-    },
-  });
-
-  if (tipCents === null) {
-    return <TipSelector baseAmount={props.baseAmount} onContinue={setTipCents} />;
-  }
-
-  if (error) {
-    return (
-      <div className="space-y-4">
-        <div className="p-4 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-lg">
-          <p className="text-sm text-red-800 dark:text-red-400">Failed to initialize payment</p>
+      {/* Divider */}
+      <div className="relative">
+        <div className="absolute inset-0 flex items-center">
+          <div className="w-full border-t"></div>
         </div>
-        <Button
-          variant="outline"
-          onClick={() => setTipCents(null)}
-          className="w-full"
-          data-testid="button-back-to-tip"
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back
-        </Button>
+        <div className="relative flex justify-center text-xs uppercase">
+          <span className="bg-card px-2 text-muted-foreground">OR</span>
+        </div>
       </div>
-    );
-  }
 
-  if (isLoading || !paymentIntentData?.clientSecret) {
-    return (
-      <div className="flex items-center justify-center py-8">
-        <Loader2 className="w-6 h-6 animate-spin" />
-      </div>
-    );
-  }
-
-  const options: StripeElementsOptions = {
-    clientSecret: paymentIntentData.clientSecret,
-    appearance: {
-      theme: 'stripe',
-    },
-  };
-
-  return (
-    <div className="space-y-4">
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={() => setTipCents(null)}
-        className="text-muted-foreground -ml-2"
-        data-testid="button-change-tip"
-      >
-        <ArrowLeft className="w-4 h-4 mr-2" />
-        Change tip
-      </Button>
-      <Elements stripe={stripePromise} options={options}>
-        <StripePaymentForm {...props} tipCents={tipCents} />
-      </Elements>
+      {/* Payment Form */}
+      {isLoading || !paymentIntentData?.clientSecret ? (
+        <div className="flex items-center justify-center py-8">
+          <Loader2 className="w-6 h-6 animate-spin" data-testid="loader-payment" />
+        </div>
+      ) : (
+        <Elements stripe={stripePromise} options={options} key={paymentIntentData.clientSecret}>
+          <StripePaymentForm {...props} tipCents={tipCents} />
+        </Elements>
+      )}
     </div>
   );
 }

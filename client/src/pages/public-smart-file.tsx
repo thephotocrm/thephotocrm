@@ -99,7 +99,6 @@ export default function PublicSmartFile() {
   const [selectedPackage, setSelectedPackage] = useState<SelectedPackage | null>(null);
   const [selectedAddOns, setSelectedAddOns] = useState<Map<string, SelectedAddOn>>(new Map());
   const [selectionsRehydrated, setSelectionsRehydrated] = useState(false);
-  const [selectedPaymentType, setSelectedPaymentType] = useState<'DEPOSIT' | 'FULL' | 'BALANCE' | null>(null);
 
   const { data, isLoading, error } = useQuery<SmartFileData>({
     queryKey: [`/api/public/smart-files/${params?.token}`],
@@ -1199,76 +1198,36 @@ export default function PublicSmartFile() {
                               </div>
                             </div>
 
-                            {/* Payment Options */}
+                            {/* Unified Payment Form */}
                             {currentPage.content.acceptOnlinePayments && (
-                              <div className="space-y-3">
-                                {!selectedPaymentType ? (
-                                  <>
-                                    <p className="text-sm font-medium">Choose payment method</p>
-                                    {data.projectSmartFile.status === 'DEPOSIT_PAID' ? (
-                                      <Button
-                                        className="w-full h-12 text-base"
-                                        size="lg"
-                                        onClick={() => setSelectedPaymentType('BALANCE')}
-                                        data-testid="button-select-balance"
-                                      >
-                                        <CreditCard className="w-5 h-5 mr-2" />
-                                        Pay Balance {formatPrice(data.projectSmartFile.balanceDueCents || 0)}
-                                      </Button>
-                                    ) : (
-                                      <>
-                                        {depositAmount > 0 && depositAmount < total && (
-                                          <Button
-                                            className="w-full h-12 text-base"
-                                            size="lg"
-                                            onClick={() => setSelectedPaymentType('DEPOSIT')}
-                                            data-testid="button-select-deposit"
-                                          >
-                                            <CreditCard className="w-5 h-5 mr-2" />
-                                            Pay Deposit {formatPrice(depositAmount)}
-                                          </Button>
-                                        )}
-                                        <Button
-                                          className="w-full h-12 text-base"
-                                          size="lg"
-                                          variant={depositAmount > 0 && depositAmount < total ? "outline" : "default"}
-                                          onClick={() => setSelectedPaymentType('FULL')}
-                                          data-testid="button-select-full"
-                                        >
-                                          <CreditCard className="w-5 h-5 mr-2" />
-                                          Pay Full Amount {formatPrice(total)}
-                                        </Button>
-                                      </>
-                                    )}
-                                  </>
-                                ) : (
-                                  <EmbeddedPaymentForm
-                                    token={params?.token || ''}
-                                    paymentType={selectedPaymentType}
-                                    baseAmount={
-                                      selectedPaymentType === 'DEPOSIT' ? depositAmount :
-                                      selectedPaymentType === 'BALANCE' ? (data.projectSmartFile.balanceDueCents || 0) :
-                                      total
-                                    }
-                                    publishableKey={import.meta.env.VITE_STRIPE_PUBLIC_KEY || ''}
-                                    onSuccess={() => {
-                                      toast({
-                                        title: "Payment successful!",
-                                        description: "Your payment has been processed.",
-                                      });
-                                      queryClient.invalidateQueries({ queryKey: [`/api/public/smart-files/${params?.token}`] });
-                                      setSelectedPaymentType(null);
-                                    }}
-                                    onError={(error) => {
-                                      toast({
-                                        title: "Payment failed",
-                                        description: error,
-                                        variant: "destructive"
-                                      });
-                                    }}
-                                  />
-                                )}
-                              </div>
+                              <EmbeddedPaymentForm
+                                token={params?.token || ''}
+                                paymentType={
+                                  data.projectSmartFile.status === 'DEPOSIT_PAID' ? 'BALANCE' :
+                                  (depositAmount > 0 && depositAmount < total) ? 'DEPOSIT' :
+                                  'FULL'
+                                }
+                                baseAmount={
+                                  data.projectSmartFile.status === 'DEPOSIT_PAID' ? (data.projectSmartFile.balanceDueCents || 0) :
+                                  (depositAmount > 0 && depositAmount < total) ? depositAmount :
+                                  total
+                                }
+                                publishableKey={import.meta.env.VITE_STRIPE_PUBLIC_KEY || ''}
+                                onSuccess={() => {
+                                  toast({
+                                    title: "Payment successful!",
+                                    description: "Your payment has been processed.",
+                                  });
+                                  queryClient.invalidateQueries({ queryKey: [`/api/public/smart-files/${params?.token}`] });
+                                }}
+                                onError={(error) => {
+                                  toast({
+                                    title: "Payment failed",
+                                    description: error,
+                                    variant: "destructive"
+                                  });
+                                }}
+                              />
                             )}
                           </div>
                         )}
