@@ -470,7 +470,7 @@ export default function ProjectDetail() {
   };
 
   const handleCopyLink = (smartFile: ProjectSmartFile) => {
-    const link = `${window.location.origin}/smart-files/view/${smartFile.token}`;
+    const link = `${window.location.origin}/smartfile/${smartFile.token}`;
     navigator.clipboard.writeText(link);
     toast({
       title: "Link copied",
