@@ -721,6 +721,7 @@ export const projectSmartFiles = pgTable("project_smart_files", {
   subtotalCents: integer("subtotal_cents").default(0),
   taxCents: integer("tax_cents").default(0),
   feesCents: integer("fees_cents").default(0),
+  tipCents: integer("tip_cents").default(0),
   totalCents: integer("total_cents").default(0),
   depositPercent: integer("deposit_percent"),
   depositCents: integer("deposit_cents"),
