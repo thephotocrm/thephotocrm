@@ -544,6 +544,16 @@ export const packageItems = pgTable("package_items", {
   lineTotalCents: integer("line_total_cents").default(0)
 });
 
+export const addOns = pgTable("add_ons", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  photographerId: varchar("photographer_id").notNull().references(() => photographers.id),
+  name: text("name").notNull(),
+  description: text("description"),
+  priceCents: integer("price_cents").notNull(),
+  imageUrl: text("image_url"),
+  createdAt: timestamp("created_at").defaultNow()
+});
+
 export const questionnaireTemplates = pgTable("questionnaire_templates", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   photographerId: varchar("photographer_id").notNull().references(() => photographers.id),
@@ -1033,6 +1043,13 @@ export const packageItemsRelations = relations(packageItems, ({ one }) => ({
   })
 }));
 
+export const addOnsRelations = relations(addOns, ({ one }) => ({
+  photographer: one(photographers, {
+    fields: [addOns.photographerId],
+    references: [photographers.id]
+  })
+}));
+
 export const questionnaireTemplatesRelations = relations(questionnaireTemplates, ({ one, many }) => ({
   photographer: one(photographers, {
     fields: [questionnaireTemplates.photographerId],
@@ -1214,6 +1231,11 @@ export const insertPackageSchema = createInsertSchema(packages).omit({
   createdAt: true
 });
 
+export const insertAddOnSchema = createInsertSchema(addOns).omit({
+  id: true,
+  createdAt: true
+});
+
 export const insertEstimateSchema = createInsertSchema(estimates).omit({
   id: true,
   createdAt: true,
@@ -1356,6 +1378,8 @@ export type AutomationExecution = typeof automationExecutions.$inferSelect;
 export type InsertAutomationExecution = z.infer<typeof insertAutomationExecutionSchema>;
 export type Package = typeof packages.$inferSelect;
 export type InsertPackage = z.infer<typeof insertPackageSchema>;
+export type AddOn = typeof addOns.$inferSelect;
+export type InsertAddOn = z.infer<typeof insertAddOnSchema>;
 export type Estimate = typeof estimates.$inferSelect;
 export type InsertEstimate = z.infer<typeof insertEstimateSchema>;
 export type EstimateItem = typeof estimateItems.$inferSelect;
