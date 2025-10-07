@@ -1,7 +1,7 @@
 import { 
   photographers, users, clients, projects, projectParticipants, stages, templates, automations, automationSteps, automationBusinessTriggers,
   emailLogs, emailHistory, smsLogs, automationExecutions, photographerLinks, checklistTemplateItems, projectChecklistItems,
-  packages, packageItems, questionnaireTemplates, questionnaireQuestions, projectQuestionnaires,
+  packages, packageItems, addOns, questionnaireTemplates, questionnaireQuestions, projectQuestionnaires,
   availabilitySlots, bookings, estimates, estimateItems, estimatePayments,
   photographerEarnings, photographerPayouts,
   messages, projectActivityLog, clientPortalTokens,
@@ -13,7 +13,7 @@ import {
   type AdminActivityLog, type InsertAdminActivityLog,
   type Client, type InsertClient, type Project, type InsertProject, type ProjectParticipant, type InsertProjectParticipant, type ProjectWithClientAndStage, type ClientWithProjects, type Stage, type InsertStage,
   type Template, type InsertTemplate, type Automation, type InsertAutomation,
-  type AutomationStep, type InsertAutomationStep, type AutomationBusinessTrigger, type InsertAutomationBusinessTrigger, type Package, type InsertPackage,
+  type AutomationStep, type InsertAutomationStep, type AutomationBusinessTrigger, type InsertAutomationBusinessTrigger, type Package, type InsertPackage, type AddOn, type InsertAddOn,
   type Estimate, type InsertEstimate, type EstimateItem, type EstimateWithProject, type EstimateWithRelations,
   type PhotographerEarnings, type InsertPhotographerEarnings,
   type PhotographerPayouts, type InsertPhotographerPayouts,
@@ -121,6 +121,12 @@ export interface IStorage {
   getPackagesByPhotographer(photographerId: string): Promise<Package[]>;
   createPackage(pkg: InsertPackage): Promise<Package>;
   updatePackage(id: string, pkg: Partial<Package>): Promise<Package>;
+  
+  // Add-ons
+  getAddOnsByPhotographer(photographerId: string): Promise<AddOn[]>;
+  createAddOn(addOn: InsertAddOn): Promise<AddOn>;
+  updateAddOn(id: string, addOn: Partial<AddOn>): Promise<AddOn>;
+  deleteAddOn(id: string): Promise<void>;
   
   // Estimates
   getEstimatesByPhotographer(photographerId: string): Promise<EstimateWithClient[]>;
@@ -845,6 +851,29 @@ export class DatabaseStorage implements IStorage {
       .where(eq(packages.id, id))
       .returning();
     return updated;
+  }
+
+  async getAddOnsByPhotographer(photographerId: string): Promise<AddOn[]> {
+    return await db.select().from(addOns)
+      .where(eq(addOns.photographerId, photographerId))
+      .orderBy(desc(addOns.createdAt));
+  }
+
+  async createAddOn(insertAddOn: InsertAddOn): Promise<AddOn> {
+    const [addOn] = await db.insert(addOns).values(insertAddOn).returning();
+    return addOn;
+  }
+
+  async updateAddOn(id: string, addOn: Partial<AddOn>): Promise<AddOn> {
+    const [updated] = await db.update(addOns)
+      .set(addOn)
+      .where(eq(addOns.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteAddOn(id: string): Promise<void> {
+    await db.delete(addOns).where(eq(addOns.id, id));
   }
 
   async getEstimatesByPhotographer(photographerId: string): Promise<EstimateWithClient[]> {
