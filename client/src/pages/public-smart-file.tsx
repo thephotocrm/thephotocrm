@@ -681,21 +681,17 @@ export default function PublicSmartFile() {
                       <p className="text-xl text-muted-foreground mb-6 leading-relaxed text-center">{currentPage.content.description}</p>
                     )}
                     <div className="space-y-4">
-                      <RadioGroup
-                        value={selectedPackage?.packageId || ""}
-                        onValueChange={() => {}}
-                        disabled={isAccepted}
-                        className="space-y-4"
-                      >
-                        {currentPage.content.packages?.map((pkg: any) => (
+                        {currentPage.content.packages?.map((pkg: any) => {
+                          const isSelected = selectedPackage?.packageId === pkg.id;
+                          
+                          return (
                           <Card 
                             key={pkg.id} 
-                            className={`overflow-hidden border-2 transition-all duration-300 max-w-[800px] mx-auto cursor-pointer ${
-                              selectedPackage?.packageId === pkg.id
+                            className={`overflow-hidden border-2 transition-all duration-300 max-w-[800px] mx-auto ${
+                              isSelected
                                 ? 'border-primary shadow-lg'
                                 : 'hover:border-primary/40 hover:shadow-lg'
                             } ${isAccepted ? 'cursor-not-allowed opacity-60' : ''}`}
-                            onClick={() => !isAccepted && handlePackageSelect(currentPage, pkg)}
                             data-testid={`card-package-${pkg.id}`}
                           >
                             <CardContent className="p-6">
@@ -716,55 +712,64 @@ export default function PublicSmartFile() {
                                 
                                 {/* Content - Right Side */}
                                 <div className="flex-1 flex flex-col min-w-0">
-                                  <div className="flex items-start gap-3">
-                                    <RadioGroupItem 
-                                      value={pkg.id} 
-                                      id={pkg.id}
-                                      disabled={isAccepted}
-                                      className="mt-1 data-[state=checked]:border-primary data-[state=checked]:text-primary"
-                                    />
-                                    <div className="flex-1">
-                                      {/* Package Title */}
-                                      <h4 className="text-xl font-bold mb-4 break-words" data-testid={`text-package-name-${pkg.id}`}>
-                                        {pkg.name}
-                                      </h4>
-                                      
-                                      {/* Package Description */}
-                                      {pkg.description && (
-                                        <div className="mb-4">
-                                          <p className="font-semibold text-sm mb-2">Includes:</p>
-                                          <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap break-words">
-                                            {pkg.description}
-                                          </p>
-                                        </div>
-                                      )}
-                                      
-                                      {/* Package Features */}
-                                      {pkg.features && pkg.features.length > 0 && (
-                                        <ul className="space-y-2 mb-4">
-                                          {pkg.features.map((feature: string, idx: number) => (
-                                            <li key={idx} className="text-sm flex items-start gap-2">
-                                              <CheckCircle className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
-                                              <span className="flex-1">{feature}</span>
-                                            </li>
-                                          ))}
-                                        </ul>
-                                      )}
-                                      
-                                      {/* Price Tag */}
-                                      <div className="mt-auto pt-4 border-t">
-                                        <div className="text-2xl font-bold text-primary" data-testid={`text-package-price-${pkg.id}`}>
-                                          {formatPrice(pkg.priceCents)}
-                                        </div>
-                                      </div>
+                                  {/* Package Title */}
+                                  <h4 className="text-xl font-bold mb-4 break-words" data-testid={`text-package-name-${pkg.id}`}>
+                                    {pkg.name}
+                                  </h4>
+                                  
+                                  {/* Package Description */}
+                                  {pkg.description && (
+                                    <div className="mb-4">
+                                      <p className="font-semibold text-sm mb-2">Includes:</p>
+                                      <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap break-words">
+                                        {pkg.description}
+                                      </p>
                                     </div>
+                                  )}
+                                  
+                                  {/* Package Features */}
+                                  {pkg.features && pkg.features.length > 0 && (
+                                    <ul className="space-y-2 mb-4">
+                                      {pkg.features.map((feature: string, idx: number) => (
+                                        <li key={idx} className="text-sm flex items-start gap-2">
+                                          <CheckCircle className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
+                                          <span className="flex-1">{feature}</span>
+                                        </li>
+                                      ))}
+                                    </ul>
+                                  )}
+                                  
+                                  {/* Price and Select Button */}
+                                  <div className="mt-auto pt-4 border-t flex items-center justify-between gap-4">
+                                    <div className="text-2xl font-bold text-primary" data-testid={`text-package-price-${pkg.id}`}>
+                                      {formatPrice(pkg.priceCents)}
+                                    </div>
+                                    <Button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        !isAccepted && handlePackageSelect(currentPage, pkg);
+                                      }}
+                                      disabled={isAccepted}
+                                      variant={isSelected ? "default" : "outline"}
+                                      className={isSelected ? "bg-primary text-primary-foreground" : ""}
+                                      data-testid={`button-select-package-${pkg.id}`}
+                                    >
+                                      {isSelected ? (
+                                        <>
+                                          <CheckCircle className="w-4 h-4 mr-2" />
+                                          Selected
+                                        </>
+                                      ) : (
+                                        "Select"
+                                      )}
+                                    </Button>
                                   </div>
                                 </div>
                               </div>
                             </CardContent>
                           </Card>
-                        ))}
-                      </RadioGroup>
+                        );
+                        })}
                     </div>
                   </div>
                 )}
