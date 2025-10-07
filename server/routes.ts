@@ -317,7 +317,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Create admin user (no photographer association)
       const adminUser = await storage.createUser({
         email: normalizedEmail,
-        password: hashedPassword,
+        passwordHash: hashedPassword,
         role: 'ADMIN',
         photographerId: null
       });
