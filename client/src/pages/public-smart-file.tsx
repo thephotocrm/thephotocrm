@@ -805,14 +805,14 @@ export default function PublicSmartFile() {
                             style={{
                               animationDelay: `${addonIdx * 80}ms`
                             }}
-                            onClick={() => !isAccepted && !isSelected && handleAddOnToggle(page, addOn, true)}
+                            onClick={() => !isAccepted && !isSelected && handleAddOnToggle(currentPage, addOn, true)}
                           >
                             <div className="flex items-start gap-4">
                               <Checkbox
                                 id={addOn.id}
                                 checked={isSelected}
                                 onCheckedChange={(checked) => 
-                                  !isAccepted && handleAddOnToggle(page, addOn, checked as boolean)
+                                  !isAccepted && handleAddOnToggle(currentPage, addOn, checked as boolean)
                                 }
                                 disabled={isAccepted}
                                 className="mt-1.5 data-[state=checked]:border-primary data-[state=checked]:bg-primary"
@@ -865,7 +865,7 @@ export default function PublicSmartFile() {
                                         type="button"
                                         variant="outline"
                                         size="sm"
-                                        onClick={() => handleAddOnQuantityChange(page, addOn, -1)}
+                                        onClick={() => handleAddOnQuantityChange(currentPage, addOn, -1)}
                                         disabled={isAccepted || quantity <= 1}
                                         data-testid={`button-decrease-quantity-${addOn.id}`}
                                         className="h-8 w-8 p-0 hover:bg-primary/10 hover:border-primary hover:scale-110 active:scale-95 transition-all duration-200"
@@ -886,7 +886,7 @@ export default function PublicSmartFile() {
                                         type="button"
                                         variant="outline"
                                         size="sm"
-                                        onClick={() => handleAddOnQuantityChange(page, addOn, 1)}
+                                        onClick={() => handleAddOnQuantityChange(currentPage, addOn, 1)}
                                         disabled={isAccepted || quantity >= 10}
                                         data-testid={`button-increase-quantity-${addOn.id}`}
                                         className="h-8 w-8 p-0 hover:bg-primary/10 hover:border-primary hover:scale-110 active:scale-95 transition-all duration-200"
