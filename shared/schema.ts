@@ -62,6 +62,7 @@ export const projectSmartFileStatusEnum = {
   SENT: "SENT",
   VIEWED: "VIEWED",
   ACCEPTED: "ACCEPTED",
+  DEPOSIT_PAID: "DEPOSIT_PAID",
   PAID: "PAID"
 } as const;
 
