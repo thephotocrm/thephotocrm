@@ -488,6 +488,24 @@ export default function PublicSmartFile() {
         </div>
       </header>
 
+      {/* Hero Section - Outside padded container for full width */}
+      {sortedPages.length > 0 && currentPage.pageType === "TEXT" && currentPage.content.hero?.backgroundImage && (
+        <div 
+          className="relative w-full h-[400px] flex items-center justify-center bg-cover bg-center overflow-hidden"
+          style={{ backgroundImage: `url(${currentPage.content.hero.backgroundImage})` }}
+        >
+          <div className="absolute inset-0 bg-black/30" />
+          <div className="relative z-10 text-center text-white px-6 max-w-3xl">
+            {currentPage.content.hero.title && (
+              <h1 className="text-5xl font-bold mb-4">{currentPage.content.hero.title}</h1>
+            )}
+            {currentPage.content.hero.description && (
+              <p className="text-xl">{currentPage.content.hero.description}</p>
+            )}
+          </div>
+        </div>
+      )}
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         <div className="max-w-4xl mx-auto">
           {/* Main Content */}
@@ -505,25 +523,6 @@ export default function PublicSmartFile() {
                 {/* TEXT Page */}
                 {currentPage.pageType === "TEXT" && (
                   <>
-                    {/* Hero Section */}
-                    {currentPage.content.hero?.backgroundImage && (
-                      <div className="mb-6">
-                        <div 
-                          className="relative w-full h-[400px] flex items-center justify-center bg-cover bg-center overflow-hidden"
-                          style={{ backgroundImage: `url(${currentPage.content.hero.backgroundImage})` }}
-                        >
-                          <div className="absolute inset-0 bg-black/30" />
-                          <div className="relative z-10 text-center text-white px-6 max-w-3xl">
-                            {currentPage.content.hero.title && (
-                              <h1 className="text-5xl font-bold mb-4">{currentPage.content.hero.title}</h1>
-                            )}
-                            {currentPage.content.hero.description && (
-                              <p className="text-xl">{currentPage.content.hero.description}</p>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    )}
                     
                     {/* Content - no Card wrapper if there's a hero */}
                     {currentPage.content.hero?.backgroundImage ? (
