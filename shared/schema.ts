@@ -124,6 +124,9 @@ export const users = pgTable("users", {
   role: text("role").notNull(),
   photographerId: varchar("photographer_id").references(() => photographers.id),
   clientId: varchar("client_id"),
+  resetToken: text("reset_token"),
+  resetTokenExpiry: timestamp("reset_token_expiry"),
+  resetTokenUsed: boolean("reset_token_used").default(false),
   createdAt: timestamp("created_at").defaultNow()
 });
 
