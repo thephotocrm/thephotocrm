@@ -149,6 +149,17 @@ export default function PublicSmartFile() {
     refetchOnMount: true, // Refetch when component mounts
   });
 
+  // Clamp currentPageIndex when pages change
+  useEffect(() => {
+    if (data && freshPackages && freshAddOns) {
+      const mergedPages = getMergedPages();
+      const sortedPages = [...mergedPages].sort((a, b) => a.pageOrder - b.pageOrder);
+      if (sortedPages.length > 0 && currentPageIndex >= sortedPages.length) {
+        setCurrentPageIndex(sortedPages.length - 1);
+      }
+    }
+  }, [data, freshPackages, freshAddOns, currentPageIndex]);
+
   // Helper function to merge fresh package and add-on data with page snapshots
   const getMergedPages = () => {
     if (!data || !freshPackages || !freshAddOns) return data?.smartFile.pages || [];
@@ -378,13 +389,6 @@ export default function PublicSmartFile() {
   const mergedPages = getMergedPages();
   const sortedPages = [...mergedPages].sort((a, b) => a.pageOrder - b.pageOrder);
   const isAccepted = data.projectSmartFile.status === 'ACCEPTED';
-
-  // Clamp currentPageIndex when pages change
-  useEffect(() => {
-    if (sortedPages.length > 0 && currentPageIndex >= sortedPages.length) {
-      setCurrentPageIndex(sortedPages.length - 1);
-    }
-  }, [sortedPages.length, currentPageIndex]);
 
   // Get current page for single-page view
   const currentPage = sortedPages[currentPageIndex];
