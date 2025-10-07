@@ -112,11 +112,7 @@ type PackagePageContent = {
 type AddOnPageContent = {
   heading: string;
   description: string;
-  items: {
-    name: string;
-    description: string;
-    priceCents: number;
-  }[];
+  addOnIds: string[];
 };
 
 type PaymentPageContent = {
@@ -1102,6 +1098,13 @@ function AddOnPageEditor({
   const content = page.content as AddOnPageContent;
   const [localContent, setLocalContent] = useState(content);
 
+  const { data: addOns, isLoading } = useQuery({
+    queryKey: ['/api/add-ons'],
+    staleTime: 0,
+    refetchOnWindowFocus: true,
+    refetchOnMount: true
+  });
+
   useEffect(() => {
     setLocalContent(content);
   }, [page.id]);
@@ -1112,29 +1115,20 @@ function AddOnPageEditor({
     }
   };
 
-  const addItem = () => {
-    const items = [...(localContent.items || []), { name: '', description: '', priceCents: 0 }];
-    const newContent = { ...localContent, items };
+  const toggleAddOn = (addOnId: string) => {
+    const addOnIds = localContent.addOnIds || [];
+    const newAddOnIds = addOnIds.includes(addOnId)
+      ? addOnIds.filter(id => id !== addOnId)
+      : [...addOnIds, addOnId];
+    
+    const newContent = { ...localContent, addOnIds: newAddOnIds };
     setLocalContent(newContent);
     onUpdate(newContent);
   };
 
-  const removeItem = (index: number) => {
-    const items = (localContent.items || []).filter((_, i) => i !== index);
-    const newContent = { ...localContent, items };
-    setLocalContent(newContent);
-    onUpdate(newContent);
-  };
-
-  const updateItem = (index: number, field: string, value: any) => {
-    const items = [...(localContent.items || [])];
-    items[index] = { ...items[index], [field]: value };
-    setLocalContent({ ...localContent, items });
-  };
-
-  const saveItem = () => {
-    handleBlur();
-  };
+  const selectedAddOns = addOns?.filter((addon: any) => 
+    (localContent.addOnIds || []).includes(addon.id)
+  ) || [];
 
   return (
     <div className="space-y-4">
@@ -1163,83 +1157,82 @@ function AddOnPageEditor({
       </div>
       <Separator />
       <div>
-        <div className="flex items-center justify-between mb-2">
-          <Label data-testid="label-addon-items">Add-on Items</Label>
-          <Button 
-            onClick={addItem} 
-            size="sm"
-            data-testid="button-add-item"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Add Item
-          </Button>
-        </div>
-        <div className="space-y-4">
-          {(localContent.items || []).map((item, index) => (
-            <Card key={index} data-testid={`card-addon-item-${index}`}>
-              <CardContent className="p-4 space-y-3">
-                <div>
-                  <Label htmlFor={`item-name-${index}`} data-testid={`label-item-name-${index}`}>
-                    Name
-                  </Label>
-                  <Input
-                    id={`item-name-${index}`}
-                    value={item.name}
-                    onChange={(e) => updateItem(index, 'name', e.target.value)}
-                    onBlur={saveItem}
-                    placeholder="Item name"
-                    data-testid={`input-item-name-${index}`}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor={`item-description-${index}`} data-testid={`label-item-description-${index}`}>
-                    Description
-                  </Label>
-                  <Input
-                    id={`item-description-${index}`}
-                    value={item.description}
-                    onChange={(e) => updateItem(index, 'description', e.target.value)}
-                    onBlur={saveItem}
-                    placeholder="Item description"
-                    data-testid={`input-item-description-${index}`}
-                  />
-                </div>
-                <div className="flex items-end gap-2">
-                  <div className="flex-1">
-                    <Label htmlFor={`item-price-${index}`} data-testid={`label-item-price-${index}`}>
-                      Price (USD)
-                    </Label>
-                    <Input
-                      id={`item-price-${index}`}
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      value={(item.priceCents / 100).toFixed(2)}
-                      onChange={(e) => updateItem(index, 'priceCents', Math.round(parseFloat(e.target.value || '0') * 100))}
-                      onBlur={saveItem}
-                      placeholder="0.00"
-                      data-testid={`input-item-price-${index}`}
-                    />
-                  </div>
-                  <Button
-                    variant="destructive"
-                    size="icon"
-                    onClick={() => removeItem(index)}
-                    data-testid={`button-remove-item-${index}`}
-                  >
-                    <Trash className="w-4 h-4" />
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-          {(!localContent.items || localContent.items.length === 0) && (
-            <p className="text-sm text-muted-foreground text-center py-4" data-testid="text-no-items">
-              No add-on items yet. Click "Add Item" to create one.
-            </p>
-          )}
-        </div>
+        <Label data-testid="label-addons">Add-ons</Label>
+        {isLoading ? (
+          <div className="flex items-center justify-center py-8">
+            <Loader2 className="w-6 h-6 animate-spin" data-testid="loading-addons" />
+          </div>
+        ) : (
+          <div className="space-y-3 mt-2">
+            {addOns && addOns.length > 0 ? (
+              addOns.map((addon: any) => (
+                <Card 
+                  key={addon.id}
+                  className={cn(
+                    "cursor-pointer transition-all overflow-hidden",
+                    (localContent.addOnIds || []).includes(addon.id) 
+                      ? "border-2 border-primary bg-primary/5" 
+                      : "border hover:border-primary/50"
+                  )}
+                  onClick={() => toggleAddOn(addon.id)}
+                  data-testid={`card-addon-${addon.id}`}
+                >
+                  <CardContent className="p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-medium mb-1">{addon.name}</h4>
+                        {addon.description && (
+                          <p className="text-sm text-muted-foreground line-clamp-2">
+                            {addon.description}
+                          </p>
+                        )}
+                        <p className="text-sm font-semibold text-primary mt-2">
+                          ${(addon.priceCents / 100).toFixed(2)}
+                        </p>
+                      </div>
+                      <div className={cn(
+                        "w-6 h-6 rounded border-2 flex items-center justify-center flex-shrink-0 mt-1",
+                        (localContent.addOnIds || []).includes(addon.id) ? "border-primary bg-primary" : "border-muted"
+                      )}>
+                        {(localContent.addOnIds || []).includes(addon.id) && (
+                          <CheckCircle className="w-4 h-4 text-white" />
+                        )}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            ) : (
+              <p className="text-sm text-muted-foreground" data-testid="text-no-addons">
+                No add-ons available. Create add-ons first.
+              </p>
+            )}
+          </div>
+        )}
       </div>
+      {selectedAddOns.length > 0 && (
+        <>
+          <Separator />
+          <div>
+            <Label data-testid="label-selected-addons">Selected Add-ons ({selectedAddOns.length})</Label>
+            <div className="space-y-2 mt-2">
+              {selectedAddOns.map((addon: any) => (
+                <div 
+                  key={addon.id} 
+                  className="flex items-center justify-between p-3 bg-primary/10 border border-primary/20 rounded-lg"
+                  data-testid={`selected-addon-${addon.id}`}
+                >
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-primary" />
+                    <span className="font-medium">{addon.name}</span>
+                  </div>
+                  <span className="text-sm font-semibold text-primary">${(addon.priceCents / 100).toFixed(2)}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }
@@ -1445,12 +1438,21 @@ export default function SmartFileBuilder() {
     refetchOnReconnect: true
   });
 
-  // Refetch packages when preview opens to ensure fresh data
+  const { data: addOns, refetch: refetchAddOns } = useQuery<any[]>({
+    queryKey: ['/api/add-ons'],
+    staleTime: 0,
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
+    refetchOnReconnect: true
+  });
+
+  // Refetch packages and add-ons when preview opens to ensure fresh data
   useEffect(() => {
     if (isPreviewOpen) {
       refetchPackages();
+      refetchAddOns();
     }
-  }, [isPreviewOpen, refetchPackages]);
+  }, [isPreviewOpen, refetchPackages, refetchAddOns]);
 
   useEffect(() => {
     if (smartFile?.pages) {
@@ -2159,29 +2161,33 @@ export default function SmartFileBuilder() {
                         {currentPage.content.description && (
                           <p className="text-muted-foreground mb-4 leading-relaxed">{currentPage.content.description}</p>
                         )}
-                        {currentPage.content.items && currentPage.content.items.length > 0 ? (
+                        {currentPage.content.addOnIds && currentPage.content.addOnIds.length > 0 && addOns ? (
                           <div className="space-y-3">
-                            {currentPage.content.items.map((item: any, idx: number) => (
-                              <div key={idx} className="group flex items-start justify-between gap-4 p-4 border-2 border-border rounded-xl bg-card hover:border-primary/40 hover:shadow-md transition-all duration-300">
-                                <div className="flex items-start gap-3 flex-1">
-                                  <div className="mt-1">
-                                    <Checkbox 
-                                      disabled 
-                                      className="pointer-events-none opacity-50" 
-                                    />
+                            {addOns && currentPage.content.addOnIds.map((addOnId: string) => {
+                              const addon = addOns.find((a: any) => a.id === addOnId);
+                              if (!addon) return null;
+                              return (
+                                <div key={addon.id} className="group flex items-start justify-between gap-4 p-4 border-2 border-border rounded-xl bg-card hover:border-primary/40 hover:shadow-md transition-all duration-300">
+                                  <div className="flex items-start gap-3 flex-1">
+                                    <div className="mt-1">
+                                      <Checkbox 
+                                        disabled 
+                                        className="pointer-events-none opacity-50" 
+                                      />
+                                    </div>
+                                    <div className="flex-1">
+                                      <p className="font-bold text-base group-hover:text-primary transition-colors">{addon.name}</p>
+                                      {addon.description && (
+                                        <p className="text-sm text-muted-foreground mt-1.5 leading-relaxed">{addon.description}</p>
+                                      )}
+                                    </div>
                                   </div>
-                                  <div className="flex-1">
-                                    <p className="font-bold text-base group-hover:text-primary transition-colors">{item.name}</p>
-                                    {item.description && (
-                                      <p className="text-sm text-muted-foreground mt-1.5 leading-relaxed">{item.description}</p>
-                                    )}
+                                  <div className="px-3 py-1.5 rounded-lg bg-muted font-semibold text-sm flex-shrink-0">
+                                    ${(addon.priceCents / 100).toFixed(2)}
                                   </div>
                                 </div>
-                                <div className="px-3 py-1.5 rounded-lg bg-muted font-semibold text-sm flex-shrink-0">
-                                  ${(item.priceCents / 100).toFixed(2)}
-                                </div>
-                              </div>
-                            ))}
+                              );
+                            })}
                             <p className="text-xs text-muted-foreground flex items-center gap-1 mt-2 pl-1">
                               <Sparkles className="w-3.5 h-3.5 text-primary" />
                               Clients can select add-ons with quantity controls
@@ -2191,10 +2197,10 @@ export default function SmartFileBuilder() {
                           <div className="p-6 border-2 border-dashed border-border rounded-xl text-center">
                             <Plus className="w-12 h-12 text-muted-foreground/50 mx-auto mb-3" />
                             <p className="text-sm text-muted-foreground font-medium">
-                              No add-ons configured yet
+                              No add-ons selected yet
                             </p>
                             <p className="text-xs text-muted-foreground mt-1">
-                              Add items to show them to clients
+                              Select add-ons to show them to clients
                             </p>
                           </div>
                         )}
