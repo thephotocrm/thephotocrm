@@ -1516,6 +1516,13 @@ export default function SmartFileBuilder() {
       return apiRequest('POST', `/api/smart-files/${id}/pages/reorder`, { pageOrders });
     },
     onSuccess: () => {
+      // Wait a bit before invalidating to ensure backend has committed
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ["/api/smart-files", id] });
+      }, 100);
+    },
+    onError: () => {
+      // On error, refetch immediately to revert to correct state
       queryClient.invalidateQueries({ queryKey: ["/api/smart-files", id] });
     }
   });
