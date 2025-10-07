@@ -919,139 +919,107 @@ export default function PublicSmartFile() {
 
                 {/* PAYMENT Page */}
                 {currentPage.pageType === "PAYMENT" && (
-                  <div className="max-w-2xl mx-auto px-4 md:px-0 space-y-6">
-                    {/* Payment Terms */}
-                    {currentPage.content.terms && (
-                      <Card className="border-2">
-                        <CardContent className="p-6">
-                          <h4 className="font-medium mb-2">Payment Terms</h4>
-                          <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                            {currentPage.content.terms}
-                          </p>
-                        </CardContent>
-                      </Card>
-                    )}
-
-                    {/* Cart Summary & Payment Options */}
+                  <div className="max-w-lg mx-auto px-4 md:px-0">
                     <Card className="border-2">
-                      <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                          <DollarSign className="w-5 h-5" />
-                          Order Summary
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="space-y-4">
-                        {/* Selected Package */}
-                        {selectedPackage && (
-                          <div>
-                            <div className="flex items-start justify-between mb-2">
-                              <div className="flex-1">
-                                <p className="text-sm font-medium">Selected Package</p>
-                                <p className="text-xs text-muted-foreground mt-0.5" data-testid="text-selected-package">
-                                  {selectedPackage.name}
-                                </p>
-                              </div>
-                              <p className="font-medium" data-testid="text-selected-package-price">
-                                {formatPrice(selectedPackage.priceCents)}
-                              </p>
-                            </div>
-                            <Separator />
-                          </div>
-                        )}
-
-                        {/* Selected Add-ons */}
-                        {selectedAddOns.size > 0 && (
-                          <div>
-                            <p className="text-sm font-medium mb-2">Selected Add-ons</p>
-                            <div className="space-y-2">
-                              {Array.from(selectedAddOns.values()).map((addOn) => (
-                                <div key={`${addOn.pageId}-${addOn.addOnId}`} className="flex items-start justify-between text-sm">
-                                  <div className="flex-1">
-                                    <p className="text-xs text-muted-foreground">
-                                      {addOn.name} × {addOn.quantity}
-                                    </p>
-                                  </div>
-                                  <p className="text-sm">
-                                    {formatPrice(addOn.priceCents * addOn.quantity)}
-                                  </p>
-                                </div>
-                              ))}
-                            </div>
-                            <Separator className="mt-2" />
-                          </div>
-                        )}
-
-                        {/* Pricing Summary */}
-                        <div className="space-y-2 pt-2">
-                          <div className="flex justify-between">
-                            <span className="text-sm">Subtotal</span>
-                            <span className="font-medium" data-testid="text-subtotal">
-                              {formatPrice(subtotal)}
-                            </span>
-                          </div>
-                          
-                          {depositAmount > 0 && (
-                            <div className="flex justify-between text-sm text-muted-foreground">
-                              <span>
-                                Deposit ({data.smartFile.defaultDepositPercent ?? data.projectSmartFile.depositPercent ?? 50}%)
-                              </span>
-                              <span data-testid="text-deposit">
-                                {formatPrice(depositAmount)}
-                              </span>
-                            </div>
+                      <CardContent className="p-8 space-y-6">
+                        {/* Amount Due Section */}
+                        <div className="text-center space-y-2 pb-6 border-b">
+                          <p className="text-sm text-muted-foreground">Amount due</p>
+                          <h2 className="text-5xl font-bold" data-testid="text-total">
+                            {formatPrice(total)}
+                          </h2>
+                          {depositAmount > 0 && depositAmount < total && (
+                            <p className="text-sm text-muted-foreground">
+                              Deposit: {formatPrice(depositAmount)} ({data.smartFile.defaultDepositPercent ?? data.projectSmartFile.depositPercent ?? 50}%)
+                            </p>
                           )}
-
-                          <Separator />
-                          
-                          <div className="flex justify-between text-lg font-semibold">
-                            <span>Total</span>
-                            <span data-testid="text-total">
-                              {formatPrice(total)}
-                            </span>
-                          </div>
                         </div>
 
-                        {/* Accept Button */}
-                        {!isAccepted && (
-                          <Button
-                            className="w-full"
-                            size="lg"
-                            onClick={handleAccept}
-                            disabled={!selectedPackage || acceptMutation.isPending}
-                            data-testid="button-accept-proceed"
-                          >
-                            {acceptMutation.isPending ? (
-                              <>
-                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                Processing...
-                              </>
-                            ) : (
-                              <>
-                                <CheckCircle className="w-4 h-4 mr-2" />
-                                Accept Proposal
-                              </>
-                            )}
-                          </Button>
+                        {/* Order Summary (Collapsible) */}
+                        {(selectedPackage || selectedAddOns.size > 0) && (
+                          <div className="space-y-3 pb-6 border-b">
+                            <details className="group">
+                              <summary className="flex items-center justify-between cursor-pointer text-sm font-medium">
+                                <span>View Order Details</span>
+                                <svg className="w-4 h-4 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                </svg>
+                              </summary>
+                              <div className="mt-4 space-y-3 text-sm">
+                                {selectedPackage && (
+                                  <div className="flex justify-between">
+                                    <span className="text-muted-foreground" data-testid="text-selected-package">{selectedPackage.name}</span>
+                                    <span className="font-medium" data-testid="text-selected-package-price">{formatPrice(selectedPackage.priceCents)}</span>
+                                  </div>
+                                )}
+                                {Array.from(selectedAddOns.values()).map((addOn) => (
+                                  <div key={`${addOn.pageId}-${addOn.addOnId}`} className="flex justify-between">
+                                    <span className="text-muted-foreground">{addOn.name} × {addOn.quantity}</span>
+                                    <span className="font-medium">{formatPrice(addOn.priceCents * addOn.quantity)}</span>
+                                  </div>
+                                ))}
+                                <div className="pt-2 border-t flex justify-between font-medium">
+                                  <span>Subtotal</span>
+                                  <span data-testid="text-subtotal">{formatPrice(subtotal)}</span>
+                                </div>
+                              </div>
+                            </details>
+                          </div>
                         )}
 
-                        {/* Payment Options - Shown after acceptance */}
-                        {isAccepted && (
-                          <div className="space-y-3">
-                            <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-                              <div className="flex items-center gap-2 text-green-800">
+                        {/* Payment Terms */}
+                        {currentPage.content.terms && (
+                          <div className="space-y-2 pb-6 border-b">
+                            <h4 className="text-sm font-medium">Payment Terms</h4>
+                            <p className="text-xs text-muted-foreground whitespace-pre-wrap">
+                              {currentPage.content.terms}
+                            </p>
+                          </div>
+                        )}
+
+                        {/* Accept & Payment Section */}
+                        {!isAccepted ? (
+                          <div className="space-y-4">
+                            <Button
+                              className="w-full h-12 text-lg"
+                              size="lg"
+                              onClick={handleAccept}
+                              disabled={!selectedPackage || acceptMutation.isPending}
+                              data-testid="button-accept-proceed"
+                            >
+                              {acceptMutation.isPending ? (
+                                <>
+                                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                  Processing...
+                                </>
+                              ) : (
+                                <>
+                                  <CheckCircle className="w-4 h-4 mr-2" />
+                                  Accept & Continue to Payment
+                                </>
+                              )}
+                            </Button>
+                            <p className="text-xs text-center text-muted-foreground">
+                              You'll be able to pay after accepting this proposal
+                            </p>
+                          </div>
+                        ) : (
+                          <div className="space-y-4">
+                            {/* Success Message */}
+                            <div className="p-4 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 rounded-lg">
+                              <div className="flex items-center gap-2 text-green-800 dark:text-green-400">
                                 <CheckCircle className="w-5 h-5" />
                                 <p className="font-medium">Proposal Accepted</p>
                               </div>
-                              <p className="text-sm text-green-700 mt-1">
-                                Your selections have been saved. Choose a payment option below.
-                              </p>
                             </div>
 
+                            {/* Payment Options */}
                             {currentPage.content.acceptOnlinePayments && (
-                              <div className="space-y-2">
+                              <div className="space-y-3">
+                                <p className="text-sm font-medium">Choose payment method</p>
                                 {data.projectSmartFile.status === 'DEPOSIT_PAID' ? (
                                   <Button
-                                    className="w-full"
+                                    className="w-full h-12 text-base"
                                     size="lg"
                                     onClick={() => createCheckoutMutation.mutate('BALANCE')}
                                     disabled={createCheckoutMutation.isPending}
@@ -1064,8 +1032,8 @@ export default function PublicSmartFile() {
                                       </>
                                     ) : (
                                       <>
-                                        <CreditCard className="w-4 h-4 mr-2" />
-                                        Pay Remaining Balance - {formatPrice(data.projectSmartFile.balanceDueCents || 0)}
+                                        <CreditCard className="w-5 h-5 mr-2" />
+                                        Pay Balance {formatPrice(data.projectSmartFile.balanceDueCents || 0)}
                                       </>
                                     )}
                                   </Button>
@@ -1073,7 +1041,7 @@ export default function PublicSmartFile() {
                                   <>
                                     {depositAmount > 0 && depositAmount < total && (
                                       <Button
-                                        className="w-full"
+                                        className="w-full h-12 text-base"
                                         size="lg"
                                         onClick={() => createCheckoutMutation.mutate('DEPOSIT')}
                                         disabled={createCheckoutMutation.isPending}
@@ -1086,14 +1054,14 @@ export default function PublicSmartFile() {
                                           </>
                                         ) : (
                                           <>
-                                            <CreditCard className="w-4 h-4 mr-2" />
-                                            Pay Deposit - {formatPrice(depositAmount)}
+                                            <CreditCard className="w-5 h-5 mr-2" />
+                                            Pay Deposit {formatPrice(depositAmount)}
                                           </>
                                         )}
                                       </Button>
                                     )}
                                     <Button
-                                      className="w-full"
+                                      className="w-full h-12 text-base"
                                       size="lg"
                                       variant={depositAmount > 0 && depositAmount < total ? "outline" : "default"}
                                       onClick={() => createCheckoutMutation.mutate('FULL')}
@@ -1107,13 +1075,16 @@ export default function PublicSmartFile() {
                                         </>
                                       ) : (
                                         <>
-                                          <CreditCard className="w-4 h-4 mr-2" />
-                                          Pay Full Amount - {formatPrice(total)}
+                                          <CreditCard className="w-5 h-5 mr-2" />
+                                          Pay Full Amount {formatPrice(total)}
                                         </>
                                       )}
                                     </Button>
                                   </>
                                 )}
+                                <p className="text-xs text-center text-muted-foreground">
+                                  Secure payment powered by Stripe
+                                </p>
                               </div>
                             )}
                           </div>
