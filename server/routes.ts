@@ -28,6 +28,7 @@ import { processAutomations } from "./services/automation";
 import path from "path";
 import bcrypt from "bcrypt";
 import { nanoid } from "nanoid";
+import crypto from "crypto";
 
 
 /**
@@ -489,6 +490,153 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/auth/logout", (req, res) => {
     res.clearCookie('token');
     res.json({ message: "Logged out successfully" });
+  });
+
+  // Password Reset Flow
+  app.post("/api/auth/request-password-reset", async (req, res) => {
+    try {
+      const { email } = req.body;
+      
+      if (!email) {
+        return res.status(400).json({ message: "Email is required" });
+      }
+
+      const normalizedEmail = email.toLowerCase().trim();
+      const user = await storage.getUserByEmail(normalizedEmail);
+      
+      // Always return success even if user not found (security best practice)
+      if (!user) {
+        return res.json({ message: "If an account exists with this email, a password reset link will be sent." });
+      }
+
+      // Generate secure reset token
+      const resetToken = crypto.randomBytes(32).toString('hex');
+      const resetTokenExpiry = new Date(Date.now() + 60 * 60 * 1000); // 1 hour from now
+
+      // Save token to user
+      await storage.updateUser(user.id, {
+        resetToken,
+        resetTokenExpiry,
+        resetTokenUsed: false
+      });
+
+      // Create reset link
+      const resetLink = `${process.env.REPLIT_DOMAINS?.split(',')[0] || 'http://localhost:5000'}/reset-password?token=${resetToken}`;
+
+      // Send email with reset link
+      const emailResult = await sendEmail({
+        to: user.email,
+        from: process.env.SENDGRID_FROM_EMAIL || "noreply@example.com",
+        subject: "Password Reset Request",
+        html: `
+          <h2>Password Reset Request</h2>
+          <p>You requested a password reset for your Lazy Photog account.</p>
+          <p>Click the link below to reset your password (valid for 1 hour):</p>
+          <p><a href="${resetLink}">${resetLink}</a></p>
+          <p>If you didn't request this, please ignore this email.</p>
+        `,
+        text: `
+          Password Reset Request
+          
+          You requested a password reset for your Lazy Photog account.
+          
+          Click the link below to reset your password (valid for 1 hour):
+          ${resetLink}
+          
+          If you didn't request this, please ignore this email.
+        `
+      });
+
+      if (!emailResult.success) {
+        console.error("Failed to send reset email:", emailResult.error);
+        return res.status(500).json({ message: "Failed to send reset email" });
+      }
+
+      res.json({ message: "If an account exists with this email, a password reset link will be sent." });
+    } catch (error) {
+      console.error("Password reset request error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.post("/api/auth/validate-reset-token", async (req, res) => {
+    try {
+      const { token } = req.body;
+      
+      if (!token) {
+        return res.status(400).json({ valid: false, message: "Token is required" });
+      }
+
+      const user = await db.select().from(users).where(eq(users.resetToken, token)).limit(1);
+      
+      if (!user || user.length === 0) {
+        return res.json({ valid: false, message: "Invalid reset token" });
+      }
+
+      const userData = user[0];
+
+      // Check if token is expired
+      if (!userData.resetTokenExpiry || new Date() > userData.resetTokenExpiry) {
+        return res.json({ valid: false, message: "Reset token has expired" });
+      }
+
+      // Check if token has been used
+      if (userData.resetTokenUsed) {
+        return res.json({ valid: false, message: "Reset token has already been used" });
+      }
+
+      res.json({ valid: true, email: userData.email });
+    } catch (error) {
+      console.error("Token validation error:", error);
+      res.status(500).json({ valid: false, message: "Internal server error" });
+    }
+  });
+
+  app.post("/api/auth/reset-password", async (req, res) => {
+    try {
+      const { token, newPassword } = req.body;
+      
+      if (!token || !newPassword) {
+        return res.status(400).json({ message: "Token and new password are required" });
+      }
+
+      if (newPassword.length < 6) {
+        return res.status(400).json({ message: "Password must be at least 6 characters long" });
+      }
+
+      const user = await db.select().from(users).where(eq(users.resetToken, token)).limit(1);
+      
+      if (!user || user.length === 0) {
+        return res.status(400).json({ message: "Invalid reset token" });
+      }
+
+      const userData = user[0];
+
+      // Validate token
+      if (!userData.resetTokenExpiry || new Date() > userData.resetTokenExpiry) {
+        return res.status(400).json({ message: "Reset token has expired" });
+      }
+
+      if (userData.resetTokenUsed) {
+        return res.status(400).json({ message: "Reset token has already been used" });
+      }
+
+      // Hash new password
+      const newPasswordHash = await hashPassword(newPassword);
+
+      // Update user with new password and mark token as used
+      await storage.updateUser(userData.id, {
+        passwordHash: newPasswordHash,
+        resetToken: null,
+        resetTokenExpiry: null,
+        resetTokenUsed: true
+      });
+
+      res.json({ message: "Password reset successfully" });
+    } catch (error) {
+      console.error("Password reset error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
   });
 
   // Demo Request Route (public)
