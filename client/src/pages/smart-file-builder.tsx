@@ -42,7 +42,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
-import { AVAILABLE_VARIABLES } from "@shared/contractVariables";
+import { AVAILABLE_VARIABLES, parseContractVariables } from "@shared/contractVariables";
 
 // Page type configurations
 const PAGE_TYPES = {
@@ -1487,6 +1487,41 @@ function ContractPageEditor({
           Use curly braces around variables like: <code className="bg-muted px-1 rounded">{'{{client_name}}'}</code> or <code className="bg-muted px-1 rounded">{'{{selected_packages}}'}</code>
         </p>
       </div>
+
+      {/* Contract Preview */}
+      {localContent.contractTemplate && (
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <Eye className="w-4 h-4 text-muted-foreground" />
+            <h4 className="text-sm font-semibold">Preview with Sample Data</h4>
+          </div>
+          <Card>
+            <CardContent className="p-4">
+              <div className="prose prose-sm max-w-none bg-muted/30 p-4 rounded-lg border">
+                <div className="whitespace-pre-wrap text-sm leading-relaxed">
+                  {parseContractVariables(
+                    localContent.contractTemplate,
+                    {
+                      client_name: 'Sarah Johnson',
+                      photographer_name: 'Your Business Name',
+                      project_date: 'June 15, 2025',
+                      project_type: 'WEDDING',
+                      selected_packages: 'Premium Package ($3,500)',
+                      selected_addons: 'Second Shooter (x1), Engagement Session (x1)',
+                      total_amount: '$4,800',
+                      deposit_amount: '$2,400',
+                      deposit_percent: '50%',
+                    }
+                  )}
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground mt-3">
+                This preview shows how your contract will appear to clients with their actual data filled in.
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       <Separator />
 
