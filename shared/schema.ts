@@ -684,7 +684,7 @@ export const smartFiles = pgTable("smart_files", {
 export const smartFilePages = pgTable("smart_file_pages", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   smartFileId: varchar("smart_file_id").notNull().references(() => smartFiles.id, { onDelete: 'cascade' }),
-  pageType: text("page_type").notNull(), // TEXT, PACKAGE, ADDON, PAYMENT
+  pageType: text("page_type").notNull(), // TEXT, PACKAGE, ADDON, CONTRACT, PAYMENT
   pageOrder: integer("page_order").notNull(),
   displayTitle: text("display_title").notNull(),
   content: json("content").notNull(), // Flexible JSON structure per page type
@@ -732,6 +732,12 @@ export const projectSmartFiles = pgTable("project_smart_files", {
   paymentType: text("payment_type"), // DEPOSIT, FULL, BALANCE
   amountPaidCents: integer("amount_paid_cents").default(0), // Track cumulative payments
   balanceDueCents: integer("balance_due_cents").default(0), // Remaining balance
+  
+  // Contract signatures
+  clientSignatureUrl: text("client_signature_url"),
+  photographerSignatureUrl: text("photographer_signature_url"),
+  clientSignedAt: timestamp("client_signed_at"),
+  photographerSignedAt: timestamp("photographer_signed_at"),
   
   // Access token for client view
   token: varchar("token").default(sql`gen_random_uuid()`),
