@@ -3106,6 +3106,157 @@ ${photographer?.businessName || 'Your Photography Team'}`;
     }
   });
 
+  // POST /api/public/smart-files/:token/create-payment-intent - Create Stripe PaymentIntent for embedded payments (PUBLIC ROUTE)
+  app.post("/api/public/smart-files/:token/create-payment-intent", async (req, res) => {
+    try {
+      const { token } = req.params;
+      const { paymentType = 'DEPOSIT', tipCents = 0 } = req.body; // DEPOSIT, FULL, BALANCE
+
+      // Get Smart File data
+      const projectSmartFile = await storage.getProjectSmartFileByToken(token);
+      
+      if (!projectSmartFile) {
+        return res.status(404).json({ message: "Smart File not found" });
+      }
+
+      // Verify Smart File has been accepted
+      if (projectSmartFile.status !== 'ACCEPTED' && projectSmartFile.status !== 'DEPOSIT_PAID') {
+        return res.status(400).json({ message: "Smart File must be accepted before payment" });
+      }
+
+      // Get related data
+      const [smartFile, project] = await Promise.all([
+        storage.getSmartFile(projectSmartFile.smartFileId),
+        storage.getProject(projectSmartFile.projectId)
+      ]);
+
+      if (!smartFile || !project) {
+        return res.status(404).json({ message: "Smart File or project not found" });
+      }
+
+      // Get photographer and verify Stripe Connect account
+      const photographer = await storage.getPhotographer(project.photographerId);
+      
+      if (!photographer) {
+        return res.status(404).json({ message: "Photographer not found" });
+      }
+
+      if (!photographer.stripeConnectAccountId) {
+        return res.status(400).json({ 
+          message: "Photographer has not connected their Stripe account" 
+        });
+      }
+
+      // Determine payment amount based on type
+      let paymentAmountCents = 0;
+      
+      if (paymentType === 'FULL') {
+        // Pay full amount + tip
+        paymentAmountCents = (projectSmartFile.totalCents || 0) + tipCents;
+      } else if (paymentType === 'BALANCE') {
+        // Pay remaining balance + tip
+        paymentAmountCents = (projectSmartFile.balanceDueCents || 0) + tipCents;
+      } else {
+        // Pay deposit + tip (default)
+        paymentAmountCents = (projectSmartFile.depositCents || 0) + tipCents;
+      }
+      
+      if (paymentAmountCents <= 0) {
+        return res.status(400).json({ 
+          message: "Invalid payment amount." 
+        });
+      }
+
+      // Calculate platform fee (5% as per system design)
+      const platformFeePercent = photographer.platformFeePercent || 500; // stored as basis points (500 = 5%)
+      const platformFeeCents = calculatePlatformFee(paymentAmountCents, platformFeePercent / 100);
+
+      // Create Stripe PaymentIntent
+      const clientSecret = await createConnectPaymentIntent({
+        amountCents: paymentAmountCents,
+        connectedAccountId: photographer.stripeConnectAccountId,
+        platformFeeCents,
+        metadata: {
+          projectSmartFileId: projectSmartFile.id,
+          projectId: project.id,
+          smartFileId: smartFile.id,
+          photographerId: photographer.id,
+          paymentType,
+          tipCents: tipCents.toString(),
+          token
+        }
+      });
+
+      res.json({ 
+        clientSecret,
+        amount: paymentAmountCents,
+        publishableKey: process.env.VITE_STRIPE_PUBLIC_KEY 
+      });
+    } catch (error) {
+      console.error("Create payment intent error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // POST /api/public/smart-files/:token/confirm-payment - Confirm payment and update Smart File (PUBLIC ROUTE)
+  app.post("/api/public/smart-files/:token/confirm-payment", async (req, res) => {
+    try {
+      const { token } = req.params;
+      const { paymentIntentId, paymentType, tipCents = 0 } = req.body;
+
+      // Get Smart File data
+      const projectSmartFile = await storage.getProjectSmartFileByToken(token);
+      
+      if (!projectSmartFile) {
+        return res.status(404).json({ message: "Smart File not found" });
+      }
+
+      // Verify payment with Stripe
+      const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+      
+      if (paymentIntent.status !== 'succeeded') {
+        return res.status(400).json({ message: "Payment has not succeeded" });
+      }
+
+      const amountPaidCents = paymentIntent.amount;
+      const currentAmountPaid = projectSmartFile.amountPaidCents || 0;
+      const newAmountPaid = currentAmountPaid + amountPaidCents;
+
+      // Determine new status and balance
+      let newStatus = projectSmartFile.status;
+      let newBalanceDue = projectSmartFile.balanceDueCents || 0;
+
+      if (paymentType === 'DEPOSIT') {
+        newStatus = 'DEPOSIT_PAID';
+        newBalanceDue = (projectSmartFile.totalCents || 0) - amountPaidCents;
+      } else if (paymentType === 'FULL' || paymentType === 'BALANCE') {
+        newStatus = 'PAID';
+        newBalanceDue = 0;
+      }
+
+      // Update Smart File with payment info including tip
+      const updated = await storage.updateProjectSmartFile(projectSmartFile.id, {
+        status: newStatus,
+        stripePaymentIntentId: paymentIntentId,
+        paymentType,
+        amountPaidCents: newAmountPaid,
+        balanceDueCents: newBalanceDue,
+        tipCents,
+        paidAt: new Date()
+      });
+
+      res.json({ 
+        success: true, 
+        status: newStatus,
+        amountPaid: newAmountPaid,
+        balanceDue: newBalanceDue
+      });
+    } catch (error) {
+      console.error("Confirm payment error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   // Proposals (route aliases for Estimates to enable terminology migration)
   app.get("/api/proposals", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
