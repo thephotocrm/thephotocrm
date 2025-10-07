@@ -59,14 +59,15 @@ function StripePaymentForm({ token, paymentType, baseAmount, tipCents, onSuccess
         onError(error.message || "Payment failed");
         setIsProcessing(false);
       } else if (paymentIntent && paymentIntent.status === 'succeeded') {
-        await apiRequest(`/api/public/smart-files/${token}/confirm-payment`, {
-          method: 'POST',
-          body: JSON.stringify({
+        await apiRequest(
+          'POST',
+          `/api/public/smart-files/${token}/confirm-payment`,
+          {
             paymentIntentId: paymentIntent.id,
             paymentType,
             tipCents,
-          }),
-        });
+          }
+        );
         onSuccess();
       }
     } catch (err) {
@@ -232,11 +233,12 @@ export function EmbeddedPaymentForm(props: PaymentFormProps & { publishableKey: 
     queryKey: ['/api/public/smart-files', props.token, 'payment-intent', props.paymentType, tipCents],
     enabled: tipCents !== null,
     queryFn: async () => {
-      const response = await apiRequest(`/api/public/smart-files/${props.token}/create-payment-intent`, {
-        method: 'POST',
-        body: JSON.stringify({ paymentType: props.paymentType, tipCents }),
-      });
-      return response;
+      const response = await apiRequest(
+        'POST',
+        `/api/public/smart-files/${props.token}/create-payment-intent`,
+        { paymentType: props.paymentType, tipCents }
+      );
+      return response.json();
     },
   });
 
