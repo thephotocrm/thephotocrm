@@ -166,29 +166,53 @@ export default function PublicSmartFile() {
     
     return data.smartFile.pages.map(page => {
       // Handle PACKAGE pages
-      if (page.pageType === 'PACKAGE' && page.content.packages) {
-        // Merge fresh package data with snapshot packages
-        const mergedPackages = page.content.packages.map((snapshotPkg: any) => {
-          const freshPkg = freshPackages.find(fp => fp.id === snapshotPkg.id);
-          
-          if (!freshPkg) return snapshotPkg; // Package might have been deleted
-          
-          // Use fresh data for name, description, and image, but keep snapshot price
-          return {
-            ...snapshotPkg,
-            name: freshPkg.name,
-            description: freshPkg.description,
-            imageUrl: freshPkg.imageUrl
-          };
-        });
+      if (page.pageType === 'PACKAGE') {
+        // Check if we have snapshot packages or just packageIds
+        if (page.content.packages) {
+          // Merge fresh package data with snapshot packages
+          const mergedPackages = page.content.packages.map((snapshotPkg: any) => {
+            const freshPkg = freshPackages.find(fp => fp.id === snapshotPkg.id);
+            
+            if (!freshPkg) return snapshotPkg; // Package might have been deleted
+            
+            // Use fresh data for name, description, and image, but keep snapshot price
+            return {
+              ...snapshotPkg,
+              name: freshPkg.name,
+              description: freshPkg.description,
+              imageUrl: freshPkg.imageUrl
+            };
+          });
 
-        return {
-          ...page,
-          content: {
-            ...page.content,
-            packages: mergedPackages
-          }
-        };
+          return {
+            ...page,
+            content: {
+              ...page.content,
+              packages: mergedPackages
+            }
+          };
+        } else if (page.content.packageIds) {
+          // Convert packageIds to full package objects from fresh data
+          const packages = page.content.packageIds
+            .map((id: string) => freshPackages.find((pkg: any) => pkg.id === id))
+            .filter(Boolean) // Remove any undefined values if package was deleted
+            .map((pkg: any) => ({
+              id: pkg.id,
+              name: pkg.name,
+              description: pkg.description,
+              imageUrl: pkg.imageUrl,
+              priceCents: pkg.basePriceCents,
+              features: [] // No features in base package data
+            }));
+
+          return {
+            ...page,
+            content: {
+              ...page.content,
+              packages
+            }
+          };
+        }
       }
 
       // Handle ADDON pages - convert addOnIds to full add-on objects
