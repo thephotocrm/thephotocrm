@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
 import { CheckCircle, AlertCircle, Loader2 } from "lucide-react";
 
 export default function ResetPassword() {
@@ -37,7 +36,7 @@ export default function ResetPassword() {
 
   const validateToken = async (resetToken: string) => {
     try {
-      const result = await apiRequest("/api/auth/validate-reset-token", {
+      const result = await fetch("/api/auth/validate-reset-token", {
         method: "POST",
         body: JSON.stringify({ token: resetToken }),
         headers: {
@@ -86,7 +85,7 @@ export default function ResetPassword() {
     setIsLoading(true);
 
     try {
-      const result = await apiRequest("/api/auth/reset-password", {
+      const result = await fetch("/api/auth/reset-password", {
         method: "POST",
         body: JSON.stringify({ token, newPassword }),
         headers: {

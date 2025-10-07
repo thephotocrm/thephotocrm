@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
 import { ArrowLeft, Mail } from "lucide-react";
 
 export default function ForgotPassword() {
@@ -28,7 +27,7 @@ export default function ForgotPassword() {
     setIsLoading(true);
 
     try {
-      const result = await apiRequest("/api/auth/request-password-reset", {
+      const result = await fetch("/api/auth/request-password-reset", {
         method: "POST",
         body: JSON.stringify({ email }),
         headers: {
