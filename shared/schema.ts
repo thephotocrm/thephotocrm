@@ -724,7 +724,9 @@ export const projectSmartFiles = pgTable("project_smart_files", {
   // Payment tracking
   stripePaymentIntentId: text("stripe_payment_intent_id"),
   stripeChargeId: text("stripe_charge_id"),
-  paymentType: text("payment_type"), // DEPOSIT, FULL
+  paymentType: text("payment_type"), // DEPOSIT, FULL, BALANCE
+  amountPaidCents: integer("amount_paid_cents").default(0), // Track cumulative payments
+  balanceDueCents: integer("balance_due_cents").default(0), // Remaining balance
   
   // Access token for client view
   token: varchar("token").default(sql`gen_random_uuid()`),

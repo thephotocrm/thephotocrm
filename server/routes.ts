@@ -2508,6 +2508,64 @@ ${photographer?.businessName || 'Your Photography Team'}`;
     }
   });
 
+  // POST /api/projects/:projectId/smart-files/:projectSmartFileId/send-sms - Send Smart File link via SMS
+  app.post("/api/projects/:projectId/smart-files/:projectSmartFileId/send-sms", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      const { projectId, projectSmartFileId } = req.params;
+
+      // Verify project ownership
+      const project = await storage.getProject(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+      if (project.photographerId !== req.user!.photographerId!) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // Get ProjectSmartFile and verify it belongs to this project
+      const projectSmartFiles = await storage.getProjectSmartFilesByProject(projectId);
+      const projectSmartFile = projectSmartFiles.find(psf => psf.id === projectSmartFileId);
+      
+      if (!projectSmartFile) {
+        return res.status(404).json({ message: "Smart File not found for this project" });
+      }
+
+      // Get client and photographer info
+      const [client, photographer] = await Promise.all([
+        storage.getClient(project.clientId),
+        storage.getPhotographer(project.photographerId)
+      ]);
+
+      if (!client || !client.phone) {
+        return res.status(400).json({ message: "Client phone number not available" });
+      }
+
+      if (!photographer) {
+        return res.status(404).json({ message: "Photographer not found" });
+      }
+
+      // Build Smart File URL
+      const smartFileUrl = `${process.env.VITE_APP_URL || 'https://thephotocrm.com'}/smart-file/${projectSmartFile.token}`;
+      
+      // Send SMS
+      const smsBody = `Hi ${client.firstName}! ${photographer.businessName} sent you a proposal. View it here: ${smartFileUrl}`;
+      
+      const result = await sendSms({
+        to: client.phone,
+        body: smsBody
+      });
+
+      if (!result.success) {
+        return res.status(500).json({ message: result.error || "Failed to send SMS" });
+      }
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Send smart file SMS error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   // GET /api/public/smart-files/:token - Get Smart File by token for client viewing (PUBLIC ROUTE)
   app.get("/api/public/smart-files/:token", async (req, res) => {
     try {
@@ -2701,6 +2759,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
   app.post("/api/public/smart-files/:token/create-checkout", async (req, res) => {
     try {
       const { token } = req.params;
+      const { paymentType = 'DEPOSIT' } = req.body; // DEPOSIT, FULL, BALANCE
 
       // Get Smart File data
       const projectSmartFile = await storage.getProjectSmartFileByToken(token);
@@ -2710,7 +2769,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       }
 
       // Verify Smart File has been accepted
-      if (projectSmartFile.status !== 'ACCEPTED') {
+      if (projectSmartFile.status !== 'ACCEPTED' && projectSmartFile.status !== 'DEPOSIT_PAID') {
         return res.status(400).json({ message: "Smart File must be accepted before checkout" });
       }
 
@@ -2737,17 +2796,29 @@ ${photographer?.businessName || 'Your Photography Team'}`;
         });
       }
 
-      // Validate deposit amount
-      const depositAmount = projectSmartFile.depositCents || 0;
-      if (depositAmount <= 0) {
+      // Determine payment amount based on type
+      let paymentAmountCents = 0;
+      
+      if (paymentType === 'FULL') {
+        // Pay full amount
+        paymentAmountCents = projectSmartFile.totalCents || 0;
+      } else if (paymentType === 'BALANCE') {
+        // Pay remaining balance
+        paymentAmountCents = projectSmartFile.balanceDueCents || 0;
+      } else {
+        // Pay deposit (default)
+        paymentAmountCents = projectSmartFile.depositCents || 0;
+      }
+      
+      if (paymentAmountCents <= 0) {
         return res.status(400).json({ 
-          message: "Invalid deposit amount. Smart File must have a deposit configured." 
+          message: "Invalid payment amount." 
         });
       }
 
       // Calculate platform fee (5% as per system design)
       const platformFeePercent = 5;
-      const platformFeeCents = calculatePlatformFee(depositAmount, platformFeePercent);
+      const platformFeeCents = calculatePlatformFee(paymentAmountCents, platformFeePercent);
 
       // Build success and cancel URLs
       const baseUrl = process.env.VITE_APP_URL || `${req.protocol}://${req.get('host')}`;
@@ -2756,17 +2827,18 @@ ${photographer?.businessName || 'Your Photography Team'}`;
 
       // Create Stripe checkout session
       const checkoutUrl = await createConnectCheckoutSession({
-        amountCents: depositAmount,
+        amountCents: paymentAmountCents,
         connectedAccountId: photographer.stripeConnectAccountId,
         platformFeeCents,
         successUrl,
         cancelUrl,
-        productName: `${project.projectType} - ${smartFile.name}`,
+        productName: `${project.projectType} - ${smartFile.name}${paymentType === 'BALANCE' ? ' (Balance)' : paymentType === 'DEPOSIT' ? ' (Deposit)' : ''}`,
         metadata: {
           projectSmartFileId: projectSmartFile.id,
           projectId: project.id,
           smartFileId: smartFile.id,
           photographerId: photographer.id,
+          paymentType,
           token
         }
       });
@@ -3866,13 +3938,36 @@ ${photographer?.businessName || 'Your Photography Team'}`;
           
           // Handle Smart File payments
           if (metadata?.projectSmartFileId && metadata?.photographerId) {
-            await storage.updateProjectSmartFile(metadata.projectSmartFileId, {
-              status: 'PAID',
-              paidAt: new Date()
-            });
-
             const totalAmountCents = session.amount_total || 0;
             const paymentIntentId = session.payment_intent as string;
+            const paymentType = metadata.paymentType || 'DEPOSIT';
+            
+            // Get current project smart file to calculate new balances
+            const currentProjectSmartFile = await storage.getProjectSmartFileByToken(metadata.token || '');
+            if (!currentProjectSmartFile) {
+              console.error('Project smart file not found:', metadata.projectSmartFileId);
+              break;
+            }
+            
+            const currentAmountPaid = currentProjectSmartFile.amountPaidCents || 0;
+            const newAmountPaid = currentAmountPaid + totalAmountCents;
+            const totalOwed = currentProjectSmartFile.totalCents || 0;
+            const newBalanceDue = Math.max(0, totalOwed - newAmountPaid);
+            
+            // Determine new status based on balance
+            let newStatus = 'PAID';
+            if (newBalanceDue > 0) {
+              newStatus = 'DEPOSIT_PAID';
+            }
+            
+            await storage.updateProjectSmartFile(metadata.projectSmartFileId, {
+              status: newStatus,
+              paidAt: newBalanceDue === 0 ? new Date() : currentProjectSmartFile.paidAt,
+              paymentType,
+              amountPaidCents: newAmountPaid,
+              balanceDueCents: newBalanceDue,
+              stripePaymentIntentId: paymentIntentId
+            });
 
             try {
               // Get payment intent details
