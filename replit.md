@@ -1,135 +1,68 @@
 # Lazy Photog - Wedding Photographer CRM
 
-## Overview
-Lazy Photog is a comprehensive multi-tenant CRM system designed for wedding photographers. It provides a complete business management solution, streamlining workflows from client inquiry to project completion. Key capabilities include client pipeline management, automated communication, estimate creation, payment processing, and scheduling. The project aims to deliver a production-ready MVP that empowers photographers with efficient tools.
+### Overview
+Lazy Photog is a comprehensive multi-tenant CRM system for wedding photographers, designed to streamline workflows from client inquiry to project completion. It offers client pipeline management, automated communication, estimate creation, payment processing, and scheduling. The project aims to deliver a production-ready MVP that enhances efficiency for photographers.
 
-## User Preferences
+### User Preferences
 Preferred communication style: Simple, everyday language.
 
-## System Architecture
+### System Architecture
 
-### Multi-Tenant Architecture
-The system employs a multi-tenant architecture with strict data isolation per photographer, achieved through a hierarchical data model where photographer IDs link all associated data (clients, stages, templates, etc.).
+**Multi-Tenant Architecture:** Employs a multi-tenant architecture with strict data isolation per photographer, using a hierarchical data model.
 
-### Static Email Marketing Platform
-A professional-grade drip campaign system with 24 pre-written wedding email templates. It features research-backed 3-phase timing (Day 0, High-interest, Relationship building, Long-term nurturing), Day-0 scheduling, and support for Wedding, Portrait, and Commercial project types. Emails utilize 5 distinct visual themes (Editorial Minimalist, Bold Color Block, Scrapbook Textured, Luxury Magazine, Modern Dark Tech) to prevent visual fatigue. Subject lines are attention-grabbing with photographer business names as subheadlines. Semantic keyword detection triggers theme-specific visual modules for enhanced content. It integrates with the NURTURE automation system for sequential email delivery and offers full campaign management.
+**Static Email Marketing Platform:** A professional-grade drip campaign system with 24 pre-written wedding email templates, featuring research-backed 3-phase timing, Day-0 scheduling, and support for Wedding, Portrait, and Commercial project types. It includes 5 distinct visual themes, attention-grabbing subject lines, and semantic keyword detection for visual modules. Integrates with the NURTURE automation system.
 
-### Comprehensive Automations UI
-The Automations UI features a professional, modern design with enhanced visual hierarchy, including bold titles and a semantic, color-coded badge system for stages, channels (Email, SMS), and types. It uses a timeline-style display for steps with numbered dots and connecting lines, showing delay, channel, action, and preview. Cards are collapsible by default, expanding to reveal full details, with smooth interactions and consistent styling for a polished look. It also includes a Wedding Date Conditional Logic System for date-based automation filtering, enhancing UI and database schema for event date tracking and conditional execution.
+**Comprehensive Automations UI:** Features a professional, modern design with enhanced visual hierarchy, including bold titles, semantic color-coded badges, and a timeline-style display for steps. Cards are collapsible, with smooth interactions. Includes a Wedding Date Conditional Logic System for date-based automation filtering.
 
-### Automation System
-An event-driven automation engine using `node-cron` for scheduled tasks. It supports stage-based triggers, configurable time delays, dynamic content rendering with variable substitution (e.g., `{scheduling_link}`), and multi-channel delivery (email and SMS). A unified interface allows creation of communication-only, pipeline-only, or combined automations, including questionnaire assignments. It integrates with NURTURE for AI-powered drip campaigns and features an internal URL shortening system for booking calendar links, optimized for SMS and with click tracking.
+**Automation System:** An event-driven automation engine using `node-cron` for scheduled tasks. Supports stage-based triggers, configurable time delays, dynamic content rendering with variable substitution, and multi-channel delivery (email and SMS). It allows for communication-only, pipeline-only, or combined automations, including questionnaire assignments. Integrates with NURTURE and features an internal URL shortening system with click tracking.
 
-### Two-Way SMS Communication System
-A comprehensive SMS platform leveraging the SimpleTexting API for sending and receiving messages. It includes a two-way relay system that forwards inbound client SMS messages to photographers with full context (client name, project type). All SMS messages are logged with status, timestamps, and metadata. A phone number-based client lookup system ensures accurate message routing. Webhooks handle incoming SMS messages, and it requires `SIMPLETEXTING_API_TOKEN` and `SIMPLETEXTING_PHONE_NUMBER` environment variables.
+**Two-Way SMS Communication System:** A comprehensive SMS platform using the SimpleTexting API for sending and receiving messages. Features a two-way relay system forwarding inbound client SMS to photographers with full context. All SMS messages are logged, and a phone number-based client lookup ensures accurate routing. Webhooks handle incoming messages.
 
-### Payment Processing & Stripe Connect
-**Stripe Connect is required** for all photographers to accept client payments. The system uses Stripe Connect Express accounts with:
-- **Mandatory Setup**: Photographers cannot send proposals until Stripe Connect is configured
-- **Platform Fee Model**: Automatic 5% platform fee on all transactions (configurable via `platformFeePercent`)
-- **Direct Deposits**: 95% of payments go directly to photographer's Stripe account
-- **Payment Flow**: Client payments trigger automatic platform fee deduction and earnings tracking
-- **Payout Options**: Standard (2-day, free) or Instant (1% fee, arrives in minutes)
-- **Onboarding**: Stripe-hosted onboarding handles compliance, identity verification, and bank account setup
-- **Validation**: Backend validates Stripe Connect status before allowing proposal sends
-- **Earnings Dashboard**: Real-time balance tracking, payout requests, and transaction history
-- **Webhook Integration**: Automatic sync of account status, payouts, and payment events
+**Payment Processing & Stripe Connect:** Requires Stripe Connect Express accounts for all photographers to accept payments. Implements a platform fee model (5% configurable), direct deposits to photographers, and supports standard or instant payouts. Stripe-hosted onboarding handles compliance, and the system validates Stripe Connect status before allowing proposal sends. Includes an earnings dashboard and webhook integration for payment events.
 
-### Smart Files System
-A comprehensive drag-and-drop invoice/proposal builder similar to Honeybook, allowing photographers to create reusable, customizable client proposals:
+**Smart Files System:** A comprehensive drag-and-drop invoice/proposal builder allowing photographers to create reusable, customizable client proposals.
+*   **Core Features:** Template system, drag-and-drop builder, 4 page types (Text, Package Selection, Add-ons, Payment), project integration, public responsive client view, status tracking (DRAFT → SENT → VIEWED → ACCEPTED → PAID), integrated Stripe Connect checkout with platform fee, flexible payment options (online/offline, zero deposit), and selection persistence.
+*   **Technical Implementation:** Multi-tenant isolation, token-based public access, page snapshots, global packages and add-ons management with data merging for public views, defensive null handling, duplicate submission prevention, and cache invalidation.
 
-**Core Features:**
-- **Template System**: Create reusable Smart File templates with multiple page types
-- **Drag-and-Drop Builder**: Visual page builder with real-time reordering and editing
-- **4 Page Types**:
-  - **Text Pages**: Custom headings and content for introductions, terms, etc.
-  - **Package Selection**: Display photographer packages with pricing for client selection
-  - **Add-ons**: Additional services/products clients can add with quantity controls
-  - **Payment**: Configure deposit percentage, payment terms, and online payment options
-- **Project Integration**: Attach Smart Files to projects and send to clients with unique token URLs
-- **Client Experience**: Public, responsive Smart File view with package/add-on selection and real-time price calculator
-- **Status Tracking**: DRAFT → SENT → VIEWED → ACCEPTED → PAID workflow with automatic status updates
-- **Payment Processing**: Integrated Stripe Connect checkout with 5% platform fee and zero-deposit support
-- **Email Notifications**: 
-  - Client receives Smart File link when sent (Gmail API → SendGrid fallback)
-  - Photographer notified when client accepts with selection details
-- **Flexible Payment Options**: Supports online payments, offline payments, zero deposits, and configurable deposit percentages
-- **Selection Persistence**: Client selections saved to database with package/add-on details and total amounts
-- **Success Flow**: Conditional checkout - only triggers Stripe when online payments enabled and deposit > 0
+**Global Packages & Add-ons System:** Centralized management of packages and add-ons from dedicated pages. Stored in separate tables with photographer ownership. Smart Files integrate by referencing IDs, allowing global updates. Public views fetch fresh global data merged with page snapshots. Provides full CRUD API endpoints.
 
-**Technical Implementation:**
-- Multi-tenant isolation via photographerId
-- Token-based public access (no authentication required for clients)
-- Page snapshots stored when attached to projects (preserves content even if template changes)
-- Defensive null handling for edge cases (0% deposits, missing data)
-- Duplicate submission prevention
-- Cache invalidation for real-time updates
+**Google Integration:** Provides comprehensive Google Workspace integration via a single OAuth flow. Includes Google Calendar for dedicated business calendars with automatic creation and Google Meet links. Gmail API is used for direct email sending, conversation history tracking, and logging of all automated and manual communications. Inbound client replies are captured via webhooks and associated with clients. OAuth credentials persist and refresh automatically.
 
-### Google Integration
-Provides comprehensive Google Workspace integration through a single OAuth flow:
-- **Calendar**: Dedicated business calendar ("📸 [Business Name] - Client Bookings") with automatic creation, timezone support, and Google Meet links for virtual appointments.
-- **Gmail**: Direct email sending from photographer's personal email address with full conversation history tracking. All automated emails, drip campaigns, and manual communications are sent via Gmail API and logged to client history. Inbound client replies are captured via webhooks and automatically associated with the correct client.
-OAuth credentials (access token, refresh token) persist indefinitely and refresh automatically when expired.
+**Frontend Architecture:** Built with React and Vite, using Wouter for routing, Shadcn/ui (Radix UI-based) for components, and Tailwind CSS for styling. TanStack Query manages server state, and React Hook Form with Zod validation handles forms.
 
-### Frontend Architecture
-Built with React and Vite for development and optimized builds. It uses Wouter for routing, Shadcn/ui (based on Radix UI) for components, and Tailwind CSS for styling with custom design tokens. TanStack Query manages server state and caching, while React Hook Form with Zod validation handles type-safe forms.
+**Backend Architecture:** Node.js with Express.js. Drizzle ORM for PostgreSQL. JWT tokens in httpOnly cookies for authentication, with bcrypt for password hashing. RESTful API with role-based access control.
 
-### Backend Architecture
-Utilizes Node.js with Express.js. Drizzle ORM manages PostgreSQL database operations. Authentication is handled via JWT tokens stored in httpOnly cookies, with bcrypt for password hashing. The API is RESTful with role-based access control middleware.
+**Database Design:** Centered around a photographer-tenant model, with key entities: Photographers, Users (PHOTOGRAPHER, CLIENT, ADMIN roles), Clients (with stage-based pipeline), Stages, Templates, Automations, Estimates, and Packages.
 
-### Database Design
-The schema is centered around a photographer-tenant model, featuring key entities such as Photographers, Users (with PHOTOGRAPHER, CLIENT, ADMIN roles), Clients (with stage-based pipeline), customizable Stages, Templates (email/SMS), Automations, Estimates, and Packages.
+**Authentication & Authorization:** A three-tier role system (PHOTOGRAPHER, CLIENT, ADMIN) with stateless JWT authentication and role-based middleware for access control.
 
-### Authentication & Authorization
-A three-tier role system (PHOTOGRAPHER, CLIENT, ADMIN) is implemented. JWT tokens provide stateless authentication, and role-based middleware enforces access controls at the route level.
+**Super Admin Dashboard System:** Comprehensive interface for platform management.
+*   **Features:** Photographer management (view, search), account impersonation with short-lived tokens and impersonation banner, activity logging (`adminActivityLog`), JWT enhancement for admin/photographer identities, route protection via `requireAdmin` middleware, and dynamic sidebar menu based on user role and route.
 
-### Super Admin Dashboard System
-A comprehensive administrative interface for platform management and customer support:
-- **Photographer Management**: View all registered photographers with client counts, creation dates, and account details through a searchable table interface
-- **Account Impersonation**: Admins can securely impersonate any photographer account to provide support or troubleshoot issues. Impersonation sessions use short-lived tokens (2 hours vs 7 days for regular sessions). Double-impersonation is prevented via guard (returns 409 Conflict)
-- **Impersonation Banner**: A prominent amber banner displays when admin is viewing as a photographer, with one-click exit functionality
-- **Activity Logging**: All admin actions (impersonation start/stop, dashboard views) are logged to `adminActivityLog` table for compliance and audit trail
-- **JWT Enhancement**: Impersonation tokens include both admin and photographer identities via `originalRole` field, preserving admin context for seamless exit from impersonation
-- **Route Protection**: Admin-only endpoints protected via `requireAdmin` middleware that checks both `role` and `originalRole` to ensure proper access control during impersonation
-- **Role-Based Navigation**: Dynamic sidebar menu system that switches based on user role and route:
-  - Admin menu (shown on /admin/* routes for ADMIN role when not impersonating): Overview, Photographers, Platform Analytics, Billing & Payouts, Activity Log, Support Cases
-  - Photographer menu (shown for all other cases): Dashboard, Clients, Projects, Proposals, Packages, Widget Generator, Questionnaires, Scheduling, Templates, Automations, Drip Campaigns, Reports, Earnings
-  - Menu automatically switches when entering/exiting impersonation with proper state synchronization
+**Marketing Landing Page & Subscription System:** Conversion-optimized landing page with founder pricing campaign and subscription management.
+*   **Features:** Routing for authenticated/unauthenticated users, founder pricing ($4.95/month, limited to 100 spots) with "spots remaining" counter, scarcity messaging, regular pricing ($9.95/month), 14-day free trial via Stripe, demo booking system with SendGrid notifications, and structured page content.
+*   **Technical Aspects:** Subscription enforcement middleware, error-safe registration (Stripe first), accessible billing/subscription management endpoints, and custom domain deployment.
 
-### Marketing Landing Page & Subscription System
-A conversion-optimized landing page with founder pricing campaign and subscription management:
-- **Landing Page Routing**: Non-authenticated users see the marketing landing page at "/", while logged-in users are automatically redirected to their dashboard
-- **Founder Pricing Campaign**: Limited-time founder pricing ($4.95/month) for the first 100 photographers, with real-time "spots remaining" counter powered by `/api/stats/photographer-count` endpoint
-- **Scarcity Messaging**: Prominent founder pricing banner, countdown of available spots, and multiple strategic CTAs throughout the page
-- **Pricing Tiers**: Founder's Price ($4.95/month, limited to 100 spots) and Regular Price ($9.95/month, locked after founder spots are claimed)
-- **Free Trial**: 14-day free trial period included with all subscriptions via Stripe
-- **Demo Booking System**: Interactive dialog form for demo requests with fields for first name, email, preferred date, and time. Submissions trigger email notifications via SendGrid to austinpacholek2014@gmail.com. Mobile sticky CTA includes "Book Demo" button that opens the dialog.
-- **Page Structure**: Hero section with founder banner, problem/pain points (3 cards), features showcase (6 features), benefits list (6 checkmarks), pricing comparison, final CTA section, and footer
-- **Subscription Enforcement**: Middleware enforces active subscription on all photographer routes except billing/subscription management endpoints
-- **Error-Safe Registration**: Stripe subscription created first, database records only created if Stripe succeeds (prevents orphaned accounts)
-- **Billing Access**: Subscription and billing portal endpoints remain accessible even when subscription is inactive, allowing users to reactivate or manage billing
-- **Domain**: Deployed at thephotocrm.com with custom domain configuration
+### External Dependencies
 
-## External Dependencies
+**Communication Services:**
+*   **Gmail API:** Direct email sending and conversation tracking.
+*   **SimpleTexting:** SMS messaging and two-way client communication.
 
-### Communication Services
-- **Gmail API**: Email delivery directly from photographer's personal email address for maximum personalization. All automated emails, drip campaigns, and manual communications use Gmail integration with complete conversation tracking.
-- **SimpleTexting**: SMS messaging for automated texts and two-way client communication.
+**Payment Processing:**
+*   **Stripe:** Payment infrastructure for deposits and full payments.
 
-### Payment Processing
-- **Stripe**: Complete payment infrastructure for deposits and full payments.
+**Database Infrastructure:**
+*   **Neon Database:** PostgreSQL hosting.
+*   **Drizzle Kit:** Database migration and schema management.
 
-### Database Infrastructure
-- **Neon Database**: PostgreSQL hosting with serverless scaling.
-- **Drizzle Kit**: Database migration and schema management.
+**Development & Deployment:**
+*   **Replit:** Development environment and deployment.
+*   **Vite:** Frontend build tool.
+*   **TypeScript:** Type safety.
 
-### Development & Deployment
-- **Replit**: Development environment and deployment.
-- **Vite**: Frontend build tool.
-- **TypeScript**: Type safety across the stack.
-
-### UI & Design System
-- **Radix UI**: Unstyled, accessible component primitives.
-- **Tailwind CSS**: Utility-first CSS framework.
-- **Lucide React**: Icon library.
-- **Class Variance Authority**: Type-safe component variant management.
+**UI & Design System:**
+*   **Radix UI:** Unstyled, accessible component primitives.
+*   **Tailwind CSS:** Utility-first CSS framework.
+*   **Lucide React:** Icon library.
+*   **Class Variance Authority:** Type-safe component variant management.
