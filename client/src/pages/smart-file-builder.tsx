@@ -32,7 +32,8 @@ import {
   CheckCircle,
   Camera,
   Shield,
-  CreditCard
+  CreditCard,
+  FileSignature
 } from "lucide-react";
 import { Reorder, useDragControls } from "framer-motion";
 import type { SmartFileWithPages, SmartFilePage, InsertSmartFilePage } from "@shared/schema";
@@ -41,6 +42,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
+import { AVAILABLE_VARIABLES } from "@shared/contractVariables";
 
 // Page type configurations
 const PAGE_TYPES = {
@@ -58,6 +60,11 @@ const PAGE_TYPES = {
     icon: Plus,
     label: "Add-ons",
     color: "bg-green-500"
+  },
+  CONTRACT: {
+    icon: FileSignature,
+    label: "Contract",
+    color: "bg-indigo-500"
   },
   PAYMENT: {
     icon: DollarSign,
@@ -121,6 +128,14 @@ type PaymentPageContent = {
   depositPercent: number;
   paymentTerms: string;
   acceptOnlinePayments: boolean;
+};
+
+type ContractPageContent = {
+  heading: string;
+  description: string;
+  contractTemplate: string;
+  requireClientSignature: boolean;
+  requirePhotographerSignature: boolean;
 };
 
 // Block types for text pages
@@ -1332,6 +1347,187 @@ function PaymentPageEditor({
   );
 }
 
+// Contract Page Editor Component
+function ContractPageEditor({ 
+  page, 
+  onUpdate 
+}: { 
+  page: SmartFilePage; 
+  onUpdate: (content: ContractPageContent) => void;
+}) {
+  const content = page.content as ContractPageContent;
+  const [localContent, setLocalContent] = useState(content);
+  const [showVariables, setShowVariables] = useState(false);
+
+  useEffect(() => {
+    setLocalContent(content);
+  }, [page.id]);
+
+  const handleBlur = () => {
+    if (JSON.stringify(localContent) !== JSON.stringify(content)) {
+      onUpdate(localContent);
+    }
+  };
+
+  const insertVariable = (variable: string) => {
+    const textarea = document.getElementById('contract-template') as HTMLTextAreaElement;
+    if (textarea) {
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const text = localContent.contractTemplate || '';
+      const before = text.substring(0, start);
+      const after = text.substring(end);
+      const newText = before + variable + ' ' + after;
+      
+      const newContent = { ...localContent, contractTemplate: newText };
+      setLocalContent(newContent);
+      onUpdate(newContent);
+      
+      // Set cursor position after inserted variable
+      setTimeout(() => {
+        textarea.focus();
+        textarea.selectionStart = textarea.selectionEnd = start + variable.length + 1;
+      }, 0);
+    }
+    setShowVariables(false);
+  };
+
+  // Group variables by category
+  const groupedVariables = AVAILABLE_VARIABLES.reduce((acc, variable) => {
+    if (!acc[variable.category]) {
+      acc[variable.category] = [];
+    }
+    acc[variable.category].push(variable);
+    return acc;
+  }, {} as Record<string, typeof AVAILABLE_VARIABLES>);
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <Label htmlFor="contract-heading" data-testid="label-contract-heading">Heading</Label>
+        <Input
+          id="contract-heading"
+          value={localContent.heading || ''}
+          onChange={(e) => setLocalContent({ ...localContent, heading: e.target.value })}
+          onBlur={handleBlur}
+          placeholder="e.g., Service Agreement"
+          data-testid="input-contract-heading"
+        />
+      </div>
+      
+      <div>
+        <Label htmlFor="contract-description" data-testid="label-contract-description">Description</Label>
+        <Textarea
+          id="contract-description"
+          value={localContent.description || ''}
+          onChange={(e) => setLocalContent({ ...localContent, description: e.target.value })}
+          onBlur={handleBlur}
+          placeholder="Brief description of this contract"
+          rows={2}
+          data-testid="textarea-contract-description"
+        />
+      </div>
+
+      <div>
+        <div className="flex items-center justify-between mb-2">
+          <Label htmlFor="contract-template">Contract Template</Label>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setShowVariables(!showVariables)}
+            data-testid="button-toggle-variables"
+          >
+            <Sparkles className="w-4 h-4 mr-2" />
+            Insert Variable
+          </Button>
+        </div>
+        
+        {showVariables && (
+          <Card className="mb-3">
+            <CardContent className="p-3">
+              <ScrollArea className="h-64">
+                {Object.entries(groupedVariables).map(([category, variables]) => (
+                  <div key={category} className="mb-4">
+                    <h4 className="text-sm font-semibold mb-2 text-muted-foreground">{category}</h4>
+                    <div className="grid grid-cols-2 gap-2">
+                      {variables.map((variable) => (
+                        <Button
+                          key={variable.key}
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => insertVariable(variable.key)}
+                          className="justify-start text-xs h-auto py-2"
+                          data-testid={`button-insert-${variable.key}`}
+                        >
+                          <code className="text-primary mr-2">{variable.key}</code>
+                          <span className="text-muted-foreground text-xs truncate">{variable.label}</span>
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </ScrollArea>
+            </CardContent>
+          </Card>
+        )}
+
+        <Textarea
+          id="contract-template"
+          value={localContent.contractTemplate || ''}
+          onChange={(e) => setLocalContent({ ...localContent, contractTemplate: e.target.value })}
+          onBlur={handleBlur}
+          placeholder="Enter your contract template here. Use {{variables}} to insert dynamic content like {{client_name}}, {{selected_packages}}, etc."
+          rows={15}
+          className="font-mono text-sm"
+          data-testid="textarea-contract-template"
+        />
+        <p className="text-xs text-muted-foreground mt-2">
+          Use curly braces around variables like: <code className="bg-muted px-1 rounded">{'{{client_name}}'}</code> or <code className="bg-muted px-1 rounded">{'{{selected_packages}}'}</code>
+        </p>
+      </div>
+
+      <Separator />
+
+      <div className="space-y-3">
+        <h4 className="text-sm font-semibold">Signature Requirements</h4>
+        <div className="flex items-center space-x-2">
+          <Switch
+            id="require-client-signature"
+            checked={localContent.requireClientSignature ?? true}
+            onCheckedChange={(checked) => {
+              const newContent = { ...localContent, requireClientSignature: checked };
+              setLocalContent(newContent);
+              onUpdate(newContent);
+            }}
+            data-testid="switch-require-client-signature"
+          />
+          <Label htmlFor="require-client-signature">
+            Require client signature
+          </Label>
+        </div>
+        
+        <div className="flex items-center space-x-2">
+          <Switch
+            id="require-photographer-signature"
+            checked={localContent.requirePhotographerSignature ?? true}
+            onCheckedChange={(checked) => {
+              const newContent = { ...localContent, requirePhotographerSignature: checked };
+              setLocalContent(newContent);
+              onUpdate(newContent);
+            }}
+            data-testid="switch-require-photographer-signature"
+          />
+          <Label htmlFor="require-photographer-signature">
+            Require photographer signature
+          </Label>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // Page Card Component for the draggable list
 function PageCard({ 
   page, 
@@ -1750,6 +1946,12 @@ export default function SmartFileBuilder() {
                   )}
                   {selectedPage.pageType === 'ADDON' && (
                     <AddOnPageEditor 
+                      page={selectedPage} 
+                      onUpdate={(content) => handleUpdatePage(selectedPage.id, content)}
+                    />
+                  )}
+                  {selectedPage.pageType === 'CONTRACT' && (
+                    <ContractPageEditor 
                       page={selectedPage} 
                       onUpdate={(content) => handleUpdatePage(selectedPage.id, content)}
                     />
