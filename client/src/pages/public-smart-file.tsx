@@ -23,6 +23,7 @@ import {
   Package as PackageIcon
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { EmbeddedPaymentForm } from "@/components/embedded-payment-form";
 
 type ImageContent = {
   url: string;
@@ -98,6 +99,7 @@ export default function PublicSmartFile() {
   const [selectedPackage, setSelectedPackage] = useState<SelectedPackage | null>(null);
   const [selectedAddOns, setSelectedAddOns] = useState<Map<string, SelectedAddOn>>(new Map());
   const [selectionsRehydrated, setSelectionsRehydrated] = useState(false);
+  const [selectedPaymentType, setSelectedPaymentType] = useState<'DEPOSIT' | 'FULL' | 'BALANCE' | null>(null);
 
   const { data, isLoading, error } = useQuery<SmartFileData>({
     queryKey: [`/api/public/smart-files/${params?.token}`],
@@ -1016,75 +1018,72 @@ export default function PublicSmartFile() {
                             {/* Payment Options */}
                             {currentPage.content.acceptOnlinePayments && (
                               <div className="space-y-3">
-                                <p className="text-sm font-medium">Choose payment method</p>
-                                {data.projectSmartFile.status === 'DEPOSIT_PAID' ? (
-                                  <Button
-                                    className="w-full h-12 text-base"
-                                    size="lg"
-                                    onClick={() => createCheckoutMutation.mutate('BALANCE')}
-                                    disabled={createCheckoutMutation.isPending}
-                                    data-testid="button-pay-balance"
-                                  >
-                                    {createCheckoutMutation.isPending ? (
-                                      <>
-                                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                        Processing...
-                                      </>
-                                    ) : (
-                                      <>
-                                        <CreditCard className="w-5 h-5 mr-2" />
-                                        Pay Balance {formatPrice(data.projectSmartFile.balanceDueCents || 0)}
-                                      </>
-                                    )}
-                                  </Button>
-                                ) : (
+                                {!selectedPaymentType ? (
                                   <>
-                                    {depositAmount > 0 && depositAmount < total && (
+                                    <p className="text-sm font-medium">Choose payment method</p>
+                                    {data.projectSmartFile.status === 'DEPOSIT_PAID' ? (
                                       <Button
                                         className="w-full h-12 text-base"
                                         size="lg"
-                                        onClick={() => createCheckoutMutation.mutate('DEPOSIT')}
-                                        disabled={createCheckoutMutation.isPending}
-                                        data-testid="button-pay-deposit"
+                                        onClick={() => setSelectedPaymentType('BALANCE')}
+                                        data-testid="button-select-balance"
                                       >
-                                        {createCheckoutMutation.isPending ? (
-                                          <>
-                                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                            Processing...
-                                          </>
-                                        ) : (
-                                          <>
+                                        <CreditCard className="w-5 h-5 mr-2" />
+                                        Pay Balance {formatPrice(data.projectSmartFile.balanceDueCents || 0)}
+                                      </Button>
+                                    ) : (
+                                      <>
+                                        {depositAmount > 0 && depositAmount < total && (
+                                          <Button
+                                            className="w-full h-12 text-base"
+                                            size="lg"
+                                            onClick={() => setSelectedPaymentType('DEPOSIT')}
+                                            data-testid="button-select-deposit"
+                                          >
                                             <CreditCard className="w-5 h-5 mr-2" />
                                             Pay Deposit {formatPrice(depositAmount)}
-                                          </>
+                                          </Button>
                                         )}
-                                      </Button>
-                                    )}
-                                    <Button
-                                      className="w-full h-12 text-base"
-                                      size="lg"
-                                      variant={depositAmount > 0 && depositAmount < total ? "outline" : "default"}
-                                      onClick={() => createCheckoutMutation.mutate('FULL')}
-                                      disabled={createCheckoutMutation.isPending}
-                                      data-testid="button-pay-full"
-                                    >
-                                      {createCheckoutMutation.isPending ? (
-                                        <>
-                                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                          Processing...
-                                        </>
-                                      ) : (
-                                        <>
+                                        <Button
+                                          className="w-full h-12 text-base"
+                                          size="lg"
+                                          variant={depositAmount > 0 && depositAmount < total ? "outline" : "default"}
+                                          onClick={() => setSelectedPaymentType('FULL')}
+                                          data-testid="button-select-full"
+                                        >
                                           <CreditCard className="w-5 h-5 mr-2" />
                                           Pay Full Amount {formatPrice(total)}
-                                        </>
-                                      )}
-                                    </Button>
+                                        </Button>
+                                      </>
+                                    )}
                                   </>
+                                ) : (
+                                  <EmbeddedPaymentForm
+                                    token={params?.token || ''}
+                                    paymentType={selectedPaymentType}
+                                    baseAmount={
+                                      selectedPaymentType === 'DEPOSIT' ? depositAmount :
+                                      selectedPaymentType === 'BALANCE' ? (data.projectSmartFile.balanceDueCents || 0) :
+                                      total
+                                    }
+                                    publishableKey={import.meta.env.VITE_STRIPE_PUBLIC_KEY || ''}
+                                    onSuccess={() => {
+                                      toast({
+                                        title: "Payment successful!",
+                                        description: "Your payment has been processed.",
+                                      });
+                                      queryClient.invalidateQueries({ queryKey: [`/api/public/smart-files/${params?.token}`] });
+                                      setSelectedPaymentType(null);
+                                    }}
+                                    onError={(error) => {
+                                      toast({
+                                        title: "Payment failed",
+                                        description: error,
+                                        variant: "destructive"
+                                      });
+                                    }}
+                                  />
                                 )}
-                                <p className="text-xs text-center text-muted-foreground">
-                                  Secure payment powered by Stripe
-                                </p>
                               </div>
                             )}
                           </div>
