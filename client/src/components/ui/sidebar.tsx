@@ -202,19 +202,14 @@ const Sidebar = React.forwardRef<
           <SheetContent
             data-sidebar="sidebar"
             data-mobile="true"
-            className="w-[--sidebar-width] relative bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 p-0 text-sidebar-foreground [&>button]:hidden"
-            style={
-              {
-                "--sidebar-width": SIDEBAR_WIDTH_MOBILE,
-              } as React.CSSProperties
-            }
-            side={side}
+            className="bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 p-0 [&>button]:hidden"
+            side="left"
           >
             <SheetHeader className="sr-only">
               <SheetTitle>Sidebar</SheetTitle>
               <SheetDescription>Displays the mobile sidebar.</SheetDescription>
             </SheetHeader>
-            <div className="absolute inset-0 bg-slate-900/60 pointer-events-none z-0"></div>
+            <div className="absolute inset-0 bg-slate-900/60 pointer-events-none"></div>
             <div className="relative z-10 flex h-full w-full flex-col">{children}</div>
           </SheetContent>
         </Sheet>
