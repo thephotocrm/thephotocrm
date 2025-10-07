@@ -198,6 +198,8 @@ export default function PublicSmartFile() {
     });
   };
 
+  const paymentPage = data?.smartFile.pages?.find((p: SmartFilePage) => p.pageType === 'PAYMENT');
+
   const acceptMutation = useMutation({
     mutationFn: async (acceptanceData: any) => {
       // Accept the Smart File - this saves selections but doesn't create checkout
@@ -1034,21 +1036,85 @@ export default function PublicSmartFile() {
                       ) : (
                         <>
                           <CheckCircle className="w-4 h-4 mr-2" />
-                          Accept & Proceed to Payment
+                          Accept Proposal
                         </>
                       )}
                     </Button>
                   )}
 
                   {isAccepted && (
-                    <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-                      <div className="flex items-center gap-2 text-green-800">
-                        <CheckCircle className="w-5 h-5" />
-                        <p className="font-medium">Proposal Accepted</p>
+                    <div className="space-y-3">
+                      <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                        <div className="flex items-center gap-2 text-green-800">
+                          <CheckCircle className="w-5 h-5" />
+                          <p className="font-medium">Proposal Accepted</p>
+                        </div>
+                        <p className="text-sm text-green-700 mt-1">
+                          Your selections have been saved. Choose a payment option below.
+                        </p>
                       </div>
-                      <p className="text-sm text-green-700 mt-1">
-                        Your selections have been saved.
-                      </p>
+
+                      {/* Payment Options */}
+                      {paymentPage?.content?.acceptOnlinePayments && (
+                        <div className="space-y-2">
+                          {data.projectSmartFile.status === 'DEPOSIT_PAID' ? (
+                            <Button
+                              className="w-full"
+                              size="lg"
+                              onClick={() => createCheckoutMutation.mutate('BALANCE')}
+                              disabled={createCheckoutMutation.isPending}
+                              data-testid="button-pay-balance"
+                            >
+                              {createCheckoutMutation.isPending ? (
+                                <>
+                                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                  Processing...
+                                </>
+                              ) : (
+                                <>Pay Remaining Balance - {formatPrice(data.projectSmartFile.balanceDueCents || 0)}</>
+                              )}
+                            </Button>
+                          ) : (
+                            <>
+                              {depositAmount > 0 && depositAmount < total && (
+                                <Button
+                                  className="w-full"
+                                  size="lg"
+                                  onClick={() => createCheckoutMutation.mutate('DEPOSIT')}
+                                  disabled={createCheckoutMutation.isPending}
+                                  data-testid="button-pay-deposit"
+                                >
+                                  {createCheckoutMutation.isPending ? (
+                                    <>
+                                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                      Processing...
+                                    </>
+                                  ) : (
+                                    <>Pay Deposit - {formatPrice(depositAmount)}</>
+                                  )}
+                                </Button>
+                              )}
+                              <Button
+                                className="w-full"
+                                size="lg"
+                                variant={depositAmount > 0 && depositAmount < total ? "outline" : "default"}
+                                onClick={() => createCheckoutMutation.mutate('FULL')}
+                                disabled={createCheckoutMutation.isPending}
+                                data-testid="button-pay-full"
+                              >
+                                {createCheckoutMutation.isPending ? (
+                                  <>
+                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                    Processing...
+                                  </>
+                                ) : (
+                                  <>Pay Full Amount - {formatPrice(total)}</>
+                                )}
+                              </Button>
+                            </>
+                          )}
+                        </div>
+                      )}
                     </div>
                   )}
                 </CardContent>
