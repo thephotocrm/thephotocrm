@@ -36,7 +36,9 @@ export default function ForgotPassword() {
       });
 
       if (!result.ok) {
-        throw new Error("Failed to send reset email");
+        const errorData = await result.json().catch(() => ({ message: "Unknown error" }));
+        console.error("Password reset error:", errorData);
+        throw new Error(errorData.message || "Failed to send reset email");
       }
 
       setIsSuccess(true);
@@ -45,9 +47,10 @@ export default function ForgotPassword() {
         description: "If an account exists with this email, you'll receive a password reset link shortly."
       });
     } catch (error) {
+      console.error("Password reset request failed:", error);
       toast({
         title: "Error",
-        description: "Failed to send reset email. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to send reset email. Please try again.",
         variant: "destructive"
       });
     } finally {
