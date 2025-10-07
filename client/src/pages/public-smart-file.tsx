@@ -1167,7 +1167,7 @@ export default function PublicSmartFile() {
                               {
                                 client_name: `${data?.client.firstName} ${data?.client.lastName}`,
                                 photographer_name: data?.photographer.businessName || '',
-                                project_date: data?.project.title || '',
+                                project_date: data?.project.eventDate ? new Date(data.project.eventDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : 'TBD',
                                 project_type: data?.project.projectType || '',
                                 selected_packages: selectedPackage ? selectedPackage.name : 'No package selected',
                                 selected_addons: Array.from(selectedAddOns.values()).map(a => `${a.name} (x${a.quantity})`).join(', ') || 'None',

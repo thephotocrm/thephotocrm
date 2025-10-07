@@ -1276,6 +1276,7 @@ export default function ProjectDetail() {
               photographerName: user?.photographerName || '',
               projectTitle: project.title,
               projectType: project.projectType,
+              eventDate: project.eventDate ? new Date(project.eventDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : null,
             }}
             onSignatureComplete={() => {
               // After signing, retry sending the Smart File

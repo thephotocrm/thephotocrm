@@ -20,6 +20,7 @@ interface PhotographerSignatureDialogProps {
     photographerName: string;
     projectTitle: string;
     projectType: string;
+    eventDate?: string | null;
     selectedPackages?: string;
     selectedAddOns?: string;
     totalAmount?: string;
@@ -72,7 +73,7 @@ export function PhotographerSignatureDialog({
     {
       client_name: projectData.clientName,
       photographer_name: projectData.photographerName,
-      project_date: projectData.projectTitle,
+      project_date: projectData.eventDate || 'TBD',
       project_type: projectData.projectType,
       selected_packages: projectData.selectedPackages || 'Not selected',
       selected_addons: projectData.selectedAddOns || 'None',
