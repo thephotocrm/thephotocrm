@@ -14,7 +14,7 @@ import { createPaymentIntent, createCheckoutSession, createConnectCheckoutSessio
 import { googleCalendarService, createBookingCalendarEvent } from "./services/calendar";
 import { slotGenerationService } from "./services/slotGeneration";
 import { insertUserSchema, insertPhotographerSchema, insertClientSchema, insertStageSchema, 
-         insertTemplateSchema, insertAutomationSchema, validateAutomationSchema, insertAutomationStepSchema, insertAutomationBusinessTriggerSchema, insertPackageSchema, 
+         insertTemplateSchema, insertAutomationSchema, validateAutomationSchema, insertAutomationStepSchema, insertAutomationBusinessTriggerSchema, insertPackageSchema, insertAddOnSchema, 
          insertEstimateSchema, insertMessageSchema, insertBookingSchema, updateBookingSchema, 
          bookingConfirmationSchema, sanitizedBookingSchema, insertQuestionnaireTemplateSchema, insertQuestionnaireQuestionSchema, 
          emailLogs, smsLogs, projectActivityLog,
@@ -1741,6 +1741,71 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       res.json({ success: true });
     } catch (error) {
       console.error("Delete package error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Add-ons
+  app.get("/api/add-ons", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
+    try {
+      const addOns = await storage.getAddOnsByPhotographer(req.user!.photographerId!);
+      res.json(addOns);
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.post("/api/add-ons", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
+    try {
+      const addOnData = insertAddOnSchema.parse({
+        ...req.body,
+        photographerId: req.user!.photographerId!
+      });
+      const addOn = await storage.createAddOn(addOnData);
+      res.status(201).json(addOn);
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.patch("/api/add-ons/:id", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      // Verify add-on belongs to this photographer
+      const photographerAddOns = await storage.getAddOnsByPhotographer(req.user!.photographerId!);
+      const existingAddOn = photographerAddOns.find(addon => addon.id === id);
+      
+      if (!existingAddOn) {
+        return res.status(404).json({ message: "Add-on not found" });
+      }
+
+      const updates = insertAddOnSchema.partial().parse(req.body);
+      const updatedAddOn = await storage.updateAddOn(id, updates);
+      
+      res.json(updatedAddOn);
+    } catch (error) {
+      console.error("Update add-on error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.delete("/api/add-ons/:id", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      // Verify add-on belongs to this photographer
+      const photographerAddOns = await storage.getAddOnsByPhotographer(req.user!.photographerId!);
+      const existingAddOn = photographerAddOns.find(addon => addon.id === id);
+      
+      if (!existingAddOn) {
+        return res.status(404).json({ message: "Add-on not found" });
+      }
+
+      await storage.deleteAddOn(id);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Delete add-on error:", error);
       res.status(500).json({ message: "Internal server error" });
     }
   });
