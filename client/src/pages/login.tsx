@@ -70,7 +70,18 @@ export default function Login() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="password">Password</Label>
+                <Button 
+                  variant="link" 
+                  className="p-0 h-auto text-sm" 
+                  onClick={() => setLocation("/forgot-password")}
+                  type="button"
+                  data-testid="link-forgot-password"
+                >
+                  Forgot password?
+                </Button>
+              </div>
               <Input
                 id="password"
                 type="password"
