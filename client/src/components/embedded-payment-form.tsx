@@ -3,7 +3,7 @@ import { Elements, PaymentElement, useStripe, useElements } from "@stripe/react-
 import { loadStripe, StripeElementsOptions } from "@stripe/stripe-js";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Loader2 } from "lucide-react";
+import { Loader2, Shield, ArrowLeft } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useQuery } from "@tanstack/react-query";
 
@@ -79,23 +79,19 @@ function StripePaymentForm({ token, paymentType, baseAmount, tipCents, onSuccess
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Payment Amount Summary */}
-      <div className="space-y-2 pb-4 border-b">
-        <div className="flex justify-between text-sm">
-          <span className="text-muted-foreground">
-            {paymentType === 'DEPOSIT' ? 'Deposit' : paymentType === 'BALANCE' ? 'Balance' : 'Total'} amount
-          </span>
-          <span data-testid="text-base-amount">{formatPrice(baseAmount)}</span>
+      {/* Amount Due - Large Display */}
+      <div>
+        <div className="text-sm text-muted-foreground mb-1">Amount due</div>
+        <div className="text-4xl font-bold" data-testid="text-amount-due">{formatPrice(totalAmount)}</div>
+      </div>
+
+      {/* Divider */}
+      <div className="relative">
+        <div className="absolute inset-0 flex items-center">
+          <div className="w-full border-t"></div>
         </div>
-        {tipCents > 0 && (
-          <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">Tip</span>
-            <span data-testid="text-tip-amount">{formatPrice(tipCents)}</span>
-          </div>
-        )}
-        <div className="flex justify-between font-semibold">
-          <span>Total to pay</span>
-          <span data-testid="text-total-payment">{formatPrice(totalAmount)}</span>
+        <div className="relative flex justify-center text-xs uppercase">
+          <span className="bg-card px-2 text-muted-foreground">OR</span>
         </div>
       </div>
 
@@ -104,26 +100,34 @@ function StripePaymentForm({ token, paymentType, baseAmount, tipCents, onSuccess
         <PaymentElement />
       </div>
 
-      {/* Submit Button */}
-      <Button
-        type="submit"
-        className="w-full h-12 text-base"
-        size="lg"
-        disabled={!stripe || isProcessing}
-        data-testid="button-submit-payment"
-      >
-        {isProcessing ? (
-          <>
-            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-            Processing payment...
-          </>
-        ) : (
-          `Pay ${formatPrice(totalAmount)}`
-        )}
-      </Button>
-      <p className="text-xs text-center text-muted-foreground">
-        Secure payment powered by Stripe • Supports cards, Apple Pay, and Google Pay
-      </p>
+      {/* SSL Security Badge */}
+      <div className="flex items-center gap-2 text-xs text-muted-foreground pt-4 border-t">
+        <Shield className="w-4 h-4" />
+        <span>We use the same SSL encryption technology that banks use to protect your sensitive data.</span>
+      </div>
+
+      {/* Footer with Pay Button */}
+      <div className="flex items-center justify-between gap-3 pt-4">
+        <div className="text-xs text-muted-foreground flex items-center gap-1">
+          <Shield className="w-3 h-3" />
+          <span>Secured by <span className="font-semibold">Stripe</span></span>
+        </div>
+        <Button
+          type="submit"
+          className="bg-primary hover:bg-primary/90 h-11 px-8"
+          disabled={!stripe || isProcessing}
+          data-testid="button-submit-payment"
+        >
+          {isProcessing ? (
+            <>
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              Processing...
+            </>
+          ) : (
+            `Pay ${formatPrice(totalAmount)}`
+          )}
+        </Button>
+      </div>
     </form>
   );
 }
@@ -155,28 +159,56 @@ function TipSelector({ baseAmount, onContinue }: { baseAmount: number; onContinu
 
   return (
     <div className="space-y-6">
+      {/* Amount Due - Large Display */}
+      <div>
+        <div className="text-sm text-muted-foreground mb-1">Amount due</div>
+        <div className="text-4xl font-bold" data-testid="text-base-amount">{formatPrice(baseAmount)}</div>
+      </div>
+
+      {/* Tip Section */}
       <div className="space-y-3">
-        <h4 className="text-sm font-medium">Add a tip (optional)</h4>
-        <div className="grid grid-cols-4 gap-2">
-          {tipPercentages.map((percentage) => (
-            <Button
-              key={percentage}
-              type="button"
-              variant={selectedTip === percentage ? "default" : "outline"}
-              className="h-12"
-              onClick={() => {
-                setSelectedTip(percentage);
-                setCustomTip("");
-              }}
-              data-testid={`button-tip-${percentage}`}
-            >
-              {percentage}%
-            </Button>
-          ))}
+        <div className="text-sm font-medium">Would you like to leave a tip?</div>
+        <div className="flex gap-2 flex-wrap">
+          <Button 
+            type="button"
+            variant={selectedTip === null ? "default" : "outline"} 
+            size="sm" 
+            className="flex-1 min-w-[80px]"
+            onClick={() => {
+              setSelectedTip(null);
+              setCustomTip("");
+            }}
+            data-testid="button-no-tip"
+          >
+            No thanks
+          </Button>
+          {tipPercentages.map((percentage) => {
+            const tipAmount = Math.round((baseAmount * percentage) / 100);
+            return (
+              <Button
+                key={percentage}
+                type="button"
+                variant={selectedTip === percentage ? "default" : "outline"}
+                size="sm"
+                className="flex-1 min-w-[80px]"
+                onClick={() => {
+                  setSelectedTip(percentage);
+                  setCustomTip("");
+                }}
+                data-testid={`button-tip-${percentage}`}
+              >
+                <div className="text-center">
+                  <div className="font-semibold">{percentage}%</div>
+                  <div className="text-xs text-muted-foreground">{formatPrice(tipAmount)}</div>
+                </div>
+              </Button>
+            );
+          })}
           <Button
             type="button"
             variant={selectedTip === 'custom' ? "default" : "outline"}
-            className="h-12"
+            size="sm"
+            className="flex-1 min-w-[80px]"
             onClick={() => setSelectedTip('custom')}
             data-testid="button-tip-custom"
           >
@@ -195,26 +227,12 @@ function TipSelector({ baseAmount, onContinue }: { baseAmount: number; onContinu
             data-testid="input-custom-tip"
           />
         )}
-        {tipCents > 0 && (
-          <p className="text-sm text-muted-foreground">
-            Tip amount: {formatPrice(tipCents)}
-          </p>
-        )}
       </div>
 
-      <div className="flex gap-3">
+      <div className="flex justify-end">
         <Button
           type="button"
-          variant="outline"
-          className="flex-1 h-12"
-          onClick={() => onContinue(0)}
-          data-testid="button-skip-tip"
-        >
-          No tip
-        </Button>
-        <Button
-          type="button"
-          className="flex-1 h-12"
+          className="h-11 px-8"
           onClick={() => onContinue(tipCents)}
           data-testid="button-continue-payment"
         >
@@ -258,6 +276,7 @@ export function EmbeddedPaymentForm(props: PaymentFormProps & { publishableKey: 
           className="w-full"
           data-testid="button-back-to-tip"
         >
+          <ArrowLeft className="w-4 h-4 mr-2" />
           Back
         </Button>
       </div>
@@ -285,10 +304,11 @@ export function EmbeddedPaymentForm(props: PaymentFormProps & { publishableKey: 
         variant="ghost"
         size="sm"
         onClick={() => setTipCents(null)}
-        className="text-muted-foreground"
+        className="text-muted-foreground -ml-2"
         data-testid="button-change-tip"
       >
-        ← Change tip
+        <ArrowLeft className="w-4 h-4 mr-2" />
+        Change tip
       </Button>
       <Elements stripe={stripePromise} options={options}>
         <StripePaymentForm {...props} tipCents={tipCents} />
