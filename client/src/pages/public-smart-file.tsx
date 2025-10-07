@@ -200,46 +200,46 @@ export default function PublicSmartFile() {
 
   const acceptMutation = useMutation({
     mutationFn: async (acceptanceData: any) => {
-      // First, accept the Smart File
+      // Accept the Smart File - this saves selections but doesn't create checkout
       await apiRequest("PATCH", `/api/public/smart-files/${params?.token}/accept`, acceptanceData);
-      
-      // Check if payment is required
-      const paymentPage = data?.smartFile.pages?.find((p: SmartFilePage) => p.pageType === 'PAYMENT');
-      const acceptOnlinePayments = paymentPage?.content?.acceptOnlinePayments || false;
-      const depositAmount = acceptanceData.depositCents || 0;
-      
-      // Only create checkout session if online payments are enabled AND deposit amount > 0
-      if (acceptOnlinePayments && depositAmount > 0) {
-        const response = await apiRequest("POST", `/api/public/smart-files/${params?.token}/create-checkout`, {});
-        return { ...response, requiresPayment: true };
-      }
-      
-      // No payment required - return success
-      return { requiresPayment: false };
+      return { accepted: true };
     },
-    onSuccess: (response: any) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/public/smart-files/${params?.token}`] });
-      
-      if (response.requiresPayment && response.checkoutUrl) {
-        // Redirect to Stripe Checkout
-        toast({
-          title: "Smart File Accepted",
-          description: "Redirecting to secure checkout...",
-        });
-        window.location.href = response.checkoutUrl;
-      } else {
-        // No payment required - redirect to success page
-        toast({
-          title: "Smart File Accepted",
-          description: "Your selections have been saved successfully!",
-        });
-        setLocation(`/smart-file/${params?.token}/success`);
-      }
+      toast({
+        title: "Proposal Accepted",
+        description: "Your selections have been saved. Choose a payment option below.",
+      });
     },
     onError: (error: any) => {
       toast({
         title: "Error",
         description: error.message || "Failed to accept Smart File. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const createCheckoutMutation = useMutation({
+    mutationFn: async (paymentType: 'DEPOSIT' | 'FULL' | 'BALANCE') => {
+      const response = await apiRequest("POST", `/api/public/smart-files/${params?.token}/create-checkout`, {
+        paymentType
+      });
+      return response;
+    },
+    onSuccess: (response: any) => {
+      if (response.checkoutUrl) {
+        toast({
+          title: "Redirecting to checkout",
+          description: "Please complete your payment...",
+        });
+        window.location.href = response.checkoutUrl;
+      }
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to create checkout. Please try again.",
         variant: "destructive"
       });
     }
