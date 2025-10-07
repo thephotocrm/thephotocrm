@@ -3011,6 +3011,35 @@ ${photographer?.businessName || 'Your Photography Team'}`;
     }
   });
 
+  // PATCH /api/public/smart-files/:token/sign - Save client signature (PUBLIC ROUTE)
+  app.patch("/api/public/smart-files/:token/sign", async (req, res) => {
+    try {
+      const { token } = req.params;
+      const { clientSignatureUrl } = req.body;
+
+      if (!clientSignatureUrl) {
+        return res.status(400).json({ message: "Signature is required" });
+      }
+
+      const projectSmartFile = await storage.getProjectSmartFileByToken(token);
+      
+      if (!projectSmartFile) {
+        return res.status(404).json({ message: "Smart File not found" });
+      }
+
+      // Update with client signature
+      const updated = await storage.updateProjectSmartFile(projectSmartFile.id, {
+        clientSignatureUrl,
+        clientSignedAt: new Date()
+      });
+
+      res.json(updated);
+    } catch (error) {
+      console.error("Save signature error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   // POST /api/public/smart-files/:token/create-checkout - Create Stripe checkout session (PUBLIC ROUTE)
   app.post("/api/public/smart-files/:token/create-checkout", async (req, res) => {
     try {

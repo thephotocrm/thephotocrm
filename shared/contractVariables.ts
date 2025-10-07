@@ -204,3 +204,16 @@ export const AVAILABLE_VARIABLES = [
   
   { key: '{{contract_date}}', label: 'Contract Date', category: 'Meta' },
 ];
+
+// Simpler parser for public views that takes a flat object
+export function parseContractVariables(template: string, data: Record<string, string>): string {
+  let parsed = template;
+  
+  // Replace all {{variables}} with provided data
+  Object.entries(data).forEach(([key, value]) => {
+    const pattern = new RegExp(`\\{\\{${key}\\}\\}`, 'g');
+    parsed = parsed.replace(pattern, value || `[${key}]`);
+  });
+  
+  return parsed;
+}

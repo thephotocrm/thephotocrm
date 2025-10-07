@@ -20,10 +20,13 @@ import {
   Plus,
   Minus,
   CreditCard,
-  Package as PackageIcon
+  Package as PackageIcon,
+  FileSignature
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { EmbeddedPaymentForm } from "@/components/embedded-payment-form";
+import { SignaturePad } from "@/components/signature-pad";
+import { parseContractVariables } from "@shared/contractVariables";
 
 type ImageContent = {
   url: string;
@@ -33,7 +36,7 @@ type ImageContent = {
 
 interface SmartFilePage {
   id: string;
-  pageType: "TEXT" | "PACKAGE" | "ADDON" | "PAYMENT";
+  pageType: "TEXT" | "PACKAGE" | "ADDON" | "CONTRACT" | "PAYMENT";
   pageOrder: number;
   displayTitle: string;
   content: any;
@@ -47,6 +50,10 @@ interface SmartFileData {
     depositPercent?: number;
     selectedPackages?: any;
     selectedAddOns?: any;
+    clientSignatureUrl?: string;
+    photographerSignatureUrl?: string;
+    clientSignedAt?: string;
+    photographerSignedAt?: string;
   };
   smartFile: {
     id: string;
@@ -99,6 +106,8 @@ export default function PublicSmartFile() {
   const [selectedPackage, setSelectedPackage] = useState<SelectedPackage | null>(null);
   const [selectedAddOns, setSelectedAddOns] = useState<Map<string, SelectedAddOn>>(new Map());
   const [selectionsRehydrated, setSelectionsRehydrated] = useState(false);
+  const [showClientSignaturePad, setShowClientSignaturePad] = useState(false);
+  const [clientSignature, setClientSignature] = useState<string | null>(null);
 
   const { data, isLoading, error } = useQuery<SmartFileData>({
     queryKey: [`/api/public/smart-files/${params?.token}`],
@@ -254,6 +263,28 @@ export default function PublicSmartFile() {
       toast({
         title: "Error",
         description: error.message || "Failed to accept Smart File. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const saveSignatureMutation = useMutation({
+    mutationFn: async (signatureData: { clientSignatureUrl: string }) => {
+      await apiRequest("PATCH", `/api/public/smart-files/${params?.token}/sign`, signatureData);
+      return { signed: true };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/public/smart-files/${params?.token}`] });
+      setShowClientSignaturePad(false);
+      toast({
+        title: "Signature Saved",
+        description: "Your signature has been recorded successfully.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to save signature. Please try again.",
         variant: "destructive"
       });
     }
@@ -1100,6 +1131,153 @@ export default function PublicSmartFile() {
                       })}
                     </CardContent>
                   </Card>
+                )}
+
+                {/* CONTRACT Page */}
+                {currentPage.pageType === "CONTRACT" && (
+                  <div className="max-w-4xl mx-auto px-4 md:px-8">
+                    <Card>
+                      <CardHeader>
+                        <div className="flex items-center gap-3">
+                          <FileSignature className="w-6 h-6 text-primary" />
+                          <div>
+                            <CardTitle>{currentPage.content.heading || "Service Agreement"}</CardTitle>
+                            {currentPage.content.description && (
+                              <CardDescription>{currentPage.content.description}</CardDescription>
+                            )}
+                          </div>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="space-y-6">
+                        {/* Parsed Contract */}
+                        <div className="prose prose-sm max-w-none bg-muted/30 p-6 rounded-lg border">
+                          <div className="whitespace-pre-wrap text-sm leading-relaxed">
+                            {parseContractVariables(
+                              currentPage.content.contractTemplate || '',
+                              {
+                                client_name: `${data?.client.firstName} ${data?.client.lastName}`,
+                                photographer_name: data?.photographer.businessName || '',
+                                project_date: data?.project.title || '',
+                                project_type: data?.project.projectType || '',
+                                selected_packages: selectedPackage ? selectedPackage.name : 'No package selected',
+                                selected_addons: Array.from(selectedAddOns.values()).map(a => `${a.name} (x${a.quantity})`).join(', ') || 'None',
+                                total_amount: formatPrice(total),
+                                deposit_amount: formatPrice(depositAmount),
+                                deposit_percent: String(data?.smartFile.defaultDepositPercent ?? data?.projectSmartFile.depositPercent ?? 50) + '%',
+                              }
+                            )}
+                          </div>
+                        </div>
+
+                        <Separator />
+
+                        {/* Signatures Section */}
+                        <div className="space-y-6">
+                          <h3 className="text-lg font-semibold">Signatures</h3>
+
+                          {/* Photographer Signature */}
+                          {currentPage.content.requirePhotographerSignature !== false && (
+                            <div className="space-y-3">
+                              <Label>Photographer Signature</Label>
+                              {data?.projectSmartFile.photographerSignatureUrl ? (
+                                <div className="border rounded-lg p-4 bg-muted/20">
+                                  <img 
+                                    src={data.projectSmartFile.photographerSignatureUrl} 
+                                    alt="Photographer signature" 
+                                    className="h-20 mx-auto"
+                                    data-testid="img-photographer-signature"
+                                  />
+                                  <p className="text-xs text-muted-foreground text-center mt-2">
+                                    Signed by {data.photographer.businessName}
+                                    {data.projectSmartFile.photographerSignedAt && 
+                                      ` on ${new Date(data.projectSmartFile.photographerSignedAt).toLocaleDateString()}`
+                                    }
+                                  </p>
+                                </div>
+                              ) : (
+                                <div className="border rounded-lg p-4 bg-muted/20 text-center text-sm text-muted-foreground">
+                                  Awaiting photographer signature
+                                </div>
+                              )}
+                            </div>
+                          )}
+
+                          {/* Client Signature */}
+                          {currentPage.content.requireClientSignature !== false && (
+                            <div className="space-y-3">
+                              <Label>Your Signature</Label>
+                              {data?.projectSmartFile.clientSignatureUrl ? (
+                                <div className="border rounded-lg p-4 bg-muted/20">
+                                  <img 
+                                    src={data.projectSmartFile.clientSignatureUrl} 
+                                    alt="Client signature" 
+                                    className="h-20 mx-auto"
+                                    data-testid="img-client-signature"
+                                  />
+                                  <p className="text-xs text-muted-foreground text-center mt-2">
+                                    Signed on {new Date(data.projectSmartFile.clientSignedAt!).toLocaleDateString()}
+                                  </p>
+                                </div>
+                              ) : showClientSignaturePad ? (
+                                <SignaturePad
+                                  onSave={(dataUrl) => {
+                                    setClientSignature(dataUrl);
+                                    saveSignatureMutation.mutate({ clientSignatureUrl: dataUrl });
+                                  }}
+                                  onCancel={() => setShowClientSignaturePad(false)}
+                                  label="Draw your signature"
+                                />
+                              ) : (
+                                <Button
+                                  onClick={() => setShowClientSignaturePad(true)}
+                                  variant="outline"
+                                  className="w-full"
+                                  data-testid="button-add-signature"
+                                >
+                                  <FileSignature className="w-4 h-4 mr-2" />
+                                  Add Your Signature
+                                </Button>
+                              )}
+                            </div>
+                          )}
+
+                          {/* Agreement Checkbox */}
+                          <div className="flex items-start space-x-3 p-4 bg-primary/5 rounded-lg border border-primary/20">
+                            <Checkbox
+                              id="agree-terms"
+                              checked={!!data?.projectSmartFile.clientSignatureUrl}
+                              disabled
+                              data-testid="checkbox-agree-terms"
+                            />
+                            <Label htmlFor="agree-terms" className="text-sm leading-relaxed cursor-pointer">
+                              I have read and agree to the terms outlined in this service agreement. 
+                              My signature above confirms my acceptance of all terms and conditions.
+                            </Label>
+                          </div>
+                        </div>
+
+                        {/* Navigation */}
+                        {data?.projectSmartFile.clientSignatureUrl && (
+                          <div className="flex justify-between pt-4">
+                            <Button
+                              variant="outline"
+                              onClick={() => setCurrentPageIndex(currentPageIndex - 1)}
+                              disabled={currentPageIndex === 0}
+                              data-testid="button-back-contract"
+                            >
+                              Back
+                            </Button>
+                            <Button
+                              onClick={() => setCurrentPageIndex(currentPageIndex + 1)}
+                              data-testid="button-continue-contract"
+                            >
+                              Continue to Payment
+                            </Button>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </div>
                 )}
 
                 {/* PAYMENT Page */}
