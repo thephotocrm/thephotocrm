@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useRoute, useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -94,6 +94,7 @@ export default function PublicSmartFile() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
 
+  const [currentPageIndex, setCurrentPageIndex] = useState(0);
   const [selectedPackage, setSelectedPackage] = useState<SelectedPackage | null>(null);
   const [selectedAddOns, setSelectedAddOns] = useState<Map<string, SelectedAddOn>>(new Map());
   const [selectionsRehydrated, setSelectionsRehydrated] = useState(false);
@@ -378,6 +379,17 @@ export default function PublicSmartFile() {
   const sortedPages = [...mergedPages].sort((a, b) => a.pageOrder - b.pageOrder);
   const isAccepted = data.projectSmartFile.status === 'ACCEPTED';
 
+  // Clamp currentPageIndex when pages change
+  useEffect(() => {
+    if (sortedPages.length > 0 && currentPageIndex >= sortedPages.length) {
+      setCurrentPageIndex(sortedPages.length - 1);
+    }
+  }, [sortedPages.length, currentPageIndex]);
+
+  // Get current page for single-page view
+  const currentPage = sortedPages[currentPageIndex];
+  const pageIndex = currentPageIndex;
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -418,32 +430,41 @@ export default function PublicSmartFile() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
           {/* Main Content */}
-          <div className="lg:col-span-2 space-y-6">
-            {sortedPages.map((page, index) => (
-              <div key={page.id} data-testid={`page-${page.pageType.toLowerCase()}-${index}`} className="relative">
+          <div className="lg:col-span-2">
+            {sortedPages.length === 0 ? (
+              <Card>
+                <CardContent className="py-12 text-center">
+                  <FileText className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+                  <p className="text-muted-foreground">No pages available</p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="space-y-6">
                 {/* Page Number Indicator */}
                 <div className="flex justify-center mb-3">
                   <div className="text-sm font-medium text-muted-foreground bg-muted px-4 py-1.5 rounded-full">
-                    Page {index + 1} of {sortedPages.length}
+                    Page {pageIndex + 1} of {sortedPages.length}
                   </div>
                 </div>
+
+                <div key={currentPage.id} data-testid={`page-${currentPage.pageType.toLowerCase()}-${pageIndex}`} className="relative">
                 {/* TEXT Page */}
-                {page.pageType === "TEXT" && (
+                {currentPage.pageType === "TEXT" && (
                   <>
                     {/* Hero Section */}
-                    {page.content.hero?.backgroundImage && (
+                    {currentPage.content.hero?.backgroundImage && (
                       <div className="-mx-4 sm:-mx-6 md:mx-0 md:p-8 mb-6">
                         <div 
                           className="relative w-full h-[400px] flex items-center justify-center bg-cover bg-center md:border-4 md:border-border md:rounded-lg overflow-hidden"
-                          style={{ backgroundImage: `url(${page.content.hero.backgroundImage})` }}
+                          style={{ backgroundImage: `url(${currentPage.content.hero.backgroundImage})` }}
                         >
                           <div className="absolute inset-0 bg-black/30" />
                           <div className="relative z-10 text-center text-white px-6 max-w-3xl">
-                            {page.content.hero.title && (
-                              <h1 className="text-5xl font-bold mb-4">{page.content.hero.title}</h1>
+                            {currentPage.content.hero.title && (
+                              <h1 className="text-5xl font-bold mb-4">{currentPage.content.hero.title}</h1>
                             )}
-                            {page.content.hero.description && (
-                              <p className="text-xl">{page.content.hero.description}</p>
+                            {currentPage.content.hero.description && (
+                              <p className="text-xl">{currentPage.content.hero.description}</p>
                             )}
                           </div>
                         </div>
@@ -452,12 +473,12 @@ export default function PublicSmartFile() {
                     
                     <Card>
                       <CardHeader>
-                        <CardTitle data-testid={`text-page-title-${index}`}>{page.displayTitle}</CardTitle>
+                        <CardTitle data-testid={`text-page-title-${pageIndex}`}>{currentPage.displayTitle}</CardTitle>
                       </CardHeader>
                       <CardContent className="space-y-6">
-                        {page.content.sections && page.content.sections.length > 0 ? (
+                        {currentPage.content.sections && currentPage.content.sections.length > 0 ? (
                         // Sections-based rendering
-                        page.content.sections.map((section: any, secIdx: number) => (
+                        currentPage.content.sections.map((section: any, secIdx: number) => (
                           <div key={secIdx}>
                             {section.columns === 1 ? (
                               <div className="space-y-4">
@@ -607,10 +628,10 @@ export default function PublicSmartFile() {
                             )}
                           </div>
                         ))
-                      ) : page.content.blocks && page.content.blocks.length > 0 ? (
+                      ) : currentPage.content.blocks && currentPage.content.blocks.length > 0 ? (
                         // Legacy blocks format
                         <div className="space-y-4">
-                          {page.content.blocks.map((block: any, blockIdx: number) => (
+                          {currentPage.content.blocks.map((block: any, blockIdx: number) => (
                             <div key={blockIdx}>
                               {block.type === 'HEADING' && block.content && (
                                 <h3 className="text-2xl font-bold mb-2">{block.content}</h3>
@@ -629,8 +650,8 @@ export default function PublicSmartFile() {
                         </div>
                       ) : (
                         // Legacy heading/content format
-                        <p className="whitespace-pre-wrap text-muted-foreground" data-testid={`text-page-content-${index}`}>
-                          {page.content.content || page.content.text}
+                        <p className="whitespace-pre-wrap text-muted-foreground" data-testid={`text-page-content-${pageIndex}`}>
+                          {currentPage.content.content || currentPage.content.text}
                         </p>
                       )}
                     </CardContent>
@@ -639,17 +660,17 @@ export default function PublicSmartFile() {
                 )}
 
                 {/* PACKAGE Page */}
-                {page.pageType === "PACKAGE" && (
+                {currentPage.pageType === "PACKAGE" && (
                   <Card className="overflow-hidden mx-4 sm:mx-0">
                     <CardHeader className="bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border-b">
                       <CardTitle className="flex items-center gap-2">
                         <div className="p-2 bg-primary/10 rounded-lg">
                           <PackageIcon className="w-5 h-5 text-primary" />
                         </div>
-                        {page.displayTitle}
+                        {currentPage.displayTitle}
                       </CardTitle>
-                      {page.content.description && (
-                        <CardDescription className="mt-2">{page.content.description}</CardDescription>
+                      {currentPage.content.description && (
+                        <CardDescription className="mt-2">{currentPage.content.description}</CardDescription>
                       )}
                     </CardHeader>
                     <CardContent className="pt-6">
@@ -659,7 +680,7 @@ export default function PublicSmartFile() {
                         disabled={isAccepted}
                         className="space-y-4"
                       >
-                        {page.content.packages?.map((pkg: any, pkgIdx: number) => (
+                        {currentPage.content.packages?.map((pkg: any, pkgIdx: number) => (
                           <div key={pkg.id} data-testid={`card-package-${pkg.id}`}>
                             <label
                               className={`
@@ -755,22 +776,22 @@ export default function PublicSmartFile() {
                 )}
 
                 {/* ADDON Page */}
-                {page.pageType === "ADDON" && (
+                {currentPage.pageType === "ADDON" && (
                   <Card className="overflow-hidden">
                     <CardHeader className="bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border-b">
                       <CardTitle className="flex items-center gap-2">
                         <div className="p-2 bg-primary/10 rounded-lg">
                           <Plus className="w-5 h-5 text-primary" />
                         </div>
-                        {page.displayTitle}
+                        {currentPage.displayTitle}
                       </CardTitle>
-                      {page.content.description && (
-                        <CardDescription className="mt-2">{page.content.description}</CardDescription>
+                      {currentPage.content.description && (
+                        <CardDescription className="mt-2">{currentPage.content.description}</CardDescription>
                       )}
                     </CardHeader>
                     <CardContent className="pt-6 space-y-4">
-                      {page.content.addOns?.map((addOn: any, addonIdx: number) => {
-                        const key = `${page.id}-${addOn.id}`;
+                      {currentPage.content.addOns?.map((addOn: any, addonIdx: number) => {
+                        const key = `${currentPage.id}-${addOn.id}`;
                         const isSelected = selectedAddOns.has(key);
                         const quantity = selectedAddOns.get(key)?.quantity || 1;
 
@@ -898,38 +919,38 @@ export default function PublicSmartFile() {
                 )}
 
                 {/* PAYMENT Page */}
-                {page.pageType === "PAYMENT" && (
+                {currentPage.pageType === "PAYMENT" && (
                   <Card>
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
                         <CreditCard className="w-5 h-5" />
-                        {page.displayTitle}
+                        {currentPage.displayTitle}
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      {page.content.terms && (
+                      {currentPage.content.terms && (
                         <div>
                           <h4 className="font-medium mb-2">Payment Terms</h4>
                           <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                            {page.content.terms}
+                            {currentPage.content.terms}
                           </p>
                         </div>
                       )}
                       
-                      {page.content.depositInfo && (
+                      {currentPage.content.depositInfo && (
                         <div className="p-4 bg-muted rounded-lg">
                           <h4 className="font-medium mb-2">Deposit Information</h4>
                           <p className="text-sm text-muted-foreground">
-                            {page.content.depositInfo}
+                            {currentPage.content.depositInfo}
                           </p>
                         </div>
                       )}
 
-                      {page.content.acceptOnlinePayments !== undefined && (
+                      {currentPage.content.acceptOnlinePayments !== undefined && (
                         <div className="flex items-center gap-2">
-                          <CheckCircle className={`w-5 h-5 ${page.content.acceptOnlinePayments ? 'text-green-600' : 'text-muted-foreground'}`} />
+                          <CheckCircle className={`w-5 h-5 ${currentPage.content.acceptOnlinePayments ? 'text-green-600' : 'text-muted-foreground'}`} />
                           <span className="text-sm">
-                            {page.content.acceptOnlinePayments 
+                            {currentPage.content.acceptOnlinePayments 
                               ? 'Online payments accepted' 
                               : 'Contact for payment options'}
                           </span>
@@ -939,7 +960,27 @@ export default function PublicSmartFile() {
                   </Card>
                 )}
               </div>
-            ))}
+
+              {/* Navigation Buttons */}
+              <div className="flex items-center justify-between mt-6 pt-4 border-t">
+                <Button
+                  variant="outline"
+                  onClick={() => setCurrentPageIndex(Math.max(0, currentPageIndex - 1))}
+                  disabled={currentPageIndex === 0}
+                  data-testid="button-previous-page"
+                >
+                  Previous
+                </Button>
+                <Button
+                  onClick={() => setCurrentPageIndex(Math.min(sortedPages.length - 1, currentPageIndex + 1))}
+                  disabled={currentPageIndex === sortedPages.length - 1}
+                  data-testid="button-next-page"
+                >
+                  Next
+                </Button>
+              </div>
+            </div>
+            )}
           </div>
 
           {/* Price Calculator Sidebar - Desktop */}
