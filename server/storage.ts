@@ -3356,6 +3356,18 @@ export class DatabaseStorage implements IStorage {
 
   async reorderSmartFilePages(smartFileId: string, pageOrders: { id: string, pageOrder: number }[]): Promise<void> {
     await db.transaction(async (tx) => {
+      // First, set all pages to negative temporary values to avoid unique constraint violations
+      for (let i = 0; i < pageOrders.length; i++) {
+        const { id } = pageOrders[i];
+        await tx.update(smartFilePages)
+          .set({ pageOrder: -(i + 1) })
+          .where(and(
+            eq(smartFilePages.id, id),
+            eq(smartFilePages.smartFileId, smartFileId)
+          ));
+      }
+      
+      // Then update to final positions
       for (const { id, pageOrder } of pageOrders) {
         await tx.update(smartFilePages)
           .set({ pageOrder })
