@@ -465,18 +465,25 @@ export default function PublicSmartFile() {
       {/* Header */}
       <header className="bg-card border-b border-border sticky top-0 z-10 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-6">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center flex-shrink-0">
-              <Camera className="w-6 h-6 text-primary-foreground" />
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center flex-shrink-0">
+                <Camera className="w-6 h-6 text-primary-foreground" />
+              </div>
+              <div>
+                <h1 className="text-lg sm:text-xl font-semibold" data-testid="text-photographer-name">
+                  {data.photographer.businessName}
+                </h1>
+                <p className="text-sm text-muted-foreground">
+                  {data.project.projectType} Proposal - {data.project.title}
+                </p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-lg sm:text-xl font-semibold" data-testid="text-photographer-name">
-                {data.photographer.businessName}
-              </h1>
-              <p className="text-sm text-muted-foreground">
-                {data.project.projectType} Proposal - {data.project.title}
-              </p>
-            </div>
+            {sortedPages.length > 0 && (
+              <div className="text-xs font-medium text-muted-foreground bg-muted px-3 py-1 rounded-full">
+                {pageIndex + 1}/{sortedPages.length}
+              </div>
+            )}
           </div>
         </div>
       </header>
@@ -494,13 +501,6 @@ export default function PublicSmartFile() {
               </Card>
             ) : (
               <div className="space-y-6">
-                {/* Page Number Indicator */}
-                <div className="flex justify-center mb-3">
-                  <div className="text-sm font-medium text-muted-foreground bg-muted px-4 py-1.5 rounded-full">
-                    Page {pageIndex + 1} of {sortedPages.length}
-                  </div>
-                </div>
-
                 <div key={currentPage.id} data-testid={`page-${currentPage.pageType.toLowerCase()}-${pageIndex}`} className="relative">
                 {/* TEXT Page */}
                 {currentPage.pageType === "TEXT" && (
@@ -570,11 +570,13 @@ export default function PublicSmartFile() {
                                         : imageData.size === 'large' ? 'max-h-[300px]' 
                                         : 'max-h-[150px]';
                                       return (
-                                        <img 
-                                          src={imageData.url} 
-                                          alt="" 
-                                          className={cn("w-full rounded-none object-contain border border-border", maxHeightClass)} 
-                                        />
+                                        <div className="-mx-4 sm:-mx-6">
+                                          <img 
+                                            src={imageData.url} 
+                                            alt="" 
+                                            className={cn("w-full rounded-none object-cover", maxHeightClass)} 
+                                          />
+                                        </div>
                                       );
                                     })()}
                                   </div>
@@ -619,11 +621,13 @@ export default function PublicSmartFile() {
                                           : imageData.size === 'large' ? 'max-h-[300px]' 
                                           : 'max-h-[150px]';
                                         return (
-                                          <img 
-                                            src={imageData.url} 
-                                            alt="" 
-                                            className={cn("w-full rounded-none object-contain border-2 border-border shadow-md", maxHeightClass)} 
-                                          />
+                                          <div className="-mx-4 sm:-mx-6">
+                                            <img 
+                                              src={imageData.url} 
+                                              alt="" 
+                                              className={cn("w-full rounded-none object-cover", maxHeightClass)} 
+                                            />
+                                          </div>
                                         );
                                       })()}
                                     </div>
@@ -666,11 +670,13 @@ export default function PublicSmartFile() {
                                           : imageData.size === 'large' ? 'max-h-[300px]' 
                                           : 'max-h-[150px]';
                                         return (
-                                          <img 
-                                            src={imageData.url} 
-                                            alt="" 
-                                            className={cn("w-full rounded-none object-contain border-2 border-border shadow-md", maxHeightClass)} 
-                                          />
+                                          <div className="-mx-4 sm:-mx-6">
+                                            <img 
+                                              src={imageData.url} 
+                                              alt="" 
+                                              className={cn("w-full rounded-none object-cover", maxHeightClass)} 
+                                            />
+                                          </div>
                                         );
                                       })()}
                                     </div>
@@ -755,11 +761,13 @@ export default function PublicSmartFile() {
                                             : imageData.size === 'large' ? 'max-h-[300px]' 
                                             : 'max-h-[150px]';
                                           return (
-                                            <img 
-                                              src={imageData.url} 
-                                              alt="" 
-                                              className={cn("w-full rounded-none object-contain border border-border", maxHeightClass)} 
-                                            />
+                                            <div className="-mx-4 sm:-mx-6">
+                                              <img 
+                                                src={imageData.url} 
+                                                alt="" 
+                                                className={cn("w-full rounded-none object-cover", maxHeightClass)} 
+                                              />
+                                            </div>
                                           );
                                         })()}
                                       </div>
@@ -804,11 +812,13 @@ export default function PublicSmartFile() {
                                               : imageData.size === 'large' ? 'max-h-[300px]' 
                                               : 'max-h-[150px]';
                                             return (
-                                              <img 
-                                                src={imageData.url} 
-                                                alt="" 
-                                                className={cn("w-full rounded-none object-contain border-2 border-border shadow-md", maxHeightClass)} 
-                                              />
+                                              <div className="-mx-4 sm:-mx-6">
+                                                <img 
+                                                  src={imageData.url} 
+                                                  alt="" 
+                                                  className={cn("w-full rounded-none object-cover", maxHeightClass)} 
+                                                />
+                                              </div>
                                             );
                                           })()}
                                         </div>
@@ -851,11 +861,13 @@ export default function PublicSmartFile() {
                                               : imageData.size === 'large' ? 'max-h-[300px]' 
                                               : 'max-h-[150px]';
                                             return (
-                                              <img 
-                                                src={imageData.url} 
-                                                alt="" 
-                                                className={cn("w-full rounded-none object-contain border-2 border-border shadow-md", maxHeightClass)} 
-                                              />
+                                              <div className="-mx-4 sm:-mx-6">
+                                                <img 
+                                                  src={imageData.url} 
+                                                  alt="" 
+                                                  className={cn("w-full rounded-none object-cover", maxHeightClass)} 
+                                                />
+                                              </div>
                                             );
                                           })()}
                                         </div>
