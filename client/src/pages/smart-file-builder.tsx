@@ -2451,6 +2451,86 @@ export default function SmartFileBuilder() {
                       </div>
                     )}
 
+                    {/* Contract Page Preview */}
+                    {currentPage.pageType === 'CONTRACT' && currentPage.content && (
+                      <div className="max-w-4xl mx-auto px-4 md:px-8">
+                        <Card>
+                          <CardHeader>
+                            <div className="flex items-center gap-3">
+                              <FileSignature className="w-6 h-6 text-primary" />
+                              <div>
+                                <CardTitle>{currentPage.content.heading || "Service Agreement"}</CardTitle>
+                                {currentPage.content.description && (
+                                  <p className="text-sm text-muted-foreground mt-1">{currentPage.content.description}</p>
+                                )}
+                              </div>
+                            </div>
+                          </CardHeader>
+                          <CardContent className="space-y-6">
+                            {/* Parsed Contract */}
+                            {currentPage.content.contractTemplate ? (
+                              <div className="prose prose-sm max-w-none bg-muted/30 p-6 rounded-lg border">
+                                <div className="whitespace-pre-wrap text-sm leading-relaxed">
+                                  {parseContractVariables(
+                                    currentPage.content.contractTemplate || '',
+                                    {
+                                      client_name: 'John Smith',
+                                      photographer_name: user?.businessName || 'Photography Studio',
+                                      project_date: 'June 15, 2025',
+                                      project_type: 'Wedding',
+                                      selected_packages: 'Premium Package ($3,500)',
+                                      selected_addons: 'Second Shooter (x1), Engagement Session (x1)',
+                                      total_amount: '$4,800',
+                                      deposit_amount: '$2,400',
+                                      deposit_percent: '50%',
+                                    }
+                                  )}
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="p-6 border-2 border-dashed border-border rounded-xl text-center">
+                                <FileSignature className="w-12 h-12 text-muted-foreground/50 mx-auto mb-3" />
+                                <p className="text-sm text-muted-foreground font-medium">
+                                  No contract template yet
+                                </p>
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  Add a contract template to show it to clients
+                                </p>
+                              </div>
+                            )}
+
+                            {/* Signature Placeholders */}
+                            <div className="space-y-4 pt-4 border-t">
+                              <h4 className="text-sm font-semibold">Signatures</h4>
+                              
+                              {currentPage.content.requirePhotographerSignature !== false && (
+                                <div className="space-y-2">
+                                  <label className="text-sm font-medium">Photographer Signature</label>
+                                  <div className="border-2 border-dashed rounded-lg p-4 text-center text-sm text-muted-foreground">
+                                    [Photographer will sign before sending]
+                                  </div>
+                                </div>
+                              )}
+                              
+                              {currentPage.content.requireClientSignature !== false && (
+                                <div className="space-y-2">
+                                  <label className="text-sm font-medium">Client Signature</label>
+                                  <div className="border-2 border-dashed rounded-lg p-4 text-center text-sm text-muted-foreground">
+                                    [Client will sign here]
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+
+                            <p className="text-xs text-muted-foreground flex items-center gap-1">
+                              <Sparkles className="w-3.5 h-3.5 text-primary" />
+                              This preview shows how your contract will appear with sample data
+                            </p>
+                          </CardContent>
+                        </Card>
+                      </div>
+                    )}
+
                     {/* Payment Page Preview */}
                     {currentPage.pageType === 'PAYMENT' && currentPage.content && (
                       <div className="max-w-2xl mx-auto">
