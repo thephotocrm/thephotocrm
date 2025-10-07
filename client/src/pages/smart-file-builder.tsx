@@ -1014,7 +1014,7 @@ function PackagePageEditor({
                   data-testid={`card-package-${pkg.id}`}
                 >
                   {pkg.imageUrl && (
-                    <div className="aspect-video w-full overflow-hidden border-b">
+                    <div className="h-32 w-full overflow-hidden border-b">
                       <img 
                         src={pkg.imageUrl} 
                         alt={pkg.name}
