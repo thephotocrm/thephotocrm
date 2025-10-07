@@ -308,6 +308,25 @@ export default function ProjectDetail() {
     }
   });
 
+  const sendSmartFileSMSMutation = useMutation({
+    mutationFn: async (projectSmartFileId: string) => {
+      return await apiRequest("POST", `/api/projects/${id}/smart-files/${projectSmartFileId}/send-sms`);
+    },
+    onSuccess: () => {
+      toast({
+        title: "SMS sent",
+        description: "The Smart File link has been sent via text message."
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to send SMS",
+        description: error.message || "Client phone number may be missing",
+        variant: "destructive"
+      });
+    }
+  });
+
   const removeSmartFileMutation = useMutation({
     mutationFn: async (projectSmartFileId: string) => {
       return await apiRequest("DELETE", `/api/projects/${id}/smart-files/${projectSmartFileId}`);
@@ -439,6 +458,7 @@ export default function ProjectDetail() {
       case 'SENT': return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300';
       case 'VIEWED': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300';
       case 'ACCEPTED': return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
+      case 'DEPOSIT_PAID': return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300';
       case 'PAID': return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
       default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300';
     }
@@ -709,14 +729,23 @@ export default function ProjectDetail() {
                               Send to Client
                             </DropdownMenuItem>
                           )}
-                          {['SENT', 'VIEWED', 'ACCEPTED', 'PAID'].includes(sf.status) && (
-                            <DropdownMenuItem 
-                              onClick={() => handleCopyLink(sf)}
-                              data-testid={`button-copy-link-${sf.id}`}
-                            >
-                              <Copy className="w-4 h-4 mr-2" />
-                              Copy Link
-                            </DropdownMenuItem>
+                          {['SENT', 'VIEWED', 'ACCEPTED', 'PAID', 'DEPOSIT_PAID'].includes(sf.status) && (
+                            <>
+                              <DropdownMenuItem 
+                                onClick={() => handleCopyLink(sf)}
+                                data-testid={`button-copy-link-${sf.id}`}
+                              >
+                                <Copy className="w-4 h-4 mr-2" />
+                                Copy Link
+                              </DropdownMenuItem>
+                              <DropdownMenuItem 
+                                onClick={() => sendSmartFileSMSMutation.mutate(sf.id)}
+                                data-testid={`button-send-sms-${sf.id}`}
+                              >
+                                <MessageSquare className="w-4 h-4 mr-2" />
+                                Send via Text
+                              </DropdownMenuItem>
+                            </>
                           )}
                           <DropdownMenuItem 
                             onClick={() => setLocation(`/smart-files/${sf.smartFileId}/edit`)}
