@@ -399,34 +399,18 @@ export default function PublicSmartFile() {
       {/* Header */}
       <header className="bg-card border-b border-border sticky top-0 z-10 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-6">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center flex-shrink-0">
-                <Camera className="w-6 h-6 text-primary-foreground" />
-              </div>
-              <div>
-                <h1 className="text-lg sm:text-xl font-semibold" data-testid="text-photographer-name">
-                  {data.photographer.businessName}
-                </h1>
-                <p className="text-sm text-muted-foreground">Photography Proposal</p>
-              </div>
+          <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center flex-shrink-0">
+              <Camera className="w-6 h-6 text-primary-foreground" />
             </div>
-            <Badge 
-              variant={data.projectSmartFile.status === 'ACCEPTED' ? 'default' : 'secondary'}
-              className="w-fit"
-              data-testid={`badge-status-${data.projectSmartFile.status.toLowerCase()}`}
-            >
-              {data.projectSmartFile.status}
-            </Badge>
-          </div>
-          
-          <div className="mt-4 pt-4 border-t border-border">
-            <p className="text-lg font-medium" data-testid="text-client-greeting">
-              Hi {data.client.firstName}!
-            </p>
-            <p className="text-sm text-muted-foreground mt-1" data-testid="text-project-title">
-              {data.project.projectType} Proposal - {data.project.title}
-            </p>
+            <div>
+              <h1 className="text-lg sm:text-xl font-semibold" data-testid="text-photographer-name">
+                {data.photographer.businessName}
+              </h1>
+              <p className="text-sm text-muted-foreground">
+                {data.project.projectType} Proposal - {data.project.title}
+              </p>
+            </div>
           </div>
         </div>
       </header>
@@ -665,118 +649,100 @@ export default function PublicSmartFile() {
 
                 {/* PACKAGE Page */}
                 {currentPage.pageType === "PACKAGE" && (
-                  <Card className="overflow-hidden mx-4 sm:mx-0">
-                    <CardHeader className="bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border-b">
-                      <CardTitle className="flex items-center gap-2">
-                        <div className="p-2 bg-primary/10 rounded-lg">
-                          <PackageIcon className="w-5 h-5 text-primary" />
-                        </div>
-                        {currentPage.displayTitle}
-                      </CardTitle>
-                      {currentPage.content.description && (
-                        <CardDescription className="mt-2">{currentPage.content.description}</CardDescription>
-                      )}
-                    </CardHeader>
-                    <CardContent className="pt-6">
+                  <div className="space-y-6 px-4 md:px-0">
+                    {currentPage.content.heading && (
+                      <h3 className="text-4xl font-bold mb-4 text-center">{currentPage.content.heading}</h3>
+                    )}
+                    {currentPage.content.description && (
+                      <p className="text-xl text-muted-foreground mb-6 leading-relaxed text-center">{currentPage.content.description}</p>
+                    )}
+                    <div className="space-y-4">
                       <RadioGroup
                         value={selectedPackage?.packageId || ""}
                         onValueChange={() => {}}
                         disabled={isAccepted}
                         className="space-y-4"
                       >
-                        {currentPage.content.packages?.map((pkg: any, pkgIdx: number) => (
-                          <div key={pkg.id} data-testid={`card-package-${pkg.id}`}>
-                            <label
-                              className={`
-                                group relative block rounded-xl border-2 cursor-pointer overflow-hidden
-                                transition-all duration-300 ease-out
-                                ${selectedPackage?.packageId === pkg.id
-                                  ? 'border-primary bg-gradient-to-br from-primary/10 via-primary/5 to-background shadow-xl shadow-primary/20 scale-[1.02]'
-                                  : 'border-border bg-card hover:border-primary/50 hover:shadow-lg hover:scale-[1.01]'
-                                }
-                                ${isAccepted ? 'cursor-not-allowed opacity-60' : ''}
-                              `}
-                              onClick={() => !isAccepted && handlePackageSelect(page, pkg)}
-                              style={{
-                                animationDelay: `${pkgIdx * 100}ms`
-                              }}
-                            >
-                              {/* Package Image */}
-                              {pkg.imageUrl && (
-                                <div className="-m-px mb-0">
-                                  <img 
-                                    src={pkg.imageUrl} 
-                                    alt={pkg.name}
-                                    className="w-full h-48 object-cover border-b-2 border-border"
-                                    onError={(e) => {
-                                      e.currentTarget.style.display = 'none';
-                                    }}
-                                  />
-                                </div>
-                              )}
-
-                              {/* Selection Indicator - Top Right Badge */}
-                              {selectedPackage?.packageId === pkg.id && (
-                                <div className="absolute top-4 right-4 z-10">
-                                  <div className="flex items-center gap-1.5 px-3 py-1.5 bg-primary text-primary-foreground rounded-full text-xs font-semibold shadow-lg">
-                                    <CheckCircle className="w-3.5 h-3.5" />
-                                    Selected
+                        {currentPage.content.packages?.map((pkg: any) => (
+                          <Card 
+                            key={pkg.id} 
+                            className={`overflow-hidden border-2 transition-all duration-300 max-w-[800px] mx-auto cursor-pointer ${
+                              selectedPackage?.packageId === pkg.id
+                                ? 'border-primary shadow-lg'
+                                : 'hover:border-primary/40 hover:shadow-lg'
+                            } ${isAccepted ? 'cursor-not-allowed opacity-60' : ''}`}
+                            onClick={() => !isAccepted && handlePackageSelect(currentPage, pkg)}
+                            data-testid={`card-package-${pkg.id}`}
+                          >
+                            <CardContent className="p-6">
+                              <div className="flex flex-col md:flex-row gap-6">
+                                {/* Package Image - Left Side */}
+                                {pkg.imageUrl && (
+                                  <div className="w-full md:w-48 h-48 flex-shrink-0 overflow-hidden rounded-lg border">
+                                    <img 
+                                      src={pkg.imageUrl} 
+                                      alt={pkg.name}
+                                      className="w-full h-full object-cover"
+                                      onError={(e) => {
+                                        e.currentTarget.style.display = 'none';
+                                      }}
+                                    />
+                                  </div>
+                                )}
+                                
+                                {/* Content - Right Side */}
+                                <div className="flex-1 flex flex-col min-w-0">
+                                  <div className="flex items-start gap-3">
+                                    <RadioGroupItem 
+                                      value={pkg.id} 
+                                      id={pkg.id}
+                                      disabled={isAccepted}
+                                      className="mt-1 data-[state=checked]:border-primary data-[state=checked]:text-primary"
+                                    />
+                                    <div className="flex-1">
+                                      {/* Package Title */}
+                                      <h4 className="text-xl font-bold mb-4 break-words" data-testid={`text-package-name-${pkg.id}`}>
+                                        {pkg.name}
+                                      </h4>
+                                      
+                                      {/* Package Description */}
+                                      {pkg.description && (
+                                        <div className="mb-4">
+                                          <p className="font-semibold text-sm mb-2">Includes:</p>
+                                          <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap break-words">
+                                            {pkg.description}
+                                          </p>
+                                        </div>
+                                      )}
+                                      
+                                      {/* Package Features */}
+                                      {pkg.features && pkg.features.length > 0 && (
+                                        <ul className="space-y-2 mb-4">
+                                          {pkg.features.map((feature: string, idx: number) => (
+                                            <li key={idx} className="text-sm flex items-start gap-2">
+                                              <CheckCircle className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
+                                              <span className="flex-1">{feature}</span>
+                                            </li>
+                                          ))}
+                                        </ul>
+                                      )}
+                                      
+                                      {/* Price Tag */}
+                                      <div className="mt-auto pt-4 border-t">
+                                        <div className="text-2xl font-bold text-primary" data-testid={`text-package-price-${pkg.id}`}>
+                                          {formatPrice(pkg.priceCents)}
+                                        </div>
+                                      </div>
+                                    </div>
                                   </div>
                                 </div>
-                              )}
-
-                              <div className={`flex items-start gap-4 ${pkg.imageUrl ? 'p-6' : 'p-6'}`}>
-                                <RadioGroupItem 
-                                  value={pkg.id} 
-                                  id={pkg.id}
-                                  disabled={isAccepted}
-                                  className="mt-1.5 data-[state=checked]:border-primary data-[state=checked]:text-primary"
-                                />
-                                <div className="flex-1 min-w-0 pr-24">
-                                  <h4 className="font-bold text-lg mb-1 group-hover:text-primary transition-colors" data-testid={`text-package-name-${pkg.id}`}>
-                                    {pkg.name}
-                                  </h4>
-                                  {pkg.description && (
-                                    <p className="text-sm text-muted-foreground leading-relaxed">
-                                      {pkg.description}
-                                    </p>
-                                  )}
-                                  {pkg.features && pkg.features.length > 0 && (
-                                    <ul className="mt-4 space-y-2.5">
-                                      {pkg.features.map((feature: string, idx: number) => (
-                                        <li key={idx} className="text-sm flex items-start gap-2.5">
-                                          <div className="mt-0.5 p-0.5 bg-primary/10 rounded-full">
-                                            <CheckCircle className="w-4 h-4 text-primary flex-shrink-0" />
-                                          </div>
-                                          <span className="flex-1 leading-relaxed">{feature}</span>
-                                        </li>
-                                      ))}
-                                    </ul>
-                                  )}
-                                </div>
                               </div>
-
-                              {/* Price Tag - Styled */}
-                              <div className="absolute bottom-6 right-6">
-                                <div className={`
-                                  px-4 py-2.5 rounded-lg font-bold text-xl
-                                  ${selectedPackage?.packageId === pkg.id
-                                    ? 'bg-primary text-primary-foreground shadow-lg'
-                                    : 'bg-muted text-foreground'
-                                  }
-                                  transition-all duration-300
-                                `}>
-                                  <span data-testid={`text-package-price-${pkg.id}`}>
-                                    {formatPrice(pkg.priceCents)}
-                                  </span>
-                                </div>
-                              </div>
-                            </label>
-                          </div>
+                            </CardContent>
+                          </Card>
                         ))}
                       </RadioGroup>
-                    </CardContent>
-                  </Card>
+                    </div>
+                  </div>
                 )}
 
                 {/* ADDON Page */}
@@ -924,14 +890,9 @@ export default function PublicSmartFile() {
 
                 {/* PAYMENT Page */}
                 {currentPage.pageType === "PAYMENT" && (
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <CreditCard className="w-5 h-5" />
-                        {currentPage.displayTitle}
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
+                  <div className="max-w-2xl mx-auto px-4 md:px-0">
+                    <Card className="border-2">
+                      <CardContent className="p-8 space-y-6">
                       {currentPage.content.terms && (
                         <div>
                           <h4 className="font-medium mb-2">Payment Terms</h4>
@@ -962,6 +923,7 @@ export default function PublicSmartFile() {
                       )}
                     </CardContent>
                   </Card>
+                  </div>
                 )}
               </div>
 
