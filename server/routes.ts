@@ -282,6 +282,75 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Auth routes
+  app.post("/api/auth/admin-setup", async (req, res) => {
+    try {
+      const { setupToken, email, password } = req.body;
+
+      // Check if setup token is configured
+      const expectedToken = process.env.ADMIN_SETUP_TOKEN;
+      if (!expectedToken) {
+        return res.status(403).json({ message: "Admin setup is disabled" });
+      }
+
+      // Validate token
+      if (setupToken !== expectedToken) {
+        return res.status(401).json({ message: "Invalid setup token" });
+      }
+
+      const normalizedEmail = email.toLowerCase().trim();
+
+      // Check if any admin user already exists
+      const allUsers = await db.select().from(users).where(eq(users.role, 'ADMIN'));
+      if (allUsers.length > 0) {
+        return res.status(400).json({ message: "Admin user already exists" });
+      }
+
+      // Check if this specific email exists
+      const existingUser = await storage.getUserByEmail(normalizedEmail);
+      if (existingUser) {
+        return res.status(400).json({ message: "User already exists" });
+      }
+
+      // Hash password
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      // Create admin user (no photographer association)
+      const adminUser = await storage.createUser({
+        email: normalizedEmail,
+        password: hashedPassword,
+        role: 'ADMIN',
+        photographerId: null
+      });
+
+      // Generate token
+      const token = generateToken({
+        userId: adminUser.id,
+        role: adminUser.role,
+        photographerId: null
+      });
+
+      // Set cookie
+      res.cookie('token', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+      });
+
+      res.json({
+        message: "Admin user created successfully",
+        user: {
+          id: adminUser.id,
+          email: adminUser.email,
+          role: adminUser.role
+        }
+      });
+    } catch (error) {
+      console.error("Error creating admin user:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   app.post("/api/auth/register", async (req, res) => {
     try {
       const { email, password, businessName, role = "PHOTOGRAPHER" } = req.body;
