@@ -467,9 +467,9 @@ export default function PublicSmartFile() {
                   <>
                     {/* Hero Section */}
                     {currentPage.content.hero?.backgroundImage && (
-                      <div className="-mx-4 sm:-mx-6 md:mx-0 md:p-8 mb-6">
+                      <div className="mb-6">
                         <div 
-                          className="relative w-full h-[400px] flex items-center justify-center bg-cover bg-center md:border-4 md:border-border md:rounded-lg overflow-hidden"
+                          className="relative w-full h-[400px] flex items-center justify-center bg-cover bg-center overflow-hidden"
                           style={{ backgroundImage: `url(${currentPage.content.hero.backgroundImage})` }}
                         >
                           <div className="absolute inset-0 bg-black/30" />
