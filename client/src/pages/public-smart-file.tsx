@@ -446,6 +446,16 @@ export default function PublicSmartFile() {
   const sortedPages = [...mergedPages].sort((a, b) => a.pageOrder - b.pageOrder);
   const isAccepted = data.projectSmartFile.status === 'ACCEPTED';
 
+  // Check for contract page and signature requirements
+  const contractPage = sortedPages.find(p => p.pageType === 'CONTRACT');
+  const hasContractPage = !!contractPage;
+  const requiresClientSignature = hasContractPage && contractPage.content.requireClientSignature !== false;
+  const clientHasSigned = !!data.projectSmartFile.clientSignatureUrl;
+  const paymentPageIndex = sortedPages.findIndex(p => p.pageType === 'PAYMENT');
+  
+  // Client must sign contract before accessing payment
+  const canAccessPayment = !requiresClientSignature || clientHasSigned;
+
   // Get current page for single-page view
   const currentPage = sortedPages[currentPageIndex];
   const pageIndex = currentPageIndex;
@@ -1283,6 +1293,28 @@ export default function PublicSmartFile() {
                 {/* PAYMENT Page */}
                 {currentPage.pageType === "PAYMENT" && (
                   <div className="max-w-lg mx-auto px-4 md:px-0">
+                    {!canAccessPayment ? (
+                      <Card className="border-2 border-amber-500/50">
+                        <CardContent className="p-8 text-center space-y-4">
+                          <FileSignature className="w-12 h-12 mx-auto text-amber-500" />
+                          <h3 className="text-xl font-semibold">Contract Signature Required</h3>
+                          <p className="text-muted-foreground">
+                            You must sign the contract before you can proceed with payment.
+                          </p>
+                          <Button
+                            onClick={() => {
+                              const contractIndex = sortedPages.findIndex(p => p.pageType === 'CONTRACT');
+                              if (contractIndex >= 0) {
+                                setCurrentPageIndex(contractIndex);
+                              }
+                            }}
+                            data-testid="button-go-to-contract"
+                          >
+                            Go to Contract
+                          </Button>
+                        </CardContent>
+                      </Card>
+                    ) : (
                     <Card className="border-2">
                       <CardContent className="p-8 space-y-6">
                         {/* Amount Due Section */}
@@ -1411,6 +1443,7 @@ export default function PublicSmartFile() {
                         )}
                       </CardContent>
                     </Card>
+                    )}
                   </div>
                 )}
               </div>
@@ -1425,13 +1458,32 @@ export default function PublicSmartFile() {
                 >
                   Previous
                 </Button>
-                <Button
-                  onClick={() => setCurrentPageIndex(Math.min(sortedPages.length - 1, currentPageIndex + 1))}
-                  disabled={currentPageIndex === sortedPages.length - 1}
-                  data-testid="button-next-page"
-                >
-                  Next
-                </Button>
+                <div className="flex flex-col items-end gap-1">
+                  {!canAccessPayment && currentPageIndex + 1 === paymentPageIndex && (
+                    <p className="text-xs text-muted-foreground" data-testid="text-signature-required">
+                      Please sign the contract to proceed
+                    </p>
+                  )}
+                  <Button
+                    onClick={() => {
+                      const nextIndex = currentPageIndex + 1;
+                      // Block navigation to payment page if signature is required but not provided
+                      if (nextIndex === paymentPageIndex && !canAccessPayment) {
+                        toast({
+                          title: "Signature Required",
+                          description: "Please sign the contract before proceeding to payment.",
+                          variant: "destructive"
+                        });
+                        return;
+                      }
+                      setCurrentPageIndex(Math.min(sortedPages.length - 1, nextIndex));
+                    }}
+                    disabled={currentPageIndex === sortedPages.length - 1}
+                    data-testid="button-next-page"
+                  >
+                    Next
+                  </Button>
+                </div>
               </div>
             </div>
             )}
