@@ -485,11 +485,9 @@ export default function PublicSmartFile() {
                       </div>
                     )}
                     
-                    <Card>
-                      <CardHeader>
-                        <CardTitle data-testid={`text-page-title-${pageIndex}`}>{currentPage.displayTitle}</CardTitle>
-                      </CardHeader>
-                      <CardContent className="space-y-6">
+                    {/* Content - no Card wrapper if there's a hero */}
+                    {currentPage.content.hero?.backgroundImage ? (
+                      <div className="space-y-6">
                         {currentPage.content.sections && currentPage.content.sections.length > 0 ? (
                         // Sections-based rendering
                         currentPage.content.sections.map((section: any, secIdx: number) => (
@@ -668,8 +666,194 @@ export default function PublicSmartFile() {
                           {currentPage.content.content || currentPage.content.text}
                         </p>
                       )}
-                    </CardContent>
-                  </Card>
+                      </div>
+                    ) : (
+                      <Card>
+                        <CardHeader>
+                          <CardTitle data-testid={`text-page-title-${pageIndex}`}>{currentPage.displayTitle}</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-6">
+                          {currentPage.content.sections && currentPage.content.sections.length > 0 ? (
+                            // Sections-based rendering
+                            currentPage.content.sections.map((section: any, secIdx: number) => (
+                              <div key={secIdx}>
+                                {section.columns === 1 ? (
+                                  <div className="space-y-4">
+                                    {section.blocks.map((block: any, blockIdx: number) => (
+                                      <div key={blockIdx}>
+                                        {block.type === 'HEADING' && block.content && (
+                                          <h3 className="text-2xl font-bold mb-2">{block.content}</h3>
+                                        )}
+                                        {block.type === 'TEXT' && block.content && (
+                                          <p className="text-muted-foreground whitespace-pre-wrap">{block.content}</p>
+                                        )}
+                                        {block.type === 'SPACER' && (
+                                          <div className="py-6" />
+                                        )}
+                                        {block.type === 'IMAGE' && block.content && (() => {
+                                          const imageData: ImageContent = typeof block.content === 'string' 
+                                            ? { url: block.content, borderRadius: 'straight', size: 'medium' }
+                                            : block.content;
+                                          const isRounded = imageData.borderRadius === 'rounded';
+                                          const sizeClass = imageData.size === 'small' ? 'h-[100px] w-[100px]' 
+                                            : imageData.size === 'large' ? 'h-[300px] w-[300px]' 
+                                            : 'h-[150px] w-[150px]';
+                                          
+                                          if (isRounded) {
+                                            return (
+                                              <div className={cn("rounded-full overflow-hidden border border-border mx-auto", sizeClass)}>
+                                                <img 
+                                                  src={imageData.url} 
+                                                  alt="" 
+                                                  className="w-full h-full object-cover"
+                                                />
+                                              </div>
+                                            );
+                                          }
+                                          
+                                          const maxHeightClass = imageData.size === 'small' ? 'max-h-[100px]' 
+                                            : imageData.size === 'large' ? 'max-h-[300px]' 
+                                            : 'max-h-[150px]';
+                                          return (
+                                            <img 
+                                              src={imageData.url} 
+                                              alt="" 
+                                              className={cn("w-full rounded-none object-contain border border-border", maxHeightClass)} 
+                                            />
+                                          );
+                                        })()}
+                                      </div>
+                                    ))}
+                                  </div>
+                                ) : (
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="space-y-4">
+                                      {section.blocks.filter((b: any) => b.column === 0).map((block: any, blockIdx: number) => (
+                                        <div key={blockIdx}>
+                                          {block.type === 'HEADING' && block.content && (
+                                            <h3 className="text-2xl font-bold mb-2">{block.content}</h3>
+                                          )}
+                                          {block.type === 'TEXT' && block.content && (
+                                            <p className="text-muted-foreground whitespace-pre-wrap">{block.content}</p>
+                                          )}
+                                          {block.type === 'SPACER' && (
+                                            <div className="py-6" />
+                                          )}
+                                          {block.type === 'IMAGE' && block.content && (() => {
+                                            const imageData: ImageContent = typeof block.content === 'string' 
+                                              ? { url: block.content, borderRadius: 'straight', size: 'medium' }
+                                              : block.content;
+                                            const isRounded = imageData.borderRadius === 'rounded';
+                                            const sizeClass = imageData.size === 'small' ? 'h-[100px] w-[100px]' 
+                                              : imageData.size === 'large' ? 'h-[300px] w-[300px]' 
+                                              : 'h-[150px] w-[150px]';
+                                            
+                                            if (isRounded) {
+                                              return (
+                                                <div className={cn("rounded-full overflow-hidden border-4 border-border shadow-lg mx-auto", sizeClass)}>
+                                                  <img 
+                                                    src={imageData.url} 
+                                                    alt="" 
+                                                    className="w-full h-full object-cover"
+                                                  />
+                                                </div>
+                                              );
+                                            }
+                                            
+                                            const maxHeightClass = imageData.size === 'small' ? 'max-h-[100px]' 
+                                              : imageData.size === 'large' ? 'max-h-[300px]' 
+                                              : 'max-h-[150px]';
+                                            return (
+                                              <img 
+                                                src={imageData.url} 
+                                                alt="" 
+                                                className={cn("w-full rounded-none object-contain border-2 border-border shadow-md", maxHeightClass)} 
+                                              />
+                                            );
+                                          })()}
+                                        </div>
+                                      ))}
+                                    </div>
+                                    <div className="space-y-4">
+                                      {section.blocks.filter((b: any) => b.column === 1).map((block: any, blockIdx: number) => (
+                                        <div key={blockIdx}>
+                                          {block.type === 'HEADING' && block.content && (
+                                            <h3 className="text-2xl font-bold mb-2">{block.content}</h3>
+                                          )}
+                                          {block.type === 'TEXT' && block.content && (
+                                            <p className="text-muted-foreground whitespace-pre-wrap">{block.content}</p>
+                                          )}
+                                          {block.type === 'SPACER' && (
+                                            <div className="py-6" />
+                                          )}
+                                          {block.type === 'IMAGE' && block.content && (() => {
+                                            const imageData: ImageContent = typeof block.content === 'string' 
+                                              ? { url: block.content, borderRadius: 'straight', size: 'medium' }
+                                              : block.content;
+                                            const isRounded = imageData.borderRadius === 'rounded';
+                                            const sizeClass = imageData.size === 'small' ? 'h-[100px] w-[100px]' 
+                                              : imageData.size === 'large' ? 'h-[300px] w-[300px]' 
+                                              : 'h-[150px] w-[150px]';
+                                            
+                                            if (isRounded) {
+                                              return (
+                                                <div className={cn("rounded-full overflow-hidden border-4 border-border shadow-lg mx-auto", sizeClass)}>
+                                                  <img 
+                                                    src={imageData.url} 
+                                                    alt="" 
+                                                    className="w-full h-full object-cover"
+                                                  />
+                                                </div>
+                                              );
+                                            }
+                                            
+                                            const maxHeightClass = imageData.size === 'small' ? 'max-h-[100px]' 
+                                              : imageData.size === 'large' ? 'max-h-[300px]' 
+                                              : 'max-h-[150px]';
+                                            return (
+                                              <img 
+                                                src={imageData.url} 
+                                                alt="" 
+                                                className={cn("w-full rounded-none object-contain border-2 border-border shadow-md", maxHeightClass)} 
+                                              />
+                                            );
+                                          })()}
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            ))
+                          ) : currentPage.content.blocks && currentPage.content.blocks.length > 0 ? (
+                            // Legacy blocks format
+                            <div className="space-y-4">
+                              {currentPage.content.blocks.map((block: any, blockIdx: number) => (
+                                <div key={blockIdx}>
+                                  {block.type === 'HEADING' && block.content && (
+                                    <h3 className="text-2xl font-bold mb-2">{block.content}</h3>
+                                  )}
+                                  {block.type === 'TEXT' && block.content && (
+                                    <p className="text-muted-foreground whitespace-pre-wrap">{block.content}</p>
+                                  )}
+                                  {block.type === 'SPACER' && (
+                                    <div className="py-6" />
+                                  )}
+                                  {block.type === 'IMAGE' && block.content && (
+                                    <img src={block.content} alt="" className="w-full max-h-[150px] object-contain rounded-lg" />
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            // Legacy heading/content format
+                            <p className="whitespace-pre-wrap text-muted-foreground" data-testid={`text-page-content-${pageIndex}`}>
+                              {currentPage.content.content || currentPage.content.text}
+                            </p>
+                          )}
+                        </CardContent>
+                      </Card>
+                    )}
                   </>
                 )}
 
