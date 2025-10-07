@@ -80,10 +80,6 @@ function KanbanSkeleton() {
 }
 
 export default function KanbanBoard({ projects, stages, isLoading = false, onAddProject }: KanbanBoardProps) {
-  
-  if (isLoading) {
-    return <KanbanSkeleton />;
-  }
   const queryClient = useQueryClient();
   const { toast } = useToast();
   
@@ -106,6 +102,10 @@ export default function KanbanBoard({ projects, stages, isLoading = false, onAdd
       });
     }
   });
+  
+  if (isLoading) {
+    return <KanbanSkeleton />;
+  }
 
   const getProjectsForStage = (stageId: string) => {
     return projects.filter(project => project.stageId === stageId);
