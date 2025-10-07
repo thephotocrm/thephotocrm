@@ -334,6 +334,7 @@ export interface IStorage {
   
   // Admin Methods
   getAllPhotographersWithStats(): Promise<Array<Photographer & { clientCount: number }>>;
+  updatePhotographerSubscription(photographerId: string, subscriptionStatus: string): Promise<Photographer>;
   logAdminActivity(activity: InsertAdminActivityLog): Promise<AdminActivityLog>;
   getAdminActivityLog(adminUserId?: string, limit?: number): Promise<AdminActivityLog[]>;
 }
@@ -3450,6 +3451,14 @@ export class DatabaseStorage implements IStorage {
     query = query.limit(limit) as any;
     
     return await query;
+  }
+
+  async updatePhotographerSubscription(photographerId: string, subscriptionStatus: string): Promise<Photographer> {
+    const [updated] = await db.update(photographers)
+      .set({ subscriptionStatus })
+      .where(eq(photographers.id, photographerId))
+      .returning();
+    return updated;
   }
 }
 

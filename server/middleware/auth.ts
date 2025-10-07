@@ -101,7 +101,7 @@ export async function requireActiveSubscription(req: Request, res: Response, nex
     }
 
     // Check subscription status
-    const activeStatuses = ['trialing', 'active'];
+    const activeStatuses = ['trialing', 'active', 'unlimited'];
     if (!photographer.subscriptionStatus || !activeStatuses.includes(photographer.subscriptionStatus)) {
       return res.status(402).json({ 
         message: 'Active subscription required',

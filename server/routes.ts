@@ -591,6 +591,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.patch("/api/admin/photographers/:photographerId/subscription", authenticateToken, requireAdmin, async (req, res) => {
+    try {
+      const { photographerId } = req.params;
+      const { subscriptionStatus } = req.body;
+
+      const validStatuses = ['trialing', 'active', 'past_due', 'canceled', 'incomplete', 'unlimited'];
+      if (!validStatuses.includes(subscriptionStatus)) {
+        return res.status(400).json({ message: "Invalid subscription status" });
+      }
+
+      const photographer = await storage.getPhotographer(photographerId);
+      if (!photographer) {
+        return res.status(404).json({ message: "Photographer not found" });
+      }
+
+      const updated = await storage.updatePhotographerSubscription(photographerId, subscriptionStatus);
+
+      // Get admin user ID
+      const adminUserId = req.user!.isImpersonating ? req.user!.adminUserId : req.user!.userId;
+
+      // Log admin activity
+      await storage.logAdminActivity({
+        adminUserId,
+        action: 'UPDATE_SUBSCRIPTION',
+        targetPhotographerId: photographerId,
+        metadata: { 
+          details: `Updated subscription status to: ${subscriptionStatus}`,
+          businessName: photographer.businessName,
+          previousStatus: photographer.subscriptionStatus
+        }
+      });
+
+      res.json(updated);
+    } catch (error) {
+      console.error("Error updating subscription:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   app.get("/api/auth/me", authenticateToken, async (req, res) => {
     try {
       const user = await storage.getUser(req.user!.userId);
