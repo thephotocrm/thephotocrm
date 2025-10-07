@@ -2682,6 +2682,20 @@ ${photographer?.businessName || 'Your Photography Team'}`;
         return res.status(404).json({ message: "Smart File not found for this project" });
       }
 
+      // Check if Smart File has CONTRACT page requiring photographer signature
+      const pagesSnapshot = projectSmartFile.pagesSnapshot || [];
+      const contractPage = pagesSnapshot.find((page: any) => page.pageType === 'CONTRACT');
+      
+      if (contractPage && contractPage.content?.requirePhotographerSignature !== false) {
+        if (!projectSmartFile.photographerSignatureUrl) {
+          return res.status(400).json({ 
+            message: "Photographer signature required",
+            code: "PHOTOGRAPHER_SIGNATURE_REQUIRED",
+            contractPageId: contractPage.id
+          });
+        }
+      }
+
       // Update status to SENT and set sentAt date
       const updatedProjectSmartFile = await storage.updateProjectSmartFile(projectSmartFileId, {
         status: 'SENT',
@@ -2728,6 +2742,46 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       });
     } catch (error) {
       console.error("Send smart file error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // POST /api/projects/:projectId/smart-files/:projectSmartFileId/photographer-sign - Photographer signs contract
+  app.post("/api/projects/:projectId/smart-files/:projectSmartFileId/photographer-sign", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      const { projectId, projectSmartFileId } = req.params;
+      const { photographerSignatureUrl } = req.body;
+
+      if (!photographerSignatureUrl) {
+        return res.status(400).json({ message: "Signature is required" });
+      }
+
+      // Verify project ownership
+      const project = await storage.getProject(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+      if (project.photographerId !== req.user!.photographerId!) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // Get ProjectSmartFile and verify it belongs to this project
+      const projectSmartFiles = await storage.getProjectSmartFilesByProject(projectId);
+      const projectSmartFile = projectSmartFiles.find(psf => psf.id === projectSmartFileId);
+      
+      if (!projectSmartFile) {
+        return res.status(404).json({ message: "Smart File not found for this project" });
+      }
+
+      // Update with photographer signature
+      const updated = await storage.updateProjectSmartFile(projectSmartFileId, {
+        photographerSignatureUrl,
+        photographerSignedAt: new Date()
+      });
+
+      res.json(updated);
+    } catch (error) {
+      console.error("Photographer sign contract error:", error);
       res.status(500).json({ message: "Internal server error" });
     }
   });

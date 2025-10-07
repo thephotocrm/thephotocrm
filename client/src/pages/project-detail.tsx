@@ -36,6 +36,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { PhotographerSignatureDialog } from "@/components/photographer-signature-dialog";
 
 interface Project {
   id: string;
@@ -165,6 +166,9 @@ export default function ProjectDetail() {
   const [selectedSmartFileId, setSelectedSmartFileId] = useState("");
   const [smartFileToSend, setSmartFileToSend] = useState<ProjectSmartFile | null>(null);
   const [smartFileToRemove, setSmartFileToRemove] = useState<ProjectSmartFile | null>(null);
+  const [signatureDialogOpen, setSignatureDialogOpen] = useState(false);
+  const [contractPageToSign, setContractPageToSign] = useState<any>(null);
+  const [pendingSmartFileToSend, setPendingSmartFileToSend] = useState<ProjectSmartFile | null>(null);
 
   const { data: project, isLoading: projectLoading } = useQuery<Project>({
     queryKey: ["/api/projects", id],
@@ -294,12 +298,28 @@ export default function ProjectDetail() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/projects", id, "smart-files"] });
       setSmartFileToSend(null);
+      setPendingSmartFileToSend(null);
       toast({
         title: "Smart File sent",
         description: "The Smart File has been sent to the client."
       });
     },
     onError: (error: any) => {
+      // Check if photographer signature is required
+      if (error.code === "PHOTOGRAPHER_SIGNATURE_REQUIRED" && smartFileToSend) {
+        // Find the contract page from the Smart File
+        const pagesSnapshot = smartFileToSend.pagesSnapshot || [];
+        const contractPage = pagesSnapshot.find((page: any) => page.pageType === 'CONTRACT');
+        
+        if (contractPage) {
+          setContractPageToSign(contractPage);
+          setPendingSmartFileToSend(smartFileToSend);
+          setSignatureDialogOpen(true);
+          setSmartFileToSend(null);
+          return;
+        }
+      }
+      
       toast({
         title: "Failed to send Smart File",
         description: error.message || "An error occurred",
@@ -1242,6 +1262,30 @@ export default function ProjectDetail() {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+
+        {/* Photographer Signature Dialog */}
+        {pendingSmartFileToSend && project && (
+          <PhotographerSignatureDialog
+            open={signatureDialogOpen}
+            onOpenChange={setSignatureDialogOpen}
+            projectId={id!}
+            projectSmartFileId={pendingSmartFileToSend.id}
+            contractPage={contractPageToSign}
+            projectData={{
+              clientName: `${project.client.firstName} ${project.client.lastName}`,
+              photographerName: user?.photographerName || '',
+              projectTitle: project.title,
+              projectType: project.projectType,
+            }}
+            onSignatureComplete={() => {
+              // After signing, retry sending the Smart File
+              if (pendingSmartFileToSend) {
+                setSmartFileToSend(pendingSmartFileToSend);
+                sendSmartFileMutation.mutate(pendingSmartFileToSend.id);
+              }
+            }}
+          />
+        )}
     </>
   );
 }
