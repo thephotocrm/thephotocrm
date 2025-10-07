@@ -23,6 +23,7 @@ import Templates from "@/pages/templates";
 import Automations from "@/pages/automations";
 import DripCampaigns from "@/pages/drip-campaigns";
 import Packages from "@/pages/packages";
+import AddOns from "@/pages/add-ons";
 import SmartFiles from "@/pages/smart-files";
 import SmartFileBuilder from "@/pages/smart-file-builder";
 import WidgetGenerator from "@/pages/widget-generator";
@@ -71,6 +72,7 @@ function ProtectedRoutes() {
             <Route path="/automations" component={Automations} />
             <Route path="/drip-campaigns" component={DripCampaigns} />
             <Route path="/packages" component={Packages} />
+            <Route path="/add-ons" component={AddOns} />
             <Route path="/smart-files" component={SmartFiles} />
             <Route path="/smart-files/:id/edit" component={SmartFileBuilder} />
             <Route path="/widget-generator" component={WidgetGenerator} />
@@ -124,6 +126,7 @@ function Router() {
       <Route path="/automations"><ProtectedRoutes /></Route>
       <Route path="/drip-campaigns"><ProtectedRoutes /></Route>
       <Route path="/packages"><ProtectedRoutes /></Route>
+      <Route path="/add-ons"><ProtectedRoutes /></Route>
       <Route path="/smart-files"><ProtectedRoutes /></Route>
       <Route path="/smart-files/:id/edit"><ProtectedRoutes /></Route>
       <Route path="/widget-generator"><ProtectedRoutes /></Route>
