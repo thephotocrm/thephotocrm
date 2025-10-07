@@ -39,6 +39,7 @@ import SmartFileSuccess from "@/pages/smart-file-success";
 import PublicBooking from "@/pages/public-booking";
 import PublicBookingCalendar from "@/pages/public-booking-calendar";
 import AdminDashboard from "@/pages/admin-dashboard";
+import AdminSetup from "@/pages/admin-setup";
 import NotFound from "@/pages/not-found";
 
 const Checkout = lazy(() => import("@/pages/checkout"));
@@ -112,6 +113,7 @@ function Router() {
       <Route path="/smart-file/:token" component={PublicSmartFile} />
       <Route path="/public/booking/:token" component={PublicBooking} />
       <Route path="/booking/calendar/:publicToken" component={PublicBookingCalendar} />
+      <Route path="/admin/setup" component={AdminSetup} />
       
       {/* Protected app routes - match specific paths */}
       <Route path="/dashboard"><ProtectedRoutes /></Route>
