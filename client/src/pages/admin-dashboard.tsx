@@ -14,7 +14,14 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Search, LogIn, Shield } from 'lucide-react';
+import { Search, LogIn, Shield, Crown } from 'lucide-react';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 interface PhotographerWithStats {
   id: string;
@@ -23,6 +30,7 @@ interface PhotographerWithStats {
   clientCount: number;
   createdAt: Date | null;
   timezone: string | null;
+  subscriptionStatus: string | null;
 }
 
 export default function AdminDashboard() {
@@ -51,6 +59,28 @@ export default function AdminDashboard() {
       toast({
         title: 'Impersonation Failed',
         description: error.message || 'Failed to impersonate photographer',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const updateSubscriptionMutation = useMutation({
+    mutationFn: async ({ photographerId, subscriptionStatus }: { photographerId: string; subscriptionStatus: string }) => {
+      return await apiRequest('PATCH', `/api/admin/photographers/${photographerId}/subscription`, {
+        subscriptionStatus
+      });
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['/api/admin/photographers'] });
+      toast({
+        title: 'Subscription Updated',
+        description: 'Photographer subscription status has been updated.',
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Update Failed',
+        description: error.message || 'Failed to update subscription',
         variant: 'destructive',
       });
     },
@@ -112,49 +142,88 @@ export default function AdminDashboard() {
                 <TableRow>
                   <TableHead>Business Name</TableHead>
                   <TableHead>Email</TableHead>
+                  <TableHead>Subscription</TableHead>
                   <TableHead>Clients</TableHead>
-                  <TableHead>Timezone</TableHead>
                   <TableHead>Created</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredPhotographers && filteredPhotographers.length > 0 ? (
-                  filteredPhotographers.map((photographer) => (
-                    <TableRow key={photographer.id} data-testid={`row-photographer-${photographer.id}`}>
-                      <TableCell className="font-medium">
-                        {photographer.businessName}
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {photographer.email || 'N/A'}
-                      </TableCell>
-                      <TableCell>
-                        <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700">
-                          {photographer.clientCount} clients
-                        </span>
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {photographer.timezone || 'N/A'}
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {photographer.createdAt
-                          ? new Date(photographer.createdAt).toLocaleDateString()
-                          : 'N/A'}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => impersonateMutation.mutate(photographer.id)}
-                          disabled={impersonateMutation.isPending}
-                          data-testid={`button-impersonate-${photographer.id}`}
-                        >
-                          <LogIn className="h-4 w-4 mr-2" />
-                          Login As
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))
+                  filteredPhotographers.map((photographer) => {
+                    const getStatusBadge = (status: string | null) => {
+                      if (!status) return <span className="inline-flex items-center rounded-full bg-gray-100 px-2 py-1 text-xs font-medium text-gray-700">None</span>;
+                      if (status === 'unlimited') return <span className="inline-flex items-center rounded-full bg-purple-100 px-2 py-1 text-xs font-medium text-purple-700"><Crown className="h-3 w-3 mr-1" />Unlimited</span>;
+                      if (status === 'active') return <span className="inline-flex items-center rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-700">Active</span>;
+                      if (status === 'trialing') return <span className="inline-flex items-center rounded-full bg-blue-100 px-2 py-1 text-xs font-medium text-blue-700">Trial</span>;
+                      if (status === 'past_due') return <span className="inline-flex items-center rounded-full bg-orange-100 px-2 py-1 text-xs font-medium text-orange-700">Past Due</span>;
+                      if (status === 'canceled') return <span className="inline-flex items-center rounded-full bg-red-100 px-2 py-1 text-xs font-medium text-red-700">Canceled</span>;
+                      return <span className="inline-flex items-center rounded-full bg-gray-100 px-2 py-1 text-xs font-medium text-gray-700">{status}</span>;
+                    };
+
+                    return (
+                      <TableRow key={photographer.id} data-testid={`row-photographer-${photographer.id}`}>
+                        <TableCell className="font-medium">
+                          {photographer.businessName}
+                        </TableCell>
+                        <TableCell className="text-muted-foreground">
+                          {photographer.email || 'N/A'}
+                        </TableCell>
+                        <TableCell>
+                          <Select
+                            value={photographer.subscriptionStatus || 'none'}
+                            onValueChange={(value) => {
+                              updateSubscriptionMutation.mutate({
+                                photographerId: photographer.id,
+                                subscriptionStatus: value
+                              });
+                            }}
+                            disabled={updateSubscriptionMutation.isPending}
+                          >
+                            <SelectTrigger className="w-[140px]" data-testid={`select-subscription-${photographer.id}`}>
+                              <SelectValue>
+                                {getStatusBadge(photographer.subscriptionStatus)}
+                              </SelectValue>
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="unlimited">
+                                <div className="flex items-center">
+                                  <Crown className="h-3 w-3 mr-2" />
+                                  Unlimited
+                                </div>
+                              </SelectItem>
+                              <SelectItem value="active">Active</SelectItem>
+                              <SelectItem value="trialing">Trial</SelectItem>
+                              <SelectItem value="past_due">Past Due</SelectItem>
+                              <SelectItem value="canceled">Canceled</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </TableCell>
+                        <TableCell>
+                          <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700">
+                            {photographer.clientCount} clients
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-muted-foreground">
+                          {photographer.createdAt
+                            ? new Date(photographer.createdAt).toLocaleDateString()
+                            : 'N/A'}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => impersonateMutation.mutate(photographer.id)}
+                            disabled={impersonateMutation.isPending}
+                            data-testid={`button-impersonate-${photographer.id}`}
+                          >
+                            <LogIn className="h-4 w-4 mr-2" />
+                            Login As
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })
                 ) : (
                   <TableRow>
                     <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
