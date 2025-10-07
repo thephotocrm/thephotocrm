@@ -139,37 +139,62 @@ export default function PublicSmartFile() {
     refetchOnMount: true, // Refetch when component mounts
   });
 
-  // Helper function to merge fresh package data with page snapshots
+  // Fetch fresh add-on data to show latest name, description, and images
+  const { data: freshAddOns } = useQuery<any[]>({
+    queryKey: [`/api/public/smart-files/${params?.token}/add-ons`],
+    enabled: !!params?.token && !!data,
+    staleTime: 0, // Always consider data stale
+    refetchOnWindowFocus: true, // Refetch when user returns to tab
+    refetchOnMount: true, // Refetch when component mounts
+  });
+
+  // Helper function to merge fresh package and add-on data with page snapshots
   const getMergedPages = () => {
-    if (!data || !freshPackages) return data?.smartFile.pages || [];
+    if (!data || !freshPackages || !freshAddOns) return data?.smartFile.pages || [];
     
     return data.smartFile.pages.map(page => {
-      if (page.pageType !== 'PACKAGE' || !page.content.packages) {
-        return page;
+      // Handle PACKAGE pages
+      if (page.pageType === 'PACKAGE' && page.content.packages) {
+        // Merge fresh package data with snapshot packages
+        const mergedPackages = page.content.packages.map((snapshotPkg: any) => {
+          const freshPkg = freshPackages.find(fp => fp.id === snapshotPkg.id);
+          
+          if (!freshPkg) return snapshotPkg; // Package might have been deleted
+          
+          // Use fresh data for name, description, and image, but keep snapshot price
+          return {
+            ...snapshotPkg,
+            name: freshPkg.name,
+            description: freshPkg.description,
+            imageUrl: freshPkg.imageUrl
+          };
+        });
+
+        return {
+          ...page,
+          content: {
+            ...page.content,
+            packages: mergedPackages
+          }
+        };
       }
 
-      // Merge fresh package data with snapshot packages
-      const mergedPackages = page.content.packages.map((snapshotPkg: any) => {
-        const freshPkg = freshPackages.find(fp => fp.id === snapshotPkg.id);
-        
-        if (!freshPkg) return snapshotPkg; // Package might have been deleted
-        
-        // Use fresh data for name, description, and image, but keep snapshot price
-        return {
-          ...snapshotPkg,
-          name: freshPkg.name,
-          description: freshPkg.description,
-          imageUrl: freshPkg.imageUrl
-        };
-      });
+      // Handle ADDON pages - convert addOnIds to full add-on objects
+      if (page.pageType === 'ADDON' && page.content.addOnIds) {
+        const addOns = page.content.addOnIds
+          .map((id: string) => freshAddOns.find((addon: any) => addon.id === id))
+          .filter(Boolean); // Remove any undefined values if add-on was deleted
 
-      return {
-        ...page,
-        content: {
-          ...page.content,
-          packages: mergedPackages
-        }
-      };
+        return {
+          ...page,
+          content: {
+            ...page.content,
+            addOns
+          }
+        };
+      }
+
+      return page;
     });
   };
 
