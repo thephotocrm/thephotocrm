@@ -113,6 +113,7 @@ export default function PublicSmartFile() {
   const [clientSignature, setClientSignature] = useState<string | null>(null);
   const [selectedPaymentOption, setSelectedPaymentOption] = useState<'DEPOSIT' | 'FULL' | null>(null);
   const hasAutoAcceptedRef = useRef(false);
+  const contractRendererRef = useRef<HTMLDivElement>(null);
 
   const { data, isLoading, error } = useQuery<SmartFileData>({
     queryKey: [`/api/public/smart-files/${params?.token}`],
@@ -288,7 +289,13 @@ export default function PublicSmartFile() {
 
   const saveSignatureMutation = useMutation({
     mutationFn: async (signatureData: { clientSignatureUrl: string }) => {
-      await apiRequest("PATCH", `/api/public/smart-files/${params?.token}/sign`, signatureData);
+      // Capture the contract HTML at signature time for legal record
+      const contractHtml = contractRendererRef.current?.innerHTML || '';
+      
+      await apiRequest("PATCH", `/api/public/smart-files/${params?.token}/sign`, {
+        ...signatureData,
+        contractHtml
+      });
       return { signed: true };
     },
     onSuccess: () => {
@@ -1253,7 +1260,7 @@ export default function PublicSmartFile() {
                       </CardHeader>
                       <CardContent className="space-y-6">
                         {/* Parsed Contract with Rich Package/Addon Cards */}
-                        <div className="prose prose-sm max-w-none bg-muted/30 p-6 rounded-lg border">
+                        <div ref={contractRendererRef} className="prose prose-sm max-w-none bg-muted/30 p-6 rounded-lg border">
                           <ContractRenderer
                             template={currentPage.content.contractTemplate || ''}
                             variables={{

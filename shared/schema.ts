@@ -738,6 +738,10 @@ export const projectSmartFiles = pgTable("project_smart_files", {
   photographerSignatureUrl: text("photographer_signature_url"),
   clientSignedAt: timestamp("client_signed_at"),
   photographerSignedAt: timestamp("photographer_signed_at"),
+  clientSignedIp: text("client_signed_ip"), // IP address at time of client signature
+  clientSignedUserAgent: text("client_signed_user_agent"), // Browser info at signature
+  contractSnapshotHtml: text("contract_snapshot_html"), // Full rendered contract HTML at signature time
+  contractPdfUrl: text("contract_pdf_url"), // Generated PDF of signed contract
   
   // Access token for client view
   token: varchar("token").default(sql`gen_random_uuid()`),

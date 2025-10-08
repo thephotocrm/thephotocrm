@@ -3135,7 +3135,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
   app.patch("/api/public/smart-files/:token/sign", async (req, res) => {
     try {
       const { token } = req.params;
-      const { clientSignatureUrl } = req.body;
+      const { clientSignatureUrl, contractHtml } = req.body;
 
       if (!clientSignatureUrl) {
         return res.status(400).json({ message: "Signature is required" });
@@ -3147,10 +3147,31 @@ ${photographer?.businessName || 'Your Photography Team'}`;
         return res.status(404).json({ message: "Smart File not found" });
       }
 
-      // Update with client signature
+      // Capture IP and user agent for legal audit trail
+      const clientIp = req.ip || req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+      const userAgent = req.get('User-Agent');
+
+      // Generate PDF from contract HTML for legal record
+      let contractPdfUrl: string | undefined;
+      if (contractHtml) {
+        try {
+          const { generateContractPDF, bufferToDataURL } = await import('./utils/pdf-generator');
+          const pdfBuffer = await generateContractPDF(contractHtml);
+          contractPdfUrl = bufferToDataURL(pdfBuffer);
+        } catch (error) {
+          console.error('PDF generation failed:', error);
+          // Continue without PDF - we still have the HTML snapshot
+        }
+      }
+
+      // Update with client signature and legal metadata
       const updated = await storage.updateProjectSmartFile(projectSmartFile.id, {
         clientSignatureUrl,
-        clientSignedAt: new Date()
+        clientSignedAt: new Date(),
+        clientSignedIp: clientIp,
+        clientSignedUserAgent: userAgent,
+        contractSnapshotHtml: contractHtml, // Store exact HTML at signature time
+        contractPdfUrl // Store generated PDF for easy viewing/download
       });
 
       // Log contract signature to project history
@@ -3161,8 +3182,54 @@ ${photographer?.businessName || 'Your Photography Team'}`;
         title: `Contract signed: ${projectSmartFile.smartFileName}`,
         description: `Client signed the contract for "${projectSmartFile.smartFileName}"`,
         relatedId: projectSmartFile.id,
-        relatedType: 'PROJECT_SMART_FILE'
+        relatedType: 'PROJECT_SMART_FILE',
+        metadata: JSON.stringify({
+          clientIp,
+          userAgent,
+          signedAt: new Date().toISOString()
+        })
       });
+
+      // Send contract signature confirmation email to client
+      try {
+        const [project, client] = await Promise.all([
+          storage.getProject(projectSmartFile.projectId),
+          storage.getClient(projectSmartFile.clientId)
+        ]);
+
+        if (client?.email) {
+          const { sendEmail } = await import('./services/email');
+          
+          const emailHtml = `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+              <h2 style="color: #2563eb;">Contract Signed Successfully</h2>
+              <p>Hi ${client.firstName},</p>
+              <p>Thank you for signing the contract for <strong>${projectSmartFile.smartFileName}</strong>.</p>
+              <p>Your signature has been recorded and both parties have a legally binding agreement.</p>
+              <div style="background-color: #f3f4f6; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                <p style="margin: 5px 0;"><strong>Contract:</strong> ${projectSmartFile.smartFileName}</p>
+                <p style="margin: 5px 0;"><strong>Signed on:</strong> ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
+                ${contractPdfUrl ? '<p style="margin: 5px 0;">A PDF copy of the signed contract has been generated for your records.</p>' : ''}
+              </div>
+              <p>If you have any questions, please don't hesitate to reach out.</p>
+              <p>Best regards,<br>${project?.photographerName || 'Your photographer'}</p>
+            </div>
+          `;
+
+          await sendEmail({
+            to: client.email,
+            subject: `Contract Signed: ${projectSmartFile.smartFileName}`,
+            html: emailHtml,
+            photographerId: projectSmartFile.photographerId,
+            clientId: client.id,
+            projectId: projectSmartFile.projectId,
+            source: 'MANUAL'
+          });
+        }
+      } catch (emailError) {
+        console.error('Failed to send contract signature email:', emailError);
+        // Don't fail the request if email fails
+      }
 
       res.json(updated);
     } catch (error) {
@@ -3430,6 +3497,55 @@ ${photographer?.businessName || 'Your Photography Team'}`;
           paymentIntentId
         })
       });
+
+      // Send payment receipt email to client
+      try {
+        const [project, client] = await Promise.all([
+          storage.getProject(projectSmartFile.projectId),
+          storage.getClient(projectSmartFile.clientId)
+        ]);
+
+        if (client?.email) {
+          const { sendEmail } = await import('./services/email');
+          
+          const tipAmount = tipCents ? tipCents / 100 : 0;
+          const totalWithTip = paymentAmount + tipAmount;
+          
+          const emailHtml = `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+              <h2 style="color: #2563eb;">Payment Receipt</h2>
+              <p>Hi ${client.firstName},</p>
+              <p>Thank you for your payment! We've received your ${paymentType.toLowerCase()} payment for <strong>${projectSmartFile.smartFileName}</strong>.</p>
+              <div style="background-color: #f3f4f6; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                <p style="margin: 5px 0;"><strong>Contract:</strong> ${projectSmartFile.smartFileName}</p>
+                <p style="margin: 5px 0;"><strong>Payment Type:</strong> ${paymentType === 'DEPOSIT' ? 'Deposit' : paymentType === 'BALANCE' ? 'Balance' : 'Full Payment'}</p>
+                <p style="margin: 5px 0;"><strong>Amount Paid:</strong> $${paymentAmount.toFixed(2)}</p>
+                ${tipCents > 0 ? `<p style="margin: 5px 0;"><strong>Tip:</strong> $${tipAmount.toFixed(2)}</p>` : ''}
+                ${tipCents > 0 ? `<p style="margin: 5px 0;"><strong>Total Charged:</strong> $${totalWithTip.toFixed(2)}</p>` : ''}
+                <p style="margin: 5px 0;"><strong>Date:</strong> ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
+                <p style="margin: 5px 0;"><strong>Transaction ID:</strong> ${paymentIntentId}</p>
+                ${newBalanceDue > 0 ? `<p style="margin: 10px 0 5px 0; color: #dc2626;"><strong>Balance Remaining:</strong> $${(newBalanceDue / 100).toFixed(2)}</p>` : '<p style="margin: 10px 0 5px 0; color: #16a34a;"><strong>Status:</strong> Paid in Full</p>'}
+              </div>
+              <p>This email serves as your receipt. Please keep it for your records.</p>
+              <p>Thank you for your business!</p>
+              <p>Best regards,<br>${project?.photographerName || 'Your photographer'}</p>
+            </div>
+          `;
+
+          await sendEmail({
+            to: client.email,
+            subject: `Payment Receipt - ${projectSmartFile.smartFileName}`,
+            html: emailHtml,
+            photographerId: projectSmartFile.photographerId,
+            clientId: client.id,
+            projectId: projectSmartFile.projectId,
+            source: 'MANUAL'
+          });
+        }
+      } catch (emailError) {
+        console.error('Failed to send payment receipt email:', emailError);
+        // Don't fail the request if email fails
+      }
 
       res.json({ 
         success: true, 
