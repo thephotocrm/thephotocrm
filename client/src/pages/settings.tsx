@@ -86,14 +86,21 @@ export default function Settings() {
 
   const createOnboardingLinkMutation = useMutation({
     mutationFn: async () => {
+      console.log('[STRIPE DEBUG] Starting onboarding link request...');
       const response = await apiRequest("POST", "/api/stripe-connect/create-onboarding-link", {
         returnUrl: `${window.location.origin}/settings?tab=integrations&stripe=success`,
         refreshUrl: `${window.location.origin}/settings?tab=integrations&stripe=refresh`
       });
+      console.log('[STRIPE DEBUG] Response received:', response);
+      console.log('[STRIPE DEBUG] Response type:', typeof response);
+      console.log('[STRIPE DEBUG] Response.url:', response?.url);
       return response;
     },
     onSuccess: (data: any) => {
+      console.log('[STRIPE DEBUG] onSuccess called with data:', data);
+      console.log('[STRIPE DEBUG] data.url:', data.url);
       if (data.url) {
+        console.log('[STRIPE DEBUG] Opening window with URL:', data.url);
         window.open(data.url, '_blank', 'width=800,height=700');
         // Poll for connection status after opening onboarding window
         const pollInterval = setInterval(async () => {
@@ -109,9 +116,12 @@ export default function Settings() {
         
         // Stop polling after 10 minutes
         setTimeout(() => clearInterval(pollInterval), 10 * 60 * 1000);
+      } else {
+        console.error('[STRIPE DEBUG] No URL in response data!');
       }
     },
     onError: (error: any) => {
+      console.error('[STRIPE DEBUG] Error:', error);
       toast({
         title: "Onboarding Failed",
         description: error.message || "Failed to start onboarding. Please try again.",
