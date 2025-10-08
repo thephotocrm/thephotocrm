@@ -3000,6 +3000,13 @@ ${photographer?.businessName || 'Your Photography Team'}`;
         return res.status(404).json({ message: "Smart File not found" });
       }
 
+      // Prevent selection changes after contract is signed
+      if (projectSmartFile.clientSignatureUrl) {
+        return res.status(400).json({ 
+          message: "Cannot change selections after signing the contract. Selections are locked to preserve contract integrity." 
+        });
+      }
+
       // Update status to ACCEPTED and store selections
       const updated = await storage.updateProjectSmartFile(projectSmartFile.id, {
         status: 'ACCEPTED',

@@ -455,6 +455,9 @@ export default function PublicSmartFile() {
   
   // Client must sign contract before accessing payment
   const canAccessPayment = !requiresClientSignature || clientHasSigned;
+  
+  // Lock selections after client signature to preserve contract integrity
+  const selectionsLocked = clientHasSigned;
 
   // Get current page for single-page view
   const currentPage = sortedPages[currentPageIndex];
@@ -917,6 +920,17 @@ export default function PublicSmartFile() {
                     {currentPage.content.description && (
                       <p className="text-xl text-muted-foreground mb-6 leading-relaxed text-center">{currentPage.content.description}</p>
                     )}
+                    {selectionsLocked && (
+                      <div className="p-4 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg mb-4">
+                        <div className="flex items-center gap-2 text-amber-800 dark:text-amber-400">
+                          <CheckCircle className="w-5 h-5" />
+                          <p className="font-medium">Selections Locked - Contract Signed</p>
+                        </div>
+                        <p className="text-sm text-amber-700 dark:text-amber-500 mt-1">
+                          Package selections are locked after signing the contract to preserve contract integrity.
+                        </p>
+                      </div>
+                    )}
                     <div className="space-y-4">
                         {currentPage.content.packages?.map((pkg: any) => {
                           const isSelected = selectedPackage?.packageId === pkg.id;
@@ -928,7 +942,7 @@ export default function PublicSmartFile() {
                               isSelected
                                 ? 'border-primary shadow-lg'
                                 : 'hover:border-primary/40 hover:shadow-lg'
-                            } ${isAccepted ? 'cursor-not-allowed opacity-60' : ''}`}
+                            } ${selectionsLocked ? 'cursor-not-allowed opacity-60' : ''}`}
                             data-testid={`card-package-${pkg.id}`}
                           >
                             <CardContent className="p-6">
@@ -984,9 +998,9 @@ export default function PublicSmartFile() {
                                     <Button
                                       onClick={(e) => {
                                         e.stopPropagation();
-                                        !isAccepted && handlePackageSelect(currentPage, pkg);
+                                        !selectionsLocked && handlePackageSelect(currentPage, pkg);
                                       }}
-                                      disabled={isAccepted}
+                                      disabled={selectionsLocked}
                                       variant={isSelected ? "default" : "outline"}
                                       className={isSelected ? "bg-primary text-primary-foreground" : ""}
                                       data-testid={`button-select-package-${pkg.id}`}
@@ -1026,6 +1040,17 @@ export default function PublicSmartFile() {
                       )}
                     </CardHeader>
                     <CardContent className="pt-6 space-y-4">
+                      {selectionsLocked && (
+                        <div className="p-4 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+                          <div className="flex items-center gap-2 text-amber-800 dark:text-amber-400">
+                            <CheckCircle className="w-5 h-5" />
+                            <p className="font-medium">Selections Locked - Contract Signed</p>
+                          </div>
+                          <p className="text-sm text-amber-700 dark:text-amber-500 mt-1">
+                            Add-on selections are locked after signing the contract to preserve contract integrity.
+                          </p>
+                        </div>
+                      )}
                       {currentPage.content.addOns?.map((addOn: any, addonIdx: number) => {
                         const key = `${currentPage.id}-${addOn.id}`;
                         const isSelected = selectedAddOns.has(key);
@@ -1041,22 +1066,22 @@ export default function PublicSmartFile() {
                                 ? 'border-primary bg-gradient-to-br from-primary/10 via-primary/5 to-background shadow-lg shadow-primary/10' 
                                 : 'border-border bg-card hover:border-primary/30 hover:shadow-md'
                               } 
-                              ${isAccepted ? 'opacity-60 cursor-not-allowed' : ''}
+                              ${selectionsLocked ? 'opacity-60 cursor-not-allowed' : ''}
                             `}
                             data-testid={`card-addon-${addOn.id}`}
                             style={{
                               animationDelay: `${addonIdx * 80}ms`
                             }}
-                            onClick={() => !isAccepted && !isSelected && handleAddOnToggle(currentPage, addOn, true)}
+                            onClick={() => !selectionsLocked && !isSelected && handleAddOnToggle(currentPage, addOn, true)}
                           >
                             <div className="flex items-start gap-4">
                               <Checkbox
                                 id={addOn.id}
                                 checked={isSelected}
                                 onCheckedChange={(checked) => 
-                                  !isAccepted && handleAddOnToggle(currentPage, addOn, checked as boolean)
+                                  !selectionsLocked && handleAddOnToggle(currentPage, addOn, checked as boolean)
                                 }
-                                disabled={isAccepted}
+                                disabled={selectionsLocked}
                                 className="mt-1.5 data-[state=checked]:border-primary data-[state=checked]:bg-primary"
                                 data-testid={`checkbox-addon-${addOn.id}`}
                                 onClick={(e) => e.stopPropagation()}
@@ -1108,7 +1133,7 @@ export default function PublicSmartFile() {
                                         variant="outline"
                                         size="sm"
                                         onClick={() => handleAddOnQuantityChange(currentPage, addOn, -1)}
-                                        disabled={isAccepted || quantity <= 1}
+                                        disabled={selectionsLocked || quantity <= 1}
                                         data-testid={`button-decrease-quantity-${addOn.id}`}
                                         className="h-8 w-8 p-0 hover:bg-primary/10 hover:border-primary hover:scale-110 active:scale-95 transition-all duration-200"
                                       >
@@ -1129,7 +1154,7 @@ export default function PublicSmartFile() {
                                         variant="outline"
                                         size="sm"
                                         onClick={() => handleAddOnQuantityChange(currentPage, addOn, 1)}
-                                        disabled={isAccepted || quantity >= 10}
+                                        disabled={selectionsLocked || quantity >= 10}
                                         data-testid={`button-increase-quantity-${addOn.id}`}
                                         className="h-8 w-8 p-0 hover:bg-primary/10 hover:border-primary hover:scale-110 active:scale-95 transition-all duration-200"
                                       >
