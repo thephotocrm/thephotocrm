@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { useRoute, useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -111,6 +111,7 @@ export default function PublicSmartFile() {
   const [selectionsRehydrated, setSelectionsRehydrated] = useState(false);
   const [showClientSignaturePad, setShowClientSignaturePad] = useState(false);
   const [clientSignature, setClientSignature] = useState<string | null>(null);
+  const hasAutoAcceptedRef = useRef(false);
 
   const { data, isLoading, error } = useQuery<SmartFileData>({
     queryKey: [`/api/public/smart-files/${params?.token}`],
@@ -265,12 +266,17 @@ export default function PublicSmartFile() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/public/smart-files/${params?.token}`] });
-      toast({
-        title: "Proposal Accepted",
-        description: "Your selections have been saved. Choose a payment option below.",
-      });
+      // Only show toast if not auto-accepting (ref was set)
+      if (!hasAutoAcceptedRef.current) {
+        toast({
+          title: "Proposal Accepted",
+          description: "Your selections have been saved. Choose a payment option below.",
+        });
+      }
     },
     onError: (error: any) => {
+      // Reset ref on error so user can manually retry
+      hasAutoAcceptedRef.current = false;
       toast({
         title: "Error",
         description: error.message || "Failed to accept Smart File. Please try again.",
@@ -325,6 +331,30 @@ export default function PublicSmartFile() {
       });
     }
   });
+
+  // Auto-accept proposal when on payment page if signed but not yet accepted
+  useEffect(() => {
+    if (!data || hasAutoAcceptedRef.current || acceptMutation.isPending) return;
+    
+    const mergedPages = getMergedPages();
+    const sortedPages = [...mergedPages].sort((a, b) => a.pageOrder - b.pageOrder);
+    const currentPage = sortedPages[currentPageIndex];
+    
+    // Check if on payment page
+    if (currentPage?.pageType !== 'PAYMENT') return;
+    
+    const isAccepted = ['ACCEPTED', 'DEPOSIT_PAID', 'PAID'].includes(data.projectSmartFile.status);
+    const contractPage = sortedPages.find(p => p.pageType === 'CONTRACT');
+    const requiresClientSignature = contractPage && contractPage.content.requireClientSignature !== false;
+    const clientHasSigned = !!data.projectSmartFile.clientSignatureUrl;
+    const canPay = !requiresClientSignature || clientHasSigned;
+    
+    // Auto-accept if: not accepted, can pay (signed if needed), and has selections
+    if (!isAccepted && canPay && selectedPackages.size > 0) {
+      hasAutoAcceptedRef.current = true;
+      handleAccept();
+    }
+  }, [data, currentPageIndex, selectedPackages, acceptMutation.isPending]);
 
   const { subtotal, depositAmount, total } = useMemo(() => {
     let subtotalCents = 0;
