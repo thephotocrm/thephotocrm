@@ -111,6 +111,7 @@ export default function PublicSmartFile() {
   const [selectionsRehydrated, setSelectionsRehydrated] = useState(false);
   const [showClientSignaturePad, setShowClientSignaturePad] = useState(false);
   const [clientSignature, setClientSignature] = useState<string | null>(null);
+  const [selectedPaymentOption, setSelectedPaymentOption] = useState<'DEPOSIT' | 'FULL' | null>(null);
   const hasAutoAcceptedRef = useRef(false);
 
   const { data, isLoading, error } = useQuery<SmartFileData>({
@@ -1547,35 +1548,25 @@ export default function PublicSmartFile() {
                               You will receive a confirmation email shortly. If you have any questions, please contact {data.photographer.businessName}.
                             </p>
                           </div>
-                        ) : (
+                        ) : data.projectSmartFile.status === 'DEPOSIT_PAID' ? (
                           <div className="space-y-4">
-                            {/* Success Message */}
-                            <div className="p-4 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 rounded-lg">
-                              <div className="flex items-center gap-2 text-green-800 dark:text-green-400">
+                            {/* Deposit Paid - Show Balance Due */}
+                            <div className="p-4 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                              <div className="flex items-center gap-2 text-blue-800 dark:text-blue-400">
                                 <CheckCircle className="w-5 h-5" />
-                                <p className="font-medium">Proposal Accepted</p>
+                                <p className="font-medium">Deposit Paid - Balance Due</p>
                               </div>
                             </div>
 
-                            {/* Unified Payment Form */}
+                            {/* Balance Payment Form */}
                             {currentPage.content.acceptOnlinePayments && (
                               <EmbeddedPaymentForm
                                 token={params?.token || ''}
                                 status={data.projectSmartFile.status}
-                                paymentType={
-                                  data.projectSmartFile.status === 'DEPOSIT_PAID' ? 'BALANCE' :
-                                  (depositAmount > 0 && depositAmount < total) ? 'DEPOSIT' :
-                                  'FULL'
-                                }
-                                baseAmount={
-                                  data.projectSmartFile.status === 'DEPOSIT_PAID' ? (data.projectSmartFile.balanceDueCents || 0) :
-                                  (depositAmount > 0 && depositAmount < total) ? depositAmount :
-                                  total
-                                }
+                                paymentType="BALANCE"
+                                baseAmount={data.projectSmartFile.balanceDueCents || 0}
                                 publishableKey={import.meta.env.VITE_STRIPE_PUBLIC_KEY || ''}
                                 onSuccess={() => {
-                                  // Navigate to success page using SPA router
-                                  // This prevents additional submissions during navigation
                                   setLocation(`/smart-file/${params?.token}/success`);
                                 }}
                                 onError={(error) => {
@@ -1586,6 +1577,109 @@ export default function PublicSmartFile() {
                                   });
                                 }}
                               />
+                            )}
+                          </div>
+                        ) : (
+                          <div className="space-y-4">
+                            {/* Success Message */}
+                            <div className="p-4 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 rounded-lg">
+                              <div className="flex items-center gap-2 text-green-800 dark:text-green-400">
+                                <CheckCircle className="w-5 h-5" />
+                                <p className="font-medium">Proposal Accepted</p>
+                              </div>
+                            </div>
+
+                            {/* Payment Option Selector */}
+                            {currentPage.content.acceptOnlinePayments && !selectedPaymentOption && depositAmount > 0 && depositAmount < total && (
+                              <div className="space-y-3">
+                                <h3 className="text-sm font-medium">Choose your payment option:</h3>
+                                <div className="grid gap-3">
+                                  <Button
+                                    variant="outline"
+                                    className="h-auto p-4 justify-between hover:bg-accent"
+                                    onClick={() => setSelectedPaymentOption('DEPOSIT')}
+                                    data-testid="button-pay-deposit"
+                                  >
+                                    <div className="text-left">
+                                      <div className="font-semibold">Pay Deposit</div>
+                                      <div className="text-xs text-muted-foreground">
+                                        Pay {depositAmount > 0 ? Math.round((depositAmount / total) * 100) : 0}% now, rest later
+                                      </div>
+                                    </div>
+                                    <div className="text-lg font-bold">{formatPrice(depositAmount)}</div>
+                                  </Button>
+                                  <Button
+                                    variant="outline"
+                                    className="h-auto p-4 justify-between hover:bg-accent"
+                                    onClick={() => setSelectedPaymentOption('FULL')}
+                                    data-testid="button-pay-full"
+                                  >
+                                    <div className="text-left">
+                                      <div className="font-semibold">Pay in Full</div>
+                                      <div className="text-xs text-muted-foreground">Complete payment today</div>
+                                    </div>
+                                    <div className="text-lg font-bold">{formatPrice(total)}</div>
+                                  </Button>
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Payment Form - Shows after option selected or if no deposit configured */}
+                            {currentPage.content.acceptOnlinePayments && (
+                              <>
+                                {/* If deposit not configured or invalid, show payment form directly */}
+                                {(depositAmount === 0 || depositAmount >= total) && !selectedPaymentOption && (
+                                  <EmbeddedPaymentForm
+                                    token={params?.token || ''}
+                                    status={data.projectSmartFile.status}
+                                    paymentType="FULL"
+                                    baseAmount={total}
+                                    publishableKey={import.meta.env.VITE_STRIPE_PUBLIC_KEY || ''}
+                                    onSuccess={() => {
+                                      setLocation(`/smart-file/${params?.token}/success`);
+                                    }}
+                                    onError={(error) => {
+                                      toast({
+                                        title: "Payment failed",
+                                        description: error,
+                                        variant: "destructive"
+                                      });
+                                    }}
+                                  />
+                                )}
+
+                                {/* If option selected, show payment form with change option button */}
+                                {selectedPaymentOption && (
+                                  <div className="space-y-4">
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => setSelectedPaymentOption(null)}
+                                      className="text-xs"
+                                      data-testid="button-change-payment-option"
+                                    >
+                                      ← Change payment option
+                                    </Button>
+                                    <EmbeddedPaymentForm
+                                      token={params?.token || ''}
+                                      status={data.projectSmartFile.status}
+                                      paymentType={selectedPaymentOption}
+                                      baseAmount={selectedPaymentOption === 'FULL' ? total : depositAmount}
+                                      publishableKey={import.meta.env.VITE_STRIPE_PUBLIC_KEY || ''}
+                                      onSuccess={() => {
+                                        setLocation(`/smart-file/${params?.token}/success`);
+                                      }}
+                                      onError={(error) => {
+                                        toast({
+                                          title: "Payment failed",
+                                          description: error,
+                                          variant: "destructive"
+                                        });
+                                      }}
+                                    />
+                                  </div>
+                                )}
+                              </>
                             )}
                           </div>
                         )}
