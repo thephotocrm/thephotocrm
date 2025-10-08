@@ -475,8 +475,9 @@ export default function PublicSmartFile() {
   // Client must sign contract before accessing payment
   const canAccessPayment = !requiresClientSignature || clientHasSigned;
   
-  // Lock selections after client signature to preserve contract integrity
-  const selectionsLocked = clientHasSigned;
+  // Lock selections after accepting (when selections are saved to DB) to preserve contract integrity
+  // This allows: select packages → sign contract → accept (saves selections) → pay
+  const selectionsLocked = isAccepted;
 
   // Get current page for single-page view
   const currentPage = sortedPages[currentPageIndex];

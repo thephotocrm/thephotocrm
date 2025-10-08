@@ -3002,10 +3002,11 @@ ${photographer?.businessName || 'Your Photography Team'}`;
         return res.status(404).json({ message: "Smart File not found" });
       }
 
-      // Prevent selection changes after contract is signed
-      if (projectSmartFile.clientSignatureUrl) {
+      // Prevent selection changes after proposal is already accepted
+      // Selections lock after accept (when saved to DB) to preserve contract integrity
+      if (projectSmartFile.status === 'ACCEPTED') {
         return res.status(400).json({ 
-          message: "Cannot change selections after signing the contract. Selections are locked to preserve contract integrity." 
+          message: "Cannot change selections after accepting the proposal. Selections are locked to preserve contract integrity." 
         });
       }
 
