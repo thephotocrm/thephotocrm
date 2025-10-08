@@ -2471,6 +2471,25 @@ ${photographer?.businessName || 'Your Photography Team'}`;
         return res.status(404).json({ message: "Smart File not found" });
       }
 
+      // Check if any project instances have payments or signatures
+      const instances = await db.select()
+        .from(projectSmartFiles)
+        .where(eq(projectSmartFiles.smartFileId, req.params.id));
+
+      const hasPaymentsOrSignatures = instances.some(instance => 
+        instance.status === 'DEPOSIT_PAID' || 
+        instance.status === 'PAID' || 
+        instance.clientSignatureUrl !== null ||
+        instance.photographerSignatureUrl !== null
+      );
+
+      if (hasPaymentsOrSignatures) {
+        return res.status(400).json({ 
+          message: "Cannot delete Smart File with active payments or signed contracts. This Smart File has been sent to clients and contains legally binding information.",
+          code: "HAS_ACTIVE_CONTRACTS"
+        });
+      }
+
       await storage.deleteSmartFile(req.params.id);
       res.json({ success: true });
     } catch (error) {
@@ -2650,6 +2669,17 @@ ${photographer?.businessName || 'Your Photography Team'}`;
         status: 'DRAFT'
       });
 
+      // Log Smart File attachment to project history
+      await storage.addProjectActivityLog({
+        projectId,
+        activityType: 'SMART_FILE_ATTACHED',
+        action: 'ATTACHED',
+        title: `Smart File attached: ${smartFile.name}`,
+        description: `Smart File "${smartFile.name}" was attached to this project`,
+        relatedId: projectSmartFile.id,
+        relatedType: 'PROJECT_SMART_FILE'
+      });
+
       res.status(201).json(projectSmartFile);
     } catch (error: any) {
       console.error("Attach smart file to project error:", error);
@@ -2700,6 +2730,17 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       const updatedProjectSmartFile = await storage.updateProjectSmartFile(projectSmartFileId, {
         status: 'SENT',
         sentAt: new Date()
+      });
+
+      // Log Smart File sent to project history
+      await storage.addProjectActivityLog({
+        projectId,
+        activityType: 'SMART_FILE_SENT',
+        action: 'SENT',
+        title: `Smart File sent: ${projectSmartFile.smartFileName}`,
+        description: `Smart File "${projectSmartFile.smartFileName}" was sent to client`,
+        relatedId: projectSmartFileId,
+        relatedType: 'PROJECT_SMART_FILE'
       });
 
       // Send email to client with link to view Smart File
@@ -2806,6 +2847,21 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       
       if (!projectSmartFile) {
         return res.status(404).json({ message: "Smart File not found for this project" });
+      }
+
+      // Prevent deletion if payments have been made or contract has been signed
+      if (projectSmartFile.status === 'DEPOSIT_PAID' || projectSmartFile.status === 'PAID') {
+        return res.status(400).json({ 
+          message: "Cannot delete Smart File with payment received. This is a legally binding contract.",
+          code: "HAS_PAYMENT"
+        });
+      }
+
+      if (projectSmartFile.clientSignatureUrl || projectSmartFile.photographerSignatureUrl) {
+        return res.status(400).json({ 
+          message: "Cannot delete signed contract. This is a legally binding document.",
+          code: "HAS_SIGNATURE"
+        });
       }
 
       // Delete the project smart file attachment
@@ -3097,6 +3153,17 @@ ${photographer?.businessName || 'Your Photography Team'}`;
         clientSignedAt: new Date()
       });
 
+      // Log contract signature to project history
+      await storage.addProjectActivityLog({
+        projectId: projectSmartFile.projectId,
+        activityType: 'SMART_FILE_SIGNED',
+        action: 'SIGNED',
+        title: `Contract signed: ${projectSmartFile.smartFileName}`,
+        description: `Client signed the contract for "${projectSmartFile.smartFileName}"`,
+        relatedId: projectSmartFile.id,
+        relatedType: 'PROJECT_SMART_FILE'
+      });
+
       res.json(updated);
     } catch (error) {
       console.error("Save signature error:", error);
@@ -3336,6 +3403,32 @@ ${photographer?.businessName || 'Your Photography Team'}`;
         balanceDueCents: newBalanceDue,
         tipCents,
         paidAt: new Date()
+      });
+
+      // Log payment to project history
+      const paymentAmount = amountPaidCents / 100;
+      const activityTitle = paymentType === 'DEPOSIT' 
+        ? `Deposit payment received: $${paymentAmount.toFixed(2)}`
+        : paymentType === 'BALANCE'
+        ? `Balance payment received: $${paymentAmount.toFixed(2)}`
+        : `Full payment received: $${paymentAmount.toFixed(2)}`;
+
+      await storage.addProjectActivityLog({
+        projectId: projectSmartFile.projectId,
+        activityType: 'PAYMENT_RECEIVED',
+        action: 'RECEIVED',
+        title: activityTitle,
+        description: `Payment for "${projectSmartFile.smartFileName}" - ${paymentType.toLowerCase()} payment`,
+        relatedId: projectSmartFile.id,
+        relatedType: 'PROJECT_SMART_FILE',
+        metadata: JSON.stringify({
+          paymentType,
+          amountCents: amountPaidCents,
+          tipCents,
+          totalAmountPaidCents: newAmountPaid,
+          balanceDueCents: newBalanceDue,
+          paymentIntentId
+        })
       });
 
       res.json({ 
