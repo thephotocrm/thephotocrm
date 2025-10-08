@@ -1176,15 +1176,35 @@ export default function PublicSmartFile() {
                             {parseContractVariables(
                               currentPage.content.contractTemplate || '',
                               {
+                                // Client info
                                 client_name: `${data?.client.firstName} ${data?.client.lastName}`,
+                                client_email: data?.client.email || '',
+                                client_phone: data?.client.phone || '',
+                                client_address: data?.client.address || '',
+                                
+                                // Photographer info
                                 photographer_name: data?.photographer.businessName || '',
+                                photographer_email: data?.photographer.email || '',
+                                photographer_phone: data?.photographer.phone || '',
+                                photographer_address: data?.photographer.businessAddress || '',
+                                
+                                // Project details
                                 project_date: data?.project.eventDate ? new Date(data.project.eventDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : 'TBD',
                                 project_type: data?.project.projectType || '',
+                                project_venue: data?.project.venue || '',
+                                
+                                // Selections
                                 selected_packages: selectedPackage ? selectedPackage.name : 'No package selected',
                                 selected_addons: Array.from(selectedAddOns.values()).map(a => `${a.name} (x${a.quantity})`).join(', ') || 'None',
+                                
+                                // Payment info
                                 total_amount: formatPrice(total),
                                 deposit_amount: formatPrice(depositAmount),
                                 deposit_percent: String(data?.smartFile.defaultDepositPercent ?? data?.projectSmartFile.depositPercent ?? 50) + '%',
+                                balance_amount: formatPrice(total - depositAmount),
+                                
+                                // Meta
+                                contract_date: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
                               }
                             )}
                           </div>
