@@ -114,38 +114,42 @@ export default function PublicSmartFile() {
   const { data, isLoading, error } = useQuery<SmartFileData>({
     queryKey: [`/api/public/smart-files/${params?.token}`],
     enabled: !!params?.token,
-    onSuccess: (data) => {
-      // Rehydrate selections from database if already accepted
-      if (!selectionsRehydrated && data.projectSmartFile.selectedPackages) {
-        const pkgs = Array.isArray(data.projectSmartFile.selectedPackages) 
-          ? data.projectSmartFile.selectedPackages 
-          : JSON.parse(data.projectSmartFile.selectedPackages || '[]');
-        
-        // Populate packages Map
-        const packagesMap = new Map<string, SelectedPackage>();
-        pkgs.forEach((pkg: SelectedPackage) => {
-          const key = `${pkg.pageId}-${pkg.packageId}`;
-          packagesMap.set(key, pkg);
-        });
-        setSelectedPackages(packagesMap);
-
-        if (data.projectSmartFile.selectedAddOns) {
-          const addOns = Array.isArray(data.projectSmartFile.selectedAddOns)
-            ? data.projectSmartFile.selectedAddOns
-            : JSON.parse(data.projectSmartFile.selectedAddOns || '[]');
-          
-          const addOnsMap = new Map<string, SelectedAddOn>();
-          addOns.forEach((addOn: SelectedAddOn) => {
-            const key = `${addOn.pageId}-${addOn.addOnId}`;
-            addOnsMap.set(key, addOn);
-          });
-          setSelectedAddOns(addOnsMap);
-        }
-
-        setSelectionsRehydrated(true);
-      }
-    }
   });
+
+  // Rehydrate selections from database when data loads
+  useEffect(() => {
+    if (!data || selectionsRehydrated) return;
+    
+    // Rehydrate selections from database if already accepted
+    if (data.projectSmartFile.selectedPackages) {
+      const pkgs = Array.isArray(data.projectSmartFile.selectedPackages) 
+        ? data.projectSmartFile.selectedPackages 
+        : JSON.parse(data.projectSmartFile.selectedPackages || '[]');
+      
+      // Populate packages Map
+      const packagesMap = new Map<string, SelectedPackage>();
+      pkgs.forEach((pkg: SelectedPackage) => {
+        const key = `${pkg.pageId}-${pkg.packageId}`;
+        packagesMap.set(key, pkg);
+      });
+      setSelectedPackages(packagesMap);
+    }
+
+    if (data.projectSmartFile.selectedAddOns) {
+      const addOns = Array.isArray(data.projectSmartFile.selectedAddOns)
+        ? data.projectSmartFile.selectedAddOns
+        : JSON.parse(data.projectSmartFile.selectedAddOns || '[]');
+      
+      const addOnsMap = new Map<string, SelectedAddOn>();
+      addOns.forEach((addOn: SelectedAddOn) => {
+        const key = `${addOn.pageId}-${addOn.addOnId}`;
+        addOnsMap.set(key, addOn);
+      });
+      setSelectedAddOns(addOnsMap);
+    }
+
+    setSelectionsRehydrated(true);
+  }, [data, selectionsRehydrated]);
 
   // Fetch fresh package data to show latest name, description, and images
   const { data: freshPackages } = useQuery<any[]>({
@@ -1342,26 +1346,6 @@ export default function PublicSmartFile() {
                             </Label>
                           </div>
                         </div>
-
-                        {/* Navigation */}
-                        {data?.projectSmartFile.clientSignatureUrl && (
-                          <div className="flex justify-between pt-4">
-                            <Button
-                              variant="outline"
-                              onClick={() => setCurrentPageIndex(currentPageIndex - 1)}
-                              disabled={currentPageIndex === 0}
-                              data-testid="button-back-contract"
-                            >
-                              Back
-                            </Button>
-                            <Button
-                              onClick={() => setCurrentPageIndex(currentPageIndex + 1)}
-                              data-testid="button-continue-contract"
-                            >
-                              Continue to Payment
-                            </Button>
-                          </div>
-                        )}
                       </CardContent>
                     </Card>
                   </div>
