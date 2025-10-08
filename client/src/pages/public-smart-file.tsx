@@ -26,6 +26,7 @@ import {
 import { cn } from "@/lib/utils";
 import { EmbeddedPaymentForm } from "@/components/embedded-payment-form";
 import { SignaturePad } from "@/components/signature-pad";
+import { ContractRenderer } from "@/components/contract-renderer";
 import { parseContractVariables } from "@shared/contractVariables";
 
 type ImageContent = {
@@ -1220,44 +1221,81 @@ export default function PublicSmartFile() {
                         </div>
                       </CardHeader>
                       <CardContent className="space-y-6">
-                        {/* Parsed Contract */}
+                        {/* Parsed Contract with Rich Package/Addon Cards */}
                         <div className="prose prose-sm max-w-none bg-muted/30 p-6 rounded-lg border">
-                          <div className="whitespace-pre-wrap text-sm leading-relaxed">
-                            {parseContractVariables(
-                              currentPage.content.contractTemplate || '',
-                              {
-                                // Client info
-                                client_name: `${data?.client.firstName} ${data?.client.lastName}`,
-                                client_email: data?.client.email || '',
-                                client_phone: data?.client.phone || '',
-                                client_address: data?.client.address || '',
+                          <ContractRenderer
+                            template={currentPage.content.contractTemplate || ''}
+                            variables={{
+                              // Client info
+                              client_name: `${data?.client.firstName} ${data?.client.lastName}`,
+                              client_email: data?.client.email || '',
+                              client_phone: data?.client.phone || '',
+                              client_address: data?.client.address || '',
+                              
+                              // Photographer info
+                              photographer_name: data?.photographer.businessName || '',
+                              photographer_email: data?.photographer.email || '',
+                              photographer_phone: data?.photographer.phone || '',
+                              photographer_address: data?.photographer.businessAddress || '',
+                              
+                              // Project details
+                              project_date: data?.project.eventDate ? new Date(data.project.eventDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : 'TBD',
+                              project_type: data?.project.projectType || '',
+                              project_venue: data?.project.venue || '',
+                              
+                              // Payment info
+                              total_amount: formatPrice(total),
+                              deposit_amount: formatPrice(depositAmount),
+                              deposit_percent: String(data?.smartFile.defaultDepositPercent ?? data?.projectSmartFile.depositPercent ?? 50) + '%',
+                              balance_amount: formatPrice(total - depositAmount),
+                              
+                              // Meta
+                              contract_date: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
+                            }}
+                            selectedPackages={(() => {
+                              // Enrich selected packages with full data from merged pages and freshPackages
+                              const enrichedPackages = new Map();
+                              selectedPackages.forEach((pkg, key) => {
+                                // Get fresh global data (description, imageUrl)
+                                const freshPkg = freshPackages?.find(fp => fp.id === pkg.packageId);
                                 
-                                // Photographer info
-                                photographer_name: data?.photographer.businessName || '',
-                                photographer_email: data?.photographer.email || '',
-                                photographer_phone: data?.photographer.phone || '',
-                                photographer_address: data?.photographer.businessAddress || '',
+                                // Get page snapshot data (features) from merged pages
+                                const packagePage = sortedPages.find(p => 
+                                  p.pageType === 'PACKAGE' && p.id === pkg.pageId
+                                );
+                                const snapshotPkg = packagePage?.content?.packages?.find((p: any) => p.id === pkg.packageId);
                                 
-                                // Project details
-                                project_date: data?.project.eventDate ? new Date(data.project.eventDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : 'TBD',
-                                project_type: data?.project.projectType || '',
-                                project_venue: data?.project.venue || '',
+                                enrichedPackages.set(key, {
+                                  ...pkg,
+                                  description: freshPkg?.description || snapshotPkg?.description || pkg.description,
+                                  features: snapshotPkg?.features || pkg.features || [],
+                                  imageUrl: freshPkg?.imageUrl || snapshotPkg?.imageUrl || pkg.imageUrl,
+                                });
+                              });
+                              return enrichedPackages;
+                            })()}
+                            selectedAddOns={(() => {
+                              // Enrich selected add-ons with full data from merged pages and freshAddOns
+                              const enrichedAddOns = new Map();
+                              selectedAddOns.forEach((addon, key) => {
+                                // Get fresh global data (description, imageUrl)
+                                const freshAddon = freshAddOns?.find(fa => fa.id === addon.addOnId);
                                 
-                                // Selections
-                                selected_packages: Array.from(selectedPackages.values()).map(p => p.name).join(', ') || 'No packages selected',
-                                selected_addons: Array.from(selectedAddOns.values()).map(a => `${a.name} (x${a.quantity})`).join(', ') || 'None',
+                                // Get page snapshot data from merged pages
+                                const addonPage = sortedPages.find(p => 
+                                  p.pageType === 'ADDON' && p.id === addon.pageId
+                                );
+                                const snapshotAddon = addonPage?.content?.addOns?.find((a: any) => a.id === addon.addOnId);
                                 
-                                // Payment info
-                                total_amount: formatPrice(total),
-                                deposit_amount: formatPrice(depositAmount),
-                                deposit_percent: String(data?.smartFile.defaultDepositPercent ?? data?.projectSmartFile.depositPercent ?? 50) + '%',
-                                balance_amount: formatPrice(total - depositAmount),
-                                
-                                // Meta
-                                contract_date: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
-                              }
-                            )}
-                          </div>
+                                enrichedAddOns.set(key, {
+                                  ...addon,
+                                  description: freshAddon?.description || snapshotAddon?.description || addon.description,
+                                  imageUrl: freshAddon?.imageUrl || snapshotAddon?.imageUrl || addon.imageUrl,
+                                });
+                              });
+                              return enrichedAddOns;
+                            })()}
+                          />
                         </div>
 
                         <Separator />
