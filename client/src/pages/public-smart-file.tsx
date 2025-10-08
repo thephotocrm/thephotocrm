@@ -1471,33 +1471,8 @@ export default function PublicSmartFile() {
                           </div>
                         )}
 
-                        {/* Accept & Payment Section */}
-                        {!isAccepted ? (
-                          <div className="space-y-4">
-                            <Button
-                              className="w-full h-12 text-lg"
-                              size="lg"
-                              onClick={handleAccept}
-                              disabled={selectedPackages.size === 0 || acceptMutation.isPending}
-                              data-testid="button-accept-proceed"
-                            >
-                              {acceptMutation.isPending ? (
-                                <>
-                                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                  Processing...
-                                </>
-                              ) : (
-                                <>
-                                  <CheckCircle className="w-4 h-4 mr-2" />
-                                  Accept & Continue to Payment
-                                </>
-                              )}
-                            </Button>
-                            <p className="text-xs text-center text-muted-foreground">
-                              You'll be able to pay after accepting this proposal
-                            </p>
-                          </div>
-                        ) : data.projectSmartFile.status === 'PAID' ? (
+                        {/* Payment Section */}
+                        {data.projectSmartFile.status === 'PAID' ? (
                           <div className="space-y-6">
                             {/* Payment Complete Message */}
                             <div className="p-6 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 rounded-lg text-center">
@@ -1568,11 +1543,9 @@ export default function PublicSmartFile() {
                                 }
                                 publishableKey={import.meta.env.VITE_STRIPE_PUBLIC_KEY || ''}
                                 onSuccess={() => {
-                                  toast({
-                                    title: "Payment successful!",
-                                    description: "Your payment has been processed.",
-                                  });
-                                  queryClient.invalidateQueries({ queryKey: [`/api/public/smart-files/${params?.token}`] });
+                                  // Navigate to success page using SPA router
+                                  // This prevents additional submissions during navigation
+                                  setLocation(`/smart-file/${params?.token}/success`);
                                 }}
                                 onError={(error) => {
                                   toast({
