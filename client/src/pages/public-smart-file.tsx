@@ -463,7 +463,7 @@ export default function PublicSmartFile() {
 
   const mergedPages = getMergedPages();
   const sortedPages = [...mergedPages].sort((a, b) => a.pageOrder - b.pageOrder);
-  const isAccepted = data.projectSmartFile.status === 'ACCEPTED';
+  const isAccepted = ['ACCEPTED', 'DEPOSIT_PAID', 'PAID'].includes(data.projectSmartFile.status);
 
   // Check for contract page and signature requirements
   const contractPage = sortedPages.find(p => p.pageType === 'CONTRACT');
