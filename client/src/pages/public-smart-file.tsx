@@ -1512,7 +1512,11 @@ export default function PublicSmartFile() {
                                   <CheckCircle className="w-8 h-8 text-green-600 dark:text-green-400" />
                                 </div>
                                 <div>
-                                  <h3 className="text-xl font-semibold text-green-800 dark:text-green-400">Payment Complete!</h3>
+                                  <h3 className="text-xl font-semibold text-green-800 dark:text-green-400">
+                                    {data.projectSmartFile.depositCents && data.projectSmartFile.depositCents > 0 
+                                      ? 'Full Balance Paid!' 
+                                      : 'Payment Complete!'}
+                                  </h3>
                                   <p className="text-sm text-green-700 dark:text-green-500 mt-1">Thank you for your payment</p>
                                 </div>
                               </div>
@@ -1689,6 +1693,20 @@ export default function PublicSmartFile() {
                   </div>
                 )}
               </div>
+
+              {/* Pay Balance Button - Shows on all pages when deposit is paid and balance is due */}
+              {data.projectSmartFile.status === 'DEPOSIT_PAID' && currentPage.pageType !== 'PAYMENT' && paymentPageIndex !== -1 && (
+                <div className="mt-6">
+                  <Button
+                    onClick={() => setCurrentPageIndex(paymentPageIndex)}
+                    className="w-full"
+                    size="lg"
+                    data-testid="button-pay-balance"
+                  >
+                    Pay Remaining Balance ({formatPrice(data.projectSmartFile.balanceDueCents || 0)})
+                  </Button>
+                </div>
+              )}
 
               {/* Navigation Buttons */}
               <div className="flex items-center justify-between mt-6 pt-4 border-t">
