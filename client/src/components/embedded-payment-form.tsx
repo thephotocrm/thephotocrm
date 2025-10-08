@@ -11,6 +11,7 @@ interface PaymentFormProps {
   token: string;
   paymentType: 'DEPOSIT' | 'FULL' | 'BALANCE';
   baseAmount: number;
+  status: string;
   onSuccess: () => void;
   onError: (error: string) => void;
 }
@@ -141,9 +142,12 @@ export function EmbeddedPaymentForm(props: PaymentFormProps & { publishableKey: 
     }).format(cents / 100);
   };
 
-  // Fetch payment intent when tip changes
+  // Only create payment intent when status is ACCEPTED or DEPOSIT_PAID
+  const canCreatePayment = ['ACCEPTED', 'DEPOSIT_PAID'].includes(props.status);
+
+  // Fetch payment intent when tip or status changes
   const { data: paymentIntentData, isLoading, error } = useQuery({
-    queryKey: ['/api/public/smart-files', props.token, 'payment-intent', props.paymentType, tipCents],
+    queryKey: ['/api/public/smart-files', props.token, 'payment-intent', props.status, props.paymentType, tipCents],
     queryFn: async () => {
       const response = await apiRequest(
         'POST',
@@ -152,7 +156,23 @@ export function EmbeddedPaymentForm(props: PaymentFormProps & { publishableKey: 
       );
       return response.json();
     },
+    enabled: canCreatePayment,
+    retry: false, // Don't retry 400 errors automatically
   });
+
+  // Show loading state while waiting for status to be accepted or while creating payment intent
+  if (!canCreatePayment || isLoading) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+          <p className="text-sm text-muted-foreground">
+            {!canCreatePayment ? "Finalizing your proposal..." : "Preparing payment..."}
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   if (error) {
     return (

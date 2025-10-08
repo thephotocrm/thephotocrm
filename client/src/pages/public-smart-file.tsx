@@ -1561,6 +1561,7 @@ export default function PublicSmartFile() {
                             {currentPage.content.acceptOnlinePayments && (
                               <EmbeddedPaymentForm
                                 token={params?.token || ''}
+                                status={data.projectSmartFile.status}
                                 paymentType={
                                   data.projectSmartFile.status === 'DEPOSIT_PAID' ? 'BALANCE' :
                                   (depositAmount > 0 && depositAmount < total) ? 'DEPOSIT' :
