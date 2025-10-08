@@ -774,13 +774,16 @@ export default function ProjectDetail() {
                             <Eye className="w-4 h-4 mr-2" />
                             View Details
                           </DropdownMenuItem>
-                          <DropdownMenuItem 
-                            onClick={() => setSmartFileToRemove(sf)}
-                            data-testid={`button-remove-smart-file-${sf.id}`}
-                          >
-                            <Trash className="w-4 h-4 mr-2" />
-                            Remove
-                          </DropdownMenuItem>
+                          {/* Only show remove option if no payments or signatures */}
+                          {sf.status !== 'DEPOSIT_PAID' && sf.status !== 'PAID' && !sf.clientSignatureUrl && !sf.photographerSignatureUrl && (
+                            <DropdownMenuItem 
+                              onClick={() => setSmartFileToRemove(sf)}
+                              data-testid={`button-remove-smart-file-${sf.id}`}
+                            >
+                              <Trash className="w-4 h-4 mr-2" />
+                              Remove
+                            </DropdownMenuItem>
+                          )}
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </div>
