@@ -91,10 +91,11 @@ export default function Settings() {
         returnUrl: `${window.location.origin}/settings?tab=integrations&stripe=success`,
         refreshUrl: `${window.location.origin}/settings?tab=integrations&stripe=refresh`
       });
-      console.log('[STRIPE DEBUG] Response received:', response);
-      console.log('[STRIPE DEBUG] Response type:', typeof response);
-      console.log('[STRIPE DEBUG] Response.url:', response?.url);
-      return response;
+      const data = await response.json();
+      console.log('[STRIPE DEBUG] Response received:', data);
+      console.log('[STRIPE DEBUG] Response type:', typeof data);
+      console.log('[STRIPE DEBUG] data.url:', data?.url);
+      return data;
     },
     onSuccess: (data: any) => {
       console.log('[STRIPE DEBUG] onSuccess called with data:', data);
