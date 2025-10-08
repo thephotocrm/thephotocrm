@@ -1429,6 +1429,51 @@ export default function PublicSmartFile() {
                               You'll be able to pay after accepting this proposal
                             </p>
                           </div>
+                        ) : data.projectSmartFile.status === 'PAID' ? (
+                          <div className="space-y-6">
+                            {/* Payment Complete Message */}
+                            <div className="p-6 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 rounded-lg text-center">
+                              <div className="flex flex-col items-center gap-3">
+                                <div className="w-16 h-16 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+                                  <CheckCircle className="w-8 h-8 text-green-600 dark:text-green-400" />
+                                </div>
+                                <div>
+                                  <h3 className="text-xl font-semibold text-green-800 dark:text-green-400">Payment Complete!</h3>
+                                  <p className="text-sm text-green-700 dark:text-green-500 mt-1">Thank you for your payment</p>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Payment Details */}
+                            <div className="bg-muted/50 rounded-lg p-4 space-y-2">
+                              <div className="flex justify-between text-sm">
+                                <span className="text-muted-foreground">Amount Paid</span>
+                                <span className="font-medium">{formatPrice(data.projectSmartFile.amountPaidCents || 0)}</span>
+                              </div>
+                              {data.projectSmartFile.tipCents && data.projectSmartFile.tipCents > 0 && (
+                                <div className="flex justify-between text-sm">
+                                  <span className="text-muted-foreground">Tip</span>
+                                  <span className="font-medium">{formatPrice(data.projectSmartFile.tipCents)}</span>
+                                </div>
+                              )}
+                              {data.projectSmartFile.paidAt && (
+                                <div className="flex justify-between text-sm">
+                                  <span className="text-muted-foreground">Paid On</span>
+                                  <span className="font-medium">
+                                    {new Date(data.projectSmartFile.paidAt).toLocaleDateString('en-US', { 
+                                      year: 'numeric', 
+                                      month: 'long', 
+                                      day: 'numeric' 
+                                    })}
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+
+                            <p className="text-sm text-center text-muted-foreground">
+                              You will receive a confirmation email shortly. If you have any questions, please contact {data.photographer.businessName}.
+                            </p>
+                          </div>
                         ) : (
                           <div className="space-y-4">
                             {/* Success Message */}
