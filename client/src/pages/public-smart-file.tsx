@@ -73,6 +73,8 @@ interface SmartFileData {
     firstName: string;
     lastName: string;
     email?: string;
+    phone?: string;
+    address?: string;
   };
   photographer: {
     id: string;
@@ -103,7 +105,7 @@ export default function PublicSmartFile() {
   const { toast } = useToast();
 
   const [currentPageIndex, setCurrentPageIndex] = useState(0);
-  const [selectedPackage, setSelectedPackage] = useState<SelectedPackage | null>(null);
+  const [selectedPackages, setSelectedPackages] = useState<Map<string, SelectedPackage>>(new Map());
   const [selectedAddOns, setSelectedAddOns] = useState<Map<string, SelectedAddOn>>(new Map());
   const [selectionsRehydrated, setSelectionsRehydrated] = useState(false);
   const [showClientSignaturePad, setShowClientSignaturePad] = useState(false);
@@ -119,9 +121,13 @@ export default function PublicSmartFile() {
           ? data.projectSmartFile.selectedPackages 
           : JSON.parse(data.projectSmartFile.selectedPackages || '[]');
         
-        if (pkgs.length > 0) {
-          setSelectedPackage(pkgs[0]);
-        }
+        // Populate packages Map
+        const packagesMap = new Map<string, SelectedPackage>();
+        pkgs.forEach((pkg: SelectedPackage) => {
+          const key = `${pkg.pageId}-${pkg.packageId}`;
+          packagesMap.set(key, pkg);
+        });
+        setSelectedPackages(packagesMap);
 
         if (data.projectSmartFile.selectedAddOns) {
           const addOns = Array.isArray(data.projectSmartFile.selectedAddOns)
@@ -318,9 +324,10 @@ export default function PublicSmartFile() {
   const { subtotal, depositAmount, total } = useMemo(() => {
     let subtotalCents = 0;
     
-    if (selectedPackage) {
-      subtotalCents += selectedPackage.priceCents;
-    }
+    // Sum all selected packages
+    selectedPackages.forEach((pkg) => {
+      subtotalCents += pkg.priceCents;
+    });
     
     selectedAddOns.forEach((addOn) => {
       subtotalCents += addOn.priceCents * addOn.quantity;
@@ -335,7 +342,7 @@ export default function PublicSmartFile() {
       depositAmount: depositCents,
       total: subtotalCents
     };
-  }, [selectedPackage, selectedAddOns, data]);
+  }, [selectedPackages, selectedAddOns, data]);
 
   const formatPrice = (cents: number) => {
     return (cents / 100).toLocaleString('en-US', {
@@ -345,12 +352,23 @@ export default function PublicSmartFile() {
   };
 
   const handlePackageSelect = (page: SmartFilePage, pkg: any) => {
-    setSelectedPackage({
-      pageId: page.id,
-      packageId: pkg.id,
-      name: pkg.name,
-      priceCents: pkg.priceCents
-    });
+    const key = `${page.id}-${pkg.id}`;
+    const newPackages = new Map(selectedPackages);
+    
+    if (newPackages.has(key)) {
+      // Deselect if already selected
+      newPackages.delete(key);
+    } else {
+      // Select the package
+      newPackages.set(key, {
+        pageId: page.id,
+        packageId: pkg.id,
+        name: pkg.name,
+        priceCents: pkg.priceCents
+      });
+    }
+    
+    setSelectedPackages(newPackages);
   };
 
   const handleAddOnToggle = (page: SmartFilePage, addOn: any, checked: boolean) => {
@@ -395,19 +413,20 @@ export default function PublicSmartFile() {
       return;
     }
 
-    if (!selectedPackage) {
+    if (selectedPackages.size === 0) {
       toast({
         title: "Package Required",
-        description: "Please select a package before proceeding.",
+        description: "Please select at least one package before proceeding.",
         variant: "destructive"
       });
       return;
     }
 
+    const selectedPackagesArray = Array.from(selectedPackages.values());
     const selectedAddOnsArray = Array.from(selectedAddOns.values());
 
     acceptMutation.mutate({
-      selectedPackages: [selectedPackage],
+      selectedPackages: selectedPackagesArray,
       selectedAddOns: selectedAddOnsArray,
       subtotalCents: subtotal,
       totalCents: total,
@@ -933,7 +952,8 @@ export default function PublicSmartFile() {
                     )}
                     <div className="space-y-4">
                         {currentPage.content.packages?.map((pkg: any) => {
-                          const isSelected = selectedPackage?.packageId === pkg.id;
+                          const key = `${currentPage.id}-${pkg.id}`;
+                          const isSelected = selectedPackages.has(key);
                           
                           return (
                           <Card 
@@ -1219,7 +1239,7 @@ export default function PublicSmartFile() {
                                 project_venue: data?.project.venue || '',
                                 
                                 // Selections
-                                selected_packages: selectedPackage ? selectedPackage.name : 'No package selected',
+                                selected_packages: Array.from(selectedPackages.values()).map(p => p.name).join(', ') || 'No packages selected',
                                 selected_addons: Array.from(selectedAddOns.values()).map(a => `${a.name} (x${a.quantity})`).join(', ') || 'None',
                                 
                                 // Payment info
@@ -1387,7 +1407,7 @@ export default function PublicSmartFile() {
                         </div>
 
                         {/* Order Summary (Collapsible) */}
-                        {(selectedPackage || selectedAddOns.size > 0) && (
+                        {(selectedPackages.size > 0 || selectedAddOns.size > 0) && (
                           <div className="space-y-3 pb-6 border-b">
                             <details className="group">
                               <summary className="flex items-center justify-between cursor-pointer text-sm font-medium">
@@ -1397,12 +1417,12 @@ export default function PublicSmartFile() {
                                 </svg>
                               </summary>
                               <div className="mt-4 space-y-3 text-sm">
-                                {selectedPackage && (
-                                  <div className="flex justify-between">
-                                    <span className="text-muted-foreground" data-testid="text-selected-package">{selectedPackage.name}</span>
-                                    <span className="font-medium" data-testid="text-selected-package-price">{formatPrice(selectedPackage.priceCents)}</span>
+                                {Array.from(selectedPackages.values()).map((pkg) => (
+                                  <div key={`${pkg.pageId}-${pkg.packageId}`} className="flex justify-between">
+                                    <span className="text-muted-foreground" data-testid="text-selected-package">{pkg.name}</span>
+                                    <span className="font-medium" data-testid="text-selected-package-price">{formatPrice(pkg.priceCents)}</span>
                                   </div>
-                                )}
+                                ))}
                                 {Array.from(selectedAddOns.values()).map((addOn) => (
                                   <div key={`${addOn.pageId}-${addOn.addOnId}`} className="flex justify-between">
                                     <span className="text-muted-foreground">{addOn.name} × {addOn.quantity}</span>
@@ -1435,7 +1455,7 @@ export default function PublicSmartFile() {
                               className="w-full h-12 text-lg"
                               size="lg"
                               onClick={handleAccept}
-                              disabled={!selectedPackage || acceptMutation.isPending}
+                              disabled={selectedPackages.size === 0 || acceptMutation.isPending}
                               data-testid="button-accept-proceed"
                             >
                               {acceptMutation.isPending ? (
