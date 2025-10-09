@@ -73,7 +73,6 @@ export function AppSidebar() {
     { name: "Packages", href: "/packages", icon: Package },
     { name: "Add-ons", href: "/add-ons", icon: ShoppingBag },
     { name: "Widget Generator", href: "/widget-generator", icon: Code },
-    { name: "Questionnaires", href: "/questionnaires", icon: ClipboardList },
     { name: "Scheduling", href: "/scheduling", icon: Calendar },
     { name: "Templates", href: "/templates", icon: MessageSquare },
     { name: "Automations", href: "/automations", icon: Zap },
