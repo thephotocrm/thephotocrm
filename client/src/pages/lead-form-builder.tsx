@@ -8,7 +8,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Copy, Settings, Eye, Code2, Smartphone, ArrowLeft, Save } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { Copy, Settings, Eye, Code2, Smartphone, ArrowLeft, Save, Plus, Trash2, GripVertical } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 
@@ -26,6 +28,16 @@ type LeadForm = {
   updatedAt: Date;
 };
 
+type CustomField = {
+  id: string;
+  type: 'text' | 'textarea' | 'phone' | 'date' | 'email' | 'checkbox' | 'select';
+  label: string;
+  placeholder?: string;
+  required: boolean;
+  options?: string[]; // for select/checkbox
+  isSystem?: boolean; // true for firstName, email (cannot be removed)
+};
+
 const defaultConfig = {
   title: "Get In Touch",
   description: "Let's discuss your photography needs",
@@ -33,6 +45,14 @@ const defaultConfig = {
   backgroundColor: "#ffffff",
   buttonText: "Send Inquiry",
   successMessage: "Thank you! We'll be in touch soon.",
+  redirectUrl: "",
+  customFields: [
+    { id: 'firstName', type: 'text' as const, label: 'First Name', placeholder: 'John', required: true, isSystem: true },
+    { id: 'email', type: 'email' as const, label: 'Email', placeholder: 'john@example.com', required: true, isSystem: true },
+    { id: 'phone', type: 'phone' as const, label: 'Phone Number', placeholder: '+1 (555) 000-0000', required: false, isSystem: false },
+    { id: 'eventDate', type: 'date' as const, label: 'Event Date', required: false, isSystem: false },
+    { id: 'message', type: 'textarea' as const, label: 'Message', placeholder: 'Tell us about your photography needs...', required: false, isSystem: false }
+  ] as CustomField[],
   showPhone: true,
   showMessage: true,
   showEventDate: true
@@ -105,6 +125,37 @@ export default function LeadFormBuilder() {
     }
   };
 
+  const addCustomField = () => {
+    const newField: CustomField = {
+      id: `field_${Date.now()}`,
+      type: 'text',
+      label: 'New Field',
+      placeholder: '',
+      required: false,
+      isSystem: false
+    };
+    setConfig({
+      ...config,
+      customFields: [...(config.customFields || []), newField]
+    });
+  };
+
+  const removeCustomField = (fieldId: string) => {
+    setConfig({
+      ...config,
+      customFields: (config.customFields || []).filter((f: CustomField) => f.id !== fieldId)
+    });
+  };
+
+  const updateCustomField = (fieldId: string, updates: Partial<CustomField>) => {
+    setConfig({
+      ...config,
+      customFields: (config.customFields || []).map((f: CustomField) => 
+        f.id === fieldId ? { ...f, ...updates } : f
+      )
+    });
+  };
+
   const generateEmbedCode = () => {
     if (!form?.publicToken) return "";
     
@@ -117,6 +168,64 @@ export default function LeadFormBuilder() {
   const getFormUrl = () => {
     if (!form?.publicToken) return "";
     return `${window.location.origin}/form/${form.publicToken}`;
+  };
+
+  const renderFieldPreview = (field: CustomField) => {
+    const isRequired = field.required ? ' *' : '';
+    
+    switch (field.type) {
+      case 'textarea':
+        return (
+          <div key={field.id}>
+            <label className="block text-sm font-medium mb-1">{field.label}{isRequired}</label>
+            <textarea 
+              className="w-full p-2 border rounded-md" 
+              rows={3}
+              placeholder={field.placeholder || ''}
+            />
+          </div>
+        );
+      
+      case 'select':
+        return (
+          <div key={field.id}>
+            <label className="block text-sm font-medium mb-1">{field.label}{isRequired}</label>
+            <select className="w-full p-2 border rounded-md">
+              <option value="">Select an option</option>
+              {(field.options || []).map((opt, i) => (
+                <option key={i} value={opt}>{opt}</option>
+              ))}
+            </select>
+          </div>
+        );
+      
+      case 'checkbox':
+        return (
+          <div key={field.id}>
+            <label className="block text-sm font-medium mb-2">{field.label}{isRequired}</label>
+            <div className="space-y-2">
+              {(field.options || []).map((opt, i) => (
+                <label key={i} className="flex items-center">
+                  <input type="checkbox" className="mr-2" />
+                  <span className="text-sm">{opt}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+        );
+      
+      default:
+        return (
+          <div key={field.id}>
+            <label className="block text-sm font-medium mb-1">{field.label}{isRequired}</label>
+            <input 
+              type={field.type === 'phone' ? 'tel' : field.type}
+              className="w-full p-2 border rounded-md" 
+              placeholder={field.placeholder || ''}
+            />
+          </div>
+        );
+    }
   };
 
   const renderWidgetPreview = () => (
@@ -135,96 +244,17 @@ export default function LeadFormBuilder() {
         </div>
         
         <form className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium mb-1">First Name *</label>
-              <input 
-                type="text" 
-                className="w-full p-2 border rounded-md" 
-                placeholder="John"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">Last Name *</label>
-              <input 
-                type="text" 
-                className="w-full p-2 border rounded-md" 
-                placeholder="Doe"
-              />
-            </div>
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium mb-1">Email *</label>
-            <input 
-              type="email" 
-              className="w-full p-2 border rounded-md" 
-              placeholder="john@example.com"
-            />
-          </div>
-          
-          {config.showPhone && (
-            <div>
-              <label className="block text-sm font-medium mb-1">Phone</label>
-              <input 
-                type="tel" 
-                className="w-full p-2 border rounded-md" 
-                placeholder="(555) 123-4567"
-              />
-            </div>
-          )}
-          
-          {config.showEventDate && (
-            <div>
-              <label className="block text-sm font-medium mb-1">Event Date</label>
-              <input 
-                type="date" 
-                className="w-full p-2 border rounded-md"
-                value={eventDate}
-                onChange={(e) => {
-                  setEventDate(e.target.value);
-                  if (e.target.value) setNoDateYet(false);
-                }}
-                disabled={noDateYet}
-                style={{ opacity: noDateYet ? 0.5 : 1, cursor: noDateYet ? 'not-allowed' : 'text' }}
-              />
-              <div className="mt-2">
-                <label className="flex items-center cursor-pointer">
-                  <input 
-                    type="checkbox"
-                    checked={noDateYet}
-                    onChange={(e) => {
-                      setNoDateYet(e.target.checked);
-                      if (e.target.checked) setEventDate("");
-                    }}
-                    className="mr-2"
-                  />
-                  <span className="text-sm">I don't have a date yet</span>
-                </label>
-              </div>
-            </div>
-          )}
+          {(config.customFields || []).map((field: CustomField) => renderFieldPreview(field))}
         
-        {config.showMessage && (
-          <div>
-            <label className="block text-sm font-medium mb-1">Message</label>
-            <textarea 
-              className="w-full p-2 border rounded-md" 
-              rows={3}
-              placeholder="Tell us about your photography needs..."
-            />
-          </div>
-        )}
-        
-        <button 
-          type="submit" 
-          className="w-full py-3 px-4 text-white rounded-md font-medium hover:opacity-90 transition-opacity"
-          style={{ backgroundColor: config.primaryColor }}
-        >
-          {config.buttonText}
-        </button>
-      </form>
-    </div>
+          <button 
+            type="submit" 
+            className="w-full py-3 px-4 text-white rounded-md font-medium hover:opacity-90 transition-opacity"
+            style={{ backgroundColor: config.primaryColor }}
+          >
+            {config.buttonText}
+          </button>
+        </form>
+      </div>
   );
 
   if (isLoading) {
@@ -349,6 +379,138 @@ export default function LeadFormBuilder() {
                         />
                       </div>
                     </div>
+
+                    <div>
+                      <Label htmlFor="redirectUrl">Redirect URL (Optional)</Label>
+                      <Input
+                        id="redirectUrl"
+                        data-testid="input-redirect-url"
+                        type="url"
+                        value={config.redirectUrl || ''}
+                        onChange={(e) => setConfig({...config, redirectUrl: e.target.value})}
+                        placeholder="https://yoursite.com/thank-you"
+                      />
+                      <p className="text-xs text-muted-foreground mt-1">
+                        After form submission, redirect to this URL. Leave blank to show success message.
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Form Fields Management */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Form Fields</CardTitle>
+                    <CardDescription>
+                      Customize which fields appear in your form. First Name and Email are required and cannot be removed.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {(config.customFields || []).map((field: CustomField) => (
+                      <div key={field.id} className="border rounded-lg p-4 space-y-3">
+                        <div className="flex items-start gap-3">
+                          <GripVertical className="w-5 h-5 text-muted-foreground mt-2" />
+                          <div className="flex-1 space-y-3">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <Input
+                                  value={field.label}
+                                  onChange={(e) => updateCustomField(field.id, { label: e.target.value })}
+                                  placeholder="Field Label"
+                                  className="w-48"
+                                  disabled={field.isSystem}
+                                  data-testid={`input-field-label-${field.id}`}
+                                />
+                                {field.isSystem && (
+                                  <Badge variant="secondary" className="text-xs">Required</Badge>
+                                )}
+                              </div>
+                              <div className="flex items-center gap-2">
+                                {!field.isSystem && (
+                                  <>
+                                    <div className="flex items-center gap-2">
+                                      <Label className="text-xs">Required</Label>
+                                      <Switch
+                                        checked={field.required}
+                                        onCheckedChange={(checked) => updateCustomField(field.id, { required: checked })}
+                                        data-testid={`switch-required-${field.id}`}
+                                      />
+                                    </div>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => removeCustomField(field.id)}
+                                      data-testid={`button-remove-field-${field.id}`}
+                                    >
+                                      <Trash2 className="w-4 h-4 text-destructive" />
+                                    </Button>
+                                  </>
+                                )}
+                              </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-3">
+                              <div>
+                                <Label className="text-xs">Field Type</Label>
+                                <Select
+                                  value={field.type}
+                                  onValueChange={(value) => updateCustomField(field.id, { type: value as CustomField['type'] })}
+                                  disabled={field.isSystem}
+                                >
+                                  <SelectTrigger data-testid={`select-field-type-${field.id}`}>
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="text">Text</SelectItem>
+                                    <SelectItem value="email">Email</SelectItem>
+                                    <SelectItem value="phone">Phone</SelectItem>
+                                    <SelectItem value="textarea">Textarea</SelectItem>
+                                    <SelectItem value="date">Date</SelectItem>
+                                    <SelectItem value="select">Dropdown</SelectItem>
+                                    <SelectItem value="checkbox">Checkbox</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              <div>
+                                <Label className="text-xs">Placeholder</Label>
+                                <Input
+                                  value={field.placeholder || ''}
+                                  onChange={(e) => updateCustomField(field.id, { placeholder: e.target.value })}
+                                  placeholder="Enter placeholder text..."
+                                  className="text-sm"
+                                  data-testid={`input-field-placeholder-${field.id}`}
+                                />
+                              </div>
+                            </div>
+
+                            {(field.type === 'select' || field.type === 'checkbox') && (
+                              <div>
+                                <Label className="text-xs">Options (comma-separated)</Label>
+                                <Input
+                                  value={(field.options || []).join(', ')}
+                                  onChange={(e) => updateCustomField(field.id, { 
+                                    options: e.target.value.split(',').map(o => o.trim()).filter(Boolean)
+                                  })}
+                                  placeholder="Option 1, Option 2, Option 3"
+                                  className="text-sm"
+                                  data-testid={`input-field-options-${field.id}`}
+                                />
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                    
+                    <Button
+                      variant="outline"
+                      onClick={addCustomField}
+                      className="w-full"
+                      data-testid="button-add-field"
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      Add Custom Field
+                    </Button>
                   </CardContent>
                 </Card>
             </TabsContent>
