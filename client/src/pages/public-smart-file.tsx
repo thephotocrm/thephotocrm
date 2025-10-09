@@ -22,7 +22,8 @@ import {
   Minus,
   CreditCard,
   Package as PackageIcon,
-  FileSignature
+  FileSignature,
+  Calendar
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { EmbeddedPaymentForm } from "@/components/embedded-payment-form";
@@ -38,7 +39,7 @@ type ImageContent = {
 
 interface SmartFilePage {
   id: string;
-  pageType: "TEXT" | "PACKAGE" | "ADDON" | "CONTRACT" | "PAYMENT" | "FORM";
+  pageType: "TEXT" | "PACKAGE" | "ADDON" | "CONTRACT" | "PAYMENT" | "FORM" | "SCHEDULING";
   pageOrder: number;
   displayTitle: string;
   content: any;
@@ -2239,6 +2240,35 @@ export default function PublicSmartFile() {
                         </Button>
                       </div>
                       </form>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* SCHEDULING Page */}
+                {currentPage.pageType === "SCHEDULING" && (
+                  <Card>
+                    <CardHeader>
+                      <div className="flex items-center gap-3">
+                        <Calendar className="w-6 h-6 text-primary" />
+                        <div>
+                          <CardTitle>{currentPage.content.heading || "Schedule Your Session"}</CardTitle>
+                          {currentPage.content.description && (
+                            <CardDescription>{currentPage.content.description}</CardDescription>
+                          )}
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-center py-12 text-muted-foreground space-y-3">
+                        <Calendar className="w-16 h-16 mx-auto opacity-50" />
+                        <p className="text-lg font-medium">Calendar Coming Soon</p>
+                        <p className="text-sm">
+                          Duration: {currentPage.content.durationMinutes} minutes
+                        </p>
+                        <p className="text-sm">
+                          Type: {currentPage.content.bookingType}
+                        </p>
+                      </div>
                     </CardContent>
                   </Card>
                 )}
