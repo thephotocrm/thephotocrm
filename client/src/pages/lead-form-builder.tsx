@@ -57,7 +57,7 @@ const FIELD_TYPES = [
   { type: 'text', label: 'Text Field', icon: Type },
   { type: 'email', label: 'Email', icon: Mail },
   { type: 'phone', label: 'Phone', icon: PhoneIcon },
-  { type: 'date', label: 'Date', icon: Calendar },
+  { type: 'date', label: 'Event Date', icon: Calendar },
   { type: 'textarea', label: 'Textarea', icon: MessageSquare },
   { type: 'checkbox', label: 'Checkbox', icon: CheckSquare },
   { type: 'select', label: 'Dropdown', icon: List },
@@ -144,7 +144,7 @@ export default function LeadFormBuilder() {
       text: 'Text Field',
       email: 'Email',
       phone: 'Phone Number',
-      date: 'Date',
+      date: 'Event Date',
       textarea: 'Message',
       checkbox: 'Checkbox',
       select: 'Dropdown'
@@ -454,6 +454,16 @@ export default function LeadFormBuilder() {
               placeholder="Optional form description..."
               className="flex-1"
               data-testid="input-form-description"
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <Label className="text-sm">Redirect URL</Label>
+            <Input
+              value={config.redirectUrl}
+              onChange={(e) => setConfig({ ...config, redirectUrl: e.target.value })}
+              placeholder="https://yourwebsite.com/thank-you (optional)"
+              className="flex-1"
+              data-testid="input-redirect-url"
             />
           </div>
         </div>
