@@ -3525,6 +3525,37 @@ export default function SmartFileBuilder() {
                         </div>
                       </div>
                     )}
+
+                    {/* Scheduling Page Preview */}
+                    {currentPage.pageType === 'SCHEDULING' && currentPage.content && (
+                      <div className="max-w-2xl mx-auto">
+                        <Card>
+                          <CardHeader>
+                            <div className="flex items-center gap-3">
+                              <Calendar className="w-6 h-6 text-primary" />
+                              <div>
+                                <CardTitle>{currentPage.content.heading || "Schedule Your Session"}</CardTitle>
+                                {currentPage.content.description && (
+                                  <CardDescription>{currentPage.content.description}</CardDescription>
+                                )}
+                              </div>
+                            </div>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="text-center py-12 text-muted-foreground space-y-3">
+                              <Calendar className="w-16 h-16 mx-auto opacity-50" />
+                              <p className="text-lg font-medium">Calendar Coming Soon</p>
+                              <p className="text-sm">
+                                Duration: {currentPage.content.durationMinutes} minutes
+                              </p>
+                              <p className="text-sm">
+                                Type: {currentPage.content.bookingType}
+                              </p>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </div>
+                    )}
                     </div>
                     );
                   })()}
