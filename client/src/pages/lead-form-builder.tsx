@@ -605,43 +605,15 @@ export default function LeadFormBuilder() {
                                 {field.required && <span className="text-destructive">*</span>}
                                 {field.isSystem && <Badge variant="secondary" className="text-xs">Required</Badge>}
                               </Label>
-                              <div className="flex items-center gap-2">
-                                <div className="flex bg-muted rounded-md p-0.5">
-                                  <button
-                                    type="button"
-                                    onClick={() => updateField(field.id, { width: 'half' })}
-                                    className={`px-2 py-1 text-xs rounded-sm transition-colors ${
-                                      (field.width || 'full') === 'half' 
-                                        ? 'bg-background shadow-sm' 
-                                        : 'text-muted-foreground hover:text-foreground'
-                                    }`}
-                                    data-testid={`button-width-half-${field.id}`}
-                                  >
-                                    Half
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={() => updateField(field.id, { width: 'full' })}
-                                    className={`px-2 py-1 text-xs rounded-sm transition-colors ${
-                                      (field.width || 'full') === 'full' 
-                                        ? 'bg-background shadow-sm' 
-                                        : 'text-muted-foreground hover:text-foreground'
-                                    }`}
-                                    data-testid={`button-width-full-${field.id}`}
-                                  >
-                                    Full
-                                  </button>
-                                </div>
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  onClick={() => setEditingField(field.id)}
-                                  data-testid={`button-edit-${field.id}`}
-                                >
-                                  <Pencil className="w-3 h-3 mr-1" />
-                                  Edit
-                                </Button>
-                              </div>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => setEditingField(field.id)}
+                                data-testid={`button-edit-${field.id}`}
+                              >
+                                <Pencil className="w-3 h-3 mr-1" />
+                                Edit
+                              </Button>
                             </div>
                             {field.type === 'textarea' ? (
                               <Textarea
@@ -672,6 +644,39 @@ export default function LeadFormBuilder() {
                                 disabled
                               />
                             )}
+                            
+                            {/* Width Controls at Bottom */}
+                            <div className="mt-3 pt-3 border-t border-border">
+                              <div className="flex items-center justify-between">
+                                <Label className="text-xs text-muted-foreground">Width</Label>
+                                <div className="flex bg-muted rounded-md p-0.5">
+                                  <button
+                                    type="button"
+                                    onClick={() => updateField(field.id, { width: 'half' })}
+                                    className={`px-2 py-1 text-xs rounded-sm transition-colors ${
+                                      (field.width || 'full') === 'half' 
+                                        ? 'bg-background shadow-sm' 
+                                        : 'text-muted-foreground hover:text-foreground'
+                                    }`}
+                                    data-testid={`button-width-half-${field.id}`}
+                                  >
+                                    Half
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => updateField(field.id, { width: 'full' })}
+                                    className={`px-2 py-1 text-xs rounded-sm transition-colors ${
+                                      (field.width || 'full') === 'full' 
+                                        ? 'bg-background shadow-sm' 
+                                        : 'text-muted-foreground hover:text-foreground'
+                                    }`}
+                                    data-testid={`button-width-full-${field.id}`}
+                                  >
+                                    Full
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
                           </div>
                         )}
                       </div>
