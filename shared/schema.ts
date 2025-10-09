@@ -101,6 +101,7 @@ export const photographers = pgTable("photographers", {
   googleCalendarScope: text("google_calendar_scope"),
   googleCalendarConnectedAt: timestamp("google_calendar_connected_at"),
   googleCalendarId: text("google_calendar_id"), // Dedicated business calendar ID
+  googleEmail: text("google_email"), // Email address of connected Google account
   // Default consent settings
   defaultEmailOptIn: boolean("default_email_opt_in").default(true),
   defaultSmsOptIn: boolean("default_sms_opt_in").default(false),
