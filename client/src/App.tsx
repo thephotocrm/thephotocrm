@@ -26,6 +26,8 @@ import Packages from "@/pages/packages";
 import AddOns from "@/pages/add-ons";
 import SmartFiles from "@/pages/smart-files";
 import SmartFileBuilder from "@/pages/smart-file-builder";
+import LeadForms from "@/pages/lead-forms";
+import LeadFormBuilder from "@/pages/lead-form-builder";
 import WidgetGenerator from "@/pages/widget-generator";
 import Questionnaires from "@/pages/questionnaires";
 import Scheduling from "@/pages/scheduling";
@@ -85,6 +87,8 @@ function ProtectedRoutes() {
             <Route path="/add-ons" component={AddOns} />
             <Route path="/smart-files" component={SmartFiles} />
             <Route path="/smart-files/:id/edit" component={SmartFileBuilder} />
+            <Route path="/lead-forms" component={LeadForms} />
+            <Route path="/lead-forms/:id/configure" component={LeadFormBuilder} />
             <Route path="/widget-generator" component={WidgetGenerator} />
             <Route path="/questionnaires" component={Questionnaires} />
             <Route path="/scheduling" component={Scheduling} />
@@ -139,6 +143,8 @@ function Router() {
       <Route path="/add-ons"><ProtectedRoutes /></Route>
       <Route path="/smart-files"><ProtectedRoutes /></Route>
       <Route path="/smart-files/:id/edit"><ProtectedRoutes /></Route>
+      <Route path="/lead-forms"><ProtectedRoutes /></Route>
+      <Route path="/lead-forms/:id/configure"><ProtectedRoutes /></Route>
       <Route path="/widget-generator"><ProtectedRoutes /></Route>
       <Route path="/questionnaires"><ProtectedRoutes /></Route>
       <Route path="/scheduling"><ProtectedRoutes /></Route>

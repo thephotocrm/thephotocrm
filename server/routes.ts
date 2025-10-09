@@ -5781,6 +5781,141 @@ ${photographer.businessName}`
   // Apply CORS middleware to all public routes
   app.use("/api/public/*", publicCorsMiddleware);
 
+  // Public lead form submission endpoint (no authentication required)
+  app.post("/api/public/forms/:formToken/submit", async (req, res) => {
+    try {
+      const { formToken } = req.params;
+      
+      // Find form by public token
+      const form = await storage.getLeadFormByToken(formToken);
+      if (!form || form.status !== 'ACTIVE') {
+        return res.status(404).json({ 
+          success: false,
+          message: "Form not found or inactive" 
+        });
+      }
+      
+      // Get photographer info
+      const photographer = await storage.getPhotographer(form.photographerId);
+      if (!photographer) {
+        return res.status(404).json({ 
+          success: false,
+          message: "Photographer not found" 
+        });
+      }
+      
+      // Validate submission data
+      const submissionSchema = z.object({
+        firstName: z.string().min(1, "First name is required"),
+        lastName: z.string().min(1, "Last name is required"), 
+        email: z.string().email("Valid email is required"),
+        phone: z.string().optional(),
+        message: z.string().optional(),
+        eventDate: z.string().optional().refine(val => !val || !isNaN(Date.parse(val)), "Invalid date format"),
+        emailOptIn: z.boolean().default(true),
+        smsOptIn: z.boolean().default(true),
+      });
+      
+      const submissionData = submissionSchema.parse(req.body);
+      
+      // Apply photographer's default opt-in settings
+      const finalEmailOptIn = submissionData.emailOptIn ?? photographer.defaultEmailOptIn ?? true;
+      const finalSmsOptIn = submissionData.smsOptIn ?? photographer.defaultSmsOptIn ?? false;
+      
+      // Check if client already exists (by photographer + email)
+      let client = await storage.getClientByEmail(photographer.id, submissionData.email);
+      
+      if (!client) {
+        // Create new client with contact information
+        client = await storage.createClient({
+          photographerId: photographer.id,
+          firstName: submissionData.firstName,
+          lastName: submissionData.lastName,
+          email: submissionData.email,
+          phone: submissionData.phone
+        });
+      } else {
+        // Update existing client info if provided
+        if (submissionData.phone && submissionData.phone !== client.phone) {
+          await storage.updateClient(client.id, { phone: submissionData.phone });
+          client = { ...client, phone: submissionData.phone };
+        }
+      }
+      
+      // Create project with form's configured project type
+      const project = await storage.createProject({
+        photographerId: photographer.id,
+        clientId: client.id,
+        title: `${form.projectType.toLowerCase().replace(/_/g, ' ')} for ${submissionData.firstName} ${submissionData.lastName}`,
+        projectType: form.projectType,
+        eventDate: submissionData.eventDate && !isNaN(Date.parse(submissionData.eventDate)) ? new Date(submissionData.eventDate) : undefined,
+        leadSource: "WEBSITE_WIDGET",
+        notes: submissionData.message,
+        emailOptIn: finalEmailOptIn,
+        smsOptIn: finalSmsOptIn
+      });
+      
+      // Increment form submission count
+      await storage.updateLeadForm(form.id, { 
+        submissionCount: (form.submissionCount || 0) + 1 
+      });
+      
+      // Send welcome SMS if opted in
+      if (finalSmsOptIn && client.phone) {
+        console.log(`[FORM SMS] Sending welcome SMS to ${client.firstName} ${client.lastName} at ${client.phone}`);
+        const welcomeMessage = `Hi ${client.firstName}! Thank you for your ${form.projectType.toLowerCase()} inquiry with ${photographer.businessName}. We'll be in touch soon!`;
+        const smsResult = await sendSms({
+          to: client.phone,
+          body: welcomeMessage
+        });
+        
+        if (smsResult.success) {
+          console.log(`[FORM SMS] Welcome SMS sent successfully, SID: ${smsResult.sid}`);
+          
+          await storage.createSmsLog({
+            clientId: client.id,
+            projectId: project.id,
+            status: 'sent',
+            direction: 'OUTBOUND',
+            fromPhone: process.env.SIMPLETEXTING_PHONE_NUMBER || '',
+            toPhone: client.phone,
+            messageBody: welcomeMessage,
+            isForwarded: false,
+            providerId: smsResult.sid,
+            sentAt: new Date()
+          });
+          
+          console.log(`[FORM SMS] Welcome SMS logged in database for client ${client.id}`);
+        } else {
+          console.error(`[FORM SMS] Failed to send welcome SMS: ${smsResult.error}`);
+        }
+      }
+      
+      res.status(201).json({ 
+        success: true, 
+        message: "Form submitted successfully",
+        clientId: client.id,
+        projectId: project.id
+      });
+      
+    } catch (error: any) {
+      console.error("[FORM SUBMISSION ERROR]", error);
+      
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ 
+          success: false,
+          message: "Validation error",
+          errors: error.errors 
+        });
+      }
+      
+      res.status(500).json({ 
+        success: false,
+        message: "Failed to submit form" 
+      });
+    }
+  });
+
   // Public widget API endpoint (no authentication required)
   app.post("/api/public/lead/:photographerToken", async (req, res) => {
     // CORS headers handled by middleware
