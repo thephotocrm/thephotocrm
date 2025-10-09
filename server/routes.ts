@@ -5781,6 +5781,29 @@ ${photographer.businessName}`
   // Apply CORS middleware to all public routes
   app.use("/api/public/*", publicCorsMiddleware);
 
+  // Public endpoint to fetch lead form configuration by token (no auth required)
+  app.get("/api/public/lead-forms/:formToken", async (req, res) => {
+    try {
+      const { formToken } = req.params;
+      
+      const form = await storage.getLeadFormByToken(formToken);
+      if (!form || form.status !== 'ACTIVE') {
+        return res.status(404).json({ 
+          success: false,
+          message: "Form not found or inactive" 
+        });
+      }
+      
+      res.json(form);
+    } catch (error) {
+      console.error("[GET FORM CONFIG ERROR]", error);
+      res.status(500).json({ 
+        success: false,
+        message: "Failed to fetch form configuration" 
+      });
+    }
+  });
+
   // Public lead form submission endpoint (no authentication required)
   app.post("/api/public/forms/:formToken/submit", async (req, res) => {
     try {
@@ -5804,19 +5827,38 @@ ${photographer.businessName}`
         });
       }
       
-      // Validate submission data
-      const submissionSchema = z.object({
+      // Extract required fields and custom field data
+      const requiredFields = {
         firstName: z.string().min(1, "First name is required"),
-        lastName: z.string().min(1, "Last name is required"), 
         email: z.string().email("Valid email is required"),
-        phone: z.string().optional(),
-        message: z.string().optional(),
-        eventDate: z.string().optional().refine(val => !val || !isNaN(Date.parse(val)), "Invalid date format"),
-        emailOptIn: z.boolean().default(true),
-        smsOptIn: z.boolean().default(true),
-      });
+      };
       
-      const submissionData = submissionSchema.parse(req.body);
+      const baseSchema = z.object(requiredFields);
+      const baseData = baseSchema.parse(req.body);
+      
+      // Get all custom field values
+      const customFieldData = { ...req.body };
+      delete customFieldData.firstName;
+      delete customFieldData.email;
+      
+      // Extract known fields with safe defaults
+      const lastName = req.body.lastName || '';
+      const phone = req.body.phone || '';
+      const eventDate = req.body.eventDate || '';
+      const message = req.body.message || '';
+      const emailOptIn = req.body.emailOptIn !== undefined ? req.body.emailOptIn : true;
+      const smsOptIn = req.body.smsOptIn !== undefined ? req.body.smsOptIn : true;
+      
+      const submissionData = {
+        ...baseData,
+        lastName,
+        phone,
+        eventDate,
+        message,
+        emailOptIn,
+        smsOptIn,
+        customFields: customFieldData
+      };
       
       // Apply photographer's default opt-in settings
       const finalEmailOptIn = submissionData.emailOptIn ?? photographer.defaultEmailOptIn ?? true;
@@ -5895,7 +5937,8 @@ ${photographer.businessName}`
         success: true, 
         message: "Form submitted successfully",
         clientId: client.id,
-        projectId: project.id
+        projectId: project.id,
+        redirectUrl: (form.config as any)?.redirectUrl || ''
       });
       
     } catch (error: any) {
