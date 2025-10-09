@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Calendar, User, Mail, Phone, MapPin, FileText, DollarSign, Clock, ArrowLeft, ClipboardCheck, UserPlus, X, History, Send, MessageSquare, Plus, Copy, Eye, MoreVertical, Trash } from "lucide-react";
+import { Calendar, User, Mail, Phone, MapPin, FileText, DollarSign, Clock, ArrowLeft, ClipboardCheck, ClipboardList, UserPlus, X, History, Send, MessageSquare, Plus, Copy, Eye, MoreVertical, Trash } from "lucide-react";
 import { Link } from "wouter";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useState } from "react";
@@ -607,85 +607,141 @@ export default function ProjectDetail() {
             <CardContent>
               {smartFiles && smartFiles.length > 0 ? (
                 <div className="space-y-3">
-                  {smartFiles.map((sf) => (
+                  {smartFiles.map((sf) => {
+                    // Extract form fields from pagesSnapshot if this is a FORM smart file
+                    const formPage = sf.pagesSnapshot?.find((page: any) => page.pageType === 'FORM');
+                    const formFields: any[] = [];
+                    
+                    if (formPage && formPage.content?.sections) {
+                      formPage.content.sections.forEach((section: any) => {
+                        if (section.columns) {
+                          section.columns.forEach((column: any) => {
+                            if (column.blocks) {
+                              column.blocks.forEach((block: any) => {
+                                if (block.type === 'FORM_FIELD' && block.content) {
+                                  formFields.push({
+                                    id: block.id,
+                                    label: block.content.label,
+                                    fieldType: block.content.fieldType,
+                                    options: block.content.options
+                                  });
+                                }
+                              });
+                            }
+                          });
+                        }
+                      });
+                    }
+
+                    const hasFormAnswers = sf.formAnswers && Object.keys(sf.formAnswers).length > 0;
+
+                    return (
                     <div 
                       key={sf.id} 
-                      className="flex items-center justify-between p-4 border rounded-lg"
+                      className="p-4 border rounded-lg space-y-3"
                       data-testid={`smart-file-${sf.id}`}
                     >
-                      <div className="space-y-1">
-                        <p className="font-medium" data-testid={`smart-file-name-${sf.id}`}>
-                          {sf.smartFileName}
-                        </p>
-                        <div className="flex items-center gap-2">
-                          <Badge 
-                            className={getSmartFileStatusColor(sf.status)}
-                            data-testid={`smart-file-status-${sf.id}`}
-                          >
-                            {sf.status}
-                          </Badge>
-                          {sf.sentAt && (
-                            <span className="text-sm text-muted-foreground">
-                              Sent {formatDate(sf.sentAt)}
-                            </span>
-                          )}
+                      <div className="flex items-center justify-between">
+                        <div className="space-y-1 flex-1">
+                          <p className="font-medium" data-testid={`smart-file-name-${sf.id}`}>
+                            {sf.smartFileName}
+                          </p>
+                          <div className="flex items-center gap-2">
+                            <Badge 
+                              className={getSmartFileStatusColor(sf.status)}
+                              data-testid={`smart-file-status-${sf.id}`}
+                            >
+                              {sf.status}
+                            </Badge>
+                            {sf.sentAt && (
+                              <span className="text-sm text-muted-foreground">
+                                Sent {formatDate(sf.sentAt)}
+                              </span>
+                            )}
+                          </div>
                         </div>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm" data-testid={`button-smart-file-menu-${sf.id}`}>
+                              <MoreVertical className="w-4 h-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            {sf.status === 'DRAFT' && (
+                              <DropdownMenuItem 
+                                onClick={() => setSmartFileToSend(sf)}
+                                data-testid={`button-send-smart-file-${sf.id}`}
+                              >
+                                <Send className="w-4 h-4 mr-2" />
+                                Send to Client
+                              </DropdownMenuItem>
+                            )}
+                            {['SENT', 'VIEWED', 'ACCEPTED', 'PAID', 'DEPOSIT_PAID'].includes(sf.status) && (
+                              <>
+                                <DropdownMenuItem 
+                                  onClick={() => handleCopyLink(sf)}
+                                  data-testid={`button-copy-link-${sf.id}`}
+                                >
+                                  <Copy className="w-4 h-4 mr-2" />
+                                  Copy Link
+                                </DropdownMenuItem>
+                                <DropdownMenuItem 
+                                  onClick={() => sendSmartFileSMSMutation.mutate(sf.id)}
+                                  data-testid={`button-send-sms-${sf.id}`}
+                                >
+                                  <MessageSquare className="w-4 h-4 mr-2" />
+                                  Send via Text
+                                </DropdownMenuItem>
+                              </>
+                            )}
+                            <DropdownMenuItem 
+                              onClick={() => setLocation(`/smart-files/${sf.smartFileId}/edit`)}
+                              data-testid={`button-view-smart-file-${sf.id}`}
+                            >
+                              <Eye className="w-4 h-4 mr-2" />
+                              View Details
+                            </DropdownMenuItem>
+                            {/* Only show remove option if no payments or signatures */}
+                            {sf.status !== 'DEPOSIT_PAID' && sf.status !== 'PAID' && !sf.clientSignatureUrl && !sf.photographerSignatureUrl && (
+                              <DropdownMenuItem 
+                                onClick={() => setSmartFileToRemove(sf)}
+                                data-testid={`button-remove-smart-file-${sf.id}`}
+                              >
+                                <Trash className="w-4 h-4 mr-2" />
+                                Remove
+                              </DropdownMenuItem>
+                            )}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </div>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm" data-testid={`button-smart-file-menu-${sf.id}`}>
-                            <MoreVertical className="w-4 h-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          {sf.status === 'DRAFT' && (
-                            <DropdownMenuItem 
-                              onClick={() => setSmartFileToSend(sf)}
-                              data-testid={`button-send-smart-file-${sf.id}`}
-                            >
-                              <Send className="w-4 h-4 mr-2" />
-                              Send to Client
-                            </DropdownMenuItem>
-                          )}
-                          {['SENT', 'VIEWED', 'ACCEPTED', 'PAID', 'DEPOSIT_PAID'].includes(sf.status) && (
-                            <>
-                              <DropdownMenuItem 
-                                onClick={() => handleCopyLink(sf)}
-                                data-testid={`button-copy-link-${sf.id}`}
-                              >
-                                <Copy className="w-4 h-4 mr-2" />
-                                Copy Link
-                              </DropdownMenuItem>
-                              <DropdownMenuItem 
-                                onClick={() => sendSmartFileSMSMutation.mutate(sf.id)}
-                                data-testid={`button-send-sms-${sf.id}`}
-                              >
-                                <MessageSquare className="w-4 h-4 mr-2" />
-                                Send via Text
-                              </DropdownMenuItem>
-                            </>
-                          )}
-                          <DropdownMenuItem 
-                            onClick={() => setLocation(`/smart-files/${sf.smartFileId}/edit`)}
-                            data-testid={`button-view-smart-file-${sf.id}`}
-                          >
-                            <Eye className="w-4 h-4 mr-2" />
-                            View Details
-                          </DropdownMenuItem>
-                          {/* Only show remove option if no payments or signatures */}
-                          {sf.status !== 'DEPOSIT_PAID' && sf.status !== 'PAID' && !sf.clientSignatureUrl && !sf.photographerSignatureUrl && (
-                            <DropdownMenuItem 
-                              onClick={() => setSmartFileToRemove(sf)}
-                              data-testid={`button-remove-smart-file-${sf.id}`}
-                            >
-                              <Trash className="w-4 h-4 mr-2" />
-                              Remove
-                            </DropdownMenuItem>
-                          )}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+
+                      {/* Form Answers Display */}
+                      {hasFormAnswers && formFields.length > 0 && (
+                        <div className="pt-3 border-t space-y-2" data-testid={`form-answers-${sf.id}`}>
+                          <p className="text-sm font-semibold flex items-center gap-2">
+                            <ClipboardList className="w-4 h-4" />
+                            Form Responses
+                          </p>
+                          <div className="space-y-3 pl-6">
+                            {formFields.map((field) => {
+                              const answer = sf.formAnswers[field.id];
+                              if (!answer) return null;
+
+                              return (
+                                <div key={field.id} className="space-y-1">
+                                  <p className="text-sm font-medium text-muted-foreground">{field.label}</p>
+                                  <p className="text-sm" data-testid={`form-answer-${field.id}`}>
+                                    {Array.isArray(answer) ? answer.join(', ') : answer}
+                                  </p>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
               ) : (
                 <div className="text-center py-8">
