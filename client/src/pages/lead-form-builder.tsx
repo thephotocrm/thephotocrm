@@ -253,6 +253,7 @@ export default function LeadFormBuilder() {
         }
         rows.push([field]);
       } else {
+        // Half width field
         currentRow.push(field);
         if (currentRow.length === 2) {
           rows.push(currentRow);
@@ -261,6 +262,7 @@ export default function LeadFormBuilder() {
       }
     });
 
+    // Push any remaining half-width field (will be alone in its row)
     if (currentRow.length > 0) {
       rows.push(currentRow);
     }
@@ -461,9 +463,11 @@ export default function LeadFormBuilder() {
               )}
             </CardHeader>
             <CardContent className="p-6 space-y-3" style={{ backgroundColor: config.backgroundColor }}>
-              {groupFieldsIntoRows(config.customFields).map((row, rowIndex) => (
-                <div key={rowIndex} className={row.length === 2 ? "grid grid-cols-2 gap-3" : ""}>
-                  {row.map((field) => {
+              {groupFieldsIntoRows(config.customFields).map((row, rowIndex) => {
+                const isHalfWidthRow = row.some(f => (f.width || 'full') === 'half');
+                return (
+                  <div key={rowIndex} className={isHalfWidthRow ? "grid grid-cols-2 gap-3" : ""}>
+                    {row.map((field) => {
                     const index = config.customFields.indexOf(field);
                     return (
                       <div
@@ -523,21 +527,6 @@ export default function LeadFormBuilder() {
                                 onChange={(e) => updateField(field.id, { placeholder: e.target.value })}
                                 data-testid={`input-edit-placeholder-${field.id}`}
                               />
-                            </div>
-                            <div>
-                              <Label className="text-xs">Width</Label>
-                              <Select 
-                                value={field.width || 'full'}
-                                onValueChange={(value: 'full' | 'half') => updateField(field.id, { width: value })}
-                              >
-                                <SelectTrigger data-testid={`select-width-${field.id}`}>
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="full">Full Width (1 Column)</SelectItem>
-                                  <SelectItem value="half">Half Width (2 Columns)</SelectItem>
-                                </SelectContent>
-                              </Select>
                             </div>
                             {(field.type === 'select' || field.type === 'checkbox') && (
                               <div>
@@ -616,15 +605,43 @@ export default function LeadFormBuilder() {
                                 {field.required && <span className="text-destructive">*</span>}
                                 {field.isSystem && <Badge variant="secondary" className="text-xs">Required</Badge>}
                               </Label>
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={() => setEditingField(field.id)}
-                                data-testid={`button-edit-${field.id}`}
-                              >
-                                <Pencil className="w-3 h-3 mr-1" />
-                                Edit
-                              </Button>
+                              <div className="flex items-center gap-2">
+                                <div className="flex bg-muted rounded-md p-0.5">
+                                  <button
+                                    type="button"
+                                    onClick={() => updateField(field.id, { width: 'half' })}
+                                    className={`px-2 py-1 text-xs rounded-sm transition-colors ${
+                                      (field.width || 'full') === 'half' 
+                                        ? 'bg-background shadow-sm' 
+                                        : 'text-muted-foreground hover:text-foreground'
+                                    }`}
+                                    data-testid={`button-width-half-${field.id}`}
+                                  >
+                                    Half
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => updateField(field.id, { width: 'full' })}
+                                    className={`px-2 py-1 text-xs rounded-sm transition-colors ${
+                                      (field.width || 'full') === 'full' 
+                                        ? 'bg-background shadow-sm' 
+                                        : 'text-muted-foreground hover:text-foreground'
+                                    }`}
+                                    data-testid={`button-width-full-${field.id}`}
+                                  >
+                                    Full
+                                  </button>
+                                </div>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => setEditingField(field.id)}
+                                  data-testid={`button-edit-${field.id}`}
+                                >
+                                  <Pencil className="w-3 h-3 mr-1" />
+                                  Edit
+                                </Button>
+                              </div>
                             </div>
                             {field.type === 'textarea' ? (
                               <Textarea
@@ -661,7 +678,9 @@ export default function LeadFormBuilder() {
                     );
                   })}
                 </div>
-              ))}
+                );
+              })}
+
 
               {/* Add Field Button */}
               <DropdownMenu>
