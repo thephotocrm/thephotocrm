@@ -2933,6 +2933,46 @@ ${photographer?.businessName || 'Your Photography Team'}`;
     }
   });
 
+  // PATCH /api/public/smart-files/:token/form-answers - Save form answers (PUBLIC ROUTE)
+  app.patch("/api/public/smart-files/:token/form-answers", async (req, res) => {
+    try {
+      const { token } = req.params;
+      const { formAnswers } = req.body;
+
+      if (!formAnswers || typeof formAnswers !== 'object') {
+        return res.status(400).json({ message: "Form answers are required" });
+      }
+
+      const projectSmartFile = await storage.getProjectSmartFileByToken(token);
+      
+      if (!projectSmartFile) {
+        return res.status(404).json({ message: "Smart File not found" });
+      }
+
+      // Update form answers
+      const updated = await storage.updateProjectSmartFile(projectSmartFile.id, {
+        formAnswers: formAnswers
+      });
+
+      // Log activity
+      await storage.createProjectHistory({
+        projectId: projectSmartFile.projectId,
+        userId: null,
+        action: 'FORM_SUBMITTED',
+        metadata: {
+          smartFileId: projectSmartFile.smartFileId,
+          smartFileName: projectSmartFile.smartFileName,
+          answersCount: Object.keys(formAnswers).length
+        }
+      });
+
+      res.json(updated);
+    } catch (error) {
+      console.error("Save form answers error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   // POST /api/public/smart-files/:token/create-checkout - Create Stripe checkout session (PUBLIC ROUTE)
   app.post("/api/public/smart-files/:token/create-checkout", async (req, res) => {
     try {
