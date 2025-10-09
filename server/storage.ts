@@ -208,6 +208,7 @@ export interface IStorage {
     expiryDate?: Date;
     scope?: string;
     calendarId?: string;
+    email?: string;
   }): Promise<void>;
   getGoogleCalendarCredentials(photographerId: string): Promise<{
     accessToken?: string;
@@ -216,6 +217,7 @@ export interface IStorage {
     scope?: string;
     connectedAt?: Date;
     calendarId?: string;
+    email?: string;
   } | null>;
   clearGoogleCalendarCredentials(photographerId: string): Promise<void>;
   hasValidGoogleCalendarCredentials(photographerId: string): Promise<boolean>;
@@ -1550,6 +1552,7 @@ export class DatabaseStorage implements IStorage {
     expiryDate?: Date;
     scope?: string;
     calendarId?: string;
+    email?: string;
   }): Promise<void> {
     await db.update(photographers)
       .set({
@@ -1558,6 +1561,7 @@ export class DatabaseStorage implements IStorage {
         googleCalendarTokenExpiry: credentials.expiryDate || null,
         googleCalendarScope: credentials.scope || null,
         googleCalendarId: credentials.calendarId || null,
+        googleEmail: credentials.email || null,
         googleCalendarConnectedAt: new Date()
       })
       .where(eq(photographers.id, photographerId));
@@ -1570,6 +1574,7 @@ export class DatabaseStorage implements IStorage {
     scope?: string;
     connectedAt?: Date;
     calendarId?: string;
+    email?: string;
   } | null> {
     const [photographer] = await db.select({
       accessToken: photographers.googleCalendarAccessToken,
@@ -1577,7 +1582,8 @@ export class DatabaseStorage implements IStorage {
       expiryDate: photographers.googleCalendarTokenExpiry,
       scope: photographers.googleCalendarScope,
       connectedAt: photographers.googleCalendarConnectedAt,
-      calendarId: photographers.googleCalendarId
+      calendarId: photographers.googleCalendarId,
+      email: photographers.googleEmail
     })
       .from(photographers)
       .where(eq(photographers.id, photographerId));
@@ -1592,7 +1598,8 @@ export class DatabaseStorage implements IStorage {
       expiryDate: photographer.expiryDate || undefined,
       scope: photographer.scope || undefined,
       connectedAt: photographer.connectedAt || undefined,
-      calendarId: photographer.calendarId || undefined
+      calendarId: photographer.calendarId || undefined,
+      email: photographer.email || undefined
     };
   }
 

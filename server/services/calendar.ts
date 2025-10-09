@@ -279,12 +279,27 @@ export class GoogleCalendarService {
         return { success: false, error: 'No access token received' };
       }
 
+      // Fetch user email from Google
+      let userEmail: string | undefined;
+      try {
+        oauth2Client.setCredentials(tokens);
+        const { google } = await import('googleapis');
+        const oauth2 = google.oauth2({ version: 'v2', auth: oauth2Client });
+        const userInfo = await oauth2.userinfo.get();
+        userEmail = userInfo.data.email || undefined;
+        console.log(`Fetched Google user email: ${userEmail}`);
+      } catch (emailError: any) {
+        console.warn('Failed to fetch user email from Google:', emailError.message);
+        // Continue even if email fetch fails
+      }
+
       // Store credentials securely for this photographer
       await storage.storeGoogleCalendarCredentials(photographerId, {
         accessToken: tokens.access_token,
         refreshToken: tokens.refresh_token || undefined,
         expiryDate: tokens.expiry_date ? new Date(tokens.expiry_date) : undefined,
-        scope: Array.isArray(tokens.scope) ? tokens.scope.join(' ') : tokens.scope
+        scope: Array.isArray(tokens.scope) ? tokens.scope.join(' ') : tokens.scope,
+        email: userEmail
       });
       
       console.log(`Calendar tokens stored successfully for photographer ${photographerId}`);
