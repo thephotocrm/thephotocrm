@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Copy, ArrowLeft, Save, Plus, Trash2, Code2, Type, Mail, Phone as PhoneIcon, Calendar, MessageSquare, CheckSquare, List, Eye, ArrowUp, ArrowDown, Palette } from "lucide-react";
+import { Copy, ArrowLeft, Save, Plus, Trash2, Code2, Type, Mail, Phone as PhoneIcon, Calendar, MessageSquare, CheckSquare, List, Eye, ArrowUp, ArrowDown, Palette, Pencil, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 
@@ -473,14 +473,50 @@ export default function LeadFormBuilder() {
                       </div>
                       {(field.type === 'select' || field.type === 'checkbox') && (
                         <div>
-                          <Label className="text-xs">Options (comma-separated)</Label>
-                          <Input
-                            value={(field.options || []).join(', ')}
-                            onChange={(e) => updateField(field.id, { 
-                              options: e.target.value.split(',').map(o => o.trim()).filter(Boolean)
-                            })}
-                            data-testid={`input-edit-options-${field.id}`}
-                          />
+                          <div className="flex items-center justify-between mb-2">
+                            <Label className="text-xs">Options</Label>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => {
+                                const newOptions = [...(field.options || []), ''];
+                                updateField(field.id, { options: newOptions });
+                              }}
+                              data-testid={`button-add-option-${field.id}`}
+                            >
+                              <Plus className="w-3 h-3 mr-1" />
+                              Add Option
+                            </Button>
+                          </div>
+                          <div className="space-y-2">
+                            {(field.options || []).map((option, idx) => (
+                              <div key={idx} className="flex items-center gap-2">
+                                <Input
+                                  value={option}
+                                  onChange={(e) => {
+                                    const newOptions = [...(field.options || [])];
+                                    newOptions[idx] = e.target.value;
+                                    updateField(field.id, { options: newOptions });
+                                  }}
+                                  placeholder={`Option ${idx + 1}`}
+                                  data-testid={`input-option-${idx}-${field.id}`}
+                                />
+                                {(field.options?.length || 0) > 1 && (
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => {
+                                      const newOptions = (field.options || []).filter((_, i) => i !== idx);
+                                      updateField(field.id, { options: newOptions });
+                                    }}
+                                    data-testid={`button-remove-option-${idx}-${field.id}`}
+                                  >
+                                    <X className="w-4 h-4 text-destructive" />
+                                  </Button>
+                                )}
+                              </div>
+                            ))}
+                          </div>
                         </div>
                       )}
                       {!field.isSystem && (
@@ -505,12 +541,23 @@ export default function LeadFormBuilder() {
                     </div>
                   ) : (
                     /* Display Mode */
-                    <div onClick={() => setEditingField(field.id)} className="cursor-pointer">
-                      <Label className="flex items-center gap-2">
-                        {field.label}
-                        {field.required && <span className="text-destructive">*</span>}
-                        {field.isSystem && <Badge variant="secondary" className="text-xs">Required</Badge>}
-                      </Label>
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <Label className="flex items-center gap-2">
+                          {field.label}
+                          {field.required && <span className="text-destructive">*</span>}
+                          {field.isSystem && <Badge variant="secondary" className="text-xs">Required</Badge>}
+                        </Label>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => setEditingField(field.id)}
+                          data-testid={`button-edit-${field.id}`}
+                        >
+                          <Pencil className="w-3 h-3 mr-1" />
+                          Edit
+                        </Button>
+                      </div>
                       {field.type === 'textarea' ? (
                         <Textarea
                           placeholder={field.placeholder}
