@@ -12,7 +12,7 @@ Preferred communication style: Simple, everyday language.
 
 **UI/UX Decisions:**
 *   **Comprehensive Automations UI:** Features a professional, modern design with enhanced visual hierarchy, bold titles, semantic color-coded badges, and a timeline-style display for steps. Cards are collapsible with smooth interactions.
-*   **Navigation System:** Refactored collapsible sidebar navigation to reduce clutter, featuring grouped collapsible sections for photographers (Sales & Proposals, Marketing & Automation, Business Tools) with core items always visible. Admin navigation is flat. Mobile sidebar is 85vw wide with visible close button, enlarged text (text-base) and buttons (h-12) for better touch targets.
+*   **Navigation System:** Refactored collapsible sidebar navigation to reduce clutter, featuring grouped collapsible sections for photographers (Sales & Proposals, Marketing & Automation, Business Tools) with core items always visible. Admin navigation is flat. Mobile sidebar is 85vw wide with large white close button (48px x 48px with 32px icon), enlarged text (text-base) and buttons (h-12) for better touch targets. Mobile header and sidebar share unified blue-purple-pink gradient for visual consistency.
 *   **Frontend:** Built with React and Vite, using Wouter for routing, Shadcn/ui (Radix UI-based) for components, and Tailwind CSS for styling.
 
 **Technical Implementations:**
