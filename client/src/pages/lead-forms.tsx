@@ -320,36 +320,37 @@ export default function LeadForms() {
                         size="sm"
                         onClick={() => handleConfigure(form.id)}
                         data-testid={`button-configure-${form.id}`}
-                        className="hover:bg-blue-50 dark:hover:bg-blue-950"
                       >
-                        <Settings className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                        <Settings className="w-4 h-4 mr-1" />
+                        Configure
                       </Button>
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => showEmbedCode(form)}
                         data-testid={`button-embed-${form.id}`}
-                        className="hover:bg-purple-50 dark:hover:bg-purple-950"
                       >
-                        <Code className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                        <Code className="w-4 h-4 mr-1" />
+                        Embed
                       </Button>
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => handleEdit(form)}
                         data-testid={`button-edit-${form.id}`}
-                        className="hover:bg-green-50 dark:hover:bg-green-950"
                       >
-                        <Edit className="w-4 h-4 text-green-600 dark:text-green-400" />
+                        <Edit className="w-4 h-4 mr-1" />
+                        Edit
                       </Button>
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => handleDelete(form)}
                         data-testid={`button-delete-${form.id}`}
-                        className="hover:bg-red-50 dark:hover:bg-red-950"
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-950"
                       >
-                        <Trash2 className="w-4 h-4 text-red-600 dark:text-red-400" />
+                        <Trash2 className="w-4 h-4 mr-1" />
+                        Delete
                       </Button>
                     </div>
                   </TableCell>
@@ -496,7 +497,7 @@ export default function LeadForms() {
                   Copy
                 </Button>
               </div>
-              <pre className="bg-muted p-4 rounded-md overflow-x-auto text-xs">
+              <pre className="bg-muted p-4 rounded-md text-xs whitespace-pre-wrap break-all">
                 <code data-testid="text-embed-code">{selectedForm ? getEmbedCode(selectedForm) : ""}</code>
               </pre>
             </div>

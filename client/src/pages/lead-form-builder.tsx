@@ -382,7 +382,7 @@ export default function LeadFormBuilder() {
                 </DialogHeader>
                 <div className="space-y-4">
                   <div className="relative">
-                    <pre className="bg-muted p-4 rounded-md overflow-x-auto text-xs">
+                    <pre className="bg-muted p-4 rounded-md text-xs whitespace-pre-wrap break-all pr-24">
                       <code>{generateEmbedCode()}</code>
                     </pre>
                     <Button
