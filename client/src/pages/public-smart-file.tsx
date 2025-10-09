@@ -30,6 +30,7 @@ import { EmbeddedPaymentForm } from "@/components/embedded-payment-form";
 import { SignaturePad } from "@/components/signature-pad";
 import { ContractRenderer } from "@/components/contract-renderer";
 import { parseContractVariables } from "@shared/contractVariables";
+import { SchedulingCalendar } from "@/components/scheduling-calendar";
 
 type ImageContent = {
   url: string;
@@ -2246,31 +2247,15 @@ export default function PublicSmartFile() {
 
                 {/* SCHEDULING Page */}
                 {currentPage.pageType === "SCHEDULING" && (
-                  <Card>
-                    <CardHeader>
-                      <div className="flex items-center gap-3">
-                        <Calendar className="w-6 h-6 text-primary" />
-                        <div>
-                          <CardTitle>{currentPage.content.heading || "Schedule Your Session"}</CardTitle>
-                          {currentPage.content.description && (
-                            <CardDescription>{currentPage.content.description}</CardDescription>
-                          )}
-                        </div>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-center py-12 text-muted-foreground space-y-3">
-                        <Calendar className="w-16 h-16 mx-auto opacity-50" />
-                        <p className="text-lg font-medium">Calendar Coming Soon</p>
-                        <p className="text-sm">
-                          Duration: {currentPage.content.durationMinutes} minutes
-                        </p>
-                        <p className="text-sm">
-                          Type: {currentPage.content.bookingType}
-                        </p>
-                      </div>
-                    </CardContent>
-                  </Card>
+                  <SchedulingCalendar
+                    heading={currentPage.content.heading}
+                    description={currentPage.content.description}
+                    durationMinutes={currentPage.content.durationMinutes}
+                    bookingType={currentPage.content.bookingType}
+                    bufferBefore={currentPage.content.bufferBefore}
+                    bufferAfter={currentPage.content.bufferAfter}
+                    allowRescheduling={currentPage.content.allowRescheduling}
+                  />
                 )}
               </div>
 
