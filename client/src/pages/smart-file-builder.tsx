@@ -3008,53 +3008,55 @@ export default function SmartFileBuilder() {
                                         );
                                       })()}
                                       {/* Form Field Types Preview - Disabled State */}
-                                      {block.type === 'FORM_FIELD' && block.fieldType && (
+                                      {block.type === 'FORM_FIELD' && block.content && (() => {
+                                        const fieldData = block.content;
+                                        return (
                                         <div className="space-y-2">
                                           <label className="text-sm font-medium flex items-center gap-1">
-                                            {block.label}
-                                            {block.required && <span className="text-destructive">*</span>}
+                                            {fieldData.label}
+                                            {fieldData.required && <span className="text-destructive">*</span>}
                                           </label>
-                                          {block.fieldType === 'TEXT_INPUT' && (
+                                          {fieldData.fieldType === 'TEXT_INPUT' && (
                                             <input 
                                               type="text" 
-                                              placeholder={block.placeholder || ''}
+                                              placeholder={fieldData.placeholder || ''}
                                               className="w-full px-3 py-2 border rounded-md"
                                               disabled
                                             />
                                           )}
-                                          {block.fieldType === 'TEXTAREA' && (
+                                          {fieldData.fieldType === 'TEXTAREA' && (
                                             <textarea 
-                                              placeholder={block.placeholder || ''}
+                                              placeholder={fieldData.placeholder || ''}
                                               className="w-full px-3 py-2 border rounded-md min-h-[100px]"
                                               disabled
                                             />
                                           )}
-                                          {block.fieldType === 'EMAIL' && (
+                                          {fieldData.fieldType === 'EMAIL' && (
                                             <input 
                                               type="email" 
-                                              placeholder={block.placeholder || ''}
+                                              placeholder={fieldData.placeholder || ''}
                                               className="w-full px-3 py-2 border rounded-md"
                                               disabled
                                             />
                                           )}
-                                          {block.fieldType === 'NUMBER' && (
+                                          {fieldData.fieldType === 'NUMBER' && (
                                             <input 
                                               type="number" 
-                                              placeholder={block.placeholder || ''}
+                                              placeholder={fieldData.placeholder || ''}
                                               className="w-full px-3 py-2 border rounded-md"
                                               disabled
                                             />
                                           )}
-                                          {block.fieldType === 'DATE' && (
+                                          {fieldData.fieldType === 'DATE' && (
                                             <input 
                                               type="date" 
                                               className="w-full px-3 py-2 border rounded-md"
                                               disabled
                                             />
                                           )}
-                                          {block.fieldType === 'MULTIPLE_CHOICE' && block.options && (
+                                          {fieldData.fieldType === 'MULTIPLE_CHOICE' && fieldData.options && (
                                             <div className="space-y-2">
-                                              {block.options.map((option: string, idx: number) => (
+                                              {fieldData.options.map((option: string, idx: number) => (
                                                 <div key={idx} className="flex items-center gap-2">
                                                   <input type="radio" disabled className="cursor-not-allowed" />
                                                   <span className="text-sm">{option}</span>
@@ -3062,9 +3064,9 @@ export default function SmartFileBuilder() {
                                               ))}
                                             </div>
                                           )}
-                                          {block.fieldType === 'CHECKBOX' && block.options && (
+                                          {fieldData.fieldType === 'CHECKBOX' && fieldData.options && (
                                             <div className="space-y-2">
-                                              {block.options.map((option: string, idx: number) => (
+                                              {fieldData.options.map((option: string, idx: number) => (
                                                 <div key={idx} className="flex items-center gap-2">
                                                   <input type="checkbox" disabled className="cursor-not-allowed" />
                                                   <span className="text-sm">{option}</span>
@@ -3073,7 +3075,8 @@ export default function SmartFileBuilder() {
                                             </div>
                                           )}
                                         </div>
-                                      )}
+                                        );
+                                      })()}
                                     </div>
                                   ))}
                                 </div>
@@ -3124,53 +3127,55 @@ export default function SmartFileBuilder() {
                                           );
                                         })()}
                                         {/* Form Field Types Preview - Column 0 */}
-                                        {block.type === 'FORM_FIELD' && block.fieldType && (
+                                        {block.type === 'FORM_FIELD' && block.content && (() => {
+                                          const fieldData = block.content;
+                                          return (
                                           <div className="space-y-2">
                                             <label className="text-sm font-medium flex items-center gap-1">
-                                              {block.label}
-                                              {block.required && <span className="text-destructive">*</span>}
+                                              {fieldData.label}
+                                              {fieldData.required && <span className="text-destructive">*</span>}
                                             </label>
-                                            {block.fieldType === 'TEXT_INPUT' && (
+                                            {fieldData.fieldType === 'TEXT_INPUT' && (
                                               <input 
                                                 type="text" 
-                                                placeholder={block.placeholder || ''}
+                                                placeholder={fieldData.placeholder || ''}
                                                 className="w-full px-3 py-2 border rounded-md"
                                                 disabled
                                               />
                                             )}
-                                            {block.fieldType === 'TEXTAREA' && (
+                                            {fieldData.fieldType === 'TEXTAREA' && (
                                               <textarea 
-                                                placeholder={block.placeholder || ''}
+                                                placeholder={fieldData.placeholder || ''}
                                                 className="w-full px-3 py-2 border rounded-md min-h-[100px]"
                                                 disabled
                                               />
                                             )}
-                                            {block.fieldType === 'EMAIL' && (
+                                            {fieldData.fieldType === 'EMAIL' && (
                                               <input 
                                                 type="email" 
-                                                placeholder={block.placeholder || ''}
+                                                placeholder={fieldData.placeholder || ''}
                                                 className="w-full px-3 py-2 border rounded-md"
                                                 disabled
                                               />
                                             )}
-                                            {block.fieldType === 'NUMBER' && (
+                                            {fieldData.fieldType === 'NUMBER' && (
                                               <input 
                                                 type="number" 
-                                                placeholder={block.placeholder || ''}
+                                                placeholder={fieldData.placeholder || ''}
                                                 className="w-full px-3 py-2 border rounded-md"
                                                 disabled
                                               />
                                             )}
-                                            {block.fieldType === 'DATE' && (
+                                            {fieldData.fieldType === 'DATE' && (
                                               <input 
                                                 type="date" 
                                                 className="w-full px-3 py-2 border rounded-md"
                                                 disabled
                                               />
                                             )}
-                                            {block.fieldType === 'MULTIPLE_CHOICE' && block.options && (
+                                            {fieldData.fieldType === 'MULTIPLE_CHOICE' && fieldData.options && (
                                               <div className="space-y-2">
-                                                {block.options.map((option: string, idx: number) => (
+                                                {fieldData.options.map((option: string, idx: number) => (
                                                   <div key={idx} className="flex items-center gap-2">
                                                     <input type="radio" disabled className="cursor-not-allowed" />
                                                     <span className="text-sm">{option}</span>
@@ -3178,9 +3183,9 @@ export default function SmartFileBuilder() {
                                                 ))}
                                               </div>
                                             )}
-                                            {block.fieldType === 'CHECKBOX' && block.options && (
+                                            {fieldData.fieldType === 'CHECKBOX' && fieldData.options && (
                                               <div className="space-y-2">
-                                                {block.options.map((option: string, idx: number) => (
+                                                {fieldData.options.map((option: string, idx: number) => (
                                                   <div key={idx} className="flex items-center gap-2">
                                                     <input type="checkbox" disabled className="cursor-not-allowed" />
                                                     <span className="text-sm">{option}</span>
@@ -3189,7 +3194,8 @@ export default function SmartFileBuilder() {
                                               </div>
                                             )}
                                           </div>
-                                        )}
+                                          );
+                                        })()}
                                       </div>
                                     ))}
                                   </div>
@@ -3238,53 +3244,55 @@ export default function SmartFileBuilder() {
                                           );
                                         })()}
                                         {/* Form Field Types Preview - Column 1 */}
-                                        {block.type === 'FORM_FIELD' && block.fieldType && (
+                                        {block.type === 'FORM_FIELD' && block.content && (() => {
+                                          const fieldData = block.content;
+                                          return (
                                           <div className="space-y-2">
                                             <label className="text-sm font-medium flex items-center gap-1">
-                                              {block.label}
-                                              {block.required && <span className="text-destructive">*</span>}
+                                              {fieldData.label}
+                                              {fieldData.required && <span className="text-destructive">*</span>}
                                             </label>
-                                            {block.fieldType === 'TEXT_INPUT' && (
+                                            {fieldData.fieldType === 'TEXT_INPUT' && (
                                               <input 
                                                 type="text" 
-                                                placeholder={block.placeholder || ''}
+                                                placeholder={fieldData.placeholder || ''}
                                                 className="w-full px-3 py-2 border rounded-md"
                                                 disabled
                                               />
                                             )}
-                                            {block.fieldType === 'TEXTAREA' && (
+                                            {fieldData.fieldType === 'TEXTAREA' && (
                                               <textarea 
-                                                placeholder={block.placeholder || ''}
+                                                placeholder={fieldData.placeholder || ''}
                                                 className="w-full px-3 py-2 border rounded-md min-h-[100px]"
                                                 disabled
                                               />
                                             )}
-                                            {block.fieldType === 'EMAIL' && (
+                                            {fieldData.fieldType === 'EMAIL' && (
                                               <input 
                                                 type="email" 
-                                                placeholder={block.placeholder || ''}
+                                                placeholder={fieldData.placeholder || ''}
                                                 className="w-full px-3 py-2 border rounded-md"
                                                 disabled
                                               />
                                             )}
-                                            {block.fieldType === 'NUMBER' && (
+                                            {fieldData.fieldType === 'NUMBER' && (
                                               <input 
                                                 type="number" 
-                                                placeholder={block.placeholder || ''}
+                                                placeholder={fieldData.placeholder || ''}
                                                 className="w-full px-3 py-2 border rounded-md"
                                                 disabled
                                               />
                                             )}
-                                            {block.fieldType === 'DATE' && (
+                                            {fieldData.fieldType === 'DATE' && (
                                               <input 
                                                 type="date" 
                                                 className="w-full px-3 py-2 border rounded-md"
                                                 disabled
                                               />
                                             )}
-                                            {block.fieldType === 'MULTIPLE_CHOICE' && block.options && (
+                                            {fieldData.fieldType === 'MULTIPLE_CHOICE' && fieldData.options && (
                                               <div className="space-y-2">
-                                                {block.options.map((option: string, idx: number) => (
+                                                {fieldData.options.map((option: string, idx: number) => (
                                                   <div key={idx} className="flex items-center gap-2">
                                                     <input type="radio" disabled className="cursor-not-allowed" />
                                                     <span className="text-sm">{option}</span>
@@ -3292,9 +3300,9 @@ export default function SmartFileBuilder() {
                                                 ))}
                                               </div>
                                             )}
-                                            {block.fieldType === 'CHECKBOX' && block.options && (
+                                            {fieldData.fieldType === 'CHECKBOX' && fieldData.options && (
                                               <div className="space-y-2">
-                                                {block.options.map((option: string, idx: number) => (
+                                                {fieldData.options.map((option: string, idx: number) => (
                                                   <div key={idx} className="flex items-center gap-2">
                                                     <input type="checkbox" disabled className="cursor-not-allowed" />
                                                     <span className="text-sm">{option}</span>
@@ -3303,7 +3311,8 @@ export default function SmartFileBuilder() {
                                               </div>
                                             )}
                                           </div>
-                                        )}
+                                          );
+                                        })()}
                                       </div>
                                     ))}
                                   </div>
