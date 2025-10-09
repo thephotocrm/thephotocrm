@@ -2,7 +2,7 @@ import {
   photographers, users, clients, projects, projectParticipants, stages, templates, automations, automationSteps, automationBusinessTriggers,
   emailLogs, emailHistory, smsLogs, automationExecutions, photographerLinks, checklistTemplateItems, projectChecklistItems,
   packages, packageItems, addOns, questionnaireTemplates, questionnaireQuestions, projectQuestionnaires,
-  availabilitySlots, bookings, estimates, estimateItems, estimatePayments,
+  availabilitySlots, bookings,
   photographerEarnings, photographerPayouts,
   messages, projectActivityLog, clientPortalTokens,
   dailyAvailabilityTemplates, dailyAvailabilityBreaks, dailyAvailabilityOverrides,
@@ -14,14 +14,12 @@ import {
   type Client, type InsertClient, type Project, type InsertProject, type ProjectParticipant, type InsertProjectParticipant, type ProjectWithClientAndStage, type ClientWithProjects, type Stage, type InsertStage,
   type Template, type InsertTemplate, type Automation, type InsertAutomation,
   type AutomationStep, type InsertAutomationStep, type AutomationBusinessTrigger, type InsertAutomationBusinessTrigger, type Package, type InsertPackage, type AddOn, type InsertAddOn,
-  type Estimate, type InsertEstimate, type EstimateItem, type EstimateWithProject, type EstimateWithRelations,
   type PhotographerEarnings, type InsertPhotographerEarnings,
   type PhotographerPayouts, type InsertPhotographerPayouts,
   type QuestionnaireTemplate, type InsertQuestionnaireTemplate,
   type QuestionnaireQuestion, type InsertQuestionnaireQuestion,
   type ProjectQuestionnaire,
   type Message, type InsertMessage, type SmsLog, type InsertSmsLog, type EmailHistory, type InsertEmailHistory, type ProjectActivityLog, type TimelineEvent, type ClientPortalToken, type InsertClientPortalToken,
-  type Proposal, type InsertProposal, type ProposalItem, type ProposalPayment, type ProposalWithProject, type ProposalWithRelations,
   type DailyAvailabilityTemplate, type InsertDailyAvailabilityTemplate,
   type DailyAvailabilityBreak, type InsertDailyAvailabilityBreak,
   type DailyAvailabilityOverride, type InsertDailyAvailabilityOverride,
@@ -128,24 +126,6 @@ export interface IStorage {
   createAddOn(addOn: InsertAddOn): Promise<AddOn>;
   updateAddOn(id: string, addOn: Partial<AddOn>): Promise<AddOn>;
   deleteAddOn(id: string): Promise<void>;
-  
-  // Estimates
-  getEstimatesByPhotographer(photographerId: string): Promise<EstimateWithClient[]>;
-  getEstimatesByProject(projectId: string): Promise<EstimateWithClient[]>;
-  getEstimate(id: string): Promise<EstimateWithRelations | undefined>;
-  getEstimateByToken(token: string): Promise<EstimateWithRelations | undefined>;
-  createEstimate(estimate: InsertEstimate): Promise<Estimate>;
-  updateEstimate(id: string, estimate: Partial<Estimate>): Promise<Estimate>;
-  deleteEstimate(id: string): Promise<void>;
-  
-  // Proposals (aliases for Estimates to enable terminology migration)
-  getProposalsByPhotographer(photographerId: string): Promise<ProposalWithClient[]>;
-  getProposalsByClient(clientId: string): Promise<ProposalWithClient[]>;
-  getProposal(id: string): Promise<ProposalWithRelations | undefined>;
-  getProposalByToken(token: string): Promise<ProposalWithRelations | undefined>;
-  createProposal(proposal: InsertProposal): Promise<Proposal>;
-  updateProposal(id: string, proposal: Partial<Proposal>): Promise<Proposal>;
-  deleteProposal(id: string): Promise<void>;
   
   // Questionnaire Templates
   getQuestionnaireTemplatesByPhotographer(photographerId: string): Promise<QuestionnaireTemplate[]>;
@@ -575,26 +555,6 @@ export class DatabaseStorage implements IStorage {
       const projectIds = clientProjects.map(p => p.id);
       
       if (projectIds.length > 0) {
-        // Get all estimates for these projects
-        const projectEstimates = await tx.select({ id: estimates.id })
-          .from(estimates)
-          .where(inArray(estimates.projectId, projectIds));
-        
-        const estimateIds = projectEstimates.map(e => e.id);
-        
-        if (estimateIds.length > 0) {
-          // Delete estimate items and payments (batched)
-          await tx.delete(estimateItems)
-            .where(inArray(estimateItems.estimateId, estimateIds));
-          
-          await tx.delete(estimatePayments)
-            .where(inArray(estimatePayments.estimateId, estimateIds));
-        }
-        
-        // Delete estimates (batched)
-        await tx.delete(estimates)
-          .where(inArray(estimates.projectId, projectIds));
-        
         // Delete bookings related to these projects (batched)
         await tx.delete(bookings)
           .where(inArray(bookings.projectId, projectIds));
@@ -883,288 +843,6 @@ export class DatabaseStorage implements IStorage {
     await db.delete(addOns).where(eq(addOns.id, id));
   }
 
-  async getEstimatesByPhotographer(photographerId: string): Promise<EstimateWithClient[]> {
-    return await db.select({
-      id: estimates.id,
-      photographerId: estimates.photographerId,
-      clientId: estimates.clientId,
-      title: estimates.title,
-      notes: estimates.notes,
-      currency: estimates.currency,
-      subtotalCents: estimates.subtotalCents,
-      discountCents: estimates.discountCents,
-      taxCents: estimates.taxCents,
-      totalCents: estimates.totalCents,
-      depositPercent: estimates.depositPercent,
-      depositCents: estimates.depositCents,
-      status: estimates.status,
-      validUntil: estimates.validUntil,
-      createdAt: estimates.createdAt,
-      sentAt: estimates.sentAt,
-      signedAt: estimates.signedAt,
-      signedByName: estimates.signedByName,
-      signedByEmail: estimates.signedByEmail,
-      signedIp: estimates.signedIp,
-      signedUserAgent: estimates.signedUserAgent,
-      signatureImageUrl: estimates.signatureImageUrl,
-      token: estimates.token,
-      client: {
-        firstName: clients.firstName,
-        lastName: clients.lastName,
-        email: clients.email,
-        eventDate: clients.eventDate,
-        projectType: clients.projectType,
-        leadSource: clients.leadSource
-      }
-    })
-    .from(estimates)
-    .innerJoin(clients, eq(estimates.clientId, clients.id))
-    .where(eq(estimates.photographerId, photographerId))
-    .orderBy(desc(estimates.createdAt));
-  }
-
-  async getEstimatesByProject(projectId: string): Promise<EstimateWithClient[]> {
-    return await db.select({
-      id: estimates.id,
-      photographerId: estimates.photographerId,
-      clientId: estimates.clientId,
-      title: estimates.title,
-      notes: estimates.notes,
-      currency: estimates.currency,
-      subtotalCents: estimates.subtotalCents,
-      discountCents: estimates.discountCents,
-      taxCents: estimates.taxCents,
-      totalCents: estimates.totalCents,
-      depositPercent: estimates.depositPercent,
-      depositCents: estimates.depositCents,
-      status: estimates.status,
-      validUntil: estimates.validUntil,
-      createdAt: estimates.createdAt,
-      sentAt: estimates.sentAt,
-      signedAt: estimates.signedAt,
-      signedByName: estimates.signedByName,
-      signedByEmail: estimates.signedByEmail,
-      signedIp: estimates.signedIp,
-      signedUserAgent: estimates.signedUserAgent,
-      signatureImageUrl: estimates.signatureImageUrl,
-      token: estimates.token,
-      client: {
-        firstName: clients.firstName,
-        lastName: clients.lastName,
-        email: clients.email,
-        eventDate: clients.eventDate,
-        projectType: clients.projectType,
-        leadSource: clients.leadSource
-      }
-    })
-    .from(estimates)
-    .innerJoin(clients, eq(estimates.clientId, clients.id))
-    .where(eq(estimates.projectId, projectId))
-    .orderBy(desc(estimates.createdAt));
-  }
-
-  async getEstimate(id: string): Promise<EstimateWithRelations | undefined> {
-    // Fetch estimate with all relations (photographer, client, items)
-    const [estimate] = await db.select({
-      id: estimates.id,
-      photographerId: estimates.photographerId,
-      clientId: estimates.clientId,
-      title: estimates.title,
-      notes: estimates.notes,
-      currency: estimates.currency,
-      subtotalCents: estimates.subtotalCents,
-      discountCents: estimates.discountCents,
-      taxCents: estimates.taxCents,
-      totalCents: estimates.totalCents,
-      depositPercent: estimates.depositPercent,
-      depositCents: estimates.depositCents,
-      status: estimates.status,
-      validUntil: estimates.validUntil,
-      createdAt: estimates.createdAt,
-      sentAt: estimates.sentAt,
-      signedAt: estimates.signedAt,
-      signedByName: estimates.signedByName,
-      signedByEmail: estimates.signedByEmail,
-      signedIp: estimates.signedIp,
-      signedUserAgent: estimates.signedUserAgent,
-      signatureImageUrl: estimates.signatureImageUrl,
-      token: estimates.token,
-      photographer: {
-        id: photographers.id,
-        businessName: photographers.businessName,
-        logoUrl: photographers.logoUrl,
-        brandPrimary: photographers.brandPrimary,
-        brandSecondary: photographers.brandSecondary,
-        emailFromName: photographers.emailFromName,
-        emailFromAddr: photographers.emailFromAddr,
-        timezone: photographers.timezone,
-        createdAt: photographers.createdAt
-      },
-      client: {
-        id: clients.id,
-        firstName: clients.firstName,
-        lastName: clients.lastName,
-        email: clients.email,
-        phone: clients.phone,
-        eventDate: clients.eventDate,
-        projectType: clients.projectType,
-        leadSource: clients.leadSource,
-        notes: clients.notes,
-        stageId: clients.stageId,
-        stageEnteredAt: clients.stageEnteredAt,
-        smsOptIn: clients.smsOptIn,
-        emailOptIn: clients.emailOptIn,
-        createdAt: clients.createdAt,
-        photographerId: clients.photographerId
-      }
-    })
-      .from(estimates)
-      .innerJoin(photographers, eq(estimates.photographerId, photographers.id))
-      .innerJoin(clients, eq(estimates.clientId, clients.id))
-      .where(eq(estimates.id, id));
-
-    if (!estimate) return undefined;
-
-    // Fetch estimate items separately
-    const items = await db.select().from(estimateItems)
-      .where(eq(estimateItems.estimateId, id))
-      .orderBy(asc(estimateItems.orderIndex));
-
-    return {
-      ...estimate,
-      items
-    };
-  }
-
-  async getEstimateByToken(token: string): Promise<EstimateWithRelations | undefined> {
-    // Fetch estimate with all relations (photographer, client, items)
-    const [estimate] = await db.select({
-      id: estimates.id,
-      photographerId: estimates.photographerId,
-      clientId: estimates.clientId,
-      title: estimates.title,
-      notes: estimates.notes,
-      currency: estimates.currency,
-      subtotalCents: estimates.subtotalCents,
-      discountCents: estimates.discountCents,
-      taxCents: estimates.taxCents,
-      totalCents: estimates.totalCents,
-      depositPercent: estimates.depositPercent,
-      depositCents: estimates.depositCents,
-      status: estimates.status,
-      validUntil: estimates.validUntil,
-      createdAt: estimates.createdAt,
-      sentAt: estimates.sentAt,
-      signedAt: estimates.signedAt,
-      signedByName: estimates.signedByName,
-      signedByEmail: estimates.signedByEmail,
-      signedIp: estimates.signedIp,
-      signedUserAgent: estimates.signedUserAgent,
-      signatureImageUrl: estimates.signatureImageUrl,
-      token: estimates.token,
-      photographer: {
-        id: photographers.id,
-        businessName: photographers.businessName,
-        logoUrl: photographers.logoUrl,
-        brandPrimary: photographers.brandPrimary,
-        brandSecondary: photographers.brandSecondary,
-        emailFromName: photographers.emailFromName,
-        emailFromAddr: photographers.emailFromAddr,
-        timezone: photographers.timezone,
-        createdAt: photographers.createdAt
-      },
-      client: {
-        id: clients.id,
-        firstName: clients.firstName,
-        lastName: clients.lastName,
-        email: clients.email,
-        phone: clients.phone,
-        eventDate: clients.eventDate,
-        projectType: clients.projectType,
-        leadSource: clients.leadSource,
-        notes: clients.notes,
-        stageId: clients.stageId,
-        stageEnteredAt: clients.stageEnteredAt,
-        smsOptIn: clients.smsOptIn,
-        emailOptIn: clients.emailOptIn,
-        createdAt: clients.createdAt,
-        photographerId: clients.photographerId
-      }
-    })
-      .from(estimates)
-      .innerJoin(photographers, eq(estimates.photographerId, photographers.id))
-      .innerJoin(clients, eq(estimates.clientId, clients.id))
-      .where(eq(estimates.token, token));
-
-    if (!estimate) return undefined;
-
-    // Fetch estimate items separately
-    const items = await db.select().from(estimateItems)
-      .where(eq(estimateItems.estimateId, estimate.id))
-      .orderBy(asc(estimateItems.orderIndex));
-
-    return {
-      ...estimate,
-      items
-    };
-  }
-
-  async createEstimate(insertEstimate: InsertEstimate & { items?: Array<any> }): Promise<Estimate> {
-    const { items, ...estimateData } = insertEstimate;
-    
-    // Create the main estimate record
-    const [estimate] = await db.insert(estimates).values(estimateData).returning();
-    
-    // If items were provided, save them to estimateItems table
-    if (items && items.length > 0) {
-      const estimateItemsData = items.map((item, index) => ({
-        estimateId: estimate.id,
-        name: item.name || '',
-        description: item.description || '',
-        qty: item.qty || 1,
-        unitCents: item.unitCents || 0,
-        lineTotalCents: item.lineTotalCents || 0,
-        orderIndex: index
-      }));
-      
-      await db.insert(estimateItems).values(estimateItemsData);
-    }
-    
-    // Log proposal creation to project activity history
-    await db.insert(projectActivityLog).values({
-      projectId: estimate.projectId,
-      action: 'CREATED',
-      activityType: 'PROPOSAL_CREATED',
-      title: `Proposal created: ${estimate.title}`,
-      description: `New proposal "${estimate.title}" created with total of $${((estimate.totalCents || 0) / 100).toFixed(2)}`,
-      metadata: {
-        estimateId: estimate.id,
-        totalCents: estimate.totalCents,
-        status: estimate.status
-      },
-      relatedId: estimate.id,
-      relatedType: 'ESTIMATE'
-    });
-    
-    return estimate;
-  }
-
-  async updateEstimate(id: string, estimate: Partial<Estimate>): Promise<Estimate> {
-    const [updated] = await db.update(estimates)
-      .set(estimate)
-      .where(eq(estimates.id, id))
-      .returning();
-    return updated;
-  }
-
-  async deleteEstimate(id: string): Promise<void> {
-    // Delete estimate items first (foreign key constraint)
-    await db.delete(estimateItems).where(eq(estimateItems.estimateId, id));
-    
-    // Delete the estimate itself
-    await db.delete(estimates).where(eq(estimates.id, id));
-  }
-
   async getQuestionnaireTemplatesByPhotographer(photographerId: string): Promise<QuestionnaireTemplate[]> {
     return await db.select().from(questionnaireTemplates)
       .where(eq(questionnaireTemplates.photographerId, photographerId))
@@ -1354,7 +1032,7 @@ export class DatabaseStorage implements IStorage {
 
   async getClientHistory(clientId: string): Promise<TimelineEvent[]> {
     // Parallelize all queries for better performance
-    const [activityLogs, emailLogEntries, smsLogEntries, clientEstimates, paymentHistory, messageHistory] = await Promise.all([
+    const [activityLogs, emailLogEntries, smsLogEntries, messageHistory] = await Promise.all([
       // Get activity log entries for all projects belonging to this client
       db.select({
         id: projectActivityLog.id,
@@ -1411,47 +1089,6 @@ export class DatabaseStorage implements IStorage {
         .leftJoin(templates, eq(automationSteps.templateId, templates.id))
         .leftJoin(automations, eq(automationSteps.automationId, automations.id))
         .where(eq(smsLogs.clientId, clientId)),
-      
-      // Get estimates for this client (through projects)
-      db.select({
-        id: estimates.id,
-        photographerId: estimates.photographerId,
-        projectId: estimates.projectId,
-        title: estimates.title,
-        notes: estimates.notes,
-        currency: estimates.currency,
-        subtotalCents: estimates.subtotalCents,
-        discountCents: estimates.discountCents,
-        taxCents: estimates.taxCents,
-        totalCents: estimates.totalCents,
-        depositPercent: estimates.depositPercent,
-        depositCents: estimates.depositCents,
-        status: estimates.status,
-        validUntil: estimates.validUntil,
-        createdAt: estimates.createdAt,
-        sentAt: estimates.sentAt,
-        signedAt: estimates.signedAt,
-        signedByName: estimates.signedByName,
-        signedByEmail: estimates.signedByEmail,
-        token: estimates.token
-      }).from(estimates)
-        .innerJoin(projects, eq(estimates.projectId, projects.id))
-        .where(eq(projects.clientId, clientId)),
-      
-      // Get estimate payments (through projects)
-      db.select({
-        id: estimatePayments.id,
-        amountCents: estimatePayments.amountCents,
-        method: estimatePayments.method,
-        status: estimatePayments.status,
-        createdAt: estimatePayments.createdAt,
-        completedAt: estimatePayments.completedAt,
-        estimateTitle: estimates.title
-      })
-        .from(estimatePayments)
-        .innerJoin(estimates, eq(estimatePayments.estimateId, estimates.id))
-        .innerJoin(projects, eq(estimates.projectId, projects.id))
-        .where(eq(projects.clientId, clientId)),
       
       // Get messages for this client
       db.select().from(messages)
@@ -1531,28 +1168,6 @@ export class DatabaseStorage implements IStorage {
           automationName: sms.automationName || undefined
         };
       }),
-      ...clientEstimates.map(estimate => ({
-        type: 'proposal' as const,
-        id: estimate.id,
-        title: `Proposal: ${estimate.title}`,
-        description: `Status: ${estimate.status}, Total: $${((estimate.totalCents || 0) / 100).toFixed(2)}`,
-        status: estimate.status,
-        totalCents: estimate.totalCents || 0,
-        sentAt: estimate.sentAt,
-        signedAt: estimate.signedAt,
-        createdAt: estimate.createdAt
-      })),
-      ...paymentHistory.map(payment => ({
-        type: 'payment' as const,
-        id: payment.id,
-        title: `Payment received: ${payment.estimateTitle}`,
-        description: `${payment.method} - $${(payment.amountCents / 100).toFixed(2)}`,
-        status: payment.status,
-        amountCents: payment.amountCents,
-        method: payment.method,
-        completedAt: payment.completedAt,
-        createdAt: payment.createdAt
-      })),
       ...messageHistory.map(message => ({
         type: 'message' as const,
         id: message.id,
@@ -1647,35 +1262,6 @@ export class DatabaseStorage implements IStorage {
       ))
       .limit(1);
     return portalToken;
-  }
-
-  // Proposal wrapper methods (aliases for Estimate methods to enable terminology migration)
-  async getProposalsByPhotographer(photographerId: string): Promise<ProposalWithClient[]> {
-    return this.getEstimatesByPhotographer(photographerId);
-  }
-
-  async getProposalsByClient(clientId: string): Promise<ProposalWithClient[]> {
-    return this.getEstimatesByClient(clientId);
-  }
-
-  async getProposal(id: string): Promise<ProposalWithRelations | undefined> {
-    return this.getEstimate(id);
-  }
-
-  async getProposalByToken(token: string): Promise<ProposalWithRelations | undefined> {
-    return this.getEstimateByToken(token);
-  }
-
-  async createProposal(proposal: InsertProposal): Promise<Proposal> {
-    return this.createEstimate(proposal);
-  }
-
-  async updateProposal(id: string, proposal: Partial<Proposal>): Promise<Proposal> {
-    return this.updateEstimate(id, proposal);
-  }
-
-  async deleteProposal(id: string): Promise<void> {
-    return this.deleteEstimate(id);
   }
 
   // Booking methods
