@@ -12,6 +12,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   ArrowLeft, 
   FileText, 
@@ -88,10 +89,18 @@ type ImageContent = {
   size?: 'small' | 'medium' | 'large';
 };
 
+type FormFieldContent = {
+  fieldType: 'TEXT_INPUT' | 'TEXTAREA' | 'MULTIPLE_CHOICE' | 'CHECKBOX' | 'DATE' | 'EMAIL' | 'NUMBER';
+  label: string;
+  placeholder?: string;
+  required: boolean;
+  options?: string[]; // For MULTIPLE_CHOICE and CHECKBOX
+};
+
 type ContentBlock = {
   id: string;
-  type: 'HEADING' | 'TEXT' | 'SPACER' | 'IMAGE';
-  content: any; // string for HEADING/TEXT, null for SPACER, ImageContent for IMAGE
+  type: 'HEADING' | 'TEXT' | 'SPACER' | 'IMAGE' | 'FORM_FIELD';
+  content: any; // string for HEADING/TEXT, null for SPACER, ImageContent for IMAGE, FormFieldContent for FORM_FIELD
   column?: number; // For 2-column sections: 0 (left) or 1 (right)
 };
 
@@ -144,12 +153,18 @@ type ContractPageContent = {
   requirePhotographerSignature: boolean;
 };
 
-// Block types for text pages
+type FormPageContent = {
+  hero?: HeroSection;
+  sections?: Section[];
+};
+
+// Block types for text and form pages
 const BLOCK_TYPES = {
   HEADING: { icon: Type, label: 'Heading', placeholder: 'Enter heading...' },
   TEXT: { icon: AlignLeft, label: 'Text', placeholder: 'Enter text content...' },
   SPACER: { icon: MoveVertical, label: 'Spacer', placeholder: '' },
-  IMAGE: { icon: ImageIcon, label: 'Image', placeholder: '' }
+  IMAGE: { icon: ImageIcon, label: 'Image', placeholder: '' },
+  FORM_FIELD: { icon: ClipboardList, label: 'Form Field', placeholder: '' }
 } as const;
 
 // Block Editor Component
@@ -378,6 +393,104 @@ function BlockEditor({
                   })()}
                 </div>
               )}
+              
+              {block.type === 'FORM_FIELD' && (
+                <div className="space-y-3">
+                  {(() => {
+                    const fieldData: FormFieldContent = localContent || {
+                      fieldType: 'TEXT_INPUT',
+                      label: '',
+                      placeholder: '',
+                      required: false,
+                      options: []
+                    };
+                    
+                    const updateFieldData = (updates: Partial<FormFieldContent>) => {
+                      const newData = { ...fieldData, ...updates };
+                      setLocalContent(newData);
+                      onUpdate(newData);
+                    };
+
+                    return (
+                      <div className="space-y-3">
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="space-y-2">
+                            <Label className="text-xs font-medium">Field Type</Label>
+                            <Select
+                              value={fieldData.fieldType}
+                              onValueChange={(value) => updateFieldData({ fieldType: value as FormFieldContent['fieldType'] })}
+                            >
+                              <SelectTrigger data-testid={`select-field-type-${block.id}`}>
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="TEXT_INPUT">Text Input</SelectItem>
+                                <SelectItem value="TEXTAREA">Long Text</SelectItem>
+                                <SelectItem value="EMAIL">Email</SelectItem>
+                                <SelectItem value="NUMBER">Number</SelectItem>
+                                <SelectItem value="DATE">Date</SelectItem>
+                                <SelectItem value="MULTIPLE_CHOICE">Multiple Choice</SelectItem>
+                                <SelectItem value="CHECKBOX">Checkboxes</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <Label className="text-xs font-medium">Required</Label>
+                            <div className="flex items-center space-x-2 pt-2">
+                              <Switch
+                                checked={fieldData.required}
+                                onCheckedChange={(checked) => updateFieldData({ required: checked })}
+                                data-testid={`switch-required-${block.id}`}
+                              />
+                              <Label className="text-sm">{fieldData.required ? 'Required' : 'Optional'}</Label>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <Label htmlFor={`field-label-${block.id}`} className="text-xs font-medium">Field Label</Label>
+                          <Input
+                            id={`field-label-${block.id}`}
+                            value={fieldData.label}
+                            onChange={(e) => updateFieldData({ label: e.target.value })}
+                            placeholder="e.g., What is your full name?"
+                            data-testid={`input-field-label-${block.id}`}
+                          />
+                        </div>
+                        
+                        {!['MULTIPLE_CHOICE', 'CHECKBOX'].includes(fieldData.fieldType) && (
+                          <div className="space-y-2">
+                            <Label htmlFor={`field-placeholder-${block.id}`} className="text-xs font-medium">Placeholder (optional)</Label>
+                            <Input
+                              id={`field-placeholder-${block.id}`}
+                              value={fieldData.placeholder || ''}
+                              onChange={(e) => updateFieldData({ placeholder: e.target.value })}
+                              placeholder="e.g., Enter your name..."
+                              data-testid={`input-field-placeholder-${block.id}`}
+                            />
+                          </div>
+                        )}
+                        
+                        {['MULTIPLE_CHOICE', 'CHECKBOX'].includes(fieldData.fieldType) && (
+                          <div className="space-y-2">
+                            <Label className="text-xs font-medium">Options (one per line)</Label>
+                            <Textarea
+                              value={(fieldData.options || []).join('\n')}
+                              onChange={(e) => updateFieldData({ 
+                                options: e.target.value.split('\n').filter(opt => opt.trim())
+                              })}
+                              placeholder="Option 1&#10;Option 2&#10;Option 3"
+                              rows={4}
+                              data-testid={`textarea-field-options-${block.id}`}
+                            />
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
+                </div>
+              )}
             </div>
             
             <div className="flex flex-col gap-2">
@@ -423,10 +536,23 @@ function SectionEditor({
   }, [blocks]);
 
   const addBlock = (type: ContentBlock['type'], column?: number) => {
+    let content: any = '';
+    if (type === 'SPACER') {
+      content = null;
+    } else if (type === 'FORM_FIELD') {
+      content = {
+        fieldType: 'TEXT_INPUT',
+        label: '',
+        placeholder: '',
+        required: false,
+        options: []
+      } as FormFieldContent;
+    }
+    
     const newBlock: ContentBlock = {
       id: `block-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       type,
-      content: type === 'SPACER' ? null : '',
+      content,
       column: section.columns === 2 ? column : undefined
     };
     setBlocks([...blocks, newBlock]);
@@ -927,6 +1053,107 @@ function TextPageEditor({
         <div className="text-center py-8 border-2 border-dashed rounded-lg">
           <FileText className="w-12 h-12 mx-auto mb-3 text-muted-foreground" />
           <p className="text-muted-foreground">No sections yet. Add a section to get started.</p>
+        </div>
+      ) : (
+        <Reorder.Group axis="y" values={sections} onReorder={handleReorder} className="space-y-4">
+          {sections.map((section) => (
+            <SectionItem
+              key={section.id}
+              section={section}
+              onUpdate={(updatedSection) => updateSection(section.id, updatedSection)}
+              onDelete={() => deleteSection(section.id)}
+            />
+          ))}
+        </Reorder.Group>
+      )}
+    </div>
+  );
+}
+
+// Form Page Editor Component (Section-based, same as TEXT but for forms)
+function FormPageEditor({ 
+  page, 
+  onUpdate 
+}: { 
+  page: SmartFilePage; 
+  onUpdate: (content: FormPageContent) => void;
+}) {
+  const content = page.content as FormPageContent;
+  
+  const initializeSections = (): Section[] => {
+    if (content.sections && content.sections.length > 0) {
+      return content.sections;
+    }
+    return [];
+  };
+
+  const [hero, setHero] = useState<HeroSection | undefined>(content.hero);
+  const [sections, setSections] = useState<Section[]>(initializeSections);
+
+  useEffect(() => {
+    setHero(content.hero);
+    setSections(initializeSections());
+  }, [page.id]);
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      onUpdate({ hero, sections });
+    }, 500);
+    return () => clearTimeout(timeout);
+  }, [hero, sections]);
+
+  const addSection = (columns: 1 | 2) => {
+    const newSection: Section = {
+      id: `section-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      columns,
+      blocks: []
+    };
+    setSections([...sections, newSection]);
+  };
+
+  const updateSection = (sectionId: string, updatedSection: Section) => {
+    setSections(sections.map(s => s.id === sectionId ? updatedSection : s));
+  };
+
+  const deleteSection = (sectionId: string) => {
+    setSections(sections.filter(s => s.id !== sectionId));
+  };
+
+  const handleReorder = (newSections: Section[]) => {
+    setSections(newSections);
+  };
+
+  return (
+    <div className="space-y-4">
+      {/* Hero Section Editor (optional for forms) */}
+      <HeroSectionEditor hero={hero} onUpdate={setHero} />
+
+      {/* Section Controls */}
+      <div className="flex gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => addSection(1)}
+          data-testid="button-add-1-column-section-form"
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          Add 1-Column Section
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => addSection(2)}
+          data-testid="button-add-2-column-section-form"
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          Add 2-Column Section
+        </Button>
+      </div>
+
+      {sections.length === 0 ? (
+        <div className="text-center py-8 border-2 border-dashed rounded-lg">
+          <ClipboardList className="w-12 h-12 mx-auto mb-3 text-muted-foreground" />
+          <p className="text-muted-foreground">No sections yet. Add a section to get started building your form.</p>
         </div>
       ) : (
         <Reorder.Group axis="y" values={sections} onReorder={handleReorder} className="space-y-4">
@@ -1789,9 +2016,31 @@ export default function SmartFileBuilder() {
         defaultContent = { heading: 'Add-ons', description: '', items: [] };
         displayTitle = 'Add-ons';
         break;
+      case 'CONTRACT':
+        defaultContent = { 
+          heading: 'Service Agreement', 
+          description: '', 
+          contractTemplate: '', 
+          requireClientSignature: true, 
+          requirePhotographerSignature: false 
+        };
+        displayTitle = 'Contract';
+        break;
       case 'PAYMENT':
         defaultContent = { heading: 'Payment', description: '', depositPercent: 50, paymentTerms: '', acceptOnlinePayments: true };
         displayTitle = 'Payment';
+        break;
+      case 'FORM':
+        defaultContent = { 
+          sections: [
+            {
+              id: `section-${Date.now()}`,
+              columns: 1,
+              blocks: []
+            }
+          ]
+        };
+        displayTitle = 'New Form';
         break;
     }
 
@@ -1999,6 +2248,12 @@ export default function SmartFileBuilder() {
                   )}
                   {selectedPage.pageType === 'PAYMENT' && (
                     <PaymentPageEditor 
+                      page={selectedPage} 
+                      onUpdate={(content) => handleUpdatePage(selectedPage.id, content)}
+                    />
+                  )}
+                  {selectedPage.pageType === 'FORM' && (
+                    <FormPageEditor 
                       page={selectedPage} 
                       onUpdate={(content) => handleUpdatePage(selectedPage.id, content)}
                     />
