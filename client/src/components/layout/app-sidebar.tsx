@@ -69,7 +69,6 @@ export function AppSidebar() {
     { name: "Dashboard", href: "/", icon: LayoutDashboard },
     { name: "Clients", href: "/clients", icon: Users },
     { name: "Projects", href: "/projects", icon: FolderOpen },
-    { name: "Proposals", href: "/proposals", icon: FileText },
     { name: "Smart Files", href: "/smart-files", icon: Layers },
     { name: "Packages", href: "/packages", icon: Package },
     { name: "Add-ons", href: "/add-ons", icon: ShoppingBag },

@@ -19,8 +19,6 @@ import Clients from "@/pages/clients";
 import ClientDetail from "@/pages/client-detail";
 import Projects from "@/pages/projects";
 import ProjectDetail from "@/pages/project-detail";
-import Proposals from "@/pages/proposals";
-import ProposalNew from "@/pages/proposal-new";
 import Templates from "@/pages/templates";
 import Automations from "@/pages/automations";
 import DripCampaigns from "@/pages/drip-campaigns";
@@ -35,7 +33,6 @@ import Reports from "@/pages/reports";
 import Earnings from "@/pages/earnings";
 import Settings from "@/pages/settings";
 import ClientPortal from "@/pages/client-portal";
-import PublicProposal from "@/pages/public-proposal";
 import PublicSmartFile from "@/pages/public-smart-file";
 import SmartFileSuccess from "@/pages/smart-file-success";
 import PublicBooking from "@/pages/public-booking";
@@ -81,8 +78,6 @@ function ProtectedRoutes() {
             <Route path="/clients/:id" component={ClientDetail} />
             <Route path="/projects" component={Projects} />
             <Route path="/projects/:id" component={ProjectDetail} />
-            <Route path="/proposals" component={Proposals} />
-            <Route path="/proposals/new" component={ProposalNew} />
             <Route path="/templates" component={Templates} />
             <Route path="/automations" component={Automations} />
             <Route path="/drip-campaigns" component={DripCampaigns} />
@@ -124,7 +119,6 @@ function Router() {
         </Suspense>
       </Route>
       <Route path="/client-portal" component={ClientPortal} />
-      <Route path="/public/proposals/:token" component={PublicProposal} />
       <Route path="/smart-file/:token/success" component={SmartFileSuccess} />
       <Route path="/smart-file/:token" component={PublicSmartFile} />
       <Route path="/public/booking/:token" component={PublicBooking} />
@@ -138,8 +132,6 @@ function Router() {
       <Route path="/clients/:id"><ProtectedRoutes /></Route>
       <Route path="/projects"><ProtectedRoutes /></Route>
       <Route path="/projects/:id"><ProtectedRoutes /></Route>
-      <Route path="/proposals"><ProtectedRoutes /></Route>
-      <Route path="/proposals/new"><ProtectedRoutes /></Route>
       <Route path="/templates"><ProtectedRoutes /></Route>
       <Route path="/automations"><ProtectedRoutes /></Route>
       <Route path="/drip-campaigns"><ProtectedRoutes /></Route>
