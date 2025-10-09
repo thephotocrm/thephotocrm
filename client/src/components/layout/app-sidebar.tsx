@@ -85,7 +85,7 @@ export function AppSidebar() {
     },
     {
       id: "marketing",
-      name: "Marketing & Automation",
+      name: "Marketing",
       icon: Target,
       items: [
         { name: "Templates", href: "/templates", icon: MessageSquare },
