@@ -8,6 +8,7 @@ import {
   dailyAvailabilityTemplates, dailyAvailabilityBreaks, dailyAvailabilityOverrides,
   dripCampaigns, dripCampaignEmails, dripCampaignSubscriptions, dripEmailDeliveries, staticCampaignSettings,
   shortLinks, adminActivityLog,
+  leadForms,
   smartFiles, smartFilePages, projectSmartFiles,
   type User, type InsertUser, type Photographer, type InsertPhotographer,
   type AdminActivityLog, type InsertAdminActivityLog,
@@ -31,6 +32,7 @@ import {
   type DripEmailDelivery, type InsertDripEmailDelivery,
   type StaticCampaignSettings, type InsertStaticCampaignSettings,
   type ShortLink, type InsertShortLink,
+  type LeadForm, type InsertLeadForm,
   type SmartFile, type InsertSmartFile,
   type SmartFilePage, type InsertSmartFilePage,
   type ProjectSmartFile, type InsertProjectSmartFile,
@@ -126,6 +128,14 @@ export interface IStorage {
   createAddOn(addOn: InsertAddOn): Promise<AddOn>;
   updateAddOn(id: string, addOn: Partial<AddOn>): Promise<AddOn>;
   deleteAddOn(id: string): Promise<void>;
+  
+  // Lead Forms
+  getLeadFormsByPhotographer(photographerId: string): Promise<LeadForm[]>;
+  getLeadFormById(id: string): Promise<LeadForm | undefined>;
+  getLeadFormByToken(token: string): Promise<LeadForm | undefined>;
+  createLeadForm(form: InsertLeadForm): Promise<LeadForm>;
+  updateLeadForm(id: string, form: Partial<LeadForm>): Promise<LeadForm>;
+  deleteLeadForm(id: string): Promise<void>;
   
   // Questionnaire Templates
   getQuestionnaireTemplatesByPhotographer(photographerId: string): Promise<QuestionnaireTemplate[]>;
@@ -841,6 +851,39 @@ export class DatabaseStorage implements IStorage {
 
   async deleteAddOn(id: string): Promise<void> {
     await db.delete(addOns).where(eq(addOns.id, id));
+  }
+
+  async getLeadFormsByPhotographer(photographerId: string): Promise<LeadForm[]> {
+    return await db.select().from(leadForms)
+      .where(eq(leadForms.photographerId, photographerId))
+      .orderBy(desc(leadForms.createdAt));
+  }
+
+  async getLeadFormById(id: string): Promise<LeadForm | undefined> {
+    const [form] = await db.select().from(leadForms).where(eq(leadForms.id, id));
+    return form || undefined;
+  }
+
+  async getLeadFormByToken(token: string): Promise<LeadForm | undefined> {
+    const [form] = await db.select().from(leadForms).where(eq(leadForms.publicToken, token));
+    return form || undefined;
+  }
+
+  async createLeadForm(insertForm: InsertLeadForm): Promise<LeadForm> {
+    const [form] = await db.insert(leadForms).values(insertForm).returning();
+    return form;
+  }
+
+  async updateLeadForm(id: string, form: Partial<LeadForm>): Promise<LeadForm> {
+    const [updated] = await db.update(leadForms)
+      .set({ ...form, updatedAt: new Date() })
+      .where(eq(leadForms.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteLeadForm(id: string): Promise<void> {
+    await db.delete(leadForms).where(eq(leadForms.id, id));
   }
 
   async getQuestionnaireTemplatesByPhotographer(photographerId: string): Promise<QuestionnaireTemplate[]> {

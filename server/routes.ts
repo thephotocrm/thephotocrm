@@ -14,7 +14,7 @@ import { createPaymentIntent, createCheckoutSession, createConnectCheckoutSessio
 import { googleCalendarService, createBookingCalendarEvent } from "./services/calendar";
 import { slotGenerationService } from "./services/slotGeneration";
 import { insertUserSchema, insertPhotographerSchema, insertClientSchema, insertStageSchema, 
-         insertTemplateSchema, insertAutomationSchema, validateAutomationSchema, insertAutomationStepSchema, insertAutomationBusinessTriggerSchema, insertPackageSchema, insertAddOnSchema, 
+         insertTemplateSchema, insertAutomationSchema, validateAutomationSchema, insertAutomationStepSchema, insertAutomationBusinessTriggerSchema, insertPackageSchema, insertAddOnSchema, insertLeadFormSchema,
          insertMessageSchema, insertBookingSchema, updateBookingSchema, 
          bookingConfirmationSchema, sanitizedBookingSchema, insertQuestionnaireTemplateSchema, insertQuestionnaireQuestionSchema, 
          emailLogs, smsLogs, projectActivityLog,
@@ -2062,6 +2062,106 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       res.json({ success: true });
     } catch (error) {
       console.error("Delete add-on error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Lead Forms Routes
+  app.get("/api/lead-forms", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
+    try {
+      const forms = await storage.getLeadFormsByPhotographer(req.user!.photographerId!);
+      res.json(forms);
+    } catch (error) {
+      console.error("Get lead forms error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.get("/api/lead-forms/:id", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const form = await storage.getLeadFormById(id);
+      
+      if (!form) {
+        return res.status(404).json({ message: "Lead form not found" });
+      }
+
+      // Verify ownership
+      if (form.photographerId !== req.user!.photographerId!) {
+        return res.status(403).json({ message: "Unauthorized" });
+      }
+
+      res.json(form);
+    } catch (error) {
+      console.error("Get lead form error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.post("/api/lead-forms", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
+    try {
+      const formData = insertLeadFormSchema.parse({
+        ...req.body,
+        photographerId: req.user!.photographerId!
+      });
+      const form = await storage.createLeadForm(formData);
+      res.status(201).json(form);
+    } catch (error: any) {
+      console.error("Create lead form error:", error);
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ message: "Invalid form data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.patch("/api/lead-forms/:id", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const form = await storage.getLeadFormById(id);
+      
+      if (!form) {
+        return res.status(404).json({ message: "Lead form not found" });
+      }
+
+      // Verify ownership
+      if (form.photographerId !== req.user!.photographerId!) {
+        return res.status(403).json({ message: "Unauthorized" });
+      }
+
+      // Parse updates and exclude immutable fields to prevent tenant hopping
+      const { photographerId, publicToken, submissionCount, ...allowedUpdates } = req.body;
+      const updates = insertLeadFormSchema.partial().parse(allowedUpdates);
+      const updatedForm = await storage.updateLeadForm(id, updates);
+      
+      res.json(updatedForm);
+    } catch (error: any) {
+      console.error("Update lead form error:", error);
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ message: "Invalid form data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.delete("/api/lead-forms/:id", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const form = await storage.getLeadFormById(id);
+      
+      if (!form) {
+        return res.status(404).json({ message: "Lead form not found" });
+      }
+
+      // Verify ownership
+      if (form.photographerId !== req.user!.photographerId!) {
+        return res.status(403).json({ message: "Unauthorized" });
+      }
+
+      await storage.deleteLeadForm(id);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Delete lead form error:", error);
       res.status(500).json({ message: "Internal server error" });
     }
   });

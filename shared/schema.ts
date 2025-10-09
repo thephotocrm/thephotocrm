@@ -666,6 +666,24 @@ export const shortLinks = pgTable("short_links", {
   photographerIdx: index("short_links_photographer_idx").on(table.photographerId)
 }));
 
+// Lead Forms (Website Embedded Forms)
+export const leadForms = pgTable("lead_forms", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  photographerId: varchar("photographer_id").notNull().references(() => photographers.id),
+  name: text("name").notNull(),
+  description: text("description"),
+  publicToken: varchar("public_token").notNull().unique().default(sql`gen_random_uuid()`),
+  projectType: text("project_type").notNull(), // WEDDING, PORTRAIT, COMMERCIAL, etc
+  config: json("config").notNull(), // Form configuration: title, description, colors, field visibility, etc
+  status: text("status").notNull().default("ACTIVE"), // ACTIVE, ARCHIVED
+  submissionCount: integer("submission_count").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+}, (table) => ({
+  photographerIdx: index("lead_forms_photographer_idx").on(table.photographerId),
+  publicTokenIdx: index("lead_forms_public_token_idx").on(table.publicToken)
+}));
+
 // Smart Files (Custom Invoice/Checkout Builder)
 export const smartFiles = pgTable("smart_files", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -1230,6 +1248,14 @@ export const insertShortLinkSchema = createInsertSchema(shortLinks).omit({
   clicks: true
 });
 
+export const insertLeadFormSchema = createInsertSchema(leadForms).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  publicToken: true,
+  submissionCount: true
+});
+
 export const insertSmartFileSchema = createInsertSchema(smartFiles).omit({
   id: true,
   createdAt: true,
@@ -1561,6 +1587,10 @@ export const createPayoutSchema = z.object({
 // Short Link Types
 export type ShortLink = typeof shortLinks.$inferSelect;
 export type InsertShortLink = z.infer<typeof insertShortLinkSchema>;
+
+// Lead Form Types
+export type LeadForm = typeof leadForms.$inferSelect;
+export type InsertLeadForm = z.infer<typeof insertLeadFormSchema>;
 
 // Smart Files Types
 export type SmartFile = typeof smartFiles.$inferSelect;
