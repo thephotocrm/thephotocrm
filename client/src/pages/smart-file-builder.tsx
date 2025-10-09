@@ -33,7 +33,8 @@ import {
   Camera,
   Shield,
   CreditCard,
-  FileSignature
+  FileSignature,
+  ClipboardList
 } from "lucide-react";
 import { Reorder, useDragControls } from "framer-motion";
 import type { SmartFileWithPages, SmartFilePage, InsertSmartFilePage } from "@shared/schema";
@@ -70,6 +71,11 @@ const PAGE_TYPES = {
     icon: DollarSign,
     label: "Payment",
     color: "bg-orange-500"
+  },
+  FORM: {
+    icon: ClipboardList,
+    label: "Form",
+    color: "bg-teal-500"
   }
 } as const;
 

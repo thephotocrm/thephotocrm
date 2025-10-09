@@ -54,7 +54,9 @@ export const smartFilePageTypeEnum = {
   TEXT: "TEXT",
   PACKAGE: "PACKAGE",
   ADDON: "ADDON",
-  PAYMENT: "PAYMENT"
+  CONTRACT: "CONTRACT",
+  PAYMENT: "PAYMENT",
+  FORM: "FORM"
 } as const;
 
 export const projectSmartFileStatusEnum = {
@@ -684,7 +686,7 @@ export const smartFiles = pgTable("smart_files", {
 export const smartFilePages = pgTable("smart_file_pages", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   smartFileId: varchar("smart_file_id").notNull().references(() => smartFiles.id, { onDelete: 'cascade' }),
-  pageType: text("page_type").notNull(), // TEXT, PACKAGE, ADDON, CONTRACT, PAYMENT
+  pageType: text("page_type").notNull(), // TEXT, PACKAGE, ADDON, CONTRACT, PAYMENT, FORM
   pageOrder: integer("page_order").notNull(),
   displayTitle: text("display_title").notNull(),
   content: json("content").notNull(), // Flexible JSON structure per page type
@@ -716,6 +718,9 @@ export const projectSmartFiles = pgTable("project_smart_files", {
   // Client selections (JSONB)
   selectedPackages: json("selected_packages"), // [{ pageId, packageId, name, priceCents }]
   selectedAddOns: json("selected_add_ons"), // [{ pageId, addOnId, name, priceCents, quantity }]
+  
+  // Form answers (JSONB) - { pageId: { questionId: answer } }
+  formAnswers: json("form_answers"), // Store client form submissions
   
   // Pricing breakdown
   subtotalCents: integer("subtotal_cents").default(0),
