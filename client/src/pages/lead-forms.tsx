@@ -277,13 +277,12 @@ export default function LeadForms() {
         <div className="border rounded-lg">
           <Table>
             <TableHeader>
-              <TableRow>
+              <TableRow className="bg-white dark:bg-gray-950">
                 <TableHead>Name</TableHead>
                 <TableHead>Project Type</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Submissions</TableHead>
                 <TableHead>Created</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
