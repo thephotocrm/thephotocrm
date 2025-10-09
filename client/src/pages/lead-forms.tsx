@@ -278,26 +278,26 @@ export default function LeadForms() {
           <Table>
             <TableHeader>
               <TableRow className="bg-white dark:bg-gray-950">
-                <TableHead>Name</TableHead>
-                <TableHead>Project Type</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Submissions</TableHead>
-                <TableHead>Created</TableHead>
+                <TableHead className="text-base">Name</TableHead>
+                <TableHead className="text-base">Project Type</TableHead>
+                <TableHead className="text-base">Status</TableHead>
+                <TableHead className="text-base">Submissions</TableHead>
+                <TableHead className="text-base">Created</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {forms.map((form) => (
                 <>
                   <TableRow key={form.id} data-testid={`row-form-${form.id}`} className="bg-white dark:bg-gray-950">
-                    <TableCell className="font-medium pb-2" data-testid={`text-name-${form.id}`}>
+                    <TableCell className="font-medium pb-2 text-base" data-testid={`text-name-${form.id}`}>
                       {form.name}
                     </TableCell>
-                    <TableCell className="pb-2" data-testid={`text-type-${form.id}`}>
+                    <TableCell className="pb-2 text-base" data-testid={`text-type-${form.id}`}>
                       {projectTypes.find(pt => pt.value === form.projectType)?.label || form.projectType}
                     </TableCell>
                     <TableCell className="pb-2">
                       <span
-                        className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                        className={`inline-flex items-center px-2 py-1 rounded-full text-sm font-medium ${
                           form.status === 'ACTIVE'
                             ? 'bg-green-100 text-green-700'
                             : 'bg-gray-100 text-gray-700'
@@ -307,10 +307,10 @@ export default function LeadForms() {
                         {form.status}
                       </span>
                     </TableCell>
-                    <TableCell className="pb-2" data-testid={`text-submissions-${form.id}`}>
+                    <TableCell className="pb-2 text-base" data-testid={`text-submissions-${form.id}`}>
                       {form.submissionCount || 0}
                     </TableCell>
-                    <TableCell className="pb-2" data-testid={`text-created-${form.id}`}>
+                    <TableCell className="pb-2 text-base" data-testid={`text-created-${form.id}`}>
                       {format(new Date(form.createdAt), 'MMM d, yyyy')}
                     </TableCell>
                   </TableRow>
