@@ -36,6 +36,7 @@ type CustomField = {
   required: boolean;
   options?: string[]; // for select/checkbox
   isSystem?: boolean; // true for firstName, email (cannot be removed)
+  width?: 'full' | 'half'; // column width: full = 1 column, half = 2 columns
 };
 
 const defaultConfig = {
@@ -47,8 +48,8 @@ const defaultConfig = {
   successMessage: "Thank you! We'll be in touch soon.",
   redirectUrl: "",
   customFields: [
-    { id: 'firstName', type: 'text' as const, label: 'First Name', placeholder: 'John', required: true, isSystem: true },
-    { id: 'email', type: 'email' as const, label: 'Email', placeholder: 'john@example.com', required: true, isSystem: true },
+    { id: 'firstName', type: 'text' as const, label: 'First Name', placeholder: 'John', required: true, isSystem: true, width: 'full' as const },
+    { id: 'email', type: 'email' as const, label: 'Email', placeholder: 'john@example.com', required: true, isSystem: true, width: 'full' as const },
   ] as CustomField[],
 };
 
@@ -156,7 +157,8 @@ export default function LeadFormBuilder() {
       placeholder: '',
       required: false,
       options: type === 'select' || type === 'checkbox' ? ['Option 1', 'Option 2'] : undefined,
-      isSystem: false
+      isSystem: false,
+      width: 'full'
     };
 
     setConfig(prev => ({
@@ -195,65 +197,112 @@ export default function LeadFormBuilder() {
     setConfig(prev => ({ ...prev, customFields: newFields }));
   };
 
-  const renderCleanPreview = () => (
-    <Card className="shadow-xl max-w-2xl mx-auto">
-      <CardHeader style={{ backgroundColor: config.backgroundColor }} className="text-center">
-        <h2 className="text-2xl font-bold" style={{ color: config.primaryColor }}>
-          {config.title}
-        </h2>
-        {config.description && (
-          <p className="text-muted-foreground mt-2">{config.description}</p>
-        )}
-      </CardHeader>
-      <CardContent className="p-6 space-y-4" style={{ backgroundColor: config.backgroundColor }}>
-        {config.customFields.map((field) => (
-          <div key={field.id}>
-            <Label className="flex items-center gap-2">
-              {field.label}
-              {field.required && <span className="text-destructive">*</span>}
-            </Label>
-            {field.type === 'textarea' ? (
-              <Textarea
-                placeholder={field.placeholder}
-                className="mt-2"
-                disabled
-              />
-            ) : field.type === 'select' ? (
-              <Select disabled>
-                <SelectTrigger className="mt-2">
-                  <SelectValue placeholder={field.placeholder || 'Select an option'} />
-                </SelectTrigger>
-              </Select>
-            ) : field.type === 'checkbox' ? (
-              <div className="mt-2 space-y-2">
-                {field.options?.map((opt, i) => (
-                  <div key={i} className="flex items-center gap-2">
-                    <input type="checkbox" disabled className="rounded" />
-                    <span className="text-sm">{opt}</span>
-                  </div>
-                ))}
+  // Helper to render a field
+  const renderField = (field: CustomField, disabled = false) => {
+    return (
+      <>
+        <Label className="flex items-center gap-2">
+          {field.label}
+          {field.required && <span className="text-destructive">*</span>}
+        </Label>
+        {field.type === 'textarea' ? (
+          <Textarea
+            placeholder={field.placeholder}
+            className="mt-2"
+            disabled={disabled}
+          />
+        ) : field.type === 'select' ? (
+          <Select disabled={disabled}>
+            <SelectTrigger className="mt-2">
+              <SelectValue placeholder={field.placeholder || 'Select an option'} />
+            </SelectTrigger>
+          </Select>
+        ) : field.type === 'checkbox' ? (
+          <div className="mt-2 space-y-2">
+            {field.options?.map((opt, i) => (
+              <div key={i} className="flex items-center gap-2">
+                <input type="checkbox" disabled={disabled} className="rounded" />
+                <span className="text-sm">{opt}</span>
               </div>
-            ) : (
-              <Input
-                type={field.type}
-                placeholder={field.placeholder}
-                className="mt-2"
-                disabled
-              />
-            )}
+            ))}
           </div>
-        ))}
+        ) : (
+          <Input
+            type={field.type}
+            placeholder={field.placeholder}
+            className="mt-2"
+            disabled={disabled}
+          />
+        )}
+      </>
+    );
+  };
 
-        <Button
-          className="w-full mt-6"
-          style={{ backgroundColor: config.primaryColor }}
-          disabled
-        >
-          {config.buttonText}
-        </Button>
-      </CardContent>
-    </Card>
-  );
+  // Helper to group fields by rows based on width
+  const groupFieldsIntoRows = (fields: CustomField[]) => {
+    const rows: CustomField[][] = [];
+    let currentRow: CustomField[] = [];
+
+    fields.forEach(field => {
+      const width = field.width || 'full';
+      
+      if (width === 'full') {
+        if (currentRow.length > 0) {
+          rows.push(currentRow);
+          currentRow = [];
+        }
+        rows.push([field]);
+      } else {
+        currentRow.push(field);
+        if (currentRow.length === 2) {
+          rows.push(currentRow);
+          currentRow = [];
+        }
+      }
+    });
+
+    if (currentRow.length > 0) {
+      rows.push(currentRow);
+    }
+
+    return rows;
+  };
+
+  const renderCleanPreview = () => {
+    const rows = groupFieldsIntoRows(config.customFields);
+
+    return (
+      <Card className="shadow-xl max-w-2xl mx-auto">
+        <CardHeader style={{ backgroundColor: config.backgroundColor }} className="text-center">
+          <h2 className="text-2xl font-bold" style={{ color: config.primaryColor }}>
+            {config.title}
+          </h2>
+          {config.description && (
+            <p className="text-muted-foreground mt-2">{config.description}</p>
+          )}
+        </CardHeader>
+        <CardContent className="p-6 space-y-4" style={{ backgroundColor: config.backgroundColor }}>
+          {rows.map((row, rowIndex) => (
+            <div key={rowIndex} className={row.length === 2 ? "grid grid-cols-2 gap-4" : ""}>
+              {row.map((field) => (
+                <div key={field.id}>
+                  {renderField(field, true)}
+                </div>
+              ))}
+            </div>
+          ))}
+
+          <Button
+            className="w-full mt-6"
+            style={{ backgroundColor: config.primaryColor }}
+            disabled
+          >
+            {config.buttonText}
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  };
 
   if (isLoading) {
     return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
@@ -412,183 +461,205 @@ export default function LeadFormBuilder() {
               )}
             </CardHeader>
             <CardContent className="p-6 space-y-3" style={{ backgroundColor: config.backgroundColor }}>
-              {config.customFields.map((field, index) => (
-                <div
-                  key={field.id}
-                  className="relative border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4"
-                >
-                  {/* Always Visible Controls */}
-                  {!field.isSystem && (
-                    <div className="absolute -top-3 -right-3 flex gap-1 bg-card rounded-md border border-border p-1">
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="h-7 w-7 p-0"
-                        onClick={() => moveField(field.id, 'up')}
-                        disabled={index === 0}
-                        data-testid={`button-move-up-${field.id}`}
+              {groupFieldsIntoRows(config.customFields).map((row, rowIndex) => (
+                <div key={rowIndex} className={row.length === 2 ? "grid grid-cols-2 gap-3" : ""}>
+                  {row.map((field) => {
+                    const index = config.customFields.indexOf(field);
+                    return (
+                      <div
+                        key={field.id}
+                        className="relative border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4"
                       >
-                        <ArrowUp className="w-3 h-3" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="h-7 w-7 p-0"
-                        onClick={() => moveField(field.id, 'down')}
-                        disabled={index === config.customFields.length - 1}
-                        data-testid={`button-move-down-${field.id}`}
-                      >
-                        <ArrowDown className="w-3 h-3" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="h-7 w-7 p-0 text-destructive"
-                        onClick={() => removeField(field.id)}
-                        data-testid={`button-remove-${field.id}`}
-                      >
-                        <Trash2 className="w-3 h-3" />
-                      </Button>
-                    </div>
-                  )}
-
-                  {/* Editing Area */}
-                  {editingField === field.id ? (
-                    <div className="space-y-3" onClick={(e) => e.stopPropagation()}>
-                      <div>
-                        <Label className="text-xs">Label</Label>
-                        <Input
-                          value={field.label}
-                          onChange={(e) => updateField(field.id, { label: e.target.value })}
-                          data-testid={`input-edit-label-${field.id}`}
-                        />
-                      </div>
-                      <div>
-                        <Label className="text-xs">Placeholder</Label>
-                        <Input
-                          value={field.placeholder || ''}
-                          onChange={(e) => updateField(field.id, { placeholder: e.target.value })}
-                          data-testid={`input-edit-placeholder-${field.id}`}
-                        />
-                      </div>
-                      {(field.type === 'select' || field.type === 'checkbox') && (
-                        <div>
-                          <div className="flex items-center justify-between mb-2">
-                            <Label className="text-xs">Options</Label>
+                        {/* Always Visible Controls */}
+                        {!field.isSystem && (
+                          <div className="absolute -top-3 -right-3 flex gap-1 bg-card rounded-md border border-border p-1">
                             <Button
                               size="sm"
-                              variant="outline"
-                              onClick={() => {
-                                const newOptions = [...(field.options || []), ''];
-                                updateField(field.id, { options: newOptions });
-                              }}
-                              data-testid={`button-add-option-${field.id}`}
+                              variant="ghost"
+                              className="h-7 w-7 p-0"
+                              onClick={() => moveField(field.id, 'up')}
+                              disabled={index === 0}
+                              data-testid={`button-move-up-${field.id}`}
                             >
-                              <Plus className="w-3 h-3 mr-1" />
-                              Add Option
+                              <ArrowUp className="w-3 h-3" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-7 w-7 p-0"
+                              onClick={() => moveField(field.id, 'down')}
+                              disabled={index === config.customFields.length - 1}
+                              data-testid={`button-move-down-${field.id}`}
+                            >
+                              <ArrowDown className="w-3 h-3" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-7 w-7 p-0 text-destructive"
+                              onClick={() => removeField(field.id)}
+                              data-testid={`button-remove-${field.id}`}
+                            >
+                              <Trash2 className="w-3 h-3" />
                             </Button>
                           </div>
-                          <div className="space-y-2">
-                            {(field.options || []).map((option, idx) => (
-                              <div key={idx} className="flex items-center gap-2">
-                                <Input
-                                  value={option}
-                                  onChange={(e) => {
-                                    const newOptions = [...(field.options || [])];
-                                    newOptions[idx] = e.target.value;
-                                    updateField(field.id, { options: newOptions });
-                                  }}
-                                  placeholder={`Option ${idx + 1}`}
-                                  data-testid={`input-option-${idx}-${field.id}`}
-                                />
-                                {(field.options?.length || 0) > 1 && (
+                        )}
+
+                        {/* Editing Area */}
+                        {editingField === field.id ? (
+                          <div className="space-y-3" onClick={(e) => e.stopPropagation()}>
+                            <div>
+                              <Label className="text-xs">Label</Label>
+                              <Input
+                                value={field.label}
+                                onChange={(e) => updateField(field.id, { label: e.target.value })}
+                                data-testid={`input-edit-label-${field.id}`}
+                              />
+                            </div>
+                            <div>
+                              <Label className="text-xs">Placeholder</Label>
+                              <Input
+                                value={field.placeholder || ''}
+                                onChange={(e) => updateField(field.id, { placeholder: e.target.value })}
+                                data-testid={`input-edit-placeholder-${field.id}`}
+                              />
+                            </div>
+                            <div>
+                              <Label className="text-xs">Width</Label>
+                              <Select 
+                                value={field.width || 'full'}
+                                onValueChange={(value: 'full' | 'half') => updateField(field.id, { width: value })}
+                              >
+                                <SelectTrigger data-testid={`select-width-${field.id}`}>
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="full">Full Width (1 Column)</SelectItem>
+                                  <SelectItem value="half">Half Width (2 Columns)</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            {(field.type === 'select' || field.type === 'checkbox') && (
+                              <div>
+                                <div className="flex items-center justify-between mb-2">
+                                  <Label className="text-xs">Options</Label>
                                   <Button
                                     size="sm"
-                                    variant="ghost"
+                                    variant="outline"
                                     onClick={() => {
-                                      const newOptions = (field.options || []).filter((_, i) => i !== idx);
+                                      const newOptions = [...(field.options || []), ''];
                                       updateField(field.id, { options: newOptions });
                                     }}
-                                    data-testid={`button-remove-option-${idx}-${field.id}`}
+                                    data-testid={`button-add-option-${field.id}`}
                                   >
-                                    <X className="w-4 h-4 text-destructive" />
+                                    <Plus className="w-3 h-3 mr-1" />
+                                    Add Option
                                   </Button>
-                                )}
+                                </div>
+                                <div className="space-y-2">
+                                  {(field.options || []).map((option, idx) => (
+                                    <div key={idx} className="flex items-center gap-2">
+                                      <Input
+                                        value={option}
+                                        onChange={(e) => {
+                                          const newOptions = [...(field.options || [])];
+                                          newOptions[idx] = e.target.value;
+                                          updateField(field.id, { options: newOptions });
+                                        }}
+                                        placeholder={`Option ${idx + 1}`}
+                                        data-testid={`input-option-${idx}-${field.id}`}
+                                      />
+                                      {(field.options?.length || 0) > 1 && (
+                                        <Button
+                                          size="sm"
+                                          variant="ghost"
+                                          onClick={() => {
+                                            const newOptions = (field.options || []).filter((_, i) => i !== idx);
+                                            updateField(field.id, { options: newOptions });
+                                          }}
+                                          data-testid={`button-remove-option-${idx}-${field.id}`}
+                                        >
+                                          <X className="w-4 h-4 text-destructive" />
+                                        </Button>
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
                               </div>
-                            ))}
+                            )}
+                            {!field.isSystem && (
+                              <div className="flex items-center gap-2">
+                                <input
+                                  type="checkbox"
+                                  checked={field.required}
+                                  onChange={(e) => updateField(field.id, { required: e.target.checked })}
+                                  className="rounded"
+                                  data-testid={`checkbox-edit-required-${field.id}`}
+                                />
+                                <Label className="text-xs">Required</Label>
+                              </div>
+                            )}
+                            <Button
+                              size="sm"
+                              onClick={() => setEditingField(null)}
+                              data-testid={`button-done-edit-${field.id}`}
+                            >
+                              Done
+                            </Button>
                           </div>
-                        </div>
-                      )}
-                      {!field.isSystem && (
-                        <div className="flex items-center gap-2">
-                          <input
-                            type="checkbox"
-                            checked={field.required}
-                            onChange={(e) => updateField(field.id, { required: e.target.checked })}
-                            className="rounded"
-                            data-testid={`checkbox-edit-required-${field.id}`}
-                          />
-                          <Label className="text-xs">Required</Label>
-                        </div>
-                      )}
-                      <Button
-                        size="sm"
-                        onClick={() => setEditingField(null)}
-                        data-testid={`button-done-edit-${field.id}`}
-                      >
-                        Done
-                      </Button>
-                    </div>
-                  ) : (
-                    /* Display Mode */
-                    <div>
-                      <div className="flex items-center justify-between mb-2">
-                        <Label className="flex items-center gap-2">
-                          {field.label}
-                          {field.required && <span className="text-destructive">*</span>}
-                          {field.isSystem && <Badge variant="secondary" className="text-xs">Required</Badge>}
-                        </Label>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => setEditingField(field.id)}
-                          data-testid={`button-edit-${field.id}`}
-                        >
-                          <Pencil className="w-3 h-3 mr-1" />
-                          Edit
-                        </Button>
-                      </div>
-                      {field.type === 'textarea' ? (
-                        <Textarea
-                          placeholder={field.placeholder}
-                          className="mt-2"
-                          disabled
-                        />
-                      ) : field.type === 'select' ? (
-                        <Select disabled>
-                          <SelectTrigger className="mt-2">
-                            <SelectValue placeholder={field.placeholder || 'Select an option'} />
-                          </SelectTrigger>
-                        </Select>
-                      ) : field.type === 'checkbox' ? (
-                        <div className="mt-2 space-y-2">
-                          {field.options?.map((opt, i) => (
-                            <div key={i} className="flex items-center gap-2">
-                              <input type="checkbox" disabled className="rounded" />
-                              <span className="text-sm">{opt}</span>
+                        ) : (
+                          /* Display Mode */
+                          <div>
+                            <div className="flex items-center justify-between mb-2">
+                              <Label className="flex items-center gap-2">
+                                {field.label}
+                                {field.required && <span className="text-destructive">*</span>}
+                                {field.isSystem && <Badge variant="secondary" className="text-xs">Required</Badge>}
+                              </Label>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => setEditingField(field.id)}
+                                data-testid={`button-edit-${field.id}`}
+                              >
+                                <Pencil className="w-3 h-3 mr-1" />
+                                Edit
+                              </Button>
                             </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <Input
-                          type={field.type}
-                          placeholder={field.placeholder}
-                          className="mt-2"
-                          disabled
-                        />
-                      )}
-                    </div>
-                  )}
+                            {field.type === 'textarea' ? (
+                              <Textarea
+                                placeholder={field.placeholder}
+                                className="mt-2"
+                                disabled
+                              />
+                            ) : field.type === 'select' ? (
+                              <Select disabled>
+                                <SelectTrigger className="mt-2">
+                                  <SelectValue placeholder={field.placeholder || 'Select an option'} />
+                                </SelectTrigger>
+                              </Select>
+                            ) : field.type === 'checkbox' ? (
+                              <div className="mt-2 space-y-2">
+                                {field.options?.map((opt, i) => (
+                                  <div key={i} className="flex items-center gap-2">
+                                    <input type="checkbox" disabled className="rounded" />
+                                    <span className="text-sm">{opt}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            ) : (
+                              <Input
+                                type={field.type}
+                                placeholder={field.placeholder}
+                                className="mt-2"
+                                disabled
+                              />
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               ))}
 
