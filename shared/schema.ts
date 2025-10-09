@@ -756,61 +756,10 @@ export const projectSmartFiles = pgTable("project_smart_files", {
   tokenIdx: index("project_smart_files_token_idx").on(table.token)
 }));
 
-export const estimates = pgTable("estimates", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  photographerId: varchar("photographer_id").notNull().references(() => photographers.id),
-  clientId: varchar("client_id").notNull().references(() => clients.id),
-  projectId: varchar("project_id").notNull().references(() => projects.id),
-  title: text("title").notNull(),
-  notes: text("notes"),
-  currency: text("currency").default("USD"),
-  subtotalCents: integer("subtotal_cents").default(0),
-  discountCents: integer("discount_cents").default(0),
-  taxCents: integer("tax_cents").default(0),
-  totalCents: integer("total_cents").default(0),
-  depositPercent: integer("deposit_percent"),
-  depositCents: integer("deposit_cents"),
-  status: text("status").default("DRAFT"),
-  validUntil: timestamp("valid_until"),
-  createdAt: timestamp("created_at").defaultNow(),
-  sentAt: timestamp("sent_at"),
-  signedAt: timestamp("signed_at"),
-  signedByName: text("signed_by_name"),
-  signedByEmail: text("signed_by_email"),
-  signedIp: text("signed_ip"),
-  signedUserAgent: text("signed_user_agent"),
-  signatureImageUrl: text("signature_image_url"),
-  token: varchar("token").default(sql`gen_random_uuid()`)
-});
-
-export const estimateItems = pgTable("estimate_items", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  estimateId: varchar("estimate_id").notNull().references(() => estimates.id),
-  name: text("name").notNull(),
-  description: text("description"),
-  qty: integer("qty").default(1),
-  unitCents: integer("unit_cents").default(0),
-  lineTotalCents: integer("line_total_cents").default(0),
-  orderIndex: integer("order_index").default(0)
-});
-
-export const estimatePayments = pgTable("estimate_payments", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  estimateId: varchar("estimate_id").notNull().references(() => estimates.id),
-  amountCents: integer("amount_cents").notNull(),
-  method: text("method").notNull(),
-  status: text("status").notNull(),
-  stripeSessionId: text("stripe_session_id"),
-  stripePaymentIntentId: text("stripe_payment_intent_id"),
-  createdAt: timestamp("created_at").defaultNow(),
-  completedAt: timestamp("completed_at")
-});
-
 export const photographerEarnings = pgTable("photographer_earnings", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   photographerId: varchar("photographer_id").notNull().references(() => photographers.id),
   projectId: varchar("project_id").notNull().references(() => projects.id),
-  estimatePaymentId: varchar("estimate_payment_id").references(() => estimatePayments.id),
   paymentIntentId: text("payment_intent_id").unique(), // Stripe Connect Payment Intent ID (unique)
   transferId: text("transfer_id").unique(), // Stripe Connect Transfer ID (unique)
   totalAmountCents: integer("total_amount_cents").notNull(), // Original payment amount
@@ -822,8 +771,7 @@ export const photographerEarnings = pgTable("photographer_earnings", {
   createdAt: timestamp("created_at").defaultNow()
 }, (table) => ({
   // Composite indexes for performance
-  photographerStatusIdx: index("photographer_earnings_photographer_status_idx").on(table.photographerId, table.status),
-  uniqueEstimatePaymentIdx: unique("photographer_earnings_estimate_payment_unique").on(table.estimatePaymentId)
+  photographerStatusIdx: index("photographer_earnings_photographer_status_idx").on(table.photographerId, table.status)
 }));
 
 export const photographerPayouts = pgTable("photographer_payouts", {
@@ -890,7 +838,6 @@ export const photographersRelations = relations(photographers, ({ many }) => ({
   availability: many(availabilitySlots),
   clients: many(clients),
   projects: many(projects),
-  estimates: many(estimates),
   bookings: many(bookings),
   messages: many(messages),
   emailHistory: many(emailHistory)
@@ -941,7 +888,6 @@ export const projectsRelations = relations(projects, ({ one, many }) => ({
   smsLogs: many(smsLogs),
   checklistItems: many(projectChecklistItems),
   questionnaires: many(projectQuestionnaires),
-  estimates: many(estimates),
   activityLog: many(projectActivityLog),
   participants: many(projectParticipants)
 }));
@@ -1094,33 +1040,6 @@ export const projectQuestionnairesRelations = relations(projectQuestionnaires, (
   })
 }));
 
-export const estimatesRelations = relations(estimates, ({ one, many }) => ({
-  photographer: one(photographers, {
-    fields: [estimates.photographerId],
-    references: [photographers.id]
-  }),
-  project: one(projects, {
-    fields: [estimates.projectId],
-    references: [projects.id]
-  }),
-  items: many(estimateItems),
-  payments: many(estimatePayments)
-}));
-
-export const estimateItemsRelations = relations(estimateItems, ({ one }) => ({
-  estimate: one(estimates, {
-    fields: [estimateItems.estimateId],
-    references: [estimates.id]
-  })
-}));
-
-export const estimatePaymentsRelations = relations(estimatePayments, ({ one }) => ({
-  estimate: one(estimates, {
-    fields: [estimatePayments.estimateId],
-    references: [estimates.id]
-  })
-}));
-
 export const bookingsRelations = relations(bookings, ({ one }) => ({
   photographer: one(photographers, {
     fields: [bookings.photographerId],
@@ -1251,14 +1170,6 @@ export const insertPackageSchema = createInsertSchema(packages).omit({
 export const insertAddOnSchema = createInsertSchema(addOns).omit({
   id: true,
   createdAt: true
-});
-
-export const insertEstimateSchema = createInsertSchema(estimates).omit({
-  id: true,
-  createdAt: true,
-  token: true
-}).extend({
-  validUntil: z.string().optional().transform((val) => val && val.trim() !== '' ? new Date(val) : undefined)
 });
 
 export const insertQuestionnaireTemplateSchema = createInsertSchema(questionnaireTemplates).omit({
@@ -1397,10 +1308,6 @@ export type Package = typeof packages.$inferSelect;
 export type InsertPackage = z.infer<typeof insertPackageSchema>;
 export type AddOn = typeof addOns.$inferSelect;
 export type InsertAddOn = z.infer<typeof insertAddOnSchema>;
-export type Estimate = typeof estimates.$inferSelect;
-export type InsertEstimate = z.infer<typeof insertEstimateSchema>;
-export type EstimateItem = typeof estimateItems.$inferSelect;
-export type EstimatePayment = typeof estimatePayments.$inferSelect;
 export type QuestionnaireTemplate = typeof questionnaireTemplates.$inferSelect;
 export type InsertQuestionnaireTemplate = z.infer<typeof insertQuestionnaireTemplateSchema>;
 export type QuestionnaireQuestion = typeof questionnaireQuestions.$inferSelect;
@@ -1458,30 +1365,6 @@ export type ClientWithStage = Client & {
     color: string;
     isDefault: boolean;
   } | null;
-};
-
-// Estimate with basic project and client information for list views
-export type EstimateWithProject = Estimate & {
-  project: {
-    id: string;
-    title: string;
-    projectType: string;
-    client: {
-      firstName: string;
-      lastName: string;
-      email: string | null;
-    };
-  };
-};
-
-// Estimate with full relations for detailed views
-export type EstimateWithRelations = Estimate & {
-  photographer: Photographer;
-  project: Project & {
-    client: Client;
-  };
-  items: EstimateItem[];
-  payments: EstimatePayment[];
 };
 
 // Timeline event types for client history
@@ -1700,11 +1583,3 @@ export type ProjectSmartFileWithRelations = ProjectSmartFile & {
   };
 };
 
-// Proposal type aliases (for terminology migration from "Estimate" to "Proposal")
-// These aliases enable gradual UI/API migration while maintaining backend consistency
-export type Proposal = Estimate;
-export type InsertProposal = InsertEstimate;
-export type ProposalItem = EstimateItem;
-export type ProposalPayment = EstimatePayment;
-export type ProposalWithProject = EstimateWithProject;
-export type ProposalWithRelations = EstimateWithRelations;
