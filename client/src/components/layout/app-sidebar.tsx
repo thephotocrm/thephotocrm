@@ -91,7 +91,7 @@ export function AppSidebar() {
         { name: "Templates", href: "/templates", icon: MessageSquare },
         { name: "Automations", href: "/automations", icon: Zap },
         { name: "Drip Campaigns", href: "/drip-campaigns", icon: Sparkles },
-        { name: "Widget Generator", href: "/widget-generator", icon: Code },
+        { name: "Form Builder", href: "/widget-generator", icon: Code },
       ]
     },
     {
