@@ -647,7 +647,7 @@ export default function LeadFormBuilder() {
                             
                             {/* Width Controls at Bottom */}
                             <div className="mt-3 pt-3 border-t border-border">
-                              <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
                                 <Label className="text-xs text-muted-foreground">Width</Label>
                                 <div className="flex bg-muted rounded-md p-0.5">
                                   <button
