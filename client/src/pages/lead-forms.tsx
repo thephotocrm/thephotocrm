@@ -320,32 +320,36 @@ export default function LeadForms() {
                         size="sm"
                         onClick={() => handleConfigure(form.id)}
                         data-testid={`button-configure-${form.id}`}
+                        className="hover:bg-blue-50 dark:hover:bg-blue-950"
                       >
-                        <Settings className="w-4 h-4" />
+                        <Settings className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                       </Button>
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => showEmbedCode(form)}
                         data-testid={`button-embed-${form.id}`}
+                        className="hover:bg-purple-50 dark:hover:bg-purple-950"
                       >
-                        <Code className="w-4 h-4" />
+                        <Code className="w-4 h-4 text-purple-600 dark:text-purple-400" />
                       </Button>
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => handleEdit(form)}
                         data-testid={`button-edit-${form.id}`}
+                        className="hover:bg-green-50 dark:hover:bg-green-950"
                       >
-                        <Edit className="w-4 h-4" />
+                        <Edit className="w-4 h-4 text-green-600 dark:text-green-400" />
                       </Button>
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => handleDelete(form)}
                         data-testid={`button-delete-${form.id}`}
+                        className="hover:bg-red-50 dark:hover:bg-red-950"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <Trash2 className="w-4 h-4 text-red-600 dark:text-red-400" />
                       </Button>
                     </div>
                   </TableCell>
@@ -442,7 +446,7 @@ export default function LeadForms() {
 
       {/* Embed Code Dialog */}
       <Dialog open={isEmbedDialogOpen} onOpenChange={setIsEmbedDialogOpen}>
-        <DialogContent className="max-w-2xl" data-testid="dialog-embed-code">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" data-testid="dialog-embed-code">
           <DialogHeader>
             <DialogTitle>Embed Code</DialogTitle>
             <DialogDescription>
