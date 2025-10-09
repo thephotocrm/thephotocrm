@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Copy, Settings, Eye, Code2, Smartphone, ArrowLeft, Save, Plus, Trash2, GripVertical } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
@@ -63,9 +64,8 @@ export default function LeadFormBuilder() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState("setup");
-  const [noDateYet, setNoDateYet] = useState(false);
-  const [eventDate, setEventDate] = useState("");
+  const [previewModalOpen, setPreviewModalOpen] = useState(false);
+  const [embedModalOpen, setEmbedModalOpen] = useState(false);
   
   const [config, setConfig] = useState(defaultConfig);
 
@@ -285,35 +285,92 @@ export default function LeadFormBuilder() {
                 <p className="text-muted-foreground">Configure your form's appearance and behavior</p>
               </div>
             </div>
-            <Button
-              onClick={() => saveConfigMutation.mutate()}
-              disabled={saveConfigMutation.isPending}
-              data-testid="button-save-config"
-            >
-              <Save className="w-4 h-4 mr-2" />
-              {saveConfigMutation.isPending ? 'Saving...' : 'Save Configuration'}
-            </Button>
+            <div className="flex items-center gap-2">
+              <Dialog open={previewModalOpen} onOpenChange={setPreviewModalOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" data-testid="button-preview">
+                    <Eye className="w-4 h-4 mr-2" />
+                    Preview
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-2xl">
+                  <DialogHeader>
+                    <DialogTitle className="flex items-center gap-2">
+                      <Smartphone className="w-5 h-5" />
+                      Live Preview
+                    </DialogTitle>
+                    <DialogDescription>
+                      This is how your form will appear to visitors
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="bg-gray-50 dark:bg-gray-900 p-6 rounded-lg">
+                    {renderWidgetPreview()}
+                  </div>
+                </DialogContent>
+              </Dialog>
+
+              <Dialog open={embedModalOpen} onOpenChange={setEmbedModalOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" data-testid="button-embed">
+                    <Code2 className="w-4 h-4 mr-2" />
+                    Get Embed Code
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-3xl">
+                  <DialogHeader>
+                    <DialogTitle className="flex items-center gap-2">
+                      <Code2 className="w-5 h-5" />
+                      Embed Code
+                    </DialogTitle>
+                    <DialogDescription>
+                      Copy and paste this code into your website where you want the lead capture form to appear
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div className="relative">
+                      <pre className="bg-muted p-4 rounded-md overflow-x-auto text-xs">
+                        <code>{generateEmbedCode()}</code>
+                      </pre>
+                      <Button
+                        data-testid="button-copy-embed"
+                        onClick={() => copyToClipboard(generateEmbedCode())}
+                        size="sm"
+                        variant="outline"
+                        className="absolute top-2 right-2"
+                      >
+                        <Copy className="w-4 h-4 mr-2" />
+                        Copy
+                      </Button>
+                    </div>
+                    <div className="bg-blue-50 dark:bg-blue-950 p-4 rounded-md border border-blue-200 dark:border-blue-800">
+                      <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">
+                        Installation Instructions:
+                      </h4>
+                      <ol className="list-decimal list-inside space-y-1 text-sm text-blue-800 dark:text-blue-200">
+                        <li>Copy the embed code above</li>
+                        <li>Paste it into your website's HTML where you want the form to appear</li>
+                        <li>The form will automatically load and be ready to receive inquiries</li>
+                        <li>All submissions will appear in your CRM dashboard</li>
+                      </ol>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
+
+              <Button
+                onClick={() => saveConfigMutation.mutate()}
+                disabled={saveConfigMutation.isPending}
+                data-testid="button-save-config"
+              >
+                <Save className="w-4 h-4 mr-2" />
+                {saveConfigMutation.isPending ? 'Saving...' : 'Save Changes'}
+              </Button>
+            </div>
             </div>
         </header>
 
         <div className="p-6">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <TabsList className="flex flex-col md:grid md:grid-cols-3 w-full gap-1 md:gap-0 h-auto md:h-10">
-              <TabsTrigger value="setup" data-testid="tab-setup" className="flex items-center gap-2 justify-start w-full md:justify-center">
-                <Settings className="w-4 h-4" />
-                Setup & Configure
-              </TabsTrigger>
-              <TabsTrigger value="customize" data-testid="tab-customize" className="flex items-center gap-2 justify-start w-full md:justify-center">
-                <Eye className="w-4 h-4" />
-                Customize & Preview
-              </TabsTrigger>
-              <TabsTrigger value="embed" data-testid="tab-embed" className="flex items-center gap-2 justify-start w-full md:justify-center">
-                <Code2 className="w-4 h-4" />
-                Get Embed Code
-              </TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="setup" className="space-y-6">
+          <div className="space-y-6">
               {/* Setup Tab */}
                 <Card>
                   <CardHeader>
@@ -513,71 +570,7 @@ export default function LeadFormBuilder() {
                     </Button>
                   </CardContent>
                 </Card>
-            </TabsContent>
-
-            <TabsContent value="embed" className="space-y-6">
-              {/* Embed Tab */}
-              <Card>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <CardTitle className="flex items-center space-x-2">
-                        <Code2 className="w-5 h-5" />
-                        <span>Embed Code</span>
-                      </CardTitle>
-                      <CardDescription>
-                        Copy and paste this code into your website where you want the lead capture form to appear:
-                      </CardDescription>
-                    </div>
-                    <Button
-                      data-testid="button-copy-embed"
-                      onClick={() => copyToClipboard(generateEmbedCode())}
-                      size="sm"
-                      variant="outline"
-                    >
-                      <Copy className="w-4 h-4 mr-2" />
-                      Copy Code
-                    </Button>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="relative">
-                    <pre className="bg-muted p-4 rounded-md overflow-x-auto text-xs">
-                      <code>{generateEmbedCode()}</code>
-                    </pre>
-                  </div>
-                  <div className="bg-blue-50 dark:bg-blue-950 p-4 rounded-md border border-blue-200 dark:border-blue-800 mt-4">
-                    <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">
-                      Installation Instructions:
-                    </h4>
-                    <ol className="list-decimal list-inside space-y-1 text-sm text-blue-800 dark:text-blue-200">
-                      <li>Copy the embed code above</li>
-                      <li>Paste it into your website's HTML where you want the form to appear</li>
-                      <li>The form will automatically load and be ready to receive inquiries</li>
-                      <li>All submissions will appear in your CRM dashboard</li>
-                    </ol>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="customize" className="space-y-6">
-              {/* Preview */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center space-x-2">
-                    <Smartphone className="w-5 h-5" />
-                    <span>Live Preview</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="bg-gray-50 dark:bg-gray-900 p-6 rounded-lg">
-                    {renderWidgetPreview()}
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
+          </div>
         </div>
     </div>
   );
