@@ -10,6 +10,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { 
   Camera, 
@@ -37,7 +38,7 @@ type ImageContent = {
 
 interface SmartFilePage {
   id: string;
-  pageType: "TEXT" | "PACKAGE" | "ADDON" | "CONTRACT" | "PAYMENT";
+  pageType: "TEXT" | "PACKAGE" | "ADDON" | "CONTRACT" | "PAYMENT" | "FORM";
   pageOrder: number;
   displayTitle: string;
   content: any;
@@ -1698,6 +1699,477 @@ export default function PublicSmartFile() {
                     </Card>
                     )}
                   </div>
+                )}
+
+                {/* FORM Page */}
+                {currentPage.pageType === "FORM" && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle data-testid={`form-page-title-${pageIndex}`}>{currentPage.displayTitle}</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                      {/* Hero Section if present */}
+                      {currentPage.content.hero?.backgroundImage && (
+                        <div 
+                          className="relative w-full h-[200px] flex items-center justify-center bg-cover bg-center overflow-hidden rounded-lg -mx-6 -mt-6 mb-6"
+                          style={{ backgroundImage: `url(${currentPage.content.hero.backgroundImage})` }}
+                        >
+                          <div className="absolute inset-0 bg-black/30" />
+                          <div className="relative z-10 text-center text-white px-6">
+                            {currentPage.content.hero.title && (
+                              <h2 className="text-3xl font-bold mb-2">{currentPage.content.hero.title}</h2>
+                            )}
+                            {currentPage.content.hero.description && (
+                              <p className="text-lg">{currentPage.content.hero.description}</p>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Sections-based rendering */}
+                      {currentPage.content.sections && currentPage.content.sections.length > 0 ? (
+                        currentPage.content.sections.map((section: any, secIdx: number) => (
+                          <div key={secIdx}>
+                            {section.columns === 1 ? (
+                              <div className="space-y-4">
+                                {section.blocks.map((block: any, blockIdx: number) => (
+                                  <div key={blockIdx}>
+                                    {block.type === 'HEADING' && block.content && (
+                                      <h3 className="text-2xl font-bold mb-2">{block.content}</h3>
+                                    )}
+                                    {block.type === 'TEXT' && block.content && (
+                                      <p className="text-muted-foreground whitespace-pre-wrap">{block.content}</p>
+                                    )}
+                                    {block.type === 'SPACER' && (
+                                      <div className="py-6" />
+                                    )}
+                                    {block.type === 'IMAGE' && block.content && (() => {
+                                      const imageData: ImageContent = typeof block.content === 'string' 
+                                        ? { url: block.content, borderRadius: 'straight', size: 'medium' }
+                                        : block.content;
+                                      const isRounded = imageData.borderRadius === 'rounded';
+                                      const sizeClass = imageData.size === 'small' ? 'h-[100px] w-[100px]' 
+                                        : imageData.size === 'large' ? 'h-[300px] w-[300px]' 
+                                        : 'h-[150px] w-[150px]';
+                                      
+                                      if (isRounded) {
+                                        return (
+                                          <div className={cn("rounded-full overflow-hidden border border-border mx-auto", sizeClass)}>
+                                            <img 
+                                              src={imageData.url} 
+                                              alt="" 
+                                              className="w-full h-full object-cover"
+                                            />
+                                          </div>
+                                        );
+                                      }
+                                      
+                                      const maxHeightClass = imageData.size === 'small' ? 'max-h-[100px]' 
+                                        : imageData.size === 'large' ? 'max-h-[300px]' 
+                                        : 'max-h-[150px]';
+                                      return (
+                                        <div className="-mx-4 sm:-mx-6">
+                                          <img 
+                                            src={imageData.url} 
+                                            alt="" 
+                                            className={cn("w-full rounded-none object-cover", maxHeightClass)} 
+                                          />
+                                        </div>
+                                      );
+                                    })()}
+                                    {block.type === 'FORM_FIELD' && block.content && (() => {
+                                      const field = block.content;
+                                      return (
+                                        <div className="space-y-2">
+                                          <Label htmlFor={`field-${block.id}`} className="text-sm font-medium">
+                                            {field.label}
+                                            {field.required && <span className="text-destructive ml-1">*</span>}
+                                          </Label>
+                                          {field.fieldType === 'TEXT_INPUT' && (
+                                            <Input
+                                              id={`field-${block.id}`}
+                                              placeholder={field.placeholder}
+                                              required={field.required}
+                                              data-testid={`input-form-field-${blockIdx}`}
+                                            />
+                                          )}
+                                          {field.fieldType === 'TEXTAREA' && (
+                                            <Textarea
+                                              id={`field-${block.id}`}
+                                              placeholder={field.placeholder}
+                                              required={field.required}
+                                              rows={4}
+                                              data-testid={`textarea-form-field-${blockIdx}`}
+                                            />
+                                          )}
+                                          {field.fieldType === 'NUMBER' && (
+                                            <Input
+                                              id={`field-${block.id}`}
+                                              type="number"
+                                              placeholder={field.placeholder}
+                                              required={field.required}
+                                              data-testid={`input-number-field-${blockIdx}`}
+                                            />
+                                          )}
+                                          {field.fieldType === 'EMAIL' && (
+                                            <Input
+                                              id={`field-${block.id}`}
+                                              type="email"
+                                              placeholder={field.placeholder}
+                                              required={field.required}
+                                              data-testid={`input-email-field-${blockIdx}`}
+                                            />
+                                          )}
+                                          {field.fieldType === 'DATE' && (
+                                            <Input
+                                              id={`field-${block.id}`}
+                                              type="date"
+                                              required={field.required}
+                                              data-testid={`input-date-field-${blockIdx}`}
+                                            />
+                                          )}
+                                          {field.fieldType === 'MULTIPLE_CHOICE' && field.options && (
+                                            <RadioGroup data-testid={`radio-group-field-${blockIdx}`}>
+                                              {field.options.map((option: string, optIdx: number) => (
+                                                <div key={optIdx} className="flex items-center space-x-2">
+                                                  <input
+                                                    type="radio"
+                                                    id={`field-${block.id}-${optIdx}`}
+                                                    name={`field-${block.id}`}
+                                                    value={option}
+                                                    required={field.required}
+                                                    className="w-4 h-4"
+                                                    data-testid={`radio-option-${blockIdx}-${optIdx}`}
+                                                  />
+                                                  <Label htmlFor={`field-${block.id}-${optIdx}`} className="text-sm">
+                                                    {option}
+                                                  </Label>
+                                                </div>
+                                              ))}
+                                            </RadioGroup>
+                                          )}
+                                          {field.fieldType === 'CHECKBOX' && field.options && (
+                                            <div className="space-y-2" data-testid={`checkbox-group-field-${blockIdx}`}>
+                                              {field.options.map((option: string, optIdx: number) => (
+                                                <div key={optIdx} className="flex items-center space-x-2">
+                                                  <Checkbox
+                                                    id={`field-${block.id}-${optIdx}`}
+                                                    data-testid={`checkbox-option-${blockIdx}-${optIdx}`}
+                                                  />
+                                                  <Label htmlFor={`field-${block.id}-${optIdx}`} className="text-sm">
+                                                    {option}
+                                                  </Label>
+                                                </div>
+                                              ))}
+                                            </div>
+                                          )}
+                                        </div>
+                                      );
+                                    })()}
+                                  </div>
+                                ))}
+                              </div>
+                            ) : (
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="space-y-4">
+                                  {section.blocks.filter((b: any) => b.column === 0).map((block: any, blockIdx: number) => (
+                                    <div key={blockIdx}>
+                                      {block.type === 'HEADING' && block.content && (
+                                        <h3 className="text-2xl font-bold mb-2">{block.content}</h3>
+                                      )}
+                                      {block.type === 'TEXT' && block.content && (
+                                        <p className="text-muted-foreground whitespace-pre-wrap">{block.content}</p>
+                                      )}
+                                      {block.type === 'SPACER' && (
+                                        <div className="py-6" />
+                                      )}
+                                      {block.type === 'IMAGE' && block.content && (() => {
+                                        const imageData: ImageContent = typeof block.content === 'string' 
+                                          ? { url: block.content, borderRadius: 'straight', size: 'medium' }
+                                          : block.content;
+                                        const isRounded = imageData.borderRadius === 'rounded';
+                                        const sizeClass = imageData.size === 'small' ? 'h-[100px] w-[100px]' 
+                                          : imageData.size === 'large' ? 'h-[300px] w-[300px]' 
+                                          : 'h-[150px] w-[150px]';
+                                        
+                                        if (isRounded) {
+                                          return (
+                                            <div className={cn("rounded-full overflow-hidden border-4 border-border shadow-lg mx-auto", sizeClass)}>
+                                              <img 
+                                                src={imageData.url} 
+                                                alt="" 
+                                                className="w-full h-full object-cover"
+                                              />
+                                            </div>
+                                          );
+                                        }
+                                        
+                                        const maxHeightClass = imageData.size === 'small' ? 'max-h-[100px]' 
+                                          : imageData.size === 'large' ? 'max-h-[300px]' 
+                                          : 'max-h-[150px]';
+                                        return (
+                                          <div className="-mx-4 sm:-mx-6">
+                                            <img 
+                                              src={imageData.url} 
+                                              alt="" 
+                                              className={cn("w-full rounded-none object-cover", maxHeightClass)} 
+                                            />
+                                          </div>
+                                        );
+                                      })()}
+                                      {block.type === 'FORM_FIELD' && block.content && (() => {
+                                        const field = block.content;
+                                        return (
+                                          <div className="space-y-2">
+                                            <Label htmlFor={`field-${block.id}`} className="text-sm font-medium">
+                                              {field.label}
+                                              {field.required && <span className="text-destructive ml-1">*</span>}
+                                            </Label>
+                                            {field.fieldType === 'TEXT_INPUT' && (
+                                              <Input
+                                                id={`field-${block.id}`}
+                                                placeholder={field.placeholder}
+                                                required={field.required}
+                                                data-testid={`input-form-field-${blockIdx}`}
+                                              />
+                                            )}
+                                            {field.fieldType === 'TEXTAREA' && (
+                                              <Textarea
+                                                id={`field-${block.id}`}
+                                                placeholder={field.placeholder}
+                                                required={field.required}
+                                                rows={4}
+                                                data-testid={`textarea-form-field-${blockIdx}`}
+                                              />
+                                            )}
+                                            {field.fieldType === 'NUMBER' && (
+                                              <Input
+                                                id={`field-${block.id}`}
+                                                type="number"
+                                                placeholder={field.placeholder}
+                                                required={field.required}
+                                                data-testid={`input-number-field-${blockIdx}`}
+                                              />
+                                            )}
+                                            {field.fieldType === 'EMAIL' && (
+                                              <Input
+                                                id={`field-${block.id}`}
+                                                type="email"
+                                                placeholder={field.placeholder}
+                                                required={field.required}
+                                                data-testid={`input-email-field-${blockIdx}`}
+                                              />
+                                            )}
+                                            {field.fieldType === 'DATE' && (
+                                              <Input
+                                                id={`field-${block.id}`}
+                                                type="date"
+                                                required={field.required}
+                                                data-testid={`input-date-field-${blockIdx}`}
+                                              />
+                                            )}
+                                            {field.fieldType === 'MULTIPLE_CHOICE' && field.options && (
+                                              <RadioGroup data-testid={`radio-group-field-${blockIdx}`}>
+                                                {field.options.map((option: string, optIdx: number) => (
+                                                  <div key={optIdx} className="flex items-center space-x-2">
+                                                    <input
+                                                      type="radio"
+                                                      id={`field-${block.id}-${optIdx}`}
+                                                      name={`field-${block.id}`}
+                                                      value={option}
+                                                      required={field.required}
+                                                      className="w-4 h-4"
+                                                      data-testid={`radio-option-${blockIdx}-${optIdx}`}
+                                                    />
+                                                    <Label htmlFor={`field-${block.id}-${optIdx}`} className="text-sm">
+                                                      {option}
+                                                    </Label>
+                                                  </div>
+                                                ))}
+                                              </RadioGroup>
+                                            )}
+                                            {field.fieldType === 'CHECKBOX' && field.options && (
+                                              <div className="space-y-2" data-testid={`checkbox-group-field-${blockIdx}`}>
+                                                {field.options.map((option: string, optIdx: number) => (
+                                                  <div key={optIdx} className="flex items-center space-x-2">
+                                                    <Checkbox
+                                                      id={`field-${block.id}-${optIdx}`}
+                                                      data-testid={`checkbox-option-${blockIdx}-${optIdx}`}
+                                                    />
+                                                    <Label htmlFor={`field-${block.id}-${optIdx}`} className="text-sm">
+                                                      {option}
+                                                    </Label>
+                                                  </div>
+                                                ))}
+                                              </div>
+                                            )}
+                                          </div>
+                                        );
+                                      })()}
+                                    </div>
+                                  ))}
+                                </div>
+                                <div className="space-y-4">
+                                  {section.blocks.filter((b: any) => b.column === 1).map((block: any, blockIdx: number) => (
+                                    <div key={blockIdx}>
+                                      {block.type === 'HEADING' && block.content && (
+                                        <h3 className="text-2xl font-bold mb-2">{block.content}</h3>
+                                      )}
+                                      {block.type === 'TEXT' && block.content && (
+                                        <p className="text-muted-foreground whitespace-pre-wrap">{block.content}</p>
+                                      )}
+                                      {block.type === 'SPACER' && (
+                                        <div className="py-6" />
+                                      )}
+                                      {block.type === 'IMAGE' && block.content && (() => {
+                                        const imageData: ImageContent = typeof block.content === 'string' 
+                                          ? { url: block.content, borderRadius: 'straight', size: 'medium' }
+                                          : block.content;
+                                        const isRounded = imageData.borderRadius === 'rounded';
+                                        const sizeClass = imageData.size === 'small' ? 'h-[100px] w-[100px]' 
+                                          : imageData.size === 'large' ? 'h-[300px] w-[300px]' 
+                                          : 'h-[150px] w-[150px]';
+                                        
+                                        if (isRounded) {
+                                          return (
+                                            <div className={cn("rounded-full overflow-hidden border-4 border-border shadow-lg mx-auto", sizeClass)}>
+                                              <img 
+                                                src={imageData.url} 
+                                                alt="" 
+                                                className="w-full h-full object-cover"
+                                              />
+                                            </div>
+                                          );
+                                        }
+                                        
+                                        const maxHeightClass = imageData.size === 'small' ? 'max-h-[100px]' 
+                                          : imageData.size === 'large' ? 'max-h-[300px]' 
+                                          : 'max-h-[150px]';
+                                        return (
+                                          <div className="-mx-4 sm:-mx-6">
+                                            <img 
+                                              src={imageData.url} 
+                                              alt="" 
+                                              className={cn("w-full rounded-none object-cover", maxHeightClass)} 
+                                            />
+                                          </div>
+                                        );
+                                      })()}
+                                      {block.type === 'FORM_FIELD' && block.content && (() => {
+                                        const field = block.content;
+                                        return (
+                                          <div className="space-y-2">
+                                            <Label htmlFor={`field-${block.id}`} className="text-sm font-medium">
+                                              {field.label}
+                                              {field.required && <span className="text-destructive ml-1">*</span>}
+                                            </Label>
+                                            {field.fieldType === 'TEXT_INPUT' && (
+                                              <Input
+                                                id={`field-${block.id}`}
+                                                placeholder={field.placeholder}
+                                                required={field.required}
+                                                data-testid={`input-form-field-${blockIdx}`}
+                                              />
+                                            )}
+                                            {field.fieldType === 'TEXTAREA' && (
+                                              <Textarea
+                                                id={`field-${block.id}`}
+                                                placeholder={field.placeholder}
+                                                required={field.required}
+                                                rows={4}
+                                                data-testid={`textarea-form-field-${blockIdx}`}
+                                              />
+                                            )}
+                                            {field.fieldType === 'NUMBER' && (
+                                              <Input
+                                                id={`field-${block.id}`}
+                                                type="number"
+                                                placeholder={field.placeholder}
+                                                required={field.required}
+                                                data-testid={`input-number-field-${blockIdx}`}
+                                              />
+                                            )}
+                                            {field.fieldType === 'EMAIL' && (
+                                              <Input
+                                                id={`field-${block.id}`}
+                                                type="email"
+                                                placeholder={field.placeholder}
+                                                required={field.required}
+                                                data-testid={`input-email-field-${blockIdx}`}
+                                              />
+                                            )}
+                                            {field.fieldType === 'DATE' && (
+                                              <Input
+                                                id={`field-${block.id}`}
+                                                type="date"
+                                                required={field.required}
+                                                data-testid={`input-date-field-${blockIdx}`}
+                                              />
+                                            )}
+                                            {field.fieldType === 'MULTIPLE_CHOICE' && field.options && (
+                                              <RadioGroup data-testid={`radio-group-field-${blockIdx}`}>
+                                                {field.options.map((option: string, optIdx: number) => (
+                                                  <div key={optIdx} className="flex items-center space-x-2">
+                                                    <input
+                                                      type="radio"
+                                                      id={`field-${block.id}-${optIdx}`}
+                                                      name={`field-${block.id}`}
+                                                      value={option}
+                                                      required={field.required}
+                                                      className="w-4 h-4"
+                                                      data-testid={`radio-option-${blockIdx}-${optIdx}`}
+                                                    />
+                                                    <Label htmlFor={`field-${block.id}-${optIdx}`} className="text-sm">
+                                                      {option}
+                                                    </Label>
+                                                  </div>
+                                                ))}
+                                              </RadioGroup>
+                                            )}
+                                            {field.fieldType === 'CHECKBOX' && field.options && (
+                                              <div className="space-y-2" data-testid={`checkbox-group-field-${blockIdx}`}>
+                                                {field.options.map((option: string, optIdx: number) => (
+                                                  <div key={optIdx} className="flex items-center space-x-2">
+                                                    <Checkbox
+                                                      id={`field-${block.id}-${optIdx}`}
+                                                      data-testid={`checkbox-option-${blockIdx}-${optIdx}`}
+                                                    />
+                                                    <Label htmlFor={`field-${block.id}-${optIdx}`} className="text-sm">
+                                                      {option}
+                                                    </Label>
+                                                  </div>
+                                                ))}
+                                              </div>
+                                            )}
+                                          </div>
+                                        );
+                                      })()}
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        ))
+                      ) : (
+                        <div className="text-center py-8 text-muted-foreground">
+                          <p>No form fields available</p>
+                        </div>
+                      )}
+
+                      {/* Submit Button */}
+                      <div className="pt-4 border-t">
+                        <Button 
+                          type="submit" 
+                          className="w-full" 
+                          size="lg"
+                          data-testid="button-submit-form"
+                        >
+                          Submit Form
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
                 )}
               </div>
 
