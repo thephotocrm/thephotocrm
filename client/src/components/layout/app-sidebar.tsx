@@ -92,7 +92,6 @@ export function AppSidebar() {
         { name: "Automations", href: "/automations", icon: Zap },
         { name: "Drip Campaigns", href: "/drip-campaigns", icon: Sparkles },
         { name: "Lead Forms", href: "/lead-forms", icon: FileText },
-        { name: "Form Builder", href: "/widget-generator", icon: Code },
       ]
     },
     {
