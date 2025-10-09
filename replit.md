@@ -55,6 +55,12 @@ Preferred communication style: Simple, everyday language.
 *   **Features:** Routing for authenticated/unauthenticated users, founder pricing ($4.95/month, limited to 100 spots) with "spots remaining" counter, scarcity messaging, regular pricing ($9.95/month), 14-day free trial via Stripe, demo booking system with SendGrid notifications, and structured page content.
 *   **Technical Aspects:** Subscription enforcement middleware, error-safe registration (Stripe first), accessible billing/subscription management endpoints, and custom domain deployment.
 
+**Multi-Form Lead Capture System:** Flexible lead generation system where photographers can create unlimited customizable forms, each with unique embed codes and configurable project types.
+*   **Core Features:** Multiple form management, individual form builder/configurator per form, unique public tokens for embed URLs, tenant-isolated form storage, per-form submission tracking, drag-and-drop field customization (inherited from widget generator), color theming, 1/2-column layouts, 7 field types (text, textarea, dropdown, checkbox, radio, date, email).
+*   **Workflow:** Create form → Configure design & fields → Get embed code → Embed on website → Client submits → Auto-creates client & project with form's configured project type.
+*   **Client Deduplication:** Public submission endpoint checks for existing clients by email before creating new ones. Reuses existing client records, updates phone if changed, always creates new project per submission.
+*   **Technical Implementation:** Database table `lead_forms` with fields: id, photographerId, name, description, projectType, config (JSON), status, publicToken, submissionCount. Backend CRUD API endpoints with tenant isolation. Public submission endpoint at `/api/public/forms/:formToken/submit` (no auth required). Forms list page at `/lead-forms` with create/edit/delete actions. Individual form builder at `/lead-forms/:id/configure`. Security: PATCH endpoint excludes photographerId/publicToken/submissionCount to prevent tenant-hopping.
+
 ### External Dependencies
 
 **Communication Services:**

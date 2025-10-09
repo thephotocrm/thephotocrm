@@ -5823,7 +5823,7 @@ ${photographer.businessName}`
       const finalSmsOptIn = submissionData.smsOptIn ?? photographer.defaultSmsOptIn ?? false;
       
       // Check if client already exists (by photographer + email)
-      let client = await storage.getClientByEmail(photographer.id, submissionData.email);
+      let client = await storage.getClientByEmail(submissionData.email, photographer.id);
       
       if (!client) {
         // Create new client with contact information
