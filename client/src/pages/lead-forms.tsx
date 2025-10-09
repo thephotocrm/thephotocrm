@@ -313,8 +313,8 @@ export default function LeadForms() {
                   <TableCell data-testid={`text-created-${form.id}`}>
                     {format(new Date(form.createdAt), 'MMM d, yyyy')}
                   </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex flex-col items-end gap-1">
+                  <TableCell>
+                    <div className="grid grid-cols-2 gap-1">
                       <Button
                         variant="ghost"
                         size="sm"
