@@ -113,6 +113,7 @@ export default function PublicSmartFile() {
   const [showClientSignaturePad, setShowClientSignaturePad] = useState(false);
   const [clientSignature, setClientSignature] = useState<string | null>(null);
   const [selectedPaymentOption, setSelectedPaymentOption] = useState<'DEPOSIT' | 'FULL' | null>(null);
+  const [formAnswers, setFormAnswers] = useState<Map<string, any>>(new Map());
   const hasAutoAcceptedRef = useRef(false);
   const contractRendererRef = useRef<HTMLDivElement>(null);
 
@@ -341,6 +342,32 @@ export default function PublicSmartFile() {
     }
   });
 
+  const submitFormMutation = useMutation({
+    mutationFn: async (formData: { answers: Record<string, any> }) => {
+      await apiRequest("PATCH", `/api/public/smart-files/${params?.token}/form-answers`, formData);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/public/smart-files/${params?.token}`] });
+      toast({
+        title: "Form Submitted",
+        description: "Your responses have been saved successfully.",
+      });
+      // Move to next page after successful submission
+      const mergedPages = getMergedPages();
+      const sortedPages = [...mergedPages].sort((a, b) => a.pageOrder - b.pageOrder);
+      if (currentPageIndex < sortedPages.length - 1) {
+        setCurrentPageIndex(currentPageIndex + 1);
+      }
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to submit form. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
   // Auto-accept proposal when on payment page if signed but not yet accepted
   useEffect(() => {
     if (!data || hasAutoAcceptedRef.current || acceptMutation.isPending) return;
@@ -444,6 +471,24 @@ export default function PublicSmartFile() {
       newAddOns.set(key, { ...current, quantity: newQuantity });
       setSelectedAddOns(newAddOns);
     }
+  };
+
+  const handleFormFieldChange = (blockId: string, value: any) => {
+    const newAnswers = new Map(formAnswers);
+    newAnswers.set(blockId, value);
+    setFormAnswers(newAnswers);
+  };
+
+  const handleFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Convert Map to plain object for API
+    const answersObject: Record<string, any> = {};
+    formAnswers.forEach((value, key) => {
+      answersObject[key] = value;
+    });
+    
+    submitFormMutation.mutate({ answers: answersObject });
   };
 
   const handleAccept = () => {
@@ -1707,7 +1752,8 @@ export default function PublicSmartFile() {
                     <CardHeader>
                       <CardTitle data-testid={`form-page-title-${pageIndex}`}>{currentPage.displayTitle}</CardTitle>
                     </CardHeader>
-                    <CardContent className="space-y-6">
+                    <CardContent>
+                      <form onSubmit={handleFormSubmit} className="space-y-6">
                       {/* Hero Section if present */}
                       {currentPage.content.hero?.backgroundImage && (
                         <div 
@@ -1790,6 +1836,8 @@ export default function PublicSmartFile() {
                                               id={`field-${block.id}`}
                                               placeholder={field.placeholder}
                                               required={field.required}
+                                              value={formAnswers.get(block.id) || ''}
+                                              onChange={(e) => handleFormFieldChange(block.id, e.target.value)}
                                               data-testid={`input-form-field-${blockIdx}`}
                                             />
                                           )}
@@ -1799,6 +1847,8 @@ export default function PublicSmartFile() {
                                               placeholder={field.placeholder}
                                               required={field.required}
                                               rows={4}
+                                              value={formAnswers.get(block.id) || ''}
+                                              onChange={(e) => handleFormFieldChange(block.id, e.target.value)}
                                               data-testid={`textarea-form-field-${blockIdx}`}
                                             />
                                           )}
@@ -1808,6 +1858,8 @@ export default function PublicSmartFile() {
                                               type="number"
                                               placeholder={field.placeholder}
                                               required={field.required}
+                                              value={formAnswers.get(block.id) || ''}
+                                              onChange={(e) => handleFormFieldChange(block.id, e.target.value)}
                                               data-testid={`input-number-field-${blockIdx}`}
                                             />
                                           )}
@@ -1817,6 +1869,8 @@ export default function PublicSmartFile() {
                                               type="email"
                                               placeholder={field.placeholder}
                                               required={field.required}
+                                              value={formAnswers.get(block.id) || ''}
+                                              onChange={(e) => handleFormFieldChange(block.id, e.target.value)}
                                               data-testid={`input-email-field-${blockIdx}`}
                                             />
                                           )}
@@ -1825,20 +1879,22 @@ export default function PublicSmartFile() {
                                               id={`field-${block.id}`}
                                               type="date"
                                               required={field.required}
+                                              value={formAnswers.get(block.id) || ''}
+                                              onChange={(e) => handleFormFieldChange(block.id, e.target.value)}
                                               data-testid={`input-date-field-${blockIdx}`}
                                             />
                                           )}
                                           {field.fieldType === 'MULTIPLE_CHOICE' && field.options && (
-                                            <RadioGroup data-testid={`radio-group-field-${blockIdx}`}>
+                                            <RadioGroup 
+                                              value={formAnswers.get(block.id) || ''}
+                                              onValueChange={(value) => handleFormFieldChange(block.id, value)}
+                                              data-testid={`radio-group-field-${blockIdx}`}
+                                            >
                                               {field.options.map((option: string, optIdx: number) => (
                                                 <div key={optIdx} className="flex items-center space-x-2">
-                                                  <input
-                                                    type="radio"
+                                                  <RadioGroupItem
                                                     id={`field-${block.id}-${optIdx}`}
-                                                    name={`field-${block.id}`}
                                                     value={option}
-                                                    required={field.required}
-                                                    className="w-4 h-4"
                                                     data-testid={`radio-option-${blockIdx}-${optIdx}`}
                                                   />
                                                   <Label htmlFor={`field-${block.id}-${optIdx}`} className="text-sm">
@@ -1850,17 +1906,31 @@ export default function PublicSmartFile() {
                                           )}
                                           {field.fieldType === 'CHECKBOX' && field.options && (
                                             <div className="space-y-2" data-testid={`checkbox-group-field-${blockIdx}`}>
-                                              {field.options.map((option: string, optIdx: number) => (
-                                                <div key={optIdx} className="flex items-center space-x-2">
-                                                  <Checkbox
-                                                    id={`field-${block.id}-${optIdx}`}
-                                                    data-testid={`checkbox-option-${blockIdx}-${optIdx}`}
-                                                  />
-                                                  <Label htmlFor={`field-${block.id}-${optIdx}`} className="text-sm">
-                                                    {option}
-                                                  </Label>
-                                                </div>
-                                              ))}
+                                              {field.options.map((option: string, optIdx: number) => {
+                                                const selectedValues = formAnswers.get(block.id) || [];
+                                                const isChecked = Array.isArray(selectedValues) && selectedValues.includes(option);
+                                                return (
+                                                  <div key={optIdx} className="flex items-center space-x-2">
+                                                    <Checkbox
+                                                      id={`field-${block.id}-${optIdx}`}
+                                                      checked={isChecked}
+                                                      onCheckedChange={(checked) => {
+                                                        const currentValues = formAnswers.get(block.id) || [];
+                                                        const values = Array.isArray(currentValues) ? currentValues : [];
+                                                        if (checked) {
+                                                          handleFormFieldChange(block.id, [...values, option]);
+                                                        } else {
+                                                          handleFormFieldChange(block.id, values.filter((v: string) => v !== option));
+                                                        }
+                                                      }}
+                                                      data-testid={`checkbox-option-${blockIdx}-${optIdx}`}
+                                                    />
+                                                    <Label htmlFor={`field-${block.id}-${optIdx}`} className="text-sm">
+                                                      {option}
+                                                    </Label>
+                                                  </div>
+                                                );
+                                              })}
                                             </div>
                                           )}
                                         </div>
@@ -2168,6 +2238,7 @@ export default function PublicSmartFile() {
                           Submit Form
                         </Button>
                       </div>
+                      </form>
                     </CardContent>
                   </Card>
                 )}
