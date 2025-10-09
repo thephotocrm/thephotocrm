@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { 
@@ -24,7 +24,11 @@ import {
   CreditCard,
   FileText as ActivityIcon,
   Headphones,
-  Layers
+  Layers,
+  ChevronRight,
+  Briefcase,
+  Target,
+  TrendingUp as BusinessIcon
 } from "lucide-react";
 import {
   Sidebar,
@@ -37,22 +41,18 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarMenuSub,
+  SidebarMenuSubItem,
+  SidebarMenuSubButton,
   SidebarSeparator,
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 export function AppSidebar() {
   const [location] = useLocation();
   const { user, logout } = useAuth();
   const { openMobile, setOpenMobile, isMobile } = useSidebar();
-
-  // Auto-close mobile sidebar when navigating to different pages
-  useEffect(() => {
-    if (isMobile) {
-      setOpenMobile(false);
-    }
-  }, [location, isMobile, setOpenMobile]);
 
   // Admin navigation for /admin/* routes
   const adminNavigation = [
@@ -64,27 +64,94 @@ export function AppSidebar() {
     { name: "Support Cases", href: "/admin/support", icon: Headphones }
   ];
 
-  // Photographer navigation
-  const photographerNavigation = [
+  // Core workspace items (always visible)
+  const coreNavigation = [
     { name: "Dashboard", href: "/", icon: LayoutDashboard },
     { name: "Clients", href: "/clients", icon: Users },
     { name: "Projects", href: "/projects", icon: FolderOpen },
-    { name: "Smart Files", href: "/smart-files", icon: Layers },
-    { name: "Packages", href: "/packages", icon: Package },
-    { name: "Add-ons", href: "/add-ons", icon: ShoppingBag },
-    { name: "Widget Generator", href: "/widget-generator", icon: Code },
-    { name: "Scheduling", href: "/scheduling", icon: Calendar },
-    { name: "Templates", href: "/templates", icon: MessageSquare },
-    { name: "Automations", href: "/automations", icon: Zap },
-    { name: "Drip Campaigns", href: "/drip-campaigns", icon: Sparkles },
-    { name: "Reports", href: "/reports", icon: BarChart3 },
-    { name: "Earnings", href: "/earnings", icon: DollarSign }
   ];
+
+  // Grouped navigation for photographers
+  const groupedNavigation = [
+    {
+      id: "sales",
+      name: "Sales & Proposals",
+      icon: Briefcase,
+      items: [
+        { name: "Smart Files", href: "/smart-files", icon: Layers },
+        { name: "Packages", href: "/packages", icon: Package },
+        { name: "Add-ons", href: "/add-ons", icon: ShoppingBag },
+      ]
+    },
+    {
+      id: "marketing",
+      name: "Marketing & Automation",
+      icon: Target,
+      items: [
+        { name: "Templates", href: "/templates", icon: MessageSquare },
+        { name: "Automations", href: "/automations", icon: Zap },
+        { name: "Drip Campaigns", href: "/drip-campaigns", icon: Sparkles },
+        { name: "Widget Generator", href: "/widget-generator", icon: Code },
+      ]
+    },
+    {
+      id: "business",
+      name: "Business Tools",
+      icon: BusinessIcon,
+      items: [
+        { name: "Scheduling", href: "/scheduling", icon: Calendar },
+        { name: "Reports", href: "/reports", icon: BarChart3 },
+        { name: "Earnings", href: "/earnings", icon: DollarSign },
+      ]
+    }
+  ];
+
+  // Helper to determine which group contains the current route
+  const getActiveGroup = (currentLocation: string): string | null => {
+    for (const group of groupedNavigation) {
+      if (group.items.some(item => item.href === currentLocation)) {
+        return group.id;
+      }
+    }
+    return null;
+  };
+
+  // State for collapsible sections - default to sales open
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>({
+    sales: true,
+    marketing: false,
+    business: false,
+  });
+
+  // Auto-close mobile sidebar when navigating to different pages
+  useEffect(() => {
+    if (isMobile) {
+      setOpenMobile(false);
+    }
+  }, [location, isMobile, setOpenMobile]);
+
+  // Auto-expand the group containing the active route when location changes
+  useEffect(() => {
+    const activeGroup = getActiveGroup(location);
+    if (activeGroup) {
+      setOpenSections(prev => ({
+        ...prev,
+        [activeGroup]: true,
+      }));
+    }
+  }, [location]);
 
   // Determine which navigation to show
   const isAdminRoute = location.startsWith('/admin');
   const isAdmin = user?.role === 'ADMIN';
-  const navigation = (isAdmin && isAdminRoute && !user?.isImpersonating) ? adminNavigation : photographerNavigation;
+  const showAdminNav = isAdmin && isAdminRoute && !user?.isImpersonating;
+
+  const toggleSection = (sectionId: string) => {
+    setOpenSections(prev => ({
+      ...prev,
+      [sectionId]: !prev[sectionId]
+    }));
+  };
 
   const handleLogout = async () => {
     try {
@@ -111,26 +178,105 @@ export function AppSidebar() {
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
-              {navigation.map((item) => {
-                const isActive = location === item.href;
-                const Icon = item.icon;
-                
-                return (
-                  <SidebarMenuItem key={item.name}>
-                    <SidebarMenuButton
-                      asChild
-                      isActive={isActive}
-                      data-testid={`nav-${item.name.toLowerCase()}`}
-                      className="bg-slate-800/50 text-white hover:bg-slate-700/70 data-[active=true]:bg-slate-700 data-[active=true]:text-white"
-                    >
-                      <Link href={item.href}>
-                        <Icon className="w-6 h-6" />
-                        <span className="text-base">{item.name}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                );
-              })}
+              {showAdminNav ? (
+                // Admin Navigation (flat structure)
+                adminNavigation.map((item) => {
+                  const isActive = location === item.href;
+                  const Icon = item.icon;
+                  
+                  return (
+                    <SidebarMenuItem key={item.name}>
+                      <SidebarMenuButton
+                        asChild
+                        isActive={isActive}
+                        data-testid={`nav-${item.name.toLowerCase()}`}
+                        className="bg-slate-800/50 text-white hover:bg-slate-700/70 data-[active=true]:bg-slate-700 data-[active=true]:text-white"
+                      >
+                        <Link href={item.href}>
+                          <Icon className="w-6 h-6" />
+                          <span className="text-base">{item.name}</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  );
+                })
+              ) : (
+                // Photographer Navigation (grouped structure)
+                <>
+                  {/* Core Navigation Items */}
+                  {coreNavigation.map((item) => {
+                    const isActive = location === item.href;
+                    const Icon = item.icon;
+                    
+                    return (
+                      <SidebarMenuItem key={item.name}>
+                        <SidebarMenuButton
+                          asChild
+                          isActive={isActive}
+                          data-testid={`nav-${item.name.toLowerCase()}`}
+                          className="bg-slate-800/50 text-white hover:bg-slate-700/70 data-[active=true]:bg-slate-700 data-[active=true]:text-white"
+                        >
+                          <Link href={item.href}>
+                            <Icon className="w-6 h-6" />
+                            <span className="text-base">{item.name}</span>
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    );
+                  })}
+
+                  {/* Grouped Navigation Items */}
+                  {groupedNavigation.map((group) => {
+                    const GroupIcon = group.icon;
+                    const isGroupActive = group.items.some(item => location === item.href);
+                    
+                    return (
+                      <Collapsible
+                        key={group.id}
+                        open={openSections[group.id]}
+                        onOpenChange={() => toggleSection(group.id)}
+                      >
+                        <SidebarMenuItem>
+                          <CollapsibleTrigger asChild>
+                            <SidebarMenuButton
+                              className="bg-slate-800/50 text-white hover:bg-slate-700/70"
+                              data-testid={`nav-group-${group.id}`}
+                            >
+                              <GroupIcon className="w-6 h-6" />
+                              <span className="text-base">{group.name}</span>
+                              <ChevronRight className={`ml-auto w-4 h-4 transition-transform ${openSections[group.id] ? 'rotate-90' : ''}`} />
+                            </SidebarMenuButton>
+                          </CollapsibleTrigger>
+                          <CollapsibleContent>
+                            <SidebarMenuSub>
+                              {group.items.map((item) => {
+                                const isActive = location === item.href;
+                                const Icon = item.icon;
+                                
+                                return (
+                                  <SidebarMenuSubItem key={item.name}>
+                                    <SidebarMenuSubButton
+                                      asChild
+                                      isActive={isActive}
+                                      data-testid={`nav-${item.name.toLowerCase().replace(/\s+/g, '-')}`}
+                                      className="bg-slate-800/30 text-white hover:bg-slate-700/50 data-[active=true]:bg-slate-700 data-[active=true]:text-white"
+                                    >
+                                      <Link href={item.href}>
+                                        <Icon className="w-5 h-5" />
+                                        <span className="text-sm">{item.name}</span>
+                                      </Link>
+                                    </SidebarMenuSubButton>
+                                  </SidebarMenuSubItem>
+                                );
+                              })}
+                            </SidebarMenuSub>
+                          </CollapsibleContent>
+                        </SidebarMenuItem>
+                      </Collapsible>
+                    );
+                  })}
+                </>
+              )}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
