@@ -289,7 +289,7 @@ export default function LeadForms() {
             <TableBody>
               {forms.map((form) => (
                 <>
-                  <TableRow key={form.id} data-testid={`row-form-${form.id}`}>
+                  <TableRow key={form.id} data-testid={`row-form-${form.id}`} className="bg-white dark:bg-gray-950">
                     <TableCell className="font-medium pb-2" data-testid={`text-name-${form.id}`}>
                       {form.name}
                     </TableCell>
@@ -315,7 +315,7 @@ export default function LeadForms() {
                       {format(new Date(form.createdAt), 'MMM d, yyyy')}
                     </TableCell>
                   </TableRow>
-                  <TableRow key={`${form.id}-actions`} className="bg-gray-50 dark:bg-gray-900">
+                  <TableRow key={`${form.id}-actions`} className="bg-gray-100 dark:bg-gray-800">
                     <TableCell colSpan={5} className="pt-4 pb-4">
                       <div className="flex gap-2">
                         <Button
