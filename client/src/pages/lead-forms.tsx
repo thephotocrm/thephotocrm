@@ -315,42 +315,45 @@ export default function LeadForms() {
                       {format(new Date(form.createdAt), 'MMM d, yyyy')}
                     </TableCell>
                   </TableRow>
-                  <TableRow key={`${form.id}-actions`}>
-                    <TableCell colSpan={5} className="pt-0 pb-4">
+                  <TableRow key={`${form.id}-actions`} className="bg-gray-50 dark:bg-gray-900">
+                    <TableCell colSpan={5} className="pt-4 pb-4">
                       <div className="flex gap-2">
                         <Button
-                          variant="ghost"
+                          variant="outline"
                           size="sm"
                           onClick={() => handleConfigure(form.id)}
                           data-testid={`button-configure-${form.id}`}
+                          className="bg-white dark:bg-gray-800"
                         >
                           <Settings className="w-4 h-4 mr-1" />
                           Configure
                         </Button>
                         <Button
-                          variant="ghost"
+                          variant="outline"
                           size="sm"
                           onClick={() => showEmbedCode(form)}
                           data-testid={`button-embed-${form.id}`}
+                          className="bg-white dark:bg-gray-800"
                         >
                           <Code className="w-4 h-4 mr-1" />
                           Embed
                         </Button>
                         <Button
-                          variant="ghost"
+                          variant="outline"
                           size="sm"
                           onClick={() => handleEdit(form)}
                           data-testid={`button-edit-${form.id}`}
+                          className="bg-white dark:bg-gray-800"
                         >
                           <Edit className="w-4 h-4 mr-1" />
                           Edit
                         </Button>
                         <Button
-                          variant="ghost"
+                          variant="outline"
                           size="sm"
                           onClick={() => handleDelete(form)}
                           data-testid={`button-delete-${form.id}`}
-                          className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-950"
+                          className="bg-white dark:bg-gray-800 text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-950 border-red-200 dark:border-red-800"
                         >
                           <Trash2 className="w-4 h-4 mr-1" />
                           Delete
