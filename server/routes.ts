@@ -5304,9 +5304,17 @@ ${photographer.businessName}`
       const isConfigured = googleCalendarService.isConfigured();
       const isAuthenticated = await googleCalendarService.isAuthenticated(photographerId);
       
+      // Get connected email if authenticated
+      let connectedEmail: string | undefined;
+      if (isAuthenticated) {
+        const credentials = await storage.getGoogleCalendarCredentials(photographerId);
+        connectedEmail = credentials?.email;
+      }
+      
       res.json({
         configured: isConfigured,
         authenticated: isAuthenticated,
+        email: connectedEmail,
         message: !isConfigured 
           ? "Google Calendar integration not configured" 
           : !isAuthenticated 
