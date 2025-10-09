@@ -288,73 +288,77 @@ export default function LeadForms() {
             </TableHeader>
             <TableBody>
               {forms.map((form) => (
-                <TableRow key={form.id} data-testid={`row-form-${form.id}`}>
-                  <TableCell className="font-medium" data-testid={`text-name-${form.id}`}>
-                    {form.name}
-                  </TableCell>
-                  <TableCell data-testid={`text-type-${form.id}`}>
-                    {projectTypes.find(pt => pt.value === form.projectType)?.label || form.projectType}
-                  </TableCell>
-                  <TableCell>
-                    <span
-                      className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                        form.status === 'ACTIVE'
-                          ? 'bg-green-100 text-green-700'
-                          : 'bg-gray-100 text-gray-700'
-                      }`}
-                      data-testid={`status-${form.id}`}
-                    >
-                      {form.status}
-                    </span>
-                  </TableCell>
-                  <TableCell data-testid={`text-submissions-${form.id}`}>
-                    {form.submissionCount || 0}
-                  </TableCell>
-                  <TableCell data-testid={`text-created-${form.id}`}>
-                    {format(new Date(form.createdAt), 'MMM d, yyyy')}
-                  </TableCell>
-                  <TableCell>
-                    <div className="grid grid-cols-2 gap-1">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleConfigure(form.id)}
-                        data-testid={`button-configure-${form.id}`}
+                <>
+                  <TableRow key={form.id} data-testid={`row-form-${form.id}`}>
+                    <TableCell className="font-medium pb-2" data-testid={`text-name-${form.id}`}>
+                      {form.name}
+                    </TableCell>
+                    <TableCell className="pb-2" data-testid={`text-type-${form.id}`}>
+                      {projectTypes.find(pt => pt.value === form.projectType)?.label || form.projectType}
+                    </TableCell>
+                    <TableCell className="pb-2">
+                      <span
+                        className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                          form.status === 'ACTIVE'
+                            ? 'bg-green-100 text-green-700'
+                            : 'bg-gray-100 text-gray-700'
+                        }`}
+                        data-testid={`status-${form.id}`}
                       >
-                        <Settings className="w-4 h-4 mr-1" />
-                        Configure
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => showEmbedCode(form)}
-                        data-testid={`button-embed-${form.id}`}
-                      >
-                        <Code className="w-4 h-4 mr-1" />
-                        Embed
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleEdit(form)}
-                        data-testid={`button-edit-${form.id}`}
-                      >
-                        <Edit className="w-4 h-4 mr-1" />
-                        Edit
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDelete(form)}
-                        data-testid={`button-delete-${form.id}`}
-                        className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-950"
-                      >
-                        <Trash2 className="w-4 h-4 mr-1" />
-                        Delete
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
+                        {form.status}
+                      </span>
+                    </TableCell>
+                    <TableCell className="pb-2" data-testid={`text-submissions-${form.id}`}>
+                      {form.submissionCount || 0}
+                    </TableCell>
+                    <TableCell className="pb-2" data-testid={`text-created-${form.id}`}>
+                      {format(new Date(form.createdAt), 'MMM d, yyyy')}
+                    </TableCell>
+                  </TableRow>
+                  <TableRow key={`${form.id}-actions`}>
+                    <TableCell colSpan={5} className="pt-0 pb-4">
+                      <div className="flex gap-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleConfigure(form.id)}
+                          data-testid={`button-configure-${form.id}`}
+                        >
+                          <Settings className="w-4 h-4 mr-1" />
+                          Configure
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => showEmbedCode(form)}
+                          data-testid={`button-embed-${form.id}`}
+                        >
+                          <Code className="w-4 h-4 mr-1" />
+                          Embed
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleEdit(form)}
+                          data-testid={`button-edit-${form.id}`}
+                        >
+                          <Edit className="w-4 h-4 mr-1" />
+                          Edit
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDelete(form)}
+                          data-testid={`button-delete-${form.id}`}
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-950"
+                        >
+                          <Trash2 className="w-4 h-4 mr-1" />
+                          Delete
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                </>
               ))}
             </TableBody>
           </Table>
