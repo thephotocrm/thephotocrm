@@ -1,7 +1,7 @@
 # Lazy Photog - Wedding Photographer CRM
 
 ### Overview
-Lazy Photog is a comprehensive multi-tenant CRM system for wedding photographers, designed to streamline workflows from client inquiry to project completion. It offers client pipeline management, automated communication, estimate creation, payment processing, and scheduling. The project aims to deliver a production-ready MVP that enhances efficiency for photographers.
+Lazy Photog is a comprehensive multi-tenant CRM system for wedding photographers, designed to streamline workflows from client inquiry to project completion. It offers client pipeline management, automated communication, Smart Files proposal/invoice builder, payment processing, and scheduling. The project aims to deliver a production-ready MVP that enhances efficiency for photographers.
 
 ### User Preferences
 Preferred communication style: Simple, everyday language.
@@ -40,7 +40,7 @@ Preferred communication style: Simple, everyday language.
 
 **Backend Architecture:** Node.js with Express.js. Drizzle ORM for PostgreSQL. JWT tokens in httpOnly cookies for authentication, with bcrypt for password hashing. RESTful API with role-based access control.
 
-**Database Design:** Centered around a photographer-tenant model, with key entities: Photographers, Users (PHOTOGRAPHER, CLIENT, ADMIN roles), Clients (with stage-based pipeline), Stages, Templates, Automations, Estimates, and Packages.
+**Database Design:** Centered around a photographer-tenant model, with key entities: Photographers, Users (PHOTOGRAPHER, CLIENT, ADMIN roles), Clients (with stage-based pipeline), Stages, Templates, Automations, Smart Files, Packages, and Add-ons.
 
 **Authentication & Authorization:** A three-tier role system (PHOTOGRAPHER, CLIENT, ADMIN) with stateless JWT authentication and role-based middleware for access control.
 

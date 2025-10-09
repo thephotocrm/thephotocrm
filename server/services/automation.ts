@@ -2,7 +2,7 @@ import { storage } from '../storage';
 import { sendEmail, renderTemplate } from './email';
 import { sendSms, renderSmsTemplate } from './sms';
 import { db } from '../db';
-import { clients, automations, automationSteps, stages, templates, emailLogs, smsLogs, automationExecutions, photographers, estimates, estimatePayments, projects, bookings, projectQuestionnaires, dripCampaigns, dripCampaignEmails, dripCampaignSubscriptions, dripEmailDeliveries, automationBusinessTriggers } from '@shared/schema';
+import { clients, automations, automationSteps, stages, templates, emailLogs, smsLogs, automationExecutions, photographers, projectSmartFiles, projects, bookings, projectQuestionnaires, dripCampaigns, dripCampaignEmails, dripCampaignSubscriptions, dripEmailDeliveries, automationBusinessTriggers } from '@shared/schema';
 import { eq, and, gte, lte, isNull } from 'drizzle-orm';
 
 async function getParticipantEmailsForBCC(projectId: string): Promise<string[]> {
@@ -571,8 +571,8 @@ async function checkTriggerCondition(triggerType: string, project: any, photogra
       return await checkProjectBooked(project);
     case 'CONTRACT_SIGNED':
       return await checkContractSigned(project.id);
-    case 'ESTIMATE_ACCEPTED':
-      return await checkEstimateAccepted(project.id);
+    case 'SMART_FILE_ACCEPTED':
+      return await checkSmartFileAccepted(project.id);
     case 'EVENT_DATE_REACHED':
       return await checkEventDateReached(project);
     case 'PROJECT_DELIVERED':
@@ -588,32 +588,17 @@ async function checkTriggerCondition(triggerType: string, project: any, photogra
 }
 
 async function checkDepositPaid(projectId: string): Promise<boolean> {
-  // Check if project has estimates with completed deposit payments
-  const estimatesWithDeposit = await db
-    .select({
-      id: estimates.id,
-      depositCents: estimates.depositCents
-    })
-    .from(estimates)
+  // Check if project has Smart Files with deposit payments
+  const smartFilesWithDeposit = await db
+    .select()
+    .from(projectSmartFiles)
     .where(and(
-      eq(estimates.projectId, projectId),
-      eq(estimates.status, 'SIGNED')
+      eq(projectSmartFiles.projectId, projectId),
+      eq(projectSmartFiles.paymentType, 'DEPOSIT')
     ));
 
-  for (const estimate of estimatesWithDeposit) {
-    if (!estimate.depositCents || estimate.depositCents <= 0) continue;
-    
-    // Check if there's a completed payment for at least the deposit amount
-    const completedPayments = await db
-      .select()
-      .from(estimatePayments)
-      .where(and(
-        eq(estimatePayments.estimateId, estimate.id),
-        eq(estimatePayments.status, 'completed')
-      ));
-    
-    const totalPaid = completedPayments.reduce((sum, payment) => sum + payment.amountCents, 0);
-    if (totalPaid >= estimate.depositCents) {
+  for (const smartFile of smartFilesWithDeposit) {
+    if (smartFile.amountPaidCents && smartFile.amountPaidCents > 0) {
       return true;
     }
   }
@@ -621,36 +606,16 @@ async function checkDepositPaid(projectId: string): Promise<boolean> {
 }
 
 async function checkFullPaymentMade(projectId: string): Promise<boolean> {
-  // Check if project has estimates with full payments completed
-  const signedEstimates = await db
-    .select({
-      id: estimates.id,
-      totalCents: estimates.totalCents
-    })
-    .from(estimates)
+  // Check if project has fully paid Smart Files
+  const paidSmartFiles = await db
+    .select()
+    .from(projectSmartFiles)
     .where(and(
-      eq(estimates.projectId, projectId),
-      eq(estimates.status, 'SIGNED')
+      eq(projectSmartFiles.projectId, projectId),
+      eq(projectSmartFiles.status, 'PAID')
     ));
 
-  for (const estimate of signedEstimates) {
-    if (!estimate.totalCents || estimate.totalCents <= 0) continue;
-    
-    // Check if there's a completed payment for the full amount
-    const completedPayments = await db
-      .select()
-      .from(estimatePayments)
-      .where(and(
-        eq(estimatePayments.estimateId, estimate.id),
-        eq(estimatePayments.status, 'completed')
-      ));
-    
-    const totalPaid = completedPayments.reduce((sum, payment) => sum + payment.amountCents, 0);
-    if (totalPaid >= estimate.totalCents) {
-      return true;
-    }
-  }
-  return false;
+  return paidSmartFiles.length > 0;
 }
 
 async function checkProjectBooked(project: any): Promise<boolean> {
@@ -659,20 +624,27 @@ async function checkProjectBooked(project: any): Promise<boolean> {
 }
 
 async function checkContractSigned(projectId: string): Promise<boolean> {
-  // Check if project has signed estimates
-  const signedEstimates = await db
+  // Check if project has signed Smart Files (client or photographer signature)
+  const signedSmartFiles = await db
     .select()
-    .from(estimates)
-    .where(and(
-      eq(estimates.projectId, projectId),
-      eq(estimates.status, 'SIGNED')
-    ));
-  return signedEstimates.length > 0;
+    .from(projectSmartFiles)
+    .where(
+      eq(projectSmartFiles.projectId, projectId)
+    );
+
+  return signedSmartFiles.some(sf => sf.clientSignedAt || sf.photographerSignedAt);
 }
 
-async function checkEstimateAccepted(projectId: string): Promise<boolean> {
-  // Same as contract signed for now
-  return await checkContractSigned(projectId);
+async function checkSmartFileAccepted(projectId: string): Promise<boolean> {
+  // Check if project has accepted Smart Files
+  const acceptedSmartFiles = await db
+    .select()
+    .from(projectSmartFiles)
+    .where(and(
+      eq(projectSmartFiles.projectId, projectId),
+      eq(projectSmartFiles.status, 'ACCEPTED')
+    ));
+  return acceptedSmartFiles.length > 0;
 }
 
 async function checkEventDateReached(project: any): Promise<boolean> {

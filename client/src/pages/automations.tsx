@@ -505,7 +505,7 @@ function StageChangeAutomationCard({ automation, onDelete }: { automation: any, 
       'DEPOSIT_PAID': '💳 Deposit Payment',
       'FULL_PAYMENT_MADE': '✅ Full Payment',
       'PROJECT_BOOKED': '📋 Project Booked',
-      'ESTIMATE_ACCEPTED': '📄 Estimate Accepted',
+      'SMART_FILE_ACCEPTED': '📄 Smart File Accepted',
       'EVENT_DATE_REACHED': '📅 Event Date',
       'PROJECT_DELIVERED': '📦 Project Delivered',
       'CLIENT_ONBOARDED': '🎯 Client Onboarded'
@@ -2227,7 +2227,7 @@ export default function Automations() {
                                   <SelectItem value="DEPOSIT_PAID">💳 Deposit Payment Received</SelectItem>
                                   <SelectItem value="FULL_PAYMENT_MADE">✅ Full Payment Completed</SelectItem>
                                   <SelectItem value="PROJECT_BOOKED">📋 Project Booked/Contract Signed</SelectItem>
-                                  <SelectItem value="ESTIMATE_ACCEPTED">📄 Estimate Accepted</SelectItem>
+                                  <SelectItem value="SMART_FILE_ACCEPTED">📄 Smart File Accepted</SelectItem>
                                   <SelectItem value="EVENT_DATE_REACHED">📅 Event Date Reached</SelectItem>
                                   <SelectItem value="PROJECT_DELIVERED">📦 Project Delivered</SelectItem>
                                   <SelectItem value="CLIENT_ONBOARDED">🎯 Client Onboarded</SelectItem>

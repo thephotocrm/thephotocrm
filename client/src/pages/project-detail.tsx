@@ -59,14 +59,6 @@ interface Project {
   };
 }
 
-interface Estimate {
-  id: string;
-  title: string;
-  status: string;
-  totalCents: number;
-  createdAt: string;
-}
-
 interface ProjectQuestionnaire {
   id: string;
   templateId: string;
@@ -172,11 +164,6 @@ export default function ProjectDetail() {
 
   const { data: project, isLoading: projectLoading } = useQuery<Project>({
     queryKey: ["/api/projects", id],
-    enabled: !!user && !!id
-  });
-
-  const { data: estimates } = useQuery<Estimate[]>({
-    queryKey: ["/api/estimates", "project", id],
     enabled: !!user && !!id
   });
 
@@ -431,28 +418,6 @@ export default function ProjectDetail() {
     }
   };
 
-  const getEstimateStatusColor = (status: string | null | undefined) => {
-    if (!status) return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300';
-    
-    switch (status.toLowerCase()) {
-      case 'draft': return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300';
-      case 'sent': return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300';
-      case 'signed': return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
-      case 'paid_partial': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300';
-      case 'paid_full': return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
-      case 'expired': return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300';
-      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300';
-    }
-  };
-
-  const formatEstimateStatus = (status: string | null | undefined) => {
-    if (!status) return 'Unknown';
-    
-    return status.toLowerCase().split('_').map(word => 
-      word.charAt(0).toUpperCase() + word.slice(1)
-    ).join(' ');
-  };
-
   const getProjectTypeLabel = (type: string | null | undefined) => {
     if (!type) return 'Unknown';
     return type.charAt(0) + type.slice(1).toLowerCase();
@@ -615,12 +580,6 @@ export default function ProjectDetail() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
-                <Link href={`/proposals/new?clientId=${project.client.id}&projectId=${project.id}`}>
-                  <Button variant="outline" size="sm" className="w-full" data-testid="button-create-proposal">
-                    <FileText className="w-4 h-4 mr-2" />
-                    Create Proposal
-                  </Button>
-                </Link>
                 <Link href={`/clients/${project.client.id}`}>
                   <Button variant="outline" size="sm" className="w-full" data-testid="button-view-full-client">
                     <User className="w-4 h-4 mr-2" />
@@ -630,67 +589,6 @@ export default function ProjectDetail() {
               </CardContent>
             </Card>
           </div>
-
-          {/* Proposals/Estimates */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <DollarSign className="w-5 h-5" />
-                Proposals & Estimates
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {estimates && estimates.length > 0 ? (
-                <div className="space-y-3">
-                  {estimates.map((estimate) => (
-                    <div 
-                      key={estimate.id} 
-                      className="flex items-center justify-between p-4 border rounded-lg"
-                      data-testid={`estimate-${estimate.id}`}
-                    >
-                      <div className="space-y-1">
-                        <p className="font-medium" data-testid={`estimate-title-${estimate.id}`}>
-                          {estimate.title}
-                        </p>
-                        <div className="flex items-center gap-2">
-                          <Badge 
-                            className={getEstimateStatusColor(estimate.status)}
-                            data-testid={`estimate-status-${estimate.id}`}
-                          >
-                            {formatEstimateStatus(estimate.status)}
-                          </Badge>
-                          <span className="text-sm text-muted-foreground">
-                            Created {formatDate(estimate.createdAt)}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-semibold" data-testid={`estimate-amount-${estimate.id}`}>
-                          {formatCurrency(estimate.totalCents)}
-                        </p>
-                        <Link href={`/proposals`}>
-                          <Button variant="outline" size="sm" data-testid={`button-view-estimate-${estimate.id}`}>
-                            View Details
-                          </Button>
-                        </Link>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <DollarSign className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-muted-foreground mb-4">No proposals created yet</p>
-                  <Link href={`/proposals/new?clientId=${project.client.id}&projectId=${project.id}`}>
-                    <Button data-testid="button-create-first-proposal">
-                      <FileText className="w-4 h-4 mr-2" />
-                      Create First Proposal
-                    </Button>
-                  </Link>
-                </div>
-              )}
-            </CardContent>
-          </Card>
 
           {/* Smart Files */}
           <Card>
