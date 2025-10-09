@@ -216,6 +216,15 @@ export default function LeadFormBuilder() {
             <SelectTrigger className="mt-2">
               <SelectValue placeholder={field.placeholder || 'Select an option'} />
             </SelectTrigger>
+            {!disabled && (
+              <SelectContent>
+                {field.options?.map((opt, i) => (
+                  <SelectItem key={i} value={opt}>
+                    {opt}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            )}
           </Select>
         ) : field.type === 'checkbox' ? (
           <div className="mt-2 space-y-2">
@@ -288,7 +297,7 @@ export default function LeadFormBuilder() {
             <div key={rowIndex} className={row.length === 2 ? "grid grid-cols-2 gap-4" : ""}>
               {row.map((field) => (
                 <div key={field.id}>
-                  {renderField(field, true)}
+                  {renderField(field, false)}
                 </div>
               ))}
             </div>
