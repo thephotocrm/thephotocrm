@@ -2255,6 +2255,7 @@ export default function PublicSmartFile() {
                     bufferBefore={currentPage.content.bufferBefore}
                     bufferAfter={currentPage.content.bufferAfter}
                     allowRescheduling={currentPage.content.allowRescheduling}
+                    isPreview={false}
                   />
                 )}
               </div>

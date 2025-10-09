@@ -3538,6 +3538,7 @@ export default function SmartFileBuilder() {
                           bufferBefore={currentPage.content.bufferBefore}
                           bufferAfter={currentPage.content.bufferAfter}
                           allowRescheduling={currentPage.content.allowRescheduling}
+                          isPreview={true}
                         />
                       </div>
                     )}

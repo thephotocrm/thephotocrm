@@ -14,6 +14,7 @@ interface SchedulingCalendarProps {
   bufferBefore?: number;
   bufferAfter?: number;
   allowRescheduling?: boolean;
+  isPreview?: boolean;
 }
 
 export function SchedulingCalendar({
@@ -21,6 +22,7 @@ export function SchedulingCalendar({
   description,
   durationMinutes = 60,
   bookingType = "ONE_TIME",
+  isPreview = false,
 }: SchedulingCalendarProps) {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [selectedTime, setSelectedTime] = useState<string | undefined>(undefined);
@@ -76,7 +78,13 @@ export function SchedulingCalendar({
                 mode="single"
                 selected={selectedDate}
                 onSelect={setSelectedDate}
-                disabled={(date) => date < new Date()}
+                disabled={(date) => {
+                  const today = new Date();
+                  today.setHours(0, 0, 0, 0);
+                  const compareDate = new Date(date);
+                  compareDate.setHours(0, 0, 0, 0);
+                  return compareDate < today;
+                }}
                 className="rounded-md border"
                 data-testid="calendar-date-picker"
               />
@@ -154,13 +162,15 @@ export function SchedulingCalendar({
         </CardContent>
       </Card>
 
-      {/* Info Note */}
-      <div className="text-center text-xs text-muted-foreground">
-        <Badge variant="secondary" className="mb-2">
-          Preview Mode
-        </Badge>
-        <p>This is how clients will select their appointment time</p>
-      </div>
+      {/* Info Note - Only show in preview mode */}
+      {isPreview && (
+        <div className="text-center text-xs text-muted-foreground">
+          <Badge variant="secondary" className="mb-2">
+            Preview Mode
+          </Badge>
+          <p>This is how clients will select their appointment time</p>
+        </div>
+      )}
     </div>
   );
 }
