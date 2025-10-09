@@ -202,7 +202,7 @@ const Sidebar = React.forwardRef<
           <SheetContent
             data-sidebar="sidebar"
             data-mobile="true"
-            className="bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 p-0 w-[85vw] max-w-none [&>button]:flex [&>button]:absolute [&>button]:top-4 [&>button]:right-4 [&>button]:z-20"
+            className="bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 p-0 w-[85vw] max-w-none [&>button]:flex [&>button]:absolute [&>button]:top-4 [&>button]:right-4 [&>button]:z-20 [&>button]:h-12 [&>button]:w-12 [&>button]:text-white [&>button]:hover:bg-white/10 [&>button>svg]:h-8 [&>button>svg]:w-8"
             side="left"
           >
             <SheetHeader className="sr-only">
