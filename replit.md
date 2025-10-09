@@ -39,6 +39,8 @@ Preferred communication style: Simple, everyday language.
 
 **Frontend Architecture:** Built with React and Vite, using Wouter for routing, Shadcn/ui (Radix UI-based) for components, and Tailwind CSS for styling. TanStack Query manages server state, and React Hook Form with Zod validation handles forms.
 
+**Navigation System:** Features a refactored collapsible sidebar navigation to reduce visual clutter and improve organization. Photographer navigation uses grouped collapsible sections (Sales & Proposals, Marketing & Automation, Business Tools) with core items always visible (Dashboard, Clients, Projects). Auto-expand functionality ensures the group containing the active route is always visible. Admin navigation remains flat. Built with Radix UI Collapsible components and includes proper test IDs for all navigation items.
+
 **Backend Architecture:** Node.js with Express.js. Drizzle ORM for PostgreSQL. JWT tokens in httpOnly cookies for authentication, with bcrypt for password hashing. RESTful API with role-based access control.
 
 **Database Design:** Centered around a photographer-tenant model, with key entities: Photographers, Users (PHOTOGRAPHER, CLIENT, ADMIN roles), Clients (with stage-based pipeline), Stages, Templates, Automations, Smart Files, Packages, and Add-ons.
