@@ -35,7 +35,8 @@ import {
   Shield,
   CreditCard,
   FileSignature,
-  ClipboardList
+  ClipboardList,
+  Calendar
 } from "lucide-react";
 import { Reorder, useDragControls } from "framer-motion";
 import type { SmartFileWithPages, SmartFilePage, InsertSmartFilePage } from "@shared/schema";
@@ -77,6 +78,11 @@ const PAGE_TYPES = {
     icon: ClipboardList,
     label: "Form",
     color: "bg-teal-500"
+  },
+  SCHEDULING: {
+    icon: Calendar,
+    label: "Scheduling",
+    color: "bg-pink-500"
   }
 } as const;
 
@@ -156,6 +162,16 @@ type ContractPageContent = {
 type FormPageContent = {
   hero?: HeroSection;
   sections?: Section[];
+};
+
+type SchedulingPageContent = {
+  heading: string;
+  description: string;
+  durationMinutes: number;
+  bufferBeforeMinutes: number;
+  bufferAfterMinutes: number;
+  bookingType: string;
+  allowRescheduling: boolean;
 };
 
 // Block types for text and form pages
@@ -1796,6 +1812,163 @@ function ContractPageEditor({
   );
 }
 
+// Scheduling Page Editor Component
+function SchedulingPageEditor({ 
+  page, 
+  onUpdate 
+}: { 
+  page: SmartFilePage; 
+  onUpdate: (content: SchedulingPageContent) => void;
+}) {
+  const content = page.content as SchedulingPageContent;
+  const [localContent, setLocalContent] = useState(content);
+
+  useEffect(() => {
+    setLocalContent(content);
+  }, [page.id]);
+
+  const handleBlur = () => {
+    if (JSON.stringify(localContent) !== JSON.stringify(content)) {
+      onUpdate(localContent);
+    }
+  };
+
+  const handleUpdate = (updates: Partial<SchedulingPageContent>) => {
+    const newContent = { ...localContent, ...updates };
+    setLocalContent(newContent);
+    onUpdate(newContent);
+  };
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <Label htmlFor="scheduling-heading" data-testid="label-scheduling-heading">Heading</Label>
+        <Input
+          id="scheduling-heading"
+          value={localContent.heading || ''}
+          onChange={(e) => setLocalContent({ ...localContent, heading: e.target.value })}
+          onBlur={handleBlur}
+          placeholder="Schedule Your Session"
+          data-testid="input-scheduling-heading"
+        />
+      </div>
+
+      <div>
+        <Label htmlFor="scheduling-description" data-testid="label-scheduling-description">Description</Label>
+        <Textarea
+          id="scheduling-description"
+          value={localContent.description || ''}
+          onChange={(e) => setLocalContent({ ...localContent, description: e.target.value })}
+          onBlur={handleBlur}
+          placeholder="Pick a time that works best for you"
+          rows={3}
+          data-testid="textarea-scheduling-description"
+        />
+      </div>
+
+      <Separator />
+
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="duration-minutes" data-testid="label-duration-minutes">Duration (minutes)</Label>
+          <Input
+            id="duration-minutes"
+            type="number"
+            min="15"
+            step="15"
+            value={localContent.durationMinutes || 60}
+            onChange={(e) => handleUpdate({ durationMinutes: parseInt(e.target.value) || 60 })}
+            data-testid="input-duration-minutes"
+          />
+          <p className="text-xs text-muted-foreground mt-1">
+            How long each appointment lasts
+          </p>
+        </div>
+
+        <div>
+          <Label htmlFor="booking-type" data-testid="label-booking-type">Booking Type</Label>
+          <Select
+            value={localContent.bookingType || 'CONSULTATION'}
+            onValueChange={(value) => handleUpdate({ bookingType: value })}
+          >
+            <SelectTrigger id="booking-type" data-testid="select-booking-type">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="CONSULTATION">Consultation</SelectItem>
+              <SelectItem value="ENGAGEMENT">Engagement Session</SelectItem>
+              <SelectItem value="WEDDING">Wedding</SelectItem>
+              <SelectItem value="MEETING">Meeting</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="buffer-before" data-testid="label-buffer-before">Buffer Before (minutes)</Label>
+          <Input
+            id="buffer-before"
+            type="number"
+            min="0"
+            step="5"
+            value={localContent.bufferBeforeMinutes || 0}
+            onChange={(e) => handleUpdate({ bufferBeforeMinutes: parseInt(e.target.value) || 0 })}
+            data-testid="input-buffer-before"
+          />
+          <p className="text-xs text-muted-foreground mt-1">
+            Prep time before appointments
+          </p>
+        </div>
+
+        <div>
+          <Label htmlFor="buffer-after" data-testid="label-buffer-after">Buffer After (minutes)</Label>
+          <Input
+            id="buffer-after"
+            type="number"
+            min="0"
+            step="5"
+            value={localContent.bufferAfterMinutes || 0}
+            onChange={(e) => handleUpdate({ bufferAfterMinutes: parseInt(e.target.value) || 0 })}
+            data-testid="input-buffer-after"
+          />
+          <p className="text-xs text-muted-foreground mt-1">
+            Cleanup time after appointments
+          </p>
+        </div>
+      </div>
+
+      <Separator />
+
+      <div className="flex items-center space-x-2">
+        <Switch
+          id="allow-rescheduling"
+          checked={localContent.allowRescheduling ?? true}
+          onCheckedChange={(checked) => handleUpdate({ allowRescheduling: checked })}
+          data-testid="switch-allow-rescheduling"
+        />
+        <Label htmlFor="allow-rescheduling">
+          Allow clients to reschedule appointments
+        </Label>
+      </div>
+
+      <Card className="bg-muted/30 border-dashed">
+        <CardContent className="pt-6">
+          <div className="flex items-start gap-3">
+            <Calendar className="w-5 h-5 text-muted-foreground mt-0.5" />
+            <div className="flex-1 space-y-1">
+              <p className="text-sm font-medium">Calendar Integration</p>
+              <p className="text-xs text-muted-foreground">
+                Clients will see your available time slots based on your calendar settings. Booked appointments will automatically appear on your calendar.
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
 // Page Card Component for the draggable list
 function PageCard({ 
   page, 
@@ -2042,6 +2215,18 @@ export default function SmartFileBuilder() {
         };
         displayTitle = 'New Form';
         break;
+      case 'SCHEDULING':
+        defaultContent = { 
+          heading: 'Schedule Your Session', 
+          description: 'Pick a time that works best for you', 
+          durationMinutes: 60,
+          bufferBeforeMinutes: 0,
+          bufferAfterMinutes: 0,
+          bookingType: 'CONSULTATION',
+          allowRescheduling: true
+        };
+        displayTitle = 'Scheduling';
+        break;
     }
 
     createPageMutation.mutate({ pageType, displayTitle, content: defaultContent });
@@ -2254,6 +2439,12 @@ export default function SmartFileBuilder() {
                   )}
                   {selectedPage.pageType === 'FORM' && (
                     <FormPageEditor 
+                      page={selectedPage} 
+                      onUpdate={(content) => handleUpdatePage(selectedPage.id, content)}
+                    />
+                  )}
+                  {selectedPage.pageType === 'SCHEDULING' && (
+                    <SchedulingPageEditor 
                       page={selectedPage} 
                       onUpdate={(content) => handleUpdatePage(selectedPage.id, content)}
                     />

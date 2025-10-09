@@ -56,7 +56,8 @@ export const smartFilePageTypeEnum = {
   ADDON: "ADDON",
   CONTRACT: "CONTRACT",
   PAYMENT: "PAYMENT",
-  FORM: "FORM"
+  FORM: "FORM",
+  SCHEDULING: "SCHEDULING"
 } as const;
 
 export const projectSmartFileStatusEnum = {
