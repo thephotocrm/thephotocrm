@@ -622,19 +622,88 @@ export default function LeadFormBuilder() {
                                 disabled
                               />
                             ) : field.type === 'select' ? (
-                              <Select disabled>
-                                <SelectTrigger className="mt-2">
-                                  <SelectValue placeholder={field.placeholder || 'Select an option'} />
-                                </SelectTrigger>
-                              </Select>
-                            ) : field.type === 'checkbox' ? (
                               <div className="mt-2 space-y-2">
+                                <Label className="text-xs text-muted-foreground">Options</Label>
                                 {field.options?.map((opt, i) => (
                                   <div key={i} className="flex items-center gap-2">
-                                    <input type="checkbox" disabled className="rounded" />
-                                    <span className="text-sm">{opt}</span>
+                                    <Input
+                                      value={opt}
+                                      onChange={(e) => {
+                                        const newOptions = [...(field.options || [])];
+                                        newOptions[i] = e.target.value;
+                                        updateField(field.id, { options: newOptions });
+                                      }}
+                                      className="flex-1"
+                                      data-testid={`input-option-${field.id}-${i}`}
+                                    />
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      onClick={() => {
+                                        const newOptions = field.options?.filter((_, idx) => idx !== i);
+                                        updateField(field.id, { options: newOptions });
+                                      }}
+                                      data-testid={`button-remove-option-${field.id}-${i}`}
+                                    >
+                                      <X className="w-3 h-3" />
+                                    </Button>
                                   </div>
                                 ))}
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => {
+                                    const newOptions = [...(field.options || []), ''];
+                                    updateField(field.id, { options: newOptions });
+                                  }}
+                                  className="w-full"
+                                  data-testid={`button-add-option-${field.id}`}
+                                >
+                                  <Plus className="w-3 h-3 mr-1" />
+                                  Add Option
+                                </Button>
+                              </div>
+                            ) : field.type === 'checkbox' ? (
+                              <div className="mt-2 space-y-2">
+                                <Label className="text-xs text-muted-foreground">Options</Label>
+                                {field.options?.map((opt, i) => (
+                                  <div key={i} className="flex items-center gap-2">
+                                    <Input
+                                      value={opt}
+                                      onChange={(e) => {
+                                        const newOptions = [...(field.options || [])];
+                                        newOptions[i] = e.target.value;
+                                        updateField(field.id, { options: newOptions });
+                                      }}
+                                      className="flex-1"
+                                      data-testid={`input-option-${field.id}-${i}`}
+                                    />
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      onClick={() => {
+                                        const newOptions = field.options?.filter((_, idx) => idx !== i);
+                                        updateField(field.id, { options: newOptions });
+                                      }}
+                                      data-testid={`button-remove-option-${field.id}-${i}`}
+                                    >
+                                      <X className="w-3 h-3" />
+                                    </Button>
+                                  </div>
+                                ))}
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => {
+                                    const newOptions = [...(field.options || []), ''];
+                                    updateField(field.id, { options: newOptions });
+                                  }}
+                                  className="w-full"
+                                  data-testid={`button-add-option-${field.id}`}
+                                >
+                                  <Plus className="w-3 h-3 mr-1" />
+                                  Add Option
+                                </Button>
                               </div>
                             ) : (
                               <Input
