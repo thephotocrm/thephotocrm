@@ -158,7 +158,7 @@ export const stages = pgTable("stages", {
   isDefault: boolean("is_default").default(false),
 });
 
-export const clients = pgTable("clients", {
+export const contacts = pgTable("contacts", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   photographerId: varchar("photographer_id").notNull().references(() => photographers.id),
   firstName: text("first_name").notNull(),
@@ -180,7 +180,7 @@ export const clients = pgTable("clients", {
 
 export const projects = pgTable("projects", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  clientId: varchar("client_id").notNull().references(() => clients.id),
+  clientId: varchar("client_id").notNull().references(() => contacts.id),
   photographerId: varchar("photographer_id").notNull().references(() => photographers.id),
   projectType: text("project_type").notNull().default("WEDDING"),
   title: text("title").notNull(),
@@ -201,7 +201,7 @@ export const projects = pgTable("projects", {
 export const projectParticipants = pgTable("project_participants", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   projectId: varchar("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
-  clientId: varchar("client_id").notNull().references(() => clients.id, { onDelete: "cascade" }),
+  clientId: varchar("client_id").notNull().references(() => contacts.id, { onDelete: "cascade" }),
   addedBy: text("added_by").notNull(), // PHOTOGRAPHER or CLIENT
   inviteSent: boolean("invite_sent").default(false),
   inviteSentAt: timestamp("invite_sent_at"),
@@ -287,7 +287,7 @@ export const automationSteps = pgTable("automation_steps", {
 
 export const emailLogs = pgTable("email_logs", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  clientId: varchar("client_id").notNull().references(() => clients.id),
+  clientId: varchar("client_id").notNull().references(() => contacts.id),
   projectId: varchar("project_id").references(() => projects.id),
   automationStepId: varchar("automation_step_id").references(() => automationSteps.id),
   status: text("status").notNull(),
@@ -300,7 +300,7 @@ export const emailLogs = pgTable("email_logs", {
 
 export const smsLogs = pgTable("sms_logs", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  clientId: varchar("client_id").notNull().references(() => clients.id),
+  clientId: varchar("client_id").notNull().references(() => contacts.id),
   projectId: varchar("project_id").references(() => projects.id),
   automationStepId: varchar("automation_step_id").references(() => automationSteps.id),
   status: text("status").notNull(),
@@ -321,7 +321,7 @@ export const smsLogs = pgTable("sms_logs", {
 export const emailHistory = pgTable("email_history", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   photographerId: varchar("photographer_id").notNull().references(() => photographers.id),
-  clientId: varchar("client_id").references(() => clients.id),
+  clientId: varchar("client_id").references(() => contacts.id),
   projectId: varchar("project_id").references(() => projects.id),
   automationStepId: varchar("automation_step_id").references(() => automationSteps.id),
   // Email details
@@ -443,7 +443,7 @@ export const dripCampaignSubscriptions = pgTable("drip_campaign_subscriptions", 
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   campaignId: varchar("campaign_id").notNull().references(() => dripCampaigns.id),
   projectId: varchar("project_id").notNull().references(() => projects.id),
-  clientId: varchar("client_id").notNull().references(() => clients.id),
+  clientId: varchar("client_id").notNull().references(() => contacts.id),
   startedAt: timestamp("started_at").defaultNow(),
   nextEmailIndex: integer("next_email_index").notNull().default(0), // Which email to send next
   nextEmailAt: timestamp("next_email_at"), // When to send the next email
@@ -461,7 +461,7 @@ export const dripEmailDeliveries = pgTable("drip_email_deliveries", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   subscriptionId: varchar("subscription_id").notNull().references(() => dripCampaignSubscriptions.id),
   emailId: varchar("email_id").notNull().references(() => dripCampaignEmails.id),
-  clientId: varchar("client_id").notNull().references(() => clients.id),
+  clientId: varchar("client_id").notNull().references(() => contacts.id),
   projectId: varchar("project_id").notNull().references(() => projects.id),
   status: text("status").notNull(), // PENDING, SENT, DELIVERED, BOUNCED, FAILED
   providerId: text("provider_id"),
@@ -728,7 +728,7 @@ export const projectSmartFiles = pgTable("project_smart_files", {
   projectId: varchar("project_id").notNull().references(() => projects.id),
   smartFileId: varchar("smart_file_id").notNull().references(() => smartFiles.id),
   photographerId: varchar("photographer_id").notNull().references(() => photographers.id),
-  clientId: varchar("client_id").notNull().references(() => clients.id),
+  clientId: varchar("client_id").notNull().references(() => contacts.id),
   
   // Snapshot metadata
   smartFileName: text("smart_file_name").notNull(),
@@ -825,7 +825,7 @@ export const photographerPayouts = pgTable("photographer_payouts", {
 
 export const messages = pgTable("messages", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  clientId: varchar("client_id").notNull().references(() => clients.id),
+  clientId: varchar("client_id").notNull().references(() => contacts.id),
   photographerId: varchar("photographer_id").notNull().references(() => photographers.id),
   content: text("content").notNull(),
   sentByPhotographer: boolean("sent_by_photographer").notNull(),
@@ -849,7 +849,7 @@ export const projectActivityLog = pgTable("project_activity_log", {
 
 export const clientPortalTokens = pgTable("client_portal_tokens", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  clientId: varchar("client_id").notNull().references(() => clients.id),
+  clientId: varchar("client_id").notNull().references(() => contacts.id),
   token: text("token").notNull().unique(),
   expiresAt: timestamp("expires_at").notNull(),
   usedAt: timestamp("used_at"),
@@ -867,7 +867,7 @@ export const photographersRelations = relations(photographers, ({ many }) => ({
   packages: many(packages),
   questionnaires: many(questionnaireTemplates),
   availability: many(availabilitySlots),
-  clients: many(clients),
+  contacts: many(contacts),
   projects: many(projects),
   bookings: many(bookings),
   messages: many(messages),
@@ -890,9 +890,9 @@ export const stagesRelations = relations(stages, ({ one, many }) => ({
   automations: many(automations)
 }));
 
-export const clientsRelations = relations(clients, ({ one, many }) => ({
+export const contactsRelations = relations(contacts, ({ one, many }) => ({
   photographer: one(photographers, {
-    fields: [clients.photographerId],
+    fields: [contacts.photographerId],
     references: [photographers.id]
   }),
   projects: many(projects),
@@ -902,9 +902,9 @@ export const clientsRelations = relations(clients, ({ one, many }) => ({
 }));
 
 export const projectsRelations = relations(projects, ({ one, many }) => ({
-  client: one(clients, {
+  client: one(contacts, {
     fields: [projects.clientId],
-    references: [clients.id]
+    references: [contacts.id]
   }),
   photographer: one(photographers, {
     fields: [projects.photographerId],
@@ -928,9 +928,9 @@ export const projectParticipantsRelations = relations(projectParticipants, ({ on
     fields: [projectParticipants.projectId],
     references: [projects.id]
   }),
-  client: one(clients, {
+  client: one(contacts, {
     fields: [projectParticipants.clientId],
-    references: [clients.id]
+    references: [contacts.id]
   })
 }));
 
@@ -1008,9 +1008,9 @@ export const emailHistoryRelations = relations(emailHistory, ({ one }) => ({
     fields: [emailHistory.photographerId],
     references: [photographers.id]
   }),
-  client: one(clients, {
+  client: one(contacts, {
     fields: [emailHistory.clientId],
-    references: [clients.id]
+    references: [contacts.id]
   }),
   project: one(projects, {
     fields: [emailHistory.projectId],
@@ -1083,9 +1083,9 @@ export const bookingsRelations = relations(bookings, ({ one }) => ({
 }));
 
 export const messagesRelations = relations(messages, ({ one }) => ({
-  client: one(clients, {
+  client: one(contacts, {
     fields: [messages.clientId],
-    references: [clients.id]
+    references: [contacts.id]
   }),
   photographer: one(photographers, {
     fields: [messages.photographerId],
@@ -1123,7 +1123,7 @@ export const insertAdminActivityLogSchema = createInsertSchema(adminActivityLog)
   createdAt: true
 });
 
-export const insertClientSchema = createInsertSchema(clients).omit({
+export const insertContactSchema = createInsertSchema(contacts).omit({
   id: true,
   createdAt: true
 });
@@ -1325,8 +1325,8 @@ export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type AdminActivityLog = typeof adminActivityLog.$inferSelect;
 export type InsertAdminActivityLog = z.infer<typeof insertAdminActivityLogSchema>;
-export type Client = typeof clients.$inferSelect;
-export type InsertClient = z.infer<typeof insertClientSchema>;
+export type Contact = typeof contacts.$inferSelect;
+export type InsertContact = z.infer<typeof insertContactSchema>;
 export type Project = typeof projects.$inferSelect;
 export type InsertProject = z.infer<typeof insertProjectSchema>;
 export type ProjectParticipant = typeof projectParticipants.$inferSelect;
@@ -1391,13 +1391,13 @@ export type ProjectWithClientAndStage = Project & {
   } | null;
 };
 
-// Client with projects for display
-export type ClientWithProjects = Client & {
+// Contact with projects for display
+export type ContactWithProjects = Contact & {
   projects: Project[];
 };
 
-// Client with stage information for display
-export type ClientWithStage = Client & {
+// Contact with stage information for display
+export type ContactWithStage = Contact & {
   stage?: {
     id: string;
     name: string;

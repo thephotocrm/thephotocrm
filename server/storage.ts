@@ -1,5 +1,5 @@
 import { 
-  photographers, users, clients, projects, projectParticipants, stages, templates, automations, automationSteps, automationBusinessTriggers,
+  photographers, users, contacts, projects, projectParticipants, stages, templates, automations, automationSteps, automationBusinessTriggers,
   emailLogs, emailHistory, smsLogs, automationExecutions, photographerLinks, checklistTemplateItems, projectChecklistItems,
   packages, packageItems, addOns, questionnaireTemplates, questionnaireQuestions, projectQuestionnaires,
   availabilitySlots, bookings,
@@ -12,7 +12,7 @@ import {
   smartFiles, smartFilePages, projectSmartFiles,
   type User, type InsertUser, type Photographer, type InsertPhotographer,
   type AdminActivityLog, type InsertAdminActivityLog,
-  type Client, type InsertClient, type Project, type InsertProject, type ProjectParticipant, type InsertProjectParticipant, type ProjectWithClientAndStage, type ClientWithProjects, type Stage, type InsertStage,
+  type Contact, type InsertContact, type Project, type InsertProject, type ProjectParticipant, type InsertProjectParticipant, type ProjectWithClientAndStage, type ContactWithProjects, type Stage, type InsertStage,
   type Template, type InsertTemplate, type Automation, type InsertAutomation,
   type AutomationStep, type InsertAutomationStep, type AutomationBusinessTrigger, type InsertAutomationBusinessTrigger, type Package, type InsertPackage, type AddOn, type InsertAddOn,
   type PhotographerEarnings, type InsertPhotographerEarnings,
@@ -56,14 +56,14 @@ export interface IStorage {
   createPhotographer(photographer: InsertPhotographer): Promise<Photographer>;
   updatePhotographer(id: string, photographer: Partial<Photographer>): Promise<Photographer>;
   
-  // Clients
-  getClientsByPhotographer(photographerId: string, projectType?: string): Promise<ClientWithProjects[]>;
-  getClient(id: string): Promise<ClientWithProjects | undefined>;
-  getClientByPhone(phone: string): Promise<Client | undefined>;
-  getClientByEmail(email: string, photographerId?: string): Promise<Client | undefined>;
-  createClient(client: InsertClient): Promise<Client>;
-  updateClient(id: string, client: Partial<Client>): Promise<Client>;
-  deleteClient(id: string): Promise<void>;
+  // Contacts
+  getContactsByPhotographer(photographerId: string, projectType?: string): Promise<ContactWithProjects[]>;
+  getContact(id: string): Promise<ContactWithProjects | undefined>;
+  getContactByPhone(phone: string): Promise<Contact | undefined>;
+  getContactByEmail(email: string, photographerId?: string): Promise<Contact | undefined>;
+  createContact(contact: InsertContact): Promise<Contact>;
+  updateContact(id: string, contact: Partial<Contact>): Promise<Contact>;
+  deleteContact(id: string): Promise<void>;
   
   // Projects
   getProjectsByPhotographer(photographerId: string, projectType?: string): Promise<ProjectWithClientAndStage[]>;
@@ -75,7 +75,7 @@ export interface IStorage {
   createMessage(message: InsertMessage): Promise<Message>;
   
   // Project Participants
-  getProjectParticipants(projectId: string): Promise<(ProjectParticipant & { client: Client })[]>;
+  getProjectParticipants(projectId: string): Promise<(ProjectParticipant & { client: Contact })[]>;
   getParticipantProjects(clientId: string): Promise<(ProjectParticipant & { project: ProjectWithClientAndStage })[]>;
   addProjectParticipant(participant: InsertProjectParticipant): Promise<ProjectParticipant>;
   removeProjectParticipant(projectId: string, clientId: string): Promise<void>;
@@ -388,17 +388,17 @@ export class DatabaseStorage implements IStorage {
     return updated;
   }
 
-  async getClientsByPhotographer(photographerId: string, projectType?: string): Promise<ClientWithProjects[]> {
-    // First get all clients for this photographer
-    const clientRows = await db.select()
-      .from(clients)
-      .where(eq(clients.photographerId, photographerId))
-      .orderBy(desc(clients.createdAt));
+  async getContactsByPhotographer(photographerId: string, projectType?: string): Promise<ContactWithProjects[]> {
+    // First get all contacts for this photographer
+    const contactRows = await db.select()
+      .from(contacts)
+      .where(eq(contacts.photographerId, photographerId))
+      .orderBy(desc(contacts.createdAt));
 
-    // Then get all projects with stages for these clients
-    const clientIds = clientRows.map(c => c.id);
+    // Then get all projects with stages for these contacts
+    const contactIds = contactRows.map(c => c.id);
     
-    if (clientIds.length === 0) {
+    if (contactIds.length === 0) {
       return [];
     }
 
@@ -423,13 +423,13 @@ export class DatabaseStorage implements IStorage {
       .from(projects)
       .leftJoin(stages, eq(projects.stageId, stages.id))
       .where(projectType ? 
-        and(inArray(projects.clientId, clientIds), eq(projects.projectType, projectType)) :
-        inArray(projects.clientId, clientIds)
+        and(inArray(projects.clientId, contactIds), eq(projects.projectType, projectType)) :
+        inArray(projects.clientId, contactIds)
       )
       .orderBy(desc(projects.createdAt));
 
-    // Group projects by client and create final result
-    const projectsByClient = projectRows.reduce((acc, project) => {
+    // Group projects by contact and create final result
+    const projectsByContact = projectRows.reduce((acc, project) => {
       if (!acc[project.clientId]) {
         acc[project.clientId] = [];
       }
@@ -454,28 +454,28 @@ export class DatabaseStorage implements IStorage {
       return acc;
     }, {} as Record<string, any[]>);
 
-    // Sort each client's projects by creation date (newest first) to guarantee latest project is first
-    Object.keys(projectsByClient).forEach(clientId => {
-      projectsByClient[clientId].sort((a, b) => 
+    // Sort each contact's projects by creation date (newest first) to guarantee latest project is first
+    Object.keys(projectsByContact).forEach(contactId => {
+      projectsByContact[contactId].sort((a, b) => 
         new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
       );
     });
 
-    return clientRows.map(client => ({
-      ...client,
-      projects: projectsByClient[client.id] || []
+    return contactRows.map(contact => ({
+      ...contact,
+      projects: projectsByContact[contact.id] || []
     }));
   }
 
-  async getClient(id: string): Promise<ClientWithProjects | undefined> {
-    // First get the client
-    const [client] = await db.select()
-      .from(clients)
-      .where(eq(clients.id, id));
+  async getContact(id: string): Promise<ContactWithProjects | undefined> {
+    // First get the contact
+    const [contact] = await db.select()
+      .from(contacts)
+      .where(eq(contacts.id, id));
       
-    if (!client) return undefined;
+    if (!contact) return undefined;
 
-    // Then get all projects for this client
+    // Then get all projects for this contact
     const projectRows = await db.select({
       id: projects.id,
       title: projects.title,
@@ -496,78 +496,78 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(projects.createdAt));
     
     return {
-      ...client,
+      ...contact,
       projects: projectRows
     };
   }
 
-  async getClientByPhone(phone: string): Promise<Client | undefined> {
-    const [client] = await db.select()
-      .from(clients)
-      .where(eq(clients.phone, phone));
-    return client || undefined;
+  async getContactByPhone(phone: string): Promise<Contact | undefined> {
+    const [contact] = await db.select()
+      .from(contacts)
+      .where(eq(contacts.phone, phone));
+    return contact || undefined;
   }
 
-  async getClientByEmail(email: string, photographerId?: string): Promise<Client | undefined> {
+  async getContactByEmail(email: string, photographerId?: string): Promise<Contact | undefined> {
     const conditions = photographerId 
-      ? and(eq(clients.email, email), eq(clients.photographerId, photographerId))
-      : eq(clients.email, email);
+      ? and(eq(contacts.email, email), eq(contacts.photographerId, photographerId))
+      : eq(contacts.email, email);
     
-    const [client] = await db.select()
-      .from(clients)
+    const [contact] = await db.select()
+      .from(contacts)
       .where(conditions);
-    return client || undefined;
+    return contact || undefined;
   }
 
-  async createClient(insertClient: InsertClient): Promise<Client> {
-    // Simply create the client with basic info - project data is handled separately
+  async createContact(insertContact: InsertContact): Promise<Contact> {
+    // Simply create the contact with basic info - project data is handled separately
     // Automatically set hasEventDate based on whether eventDate is provided
-    const clientData = {
-      ...insertClient,
-      hasEventDate: !!insertClient.eventDate
+    const contactData = {
+      ...insertContact,
+      hasEventDate: !!insertContact.eventDate
     };
-    const [client] = await db.insert(clients).values(clientData).returning();
-    return client;
+    const [contact] = await db.insert(contacts).values(contactData).returning();
+    return contact;
   }
 
-  async updateClient(id: string, clientUpdate: Partial<Client>): Promise<Client> {
-    // Update basic client info only - project data is handled separately
+  async updateContact(id: string, contactUpdate: Partial<Contact>): Promise<Contact> {
+    // Update basic contact info only - project data is handled separately
     // If eventDate is being updated, set hasEventDate based on whether date exists
     const updateData = {
-      ...clientUpdate,
-      ...(clientUpdate.eventDate !== undefined && {
-        hasEventDate: !!clientUpdate.eventDate
+      ...contactUpdate,
+      ...(contactUpdate.eventDate !== undefined && {
+        hasEventDate: !!contactUpdate.eventDate
       })
     };
-    const [updated] = await db.update(clients)
+    const [updated] = await db.update(contacts)
       .set(updateData)
-      .where(eq(clients.id, id))
+      .where(eq(contacts.id, id))
       .returning();
     return updated;
   }
 
-  async deleteClient(id: string): Promise<void> {
+  async deleteContact(id: string): Promise<void> {
     // Atomic cascading delete - remove all related data in a transaction
     await db.transaction(async (tx) => {
-      // First verify the client exists in this transaction
-      const [existingClient] = await tx.select({ id: clients.id })
-        .from(clients)
-        .where(eq(clients.id, id));
+      // First verify the contact exists in this transaction
+      const [existingContact] = await tx.select({ id: contacts.id })
+        .from(contacts)
+        .where(eq(contacts.id, id));
       
-      if (!existingClient) {
-        // Client doesn't exist - this is fine, just return without error
-        console.log(`[DELETE CLIENT] Client ${id} not found, skipping delete`);
+      if (!existingContact) {
+        // Contact doesn't exist - this is fine, just return without error
+        console.log(`[DELETE CONTACT] Contact ${id} not found, skipping delete`);
         return;
       }
       
-      console.log(`[DELETE CLIENT] Starting cascading delete for client ${id}`);
+      console.log(`[DELETE CONTACT] Starting cascading delete for contact ${id}`);
       
-      // Get all projects for this client
-      const clientProjects = await tx.select({ id: projects.id })
+      // Get all projects for this contact
+      const contactProjects = await tx.select({ id: projects.id })
         .from(projects)
         .where(eq(projects.clientId, id));
       
-      const projectIds = clientProjects.map(p => p.id);
+      const projectIds = contactProjects.map(p => p.id);
       
       if (projectIds.length > 0) {
         // Delete bookings related to these projects (batched)
@@ -611,11 +611,11 @@ export class DatabaseStorage implements IStorage {
           .where(inArray(projects.id, projectIds));
       }
       
-      // Delete messages directly related to client
+      // Delete messages directly related to contact
       await tx.delete(messages)
         .where(eq(messages.clientId, id));
       
-      // Delete SMS logs directly related to client (not just by project)
+      // Delete SMS logs directly related to contact (not just by project)
       await tx.delete(smsLogs)
         .where(eq(smsLogs.clientId, id));
       
@@ -623,11 +623,11 @@ export class DatabaseStorage implements IStorage {
       await tx.delete(clientPortalTokens)
         .where(eq(clientPortalTokens.clientId, id));
       
-      // Finally delete the client
-      const deleteResult = await tx.delete(clients)
-        .where(eq(clients.id, id));
+      // Finally delete the contact
+      const deleteResult = await tx.delete(contacts)
+        .where(eq(contacts.id, id));
       
-      console.log(`[DELETE CLIENT] Successfully deleted client ${id} and all related data`);
+      console.log(`[DELETE CONTACT] Successfully deleted contact ${id} and all related data`);
     });
   }
 
@@ -983,13 +983,13 @@ export class DatabaseStorage implements IStorage {
       answers: projectQuestionnaires.answers,
       submittedAt: projectQuestionnaires.submittedAt,
       createdAt: projectQuestionnaires.createdAt,
-      clientName: sql<string>`${clients.firstName} || ' ' || ${clients.lastName}`,
+      clientName: sql<string>`${contacts.firstName} || ' ' || ${contacts.lastName}`,
       templateTitle: questionnaireTemplates.title,
       projectType: projects.projectType
     })
     .from(projectQuestionnaires)
     .innerJoin(projects, eq(projectQuestionnaires.projectId, projects.id))
-    .innerJoin(clients, eq(projects.clientId, clients.id))
+    .innerJoin(contacts, eq(projects.clientId, contacts.id))
     .innerJoin(questionnaireTemplates, eq(projectQuestionnaires.templateId, questionnaireTemplates.id))
     .where(eq(projects.photographerId, photographerId));
   }
@@ -1061,11 +1061,11 @@ export class DatabaseStorage implements IStorage {
       status: projects.status,
       createdAt: projects.createdAt,
       client: {
-        id: clients.id,
-        firstName: clients.firstName,
-        lastName: clients.lastName,
-        email: clients.email,
-        phone: clients.phone
+        id: contacts.id,
+        firstName: contacts.firstName,
+        lastName: contacts.lastName,
+        email: contacts.email,
+        phone: contacts.phone
       },
       stage: {
         id: stages.id,
@@ -1073,7 +1073,7 @@ export class DatabaseStorage implements IStorage {
       }
     })
     .from(projects)
-    .innerJoin(clients, eq(projects.clientId, clients.id))
+    .innerJoin(contacts, eq(projects.clientId, contacts.id))
     .leftJoin(stages, eq(projects.stageId, stages.id))
     .where(eq(projects.clientId, clientId));
   }
@@ -1255,9 +1255,9 @@ export class DatabaseStorage implements IStorage {
       direction: smsLogs.direction,
       sentAt: smsLogs.sentAt,
       createdAt: smsLogs.createdAt,
-      photographerId: clients.photographerId
+      photographerId: contacts.photographerId
     }).from(smsLogs)
-      .innerJoin(clients, eq(smsLogs.clientId, clients.id))
+      .innerJoin(contacts, eq(smsLogs.clientId, contacts.id))
       .where(eq(smsLogs.clientId, clientId));
 
     // Convert SMS messages to Message format
@@ -1669,11 +1669,11 @@ export class DatabaseStorage implements IStorage {
       createdAt: projects.createdAt,
       // Client fields
       clientData: {
-        id: clients.id,
-        firstName: clients.firstName,
-        lastName: clients.lastName,
-        email: clients.email,
-        phone: clients.phone
+        id: contacts.id,
+        firstName: contacts.firstName,
+        lastName: contacts.lastName,
+        email: contacts.email,
+        phone: contacts.phone
       },
       // Stage fields
       stageData: {
@@ -1684,7 +1684,7 @@ export class DatabaseStorage implements IStorage {
       }
     })
       .from(projects)
-      .leftJoin(clients, eq(projects.clientId, clients.id))
+      .leftJoin(contacts, eq(projects.clientId, contacts.id))
       .leftJoin(stages, eq(projects.stageId, stages.id))
       .where(projectType ? 
         and(eq(projects.photographerId, photographerId), eq(projects.projectType, projectType)) :
@@ -1730,11 +1730,11 @@ export class DatabaseStorage implements IStorage {
       createdAt: projects.createdAt,
       // Client fields
       clientData: {
-        id: clients.id,
-        firstName: clients.firstName,
-        lastName: clients.lastName,
-        email: clients.email,
-        phone: clients.phone
+        id: contacts.id,
+        firstName: contacts.firstName,
+        lastName: contacts.lastName,
+        email: contacts.email,
+        phone: contacts.phone
       },
       // Stage fields
       stageData: {
@@ -1745,7 +1745,7 @@ export class DatabaseStorage implements IStorage {
       }
     })
       .from(projects)
-      .leftJoin(clients, eq(projects.clientId, clients.id))
+      .leftJoin(contacts, eq(projects.clientId, contacts.id))
       .leftJoin(stages, eq(projects.stageId, stages.id))
       .where(eq(projects.id, id));
       
@@ -1847,7 +1847,7 @@ export class DatabaseStorage implements IStorage {
     return updated;
   }
 
-  async getProjectParticipants(projectId: string): Promise<(ProjectParticipant & { client: Client })[]> {
+  async getProjectParticipants(projectId: string): Promise<(ProjectParticipant & { client: Contact })[]> {
     const rows = await db.select({
       id: projectParticipants.id,
       projectId: projectParticipants.projectId,
@@ -1856,10 +1856,10 @@ export class DatabaseStorage implements IStorage {
       inviteSent: projectParticipants.inviteSent,
       inviteSentAt: projectParticipants.inviteSentAt,
       createdAt: projectParticipants.createdAt,
-      client: clients
+      client: contacts
     })
       .from(projectParticipants)
-      .innerJoin(clients, eq(projectParticipants.clientId, clients.id))
+      .innerJoin(contacts, eq(projectParticipants.clientId, contacts.id))
       .where(eq(projectParticipants.projectId, projectId))
       .orderBy(desc(projectParticipants.createdAt));
       
@@ -1902,11 +1902,11 @@ export class DatabaseStorage implements IStorage {
       createdAt: projects.createdAt,
       // Client fields
       clientData: {
-        id: clients.id,
-        firstName: clients.firstName,
-        lastName: clients.lastName,
-        email: clients.email,
-        phone: clients.phone
+        id: contacts.id,
+        firstName: contacts.firstName,
+        lastName: contacts.lastName,
+        email: contacts.email,
+        phone: contacts.phone
       },
       // Stage fields
       stageData: {
@@ -1918,7 +1918,7 @@ export class DatabaseStorage implements IStorage {
     })
       .from(projectParticipants)
       .innerJoin(projects, eq(projectParticipants.projectId, projects.id))
-      .leftJoin(clients, eq(projects.clientId, clients.id))
+      .leftJoin(contacts, eq(projects.clientId, contacts.id))
       .leftJoin(stages, eq(projects.stageId, stages.id))
       .where(eq(projectParticipants.clientId, clientId))
       .orderBy(desc(projectParticipants.createdAt));
@@ -2014,15 +2014,15 @@ export class DatabaseStorage implements IStorage {
         return;
       }
 
-      // Get the client to check email opt-in
-      const client = await db.select()
-        .from(clients)
-        .where(eq(clients.id, project.clientId))
+      // Get the contact to check email opt-in
+      const contact = await db.select()
+        .from(contacts)
+        .where(eq(contacts.id, project.clientId))
         .limit(1);
 
-      console.log(`🔍 Client check: Found ${client.length} clients, Email opt-in: ${client[0]?.emailOptIn}, Has email: ${!!client[0]?.email}`);
-      if (!client.length || !client[0].emailOptIn || !client[0].email) {
-        console.log(`❌ Skipping auto-subscription: Client has no email opt-in or email address`);
+      console.log(`🔍 Contact check: Found ${contact.length} contacts, Email opt-in: ${contact[0]?.emailOptIn}, Has email: ${!!contact[0]?.email}`);
+      if (!contact.length || !contact[0].emailOptIn || !contact[0].email) {
+        console.log(`❌ Skipping auto-subscription: Contact has no email opt-in or email address`);
         return;
       }
 
@@ -2070,7 +2070,7 @@ export class DatabaseStorage implements IStorage {
         status: 'ACTIVE'
       });
 
-      console.log(`✅ AUTO-SUBSCRIBED: Project ${project.id} (${client[0].firstName} ${client[0].lastName}) to wedding campaign ${weddingCampaign[0].name}`);
+      console.log(`✅ AUTO-SUBSCRIBED: Project ${project.id} (${contact[0].firstName} ${contact[0].lastName}) to wedding campaign ${weddingCampaign[0].name}`);
     } catch (error) {
       console.error('❌ ERROR in auto-subscribing to wedding campaign:', error);
     }
@@ -2716,15 +2716,15 @@ export class DatabaseStorage implements IStorage {
         eventDate: projects.eventDate
       },
       client: {
-        firstName: clients.firstName,
-        lastName: clients.lastName,
-        email: clients.email
+        firstName: contacts.firstName,
+        lastName: contacts.lastName,
+        email: contacts.email
       }
     })
       .from(dripCampaignSubscriptions)
       .innerJoin(dripCampaigns, eq(dripCampaignSubscriptions.campaignId, dripCampaigns.id))
       .innerJoin(projects, eq(dripCampaignSubscriptions.projectId, projects.id))
-      .innerJoin(clients, eq(dripCampaignSubscriptions.clientId, clients.id))
+      .innerJoin(contacts, eq(dripCampaignSubscriptions.clientId, contacts.id))
       .where(eq(dripCampaigns.photographerId, photographerId))
       .orderBy(desc(dripCampaignSubscriptions.startedAt));
   }
@@ -2763,15 +2763,15 @@ export class DatabaseStorage implements IStorage {
         eventDate: projects.eventDate
       },
       client: {
-        firstName: clients.firstName,
-        lastName: clients.lastName,
-        email: clients.email
+        firstName: contacts.firstName,
+        lastName: contacts.lastName,
+        email: contacts.email
       }
     })
       .from(dripCampaignSubscriptions)
       .innerJoin(dripCampaigns, eq(dripCampaignSubscriptions.campaignId, dripCampaigns.id))
       .innerJoin(projects, eq(dripCampaignSubscriptions.projectId, projects.id))
-      .innerJoin(clients, eq(dripCampaignSubscriptions.clientId, clients.id))
+      .innerJoin(contacts, eq(dripCampaignSubscriptions.clientId, contacts.id))
       .where(eq(dripCampaignSubscriptions.campaignId, campaignId))
       .orderBy(desc(dripCampaignSubscriptions.startedAt));
   }
@@ -2810,15 +2810,15 @@ export class DatabaseStorage implements IStorage {
         eventDate: projects.eventDate
       },
       client: {
-        firstName: clients.firstName,
-        lastName: clients.lastName,
-        email: clients.email
+        firstName: contacts.firstName,
+        lastName: contacts.lastName,
+        email: contacts.email
       }
     })
       .from(dripCampaignSubscriptions)
       .innerJoin(dripCampaigns, eq(dripCampaignSubscriptions.campaignId, dripCampaigns.id))
       .innerJoin(projects, eq(dripCampaignSubscriptions.projectId, projects.id))
-      .innerJoin(clients, eq(dripCampaignSubscriptions.clientId, clients.id))
+      .innerJoin(contacts, eq(dripCampaignSubscriptions.clientId, contacts.id))
       .where(eq(dripCampaignSubscriptions.id, id))
       .limit(1);
     
@@ -3071,16 +3071,16 @@ export class DatabaseStorage implements IStorage {
   async getAllPhotographersWithStats(): Promise<Array<Photographer & { clientCount: number }>> {
     const photographersList = await db.select().from(photographers);
     
-    // Get client counts for each photographer
+    // Get contact counts for each photographer
     const photographersWithStats = await Promise.all(
       photographersList.map(async (photographer) => {
-        const clientCount = await db.select({ count: sql<number>`count(*)` })
-          .from(clients)
-          .where(eq(clients.photographerId, photographer.id));
+        const contactCount = await db.select({ count: sql<number>`count(*)` })
+          .from(contacts)
+          .where(eq(contacts.photographerId, photographer.id));
         
         return {
           ...photographer,
-          clientCount: Number(clientCount[0]?.count || 0)
+          clientCount: Number(contactCount[0]?.count || 0)
         };
       })
     );
