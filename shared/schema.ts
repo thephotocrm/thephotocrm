@@ -273,7 +273,9 @@ export const automationSteps = pgTable("automation_steps", {
   automationId: varchar("automation_id").notNull().references(() => automations.id),
   stepIndex: integer("step_index").notNull(),
   delayMinutes: integer("delay_minutes").notNull(),
-  templateId: varchar("template_id").references(() => templates.id),
+  actionType: text("action_type").notNull().default("EMAIL"), // EMAIL, SMS, SMART_FILE
+  templateId: varchar("template_id").references(() => templates.id), // For EMAIL/SMS
+  smartFileTemplateId: varchar("smart_file_template_id").references(() => smartFiles.id), // For SMART_FILE
   enabled: boolean("enabled").default(true),
   quietHoursStart: integer("quiet_hours_start"),
   quietHoursEnd: integer("quiet_hours_end")
