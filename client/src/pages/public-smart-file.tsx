@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -23,7 +24,9 @@ import {
   CreditCard,
   Package as PackageIcon,
   FileSignature,
-  Calendar
+  Calendar,
+  Check,
+  Clock
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { EmbeddedPaymentForm } from "@/components/embedded-payment-form";
@@ -116,6 +119,8 @@ export default function PublicSmartFile() {
   const [clientSignature, setClientSignature] = useState<string | null>(null);
   const [selectedPaymentOption, setSelectedPaymentOption] = useState<'DEPOSIT' | 'FULL' | null>(null);
   const [formAnswers, setFormAnswers] = useState<Map<string, any>>(new Map());
+  const [showBookingConfirmation, setShowBookingConfirmation] = useState(false);
+  const [bookingDetails, setBookingDetails] = useState<{ date: Date; time: string } | null>(null);
   const hasAutoAcceptedRef = useRef(false);
   const contractRendererRef = useRef<HTMLDivElement>(null);
 
@@ -2256,6 +2261,10 @@ export default function PublicSmartFile() {
                     bufferAfter={currentPage.content.bufferAfter}
                     allowRescheduling={currentPage.content.allowRescheduling}
                     isPreview={false}
+                    onBookingConfirm={(date, time) => {
+                      setBookingDetails({ date, time });
+                      setShowBookingConfirmation(true);
+                    }}
                   />
                 )}
               </div>
@@ -2316,6 +2325,85 @@ export default function PublicSmartFile() {
           </div>
         </div>
       </div>
+
+      {/* Booking Confirmation Dialog */}
+      <Dialog open={showBookingConfirmation} onOpenChange={setShowBookingConfirmation}>
+        <DialogContent data-testid="dialog-booking-confirmation">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <div className="w-12 h-12 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center">
+                <Check className="w-6 h-6 text-green-600 dark:text-green-400" />
+              </div>
+              <span>Booking Confirmed!</span>
+            </DialogTitle>
+            <DialogDescription>
+              Your appointment has been successfully scheduled.
+            </DialogDescription>
+          </DialogHeader>
+          
+          {bookingDetails && (
+            <div className="space-y-4 py-4">
+              <div className="bg-muted/50 rounded-lg p-4 space-y-2">
+                <div className="flex items-center gap-2">
+                  <Calendar className="w-4 h-4 text-muted-foreground" />
+                  <span className="font-medium">
+                    {bookingDetails.date.toLocaleDateString('en-US', { 
+                      weekday: 'long', 
+                      month: 'long', 
+                      day: 'numeric',
+                      year: 'numeric'
+                    })}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-muted-foreground" />
+                  <span className="font-medium">
+                    {new Date(`2000-01-01T${bookingDetails.time}`).toLocaleTimeString('en-US', {
+                      hour: 'numeric',
+                      minute: '2-digit',
+                      hour12: true
+                    })}
+                  </span>
+                </div>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                A confirmation email will be sent to you shortly with all the details.
+              </p>
+            </div>
+          )}
+
+          <DialogFooter className="flex-col sm:flex-row gap-2">
+            {currentPageIndex < sortedPages.length - 1 ? (
+              <>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowBookingConfirmation(false)}
+                  data-testid="button-close-confirmation"
+                >
+                  Close
+                </Button>
+                <Button
+                  onClick={() => {
+                    setShowBookingConfirmation(false);
+                    setCurrentPageIndex(currentPageIndex + 1);
+                  }}
+                  data-testid="button-continue-next"
+                >
+                  Continue to Next Page
+                </Button>
+              </>
+            ) : (
+              <Button
+                onClick={() => setShowBookingConfirmation(false)}
+                className="w-full"
+                data-testid="button-done"
+              >
+                Done
+              </Button>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

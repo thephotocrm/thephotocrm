@@ -16,6 +16,7 @@ interface SchedulingCalendarProps {
   bufferAfter?: number;
   allowRescheduling?: boolean;
   isPreview?: boolean;
+  onBookingConfirm?: (date: Date, time: string) => void;
 }
 
 export function SchedulingCalendar({
@@ -24,12 +25,15 @@ export function SchedulingCalendar({
   durationMinutes = 60,
   bookingType = "ONE_TIME",
   isPreview = false,
+  onBookingConfirm,
 }: SchedulingCalendarProps) {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [selectedTime, setSelectedTime] = useState<string | undefined>(undefined);
   const { toast } = useToast();
 
   const handleConfirmBooking = () => {
+    if (!selectedDate || !selectedTime) return;
+
     if (isPreview) {
       toast({
         title: "Preview Mode",
@@ -38,16 +42,21 @@ export function SchedulingCalendar({
       return;
     }
 
-    // TODO: Implement actual booking logic for public view
-    toast({
-      title: "Booking Confirmed!",
-      description: `Your appointment is scheduled for ${selectedDate?.toLocaleDateString('en-US', { 
-        weekday: 'long', 
-        month: 'long', 
-        day: 'numeric',
-        year: 'numeric'
-      })} at ${timeSlots.find(s => s.value === selectedTime)?.display}`,
-    });
+    // Call the parent callback if provided
+    if (onBookingConfirm) {
+      onBookingConfirm(selectedDate, selectedTime);
+    } else {
+      // Fallback toast
+      toast({
+        title: "Booking Confirmed!",
+        description: `Your appointment is scheduled for ${selectedDate?.toLocaleDateString('en-US', { 
+          weekday: 'long', 
+          month: 'long', 
+          day: 'numeric',
+          year: 'numeric'
+        })} at ${timeSlots.find(s => s.value === selectedTime)?.display}`,
+      });
+    }
   };
 
   // Generate sample time slots (9 AM - 5 PM)
