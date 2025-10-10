@@ -7057,6 +7057,150 @@ ${photographer.businessName}
     }
   });
 
+  // ============================================
+  // INBOX ROUTES
+  // ============================================
+
+  // Get all SMS conversations for photographer
+  app.get("/api/inbox/conversations", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
+    try {
+      const photographerId = req.user!.photographerId!;
+      const conversations = await storage.getInboxConversations(photographerId);
+      res.json(conversations);
+    } catch (error: any) {
+      console.error('Error fetching inbox conversations:', error);
+      res.status(500).json({ 
+        message: "Failed to get conversations",
+        error: error.message 
+      });
+    }
+  });
+
+  // Get message thread for a specific contact
+  app.get("/api/inbox/thread/:contactId", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
+    try {
+      const photographerId = req.user!.photographerId!;
+      const { contactId } = req.params;
+
+      // Verify contact belongs to photographer
+      const contact = await storage.getContact(contactId);
+      if (!contact || contact.photographerId !== photographerId) {
+        return res.status(404).json({ message: "Contact not found" });
+      }
+
+      const thread = await storage.getInboxThread(contactId, photographerId);
+      res.json(thread);
+    } catch (error: any) {
+      console.error('Error fetching inbox thread:', error);
+      res.status(500).json({ 
+        message: "Failed to get thread",
+        error: error.message 
+      });
+    }
+  });
+
+  // Send SMS message
+  app.post("/api/inbox/send-sms", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
+    try {
+      const photographerId = req.user!.photographerId!;
+      const { contactId, message } = req.body;
+
+      if (!contactId || !message) {
+        return res.status(400).json({ message: "Contact ID and message are required" });
+      }
+
+      // Verify contact belongs to photographer
+      const contact = await storage.getContact(contactId);
+      if (!contact || contact.photographerId !== photographerId) {
+        return res.status(404).json({ message: "Contact not found" });
+      }
+
+      if (!contact.phone) {
+        return res.status(400).json({ message: "Contact has no phone number" });
+      }
+
+      // Send SMS
+      const result = await sendSms({
+        to: contact.phone,
+        body: message
+      });
+
+      if (!result.success) {
+        return res.status(500).json({ 
+          message: "Failed to send SMS",
+          error: result.error 
+        });
+      }
+
+      // Log the SMS
+      await storage.createSmsLog({
+        clientId: contactId,
+        status: 'sent',
+        providerId: result.sid,
+        sentAt: new Date(),
+        direction: 'OUTBOUND',
+        fromPhone: process.env.SIMPLETEXTING_PHONE_NUMBER || '',
+        toPhone: contact.phone,
+        messageBody: message
+      });
+
+      // Mark conversation as read (since photographer just sent a message)
+      await storage.markConversationAsRead(photographerId, contactId);
+
+      res.json({ 
+        success: true,
+        message: "SMS sent successfully",
+        sid: result.sid 
+      });
+
+    } catch (error: any) {
+      console.error('Error sending SMS:', error);
+      res.status(500).json({ 
+        message: "Failed to send SMS",
+        error: error.message 
+      });
+    }
+  });
+
+  // Mark conversation as read
+  app.post("/api/inbox/mark-read/:contactId", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
+    try {
+      const photographerId = req.user!.photographerId!;
+      const { contactId } = req.params;
+
+      // Verify contact belongs to photographer
+      const contact = await storage.getContact(contactId);
+      if (!contact || contact.photographerId !== photographerId) {
+        return res.status(404).json({ message: "Contact not found" });
+      }
+
+      await storage.markConversationAsRead(photographerId, contactId);
+      res.json({ success: true });
+
+    } catch (error: any) {
+      console.error('Error marking conversation as read:', error);
+      res.status(500).json({ 
+        message: "Failed to mark as read",
+        error: error.message 
+      });
+    }
+  });
+
+  // Get unread SMS count
+  app.get("/api/inbox/unread-count", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
+    try {
+      const photographerId = req.user!.photographerId!;
+      const unreadCount = await storage.getUnreadCount(photographerId);
+      res.json({ unreadCount });
+    } catch (error: any) {
+      console.error('Error getting unread count:', error);
+      res.status(500).json({ 
+        message: "Failed to get unread count",
+        error: error.message 
+      });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

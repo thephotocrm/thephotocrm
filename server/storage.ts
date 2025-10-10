@@ -4,7 +4,7 @@ import {
   packages, packageItems, addOns, questionnaireTemplates, questionnaireQuestions, projectQuestionnaires,
   availabilitySlots, bookings,
   photographerEarnings, photographerPayouts,
-  messages, projectActivityLog, clientPortalTokens,
+  messages, projectActivityLog, clientPortalTokens, conversationReads,
   dailyAvailabilityTemplates, dailyAvailabilityBreaks, dailyAvailabilityOverrides,
   dripCampaigns, dripCampaignEmails, dripCampaignSubscriptions, dripEmailDeliveries, staticCampaignSettings,
   shortLinks, adminActivityLog,
@@ -21,6 +21,7 @@ import {
   type QuestionnaireQuestion, type InsertQuestionnaireQuestion,
   type ProjectQuestionnaire,
   type Message, type InsertMessage, type SmsLog, type InsertSmsLog, type EmailHistory, type InsertEmailHistory, type ProjectActivityLog, type TimelineEvent, type ClientPortalToken, type InsertClientPortalToken,
+  type ConversationRead, type InsertConversationRead,
   type DailyAvailabilityTemplate, type InsertDailyAvailabilityTemplate,
   type DailyAvailabilityBreak, type InsertDailyAvailabilityBreak,
   type DailyAvailabilityOverride, type InsertDailyAvailabilityOverride,
@@ -327,6 +328,14 @@ export interface IStorage {
   updateProjectSmartFile(id: string, update: Partial<ProjectSmartFile>): Promise<ProjectSmartFile>;
   deleteProjectSmartFile(id: string): Promise<void>;
   getProjectSmartFileByToken(token: string): Promise<ProjectSmartFile | undefined>;
+  
+  // Inbox / Conversation Reads
+  getInboxConversations(photographerId: string): Promise<any[]>;
+  getInboxThread(contactId: string, photographerId: string): Promise<any[]>;
+  markConversationAsRead(photographerId: string, contactId: string): Promise<void>;
+  getUnreadCount(photographerId: string): Promise<number>;
+  upsertConversationRead(data: InsertConversationRead): Promise<ConversationRead>;
+  getConversationRead(photographerId: string, contactId: string): Promise<ConversationRead | undefined>;
   
   // Admin Methods
   getAllPhotographersWithStats(): Promise<Array<Photographer & { clientCount: number }>>;
@@ -3065,6 +3074,244 @@ export class DatabaseStorage implements IStorage {
       .from(projectSmartFiles)
       .where(eq(projectSmartFiles.token, token));
     return projectSmartFile || undefined;
+  }
+
+  // Inbox / Conversation Reads Methods
+  async getInboxConversations(photographerId: string): Promise<any[]> {
+    // Get all contacts that have SMS activity with this photographer
+    const smsContacts = await db
+      .selectDistinct({
+        contactId: smsLogs.clientId,
+        lastMessageAt: sql<Date>`MAX(${smsLogs.createdAt})`.as('last_message_at')
+      })
+      .from(smsLogs)
+      .innerJoin(contacts, eq(smsLogs.clientId, contacts.id))
+      .where(eq(contacts.photographerId, photographerId))
+      .groupBy(smsLogs.clientId)
+      .orderBy(desc(sql`MAX(${smsLogs.createdAt})`));
+
+    // Get contact details, last SMS preview, and unread status for each
+    const conversations = await Promise.all(
+      smsContacts.map(async ({ contactId, lastMessageAt }) => {
+        const [contact] = await db.select().from(contacts).where(eq(contacts.id, contactId));
+        
+        // Get last SMS message
+        const [lastSms] = await db
+          .select()
+          .from(smsLogs)
+          .where(eq(smsLogs.clientId, contactId))
+          .orderBy(desc(smsLogs.createdAt))
+          .limit(1);
+
+        // Get conversation read status
+        const [conversationRead] = await db
+          .select()
+          .from(conversationReads)
+          .where(
+            and(
+              eq(conversationReads.photographerId, photographerId),
+              eq(conversationReads.contactId, contactId)
+            )
+          );
+
+        // Count unread SMS messages (messages after last read timestamp)
+        const unreadCount = conversationRead
+          ? await db
+              .select({ count: sql<number>`count(*)` })
+              .from(smsLogs)
+              .where(
+                and(
+                  eq(smsLogs.clientId, contactId),
+                  gt(smsLogs.createdAt, conversationRead.lastReadAt)
+                )
+              )
+              .then(result => result[0]?.count || 0)
+          : await db
+              .select({ count: sql<number>`count(*)` })
+              .from(smsLogs)
+              .where(eq(smsLogs.clientId, contactId))
+              .then(result => result[0]?.count || 0);
+
+        return {
+          contact,
+          lastMessage: lastSms?.messageBody || '',
+          lastMessageAt: lastMessageAt,
+          unreadCount: Number(unreadCount) || 0,
+          lastReadAt: conversationRead?.lastReadAt
+        };
+      })
+    );
+
+    return conversations;
+  }
+
+  async getInboxThread(contactId: string, photographerId: string): Promise<any[]> {
+    // Get all SMS messages for this contact
+    const smsMessages = await db
+      .select()
+      .from(smsLogs)
+      .where(eq(smsLogs.clientId, contactId))
+      .orderBy(asc(smsLogs.createdAt));
+
+    // Get all email history for this contact
+    const emailEvents = await db
+      .select()
+      .from(emailHistory)
+      .where(
+        and(
+          eq(emailHistory.clientId, contactId),
+          eq(emailHistory.photographerId, photographerId)
+        )
+      )
+      .orderBy(asc(emailHistory.createdAt));
+
+    // Get all CRM messages for this contact
+    const crmMessages = await db
+      .select()
+      .from(messages)
+      .where(
+        and(
+          eq(messages.clientId, contactId),
+          eq(messages.photographerId, photographerId)
+        )
+      )
+      .orderBy(asc(messages.createdAt));
+
+    // Combine and format all messages
+    const thread = [
+      ...smsMessages.map(sms => ({
+        type: 'SMS',
+        id: sms.id,
+        content: sms.messageBody,
+        direction: sms.direction,
+        timestamp: sms.createdAt,
+        isInbound: sms.direction === 'INBOUND'
+      })),
+      ...emailEvents.map(email => ({
+        type: 'EMAIL',
+        id: email.id,
+        content: null, // No content shown, just notification
+        direction: email.direction,
+        timestamp: email.createdAt || email.sentAt,
+        isInbound: email.direction === 'INBOUND',
+        subject: email.subject
+      })),
+      ...crmMessages.map(msg => ({
+        type: 'CRM',
+        id: msg.id,
+        content: null, // No content shown, just notification
+        direction: msg.sentByPhotographer ? 'OUTBOUND' : 'INBOUND',
+        timestamp: msg.createdAt,
+        isInbound: !msg.sentByPhotographer
+      }))
+    ];
+
+    // Sort by timestamp
+    thread.sort((a, b) => {
+      const timeA = a.timestamp ? new Date(a.timestamp).getTime() : 0;
+      const timeB = b.timestamp ? new Date(b.timestamp).getTime() : 0;
+      return timeA - timeB;
+    });
+
+    return thread;
+  }
+
+  async markConversationAsRead(photographerId: string, contactId: string): Promise<void> {
+    await this.upsertConversationRead({
+      photographerId,
+      contactId,
+      lastReadAt: new Date()
+    });
+  }
+
+  async getUnreadCount(photographerId: string): Promise<number> {
+    // Get all conversation reads for this photographer
+    const reads = await db
+      .select()
+      .from(conversationReads)
+      .where(eq(conversationReads.photographerId, photographerId));
+
+    // Get all contacts with SMS activity
+    const smsContacts = await db
+      .selectDistinct({
+        contactId: smsLogs.clientId
+      })
+      .from(smsLogs)
+      .innerJoin(contacts, eq(smsLogs.clientId, contacts.id))
+      .where(eq(contacts.photographerId, photographerId));
+
+    let totalUnread = 0;
+
+    for (const { contactId } of smsContacts) {
+      const conversationRead = reads.find(r => r.contactId === contactId);
+
+      const unreadCount = conversationRead
+        ? await db
+            .select({ count: sql<number>`count(*)` })
+            .from(smsLogs)
+            .where(
+              and(
+                eq(smsLogs.clientId, contactId),
+                gt(smsLogs.createdAt, conversationRead.lastReadAt)
+              )
+            )
+            .then(result => result[0]?.count || 0)
+        : await db
+            .select({ count: sql<number>`count(*)` })
+            .from(smsLogs)
+            .where(eq(smsLogs.clientId, contactId))
+            .then(result => result[0]?.count || 0);
+
+      totalUnread += Number(unreadCount) || 0;
+    }
+
+    return totalUnread;
+  }
+
+  async upsertConversationRead(data: InsertConversationRead): Promise<ConversationRead> {
+    // Check if record exists
+    const [existing] = await db
+      .select()
+      .from(conversationReads)
+      .where(
+        and(
+          eq(conversationReads.photographerId, data.photographerId),
+          eq(conversationReads.contactId, data.contactId)
+        )
+      );
+
+    if (existing) {
+      // Update existing
+      const [updated] = await db
+        .update(conversationReads)
+        .set({
+          lastReadAt: data.lastReadAt,
+          updatedAt: new Date()
+        })
+        .where(eq(conversationReads.id, existing.id))
+        .returning();
+      return updated;
+    } else {
+      // Insert new
+      const [created] = await db
+        .insert(conversationReads)
+        .values(data)
+        .returning();
+      return created;
+    }
+  }
+
+  async getConversationRead(photographerId: string, contactId: string): Promise<ConversationRead | undefined> {
+    const [conversationRead] = await db
+      .select()
+      .from(conversationReads)
+      .where(
+        and(
+          eq(conversationReads.photographerId, photographerId),
+          eq(conversationReads.contactId, contactId)
+        )
+      );
+    return conversationRead || undefined;
   }
   
   // Admin Methods
