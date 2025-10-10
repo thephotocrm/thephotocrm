@@ -4518,9 +4518,9 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       // Find client by phone number
       const contact = await storage.getContactByPhone(phone);
       
-      if (!client) {
-        console.log(`No client found for phone number: ${phone}`);
-        return res.status(200).json({ message: 'Client not found' });
+      if (!contact) {
+        console.log(`No contact found for phone number: ${phone}`);
+        return res.status(200).json({ message: 'Contact not found' });
       }
 
       // Get photographer for this client
