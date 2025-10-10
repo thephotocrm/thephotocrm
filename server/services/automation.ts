@@ -1243,22 +1243,9 @@ async function processQuestionnaireAssignment(project: any, automation: any, pho
 }
 
 export async function processPaymentReminders(photographerId: string): Promise<void> {
-  try {
-    // Find proposals that are signed but not fully paid
-    const overdueEstimates = await db
-      .select()
-      .from(estimates)
-      .where(and(
-        eq(estimates.photographerId, photographerId),
-        eq(estimates.status, 'SIGNED')
-      ));
-
-    // TODO: Check payment status and send reminders if needed
-    // This would require tracking last reminder sent date
-    
-  } catch (error) {
-    console.error('Error processing payment reminders:', error);
-  }
+  // TODO: Payment reminders not yet implemented
+  // This will need to query projectSmartFiles and check payment status
+  return;
 }
 
 async function processNurtureAutomation(automation: any, photographerId: string): Promise<void> {
