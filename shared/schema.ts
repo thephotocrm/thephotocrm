@@ -834,6 +834,23 @@ export const messages = pgTable("messages", {
   createdAt: timestamp("created_at").defaultNow()
 });
 
+// Track when photographers last read conversations with contacts for inbox unread badges
+export const conversationReads = pgTable("conversation_reads", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  photographerId: varchar("photographer_id").notNull().references(() => photographers.id),
+  contactId: varchar("contact_id").notNull().references(() => contacts.id),
+  lastReadAt: timestamp("last_read_at").notNull().defaultNow(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+}, (table) => ({
+  // Unique constraint: one read tracker per photographer-contact pair
+  photographerContactUnique: unique("conversation_reads_photographer_contact_unique").on(
+    table.photographerId, table.contactId
+  ),
+  // Index for quick lookups by photographer
+  photographerIdx: index("conversation_reads_photographer_idx").on(table.photographerId)
+}));
+
 export const projectActivityLog = pgTable("project_activity_log", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   projectId: varchar("project_id").notNull().references(() => projects.id),
@@ -1222,6 +1239,12 @@ export const insertMessageSchema = createInsertSchema(messages).omit({
   createdAt: true
 });
 
+export const insertConversationReadSchema = createInsertSchema(conversationReads).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true
+});
+
 export const insertSmsLogSchema = createInsertSchema(smsLogs).omit({
   id: true,
   createdAt: true
@@ -1353,6 +1376,8 @@ export type QuestionnaireQuestion = typeof questionnaireQuestions.$inferSelect;
 export type InsertQuestionnaireQuestion = z.infer<typeof insertQuestionnaireQuestionSchema>;
 export type Message = typeof messages.$inferSelect;
 export type InsertMessage = z.infer<typeof insertMessageSchema>;
+export type ConversationRead = typeof conversationReads.$inferSelect;
+export type InsertConversationRead = z.infer<typeof insertConversationReadSchema>;
 export type SmsLog = typeof smsLogs.$inferSelect;
 export type InsertSmsLog = z.infer<typeof insertSmsLogSchema>;
 export type EmailHistory = typeof emailHistory.$inferSelect;
