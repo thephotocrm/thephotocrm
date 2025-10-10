@@ -1249,14 +1249,14 @@ function BusinessTriggersManager({ automation }: { automation: any }) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Project Type Filter (Optional)</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value || ''}>
+                    <Select onValueChange={field.onChange} value={field.value || 'ALL_TYPES'}>
                       <FormControl>
                         <SelectTrigger data-testid="select-project-type">
                           <SelectValue placeholder="All project types" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="">All project types</SelectItem>
+                        <SelectItem value="ALL_TYPES">All project types</SelectItem>
                         {Object.values(projectTypeEnum).map((type) => (
                           <SelectItem key={type} value={type}>
                             {type.charAt(0) + type.slice(1).toLowerCase()}
@@ -1382,14 +1382,14 @@ function BusinessTriggersManager({ automation }: { automation: any }) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Project Type Filter (Optional)</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value || ''}>
+                    <Select onValueChange={field.onChange} value={field.value || 'ALL_TYPES'}>
                       <FormControl>
                         <SelectTrigger data-testid="select-edit-project-type">
                           <SelectValue placeholder="All project types" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="">All project types</SelectItem>
+                        <SelectItem value="ALL_TYPES">All project types</SelectItem>
                         {Object.values(projectTypeEnum).map((type) => (
                           <SelectItem key={type} value={type}>
                             {type.charAt(0) + type.slice(1).toLowerCase()}
@@ -2465,14 +2465,14 @@ export default function Automations() {
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Wedding Date Requirement</FormLabel>
-                            <Select onValueChange={field.onChange} value={field.value || ""}>
+                            <Select onValueChange={field.onChange} value={field.value || "NO_CONDITION"}>
                               <FormControl>
                                 <SelectTrigger data-testid="select-event-date-condition">
                                   <SelectValue placeholder="No condition (run for all clients)" />
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
-                                <SelectItem value="">No condition (run for all clients)</SelectItem>
+                                <SelectItem value="NO_CONDITION">No condition (run for all clients)</SelectItem>
                                 <SelectItem value="HAS_EVENT_DATE">Only if client has wedding date</SelectItem>
                                 <SelectItem value="NO_EVENT_DATE">Only if client does NOT have wedding date</SelectItem>
                               </SelectContent>
@@ -3046,14 +3046,14 @@ export default function Automations() {
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Wedding Date Requirement</FormLabel>
-                            <Select onValueChange={field.onChange} value={field.value || ""}>
+                            <Select onValueChange={field.onChange} value={field.value || "NO_CONDITION"}>
                               <FormControl>
                                 <SelectTrigger data-testid="select-edit-event-date-condition">
                                   <SelectValue placeholder="No condition (run for all clients)" />
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
-                                <SelectItem value="">No condition (run for all clients)</SelectItem>
+                                <SelectItem value="NO_CONDITION">No condition (run for all clients)</SelectItem>
                                 <SelectItem value="HAS_EVENT_DATE">Only if client has wedding date</SelectItem>
                                 <SelectItem value="NO_EVENT_DATE">Only if client does NOT have wedding date</SelectItem>
                               </SelectContent>
