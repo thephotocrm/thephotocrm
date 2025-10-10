@@ -107,11 +107,20 @@ export default function Clients() {
       });
     },
     onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to delete client. Please try again.",
-        variant: "destructive"
-      });
+      // Check if this is the financial activity error
+      if (error?.message?.includes("Smart Files or payment history")) {
+        toast({
+          title: "Cannot Delete Client",
+          description: "This client has Smart Files or payment history. For financial record-keeping, you cannot delete clients with financial activity. Please archive this client instead.",
+          variant: "destructive"
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: error.message || "Failed to delete client. Please try again.",
+          variant: "destructive"
+        });
+      }
     }
   });
 

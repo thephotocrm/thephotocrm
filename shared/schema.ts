@@ -174,7 +174,8 @@ export const clients = pgTable("clients", {
   emailOptIn: boolean("email_opt_in").default(true),
   createdAt: timestamp("created_at").defaultNow(),
   projectType: text("project_type").notNull().default("WEDDING"),
-  leadSource: text("lead_source").default("MANUAL")
+  leadSource: text("lead_source").default("MANUAL"),
+  status: text("status").notNull().default('ACTIVE') // ACTIVE or ARCHIVED
 });
 
 export const projects = pgTable("projects", {

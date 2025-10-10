@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import cookieParser from 'cookie-parser';
 import Stripe from "stripe";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { storage } from "./storage";
 import { db } from "./db";
 import { authenticateToken, requirePhotographer, requireRole, requireAdmin, requireActiveSubscription } from "./middleware/auth";
@@ -17,7 +17,7 @@ import { insertUserSchema, insertPhotographerSchema, insertClientSchema, insertS
          insertTemplateSchema, insertAutomationSchema, validateAutomationSchema, insertAutomationStepSchema, insertAutomationBusinessTriggerSchema, insertPackageSchema, insertAddOnSchema, insertLeadFormSchema,
          insertMessageSchema, insertBookingSchema, updateBookingSchema, 
          bookingConfirmationSchema, sanitizedBookingSchema, insertQuestionnaireTemplateSchema, insertQuestionnaireQuestionSchema, 
-         emailLogs, smsLogs, projectActivityLog,
+         emailLogs, smsLogs, projectActivityLog, projectSmartFiles, photographerEarnings, projects,
          projectTypeEnum, createOnboardingLinkSchema, createPayoutSchema, insertDailyAvailabilityTemplateSchema,
          insertDailyAvailabilityBreakSchema, insertDailyAvailabilityOverrideSchema,
          insertDripCampaignSchema, insertDripCampaignEmailSchema, insertDripCampaignSubscriptionSchema, insertProjectParticipantSchema,
@@ -1101,7 +1101,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Client not found" });
       }
       
-      // Delete the client and all related data (cascading delete)
+      // Check if client has any Smart Files or payments (financial activity)
+      const hasSmartFiles = await db.select({ count: sql<number>`count(*)::int` })
+        .from(projectSmartFiles)
+        .innerJoin(projects, eq(projectSmartFiles.projectId, projects.id))
+        .where(eq(projects.clientId, req.params.id))
+        .then(result => (result[0]?.count || 0) > 0);
+      
+      const hasPayments = await db.select({ count: sql<number>`count(*)::int` })
+        .from(photographerEarnings)
+        .innerJoin(projects, eq(photographerEarnings.projectId, projects.id))
+        .where(eq(projects.clientId, req.params.id))
+        .then(result => (result[0]?.count || 0) > 0);
+      
+      // Prevent deletion if there's financial activity
+      if (hasSmartFiles || hasPayments) {
+        return res.status(400).json({ 
+          message: "Cannot delete client with Smart Files or payment history. Please archive this client instead to maintain financial records.",
+          canArchive: true,
+          hasSmartFiles,
+          hasPayments
+        });
+      }
+      
+      // Safe to delete - no financial records
       await storage.deleteClient(req.params.id);
       
       res.json({ 
