@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Clock, Calendar as CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
 
 interface SchedulingCalendarProps {
   heading?: string;
@@ -26,6 +27,28 @@ export function SchedulingCalendar({
 }: SchedulingCalendarProps) {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [selectedTime, setSelectedTime] = useState<string | undefined>(undefined);
+  const { toast } = useToast();
+
+  const handleConfirmBooking = () => {
+    if (isPreview) {
+      toast({
+        title: "Preview Mode",
+        description: "This is a preview. Clients will be able to book appointments when you send them this proposal.",
+      });
+      return;
+    }
+
+    // TODO: Implement actual booking logic for public view
+    toast({
+      title: "Booking Confirmed!",
+      description: `Your appointment is scheduled for ${selectedDate?.toLocaleDateString('en-US', { 
+        weekday: 'long', 
+        month: 'long', 
+        day: 'numeric',
+        year: 'numeric'
+      })} at ${timeSlots.find(s => s.value === selectedTime)?.display}`,
+    });
+  };
 
   // Generate sample time slots (9 AM - 5 PM)
   const generateTimeSlots = () => {
@@ -150,6 +173,7 @@ export function SchedulingCalendar({
               <Button 
                 className="w-full" 
                 size="lg"
+                onClick={handleConfirmBooking}
                 data-testid="button-confirm-booking"
               >
                 Confirm Booking
