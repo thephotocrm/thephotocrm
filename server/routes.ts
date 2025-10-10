@@ -4505,6 +4505,8 @@ ${photographer?.businessName || 'Your Photography Team'}`;
 
   // SimpleTexting Webhooks
   app.post("/webhooks/simpletexting/inbound", async (req, res) => {
+    console.log('=== SIMPLETEXTING WEBHOOK HIT ===');
+    console.log('Request body:', JSON.stringify(req.body, null, 2));
     try {
       console.log('Received SimpleTexting inbound SMS webhook:', req.body);
       
