@@ -68,9 +68,10 @@ export default function Inbox() {
     },
     onSuccess: () => {
       setNewMessage("");
-      queryClient.invalidateQueries({ queryKey: ['/api/inbox/conversations'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/inbox/thread', selectedContactId] });
-      queryClient.invalidateQueries({ queryKey: ['/api/inbox/unread-count'] });
+      // Force immediate refetch instead of just invalidating
+      queryClient.refetchQueries({ queryKey: ['/api/inbox/conversations'] });
+      queryClient.refetchQueries({ queryKey: ['/api/inbox/thread', selectedContactId] });
+      queryClient.refetchQueries({ queryKey: ['/api/inbox/unread-count'] });
       toast({
         title: "Message sent",
         description: "Your SMS was delivered successfully"
@@ -93,8 +94,9 @@ export default function Inbox() {
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/inbox/conversations'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/inbox/unread-count'] });
+      // Force immediate refetch instead of just invalidating
+      queryClient.refetchQueries({ queryKey: ['/api/inbox/conversations'] });
+      queryClient.refetchQueries({ queryKey: ['/api/inbox/unread-count'] });
     }
   });
 
