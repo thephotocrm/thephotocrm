@@ -2,7 +2,7 @@ import { storage } from '../storage';
 import { sendEmail, renderTemplate } from './email';
 import { sendSms, renderSmsTemplate } from './sms';
 import { db } from '../db';
-import { clients, automations, automationSteps, stages, templates, emailLogs, smsLogs, automationExecutions, photographers, projectSmartFiles, smartFiles, projects, bookings, projectQuestionnaires, dripCampaigns, dripCampaignEmails, dripCampaignSubscriptions, dripEmailDeliveries, automationBusinessTriggers } from '@shared/schema';
+import { clients, automations, automationSteps, stages, templates, emailLogs, smsLogs, automationExecutions, photographers, projectSmartFiles, smartFiles, smartFilePages, projects, bookings, projectQuestionnaires, dripCampaigns, dripCampaignEmails, dripCampaignSubscriptions, dripEmailDeliveries, automationBusinessTriggers } from '@shared/schema';
 import { eq, and, gte, lte, isNull } from 'drizzle-orm';
 
 async function getParticipantEmailsForBCC(projectId: string): Promise<string[]> {
@@ -530,10 +530,21 @@ async function processAutomationStep(client: any, step: any, automation: any): P
         ? `https://${process.env.REPLIT_DEV_DOMAIN}`
         : 'https://thephotocrm.com';
       
-      // Create project Smart File
+      // Fetch template pages for snapshot
+      const templatePages = await db
+        .select()
+        .from(smartFilePages)
+        .where(eq(smartFilePages.smartFileId, smartFileTemplate.id))
+        .orderBy(smartFilePages.pageOrder);
+      
+      // Create project Smart File with all required fields
       const projectSmartFile = await storage.createProjectSmartFile({
         projectId: client.id,
-        smartFileTemplateId: smartFileTemplate.id,
+        smartFileId: smartFileTemplate.id,
+        photographerId: client.photographerId,
+        clientId: client.clientId,
+        smartFileName: smartFileTemplate.name,
+        pagesSnapshot: templatePages,
         token,
         status: 'DRAFT',
         depositPercent: smartFileTemplate.defaultDepositPercent || 50
