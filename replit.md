@@ -4,6 +4,16 @@
 Lazy Photog is a comprehensive multi-tenant CRM system designed for wedding photographers. It streamlines workflows from contact inquiry to project completion by offering contact pipeline management, automated communication, a Smart Files proposal/invoice builder, payment processing, and scheduling. The project aims to deliver a production-ready MVP that significantly enhances efficiency for photographers.
 
 ### Recent Changes (October 10, 2025)
+**SMS Inbox Feature (October 10, 2025)**
+- Added comprehensive inbox page at /inbox for SMS-focused photographer-contact communication
+- Implemented conversationReads table for tracking unread message state per contact
+- Created 5 backend API endpoints: conversations list, message thread, send SMS, mark-as-read, unread count
+- Built two-column responsive layout with contact list and message thread views
+- SMS messages display full content, email/CRM activities shown as notification lines only
+- Real-time unread badge on sidebar navigation updates immediately using refetchQueries
+- Character counter and send functionality integrated into SMS composer
+- Mobile-optimized with stacked layout and back button navigation
+
 **Terminology Refactor: "Clients" → "Contacts"**
 - The system now uses "Contacts" terminology throughout the application to be more inclusive of participants, leads, and non-paying parties.
 - All frontend routes updated: /clients → /contacts, /clients/:id → /contacts/:id
@@ -32,6 +42,7 @@ Preferred communication style: Simple, everyday language.
 *   **Automation System:** An event-driven engine using `node-cron` for scheduled tasks. Supports stage-based triggers, configurable time delays, dynamic content rendering with variable substitution, and multi-channel delivery (email, SMS, and Smart Files). Includes questionnaire assignments, integrates with NURTURE, and features an internal URL shortening system with click tracking.
     *   **Smart File Automation:** Photographers can automatically send proposals/invoices through automations. When triggered, the system creates a project-specific Smart File from a template, generates a unique access token, and sends an email notification to the client with a link to view/sign the Smart File. Uses actionType field on automation steps to determine behavior (EMAIL, SMS, or SMART_FILE).
 *   **Two-Way SMS Communication System:** Utilizes the SimpleTexting API for sending and receiving messages, with a two-way relay system forwarding inbound client SMS to photographers. All messages are logged, and a phone number-based client lookup ensures accurate routing, handled by webhooks.
+*   **SMS Inbox Page:** Centralized messaging interface at /inbox for photographer-contact SMS communication. Features two-column responsive layout (contact list + message thread), conversationReads tracking for unread state, real-time unread count badges with 30-second polling, SMS composer with 160-character counter, and mobile-optimized stacked view. SMS messages show full content while email/CRM activities display as notification lines. Uses refetchQueries for immediate UI updates after sending or marking conversations as read.
 *   **Payment Processing & Stripe Connect:** Requires Stripe Connect Express accounts for photographers, implementing a configurable platform fee (5%). Supports direct deposits, standard/instant payouts, Stripe-hosted onboarding, and validates Stripe Connect status before proposal sends. Includes an earnings dashboard and webhook integration.
 *   **Smart Files System:** A comprehensive drag-and-drop invoice/proposal builder with a template system and 7 page types (Text, Package Selection, Add-ons, Contract, Payment, Form, Scheduling). Features include project integration, public responsive client view, status tracking, integrated Stripe Connect checkout, flexible payment options, selection persistence, and multiple package selection.
     *   **Form Page Type:** Custom form builder with section/block architecture supporting 7 field types (TEXT_INPUT, TEXTAREA, MULTIPLE_CHOICE, CHECKBOX, NUMBER, DATE, EMAIL).
