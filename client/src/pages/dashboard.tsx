@@ -80,7 +80,8 @@ export default function Dashboard() {
   const { data: projects, isLoading: projectsLoading } = useQuery({
     queryKey: ["/api/projects", activeProjectType],
     queryFn: () => fetch(`/api/projects?projectType=${activeProjectType}`).then(res => res.json()),
-    enabled: !!user
+    enabled: !!user,
+    refetchInterval: 30000 // Auto-refresh every 30 seconds to catch automation changes
   });
 
   const { data: stages, isLoading: stagesLoading } = useQuery({
