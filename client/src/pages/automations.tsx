@@ -1510,6 +1510,7 @@ export default function Automations() {
     // Communication automation fields
     channel: z.string().default("EMAIL"),
     templateId: z.string().optional(),
+    smartFileTemplateId: z.string().optional(),
     delayMinutes: z.coerce.number().min(0).default(0),
     delayHours: z.coerce.number().min(0).default(0),
     delayDays: z.coerce.number().min(0).default(0),
@@ -1536,12 +1537,22 @@ export default function Automations() {
           return false;
         }
       }
-      // If communication is enabled, require either template or questionnaire
+      // If communication is enabled, require template, questionnaire, or Smart File
       if (data.enableCommunication) {
         const hasTemplate = data.templateId && data.templateId.length > 0 && data.templateId !== "unavailable";
         const hasQuestionnaire = data.questionnaireTemplateId && data.questionnaireTemplateId.length > 0 && data.questionnaireTemplateId !== "none" && data.questionnaireTemplateId !== "unavailable";
-        if (!hasTemplate && !hasQuestionnaire) {
-          return false;
+        const hasSmartFile = data.smartFileTemplateId && data.smartFileTemplateId.length > 0 && data.smartFileTemplateId !== "unavailable";
+        
+        // For SMART_FILE channel, only smartFileTemplateId is required
+        if (data.channel === 'SMART_FILE') {
+          if (!hasSmartFile) {
+            return false;
+          }
+        } else {
+          // For EMAIL/SMS, require template or questionnaire
+          if (!hasTemplate && !hasQuestionnaire) {
+            return false;
+          }
         }
       }
       // If pipeline is enabled, require target stage
@@ -1582,6 +1593,7 @@ export default function Automations() {
       enableCommunication: true,
       enablePipeline: false,
       templateId: "",
+      smartFileTemplateId: "",
       delayMinutes: 0,
       delayHours: 0,
       delayDays: 0,
@@ -1612,6 +1624,7 @@ export default function Automations() {
       enableCommunication: true,
       enablePipeline: false,
       templateId: "",
+      smartFileTemplateId: "",
       delayMinutes: 0,
       delayHours: 0,
       delayDays: 0,
