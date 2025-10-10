@@ -67,8 +67,8 @@ export function AppSidebar() {
   // Core workspace items (always visible)
   const coreNavigation = [
     { name: "Dashboard", href: "/", icon: LayoutDashboard },
-    { name: "Clients", href: "/clients", icon: Users },
     { name: "Projects", href: "/projects", icon: FolderOpen },
+    { name: "Clients", href: "/clients", icon: Users },
   ];
 
   // Grouped navigation for photographers
