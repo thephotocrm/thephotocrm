@@ -135,8 +135,9 @@ export default function LeadFormBuilder() {
     const host = window.location.host;
     const baseUrl = `${protocol}//${host}`;
     
-    return `<div id="lazy-photog-form-${form?.publicToken}"></div>
-<script src="${baseUrl}/form-embed.js" data-form-token="${form?.publicToken}"></script>`;
+    return `<!-- Lead Capture Form -->
+<div class="photo-crm-form" data-form-token="${form?.publicToken}"></div>
+<script src="${baseUrl}/widget/form-embed.js"></script>`;
   };
 
   const addField = (type: CustomField['type']) => {
