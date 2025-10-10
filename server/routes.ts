@@ -6097,6 +6097,13 @@ ${photographer.businessName}`
     res.sendFile(path.resolve(process.cwd(), "server/public/widget-embed.js"));
   });
 
+  // Serve form embed JavaScript file
+  app.get("/widget/form-embed.js", (req, res) => {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Content-Type", "application/javascript");
+    res.sendFile(path.resolve(process.cwd(), "server/public/form-embed.js"));
+  });
+
   // Public widget configuration API endpoint (no authentication required) 
   app.get("/api/public/widget/:photographerToken", async (req, res) => {
     // CORS headers handled by middleware
