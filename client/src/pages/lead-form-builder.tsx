@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -466,6 +467,16 @@ export default function LeadFormBuilder() {
               className="flex-1"
               data-testid="input-redirect-url"
             />
+          </div>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <Switch
+                checked={config.showSmsConsent || false}
+                onCheckedChange={(checked) => setConfig({ ...config, showSmsConsent: checked })}
+                data-testid="switch-sms-consent"
+              />
+              <Label className="text-sm">Show SMS consent checkbox</Label>
+            </div>
           </div>
         </div>
       </div>
