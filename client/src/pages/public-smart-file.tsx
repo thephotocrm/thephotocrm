@@ -375,6 +375,28 @@ export default function PublicSmartFile() {
     }
   });
 
+  const bookingMutation = useMutation({
+    mutationFn: async (bookingData: { date: Date; time: string; durationMinutes: number }) => {
+      const response = await apiRequest("POST", `/api/public/smart-files/${params?.token}/booking`, {
+        date: bookingData.date.toISOString(),
+        time: bookingData.time,
+        durationMinutes: bookingData.durationMinutes
+      });
+      return response;
+    },
+    onSuccess: (response: any) => {
+      queryClient.invalidateQueries({ queryKey: [`/api/public/smart-files/${params?.token}`] });
+      setShowBookingConfirmation(true);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Booking Failed",
+        description: error.message || "Failed to create booking. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
   // Auto-accept proposal when on payment page if signed but not yet accepted
   useEffect(() => {
     if (!data || hasAutoAcceptedRef.current || acceptMutation.isPending) return;
@@ -2261,9 +2283,14 @@ export default function PublicSmartFile() {
                     bufferAfter={currentPage.content.bufferAfter}
                     allowRescheduling={currentPage.content.allowRescheduling}
                     isPreview={false}
+                    isLoading={bookingMutation.isPending}
                     onBookingConfirm={(date, time) => {
                       setBookingDetails({ date, time });
-                      setShowBookingConfirmation(true);
+                      bookingMutation.mutate({
+                        date,
+                        time,
+                        durationMinutes: currentPage.content.durationMinutes || 60
+                      });
                     }}
                   />
                 )}

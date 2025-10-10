@@ -3,7 +3,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Clock, Calendar as CalendarIcon } from "lucide-react";
+import { Clock, Calendar as CalendarIcon, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 
@@ -16,6 +16,7 @@ interface SchedulingCalendarProps {
   bufferAfter?: number;
   allowRescheduling?: boolean;
   isPreview?: boolean;
+  isLoading?: boolean;
   onBookingConfirm?: (date: Date, time: string) => void;
 }
 
@@ -25,6 +26,7 @@ export function SchedulingCalendar({
   durationMinutes = 60,
   bookingType = "ONE_TIME",
   isPreview = false,
+  isLoading = false,
   onBookingConfirm,
 }: SchedulingCalendarProps) {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
@@ -183,9 +185,17 @@ export function SchedulingCalendar({
                 className="w-full" 
                 size="lg"
                 onClick={handleConfirmBooking}
+                disabled={isLoading}
                 data-testid="button-confirm-booking"
               >
-                Confirm Booking
+                {isLoading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Confirming...
+                  </>
+                ) : (
+                  'Confirm Booking'
+                )}
               </Button>
             </div>
           )}

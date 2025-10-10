@@ -3417,6 +3417,183 @@ ${photographer?.businessName || 'Your Photography Team'}`;
     }
   });
 
+  // POST /api/public/smart-files/:token/booking - Create booking from Smart File (PUBLIC ROUTE)
+  app.post("/api/public/smart-files/:token/booking", async (req, res) => {
+    try {
+      const { token } = req.params;
+      const { date, time, durationMinutes } = req.body;
+
+      if (!date || !time) {
+        return res.status(400).json({ message: "Date and time are required" });
+      }
+
+      // Get Smart File data
+      const projectSmartFile = await storage.getProjectSmartFileByToken(token);
+      
+      if (!projectSmartFile) {
+        return res.status(404).json({ message: "Smart File not found" });
+      }
+
+      // Get project and client data
+      const [project, client] = await Promise.all([
+        storage.getProject(projectSmartFile.projectId),
+        storage.getClient(projectSmartFile.clientId)
+      ]);
+
+      if (!project || !client) {
+        return res.status(404).json({ message: "Project or client not found" });
+      }
+
+      // Parse date and time to create startAt timestamp
+      const bookingDate = new Date(date);
+      const [hours, minutes] = time.split(':').map(Number);
+      bookingDate.setHours(hours, minutes, 0, 0);
+
+      // Calculate endAt based on duration
+      const duration = durationMinutes || 60; // Default to 60 minutes
+      const endAt = new Date(bookingDate.getTime() + duration * 60000);
+
+      // Create booking
+      const booking = await storage.createBooking({
+        photographerId: project.photographerId,
+        projectId: project.id,
+        title: `${projectSmartFile.smartFileName} - Appointment`,
+        description: `Booking from Smart File: ${projectSmartFile.smartFileName}`,
+        startAt: bookingDate,
+        endAt,
+        status: 'CONFIRMED',
+        bookingType: project.projectType || 'CONSULTATION',
+        clientEmail: client.email || undefined,
+        clientPhone: client.phone || undefined,
+        clientName: `${client.firstName} ${client.lastName}`
+      });
+
+      // Create Google Calendar event (if photographer has Google Calendar connected)
+      try {
+        const { createBookingCalendarEvent } = await import('./services/calendar');
+        const calendarResult = await createBookingCalendarEvent(project.photographerId, {
+          title: `${projectSmartFile.smartFileName} - ${client.firstName} ${client.lastName}`,
+          description: `Client: ${client.firstName} ${client.lastName}\nProject: ${project.title}\nSmart File: ${projectSmartFile.smartFileName}`,
+          startTime: bookingDate,
+          endTime: endAt,
+          clientEmail: client.email,
+          clientName: `${client.firstName} ${client.lastName}`
+        });
+
+        if (calendarResult.success && calendarResult.eventId && calendarResult.meetLink) {
+          // Update booking with Google Calendar details
+          await storage.updateBooking(booking.id, {
+            googleCalendarEventId: calendarResult.eventId,
+            googleMeetLink: calendarResult.meetLink
+          });
+        }
+      } catch (calendarError) {
+        console.error('Failed to create Google Calendar event:', calendarError);
+        // Don't fail the booking if calendar creation fails
+      }
+
+      // Log booking to project history
+      await storage.addProjectActivityLog({
+        projectId: project.id,
+        activityType: 'APPOINTMENT_BOOKED',
+        action: 'BOOKED',
+        title: 'Appointment booked',
+        description: `Client booked appointment for ${bookingDate.toLocaleDateString('en-US', { 
+          month: 'long', 
+          day: 'numeric',
+          year: 'numeric'
+        })} at ${new Date(`2000-01-01T${time}`).toLocaleTimeString('en-US', {
+          hour: 'numeric',
+          minute: '2-digit',
+          hour12: true
+        })}`,
+        relatedId: booking.id,
+        relatedType: 'BOOKING',
+        metadata: JSON.stringify({
+          bookingId: booking.id,
+          startAt: bookingDate.toISOString(),
+          endAt: endAt.toISOString(),
+          durationMinutes: duration
+        })
+      });
+
+      // Send confirmation email to client
+      try {
+        if (client.email) {
+          const { sendEmail } = await import('./services/email');
+          const photographer = await storage.getPhotographer(project.photographerId);
+          
+          const formattedDate = bookingDate.toLocaleDateString('en-US', { 
+            weekday: 'long',
+            month: 'long', 
+            day: 'numeric',
+            year: 'numeric'
+          });
+          
+          const formattedTime = new Date(`2000-01-01T${time}`).toLocaleTimeString('en-US', {
+            hour: 'numeric',
+            minute: '2-digit',
+            hour12: true
+          });
+
+          // Get updated booking with Google Meet link if available
+          const updatedBooking = await storage.getBooking(booking.id);
+          
+          const emailHtml = `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+              <h2 style="color: #2563eb;">Appointment Confirmed!</h2>
+              <p>Hi ${client.firstName},</p>
+              <p>Your appointment has been successfully scheduled.</p>
+              <div style="background-color: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                <h3 style="margin-top: 0; color: #1f2937;">Appointment Details</h3>
+                <p style="margin: 8px 0;"><strong>Date:</strong> ${formattedDate}</p>
+                <p style="margin: 8px 0;"><strong>Time:</strong> ${formattedTime}</p>
+                <p style="margin: 8px 0;"><strong>Duration:</strong> ${duration} minutes</p>
+                <p style="margin: 8px 0;"><strong>Project:</strong> ${project.title}</p>
+                ${updatedBooking?.googleMeetLink ? `
+                  <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #d1d5db;">
+                    <p style="margin: 8px 0;"><strong>Google Meet Link:</strong></p>
+                    <a href="${updatedBooking.googleMeetLink}" style="display: inline-block; padding: 10px 20px; background-color: #2563eb; color: white; text-decoration: none; border-radius: 6px; margin-top: 8px;">
+                      Join Video Call
+                    </a>
+                  </div>
+                ` : ''}
+              </div>
+              <p>We look forward to meeting with you!</p>
+              <p>Best regards,<br>${photographer?.businessName || 'Your photographer'}</p>
+            </div>
+          `;
+
+          await sendEmail({
+            to: client.email,
+            subject: `Appointment Confirmed - ${formattedDate}`,
+            html: emailHtml,
+            photographerId: project.photographerId,
+            clientId: client.id,
+            projectId: project.id,
+            source: 'MANUAL'
+          });
+        }
+      } catch (emailError) {
+        console.error('Failed to send booking confirmation email:', emailError);
+        // Don't fail the booking if email fails
+      }
+
+      res.json({ 
+        success: true,
+        booking: {
+          id: booking.id,
+          startAt: booking.startAt,
+          endAt: booking.endAt,
+          status: booking.status
+        }
+      });
+    } catch (error) {
+      console.error("Create booking error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   // Automations
   app.get("/api/automations", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
