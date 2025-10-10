@@ -13,7 +13,8 @@ export const roleEnum = {
 
 export const channelEnum = {
   EMAIL: "EMAIL",
-  SMS: "SMS"
+  SMS: "SMS",
+  SMART_FILE: "SMART_FILE"
 } as const;
 
 export const projectTypeEnum = {

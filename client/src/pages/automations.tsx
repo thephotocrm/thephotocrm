@@ -1765,6 +1765,12 @@ export default function Automations() {
     enabled: !!user
   });
 
+  const { data: smartFiles = [] } = useQuery<any[]>({
+    queryKey: ["/api/smart-files"],
+    queryFn: () => fetch(`/api/smart-files`).then(res => res.json()),
+    enabled: !!user
+  });
+
   // Set initial selected stage when stages load
   useEffect(() => {
     if (stages && stages.length > 0 && !selectedStageId) {
@@ -1842,23 +1848,27 @@ export default function Automations() {
             });
           }
           
-          // Create automation step for communication (with templates or questionnaires)
+          // Create automation step for communication (with templates, questionnaires, or Smart Files)
           const hasTemplate = data.templateId && data.templateId !== "unavailable";
+          const hasSmartFile = data.smartFileTemplateId && data.smartFileTemplateId !== "unavailable";
           const hasQuestionnaire = data.questionnaireTemplateId && data.questionnaireTemplateId !== "unavailable" && data.questionnaireTemplateId !== "none";
           
-          if (hasTemplate || hasQuestionnaire) {
+          if (hasTemplate || hasSmartFile || hasQuestionnaire) {
             const totalDelayMinutes = timingMode === 'immediate' ? 0 : 
               (data.delayDays * 24 * 60) + (data.delayHours * 60) + data.delayMinutes;
             
             const stepData: any = {
               stepIndex: 0,
               delayMinutes: totalDelayMinutes,
-              enabled: true
+              enabled: true,
+              actionType: data.channel // EMAIL, SMS, or SMART_FILE
             };
             
-            // Add templateId only if we have a template (questionnaire-only steps don't need templateId)
+            // Add templateId for EMAIL/SMS or smartFileTemplateId for SMART_FILE
             if (hasTemplate) {
               stepData.templateId = data.templateId;
+            } else if (hasSmartFile) {
+              stepData.smartFileTemplateId = data.smartFileTemplateId;
             }
             
             await apiRequest("POST", `/api/automations/${commAutomation.id}/steps`, stepData);
@@ -2559,7 +2569,7 @@ export default function Automations() {
                     name="channel"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Contact method</FormLabel>
+                        <FormLabel>Action Type</FormLabel>
                         <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
                             <SelectTrigger data-testid="select-channel">
@@ -2567,8 +2577,9 @@ export default function Automations() {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="EMAIL">📧 Email</SelectItem>
-                            <SelectItem value="SMS">📱 SMS</SelectItem>
+                            <SelectItem value="EMAIL">📧 Send Email</SelectItem>
+                            <SelectItem value="SMS">📱 Send SMS</SelectItem>
+                            <SelectItem value="SMART_FILE">📄 Send Smart File</SelectItem>
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -2576,37 +2587,71 @@ export default function Automations() {
                     )}
                   />
 
-                  <FormField
-                    control={form.control}
-                    name="templateId"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>What to send</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value || ""}>
-                          <FormControl>
-                            <SelectTrigger data-testid="select-template">
-                              <SelectValue placeholder="Choose a message template" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {templates
-                              .filter((t: any) => t.channel === form.watch('channel'))
-                              .map((template: any) => (
-                                <SelectItem key={template.id} value={template.id}>
-                                  {template.name}
+                  {form.watch('channel') !== 'SMART_FILE' && (
+                    <FormField
+                      control={form.control}
+                      name="templateId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>What to send</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value || ""}>
+                            <FormControl>
+                              <SelectTrigger data-testid="select-template">
+                                <SelectValue placeholder="Choose a message template" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {templates
+                                .filter((t: any) => t.channel === form.watch('channel'))
+                                .map((template: any) => (
+                                  <SelectItem key={template.id} value={template.id}>
+                                    {template.name}
+                                  </SelectItem>
+                                ))}
+                              {templates.filter((t: any) => t.channel === form.watch('channel')).length === 0 && (
+                                <SelectItem value="unavailable" disabled>
+                                  No {form.watch('channel').toLowerCase()} templates available - create templates first
+                                </SelectItem>
+                              )}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
+
+                  {form.watch('channel') === 'SMART_FILE' && (
+                    <FormField
+                      control={form.control}
+                      name="smartFileTemplateId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Smart File Template</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value || ""}>
+                            <FormControl>
+                              <SelectTrigger data-testid="select-smart-file-template">
+                                <SelectValue placeholder="Choose a Smart File template" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {smartFiles?.map((smartFile: any) => (
+                                <SelectItem key={smartFile.id} value={smartFile.id}>
+                                  📄 {smartFile.name}
                                 </SelectItem>
                               ))}
-                            {templates.filter((t: any) => t.channel === form.watch('channel')).length === 0 && (
-                              <SelectItem value="unavailable" disabled>
-                                No {form.watch('channel').toLowerCase()} templates available - create templates first
-                              </SelectItem>
-                            )}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                              {(!smartFiles || smartFiles.length === 0) && (
+                                <SelectItem value="unavailable" disabled>
+                                  No Smart File templates available - create Smart Files first
+                                </SelectItem>
+                              )}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
 
                   <FormField
                     control={form.control}
@@ -2814,9 +2859,17 @@ export default function Automations() {
                           
                           // Validate communication fields if enabled
                           if (enableCommunication) {
+                            const channel = form.watch('channel');
                             const hasTemplate = form.watch('templateId') && form.watch('templateId') !== 'unavailable';
+                            const hasSmartFile = form.watch('smartFileTemplateId') && form.watch('smartFileTemplateId') !== 'unavailable';
                             const hasQuestionnaire = form.watch('questionnaireTemplateId') && form.watch('questionnaireTemplateId') !== 'unavailable' && form.watch('questionnaireTemplateId') !== 'none';
-                            if (!hasTemplate && !hasQuestionnaire) {
+                            
+                            // For SMART_FILE, only smartFileTemplateId is required
+                            if (channel === 'SMART_FILE' && !hasSmartFile) {
+                              return true;
+                            }
+                            // For EMAIL/SMS, template or questionnaire is required
+                            if (channel !== 'SMART_FILE' && !hasTemplate && !hasQuestionnaire) {
                               return true;
                             }
                           }
@@ -2855,9 +2908,15 @@ export default function Automations() {
                             
                             // Validate communication fields if enabled
                             if (enableCommunication) {
+                              const channel = form.watch('channel');
                               const hasTemplate = form.watch('templateId') && form.watch('templateId') !== 'unavailable';
+                              const hasSmartFile = form.watch('smartFileTemplateId') && form.watch('smartFileTemplateId') !== 'unavailable';
                               const hasQuestionnaire = form.watch('questionnaireTemplateId') && form.watch('questionnaireTemplateId') !== 'unavailable' && form.watch('questionnaireTemplateId') !== 'none';
-                              if (!hasTemplate && !hasQuestionnaire) {
+                              
+                              if (channel === 'SMART_FILE' && !hasSmartFile) {
+                                return "Select Smart File template";
+                              }
+                              if (channel !== 'SMART_FILE' && !hasTemplate && !hasQuestionnaire) {
                                 return "Select template or questionnaire";
                               }
                             }

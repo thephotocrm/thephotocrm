@@ -2,7 +2,7 @@ import { storage } from '../storage';
 import { sendEmail, renderTemplate } from './email';
 import { sendSms, renderSmsTemplate } from './sms';
 import { db } from '../db';
-import { clients, automations, automationSteps, stages, templates, emailLogs, smsLogs, automationExecutions, photographers, projectSmartFiles, projects, bookings, projectQuestionnaires, dripCampaigns, dripCampaignEmails, dripCampaignSubscriptions, dripEmailDeliveries, automationBusinessTriggers } from '@shared/schema';
+import { clients, automations, automationSteps, stages, templates, emailLogs, smsLogs, automationExecutions, photographers, projectSmartFiles, smartFiles, projects, bookings, projectQuestionnaires, dripCampaigns, dripCampaignEmails, dripCampaignSubscriptions, dripEmailDeliveries, automationBusinessTriggers } from '@shared/schema';
 import { eq, and, gte, lte, isNull } from 'drizzle-orm';
 
 async function getParticipantEmailsForBCC(projectId: string): Promise<string[]> {
@@ -348,49 +348,80 @@ async function processAutomationStep(client: any, step: any, automation: any): P
 
   // 🔒 BULLETPROOF PRECONDITION CHECKS - Validate ALL conditions BEFORE reserving execution
   
+  // Determine action type from step or fallback to automation channel
+  const actionType = step.actionType || automation.channel;
+  
   // Check consent FIRST (before any reservation)
-  if (automation.channel === 'EMAIL' && !client.emailOptIn) {
+  if (actionType === 'EMAIL' && !client.emailOptIn) {
     console.log(`📧 Email opt-in missing for ${client.firstName} ${client.lastName}, skipping (no reservation)`);
     return;
   }
-  if (automation.channel === 'SMS' && !client.smsOptIn) {
+  if (actionType === 'SMS' && !client.smsOptIn) {
     console.log(`📱 SMS opt-in missing for ${client.firstName} ${client.lastName}, skipping (no reservation)`);
     return;
   }
+  // Smart File doesn't require explicit opt-in (it's part of the service agreement)
 
   // Check contact info EARLY (before reservation)
-  if (automation.channel === 'EMAIL' && !client.email) {
+  if (actionType === 'EMAIL' && !client.email) {
     console.log(`📧 No email address for ${client.firstName} ${client.lastName}, skipping (no reservation)`);
     return;
   }
-  if (automation.channel === 'SMS' && !client.phone) {
+  if (actionType === 'SMS' && !client.phone) {
     console.log(`📱 No phone number for ${client.firstName} ${client.lastName}, skipping (no reservation)`);
     return;
   }
-
-  // Check template exists BEFORE reservation
-  if (!step.templateId) {
-    console.log(`📝 No template ID for ${client.firstName} ${client.lastName}, skipping (no reservation)`);
+  if (actionType === 'SMART_FILE' && !client.email) {
+    console.log(`📄 No email address for Smart File notification for ${client.firstName} ${client.lastName}, skipping (no reservation)`);
     return;
   }
+
+  // Check template/Smart File exists BEFORE reservation
+  let template: any = null;
+  let smartFileTemplate: any = null;
   
-  const [template] = await db
-    .select()
-    .from(templates)
-    .where(and(
-      eq(templates.id, step.templateId),
-      eq(templates.photographerId, client.photographerId)
-    ));
+  if (actionType === 'SMART_FILE') {
+    if (!step.smartFileTemplateId) {
+      console.log(`📄 No Smart File template ID for ${client.firstName} ${client.lastName}, skipping (no reservation)`);
+      return;
+    }
+    
+    [smartFileTemplate] = await db
+      .select()
+      .from(smartFiles)
+      .where(and(
+        eq(smartFiles.id, step.smartFileTemplateId),
+        eq(smartFiles.photographerId, client.photographerId)
+      ));
 
-  if (!template) {
-    console.log(`📝 Template not found for ${client.firstName} ${client.lastName}, templateId: ${step.templateId}, skipping (no reservation)`);
-    return;
-  }
+    if (!smartFileTemplate) {
+      console.log(`📄 Smart File template not found for ${client.firstName} ${client.lastName}, templateId: ${step.smartFileTemplateId}, skipping (no reservation)`);
+      return;
+    }
+  } else {
+    if (!step.templateId) {
+      console.log(`📝 No template ID for ${client.firstName} ${client.lastName}, skipping (no reservation)`);
+      return;
+    }
+    
+    [template] = await db
+      .select()
+      .from(templates)
+      .where(and(
+        eq(templates.id, step.templateId),
+        eq(templates.photographerId, client.photographerId)
+      ));
 
-  // Validate template-channel match BEFORE reservation
-  if (template.channel !== automation.channel) {
-    console.log(`❌ Template channel mismatch for automation ${automation.name}: template=${template.channel}, automation=${automation.channel}, skipping (no reservation)`);
-    return;
+    if (!template) {
+      console.log(`📝 Template not found for ${client.firstName} ${client.lastName}, templateId: ${step.templateId}, skipping (no reservation)`);
+      return;
+    }
+
+    // Validate template-channel match BEFORE reservation
+    if (template.channel !== actionType) {
+      console.log(`❌ Template channel mismatch for automation ${automation.name}: template=${template.channel}, action=${actionType}, skipping (no reservation)`);
+      return;
+    }
   }
 
   // 🔒 BULLETPROOF DUPLICATE PREVENTION - Reserve execution atomically (ONLY after ALL preconditions pass)
@@ -479,8 +510,85 @@ async function processAutomationStep(client: any, step: any, automation: any): P
 
   // 🔒 BULLETPROOF ERROR HANDLING - Wrap all send operations to prevent PENDING reservations on errors
   try {
-    // Send message
-    if (automation.channel === 'EMAIL' && client.email) {
+    // Send message or Smart File
+    if (actionType === 'SMART_FILE' && smartFileTemplate && client.email) {
+      // Create project Smart File from template
+      console.log(`📄 Creating Smart File for ${client.firstName} ${client.lastName} from template "${smartFileTemplate.name}"...`);
+      
+      // Generate unique token for the Smart File
+      const generateToken = () => {
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+        let token = '';
+        for (let i = 0; i < 32; i++) {
+          token += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        return token;
+      };
+
+      const token = generateToken();
+      const baseUrl = process.env.REPLIT_DEV_DOMAIN 
+        ? `https://${process.env.REPLIT_DEV_DOMAIN}`
+        : 'https://thephotocrm.com';
+      
+      // Create project Smart File
+      const projectSmartFile = await storage.createProjectSmartFile({
+        projectId: client.id,
+        smartFileTemplateId: smartFileTemplate.id,
+        token,
+        status: 'DRAFT',
+        depositPercent: smartFileTemplate.defaultDepositPercent || 50
+      });
+
+      const smartFileUrl = `${baseUrl}/smart-file/${token}`;
+      
+      // Send notification email to client
+      const subject = `${smartFileTemplate.name} from ${photographer?.businessName || 'Your Photographer'}`;
+      const htmlBody = `
+        <h2>Hi ${client.firstName},</h2>
+        <p>${photographer?.businessName || 'Your photographer'} has sent you a ${smartFileTemplate.name}.</p>
+        <p>Click the link below to view and respond:</p>
+        <p><a href="${smartFileUrl}" style="display: inline-block; padding: 12px 24px; background-color: #4F46E5; color: white; text-decoration: none; border-radius: 6px; font-weight: 600;">View ${smartFileTemplate.name}</a></p>
+        <p>Or copy and paste this link: ${smartFileUrl}</p>
+        <br/>
+        <p>Best regards,<br/>${photographer?.businessName || 'Your Photographer'}</p>
+      `;
+      const textBody = `Hi ${client.firstName},\n\n${photographer?.businessName || 'Your photographer'} has sent you a ${smartFileTemplate.name}.\n\nView it here: ${smartFileUrl}\n\nBest regards,\n${photographer?.businessName || 'Your Photographer'}`;
+
+      console.log(`📧 Sending Smart File notification email to ${client.email}...`);
+      
+      const fromEmail = process.env.SENDGRID_FROM_EMAIL || 'scoop@missionscoopable.com';
+      const fromName = photographer?.emailFromName || photographer?.businessName || 'Scoop Photography';
+      const replyToEmail = photographer?.emailFromAddr || process.env.SENDGRID_REPLY_TO || fromEmail;
+      
+      const success = await sendEmail({
+        to: client.email,
+        from: `${fromName} <${fromEmail}>`,
+        replyTo: `${fromName} <${replyToEmail}>`,
+        subject,
+        html: htmlBody,
+        text: textBody,
+        photographerId: client.photographerId,
+        clientId: client.clientId,
+        projectId: client.id,
+        automationStepId: step.id,
+        source: 'AUTOMATION' as const
+      });
+
+      console.log(`📄 Smart File ${success ? 'sent successfully' : 'FAILED'} to ${client.firstName} ${client.lastName}`);
+
+      // Log the email attempt
+      await db.insert(emailLogs).values({
+        clientId: client.clientId,
+        projectId: client.id,
+        automationStepId: step.id,
+        status: success ? 'sent' : 'failed',
+        sentAt: success ? now : null
+      });
+
+      // 🔒 BULLETPROOF EXECUTION TRACKING - Update reservation status
+      await updateExecutionStatus(reservation.executionId!, success ? 'SUCCESS' : 'FAILED');
+
+    } else if (actionType === 'EMAIL' && template && client.email) {
     const subject = renderTemplate(template.subject || '', variables);
     const htmlBody = renderTemplate(template.htmlBody || '', variables);
     const textBody = renderTemplate(template.textBody || '', variables);
@@ -529,7 +637,7 @@ async function processAutomationStep(client: any, step: any, automation: any): P
       // 🔒 BULLETPROOF EXECUTION TRACKING - Update reservation status
       await updateExecutionStatus(reservation.executionId!, success ? 'SUCCESS' : 'FAILED');
 
-    } else if (automation.channel === 'SMS' && client.phone) {
+    } else if (actionType === 'SMS' && template && client.phone) {
     const body = renderSmsTemplate(template.textBody || '', variables);
 
     const result = await sendSms({
