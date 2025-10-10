@@ -1439,8 +1439,8 @@ ${photographer?.businessName || 'Your Photography Team'}`;
         }) : Promise.resolve(false),
         
         // Send SMS
-        contact.phone ? sendSms({
-          to: contact.phone,
+        client.phone ? sendSms({
+          to: client.phone,
           body: smsText
         }) : Promise.resolve({ success: false, error: 'No phone number' })
       ]);
@@ -1448,7 +1448,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       // Process email result
       if (results[0].status === 'fulfilled') {
         emailSent = results[0].value as boolean;
-        if (!emailSent && contact.email) {
+        if (!emailSent && client.email) {
           emailError = 'Email service unavailable';
         }
       } else {
@@ -1460,7 +1460,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       if (results[1].status === 'fulfilled') {
         const smsResult = results[1].value as { success: boolean; error?: string };
         smsSent = smsResult.success;
-        if (!smsSent && contact.phone) {
+        if (!smsSent && client.phone) {
           smsError = smsResult.error || 'SMS service unavailable';
         }
       } else {
@@ -1480,8 +1480,8 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       if (emailSent) sentMethods.push('email');
       if (smsSent) sentMethods.push('SMS');
       
-      if (!emailSent && contact.email) failedMethods.push(`email (${emailError})`);
-      if (!smsSent && contact.phone) failedMethods.push(`SMS (${smsError})`);
+      if (!emailSent && client.email) failedMethods.push(`email (${emailError})`);
+      if (!smsSent && client.phone) failedMethods.push(`SMS (${smsError})`);
       
       if (sentMethods.length > 0) {
         message = `Login link sent successfully via ${sentMethods.join(' and ')}`;
@@ -1501,8 +1501,8 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       if (process.env.NODE_ENV === 'development' || (!emailSent && !smsSent)) {
         response.loginUrl = loginUrl;
         response.debugInfo = {
-          clientEmail: contact.email || 'not provided',
-          clientPhone: contact.phone || 'not provided',
+          clientEmail: client.email || 'not provided',
+          clientPhone: client.phone || 'not provided',
           emailSent,
           smsSent,
           emailError: emailError || 'none',
@@ -1560,8 +1560,8 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       });
 
       // Verify client belongs to photographer
-      const contact = await storage.getContact(projectData.clientId);
-      if (!client || contact.photographerId !== req.user!.photographerId!) {
+      const client = await storage.getClient(projectData.clientId);
+      if (!client || client.photographerId !== req.user!.photographerId!) {
         return res.status(400).json({ message: "Invalid client ID" });
       }
 
@@ -1711,7 +1711,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       }
       
       // Get primary client email
-      const primaryEmail = project.contact.email;
+      const primaryEmail = project.client.email;
       if (!primaryEmail) {
         return res.status(400).json({ message: "Client has no email address" });
       }
@@ -1721,8 +1721,8 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       if (sendToParticipants) {
         const participants = await storage.getProjectParticipants(req.params.id);
         bccEmails = participants
-          .filter(p => p.contact.emailOptIn && p.contact.email)
-          .map(p => p.contact.email);
+          .filter(p => p.client.emailOptIn && p.client.email)
+          .map(p => p.client.email);
       }
       
       // Send email via Gmail (fallback to SendGrid)
@@ -1792,15 +1792,15 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       
       if (req.user!.clientId) {
         // Get client to verify photographer ownership
-        const contact = await storage.getContact(req.user!.clientId);
-        if (!client || contact.photographerId !== project.photographerId) {
+        const client = await storage.getClient(req.user!.clientId);
+        if (!client || client.photographerId !== project.photographerId) {
           return res.status(403).json({ message: "Access denied" });
         }
         
         // Check if primary client
         isPrimaryClient = req.user!.clientId === project.clientId;
         
-        // If not primary contact, check if participant
+        // If not primary client, check if participant
         if (!isPrimaryClient) {
           const participantProjects = await storage.getParticipantProjects(req.user!.clientId);
           isParticipant = participantProjects.some(p => p.projectId === req.params.id);
@@ -1838,8 +1838,8 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       
       // For clients, verify they belong to the same photographer as the project
       if (req.user!.clientId) {
-        const contact = await storage.getContact(req.user!.clientId);
-        if (!client || contact.photographerId !== project.photographerId) {
+        const client = await storage.getClient(req.user!.clientId);
+        if (!client || client.photographerId !== project.photographerId) {
           return res.status(403).json({ message: "Access denied" });
         }
         isPrimaryClient = req.user!.clientId === project.clientId;
@@ -1851,14 +1851,14 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       
       // Check if participant already exists for this project
       const existingParticipants = await storage.getProjectParticipants(req.params.id);
-      const alreadyAdded = existingParticipants.some(p => p.contact.email === email.toLowerCase());
+      const alreadyAdded = existingParticipants.some(p => p.client.email === email.toLowerCase());
       
       if (alreadyAdded) {
         return res.status(400).json({ message: "This person is already a participant on this project" });
       }
       
       // Look up or create client
-      let contact = await storage.getContactByEmail(email.toLowerCase(), project.photographerId);
+      let client = await storage.getClientByEmail(email.toLowerCase(), project.photographerId);
       
       if (!client) {
         // Create new client (they'll use portal tokens for authentication)
@@ -1870,16 +1870,16 @@ ${photographer?.businessName || 'Your Photography Team'}`;
           emailOptIn: true
         });
         
-        contact = await storage.createContact(newClientData);
+        client = await storage.createClient(newClientData);
         
         // TODO: Send invite email with portal access link (task 9)
-        console.log(`[PARTICIPANT] Created new client for participant: ${contact.id}, email: ${email}`);
+        console.log(`[PARTICIPANT] Created new client for participant: ${client.id}, email: ${email}`);
       }
       
       // Add participant with validation
       const participantData = insertProjectParticipantSchema.parse({
         projectId: req.params.id,
-        clientId: contact.id,
+        clientId: client.id,
         addedBy: isPhotographer ? 'photographer' : 'client',
         inviteSent: false
       });
@@ -1910,8 +1910,8 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       
       // For clients, verify they belong to the same photographer as the project
       if (req.user!.clientId) {
-        const contact = await storage.getContact(req.user!.clientId);
-        if (!client || contact.photographerId !== project.photographerId) {
+        const client = await storage.getClient(req.user!.clientId);
+        if (!client || client.photographerId !== project.photographerId) {
           return res.status(403).json({ message: "Access denied" });
         }
         isPrimaryClient = req.user!.clientId === project.clientId;
@@ -2563,24 +2563,24 @@ ${photographer?.businessName || 'Your Photography Team'}`;
 
       // Send email to client with link to view Smart File
       try {
-        const [contact, photographer, smartFile] = await Promise.all([
-          storage.getContact(project.clientId),
+        const [client, photographer, smartFile] = await Promise.all([
+          storage.getClient(project.clientId),
           storage.getPhotographer(project.photographerId),
           storage.getSmartFile(projectSmartFile.smartFileId)
         ]);
 
-        if (client && contact.email && contact.emailOptIn && photographer && smartFile) {
+        if (client && client.email && client.emailOptIn && photographer && smartFile) {
           const smartFileUrl = `${process.env.VITE_APP_URL || 'https://thephotocrm.com'}/smart-file/${updatedProjectSmartFile.token}`;
           
           await sendEmail({
             photographerId: photographer.id,
-            clientId: contact.id,
+            clientId: client.id,
             projectId: project.id,
-            to: contact.email,
+            to: client.email,
             subject: `${photographer.businessName} sent you a proposal`,
             html: `
               <h2>You have a new proposal!</h2>
-              <p>Hi ${contact.firstName},</p>
+              <p>Hi ${client.firstName},</p>
               <p>${photographer.businessName} has sent you a proposal titled "${smartFile.name}".</p>
               <p>Review your proposal, select your package and add-ons, and proceed to payment:</p>
               <p><a href="${smartFileUrl}" style="background: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">View Proposal</a></p>
@@ -2715,12 +2715,12 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       }
 
       // Get client and photographer info
-      const [contact, photographer] = await Promise.all([
-        storage.getContact(project.clientId),
+      const [client, photographer] = await Promise.all([
+        storage.getClient(project.clientId),
         storage.getPhotographer(project.photographerId)
       ]);
 
-      if (!client || !contact.phone) {
+      if (!client || !client.phone) {
         return res.status(400).json({ message: "Client phone number not available" });
       }
 
@@ -2732,10 +2732,10 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       const smartFileUrl = `${process.env.VITE_APP_URL || 'https://thephotocrm.com'}/smart-file/${projectSmartFile.token}`;
       
       // Send SMS
-      const smsBody = `Hi ${contact.firstName}! ${photographer.businessName} sent you a proposal. View it here: ${smartFileUrl}`;
+      const smsBody = `Hi ${client.firstName}! ${photographer.businessName} sent you a proposal. View it here: ${smartFileUrl}`;
       
       const result = await sendSms({
-        to: contact.phone,
+        to: client.phone,
         body: smsBody
       });
 
@@ -2781,7 +2781,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
 
       // Fetch related data
       const project = await storage.getProject(projectSmartFile.projectId);
-      const contact = await storage.getContact(projectSmartFile.clientId);
+      const client = await storage.getClient(projectSmartFile.clientId);
       const photographer = await storage.getPhotographer(projectSmartFile.photographerId);
 
       if (!project || !client || !photographer) {
@@ -2798,13 +2798,13 @@ ${photographer?.businessName || 'Your Photography Team'}`;
           projectType: project.projectType,
           eventDate: project.eventDate
         },
-        contact: {
-          id: contact.id,
-          firstName: contact.firstName,
-          lastName: contact.lastName,
-          email: contact.email,
-          phone: contact.phone,
-          address: contact.address
+        client: {
+          id: client.id,
+          firstName: client.firstName,
+          lastName: client.lastName,
+          email: client.email,
+          phone: client.phone,
+          address: client.address
         },
         photographer: {
           id: photographer.id,
@@ -2897,9 +2897,9 @@ ${photographer?.businessName || 'Your Photography Team'}`;
 
       // Send notification to photographer
       try {
-        const [project, contact, photographer, smartFile] = await Promise.all([
+        const [project, client, photographer, smartFile] = await Promise.all([
           storage.getProject(projectSmartFile.projectId),
-          storage.getContact(projectSmartFile.clientId),
+          storage.getClient(projectSmartFile.clientId),
           storage.getPhotographer(projectSmartFile.photographerId),
           storage.getSmartFile(projectSmartFile.smartFileId)
         ]);
@@ -2918,14 +2918,14 @@ ${photographer?.businessName || 'Your Photography Team'}`;
 
             await sendEmail({
               photographerId: photographer.id,
-              clientId: contact.id,
+              clientId: client.id,
               projectId: project.id,
               to: photographerUser.email,
-              subject: `${contact.firstName} ${contact.lastName} accepted your proposal!`,
+              subject: `${client.firstName} ${client.lastName} accepted your proposal!`,
               html: `
                 <h2>Great news! Your proposal was accepted!</h2>
                 <p>Hi ${photographer.businessName},</p>
-                <p>${contact.firstName} ${contact.lastName} has accepted your proposal "${smartFile.name}".</p>
+                <p>${client.firstName} ${client.lastName} has accepted your proposal "${smartFile.name}".</p>
                 <p><strong>Selected Package:</strong> ${packageName}</p>
                 <p><strong>Total Amount:</strong> $${((totalCents || 0) / 100).toFixed(2)}</p>
                 ${depositCents ? `<p><strong>Deposit Amount:</strong> $${(depositCents / 100).toFixed(2)}</p>` : ''}
@@ -2933,7 +2933,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
                 <p>View project details in your dashboard.</p>
                 <p>Best regards,<br>Your CRM System</p>
               `,
-              text: `Great news! Your proposal was accepted!\n\n${contact.firstName} ${contact.lastName} has accepted your proposal "${smartFile.name}".\n\nSelected Package: ${packageName}\nTotal: $${((totalCents || 0) / 100).toFixed(2)}${depositCents ? `\nDeposit: $${(depositCents / 100).toFixed(2)}` : ''}\n\nYour client will proceed to payment shortly.\n\nView project details in your dashboard.`
+              text: `Great news! Your proposal was accepted!\n\n${client.firstName} ${client.lastName} has accepted your proposal "${smartFile.name}".\n\nSelected Package: ${packageName}\nTotal: $${((totalCents || 0) / 100).toFixed(2)}${depositCents ? `\nDeposit: $${(depositCents / 100).toFixed(2)}` : ''}\n\nYour client will proceed to payment shortly.\n\nView project details in your dashboard.`
             });
           }
         }
@@ -3012,7 +3012,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       try {
         const [project, client] = await Promise.all([
           storage.getProject(projectSmartFile.projectId),
-          storage.getContact(projectSmartFile.clientId)
+          storage.getClient(projectSmartFile.clientId)
         ]);
 
         if (client?.email) {
@@ -3021,7 +3021,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
           const emailHtml = `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
               <h2 style="color: #2563eb;">Contract Signed Successfully</h2>
-              <p>Hi ${contact.firstName},</p>
+              <p>Hi ${client.firstName},</p>
               <p>Thank you for signing the contract for <strong>${projectSmartFile.smartFileName}</strong>.</p>
               <p>Your signature has been recorded and both parties have a legally binding agreement.</p>
               <div style="background-color: #f3f4f6; padding: 15px; border-radius: 8px; margin: 20px 0;">
@@ -3035,11 +3035,11 @@ ${photographer?.businessName || 'Your Photography Team'}`;
           `;
 
           await sendEmail({
-            to: contact.email,
+            to: client.email,
             subject: `Contract Signed: ${projectSmartFile.smartFileName}`,
             html: emailHtml,
             photographerId: projectSmartFile.photographerId,
-            clientId: contact.id,
+            clientId: client.id,
             projectId: projectSmartFile.projectId,
             source: 'MANUAL'
           });
@@ -3360,7 +3360,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       try {
         const [project, client] = await Promise.all([
           storage.getProject(projectSmartFile.projectId),
-          storage.getContact(projectSmartFile.clientId)
+          storage.getClient(projectSmartFile.clientId)
         ]);
 
         if (client?.email) {
@@ -3372,7 +3372,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
           const emailHtml = `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
               <h2 style="color: #2563eb;">Payment Receipt</h2>
-              <p>Hi ${contact.firstName},</p>
+              <p>Hi ${client.firstName},</p>
               <p>Thank you for your payment! We've received your ${paymentType.toLowerCase()} payment for <strong>${projectSmartFile.smartFileName}</strong>.</p>
               <div style="background-color: #f3f4f6; padding: 15px; border-radius: 8px; margin: 20px 0;">
                 <p style="margin: 5px 0;"><strong>Contract:</strong> ${projectSmartFile.smartFileName}</p>
@@ -3391,11 +3391,11 @@ ${photographer?.businessName || 'Your Photography Team'}`;
           `;
 
           await sendEmail({
-            to: contact.email,
+            to: client.email,
             subject: `Payment Receipt - ${projectSmartFile.smartFileName}`,
             html: emailHtml,
             photographerId: projectSmartFile.photographerId,
-            clientId: contact.id,
+            clientId: client.id,
             projectId: projectSmartFile.projectId,
             source: 'MANUAL'
           });
@@ -3437,7 +3437,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       // Get project and client data
       const [project, client] = await Promise.all([
         storage.getProject(projectSmartFile.projectId),
-        storage.getContact(projectSmartFile.clientId)
+        storage.getClient(projectSmartFile.clientId)
       ]);
 
       if (!project || !client) {
@@ -3463,21 +3463,21 @@ ${photographer?.businessName || 'Your Photography Team'}`;
         endAt,
         status: 'CONFIRMED',
         bookingType: project.projectType || 'CONSULTATION',
-        clientEmail: contact.email || undefined,
-        clientPhone: contact.phone || undefined,
-        clientName: `${contact.firstName} ${contact.lastName}`
+        clientEmail: client.email || undefined,
+        clientPhone: client.phone || undefined,
+        clientName: `${client.firstName} ${client.lastName}`
       });
 
       // Create Google Calendar event (if photographer has Google Calendar connected)
       try {
         const { createBookingCalendarEvent } = await import('./services/calendar');
         const calendarResult = await createBookingCalendarEvent(project.photographerId, {
-          title: `${projectSmartFile.smartFileName} - ${contact.firstName} ${contact.lastName}`,
-          description: `Client: ${contact.firstName} ${contact.lastName}\nProject: ${project.title}\nSmart File: ${projectSmartFile.smartFileName}`,
+          title: `${projectSmartFile.smartFileName} - ${client.firstName} ${client.lastName}`,
+          description: `Client: ${client.firstName} ${client.lastName}\nProject: ${project.title}\nSmart File: ${projectSmartFile.smartFileName}`,
           startTime: bookingDate,
           endTime: endAt,
-          clientEmail: contact.email,
-          clientName: `${contact.firstName} ${contact.lastName}`
+          clientEmail: client.email,
+          clientName: `${client.firstName} ${client.lastName}`
         });
 
         if (calendarResult.success && calendarResult.eventId && calendarResult.meetLink) {
@@ -3519,7 +3519,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
 
       // Send confirmation email to client
       try {
-        if (contact.email) {
+        if (client.email) {
           const { sendEmail } = await import('./services/email');
           const photographer = await storage.getPhotographer(project.photographerId);
           
@@ -3542,7 +3542,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
           const emailHtml = `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
               <h2 style="color: #2563eb;">Appointment Confirmed!</h2>
-              <p>Hi ${contact.firstName},</p>
+              <p>Hi ${client.firstName},</p>
               <p>Your appointment has been successfully scheduled.</p>
               <div style="background-color: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
                 <h3 style="margin-top: 0; color: #1f2937;">Appointment Details</h3>
@@ -3565,11 +3565,11 @@ ${photographer?.businessName || 'Your Photography Team'}`;
           `;
 
           await sendEmail({
-            to: contact.email,
+            to: client.email,
             subject: `Appointment Confirmed - ${formattedDate}`,
             html: emailHtml,
             photographerId: project.photographerId,
-            clientId: contact.id,
+            clientId: client.id,
             projectId: project.id,
             source: 'MANUAL'
           });
@@ -4516,7 +4516,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       }
 
       // Find client by phone number
-      const contact = await storage.getContactByPhone(phone);
+      const client = await storage.getClientByPhone(phone);
       
       if (!client) {
         console.log(`No client found for phone number: ${phone}`);
@@ -4524,20 +4524,20 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       }
 
       // Get photographer for this client
-      const photographer = await storage.getPhotographer(contact.photographerId);
+      const photographer = await storage.getPhotographer(client.photographerId);
       
       if (!photographer) {
-        console.error(`No photographer found for contact: ${contact.id}`);
+        console.error(`No photographer found for client: ${client.id}`);
         return res.status(200).json({ message: 'Photographer not found' });
       }
 
       // Get client's projects to find the most recent one for context
-      const clientWithProjects = await storage.getContact(contact.id);
+      const clientWithProjects = await storage.getClient(client.id);
       const latestProject = clientWithProjects?.projects?.[0]; // Projects are typically ordered by creation date
 
       // Log the inbound SMS
       await storage.createSmsLog({
-        clientId: contact.id,
+        clientId: client.id,
         projectId: latestProject?.id || null,
         status: 'received',
         direction: 'INBOUND',
@@ -4551,7 +4551,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       // Forward message to photographer if they have a phone number
       if (photographer.phone) {
         const projectContext = latestProject ? `${latestProject.projectType} Project` : 'Client';
-        const contextMessage = `${contact.firstName} ${contact.lastName} (${projectContext}): ${message}`;
+        const contextMessage = `${client.firstName} ${client.lastName} (${projectContext}): ${message}`;
         
         const forwardResult = await sendSms({
           to: photographer.phone,
@@ -4561,7 +4561,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
         if (forwardResult.success) {
           // Log the forwarded message
           await storage.createSmsLog({
-            clientId: contact.id,
+            clientId: client.id,
             projectId: latestProject?.id || null,
             status: 'sent',
             direction: 'OUTBOUND',
@@ -4680,15 +4680,15 @@ ${photographer?.businessName || 'Your Photography Team'}`;
 
       // Critical security check: If clientId is provided, validate tenant ownership
       if (bookingData.clientId) {
-        const contact = await storage.getContact(bookingData.clientId);
-        if (!client || contact.photographerId !== photographerId) {
+        const client = await storage.getClient(bookingData.clientId);
+        if (!client || client.photographerId !== photographerId) {
           return res.status(403).json({ message: "Client not found or access denied" });
         }
         
         // Populate client details for consistency (optional but recommended)
-        bookingData.clientName = contact.name;
-        bookingData.clientEmail = contact.email;
-        bookingData.clientPhone = contact.phone;
+        bookingData.clientName = client.name;
+        bookingData.clientEmail = client.email;
+        bookingData.clientPhone = client.phone;
       } else {
         // Server-side validation: Require manual client fields when no clientId
         if (!bookingData.clientName || (!bookingData.clientEmail && !bookingData.clientPhone)) {
@@ -5012,7 +5012,7 @@ ${photographer.businessName}`
           const consultationStage = stages.find(s => s.name.toLowerCase().includes("consultation"));
           
           if (consultationStage) {
-            await storage.updateContact(booking.clientId, {
+            await storage.updateClient(booking.clientId, {
               stageId: consultationStage.id,
               stageEnteredAt: new Date()
             });
@@ -5939,18 +5939,18 @@ ${photographer.businessName}`
         role: p.role,
         stage: p.stage ? { name: p.stage.name } : undefined,
         primaryClient: {
-          firstName: p.contact.firstName,
-          lastName: p.contact.lastName,
-          email: p.contact.email
+          firstName: p.client.firstName,
+          lastName: p.client.lastName,
+          email: p.client.email
         }
       }));
       
       const portalData = {
-        contact: {
-          firstName: project.contact.firstName,
-          lastName: project.contact.lastName,
-          email: project.contact.email,
-          phone: project.contact.phone,
+        client: {
+          firstName: project.client.firstName,
+          lastName: project.client.lastName,
+          email: project.client.email,
+          phone: project.client.phone,
           weddingDate: project.eventDate,
           stage: project.stage ? { name: project.stage.name } : { name: 'Unknown' }
         },
@@ -6096,11 +6096,11 @@ ${photographer.businessName}`
       const finalSmsOptIn = submissionData.smsOptIn ?? photographer.defaultSmsOptIn ?? false;
       
       // Check if client already exists (by photographer + email)
-      let contact = await storage.getContactByEmail(submissionData.email, photographer.id);
+      let client = await storage.getClientByEmail(submissionData.email, photographer.id);
       
       if (!client) {
         // Create new client with contact information
-        contact = await storage.createContact({
+        client = await storage.createClient({
           photographerId: photographer.id,
           firstName: submissionData.firstName,
           lastName: submissionData.lastName,
@@ -6109,16 +6109,16 @@ ${photographer.businessName}`
         });
       } else {
         // Update existing client info if provided
-        if (submissionData.phone && submissionData.phone !== contact.phone) {
-          await storage.updateContact(contact.id, { phone: submissionData.phone });
-          contact = { ...contact, phone: submissionData.phone };
+        if (submissionData.phone && submissionData.phone !== client.phone) {
+          await storage.updateClient(client.id, { phone: submissionData.phone });
+          client = { ...client, phone: submissionData.phone };
         }
       }
       
       // Create project with form's configured project type and submission data
       const project = await storage.createProject({
         photographerId: photographer.id,
-        clientId: contact.id,
+        clientId: client.id,
         title: `${form.projectType.toLowerCase().replace(/_/g, ' ')} for ${submissionData.firstName} ${submissionData.lastName}`,
         projectType: form.projectType,
         eventDate: submissionData.eventDate && !isNaN(Date.parse(submissionData.eventDate)) ? new Date(submissionData.eventDate) : undefined,
@@ -6140,7 +6140,7 @@ ${photographer.businessName}`
       res.status(201).json({ 
         success: true, 
         message: "Form submitted successfully",
-        clientId: contact.id,
+        clientId: client.id,
         projectId: project.id,
         redirectUrl: (form.config as any)?.redirectUrl || ''
       });
@@ -6206,7 +6206,7 @@ ${photographer.businessName}`
       // NEW: Create separate client and project records
       
       // 1. Create client with pure contact information
-      const contact = await storage.createContact({
+      const client = await storage.createClient({
         photographerId: photographer.id,
         firstName: leadData.firstName,
         lastName: leadData.lastName,
@@ -6217,7 +6217,7 @@ ${photographer.businessName}`
       // 2. Create project linked to the client
       const project = await storage.createProject({
         photographerId: photographer.id,
-        clientId: contact.id,
+        clientId: client.id,
         title: `${leadData.projectType.toLowerCase().replace(/_/g, ' ')} for ${leadData.firstName} ${leadData.lastName}`,
         projectType: leadData.projectType,
         eventDate: leadData.eventDate && !isNaN(Date.parse(leadData.eventDate)) ? new Date(leadData.eventDate) : undefined,
@@ -6233,7 +6233,7 @@ ${photographer.businessName}`
       res.status(201).json({ 
         success: true, 
         message: "Lead submitted successfully",
-        clientId: contact.id,
+        clientId: client.id,
         projectId: project.id,
         redirectUrl: leadData.redirectUrl || null
       });

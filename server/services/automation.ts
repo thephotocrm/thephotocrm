@@ -2,15 +2,15 @@ import { storage } from '../storage';
 import { sendEmail, renderTemplate } from './email';
 import { sendSms, renderSmsTemplate } from './sms';
 import { db } from '../db';
-import { clients, automations, automationSteps, stages, templates, emailLogs, smsLogs, automationExecutions, photographers, projectSmartFiles, smartFiles, smartFilePages, projects, bookings, projectQuestionnaires, dripCampaigns, dripCampaignEmails, dripCampaignSubscriptions, dripEmailDeliveries, automationBusinessTriggers } from '@shared/schema';
+import { contacts, automations, automationSteps, stages, templates, emailLogs, smsLogs, automationExecutions, photographers, projectSmartFiles, smartFiles, smartFilePages, projects, bookings, projectQuestionnaires, dripCampaigns, dripCampaignEmails, dripCampaignSubscriptions, dripEmailDeliveries, automationBusinessTriggers } from '@shared/schema';
 import { eq, and, gte, lte, isNull } from 'drizzle-orm';
 
 async function getParticipantEmailsForBCC(projectId: string): Promise<string[]> {
   try {
     const participants = await storage.getProjectParticipants(projectId);
     return participants
-      .filter(p => p.client.emailOptIn && p.client.email)
-      .map(p => p.client.email);
+      .filter(p => p.contact.emailOptIn && p.contact.email)
+      .map(p => p.contact.email);
   } catch (error) {
     console.error(`Error fetching participants for project ${projectId}:`, error);
     return [];
@@ -103,7 +103,7 @@ function getDateInTimezone(date: Date, timezone: string): { year: number, month:
   };
 }
 
-interface ClientWithStage {
+interface ContactWithStage {
   id: string;
   firstName: string;
   lastName: string;
@@ -162,20 +162,20 @@ async function processCommunicationAutomation(automation: any, photographerId: s
   const projectsInStage = await db
     .select({
       id: projects.id,
-      clientId: projects.clientId,
+      contactId: projects.contactId,
       stageEnteredAt: projects.stageEnteredAt,
       eventDate: projects.eventDate,
       smsOptIn: projects.smsOptIn,
       emailOptIn: projects.emailOptIn,
       photographerId: projects.photographerId,
-      // Client details
-      firstName: clients.firstName,
-      lastName: clients.lastName,
-      email: clients.email,
-      phone: clients.phone
+      // Contact details
+      firstName: contacts.firstName,
+      lastName: contacts.lastName,
+      email: contacts.email,
+      phone: contacts.phone
     })
     .from(projects)
-    .innerJoin(clients, eq(projects.clientId, clients.id))
+    .innerJoin(contacts, eq(projects.contactId, contacts.id))
     .where(and(
       eq(projects.photographerId, photographerId),
       eq(projects.stageId, automation.stageId!)
@@ -219,7 +219,7 @@ async function processStageChangeAutomation(automation: any, photographerId: str
   const activeProjects = await db
     .select()
     .from(projects)
-    .innerJoin(clients, eq(projects.clientId, clients.id))
+    .innerJoin(contacts, eq(projects.contactId, contacts.id))
     .where(and(
       eq(projects.photographerId, photographerId),
       eq(projects.projectType, automation.projectType),
@@ -288,44 +288,44 @@ async function processStageChangeAutomation(automation: any, photographerId: str
   }
 }
 
-async function processAutomationStep(client: any, step: any, automation: any): Promise<void> {
-  console.log(`Processing step for client ${client.firstName} ${client.lastName} (${client.email})`);
+async function processAutomationStep(contact: any, step: any, automation: any): Promise<void> {
+  console.log(`Processing step for contact ${contact.firstName} ${contact.lastName} (${contact.email})`);
   
-  if (!client.stageEnteredAt) {
-    console.log(`❌ No stageEnteredAt date for client ${client.firstName} ${client.lastName}, skipping`);
+  if (!contact.stageEnteredAt) {
+    console.log(`❌ No stageEnteredAt date for contact ${contact.firstName} ${contact.lastName}, skipping`);
     return;
   }
 
-  // Check effectiveFrom: only run on clients who entered stage AFTER automation was created
+  // Check effectiveFrom: only run on contacts who entered stage AFTER automation was created
   if (automation.effectiveFrom) {
-    const stageEnteredAt = new Date(client.stageEnteredAt);
+    const stageEnteredAt = new Date(contact.stageEnteredAt);
     const effectiveFrom = new Date(automation.effectiveFrom);
     if (stageEnteredAt < effectiveFrom) {
-      console.log(`⏸️ Client entered stage before automation was created (entered: ${stageEnteredAt.toISOString()}, effective: ${effectiveFrom.toISOString()}), skipping`);
+      console.log(`⏸️ Contact entered stage before automation was created (entered: ${stageEnteredAt.toISOString()}, effective: ${effectiveFrom.toISOString()}), skipping`);
       return;
     }
   }
 
   // Check event date condition
   if (automation.eventDateCondition) {
-    if (automation.eventDateCondition === 'HAS_EVENT_DATE' && !client.eventDate) {
-      console.log(`📅 Client ${client.firstName} ${client.lastName} does not have event date (required by automation), skipping`);
+    if (automation.eventDateCondition === 'HAS_EVENT_DATE' && !contact.eventDate) {
+      console.log(`📅 Contact ${contact.firstName} ${contact.lastName} does not have event date (required by automation), skipping`);
       return;
     }
-    if (automation.eventDateCondition === 'NO_EVENT_DATE' && client.eventDate) {
-      console.log(`📅 Client ${client.firstName} ${client.lastName} has event date (automation requires no date), skipping`);
+    if (automation.eventDateCondition === 'NO_EVENT_DATE' && contact.eventDate) {
+      console.log(`📅 Contact ${contact.firstName} ${contact.lastName} has event date (automation requires no date), skipping`);
       return;
     }
   }
 
   const now = new Date();
-  const stageEnteredAt = new Date(client.stageEnteredAt);
+  const stageEnteredAt = new Date(contact.stageEnteredAt);
   const delayMs = step.delayMinutes * 60 * 1000;
   const shouldSendAt = new Date(stageEnteredAt.getTime() + delayMs);
 
   // Check if it's time to send
   if (now < shouldSendAt) {
-    console.log(`⏰ Too early to send for ${client.firstName} ${client.lastName}. Should send at: ${shouldSendAt}, now: ${now}`);
+    console.log(`⏰ Too early to send for ${contact.firstName} ${contact.lastName}. Should send at: ${shouldSendAt}, now: ${now}`);
     return;
   }
 
@@ -341,7 +341,7 @@ async function processAutomationStep(client: any, step: any, automation: any): P
       : (currentHour >= start || currentHour <= end); // Crossing: 22-6
     
     if (inQuietHours) {
-      console.log(`🌙 In quiet hours for ${client.firstName} ${client.lastName}, current hour: ${currentHour}`);
+      console.log(`🌙 In quiet hours for ${contact.firstName} ${contact.lastName}, current hour: ${currentHour}`);
       return; // In quiet hours
     }
   }
@@ -352,27 +352,27 @@ async function processAutomationStep(client: any, step: any, automation: any): P
   const actionType = step.actionType || automation.channel;
   
   // Check consent FIRST (before any reservation)
-  if (actionType === 'EMAIL' && !client.emailOptIn) {
-    console.log(`📧 Email opt-in missing for ${client.firstName} ${client.lastName}, skipping (no reservation)`);
+  if (actionType === 'EMAIL' && !contact.emailOptIn) {
+    console.log(`📧 Email opt-in missing for ${contact.firstName} ${contact.lastName}, skipping (no reservation)`);
     return;
   }
-  if (actionType === 'SMS' && !client.smsOptIn) {
-    console.log(`📱 SMS opt-in missing for ${client.firstName} ${client.lastName}, skipping (no reservation)`);
+  if (actionType === 'SMS' && !contact.smsOptIn) {
+    console.log(`📱 SMS opt-in missing for ${contact.firstName} ${contact.lastName}, skipping (no reservation)`);
     return;
   }
   // Smart File doesn't require explicit opt-in (it's part of the service agreement)
 
   // Check contact info EARLY (before reservation)
-  if (actionType === 'EMAIL' && !client.email) {
-    console.log(`📧 No email address for ${client.firstName} ${client.lastName}, skipping (no reservation)`);
+  if (actionType === 'EMAIL' && !contact.email) {
+    console.log(`📧 No email address for ${contact.firstName} ${contact.lastName}, skipping (no reservation)`);
     return;
   }
-  if (actionType === 'SMS' && !client.phone) {
-    console.log(`📱 No phone number for ${client.firstName} ${client.lastName}, skipping (no reservation)`);
+  if (actionType === 'SMS' && !contact.phone) {
+    console.log(`📱 No phone number for ${contact.firstName} ${contact.lastName}, skipping (no reservation)`);
     return;
   }
-  if (actionType === 'SMART_FILE' && !client.email) {
-    console.log(`📄 No email address for Smart File notification for ${client.firstName} ${client.lastName}, skipping (no reservation)`);
+  if (actionType === 'SMART_FILE' && !contact.email) {
+    console.log(`📄 No email address for Smart File notification for ${contact.firstName} ${contact.lastName}, skipping (no reservation)`);
     return;
   }
 
@@ -382,7 +382,7 @@ async function processAutomationStep(client: any, step: any, automation: any): P
   
   if (actionType === 'SMART_FILE') {
     if (!step.smartFileTemplateId) {
-      console.log(`📄 No Smart File template ID for ${client.firstName} ${client.lastName}, skipping (no reservation)`);
+      console.log(`📄 No Smart File template ID for ${contact.firstName} ${contact.lastName}, skipping (no reservation)`);
       return;
     }
     
@@ -391,16 +391,16 @@ async function processAutomationStep(client: any, step: any, automation: any): P
       .from(smartFiles)
       .where(and(
         eq(smartFiles.id, step.smartFileTemplateId),
-        eq(smartFiles.photographerId, client.photographerId)
+        eq(smartFiles.photographerId, contact.photographerId)
       ));
 
     if (!smartFileTemplate) {
-      console.log(`📄 Smart File template not found for ${client.firstName} ${client.lastName}, templateId: ${step.smartFileTemplateId}, skipping (no reservation)`);
+      console.log(`📄 Smart File template not found for ${contact.firstName} ${contact.lastName}, templateId: ${step.smartFileTemplateId}, skipping (no reservation)`);
       return;
     }
   } else {
     if (!step.templateId) {
-      console.log(`📝 No template ID for ${client.firstName} ${client.lastName}, skipping (no reservation)`);
+      console.log(`📝 No template ID for ${contact.firstName} ${contact.lastName}, skipping (no reservation)`);
       return;
     }
     
@@ -409,11 +409,11 @@ async function processAutomationStep(client: any, step: any, automation: any): P
       .from(templates)
       .where(and(
         eq(templates.id, step.templateId),
-        eq(templates.photographerId, client.photographerId)
+        eq(templates.photographerId, contact.photographerId)
       ));
 
     if (!template) {
-      console.log(`📝 Template not found for ${client.firstName} ${client.lastName}, templateId: ${step.templateId}, skipping (no reservation)`);
+      console.log(`📝 Template not found for ${contact.firstName} ${contact.lastName}, templateId: ${step.templateId}, skipping (no reservation)`);
       return;
     }
 
@@ -426,7 +426,7 @@ async function processAutomationStep(client: any, step: any, automation: any): P
 
   // 🔒 BULLETPROOF DUPLICATE PREVENTION - Reserve execution atomically (ONLY after ALL preconditions pass)
   const reservation = await reserveAutomationExecution(
-    client.id, // projectId
+    contact.id, // projectId
     automation.id, // automationId
     'COMMUNICATION', // automationType
     automation.channel, // channel
@@ -434,7 +434,7 @@ async function processAutomationStep(client: any, step: any, automation: any): P
   );
   
   if (!reservation.canExecute) {
-    console.log(`🔒 Automation already reserved/executed for ${client.firstName} ${client.lastName}, prevented duplicate (bulletproof reservation)`);
+    console.log(`🔒 Automation already reserved/executed for ${contact.firstName} ${contact.lastName}, prevented duplicate (bulletproof reservation)`);
     return;
   }
 
@@ -442,7 +442,7 @@ async function processAutomationStep(client: any, step: any, automation: any): P
   const [photographer] = await db
     .select()
     .from(photographers)
-    .where(eq(photographers.id, client.photographerId));
+    .where(eq(photographers.id, contact.photographerId));
   
   // Generate or get short link for booking calendar
   let schedulingLink = '';
@@ -453,7 +453,7 @@ async function processAutomationStep(client: any, step: any, automation: any): P
     const targetUrl = `${baseUrl}/booking/calendar/${photographer.publicToken}`;
     
     // Try to find existing short link for this photographer's booking calendar
-    const existingLinks = await storage.getShortLinksByPhotographer(client.photographerId);
+    const existingLinks = await storage.getShortLinksByPhotographer(contact.photographerId);
     const existingBookingLink = existingLinks.find(link => 
       link.linkType === 'BOOKING' && link.targetUrl === targetUrl
     );
@@ -482,7 +482,7 @@ async function processAutomationStep(client: any, step: any, automation: any): P
 
       if (attempts < 10) {
         const newLink = await storage.createShortLink({
-          photographerId: client.photographerId,
+          photographerId: contact.photographerId,
           shortCode,
           targetUrl,
           linkType: 'BOOKING'
@@ -497,23 +497,23 @@ async function processAutomationStep(client: any, step: any, automation: any): P
     
   // Prepare variables for template rendering
   const variables = {
-    firstName: client.firstName,
-    lastName: client.lastName,
-    fullName: `${client.firstName} ${client.lastName}`,
-    email: client.email || '',
-    phone: client.phone || '',
+    firstName: contact.firstName,
+    lastName: contact.lastName,
+    fullName: `${contact.firstName} ${contact.lastName}`,
+    email: contact.email || '',
+    phone: contact.phone || '',
     businessName: photographer?.businessName || 'Your Photographer',
-    eventDate: client.eventDate ? new Date(client.eventDate).toLocaleDateString() : 'Not set',
-    weddingDate: client.eventDate ? new Date(client.eventDate).toLocaleDateString() : 'Not set', // Backward compatibility
+    eventDate: contact.eventDate ? new Date(contact.eventDate).toLocaleDateString() : 'Not set',
+    weddingDate: contact.eventDate ? new Date(contact.eventDate).toLocaleDateString() : 'Not set', // Backward compatibility
     scheduling_link: schedulingLink
   };
 
   // 🔒 BULLETPROOF ERROR HANDLING - Wrap all send operations to prevent PENDING reservations on errors
   try {
     // Send message or Smart File
-    if (actionType === 'SMART_FILE' && smartFileTemplate && client.email) {
+    if (actionType === 'SMART_FILE' && smartFileTemplate && contact.email) {
       // Create project Smart File from template
-      console.log(`📄 Creating Smart File for ${client.firstName} ${client.lastName} from template "${smartFileTemplate.name}"...`);
+      console.log(`📄 Creating Smart File for ${contact.firstName} ${contact.lastName} from template "${smartFileTemplate.name}"...`);
       
       // Generate unique token for the Smart File
       const generateToken = () => {
@@ -539,10 +539,10 @@ async function processAutomationStep(client: any, step: any, automation: any): P
       
       // Create project Smart File with all required fields
       const projectSmartFile = await storage.createProjectSmartFile({
-        projectId: client.id,
+        projectId: contact.id,
         smartFileId: smartFileTemplate.id,
-        photographerId: client.photographerId,
-        clientId: client.clientId,
+        photographerId: contact.photographerId,
+        contactId: contact.contactId,
         smartFileName: smartFileTemplate.name,
         pagesSnapshot: templatePages,
         token,
@@ -552,10 +552,10 @@ async function processAutomationStep(client: any, step: any, automation: any): P
 
       const smartFileUrl = `${baseUrl}/smart-file/${token}`;
       
-      // Send notification email to client
+      // Send notification email to contact
       const subject = `${smartFileTemplate.name} from ${photographer?.businessName || 'Your Photographer'}`;
       const htmlBody = `
-        <h2>Hi ${client.firstName},</h2>
+        <h2>Hi ${contact.firstName},</h2>
         <p>${photographer?.businessName || 'Your photographer'} has sent you a ${smartFileTemplate.name}.</p>
         <p>Click the link below to view and respond:</p>
         <p><a href="${smartFileUrl}" style="display: inline-block; padding: 12px 24px; background-color: #4F46E5; color: white; text-decoration: none; border-radius: 6px; font-weight: 600;">View ${smartFileTemplate.name}</a></p>
@@ -563,34 +563,34 @@ async function processAutomationStep(client: any, step: any, automation: any): P
         <br/>
         <p>Best regards,<br/>${photographer?.businessName || 'Your Photographer'}</p>
       `;
-      const textBody = `Hi ${client.firstName},\n\n${photographer?.businessName || 'Your photographer'} has sent you a ${smartFileTemplate.name}.\n\nView it here: ${smartFileUrl}\n\nBest regards,\n${photographer?.businessName || 'Your Photographer'}`;
+      const textBody = `Hi ${contact.firstName},\n\n${photographer?.businessName || 'Your photographer'} has sent you a ${smartFileTemplate.name}.\n\nView it here: ${smartFileUrl}\n\nBest regards,\n${photographer?.businessName || 'Your Photographer'}`;
 
-      console.log(`📧 Sending Smart File notification email to ${client.email}...`);
+      console.log(`📧 Sending Smart File notification email to ${contact.email}...`);
       
       const fromEmail = process.env.SENDGRID_FROM_EMAIL || 'scoop@missionscoopable.com';
       const fromName = photographer?.emailFromName || photographer?.businessName || 'Scoop Photography';
       const replyToEmail = photographer?.emailFromAddr || process.env.SENDGRID_REPLY_TO || fromEmail;
       
       const success = await sendEmail({
-        to: client.email,
+        to: contact.email,
         from: `${fromName} <${fromEmail}>`,
         replyTo: `${fromName} <${replyToEmail}>`,
         subject,
         html: htmlBody,
         text: textBody,
-        photographerId: client.photographerId,
-        clientId: client.clientId,
-        projectId: client.id,
+        photographerId: contact.photographerId,
+        contactId: contact.contactId,
+        projectId: contact.id,
         automationStepId: step.id,
         source: 'AUTOMATION' as const
       });
 
-      console.log(`📄 Smart File ${success ? 'sent successfully' : 'FAILED'} to ${client.firstName} ${client.lastName}`);
+      console.log(`📄 Smart File ${success ? 'sent successfully' : 'FAILED'} to ${contact.firstName} ${contact.lastName}`);
 
       // Log the email attempt
       await db.insert(emailLogs).values({
-        clientId: client.clientId,
-        projectId: client.id,
+        contactId: contact.contactId,
+        projectId: contact.id,
         automationStepId: step.id,
         status: success ? 'sent' : 'failed',
         sentAt: success ? now : null
@@ -599,15 +599,15 @@ async function processAutomationStep(client: any, step: any, automation: any): P
       // 🔒 BULLETPROOF EXECUTION TRACKING - Update reservation status
       await updateExecutionStatus(reservation.executionId!, success ? 'SUCCESS' : 'FAILED');
 
-    } else if (actionType === 'EMAIL' && template && client.email) {
+    } else if (actionType === 'EMAIL' && template && contact.email) {
     const subject = renderTemplate(template.subject || '', variables);
     const htmlBody = renderTemplate(template.htmlBody || '', variables);
     const textBody = renderTemplate(template.textBody || '', variables);
 
-    console.log(`📧 Sending email to ${client.firstName} ${client.lastName} (${client.email})...`);
+    console.log(`📧 Sending email to ${contact.firstName} ${contact.lastName} (${contact.email})...`);
     
     // Get participant emails for BCC
-    const participantEmails = await getParticipantEmailsForBCC(client.id);
+    const participantEmails = await getParticipantEmailsForBCC(contact.id);
     if (participantEmails.length > 0) {
       console.log(`📧 Including ${participantEmails.length} participants in BCC`);
     }
@@ -620,26 +620,26 @@ async function processAutomationStep(client: any, step: any, automation: any): P
     console.log(`📧 DEBUG: Using verified sender: ${fromEmail}, reply-to: ${replyToEmail}`);
     
     const success = await sendEmail({
-      to: client.email,
+      to: contact.email,
       from: `${fromName} <${fromEmail}>`,
       replyTo: `${fromName} <${replyToEmail}>`,
       subject,
       html: htmlBody,
       text: textBody,
       bcc: participantEmails.length > 0 ? participantEmails : undefined,
-      photographerId: client.photographerId,
-      clientId: client.clientId,
-      projectId: client.id,
+      photographerId: contact.photographerId,
+      contactId: contact.contactId,
+      projectId: contact.id,
       automationStepId: step.id,
       source: 'AUTOMATION' as const
     });
 
-    console.log(`📧 Email ${success ? 'sent successfully' : 'FAILED'} to ${client.firstName} ${client.lastName}`);
+    console.log(`📧 Email ${success ? 'sent successfully' : 'FAILED'} to ${contact.firstName} ${contact.lastName}`);
 
     // Log the attempt
     await db.insert(emailLogs).values({
-      clientId: client.clientId,
-      projectId: client.id,
+      contactId: contact.contactId,
+      projectId: contact.id,
       automationStepId: step.id,
       status: success ? 'sent' : 'failed',
       sentAt: success ? now : null
@@ -648,18 +648,18 @@ async function processAutomationStep(client: any, step: any, automation: any): P
       // 🔒 BULLETPROOF EXECUTION TRACKING - Update reservation status
       await updateExecutionStatus(reservation.executionId!, success ? 'SUCCESS' : 'FAILED');
 
-    } else if (actionType === 'SMS' && template && client.phone) {
+    } else if (actionType === 'SMS' && template && contact.phone) {
     const body = renderSmsTemplate(template.textBody || '', variables);
 
     const result = await sendSms({
-      to: client.phone,
+      to: contact.phone,
       body
     });
 
     // Log the attempt
     await db.insert(smsLogs).values({
-      clientId: client.clientId,
-      projectId: client.id,
+      contactId: contact.contactId,
+      projectId: contact.id,
       automationStepId: step.id,
       status: result.success ? 'sent' : 'failed',
       providerId: result.sid,
@@ -672,7 +672,7 @@ async function processAutomationStep(client: any, step: any, automation: any): P
       await updateExecutionStatus(reservation.executionId!, result.success ? 'SUCCESS' : 'FAILED');
     }
   } catch (error) {
-    console.error(`❌ Error sending communication message to ${client.firstName} ${client.lastName}:`, error);
+    console.error(`❌ Error sending communication message to ${contact.firstName} ${contact.lastName}:`, error);
     // 🔒 BULLETPROOF ERROR HANDLING - Mark reservation as FAILED on any error to prevent PENDING state
     await updateExecutionStatus(reservation.executionId!, 'FAILED');
   }
@@ -861,21 +861,21 @@ async function processCountdownAutomation(automation: any, photographerId: strin
   const activeProjects = await db
     .select({
       id: projects.id,
-      clientId: projects.clientId,
+      contactId: projects.contactId,
       eventDate: projects.eventDate,
       stageId: projects.stageId,
       stageEnteredAt: projects.stageEnteredAt,
       smsOptIn: projects.smsOptIn,
       emailOptIn: projects.emailOptIn,
       photographerId: projects.photographerId,
-      // Client details
-      firstName: clients.firstName,
-      lastName: clients.lastName,
-      email: clients.email,
-      phone: clients.phone
+      // Contact details
+      firstName: contacts.firstName,
+      lastName: contacts.lastName,
+      email: contacts.email,
+      phone: contacts.phone
     })
     .from(projects)
-    .innerJoin(clients, eq(projects.clientId, clients.id))
+    .innerJoin(contacts, eq(projects.contactId, contacts.id))
     .where(and(...whereConditions));
 
   console.log(`Found ${activeProjects.length} active projects to check for countdown automation (stage filter: ${automation.stageCondition || 'none'})`);
@@ -928,7 +928,7 @@ async function processCountdownAutomation(automation: any, photographerId: strin
       continue;
     }
 
-    // Check effectiveFrom: only run on clients who entered stage AFTER automation was created
+    // Check effectiveFrom: only run on contacts who entered stage AFTER automation was created
     if (automation.effectiveFrom && project.stageEnteredAt) {
       const stageEnteredAt = new Date(project.stageEnteredAt);
       const effectiveFrom = new Date(automation.effectiveFrom);
