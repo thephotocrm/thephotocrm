@@ -5915,7 +5915,7 @@ ${photographer.businessName}`
         }
       }
       
-      // Create project with form's configured project type
+      // Create project with form's configured project type and submission data
       const project = await storage.createProject({
         photographerId: photographer.id,
         clientId: client.id,
@@ -5925,7 +5925,9 @@ ${photographer.businessName}`
         leadSource: "WEBSITE_WIDGET",
         notes: submissionData.message,
         emailOptIn: finalEmailOptIn,
-        smsOptIn: finalSmsOptIn
+        smsOptIn: finalSmsOptIn,
+        leadFormId: form.id,
+        formSubmissionData: customFieldData
       });
       
       // Increment form submission count

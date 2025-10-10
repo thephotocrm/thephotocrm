@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, integer, boolean, timestamp, json, uuid, index, unique } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, integer, boolean, timestamp, json, jsonb, uuid, index, unique } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -192,6 +192,8 @@ export const projects = pgTable("projects", {
   status: text("status").default("ACTIVE"), // ACTIVE, COMPLETED, CANCELLED
   smsOptIn: boolean("sms_opt_in").default(true),
   emailOptIn: boolean("email_opt_in").default(true),
+  leadFormId: varchar("lead_form_id").references(() => leadForms.id),
+  formSubmissionData: jsonb("form_submission_data"),
   createdAt: timestamp("created_at").defaultNow()
 });
 
