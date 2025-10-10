@@ -126,14 +126,22 @@ async function processGmailNotification(photographerId: string, emailAddress: st
 export async function registerRoutes(app: Express): Promise<Server> {
   app.use(cookieParser());
 
+  // Log ALL incoming requests
+  app.use((req, res, next) => {
+    if (req.path.includes('webhook')) {
+      console.log('🔥 WEBHOOK REQUEST:', req.method, req.path, JSON.stringify(req.body));
+    }
+    next();
+  });
+
   // CORS configuration for authenticated API routes  
   app.use((req, res, next) => {
     // Only allow credentials for same-origin requests to prevent CSRF
     const origin = req.headers.origin;
-    const isPublicRoute = req.path.startsWith('/api/public/');
+    const isPublicRoute = req.path.startsWith('/api/public/') || req.path.startsWith('/webhooks/');
     
     if (isPublicRoute) {
-      // Public routes handled by specific middleware, skip global CORS
+      // Public routes and webhooks handled by specific middleware, skip global CORS
       return next();
     }
     
