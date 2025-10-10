@@ -312,6 +312,9 @@ export interface IStorage {
   updateSmartFile(id: string, smartFile: Partial<SmartFile>): Promise<SmartFile>;
   deleteSmartFile(id: string): Promise<void>;
   
+  // Project Smart Files
+  createProjectSmartFile(projectSmartFile: InsertProjectSmartFile): Promise<ProjectSmartFile>;
+  
   // Smart File Pages
   createSmartFilePage(page: InsertSmartFilePage): Promise<SmartFilePage>;
   updateSmartFilePage(id: string, page: Partial<SmartFilePage>): Promise<SmartFilePage>;
@@ -3031,6 +3034,13 @@ export class DatabaseStorage implements IStorage {
   }
 
   async attachSmartFileToProject(projectSmartFile: InsertProjectSmartFile): Promise<ProjectSmartFile> {
+    const [created] = await db.insert(projectSmartFiles)
+      .values(projectSmartFile)
+      .returning();
+    return created;
+  }
+
+  async createProjectSmartFile(projectSmartFile: InsertProjectSmartFile): Promise<ProjectSmartFile> {
     const [created] = await db.insert(projectSmartFiles)
       .values(projectSmartFile)
       .returning();
