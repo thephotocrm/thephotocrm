@@ -2840,6 +2840,11 @@ export default function Automations() {
                     </Button>
                     <Button 
                       type="submit" 
+                      onClick={() => {
+                        console.log('🔘 Button clicked!');
+                        console.log('📝 Form errors:', form.formState.errors);
+                        console.log('📊 Form values:', form.getValues());
+                      }}
                       disabled={
                         createAutomationMutation.isPending ||
                         (() => {
