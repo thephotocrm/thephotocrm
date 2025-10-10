@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
+import { useQuery } from "@tanstack/react-query";
 import { 
   Camera, 
   LayoutDashboard, 
@@ -28,7 +29,8 @@ import {
   ChevronRight,
   Briefcase,
   Target,
-  TrendingUp as BusinessIcon
+  TrendingUp as BusinessIcon,
+  Inbox as InboxIcon
 } from "lucide-react";
 import {
   Sidebar,
@@ -47,12 +49,22 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 export function AppSidebar() {
   const [location] = useLocation();
   const { user, logout } = useAuth();
   const { openMobile, setOpenMobile, isMobile } = useSidebar();
+
+  // Fetch unread inbox count
+  const { data: unreadData } = useQuery<{ unreadCount: number }>({
+    queryKey: ['/api/inbox/unread-count'],
+    enabled: user?.role === 'PHOTOGRAPHER',
+    refetchInterval: 30000 // Poll every 30 seconds
+  });
+
+  const unreadCount = unreadData?.unreadCount || 0;
 
   // Admin navigation for /admin/* routes
   const adminNavigation = [
@@ -69,6 +81,7 @@ export function AppSidebar() {
     { name: "Dashboard", href: "/", icon: LayoutDashboard },
     { name: "Projects", href: "/projects", icon: FolderOpen },
     { name: "Contacts", href: "/contacts", icon: Users },
+    { name: "Inbox", href: "/inbox", icon: InboxIcon, badge: unreadCount },
   ];
 
   // Grouped navigation for photographers
@@ -207,6 +220,7 @@ export function AppSidebar() {
                   {coreNavigation.map((item) => {
                     const isActive = location === item.href;
                     const Icon = item.icon;
+                    const showBadge = item.badge && item.badge > 0;
                     
                     return (
                       <SidebarMenuItem key={item.name}>
@@ -219,6 +233,15 @@ export function AppSidebar() {
                           <Link href={item.href}>
                             <Icon className="w-6 h-6" />
                             <span className="text-base">{item.name}</span>
+                            {showBadge && (
+                              <Badge 
+                                variant="destructive" 
+                                className="ml-auto"
+                                data-testid="inbox-unread-badge"
+                              >
+                                {item.badge}
+                              </Badge>
+                            )}
                           </Link>
                         </SidebarMenuButton>
                       </SidebarMenuItem>

@@ -19,6 +19,7 @@ import Contacts from "@/pages/contacts";
 import ContactDetail from "@/pages/contact-detail";
 import Projects from "@/pages/projects";
 import ProjectDetail from "@/pages/project-detail";
+import Inbox from "@/pages/inbox";
 import Templates from "@/pages/templates";
 import Automations from "@/pages/automations";
 import DripCampaigns from "@/pages/drip-campaigns";
@@ -80,6 +81,7 @@ function ProtectedRoutes() {
             <Route path="/contacts/:id" component={ContactDetail} />
             <Route path="/projects" component={Projects} />
             <Route path="/projects/:id" component={ProjectDetail} />
+            <Route path="/inbox" component={Inbox} />
             <Route path="/templates" component={Templates} />
             <Route path="/automations" component={Automations} />
             <Route path="/drip-campaigns" component={DripCampaigns} />
@@ -136,6 +138,7 @@ function Router() {
       <Route path="/contacts/:id"><ProtectedRoutes /></Route>
       <Route path="/projects"><ProtectedRoutes /></Route>
       <Route path="/projects/:id"><ProtectedRoutes /></Route>
+      <Route path="/inbox"><ProtectedRoutes /></Route>
       <Route path="/templates"><ProtectedRoutes /></Route>
       <Route path="/automations"><ProtectedRoutes /></Route>
       <Route path="/drip-campaigns"><ProtectedRoutes /></Route>
