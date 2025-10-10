@@ -5849,11 +5849,34 @@ ${photographer.businessName}`
       delete customFieldData.firstName;
       delete customFieldData.email;
       
-      // Extract known fields with safe defaults
-      const lastName = req.body.lastName || '';
-      const phone = req.body.phone || '';
-      const eventDate = req.body.eventDate || '';
-      const message = req.body.message || '';
+      // Get form config to map custom fields to core fields
+      const formConfig = form.config as any;
+      const customFields = formConfig?.customFields || [];
+      
+      // Map custom fields of specific types to core client fields
+      let phone = req.body.phone || '';
+      let lastName = req.body.lastName || '';
+      let eventDate = req.body.eventDate || '';
+      let message = req.body.message || '';
+      
+      // Find and map phone field from custom fields
+      const phoneField = customFields.find((f: any) => f.type === 'phone');
+      if (phoneField && req.body[phoneField.id]) {
+        phone = req.body[phoneField.id];
+      }
+      
+      // Find and map date field from custom fields  
+      const dateField = customFields.find((f: any) => f.type === 'date');
+      if (dateField && req.body[dateField.id]) {
+        eventDate = req.body[dateField.id];
+      }
+      
+      // Find and map textarea/message field from custom fields
+      const textareaField = customFields.find((f: any) => f.type === 'textarea');
+      if (textareaField && req.body[textareaField.id]) {
+        message = req.body[textareaField.id];
+      }
+      
       const emailOptIn = req.body.emailOptIn !== undefined ? req.body.emailOptIn : true;
       const smsOptIn = req.body.smsOptIn !== undefined ? req.body.smsOptIn : true;
       
