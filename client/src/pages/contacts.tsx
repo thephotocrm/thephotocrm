@@ -34,7 +34,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-import { type ClientWithProjects } from "@shared/schema";
+import { type ContactWithProjects } from "@shared/schema";
 
 // Helper function for consistent client card styling - using blue theme
 const getClientColor = () => {
@@ -47,7 +47,7 @@ const getInitials = (firstName: string, lastName: string) => {
   return firstInitial && lastInitial ? `${firstInitial}${lastInitial}`.toUpperCase() : firstInitial.toUpperCase() || '?';
 };
 
-export default function Clients() {
+export default function Contacts() {
   const { user, loading } = useAuth();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
@@ -62,32 +62,32 @@ export default function Clients() {
   const [smsOptIn, setSmsOptIn] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [clientToDelete, setClientToDelete] = useState<ClientWithProjects | null>(null);
+  const [clientToDelete, setClientToDelete] = useState<ContactWithProjects | null>(null);
 
   // All hooks must be called before any early returns
-  const { data: clients, isLoading } = useQuery<ClientWithProjects[]>({
-    queryKey: ["/api/clients"],
+  const { data: clients, isLoading } = useQuery<ContactWithProjects[]>({
+    queryKey: ["/api/contacts"],
     enabled: !loading && !!user
   });
 
 
   const createClientMutation = useMutation({
     mutationFn: async (clientData: any) => {
-      await apiRequest("POST", "/api/clients", clientData);
+      await apiRequest("POST", "/api/contacts", clientData);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/clients"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/contacts"] });
       setIsDialogOpen(false);
       resetForm();
       toast({
-        title: "Client created",
-        description: "New client has been added successfully.",
+        title: "Contact created",
+        description: "New contact has been added successfully.",
       });
     },
     onError: () => {
       toast({
         title: "Error",
-        description: "Failed to create client. Please try again.",
+        description: "Failed to create contact. Please try again.",
         variant: "destructive"
       });
     }
@@ -95,29 +95,29 @@ export default function Clients() {
 
   const deleteClientMutation = useMutation({
     mutationFn: async (clientId: string) => {
-      await apiRequest("DELETE", `/api/clients/${clientId}`);
+      await apiRequest("DELETE", `/api/contacts/${clientId}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/clients"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/contacts"] });
       setDeleteDialogOpen(false);
       setClientToDelete(null);
       toast({
-        title: "Client deleted",
-        description: "Client and all related data have been permanently deleted.",
+        title: "Contact deleted",
+        description: "Contact and all related data have been permanently deleted.",
       });
     },
     onError: (error: any) => {
       // Check if this is the financial activity error
       if (error?.message?.includes("Smart Files or payment history")) {
         toast({
-          title: "Cannot Delete Client",
-          description: "This client has Smart Files or payment history. For financial record-keeping, you cannot delete clients with financial activity. Please archive this client instead.",
+          title: "Cannot Delete Contact",
+          description: "This contact has Smart Files or payment history. For financial record-keeping, you cannot delete contacts with financial activity. Please archive this contact instead.",
           variant: "destructive"
         });
       } else {
         toast({
           title: "Error",
-          description: error.message || "Failed to delete client. Please try again.",
+          description: error.message || "Failed to delete contact. Please try again.",
           variant: "destructive"
         });
       }
@@ -146,7 +146,7 @@ export default function Clients() {
     });
   };
 
-  const handleDeleteClick = (client: ClientWithProjects) => {
+  const handleDeleteClick = (client: ContactWithProjects) => {
     setClientToDelete(client);
     setDeleteDialogOpen(true);
   };
@@ -157,7 +157,7 @@ export default function Clients() {
     }
   };
 
-  const filteredClients = clients?.filter((client: ClientWithProjects) =>
+  const filteredClients = clients?.filter((client: ContactWithProjects) =>
     `${client.firstName} ${client.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
     client.email?.toLowerCase().includes(searchTerm.toLowerCase())
   ) || [];
@@ -173,8 +173,8 @@ export default function Clients() {
                 className="hidden md:inline-flex shrink-0" 
               />
               <div className="min-w-0">
-                <h1 className="text-xl md:text-2xl font-semibold truncate">Clients</h1>
-                <p className="text-sm md:text-base text-muted-foreground hidden sm:block">Manage your photography clients</p>
+                <h1 className="text-xl md:text-2xl font-semibold truncate">Contacts</h1>
+                <p className="text-sm md:text-base text-muted-foreground hidden sm:block">Manage your photography contacts</p>
               </div>
             </div>
             
@@ -183,14 +183,14 @@ export default function Clients() {
                 <DialogTrigger asChild>
                   <Button data-testid="button-add-client" className="w-full sm:w-auto">
                     <Plus className="w-5 h-5 mr-2" />
-                    Add Client
+                    Add Contact
                   </Button>
                 </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>Add New Client</DialogTitle>
+                  <DialogTitle>Add New Contact</DialogTitle>
                   <DialogDescription>
-                    Create a new client profile for your photography services.
+                    Create a new contact profile for your photography services.
                   </DialogDescription>
                 </DialogHeader>
                 
@@ -245,7 +245,7 @@ export default function Clients() {
                     <div>
                       <Label className="text-sm font-medium">Communication Preferences</Label>
                       <p className="text-xs text-muted-foreground mt-1">
-                        Choose how this client will receive updates and automated messages.
+                        Choose how this contact will receive updates and automated messages.
                       </p>
                     </div>
                     
@@ -296,7 +296,7 @@ export default function Clients() {
                       disabled={createClientMutation.isPending}
                       data-testid="button-create-client"
                     >
-                      {createClientMutation.isPending ? "Creating..." : "Create Client"}
+                      {createClientMutation.isPending ? "Creating..." : "Create Contact"}
                     </Button>
                   </div>
                 </form>
@@ -353,7 +353,7 @@ export default function Clients() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {filteredClients.map((client: ClientWithProjects) => (
+                      {filteredClients.map((client: ContactWithProjects) => (
                         <TableRow key={client.id} data-testid={`client-row-${client.id}`}>
                           <TableCell className="font-medium">
                             {client.firstName} {client.lastName}
@@ -404,8 +404,8 @@ export default function Clients() {
                             <Button 
                               variant="outline" 
                               size="sm" 
-                              onClick={() => setLocation(`/clients/${client.id}`)}
-                              data-testid={`button-view-client-${client.id}`}
+                              onClick={() => setLocation(`/contacts/${client.id}`)}
+                              data-testid={`button-view-contact-${client.id}`}
                             >
                               View
                             </Button>
@@ -428,12 +428,12 @@ export default function Clients() {
                 
                 {/* Mobile Card View */}
                 <div className="md:hidden space-y-4">
-                  {filteredClients.map((client: ClientWithProjects) => {
+                  {filteredClients.map((client: ContactWithProjects) => {
                     const clientName = `${client.firstName} ${client.lastName}`;
                     
                     return (
                     <div key={client.id} className="border dark:border-border rounded-lg p-4 space-y-3 hover:shadow-md dark:hover:shadow-lg transition-shadow duration-200 bg-gradient-to-br from-white to-gray-50/50 dark:from-slate-900 dark:to-slate-800/50" data-testid={`client-card-${client.id}`}>
-                      {/* Client Header with Avatar */}
+                      {/* Contact Header with Avatar */}
                       <div className="flex items-start justify-between">
                         <div className="flex items-center space-x-3">
                           <div className={`w-10 h-10 rounded-full border flex items-center justify-center text-sm font-semibold ${getClientColor()}`}>
@@ -454,8 +454,8 @@ export default function Clients() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => setLocation(`/clients/${client.id}`)}
-                            data-testid={`button-view-client-${client.id}`}
+                            onClick={() => setLocation(`/contacts/${client.id}`)}
+                            data-testid={`button-view-contact-${client.id}`}
                             aria-label={`View ${clientName} details`}
                           >
                             <Eye className="w-4 h-4" />
@@ -467,13 +467,13 @@ export default function Clients() {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={() => setLocation(`/clients/${client.id}`)}>
+                              <DropdownMenuItem onClick={() => setLocation(`/contacts/${client.id}`)}>
                                 <Eye className="w-4 h-4 mr-2" />
                                 View Details
                               </DropdownMenuItem>
                               <DropdownMenuItem onClick={() => handleDeleteClick(client)}>
                                 <Trash2 className="w-4 h-4 mr-2" />
-                                Delete Client
+                                Delete Contact
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
@@ -531,7 +531,7 @@ export default function Clients() {
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Delete Client</DialogTitle>
+            <DialogTitle>Delete Contact</DialogTitle>
             <DialogDescription>
               Are you sure you want to delete {clientToDelete?.firstName} {clientToDelete?.lastName}? 
               This will permanently delete the client and all related data including:
@@ -563,7 +563,7 @@ export default function Clients() {
               disabled={deleteClientMutation.isPending}
               data-testid="button-confirm-delete"
             >
-              {deleteClientMutation.isPending ? "Deleting..." : "Delete Client"}
+              {deleteClientMutation.isPending ? "Deleting..." : "Delete Contact"}
             </Button>
           </div>
         </DialogContent>

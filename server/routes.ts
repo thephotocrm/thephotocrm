@@ -1187,7 +1187,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       console.log(`[CONTACT HISTORY] Getting history for contact: ${req.params.id}`);
-      const history = await storage.getContactHistory(req.params.id);
+      const history = await storage.getClientHistory(req.params.id);
       console.log(`[CONTACT HISTORY] Retrieved ${history.length} history items`);
       res.json(history);
     } catch (error) {
@@ -1223,7 +1223,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Contact not found" });
       }
 
-      const emails = await storage.getEmailHistoryByContact(req.params.id);
+      const emails = await storage.getEmailHistoryByClient(req.params.id);
       res.json(emails);
     } catch (error) {
       console.error('Get contact email history error:', error);
@@ -1269,7 +1269,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Contact not found" });
       }
       
-      const messages = await storage.getContactMessages(req.params.id);
+      const messages = await storage.getClientMessages(req.params.id);
       res.json(messages);
     } catch (error) {
       res.status(500).json({ message: "Internal server error" });

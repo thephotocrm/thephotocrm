@@ -42,7 +42,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { type ProjectWithClientAndStage, type Client } from "@shared/schema";
+import { type ProjectWithClientAndStage, type Contact } from "@shared/schema";
 
 const PROJECT_TYPES = [
   { value: "WEDDING", label: "Wedding" },
@@ -102,8 +102,8 @@ export default function Projects() {
   });
 
   // Fetch clients for the dropdown
-  const { data: clients, isLoading: clientsLoading } = useQuery<Client[]>({
-    queryKey: ["/api/clients"],
+  const { data: clients, isLoading: clientsLoading } = useQuery<Contact[]>({
+    queryKey: ["/api/contacts"],
     enabled: !!user
   });
 
@@ -258,7 +258,7 @@ export default function Projects() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="clientId">Client *</Label>
+                    <Label htmlFor="clientId">Contact *</Label>
                     <Select value={clientId} onValueChange={setClientId}>
                       <SelectTrigger data-testid="select-client">
                         <SelectValue placeholder="Select client" />

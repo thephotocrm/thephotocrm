@@ -68,7 +68,7 @@ export function AppSidebar() {
   const coreNavigation = [
     { name: "Dashboard", href: "/", icon: LayoutDashboard },
     { name: "Projects", href: "/projects", icon: FolderOpen },
-    { name: "Clients", href: "/clients", icon: Users },
+    { name: "Contacts", href: "/contacts", icon: Users },
   ];
 
   // Grouped navigation for photographers

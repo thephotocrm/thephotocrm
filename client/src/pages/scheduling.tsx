@@ -1058,10 +1058,10 @@ export default function Scheduling() {
                   </div>
                 </div>
 
-                {/* Client Information */}
+                {/* Contact Information */}
                 {(selectedBooking.clientName || selectedBooking.clientEmail || selectedBooking.clientPhone) && (
                   <div>
-                    <h4 className="font-medium mb-2">Client Information</h4>
+                    <h4 className="font-medium mb-2">Contact Information</h4>
                     <div className="space-y-2 bg-muted p-3 rounded-lg">
                       {selectedBooking.clientName && (
                         <div className="flex items-center gap-2">

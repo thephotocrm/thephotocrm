@@ -26,7 +26,7 @@ import {
   Plus,
   Trash2
 } from "lucide-react";
-import { type ClientWithProjects, type Estimate, type Message, type TimelineEvent, type Stage, type EmailHistory } from "@shared/schema";
+import { type ContactWithProjects, type Estimate, type Message, type TimelineEvent, type Stage, type EmailHistory } from "@shared/schema";
 import { useState } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -35,7 +35,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
-export default function ClientDetail() {
+export default function ContactDetail() {
   // ALL HOOKS MUST BE AT THE TOP - Rules of Hooks!
   const { user, loading } = useAuth();
   const [, setLocation] = useLocation();
@@ -47,8 +47,8 @@ export default function ClientDetail() {
   const [newMessage, setNewMessage] = useState("");
   const [showMessageForm, setShowMessageForm] = useState(false);
 
-  const { data: client, isLoading } = useQuery<ClientWithProjects>({
-    queryKey: ["/api/clients", clientId],
+  const { data: client, isLoading } = useQuery<ContactWithProjects>({
+    queryKey: ["/api/contacts", clientId],
     enabled: !!user && !!clientId
   });
 
@@ -58,17 +58,17 @@ export default function ClientDetail() {
   });
 
   const { data: clientHistory = [], refetch: refetchHistory } = useQuery<TimelineEvent[]>({
-    queryKey: ["/api/clients", clientId, "history"],
+    queryKey: ["/api/contacts", clientId, "history"],
     enabled: !!user && !!clientId
   });
 
   const { data: messages = [], refetch: refetchMessages } = useQuery<Message[]>({
-    queryKey: ["/api/clients", clientId, "messages"],
+    queryKey: ["/api/contacts", clientId, "messages"],
     enabled: !!user && !!clientId
   });
 
   const { data: emailHistory = [] } = useQuery<EmailHistory[]>({
-    queryKey: ["/api/clients", clientId, "email-history"],
+    queryKey: ["/api/contacts", clientId, "email-history"],
     enabled: !!user && !!clientId
   });
 
@@ -80,14 +80,14 @@ export default function ClientDetail() {
 
   const sendLoginLinkMutation = useMutation({
     mutationFn: async () => {
-      const response = await apiRequest("POST", `/api/clients/${clientId}/send-login-link`);
+      const response = await apiRequest("POST", `/api/contacts/${clientId}/send-login-link`);
       return response;
     },
     onSuccess: (data: any) => {
       console.log('Send login link success:', data);
       
       let title = "Login link sent";
-      let description = "Client will receive an email with their portal access link.";
+      let description = "Contact will receive an email with their portal access link.";
       
       // Handle development mode responses
       if (data?.loginUrl) {
@@ -161,10 +161,10 @@ export default function ClientDetail() {
     onSuccess: () => {
       toast({
         title: "Success",
-        description: "Proposal sent to client successfully!"
+        description: "Proposal sent to contact successfully!"
       });
       queryClient.invalidateQueries({ queryKey: ["/api/proposals", "client", clientId] });
-      queryClient.invalidateQueries({ queryKey: ["/api/clients", clientId, "history"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/contacts", clientId, "history"] });
     },
     onError: (error: any) => {
       toast({
@@ -184,7 +184,7 @@ export default function ClientDetail() {
         description: "Proposal deleted successfully!"
       });
       queryClient.invalidateQueries({ queryKey: ["/api/proposals", "client", clientId] });
-      queryClient.invalidateQueries({ queryKey: ["/api/clients", clientId, "history"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/contacts", clientId, "history"] });
       queryClient.invalidateQueries({ queryKey: ["/api/proposals"] }); // Keep global proposals list consistent
     },
     onError: (error: any) => {
@@ -210,8 +210,8 @@ export default function ClientDetail() {
       setShowMessageForm(false);
       refetchMessages();
       refetchHistory();
-      queryClient.invalidateQueries({ queryKey: ["/api/clients", clientId, "messages"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/clients", clientId, "history"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/contacts", clientId, "messages"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/contacts", clientId, "history"] });
       toast({
         title: "Message sent",
         description: "Your message has been sent to the client."
@@ -256,11 +256,11 @@ export default function ClientDetail() {
       <SidebarInset>
         <div className="flex items-center justify-center h-full">
           <div className="text-center">
-            <h2 className="text-2xl font-semibold mb-2">Client not found</h2>
-            <p className="text-muted-foreground mb-4">The client you're looking for doesn't exist.</p>
-            <Button onClick={() => setLocation("/clients")} data-testid="button-back-to-clients">
+            <h2 className="text-2xl font-semibold mb-2">Contact not found</h2>
+            <p className="text-muted-foreground mb-4">The contact you're looking for doesn't exist.</p>
+            <Button onClick={() => setLocation("/contacts")} data-testid="button-back-to-contacts">
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Clients
+              Back to Contacts
             </Button>
           </div>
         </div>
@@ -293,17 +293,17 @@ export default function ClientDetail() {
               <Button 
                 variant="ghost" 
                 size="sm" 
-                onClick={() => setLocation("/clients")}
-                data-testid="button-back-to-clients"
+                onClick={() => setLocation("/contacts")}
+                data-testid="button-back-to-contacts"
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to Clients
+                Back to Contacts
               </Button>
               <div>
                 <h1 className="text-2xl font-semibold">
                   {client.firstName} {client.lastName}
                 </h1>
-                <p className="text-muted-foreground">Client Details & History</p>
+                <p className="text-muted-foreground">Contact Details & History</p>
               </div>
             </div>
             
@@ -322,21 +322,21 @@ export default function ClientDetail() {
                 data-testid="button-send-message"
               >
                 <MessageSquare className="w-4 h-4 mr-2" />
-                Message Client
+                Message Contact
               </Button>
             </div>
           </div>
         </header>
 
         <div className="p-6 space-y-6">
-          {/* Client Overview */}
+          {/* Contact Overview */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Basic Info */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <User className="w-5 h-5 mr-2" />
-                  Client Information
+                  Contact Information
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -380,7 +380,7 @@ export default function ClientDetail() {
                 )}
                 
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Client Since</p>
+                  <p className="text-sm font-medium text-muted-foreground">Contact Since</p>
                   <p className="text-base">{client.createdAt ? formatDate(client.createdAt) : 'Unknown'}</p>
                 </div>
               </CardContent>
@@ -674,7 +674,7 @@ export default function ClientDetail() {
           {/* History Section */}
           <Card>
             <CardHeader>
-              <CardTitle>Client History</CardTitle>
+              <CardTitle>Contact History</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">

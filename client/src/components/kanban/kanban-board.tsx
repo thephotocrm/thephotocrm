@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import ClientCard from "./client-card";
+import ContactCard from "./contact-card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -138,9 +138,9 @@ export default function KanbanBoard({ projects, stages, isLoading = false, onAdd
             {/* Project Cards */}
             <div className="space-y-3 flex-1">
               {stageProjects.map((project) => (
-                <ClientCard
+                <ContactCard
                   key={project.id}
-                  client={project}
+                  contact={project}
                   onMove={(newStageId) => handleProjectMove(project.id, newStageId)}
                 />
               ))}

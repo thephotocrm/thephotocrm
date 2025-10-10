@@ -503,12 +503,12 @@ export default function ProjectDetail() {
 
         <div className="p-6 space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Client Information */}
+            {/* Contact Information */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <User className="w-5 h-5" />
-                  Client Information
+                  Contact Information
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
@@ -527,9 +527,9 @@ export default function ProjectDetail() {
                     </div>
                   )}
                 </div>
-                <Link href={`/clients/${project.client.id}`}>
-                  <Button variant="outline" size="sm" className="w-full" data-testid="button-view-client">
-                    View Client Details
+                <Link href={`/contacts/${project.client.id}`}>
+                  <Button variant="outline" size="sm" className="w-full" data-testid="button-view-contact">
+                    View Contact Details
                   </Button>
                 </Link>
               </CardContent>

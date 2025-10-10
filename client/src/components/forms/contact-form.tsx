@@ -17,7 +17,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 
-const clientFormSchema = z.object({
+const contactFormSchema = z.object({
   firstName: z.string().min(1, "First name is required"),
   lastName: z.string().min(1, "Last name is required"),
   email: z.string().email("Please enter a valid email").optional().or(z.literal("")),
@@ -27,23 +27,23 @@ const clientFormSchema = z.object({
   smsOptIn: z.boolean().default(true),
 });
 
-type ClientFormData = z.infer<typeof clientFormSchema>;
+type ContactFormData = z.infer<typeof contactFormSchema>;
 
-interface ClientFormProps {
-  initialData?: Partial<ClientFormData>;
-  onSubmit: (data: ClientFormData) => void;
+interface ContactFormProps {
+  initialData?: Partial<ContactFormData>;
+  onSubmit: (data: ContactFormData) => void;
   isLoading?: boolean;
   submitText?: string;
 }
 
-export default function ClientForm({ 
+export default function ContactForm({ 
   initialData, 
   onSubmit, 
   isLoading = false,
-  submitText = "Save Client"
-}: ClientFormProps) {
-  const form = useForm<ClientFormData>({
-    resolver: zodResolver(clientFormSchema),
+  submitText = "Save Contact"
+}: ContactFormProps) {
+  const form = useForm<ContactFormData>({
+    resolver: zodResolver(contactFormSchema),
     defaultValues: {
       firstName: initialData?.firstName || "",
       lastName: initialData?.lastName || "",
@@ -147,7 +147,7 @@ export default function ClientForm({
                 <Textarea 
                   {...field} 
                   data-testid="textarea-notes"
-                  placeholder="Additional notes about the client..."
+                  placeholder="Additional notes about the contact..."
                   rows={3}
                 />
               </FormControl>
@@ -227,7 +227,7 @@ export default function ClientForm({
           type="submit" 
           className="w-full"
           disabled={isLoading}
-          data-testid="button-submit-client-form"
+          data-testid="button-submit-contact-form"
         >
           {isLoading ? "Saving..." : submitText}
         </Button>

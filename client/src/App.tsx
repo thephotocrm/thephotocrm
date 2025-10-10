@@ -15,8 +15,8 @@ import Register from "@/pages/register";
 import ForgotPassword from "@/pages/forgot-password";
 import ResetPassword from "@/pages/reset-password";
 import Dashboard from "@/pages/dashboard";
-import Clients from "@/pages/clients";
-import ClientDetail from "@/pages/client-detail";
+import Contacts from "@/pages/contacts";
+import ContactDetail from "@/pages/contact-detail";
 import Projects from "@/pages/projects";
 import ProjectDetail from "@/pages/project-detail";
 import Templates from "@/pages/templates";
@@ -76,8 +76,8 @@ function ProtectedRoutes() {
           <Switch>
             <Route path="/dashboard" component={Dashboard} />
             <Route path="/admin/dashboard" component={AdminDashboard} />
-            <Route path="/clients" component={Clients} />
-            <Route path="/clients/:id" component={ClientDetail} />
+            <Route path="/contacts" component={Contacts} />
+            <Route path="/contacts/:id" component={ContactDetail} />
             <Route path="/projects" component={Projects} />
             <Route path="/projects/:id" component={ProjectDetail} />
             <Route path="/templates" component={Templates} />
@@ -132,8 +132,8 @@ function Router() {
       {/* Protected app routes - match specific paths */}
       <Route path="/dashboard"><ProtectedRoutes /></Route>
       <Route path="/admin/dashboard"><ProtectedRoutes /></Route>
-      <Route path="/clients"><ProtectedRoutes /></Route>
-      <Route path="/clients/:id"><ProtectedRoutes /></Route>
+      <Route path="/contacts"><ProtectedRoutes /></Route>
+      <Route path="/contacts/:id"><ProtectedRoutes /></Route>
       <Route path="/projects"><ProtectedRoutes /></Route>
       <Route path="/projects/:id"><ProtectedRoutes /></Route>
       <Route path="/templates"><ProtectedRoutes /></Route>

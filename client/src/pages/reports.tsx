@@ -49,7 +49,7 @@ export default function Reports() {
           <div className="flex items-center justify-between">
             <div>
                 <h1 className="text-xl md:text-2xl font-semibold">Reports & Analytics</h1>
-                <p className="text-sm md:text-base text-muted-foreground">Track your business performance and client metrics</p>
+                <p className="text-sm md:text-base text-muted-foreground">Track your business performance and contact metrics</p>
               </div>
             
             <Button data-testid="button-export-report">
@@ -79,7 +79,7 @@ export default function Reports() {
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Clients</CardTitle>
+                <CardTitle className="text-sm font-medium">Total Contacts</CardTitle>
                 <Users className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>

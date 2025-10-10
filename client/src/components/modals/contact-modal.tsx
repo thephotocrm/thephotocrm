@@ -28,28 +28,28 @@ import {
   ExternalLink,
   Edit
 } from "lucide-react";
-import ClientForm from "../forms/client-form";
+import ContactForm from "../forms/contact-form";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import type { Client, Stage } from "@shared/schema";
+import type { Contact, Stage } from "@shared/schema";
 
-interface ClientWithStage extends Client {
+interface ContactWithStage extends Contact {
   stage?: Stage;
 }
 
-interface ClientModalProps {
-  clientId: string | null;
+interface ContactModalProps {
+  contactId: string | null;
   isOpen: boolean;
   onClose: () => void;
 }
 
-export default function ClientModal({ clientId, isOpen, onClose }: ClientModalProps) {
+export default function ContactModal({ contactId, isOpen, onClose }: ContactModalProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
 
-  const { data: client, isLoading } = useQuery<ClientWithStage>({
-    queryKey: [`/api/clients/${clientId}`],
-    enabled: !!clientId && isOpen
+  const { data: contact, isLoading } = useQuery<ContactWithStage>({
+    queryKey: [`/api/contacts/${contactId}`],
+    enabled: !!contactId && isOpen
   });
 
   // Mock data for demonstration - in reality these would be separate API calls
@@ -88,28 +88,28 @@ export default function ClientModal({ clientId, isOpen, onClose }: ClientModalPr
   ];
 
   const mockQuickLinks = [
-    { id: "1", title: "Client Portal", url: "/client-portal" },
+    { id: "1", title: "Contact Portal", url: "/client-portal" },
     { id: "2", title: "Wedding Planning Guide", url: "#" },
     { id: "3", title: "Portfolio Gallery", url: "#" }
   ];
 
-  const updateClientMutation = useMutation({
+  const updateContactMutation = useMutation({
     mutationFn: async (data: any) => {
-      await apiRequest("PUT", `/api/clients/${clientId}`, data);
+      await apiRequest("PUT", `/api/contacts/${contactId}`, data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/clients"] });
-      queryClient.invalidateQueries({ queryKey: [`/api/clients/${clientId}`] });
+      queryClient.invalidateQueries({ queryKey: ["/api/contacts"] });
+      queryClient.invalidateQueries({ queryKey: [`/api/contacts/${contactId}`] });
       setIsEditing(false);
       toast({
-        title: "Client updated",
-        description: "Client information has been saved successfully.",
+        title: "Contact updated",
+        description: "Contact information has been saved successfully.",
       });
     },
     onError: () => {
       toast({
         title: "Error",
-        description: "Failed to update client. Please try again.",
+        description: "Failed to update contact. Please try again.",
         variant: "destructive"
       });
     }
@@ -117,7 +117,7 @@ export default function ClientModal({ clientId, isOpen, onClose }: ClientModalPr
 
   const toggleChecklistItemMutation = useMutation({
     mutationFn: async (itemId: string) => {
-      await apiRequest("POST", `/api/client-checklist/${itemId}/toggle`);
+      await apiRequest("POST", `/api/contact-checklist/${itemId}/toggle`);
     },
     onSuccess: () => {
       // In reality, this would invalidate the checklist query
@@ -128,7 +128,7 @@ export default function ClientModal({ clientId, isOpen, onClose }: ClientModalPr
     }
   });
 
-  if (!clientId) return null;
+  if (!contactId) return null;
 
   const formatPrice = (cents: number) => {
     return (cents / 100).toLocaleString('en-US', {
@@ -138,8 +138,8 @@ export default function ClientModal({ clientId, isOpen, onClose }: ClientModalPr
   };
 
   const getDaysInStage = () => {
-    if (!client?.stageEnteredAt) return 0;
-    const enteredAt = new Date(client.stageEnteredAt);
+    if (!contact?.stageEnteredAt) return 0;
+    const enteredAt = new Date(contact.stageEnteredAt);
     const now = new Date();
     const diffTime = Math.abs(now.getTime() - enteredAt.getTime());
     return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
@@ -153,14 +153,14 @@ export default function ClientModal({ clientId, isOpen, onClose }: ClientModalPr
         <DialogHeader>
           <DialogTitle className="flex items-center justify-between">
             <span>
-              {client ? `${client.firstName} ${client.lastName}` : "Loading..."}
+              {contact ? `${contact.firstName} ${contact.lastName}` : "Loading..."}
             </span>
-            {client && !isEditing && (
+            {contact && !isEditing && (
               <Button
                 variant="outline" 
                 size="sm"
                 onClick={() => setIsEditing(true)}
-                data-testid="button-edit-client"
+                data-testid="button-edit-contact"
               >
                 <Edit className="w-4 h-4 mr-2" />
                 Edit
@@ -168,7 +168,7 @@ export default function ClientModal({ clientId, isOpen, onClose }: ClientModalPr
             )}
           </DialogTitle>
           <DialogDescription>
-            Manage client information, checklist, and communication history
+            Manage contact information, checklist, and communication history
           </DialogDescription>
         </DialogHeader>
 
@@ -176,29 +176,29 @@ export default function ClientModal({ clientId, isOpen, onClose }: ClientModalPr
           <div className="flex items-center justify-center py-8">
             <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
           </div>
-        ) : !client ? (
+        ) : !contact ? (
           <div className="text-center py-8">
-            <p className="text-muted-foreground">Client not found.</p>
+            <p className="text-muted-foreground">Contact not found.</p>
           </div>
         ) : isEditing ? (
           <div className="space-y-4">
-            <ClientForm
+            <ContactForm
               initialData={{
-                firstName: client.firstName,
-                lastName: client.lastName,
-                email: client.email || "",
-                phone: client.phone || "",
-                weddingDate: client.weddingDate || "",
-                notes: client.notes || "",
-                emailOptIn: client.emailOptIn,
-                smsOptIn: client.smsOptIn,
+                firstName: contact.firstName,
+                lastName: contact.lastName,
+                email: contact.email || "",
+                phone: contact.phone || "",
+                weddingDate: contact.weddingDate || "",
+                notes: contact.notes || "",
+                emailOptIn: contact.emailOptIn,
+                smsOptIn: contact.smsOptIn,
               }}
-              onSubmit={(data) => updateClientMutation.mutate({
+              onSubmit={(data) => updateContactMutation.mutate({
                 ...data,
                 weddingDate: data.weddingDate ? new Date(data.weddingDate) : undefined
               })}
-              isLoading={updateClientMutation.isPending}
-              submitText="Update Client"
+              isLoading={updateContactMutation.isPending}
+              submitText="Update Contact"
             />
             <Button
               variant="outline"
@@ -219,24 +219,24 @@ export default function ClientModal({ clientId, isOpen, onClose }: ClientModalPr
 
             <TabsContent value="overview" className="space-y-4">
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Client Information */}
+                {/* Contact Information */}
                 <Card className="lg:col-span-2">
                   <CardHeader>
                     <CardTitle className="flex items-center">
                       <User className="w-5 h-5 mr-2" />
-                      Client Information
+                      Contact Information
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <p className="text-sm text-muted-foreground">Name</p>
-                        <p className="font-medium">{client.firstName} {client.lastName}</p>
+                        <p className="font-medium">{contact.firstName} {contact.lastName}</p>
                       </div>
                       <div>
                         <p className="text-sm text-muted-foreground">Current Stage</p>
                         <div className="flex items-center space-x-2">
-                          <Badge variant="secondary">{client.stage?.name || "No stage"}</Badge>
+                          <Badge variant="secondary">{contact.stage?.name || "No stage"}</Badge>
                           <span className="text-xs text-muted-foreground">
                             {getDaysInStage()} days
                           </span>
@@ -245,44 +245,44 @@ export default function ClientModal({ clientId, isOpen, onClose }: ClientModalPr
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {client.email && (
+                      {contact.email && (
                         <div className="flex items-center space-x-2">
                           <Mail className="w-4 h-4 text-muted-foreground" />
-                          <span className="text-sm">{client.email}</span>
-                          <Badge variant={client.emailOptIn ? "default" : "outline"} className="text-xs">
-                            {client.emailOptIn ? "Opted in" : "Opted out"}
+                          <span className="text-sm">{contact.email}</span>
+                          <Badge variant={contact.emailOptIn ? "default" : "outline"} className="text-xs">
+                            {contact.emailOptIn ? "Opted in" : "Opted out"}
                           </Badge>
                         </div>
                       )}
-                      {client.phone && (
+                      {contact.phone && (
                         <div className="flex items-center space-x-2">
                           <Phone className="w-4 h-4 text-muted-foreground" />
-                          <span className="text-sm">{client.phone}</span>
-                          <Badge variant={client.smsOptIn ? "default" : "outline"} className="text-xs">
-                            {client.smsOptIn ? "Opted in" : "Opted out"}
+                          <span className="text-sm">{contact.phone}</span>
+                          <Badge variant={contact.smsOptIn ? "default" : "outline"} className="text-xs">
+                            {contact.smsOptIn ? "Opted in" : "Opted out"}
                           </Badge>
                         </div>
                       )}
                     </div>
 
-                    {client.weddingDate && (
+                    {contact.weddingDate && (
                       <div className="flex items-center space-x-2">
                         <Calendar className="w-4 h-4 text-muted-foreground" />
                         <span className="text-sm">
-                          Wedding: {new Date(client.weddingDate).toLocaleDateString()}
+                          Wedding: {new Date(contact.weddingDate).toLocaleDateString()}
                         </span>
                       </div>
                     )}
 
-                    {client.notes && (
+                    {contact.notes && (
                       <div>
                         <p className="text-sm text-muted-foreground mb-2">Notes</p>
-                        <p className="text-sm bg-muted p-3 rounded-md">{client.notes}</p>
+                        <p className="text-sm bg-muted p-3 rounded-md">{contact.notes}</p>
                       </div>
                     )}
 
                     <div className="pt-2 text-xs text-muted-foreground">
-                      Client since: {new Date(client.createdAt).toLocaleDateString()}
+                      Contact since: {new Date(contact.createdAt).toLocaleDateString()}
                     </div>
                   </CardContent>
                 </Card>

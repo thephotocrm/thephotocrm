@@ -11,7 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-interface Client {
+interface Contact {
   id: string;
   firstName: string;
   lastName: string;
@@ -38,30 +38,30 @@ interface Project {
   createdAt: string;
 }
 
-type ClientOrProject = Client | Project;
+type ContactOrProject = Contact | Project;
 
-interface ClientCardProps {
-  client: ClientOrProject;
+interface ContactCardProps {
+  contact: ContactOrProject;
   onMove: (stageId: string) => void;
 }
 
-export default function ClientCard({ client, onMove }: ClientCardProps) {
-  const isProject = 'title' in client;
+export default function ContactCard({ contact, onMove }: ContactCardProps) {
+  const isProject = 'title' in contact;
   const fullName = isProject 
-    ? (client as Project).client 
-      ? `${(client as Project).client!.firstName} ${(client as Project).client!.lastName}`
-      : (client as Project).title
-    : `${(client as Client).firstName} ${(client as Client).lastName}`;
+    ? (contact as Project).client 
+      ? `${(contact as Project).client!.firstName} ${(contact as Project).client!.lastName}`
+      : (contact as Project).title
+    : `${(contact as Contact).firstName} ${(contact as Contact).lastName}`;
   
   const email = isProject 
-    ? (client as Project).client?.email 
-    : (client as Client).email;
+    ? (contact as Project).client?.email 
+    : (contact as Contact).email;
   const phone = isProject 
-    ? (client as Project).client?.phone 
-    : (client as Client).phone;
+    ? (contact as Project).client?.phone 
+    : (contact as Contact).phone;
   
   const getDaysInStage = () => {
-    const enteredAt = client.stageEnteredAt ? new Date(client.stageEnteredAt) : new Date(client.createdAt);
+    const enteredAt = contact.stageEnteredAt ? new Date(contact.stageEnteredAt) : new Date(contact.createdAt);
     const now = new Date();
     const diffTime = Math.abs(now.getTime() - enteredAt.getTime());
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
@@ -100,22 +100,22 @@ export default function ClientCard({ client, onMove }: ClientCardProps) {
     <Card className="cursor-pointer hover:shadow-md transition-all duration-200 hover:-translate-y-1">
       <CardContent className="p-4">
         <div className="flex items-start justify-between mb-2">
-          <h4 className="font-medium text-sm" data-testid={`client-name-${client.id}`}>
+          <h4 className="font-medium text-sm" data-testid={`contact-name-${contact.id}`}>
             {fullName}
           </h4>
           <div className={`w-2 h-2 rounded-full ${getStatusColor()}`} />
         </div>
         
-        {((isProject && (client as Project).eventDate) || (!isProject && (client as Client).weddingDate)) && (
-          <p className="text-xs text-muted-foreground mb-2" data-testid={`client-event-date-${client.id}`}>
+        {((isProject && (contact as Project).eventDate) || (!isProject && (contact as Contact).weddingDate)) && (
+          <p className="text-xs text-muted-foreground mb-2" data-testid={`contact-event-date-${contact.id}`}>
             {format(new Date(
-              isProject ? (client as Project).eventDate! : (client as Client).weddingDate!
+              isProject ? (contact as Project).eventDate! : (contact as Contact).weddingDate!
             ), "MMMM d, yyyy")}
           </p>
         )}
 
         <div className="flex items-center justify-between text-xs">
-          <span className="text-muted-foreground" data-testid={`client-days-in-stage-${client.id}`}>
+          <span className="text-muted-foreground" data-testid={`contact-days-in-stage-${contact.id}`}>
             {getDaysInStage()} days in stage
           </span>
           <Badge variant={getStatusVariant()} className="text-xs flex items-center gap-1">
@@ -143,7 +143,7 @@ export default function ClientCard({ client, onMove }: ClientCardProps) {
         <div className="flex justify-end mt-2">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" data-testid={`client-actions-${client.id}`}>
+              <Button variant="ghost" size="sm" data-testid={`contact-actions-${contact.id}`}>
                 <MoreHorizontal className="w-4 h-4" />
               </Button>
             </DropdownMenuTrigger>
@@ -151,7 +151,7 @@ export default function ClientCard({ client, onMove }: ClientCardProps) {
               <DropdownMenuItem>View Details</DropdownMenuItem>
               <DropdownMenuItem>Send Email</DropdownMenuItem>
               <DropdownMenuItem>Create Estimate</DropdownMenuItem>
-              <DropdownMenuItem>Edit Client</DropdownMenuItem>
+              <DropdownMenuItem>Edit Contact</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

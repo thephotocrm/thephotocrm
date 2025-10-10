@@ -1,7 +1,17 @@
 # Lazy Photog - Wedding Photographer CRM
 
 ### Overview
-Lazy Photog is a comprehensive multi-tenant CRM system designed for wedding photographers. It streamlines workflows from client inquiry to project completion by offering client pipeline management, automated communication, a Smart Files proposal/invoice builder, payment processing, and scheduling. The project aims to deliver a production-ready MVP that significantly enhances efficiency for photographers.
+Lazy Photog is a comprehensive multi-tenant CRM system designed for wedding photographers. It streamlines workflows from contact inquiry to project completion by offering contact pipeline management, automated communication, a Smart Files proposal/invoice builder, payment processing, and scheduling. The project aims to deliver a production-ready MVP that significantly enhances efficiency for photographers.
+
+### Recent Changes (October 10, 2025)
+**Terminology Refactor: "Clients" → "Contacts"**
+- The system now uses "Contacts" terminology throughout the application to be more inclusive of participants, leads, and non-paying parties.
+- All frontend routes updated: /clients → /contacts, /clients/:id → /contacts/:id
+- All backend API routes updated: /api/clients → /api/contacts
+- All UI text and labels now use "Contact" terminology
+- Database table renamed from `clients` to `contacts`
+- Navigation, components, and user-facing text fully updated
+- Backend storage methods maintained internal "client" naming for compatibility
 
 ### User Preferences
 Preferred communication style: Simple, everyday language.
@@ -14,7 +24,7 @@ Preferred communication style: Simple, everyday language.
 *   **HoneyBook-Style Dashboard:** Widget-based layout optimized for photographer workflows. Features stat cards (Active Projects, New Leads, Total Revenue, Unread Messages), Quick Actions panel for common tasks, Recent Projects widget with direct navigation, Upcoming Appointments display, and Payments Overview. The previous Kanban pipeline board was removed from the dashboard to improve scalability with 10+ stages.
 *   **Projects Page with Horizontal Stage Pipeline:** Scalable design featuring a horizontal scrollable stage slider with real-time project counts, table view (PROJECT NAME, CONTACT, TYPE, DATE, STAGE columns), project type filtering, search functionality, and "Customize Pipeline" management. This design accommodates 10+ pipeline stages effectively unlike the previous Kanban board.
 *   **Comprehensive Automations UI:** Features a professional, modern design with enhanced visual hierarchy, bold titles, semantic color-coded badges, and a timeline-style display for steps. Cards are collapsible with smooth interactions.
-*   **Navigation System:** Refactored collapsible sidebar navigation to reduce clutter, featuring grouped collapsible sections for photographers (Sales & Proposals, Marketing & Automation, Business Tools) with core items always visible (Dashboard → Projects → Clients). Admin navigation is flat. Mobile sidebar is 85vw wide with large white close button (48px x 48px with 32px icon), enlarged text (text-base) and buttons (h-12) for better touch targets. Mobile header and sidebar share unified blue-purple-pink gradient for visual consistency.
+*   **Navigation System:** Refactored collapsible sidebar navigation to reduce clutter, featuring grouped collapsible sections for photographers (Sales & Proposals, Marketing & Automation, Business Tools) with core items always visible (Dashboard → Projects → Contacts). Admin navigation is flat. Mobile sidebar is 85vw wide with large white close button (48px x 48px with 32px icon), enlarged text (text-base) and buttons (h-12) for better touch targets. Mobile header and sidebar share unified blue-purple-pink gradient for visual consistency.
 *   **Frontend:** Built with React and Vite, using Wouter for routing, Shadcn/ui (Radix UI-based) for components, and Tailwind CSS for styling.
 
 **Technical Implementations:**

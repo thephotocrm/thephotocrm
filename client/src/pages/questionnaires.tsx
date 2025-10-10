@@ -705,7 +705,7 @@ export default function Questionnaires() {
           </DialogHeader>
           <div className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              Assign "{selectedTemplate?.title}" to a client project. Select a project below.
+              Assign "{selectedTemplate?.title}" to a project. Select a project below.
             </p>
             
             {Array.isArray(projects) && projects.length > 0 ? (
@@ -742,7 +742,7 @@ export default function Questionnaires() {
             ) : (
               <div className="text-center py-8 text-muted-foreground">
                 <p>No projects found</p>
-                <p className="text-sm">Create a client project first to assign questionnaires</p>
+                <p className="text-sm">Create a project first to assign questionnaires</p>
               </div>
             )}
             

@@ -109,10 +109,10 @@ export default function Dashboard() {
       description: "Start a new project"
     },
     { 
-      label: "New Client", 
+      label: "New Contact", 
       icon: UserPlus, 
-      path: "/clients?create=true",
-      description: "Add a client"
+      path: "/contacts?create=true",
+      description: "Add a contact"
     },
     { 
       label: "New Smart File", 
