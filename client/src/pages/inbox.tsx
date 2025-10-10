@@ -7,7 +7,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
-import { MessageSquare, Mail, Send, MessageCircle, ArrowLeft } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { MessageSquare, Mail, Send, MessageCircle, ArrowLeft, Plus, Search } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "wouter";
 
@@ -42,6 +44,8 @@ export default function Inbox() {
   const [selectedContactId, setSelectedContactId] = useState<string | null>(null);
   const [newMessage, setNewMessage] = useState("");
   const [isMobileThreadView, setIsMobileThreadView] = useState(false);
+  const [isNewMessageDialogOpen, setIsNewMessageDialogOpen] = useState(false);
+  const [contactSearch, setContactSearch] = useState("");
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -49,6 +53,12 @@ export default function Inbox() {
   const { data: conversations = [], isLoading: conversationsLoading } = useQuery<Conversation[]>({
     queryKey: ['/api/inbox/conversations'],
     refetchInterval: 10000 // Poll every 10 seconds for new messages
+  });
+
+  // Fetch all contacts for new message dialog
+  const { data: allContacts = [] } = useQuery<Contact[]>({
+    queryKey: ['/api/contacts'],
+    enabled: isNewMessageDialogOpen
   });
 
   // Fetch thread for selected contact
@@ -61,10 +71,7 @@ export default function Inbox() {
   // Send SMS mutation
   const sendSmsMutation = useMutation({
     mutationFn: async ({ contactId, message }: { contactId: string; message: string }) => {
-      return apiRequest('/api/inbox/send-sms', {
-        method: 'POST',
-        body: JSON.stringify({ contactId, message })
-      });
+      return apiRequest('POST', '/api/inbox/send-sms', { contactId, message });
     },
     onSuccess: () => {
       setNewMessage("");
@@ -89,9 +96,7 @@ export default function Inbox() {
   // Mark as read mutation
   const markAsReadMutation = useMutation({
     mutationFn: async (contactId: string) => {
-      return apiRequest(`/api/inbox/mark-read/${contactId}`, {
-        method: 'POST'
-      });
+      return apiRequest('POST', `/api/inbox/mark-read/${contactId}`);
     },
     onSuccess: () => {
       // Force immediate refetch instead of just invalidating
@@ -120,6 +125,13 @@ export default function Inbox() {
     setSelectedContactId(null);
   };
 
+  const handleStartNewConversation = (contactId: string) => {
+    setSelectedContactId(contactId);
+    setIsMobileThreadView(true);
+    setIsNewMessageDialogOpen(false);
+    setContactSearch("");
+  };
+
   const getInitials = (firstName?: string, lastName?: string) => {
     const first = firstName?.[0] || '';
     const last = lastName?.[0] || '';
@@ -143,14 +155,84 @@ export default function Inbox() {
 
   const selectedConversation = conversations.find(c => c.contact.id === selectedContactId);
 
+  // Filter contacts based on search - only show contacts with phone numbers for SMS
+  const filteredContacts = allContacts
+    .filter(contact => contact.phone) // Only contacts with phone numbers
+    .filter(contact => {
+      const searchLower = contactSearch.toLowerCase();
+      const fullName = `${contact.firstName} ${contact.lastName}`.toLowerCase();
+      const phone = contact.phone?.toLowerCase() || '';
+      const email = contact.email?.toLowerCase() || '';
+      return fullName.includes(searchLower) || phone.includes(searchLower) || email.includes(searchLower);
+    });
+
   return (
     <div className="h-[calc(100vh-4rem)] flex flex-col">
       <div className="flex-1 flex overflow-hidden">
         {/* Conversation List */}
         <div className={`w-full md:w-96 border-r bg-background ${isMobileThreadView ? 'hidden md:block' : 'block'}`}>
-          <div className="p-4 border-b">
-            <h2 className="text-2xl font-bold" data-testid="text-inbox-title">Inbox</h2>
-            <p className="text-sm text-muted-foreground">SMS Conversations</p>
+          <div className="p-4 border-b flex items-center justify-between">
+            <div>
+              <h2 className="text-2xl font-bold" data-testid="text-inbox-title">Inbox</h2>
+              <p className="text-sm text-muted-foreground">SMS Conversations</p>
+            </div>
+            <Dialog open={isNewMessageDialogOpen} onOpenChange={setIsNewMessageDialogOpen}>
+              <DialogTrigger asChild>
+                <Button size="sm" data-testid="button-new-message">
+                  <Plus className="w-4 h-4 mr-1" />
+                  New
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle>New Message</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Search contacts..."
+                      value={contactSearch}
+                      onChange={(e) => setContactSearch(e.target.value)}
+                      className="pl-9"
+                      data-testid="input-contact-search"
+                    />
+                  </div>
+                  <ScrollArea className="h-80">
+                    {filteredContacts.length === 0 ? (
+                      <div className="p-4 text-center text-muted-foreground">
+                        {contactSearch ? 'No contacts found' : 'No contacts with phone numbers'}
+                      </div>
+                    ) : (
+                      filteredContacts.map((contact) => (
+                        <div
+                          key={contact.id}
+                          onClick={() => handleStartNewConversation(contact.id)}
+                          className="p-3 border-b cursor-pointer hover:bg-accent transition-colors"
+                          data-testid={`contact-option-${contact.id}`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <Avatar>
+                              <AvatarFallback>
+                                {getInitials(contact.firstName, contact.lastName)}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium truncate">
+                                {contact.firstName} {contact.lastName}
+                              </p>
+                              {contact.phone && (
+                                <p className="text-sm text-muted-foreground truncate">{contact.phone}</p>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </ScrollArea>
+                </div>
+              </DialogContent>
+            </Dialog>
           </div>
 
           <ScrollArea className="h-[calc(100vh-12rem)]">
@@ -159,7 +241,64 @@ export default function Inbox() {
             ) : conversations.length === 0 ? (
               <div className="p-8 text-center">
                 <MessageSquare className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-                <p className="text-muted-foreground">No SMS conversations yet</p>
+                <p className="text-muted-foreground mb-4">No SMS conversations yet</p>
+                <Dialog open={isNewMessageDialogOpen} onOpenChange={setIsNewMessageDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" data-testid="button-start-conversation">
+                      <Plus className="w-4 h-4 mr-2" />
+                      Start a Conversation
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>New Message</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <div className="relative">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                        <Input
+                          placeholder="Search contacts..."
+                          value={contactSearch}
+                          onChange={(e) => setContactSearch(e.target.value)}
+                          className="pl-9"
+                          data-testid="input-contact-search-empty"
+                        />
+                      </div>
+                      <ScrollArea className="h-80">
+                        {filteredContacts.length === 0 ? (
+                          <div className="p-4 text-center text-muted-foreground">
+                            {contactSearch ? 'No contacts found' : 'No contacts with phone numbers'}
+                          </div>
+                        ) : (
+                          filteredContacts.map((contact) => (
+                            <div
+                              key={contact.id}
+                              onClick={() => handleStartNewConversation(contact.id)}
+                              className="p-3 border-b cursor-pointer hover:bg-accent transition-colors"
+                              data-testid={`contact-option-empty-${contact.id}`}
+                            >
+                              <div className="flex items-center gap-3">
+                                <Avatar>
+                                  <AvatarFallback>
+                                    {getInitials(contact.firstName, contact.lastName)}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <div className="flex-1 min-w-0">
+                                  <p className="font-medium truncate">
+                                    {contact.firstName} {contact.lastName}
+                                  </p>
+                                  {contact.phone && (
+                                    <p className="text-sm text-muted-foreground truncate">{contact.phone}</p>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          ))
+                        )}
+                      </ScrollArea>
+                    </div>
+                  </DialogContent>
+                </Dialog>
               </div>
             ) : (
               conversations.map((conversation) => (

@@ -13,6 +13,7 @@ Lazy Photog is a comprehensive multi-tenant CRM system designed for wedding phot
 - Real-time unread badge on sidebar navigation updates immediately using refetchQueries
 - Character counter and send functionality integrated into SMS composer
 - Mobile-optimized with stacked layout and back button navigation
+- "New Message" button allows starting conversations from inbox - filters to only show contacts with phone numbers
 
 **Terminology Refactor: "Clients" → "Contacts"**
 - The system now uses "Contacts" terminology throughout the application to be more inclusive of participants, leads, and non-paying parties.
