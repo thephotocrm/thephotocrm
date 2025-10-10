@@ -1971,6 +1971,9 @@ export default function Automations() {
   });
 
   const handleCreateAutomation = (data: UnifiedFormData) => {
+    console.log('🚀 handleCreateAutomation called with data:', data);
+    console.log('📋 Channel:', data.channel);
+    console.log('📁 Smart File Template ID:', data.smartFileTemplateId);
     createAutomationMutation.mutate(data);
   };
 
@@ -2628,9 +2631,9 @@ export default function Automations() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Smart File Template</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value || ""}>
+                          <Select onValueChange={field.onChange} value={field.value || undefined}>
                             <FormControl>
-                              <SelectTrigger data-testid="select-smart-file-template">
+                              <SelectTrigger data-testid="select-smartfile-template">
                                 <SelectValue placeholder="Choose a Smart File template" />
                               </SelectTrigger>
                             </FormControl>
