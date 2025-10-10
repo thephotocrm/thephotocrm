@@ -369,15 +369,15 @@ export default function Projects() {
               <Button
                 variant={selectedStage === "ALL" ? "default" : "outline"}
                 className={cn(
-                  "shrink-0 rounded-lg transition-all",
+                  "shrink-0 rounded-lg transition-all px-4 py-3 h-auto",
                   selectedStage === "ALL" ? "bg-black text-white hover:bg-black/90" : ""
                 )}
                 onClick={() => setSelectedStage("ALL")}
                 data-testid="button-stage-all"
               >
-                <div className="flex flex-col items-center gap-1">
-                  <span className="text-2xl font-semibold">{stageCounts.ALL || 0}</span>
-                  <span className="text-xs">All</span>
+                <div className="flex flex-col items-center gap-1 w-full">
+                  <span className="text-2xl font-semibold leading-tight">{stageCounts.ALL || 0}</span>
+                  <span className="text-xs whitespace-nowrap">All</span>
                 </div>
               </Button>
               
@@ -386,15 +386,15 @@ export default function Projects() {
                   key={stage.id}
                   variant={selectedStage === stage.id ? "default" : "outline"}
                   className={cn(
-                    "shrink-0 rounded-lg transition-all min-w-[120px]",
+                    "shrink-0 rounded-lg transition-all min-w-[100px] max-w-[160px] px-4 py-3 h-auto",
                     selectedStage === stage.id ? "bg-black text-white hover:bg-black/90" : ""
                   )}
                   onClick={() => setSelectedStage(stage.id)}
                   data-testid={`button-stage-${stage.name.toLowerCase().replace(/\s+/g, '-')}`}
                 >
-                  <div className="flex flex-col items-center gap-1">
-                    <span className="text-2xl font-semibold">{stageCounts[stage.id] || 0}</span>
-                    <span className="text-xs truncate max-w-[100px]">{stage.name}</span>
+                  <div className="flex flex-col items-center gap-1 w-full overflow-hidden">
+                    <span className="text-2xl font-semibold leading-tight">{stageCounts[stage.id] || 0}</span>
+                    <span className="text-xs text-center leading-tight break-words w-full px-1">{stage.name}</span>
                   </div>
                 </Button>
               ))}
