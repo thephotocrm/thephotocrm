@@ -85,7 +85,7 @@ export function SchedulingCalendar({
                   compareDate.setHours(0, 0, 0, 0);
                   return compareDate < today;
                 }}
-                className="rounded-md border"
+                className="rounded-md border scale-110 md:scale-100"
                 data-testid="calendar-date-picker"
               />
             </div>
@@ -110,17 +110,14 @@ export function SchedulingCalendar({
               </div>
 
               {selectedDate && (
-                <div className="grid grid-cols-2 gap-2 max-h-[320px] overflow-y-auto pr-2">
+                <div className="grid grid-cols-2 gap-2">
                   {timeSlots.map((slot) => (
                     <Button
                       key={slot.value}
                       variant={selectedTime === slot.value ? "default" : "outline"}
                       size="sm"
                       onClick={() => setSelectedTime(slot.value)}
-                      className={cn(
-                        "justify-center",
-                        selectedTime === slot.value && "ring-2 ring-primary ring-offset-2"
-                      )}
+                      className="justify-center"
                       data-testid={`time-slot-${slot.value}`}
                     >
                       {slot.display}
