@@ -321,11 +321,13 @@ export function AppSidebar() {
                         {/* Inner container */}
                         <div className="relative bg-slate-800 rounded-lg pt-4 pb-3 px-3">
                           {/* Title that breaks the top border */}
-                          <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-slate-800 px-3 flex items-center gap-2 whitespace-nowrap">
-                            <Rocket className="w-4 h-4 text-purple-400" />
-                            <span className="text-sm font-semibold bg-gradient-to-r from-purple-400 via-pink-400 to-orange-400 bg-clip-text text-transparent">
-                              Get Leads
-                            </span>
+                          <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 rounded-md p-[2px] bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500">
+                            <div className="bg-slate-800 rounded-md px-4 py-1 flex items-center gap-2 whitespace-nowrap">
+                              <Rocket className="w-4 h-4 text-purple-400" />
+                              <span className="text-sm font-semibold bg-gradient-to-r from-purple-400 via-pink-400 to-orange-400 bg-clip-text text-transparent">
+                                Get Leads
+                              </span>
+                            </div>
                           </div>
                           
                           <div className="space-y-1 mt-1">
