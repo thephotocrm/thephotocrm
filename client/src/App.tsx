@@ -35,6 +35,8 @@ import Scheduling from "@/pages/scheduling";
 import Reports from "@/pages/reports";
 import Earnings from "@/pages/earnings";
 import Settings from "@/pages/settings";
+import FacebookAds from "@/pages/facebook-ads";
+import GoogleAds from "@/pages/google-ads";
 import ClientPortal from "@/pages/client-portal";
 import PublicSmartFile from "@/pages/public-smart-file";
 import SmartFileSuccess from "@/pages/smart-file-success";
@@ -96,6 +98,8 @@ function ProtectedRoutes() {
             <Route path="/scheduling" component={Scheduling} />
             <Route path="/reports" component={Reports} />
             <Route path="/earnings" component={Earnings} />
+            <Route path="/facebook-ads" component={FacebookAds} />
+            <Route path="/google-ads" component={GoogleAds} />
             <Route path="/settings" component={Settings} />
             <Route component={NotFound} />
           </Switch>
@@ -153,6 +157,8 @@ function Router() {
       <Route path="/scheduling"><ProtectedRoutes /></Route>
       <Route path="/reports"><ProtectedRoutes /></Route>
       <Route path="/earnings"><ProtectedRoutes /></Route>
+      <Route path="/facebook-ads"><ProtectedRoutes /></Route>
+      <Route path="/google-ads"><ProtectedRoutes /></Route>
       <Route path="/settings"><ProtectedRoutes /></Route>
       
       {/* Landing page - must be last so other routes match first */}
