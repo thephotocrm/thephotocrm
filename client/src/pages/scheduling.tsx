@@ -469,12 +469,12 @@ export default function Scheduling() {
                   Calendar
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-0 md:p-6">
+              <CardContent className="p-0 md:p-6 flex justify-center">
                 <Calendar
                   mode="single"
                   selected={selectedDate}
                   onSelect={handleDateSelect}
-                  className="rounded-md border-0 md:border w-full"
+                  className="rounded-md border-0 md:border"
                   data-testid="calendar-availability"
                 />
               </CardContent>
@@ -597,25 +597,31 @@ export default function Scheduling() {
               ) : (
                 <div className="space-y-4">
                   {bookings.slice(0, 4).map((booking: any, index: number) => (
-                    <div key={booking.id} className="flex items-center justify-between p-4 border border-border rounded-lg" data-testid={`booking-item-${index}`}>
-                      <div className="flex items-center space-x-4">
-                        <div className={`w-3 h-3 rounded-full ${
+                    <div key={booking.id} className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 p-4 border border-border rounded-lg" data-testid={`booking-item-${index}`}>
+                      <div className="flex items-start md:items-center space-x-3 md:space-x-4 flex-1 min-w-0">
+                        <div className={`w-3 h-3 rounded-full shrink-0 mt-1 md:mt-0 ${
                           booking.status === "CONFIRMED" ? "bg-green-400" :
                           booking.status === "PENDING" ? "bg-amber-400" :
                           "bg-blue-400"
                         }`}></div>
-                        <div className="flex-1">
-                          <h4 className="text-lg font-medium" data-testid={`booking-title-${index}`}>
-                            {formatBookingTitle(booking.title)}
-                          </h4>
-                          <p className="text-sm" data-testid={`booking-date-${index}`}>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1 flex-wrap">
+                            <h4 className="text-base md:text-lg font-medium break-words" data-testid={`booking-title-${index}`}>
+                              {formatBookingTitle(booking.title)}
+                            </h4>
+                            <Badge variant={booking.status === "CONFIRMED" ? "default" : "outline"} className="md:hidden text-xs" data-testid={`booking-status-${index}`}>
+                              {booking.status === "CONFIRMED" ? "Confirmed" : 
+                               booking.status === "PENDING" ? "Pending" : booking.status}
+                            </Badge>
+                          </div>
+                          <p className="text-sm text-muted-foreground" data-testid={`booking-date-${index}`}>
                             {(() => {
                               const startDateTime = formatBookingDateTime(booking.startAt);
                               return startDateTime.date;
                             })()}
                           </p>
                           {(booking.clientName || booking.clientPhone) && (
-                            <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground">
+                            <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 mt-2 text-xs sm:text-sm text-muted-foreground">
                               {booking.clientName && (
                                 <span data-testid={`booking-client-name-${index}`}>
                                   👤 {booking.clientName}
@@ -630,8 +636,8 @@ export default function Scheduling() {
                           )}
                         </div>
                       </div>
-                      <div className="flex items-center space-x-2">
-                        <Badge variant={booking.status === "CONFIRMED" ? "default" : "outline"} data-testid={`booking-status-${index}`}>
+                      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 md:gap-2">
+                        <Badge variant={booking.status === "CONFIRMED" ? "default" : "outline"} className="hidden md:inline-flex w-fit self-start sm:self-auto" data-testid={`booking-status-${index}`}>
                           {booking.status === "CONFIRMED" ? "Confirmed" : 
                            booking.status === "PENDING" ? "Pending" : booking.status}
                         </Badge>
@@ -641,6 +647,7 @@ export default function Scheduling() {
                             size="sm" 
                             onClick={() => window.open(booking.meetingLink, '_blank')}
                             data-testid={`button-join-meeting-${index}`}
+                            className="text-xs sm:text-sm"
                           >
                             Join Meeting
                           </Button>
@@ -653,6 +660,7 @@ export default function Scheduling() {
                             setShowBookingDetailsModal(true);
                           }}
                           data-testid={`button-view-details-${index}`}
+                          className="text-xs sm:text-sm"
                         >
                           View Details
                         </Button>
