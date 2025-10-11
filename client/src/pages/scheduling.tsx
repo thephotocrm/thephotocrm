@@ -469,12 +469,12 @@ export default function Scheduling() {
                   Calendar
                 </CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-0 md:p-6">
                 <Calendar
                   mode="single"
                   selected={selectedDate}
                   onSelect={handleDateSelect}
-                  className="rounded-md border"
+                  className="rounded-md border-0 md:border w-full"
                   data-testid="calendar-availability"
                 />
               </CardContent>
