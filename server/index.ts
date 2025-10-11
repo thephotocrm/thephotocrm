@@ -6,91 +6,14 @@ import { sendSms } from "./services/sms";
 
 const app = express();
 
-// CRITICAL: Register webhooks FIRST, before ANY other middleware or routes
-// This ensures external webhook requests bypass Vite and reach Express handlers
-console.log('🚀 Mounting webhook routes BEFORE all middleware');
+// CRITICAL: Add body parsers FIRST so webhook routes can access req.body
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: false, limit: '50mb' }));
 
-app.get("/webhooks/test", async (req, res) => {
-  console.log('✅ TEST WEBHOOK HIT at', new Date().toISOString());
-  return res.json({ success: true, message: "Test route works!", timestamp: new Date().toISOString() });
-});
-
-app.get("/webhooks/simpletexting/inbound", async (req, res) => {
-  console.log('✅ SIMPLETEXTING SMS WEBHOOK (GET) - Received at', new Date().toISOString());
-  console.log('Query params:', req.query);
-  
-  try {
-    const { from, to, text, subject } = req.query;
-    
-    if (!from || !text) {
-      console.error('Invalid SimpleTexting SMS webhook payload:', req.query);
-      return res.status(400).json({ error: 'Invalid payload' });
-    }
-
-    const contact = await storage.getContactByPhone(from as string);
-    
-    if (!contact) {
-      console.log(`No contact found for phone number: ${from}`);
-      return res.status(200).json({ message: 'Contact not found' });
-    }
-
-    const photographer = await storage.getPhotographer(contact.photographerId);
-    
-    if (!photographer) {
-      console.error(`No photographer found for contact: ${contact.id}`);
-      return res.status(200).json({ message: 'Photographer not found' });
-    }
-
-    const contactWithProjects = await storage.getContact(contact.id);
-    const latestProject = contactWithProjects?.projects?.[0];
-
-    await storage.createSmsLog({
-      clientId: contact.id,
-      projectId: latestProject?.id || null,
-      status: 'received',
-      direction: 'INBOUND',
-      fromPhone: from as string,
-      toPhone: to as string || process.env.SIMPLETEXTING_PHONE_NUMBER || '',
-      messageBody: text as string,
-      isForwarded: false,
-      sentAt: new Date()
-    });
-
-    if (photographer.phone) {
-      const projectContext = latestProject ? `${latestProject.projectType} Project` : 'Contact';
-      const contextMessage = `${contact.firstName} ${contact.lastName} (${projectContext}): ${text}`;
-      
-      const forwardResult = await sendSms({
-        to: photographer.phone,
-        body: contextMessage
-      });
-
-      if (forwardResult.success) {
-        await storage.createSmsLog({
-          clientId: contact.id,
-          projectId: latestProject?.id || null,
-          status: 'sent',
-          direction: 'OUTBOUND',
-          fromPhone: process.env.SIMPLETEXTING_PHONE_NUMBER || '',
-          toPhone: photographer.phone,
-          messageBody: contextMessage,
-          isForwarded: true,
-          providerId: forwardResult.sid,
-          sentAt: new Date()
-        });
-
-        console.log(`Forwarded SMS to photographer: ${photographer.phone}`);
-      } else {
-        console.error('Failed to forward SMS to photographer:', forwardResult.error);
-      }
-    }
-
-    return res.status(200).json({ message: 'SMS processed successfully' });
-  } catch (error: any) {
-    console.error('SimpleTexting SMS webhook error:', error);
-    return res.status(500).json({ error: 'Internal server error' });
-  }
-});
+// SimpleTexting POST Webhook Handler (MMS and potentially SMS)
+// NOTE: GET webhooks don't work on Replit due to infrastructure routing issues.
+// SimpleTexting sends SMS as GET and MMS as POST. Only POST webhooks work here.
+console.log('🚀 Registering SimpleTexting POST webhook handler');
 
 app.post("/webhooks/simpletexting/inbound", async (req, res) => {
   console.log('✅ SIMPLETEXTING MMS WEBHOOK (POST) - Received at', new Date().toISOString());
@@ -173,9 +96,7 @@ app.post("/webhooks/simpletexting/inbound", async (req, res) => {
   }
 });
 
-app.use(express.json({ limit: '50mb' }));
-app.use(express.urlencoded({ extended: false, limit: '50mb' }));
-
+// Logging middleware for API requests
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
@@ -207,7 +128,9 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  // Register other API routes
   const server = await registerRoutes(app);
+  
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;

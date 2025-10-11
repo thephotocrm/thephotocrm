@@ -124,184 +124,52 @@ async function processGmailNotification(photographerId: string, emailAddress: st
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // CRITICAL: Handle webhooks FIRST, before any other middleware
-  // This ensures they're not caught by authentication, CORS, or Vite handlers
-  console.log('🟢 Registering EARLY webhook handlers');
+  // NOTE: SimpleTexting webhook routes are registered in server/index.ts BEFORE this function
+  // to ensure proper body parsing middleware is available
   
-  app.get("/webhooks/test", async (req, res) => {
-    console.log('✅ TEST ROUTE HIT!');
-    return res.json({ success: true, message: "Test route works!", timestamp: new Date().toISOString() });
-  });
-
-  app.get("/webhooks/simpletexting/inbound", async (req, res) => {
-    console.log('✅ SIMPLETEXTING SMS WEBHOOK HIT (GET)');
-    console.log('Query params:', req.query);
-    try {
-      const { from, to, text, subject } = req.query;
-      
-      if (!from || !text) {
-        console.error('Invalid SimpleTexting SMS webhook payload:', req.query);
-        return res.status(400).json({ error: 'Invalid payload' });
-      }
-
-      // Find contact by phone number
-      const contact = await storage.getContactByPhone(from as string);
-      
-      if (!contact) {
-        console.log(`No contact found for phone number: ${from}`);
-        return res.status(200).json({ message: 'Contact not found' });
-      }
-
-      // Get photographer for this contact
-      const photographer = await storage.getPhotographer(contact.photographerId);
-      
-      if (!photographer) {
-        console.error(`No photographer found for contact: ${contact.id}`);
-        return res.status(200).json({ message: 'Photographer not found' });
-      }
-
-      // Get contact's projects to find the most recent one for context
-      const contactWithProjects = await storage.getContact(contact.id);
-      const latestProject = contactWithProjects?.projects?.[0];
-
-      // Log the inbound SMS
-      await storage.createSmsLog({
-        clientId: contact.id,
-        projectId: latestProject?.id || null,
-        status: 'received',
-        direction: 'INBOUND',
-        fromPhone: from as string,
-        toPhone: to as string || process.env.SIMPLETEXTING_PHONE_NUMBER || '',
-        messageBody: text as string,
-        isForwarded: false,
-        sentAt: new Date()
-      });
-
-      // Forward message to photographer if they have a phone number
-      if (photographer.phone) {
-        const projectContext = latestProject ? `${latestProject.projectType} Project` : 'Contact';
-        const contextMessage = `${contact.firstName} ${contact.lastName} (${projectContext}): ${text}`;
-        
-        const forwardResult = await sendSms({
-          to: photographer.phone,
-          body: contextMessage
-        });
-
-        if (forwardResult.success) {
-          // Log the forwarded message
-          await storage.createSmsLog({
-            clientId: contact.id,
-            projectId: latestProject?.id || null,
-            status: 'sent',
-            direction: 'OUTBOUND',
-            fromPhone: process.env.SIMPLETEXTING_PHONE_NUMBER || '',
-            toPhone: photographer.phone,
-            messageBody: contextMessage,
-            isForwarded: true,
-            providerId: forwardResult.sid,
-            sentAt: new Date()
-          });
-
-          console.log(`Forwarded SMS to photographer: ${photographer.phone}`);
-        } else {
-          console.error('Failed to forward SMS to photographer:', forwardResult.error);
-        }
-      } else {
-        console.log('Photographer has no phone number configured for forwarding');
-      }
-
-      return res.status(200).json({ message: 'SMS processed successfully' });
-    } catch (error: any) {
-      console.error('SimpleTexting SMS webhook error:', error);
-      return res.status(500).json({ error: 'Internal server error' });
-    }
-  });
-
-  app.post("/webhooks/simpletexting/inbound", async (req, res) => {
-    console.log('✅ SIMPLETEXTING MMS WEBHOOK HIT (POST)');
+  // Gmail push notification webhook (uses processGmailNotification function above)
+  app.post("/webhooks/gmail/push", async (req, res) => {
+    console.log('✅ GMAIL PUSH NOTIFICATION RECEIVED');
     console.log('Request body:', JSON.stringify(req.body, null, 2));
+    
     try {
-      const { from, to, text, subject, attachments } = req.body;
+      // Acknowledge receipt immediately (within 10 seconds to avoid retries)
+      res.status(200).send('OK');
       
-      if (!from || !text) {
-        console.error('Invalid SimpleTexting MMS webhook payload:', req.body);
-        return res.status(400).json({ error: 'Invalid payload' });
+      // Parse the Gmail push notification
+      const message = req.body.message;
+      if (!message || !message.data) {
+        console.error('Invalid Gmail push notification format');
+        return;
       }
-
-      // Find contact by phone number
-      const contact = await storage.getContactByPhone(from);
       
-      if (!contact) {
-        console.log(`No contact found for phone number: ${from}`);
-        return res.status(200).json({ message: 'Contact not found' });
+      // Decode the base64 message data
+      const decodedData = Buffer.from(message.data, 'base64').toString('utf-8');
+      const notificationData = JSON.parse(decodedData);
+      
+      console.log('Decoded notification data:', notificationData);
+      
+      const { emailAddress, historyId } = notificationData;
+      
+      if (!emailAddress || !historyId) {
+        console.error('Missing emailAddress or historyId in notification');
+        return;
       }
-
-      // Get photographer for this contact
-      const photographer = await storage.getPhotographer(contact.photographerId);
+      
+      // Find photographer by email
+      const photographer = await storage.getPhotographerByEmail(emailAddress);
       
       if (!photographer) {
-        console.error(`No photographer found for contact: ${contact.id}`);
-        return res.status(200).json({ message: 'Photographer not found' });
+        console.error(`No photographer found for email: ${emailAddress}`);
+        return;
       }
-
-      // Get contact's projects to find the most recent one for context
-      const contactWithProjects = await storage.getContact(contact.id);
-      const latestProject = contactWithProjects?.projects?.[0];
-
-      // Log the inbound MMS
-      const messageBody = attachments && attachments.length > 0 
-        ? `${text} [${attachments.length} attachment(s): ${attachments.join(', ')}]`
-        : text;
-
-      await storage.createSmsLog({
-        clientId: contact.id,
-        projectId: latestProject?.id || null,
-        status: 'received',
-        direction: 'INBOUND',
-        fromPhone: from,
-        toPhone: to || process.env.SIMPLETEXTING_PHONE_NUMBER || '',
-        messageBody: messageBody,
-        isForwarded: false,
-        sentAt: new Date()
-      });
-
-      // Forward MMS to photographer if they have a phone number
-      if (photographer.phone) {
-        const projectContext = latestProject ? `${latestProject.projectType} Project` : 'Contact';
-        const contextMessage = `${contact.firstName} ${contact.lastName} (${projectContext}): ${messageBody}`;
-        
-        const forwardResult = await sendSms({
-          to: photographer.phone,
-          body: contextMessage
-        });
-
-        if (forwardResult.success) {
-          // Log the forwarded message
-          await storage.createSmsLog({
-            clientId: contact.id,
-            projectId: latestProject?.id || null,
-            status: 'sent',
-            direction: 'OUTBOUND',
-            fromPhone: process.env.SIMPLETEXTING_PHONE_NUMBER || '',
-            toPhone: photographer.phone,
-            messageBody: contextMessage,
-            isForwarded: true,
-            providerId: forwardResult.sid,
-            sentAt: new Date()
-          });
-
-          console.log(`Forwarded MMS to photographer: ${photographer.phone}`);
-        } else {
-          console.error('Failed to forward MMS to photographer:', forwardResult.error);
-        }
-      } else {
-        console.log('Photographer has no phone number configured for forwarding');
-      }
-
-      return res.status(200).json({ message: 'MMS processed successfully' });
+      
+      // Process the notification asynchronously
+      console.log(`Processing Gmail notification for photographer ${photographer.id}, historyId: ${historyId}`);
+      await processGmailNotification(photographer.id, emailAddress, historyId);
+      
     } catch (error: any) {
-      console.error('SimpleTexting MMS webhook error:', error);
-      return res.status(500).json({ error: 'Internal server error' });
+      console.error('Gmail push notification error:', error);
     }
   });
 
@@ -4692,240 +4560,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
     }
   });
 
-  // Test route to debug routing issues
-  console.log('✅ Registering test route: /webhooks/test');
-  app.get("/webhooks/test", async (req, res) => {
-    console.log('TEST ROUTE HIT!');
-    res.json({ message: "Test route works!" });
-  });
-
-  // SimpleTexting Webhooks - Handle SMS (GET) and MMS (POST)
-  // SMS messages come as GET requests with query params: from, to, text, subject
-  console.log('✅ Registering GET webhook route: /webhooks/simpletexting/inbound');
-  app.get("/webhooks/simpletexting/inbound", async (req, res) => {
-    console.log('=== SIMPLETEXTING SMS WEBHOOK (GET) ===');
-    console.log('Query params:', req.query);
-    try {
-      const { from, to, text, subject } = req.query;
-      
-      if (!from || !text) {
-        console.error('Invalid SimpleTexting SMS webhook payload:', req.query);
-        return res.status(400).json({ error: 'Invalid payload' });
-      }
-
-      // Find contact by phone number
-      const contact = await storage.getContactByPhone(from as string);
-      
-      if (!contact) {
-        console.log(`No contact found for phone number: ${from}`);
-        return res.status(200).json({ message: 'Contact not found' });
-      }
-
-      // Get photographer for this contact
-      const photographer = await storage.getPhotographer(contact.photographerId);
-      
-      if (!photographer) {
-        console.error(`No photographer found for contact: ${contact.id}`);
-        return res.status(200).json({ message: 'Photographer not found' });
-      }
-
-      // Get contact's projects to find the most recent one for context
-      const contactWithProjects = await storage.getContact(contact.id);
-      const latestProject = contactWithProjects?.projects?.[0];
-
-      // Log the inbound SMS
-      await storage.createSmsLog({
-        clientId: contact.id,
-        projectId: latestProject?.id || null,
-        status: 'received',
-        direction: 'INBOUND',
-        fromPhone: from as string,
-        toPhone: to as string || process.env.SIMPLETEXTING_PHONE_NUMBER || '',
-        messageBody: text as string,
-        isForwarded: false,
-        sentAt: new Date()
-      });
-
-      // Forward message to photographer if they have a phone number
-      if (photographer.phone) {
-        const projectContext = latestProject ? `${latestProject.projectType} Project` : 'Contact';
-        const contextMessage = `${contact.firstName} ${contact.lastName} (${projectContext}): ${text}`;
-        
-        const forwardResult = await sendSms({
-          to: photographer.phone,
-          body: contextMessage
-        });
-
-        if (forwardResult.success) {
-          // Log the forwarded message
-          await storage.createSmsLog({
-            clientId: contact.id,
-            projectId: latestProject?.id || null,
-            status: 'sent',
-            direction: 'OUTBOUND',
-            fromPhone: process.env.SIMPLETEXTING_PHONE_NUMBER || '',
-            toPhone: photographer.phone,
-            messageBody: contextMessage,
-            isForwarded: true,
-            providerId: forwardResult.sid,
-            sentAt: new Date()
-          });
-
-          console.log(`Forwarded SMS to photographer: ${photographer.phone}`);
-        } else {
-          console.error('Failed to forward SMS to photographer:', forwardResult.error);
-        }
-      } else {
-        console.log('Photographer has no phone number configured for forwarding');
-      }
-
-      res.status(200).json({ message: 'SMS processed successfully' });
-    } catch (error: any) {
-      console.error('SimpleTexting SMS webhook error:', error);
-      res.status(500).json({ error: 'Internal server error' });
-    }
-  });
-
-  // MMS messages come as POST requests with JSON body: from, to, text, subject, attachments
-  app.post("/webhooks/simpletexting/inbound", async (req, res) => {
-    console.log('=== SIMPLETEXTING MMS WEBHOOK (POST) ===');
-    console.log('Request body:', JSON.stringify(req.body, null, 2));
-    try {
-      const { from, to, text, subject, attachments } = req.body;
-      
-      if (!from || !text) {
-        console.error('Invalid SimpleTexting MMS webhook payload:', req.body);
-        return res.status(400).json({ error: 'Invalid payload' });
-      }
-
-      // Find contact by phone number
-      const contact = await storage.getContactByPhone(from);
-      
-      if (!contact) {
-        console.log(`No contact found for phone number: ${from}`);
-        return res.status(200).json({ message: 'Contact not found' });
-      }
-
-      // Get photographer for this contact
-      const photographer = await storage.getPhotographer(contact.photographerId);
-      
-      if (!photographer) {
-        console.error(`No photographer found for contact: ${contact.id}`);
-        return res.status(200).json({ message: 'Photographer not found' });
-      }
-
-      // Get contact's projects to find the most recent one for context
-      const contactWithProjects = await storage.getContact(contact.id);
-      const latestProject = contactWithProjects?.projects?.[0];
-
-      // Log the inbound MMS
-      const messageBody = attachments && attachments.length > 0 
-        ? `${text} [${attachments.length} attachment(s): ${attachments.join(', ')}]`
-        : text;
-
-      await storage.createSmsLog({
-        clientId: contact.id,
-        projectId: latestProject?.id || null,
-        status: 'received',
-        direction: 'INBOUND',
-        fromPhone: from,
-        toPhone: to || process.env.SIMPLETEXTING_PHONE_NUMBER || '',
-        messageBody: messageBody,
-        isForwarded: false,
-        sentAt: new Date()
-      });
-
-      // Forward message to photographer if they have a phone number
-      if (photographer.phone) {
-        const projectContext = latestProject ? `${latestProject.projectType} Project` : 'Contact';
-        const contextMessage = `${contact.firstName} ${contact.lastName} (${projectContext}): ${messageBody}`;
-        
-        const forwardResult = await sendSms({
-          to: photographer.phone,
-          body: contextMessage
-        });
-
-        if (forwardResult.success) {
-          // Log the forwarded message
-          await storage.createSmsLog({
-            clientId: contact.id,
-            projectId: latestProject?.id || null,
-            status: 'sent',
-            direction: 'OUTBOUND',
-            fromPhone: process.env.SIMPLETEXTING_PHONE_NUMBER || '',
-            toPhone: photographer.phone,
-            messageBody: contextMessage,
-            isForwarded: true,
-            providerId: forwardResult.sid,
-            sentAt: new Date()
-          });
-
-          console.log(`Forwarded MMS to photographer: ${photographer.phone}`);
-        } else {
-          console.error('Failed to forward MMS to photographer:', forwardResult.error);
-        }
-      } else {
-        console.log('Photographer has no phone number configured for forwarding');
-      }
-
-      res.status(200).json({ message: 'MMS processed successfully' });
-    } catch (error: any) {
-      console.error('SimpleTexting webhook error:', error);
-      res.status(500).json({ error: 'Internal server error' });
-    }
-  });
-
-  // Gmail Push Notification Webhook
-  app.post("/webhooks/gmail/push", async (req, res) => {
-    try {
-      console.log('Received Gmail push notification:', req.body);
-      
-      const { message } = req.body;
-      
-      if (!message || !message.data) {
-        console.error('Invalid Gmail push notification payload:', req.body);
-        return res.status(400).json({ error: 'Invalid payload' });
-      }
-
-      // Decode the push notification data
-      const decodedData = Buffer.from(message.data, 'base64').toString('utf-8');
-      const notificationData = JSON.parse(decodedData);
-      
-      console.log('Decoded Gmail notification:', notificationData);
-
-      // Extract email address and history ID from notification
-      const { emailAddress, historyId } = notificationData;
-      
-      if (!emailAddress) {
-        console.error('No email address in notification');
-        return res.status(400).json({ error: 'No email address' });
-      }
-
-      // Find photographer by email address
-      const user = await storage.getUserByEmail(emailAddress);
-      if (!user || !user.photographerId) {
-        console.warn(`No photographer found for email: ${emailAddress}`);
-        return res.status(200).json({ message: 'Email address not recognized' });
-      }
-
-      // Get the photographer's Gmail history since the last known historyId
-      // For now, we'll fetch the latest message from the inbox
-      // In a production system, you'd store the last historyId and use gmail.users.history.list
-      
-      // Acknowledge the webhook immediately to prevent retries
-      res.status(200).json({ message: 'Push notification received' });
-
-      // Process the notification asynchronously
-      // Note: In production, you should use a queue system for this
-      processGmailNotification(user.photographerId, emailAddress, historyId).catch(error => {
-        console.error('Error processing Gmail notification:', error);
-      });
-
-    } catch (error: any) {
-      console.error('Gmail webhook error:', error);
-      res.status(500).json({ error: 'Internal server error' });
-    }
-  });
+  // NOTE: Test and SimpleTexting webhook routes are registered in server/index.ts
 
   // Reports
   app.get("/api/reports/summary", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
