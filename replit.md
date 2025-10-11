@@ -3,6 +3,15 @@
 ### Overview
 Lazy Photog is a comprehensive multi-tenant CRM system designed for wedding photographers. It streamlines workflows from contact inquiry to project completion by offering contact pipeline management, automated communication, a Smart Files proposal/invoice builder, payment processing, and scheduling. The project aims to deliver a production-ready MVP that significantly enhances efficiency for photographers.
 
+### Recent Changes (October 11, 2025)
+**Twilio SMS Migration (October 11, 2025)**
+- Migrated from SimpleTexting to Twilio for all SMS functionality using Replit's native connector
+- Updated `server/services/sms.ts` to use Twilio SDK with automatic credential management
+- Modified webhook handler at `/webhooks/twilio/inbound` for Twilio's application/x-www-form-urlencoded format
+- Twilio returns TwiML responses and supports both SMS and MMS with media attachment tracking
+- Replit connector handles API key rotation and secret management automatically
+- All SMS touchpoints (automations, inbox, Smart Files) now use Twilio infrastructure
+
 ### Recent Changes (October 10, 2025)
 **SMS Inbox Feature (October 10, 2025)**
 - Added comprehensive inbox page at /inbox for SMS-focused photographer-contact communication
@@ -42,8 +51,8 @@ Preferred communication style: Simple, everyday language.
 *   **Static Email Marketing Platform:** A professional drip campaign system with 24 pre-written wedding email templates, 3-phase timing, Day-0 scheduling, and support for Wedding, Portrait, and Commercial project types. Includes 5 visual themes, attention-grabbing subject lines, and semantic keyword detection.
 *   **Automation System:** An event-driven engine using `node-cron` for scheduled tasks. Supports stage-based triggers, configurable time delays, dynamic content rendering with variable substitution, and multi-channel delivery (email, SMS, and Smart Files). Includes questionnaire assignments, integrates with NURTURE, and features an internal URL shortening system with click tracking.
     *   **Smart File Automation:** Photographers can automatically send proposals/invoices through automations. When triggered, the system creates a project-specific Smart File from a template, generates a unique access token, and sends an email notification to the client with a link to view/sign the Smart File. Uses actionType field on automation steps to determine behavior (EMAIL, SMS, or SMART_FILE).
-*   **Two-Way SMS Communication System:** Utilizes the SimpleTexting API for sending and receiving messages, with a two-way relay system forwarding inbound client SMS to photographers. All messages are logged, and a phone number-based client lookup ensures accurate routing. 
-    *   **Webhook Configuration:** POST webhook at `/webhooks/simpletexting/inbound` handles MMS messages (JSON body). GET webhooks return HTML due to Replit infrastructure routing - SimpleTexting SMS webhooks (GET requests) cannot work on this platform. MMS webhooks (POST requests) work correctly.
+*   **Two-Way SMS Communication System:** Uses Twilio API via Replit's native connector for sending and receiving SMS/MMS messages. Features a two-way relay system that forwards inbound client messages to photographers with project context. All messages are logged with Twilio message SIDs, and phone number-based client lookup ensures accurate routing.
+    *   **Webhook Configuration:** POST webhook at `/webhooks/twilio/inbound` handles incoming SMS/MMS from Twilio (application/x-www-form-urlencoded format). Returns TwiML responses to acknowledge receipt. Twilio connection uses API key authentication via Replit connector for automatic credential management and rotation.
 *   **SMS Inbox Page:** Centralized messaging interface at /inbox for photographer-contact SMS communication. Features two-column responsive layout (contact list + message thread), conversationReads tracking for unread state, real-time unread count badges with 30-second polling, SMS composer with 160-character counter, and mobile-optimized stacked view. SMS messages show full content while email/CRM activities display as notification lines. Uses refetchQueries for immediate UI updates after sending or marking conversations as read.
 *   **Payment Processing & Stripe Connect:** Requires Stripe Connect Express accounts for photographers, implementing a configurable platform fee (5%). Supports direct deposits, standard/instant payouts, Stripe-hosted onboarding, and validates Stripe Connect status before proposal sends. Includes an earnings dashboard and webhook integration.
 *   **Smart Files System:** A comprehensive drag-and-drop invoice/proposal builder with a template system and 7 page types (Text, Package Selection, Add-ons, Contract, Payment, Form, Scheduling). Features include project integration, public responsive client view, status tracking, integrated Stripe Connect checkout, flexible payment options, selection persistence, and multiple package selection.
@@ -66,7 +75,7 @@ Preferred communication style: Simple, everyday language.
 
 **Communication Services:**
 *   **Gmail API:** For direct email sending and conversation tracking.
-*   **SimpleTexting:** For SMS messaging and two-way client communication.
+*   **Twilio:** For SMS/MMS messaging and two-way client communication via Replit's native connector.
 
 **Payment Processing:**
 *   **Stripe:** For payment infrastructure and Stripe Connect.
