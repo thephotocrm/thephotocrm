@@ -4511,29 +4511,28 @@ ${photographer?.businessName || 'Your Photography Team'}`;
     }
   });
 
-  // SimpleTexting Webhooks
-  app.post("/webhooks/simpletexting/inbound", async (req, res) => {
-    console.log('=== SIMPLETEXTING WEBHOOK HIT ===');
-    console.log('Request body:', JSON.stringify(req.body, null, 2));
+  // SimpleTexting Webhooks - Handle SMS (GET) and MMS (POST)
+  // SMS messages come as GET requests with query params: from, to, text, subject
+  app.get("/webhooks/simpletexting/inbound", async (req, res) => {
+    console.log('=== SIMPLETEXTING SMS WEBHOOK (GET) ===');
+    console.log('Query params:', req.query);
     try {
-      console.log('Received SimpleTexting inbound SMS webhook:', req.body);
+      const { from, to, text, subject } = req.query;
       
-      const { phone, message, timestamp } = req.body;
-      
-      if (!phone || !message) {
-        console.error('Invalid SimpleTexting webhook payload:', req.body);
+      if (!from || !text) {
+        console.error('Invalid SimpleTexting SMS webhook payload:', req.query);
         return res.status(400).json({ error: 'Invalid payload' });
       }
 
-      // Find client by phone number
-      const contact = await storage.getContactByPhone(phone);
+      // Find contact by phone number
+      const contact = await storage.getContactByPhone(from as string);
       
       if (!contact) {
-        console.log(`No contact found for phone number: ${phone}`);
+        console.log(`No contact found for phone number: ${from}`);
         return res.status(200).json({ message: 'Contact not found' });
       }
 
-      // Get photographer for this client
+      // Get photographer for this contact
       const photographer = await storage.getPhotographer(contact.photographerId);
       
       if (!photographer) {
@@ -4541,9 +4540,9 @@ ${photographer?.businessName || 'Your Photography Team'}`;
         return res.status(200).json({ message: 'Photographer not found' });
       }
 
-      // Get client's projects to find the most recent one for context
-      const clientWithProjects = await storage.getContact(contact.id);
-      const latestProject = clientWithProjects?.projects?.[0]; // Projects are typically ordered by creation date
+      // Get contact's projects to find the most recent one for context
+      const contactWithProjects = await storage.getContact(contact.id);
+      const latestProject = contactWithProjects?.projects?.[0];
 
       // Log the inbound SMS
       await storage.createSmsLog({
@@ -4551,17 +4550,17 @@ ${photographer?.businessName || 'Your Photography Team'}`;
         projectId: latestProject?.id || null,
         status: 'received',
         direction: 'INBOUND',
-        fromPhone: phone,
-        toPhone: process.env.SIMPLETEXTING_PHONE_NUMBER || '',
-        messageBody: message,
+        fromPhone: from as string,
+        toPhone: to as string || process.env.SIMPLETEXTING_PHONE_NUMBER || '',
+        messageBody: text as string,
         isForwarded: false,
-        sentAt: new Date(timestamp || Date.now())
+        sentAt: new Date()
       });
 
       // Forward message to photographer if they have a phone number
       if (photographer.phone) {
-        const projectContext = latestProject ? `${latestProject.projectType} Project` : 'Client';
-        const contextMessage = `${contact.firstName} ${contact.lastName} (${projectContext}): ${message}`;
+        const projectContext = latestProject ? `${latestProject.projectType} Project` : 'Contact';
+        const contextMessage = `${contact.firstName} ${contact.lastName} (${projectContext}): ${text}`;
         
         const forwardResult = await sendSms({
           to: photographer.phone,
@@ -4583,15 +4582,104 @@ ${photographer?.businessName || 'Your Photography Team'}`;
             sentAt: new Date()
           });
 
-          console.log(`Forwarded client message to photographer: ${photographer.phone}`);
+          console.log(`Forwarded SMS to photographer: ${photographer.phone}`);
         } else {
-          console.error('Failed to forward message to photographer:', forwardResult.error);
+          console.error('Failed to forward SMS to photographer:', forwardResult.error);
         }
       } else {
         console.log('Photographer has no phone number configured for forwarding');
       }
 
-      res.status(200).json({ message: 'Message processed successfully' });
+      res.status(200).json({ message: 'SMS processed successfully' });
+    } catch (error: any) {
+      console.error('SimpleTexting SMS webhook error:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+
+  // MMS messages come as POST requests with JSON body: from, to, text, subject, attachments
+  app.post("/webhooks/simpletexting/inbound", async (req, res) => {
+    console.log('=== SIMPLETEXTING MMS WEBHOOK (POST) ===');
+    console.log('Request body:', JSON.stringify(req.body, null, 2));
+    try {
+      const { from, to, text, subject, attachments } = req.body;
+      
+      if (!from || !text) {
+        console.error('Invalid SimpleTexting MMS webhook payload:', req.body);
+        return res.status(400).json({ error: 'Invalid payload' });
+      }
+
+      // Find contact by phone number
+      const contact = await storage.getContactByPhone(from);
+      
+      if (!contact) {
+        console.log(`No contact found for phone number: ${from}`);
+        return res.status(200).json({ message: 'Contact not found' });
+      }
+
+      // Get photographer for this contact
+      const photographer = await storage.getPhotographer(contact.photographerId);
+      
+      if (!photographer) {
+        console.error(`No photographer found for contact: ${contact.id}`);
+        return res.status(200).json({ message: 'Photographer not found' });
+      }
+
+      // Get contact's projects to find the most recent one for context
+      const contactWithProjects = await storage.getContact(contact.id);
+      const latestProject = contactWithProjects?.projects?.[0];
+
+      // Log the inbound MMS
+      const messageBody = attachments && attachments.length > 0 
+        ? `${text} [${attachments.length} attachment(s): ${attachments.join(', ')}]`
+        : text;
+
+      await storage.createSmsLog({
+        clientId: contact.id,
+        projectId: latestProject?.id || null,
+        status: 'received',
+        direction: 'INBOUND',
+        fromPhone: from,
+        toPhone: to || process.env.SIMPLETEXTING_PHONE_NUMBER || '',
+        messageBody: messageBody,
+        isForwarded: false,
+        sentAt: new Date()
+      });
+
+      // Forward message to photographer if they have a phone number
+      if (photographer.phone) {
+        const projectContext = latestProject ? `${latestProject.projectType} Project` : 'Contact';
+        const contextMessage = `${contact.firstName} ${contact.lastName} (${projectContext}): ${messageBody}`;
+        
+        const forwardResult = await sendSms({
+          to: photographer.phone,
+          body: contextMessage
+        });
+
+        if (forwardResult.success) {
+          // Log the forwarded message
+          await storage.createSmsLog({
+            clientId: contact.id,
+            projectId: latestProject?.id || null,
+            status: 'sent',
+            direction: 'OUTBOUND',
+            fromPhone: process.env.SIMPLETEXTING_PHONE_NUMBER || '',
+            toPhone: photographer.phone,
+            messageBody: contextMessage,
+            isForwarded: true,
+            providerId: forwardResult.sid,
+            sentAt: new Date()
+          });
+
+          console.log(`Forwarded MMS to photographer: ${photographer.phone}`);
+        } else {
+          console.error('Failed to forward MMS to photographer:', forwardResult.error);
+        }
+      } else {
+        console.log('Photographer has no phone number configured for forwarding');
+      }
+
+      res.status(200).json({ message: 'MMS processed successfully' });
     } catch (error: any) {
       console.error('SimpleTexting webhook error:', error);
       res.status(500).json({ error: 'Internal server error' });
