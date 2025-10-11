@@ -336,6 +336,7 @@ export function AppSidebar() {
           </div>
         ) : (
           // Desktop Vertical Layout (unchanged)
+          <>
           <SidebarGroup>
             <SidebarGroupContent>
               <SidebarMenu>
@@ -589,7 +590,6 @@ export function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
-        )}
 
         <SidebarSeparator />
 
@@ -612,6 +612,8 @@ export function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+        </>
+        )}
       </SidebarContent>
 
       <SidebarFooter>
