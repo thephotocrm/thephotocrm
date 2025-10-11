@@ -188,6 +188,22 @@ export function AppSidebar() {
     }
   };
 
+  // Flatten all items for mobile grid
+  const allMobileItems = [
+    ...coreNavigation,
+    ...(showAdminNav ? adminNavigation : groupedNavigation.flatMap(g => g.items)),
+    { name: "Settings", href: "/settings", icon: Settings },
+  ];
+
+  // Premium items for mobile grid
+  const premiumItems = [
+    { name: "Facebook Ads", href: "/facebook-ads", icon: SiFacebook, iconColor: "text-[#1877F2]", locked: !hasPremiumAccess },
+    { name: "Google Ads", href: "/google-ads", icon: SiGoogle, iconColor: "text-[#4285F4]", locked: !hasPremiumAccess },
+    { name: "Instagram Ads", href: "/instagram-ads", icon: SiInstagram, iconColor: "text-[#E4405F]", locked: !hasPremiumAccess },
+    { name: "Pinterest Ads", href: "/pinterest-ads", icon: SiPinterest, iconColor: "text-[#E60023]", locked: !hasPremiumAccess },
+    { name: "TikTok Ads", href: "/tiktok-ads", icon: SiTiktok, iconColor: "text-white", locked: !hasPremiumAccess },
+  ];
+
   return (
     <Sidebar collapsible="offcanvas">
       <SidebarHeader>
@@ -202,32 +218,150 @@ export function AppSidebar() {
       </SidebarHeader>
 
       <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {showAdminNav ? (
-                // Admin Navigation (flat structure)
-                adminNavigation.map((item) => {
+        {isMobile ? (
+          // Mobile Grid Layout
+          <div className="p-4 overflow-y-auto">
+            {/* Main Navigation Grid */}
+            <div className="mb-6">
+              <h2 className="text-xs font-semibold text-white/70 uppercase tracking-wider mb-3 px-1">
+                {showAdminNav ? "Admin" : "Workspace"}
+              </h2>
+              <div className="grid grid-cols-4 gap-3">
+                {allMobileItems.map((item) => {
                   const isActive = location === item.href;
                   const Icon = item.icon;
+                  const showBadge = 'badge' in item && item.badge && item.badge > 0;
                   
                   return (
-                    <SidebarMenuItem key={item.name}>
-                      <SidebarMenuButton
-                        asChild
-                        isActive={isActive}
-                        data-testid={`nav-${item.name.toLowerCase()}`}
-                        className="bg-slate-800/50 text-white hover:bg-slate-700/70 data-[active=true]:bg-slate-700 data-[active=true]:text-white"
+                    <Link
+                      key={item.name}
+                      href={item.href}
+                      data-testid={`nav-${item.name.toLowerCase().replace(/\s+/g, '-')}`}
+                    >
+                      <div
+                        className={`
+                          relative aspect-square rounded-xl flex flex-col items-center justify-center p-3
+                          transition-all duration-200
+                          ${isActive 
+                            ? 'bg-white/20 shadow-lg scale-105' 
+                            : 'bg-white/10 hover:bg-white/15 hover:scale-105'
+                          }
+                        `}
                       >
-                        <Link href={item.href}>
-                          <Icon className="w-6 h-6" />
-                          <span className="text-base">{item.name}</span>
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
+                        <Icon className="w-8 h-8 text-white mb-2" />
+                        <span className="text-[10px] font-medium text-white text-center leading-tight">
+                          {item.name}
+                        </span>
+                        {showBadge && (
+                          <Badge 
+                            variant="destructive" 
+                            className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center text-[10px]"
+                            data-testid="inbox-unread-badge"
+                          >
+                            {item.badge}
+                          </Badge>
+                        )}
+                      </div>
+                    </Link>
                   );
-                })
-              ) : (
+                })}
+              </div>
+            </div>
+
+            {/* Premium Section - Only for photographers */}
+            {!showAdminNav && (
+              <div className="mb-6">
+                <h2 className="text-xs font-semibold text-white/70 uppercase tracking-wider mb-3 px-1 flex items-center gap-2">
+                  <Rocket className="w-4 h-4 text-purple-400" />
+                  Get Leads
+                </h2>
+                <div className="grid grid-cols-4 gap-3">
+                  {premiumItems.map((item) => {
+                    const isActive = location === item.href;
+                    const Icon = item.icon;
+                    
+                    if (item.locked) {
+                      return (
+                        <button
+                          key={item.name}
+                          onClick={() => setShowUpgradeModal(true)}
+                          className="relative aspect-square rounded-xl flex flex-col items-center justify-center p-3 bg-white/5 opacity-60 cursor-not-allowed"
+                          data-testid={`nav-${item.name.toLowerCase().replace(/\s+/g, '-')}-locked`}
+                        >
+                          <Icon className={`w-8 h-8 ${item.iconColor}/50 mb-2`} />
+                          <span className="text-[10px] font-medium text-white/70 text-center leading-tight">
+                            {item.name}
+                          </span>
+                          <Lock className="absolute -top-1 -right-1 w-4 h-4 text-yellow-400" />
+                        </button>
+                      );
+                    }
+                    
+                    return (
+                      <Link
+                        key={item.name}
+                        href={item.href}
+                        data-testid={`nav-${item.name.toLowerCase().replace(/\s+/g, '-')}`}
+                      >
+                        <div
+                          className={`
+                            relative aspect-square rounded-xl flex flex-col items-center justify-center p-3
+                            transition-all duration-200
+                            ${isActive 
+                              ? 'bg-white/20 shadow-lg scale-105' 
+                              : 'bg-white/10 hover:bg-white/15 hover:scale-105'
+                            }
+                          `}
+                        >
+                          <Icon className={`w-8 h-8 ${item.iconColor} mb-2`} />
+                          <span className="text-[10px] font-medium text-white text-center leading-tight">
+                            {item.name}
+                          </span>
+                        </div>
+                      </Link>
+                    );
+                  })}
+                </div>
+                {!hasPremiumAccess && (
+                  <button
+                    onClick={() => setShowUpgradeModal(true)}
+                    className="w-full mt-3 py-2 text-center text-sm font-medium text-white/90 hover:text-white transition-colors"
+                    data-testid="upgrade-cta"
+                  >
+                    Upgrade to unlock all advertising tools
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+        ) : (
+          // Desktop Vertical Layout (unchanged)
+          <SidebarGroup>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {showAdminNav ? (
+                  // Admin Navigation (flat structure)
+                  adminNavigation.map((item) => {
+                    const isActive = location === item.href;
+                    const Icon = item.icon;
+                    
+                    return (
+                      <SidebarMenuItem key={item.name}>
+                        <SidebarMenuButton
+                          asChild
+                          isActive={isActive}
+                          data-testid={`nav-${item.name.toLowerCase()}`}
+                          className="bg-slate-800/50 text-white hover:bg-slate-700/70 data-[active=true]:bg-slate-700 data-[active=true]:text-white"
+                        >
+                          <Link href={item.href}>
+                            <Icon className="w-6 h-6" />
+                            <span className="text-base">{item.name}</span>
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    );
+                  })
+                ) : (
                 // Photographer Navigation (grouped structure)
                 <>
                   {/* Core Navigation Items */}
@@ -455,6 +589,7 @@ export function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+        )}
 
         <SidebarSeparator />
 
