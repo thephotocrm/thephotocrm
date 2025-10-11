@@ -248,19 +248,24 @@ export function AppSidebar() {
                           }
                         `}
                       >
-                        <Icon className="w-8 h-8 text-white mb-2" />
+                        <div className="relative">
+                          <Icon className="w-8 h-8 text-white mb-2" />
+                          {'badge' in item && (
+                            <div 
+                              className={`absolute -top-1 -right-1 h-4 w-4 rounded-full flex items-center justify-center text-[9px] font-bold ${
+                                item.badge && item.badge > 0 
+                                  ? 'bg-green-500 text-white' 
+                                  : 'bg-white text-blue-600'
+                              }`}
+                              data-testid="inbox-unread-badge"
+                            >
+                              {item.badge || 0}
+                            </div>
+                          )}
+                        </div>
                         <span className="text-[10px] font-medium text-white text-center leading-tight">
                           {item.name}
                         </span>
-                        {showBadge && (
-                          <Badge 
-                            variant="destructive" 
-                            className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center text-[10px]"
-                            data-testid="inbox-unread-badge"
-                          >
-                            {item.badge}
-                          </Badge>
-                        )}
                       </div>
                     </Link>
                   );
@@ -379,18 +384,23 @@ export function AppSidebar() {
                           data-testid={`nav-${item.name.toLowerCase()}`}
                           className="bg-slate-800/50 text-white hover:bg-slate-700/70 data-[active=true]:bg-slate-700 data-[active=true]:text-white"
                         >
-                          <Link href={item.href}>
-                            <Icon className="w-6 h-6" />
+                          <Link href={item.href} className="relative">
+                            <div className="relative inline-block">
+                              <Icon className="w-6 h-6" />
+                              {'badge' in item && (
+                                <div 
+                                  className={`absolute -top-1 -right-1 h-4 w-4 rounded-full flex items-center justify-center text-[9px] font-bold ${
+                                    item.badge && item.badge > 0 
+                                      ? 'bg-green-500 text-white' 
+                                      : 'bg-white text-blue-600'
+                                  }`}
+                                  data-testid="inbox-unread-badge"
+                                >
+                                  {item.badge || 0}
+                                </div>
+                              )}
+                            </div>
                             <span className="text-base">{item.name}</span>
-                            {showBadge && (
-                              <Badge 
-                                variant="destructive" 
-                                className="ml-auto"
-                                data-testid="inbox-unread-badge"
-                              >
-                                {item.badge}
-                              </Badge>
-                            )}
                           </Link>
                         </SidebarMenuButton>
                       </SidebarMenuItem>
