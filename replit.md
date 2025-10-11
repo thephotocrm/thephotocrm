@@ -4,6 +4,16 @@
 Lazy Photog is a comprehensive multi-tenant CRM system designed for wedding photographers. It streamlines workflows from contact inquiry to project completion by offering contact pipeline management, automated communication, a Smart Files proposal/invoice builder, payment processing, and scheduling. The project aims to deliver a production-ready MVP that significantly enhances efficiency for photographers.
 
 ### Recent Changes (October 11, 2025)
+**Premium Features System (October 11, 2025)**
+- Added `hasPremiumAccess` boolean field to photographers schema for subscription tier management
+- Created eye-catching "Get Leads" premium section in sidebar with gradient border design (purple-pink-orange)
+- Title positioned to visually "interrupt" the top border using absolute positioning technique
+- Implemented lock/unlock functionality for Facebook Ads and Google Ads menu items based on subscription status
+- Built comprehensive Upgrade Modal with premium feature descriptions and CTA
+- Created placeholder pages for Facebook Ads (/facebook-ads) and Google Ads (/google-ads) with feature showcases
+- Pages display feature cards and "Coming Soon" messages with "In Development" badge
+- Premium features properly gated with upgrade prompts for non-premium users
+
 **Twilio SMS Migration (October 11, 2025)**
 - Migrated from SimpleTexting to Twilio for all SMS functionality using Replit's native connector
 - Updated `server/services/sms.ts` to use Twilio SDK with automatic credential management
