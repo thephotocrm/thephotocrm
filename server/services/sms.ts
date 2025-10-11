@@ -1,10 +1,56 @@
 import { renderTemplate } from '@shared/template-utils';
+import twilio from 'twilio';
 
-// SimpleTexting API configuration
-const SIMPLETEXTING_API_URL = 'https://api-app2.simpletexting.com/v2/api';
+// Twilio client initialization with Replit connector
+let connectionSettings: any;
+
+async function getCredentials() {
+  const hostname = process.env.REPLIT_CONNECTORS_HOSTNAME
+  const xReplitToken = process.env.REPL_IDENTITY 
+    ? 'repl ' + process.env.REPL_IDENTITY 
+    : process.env.WEB_REPL_RENEWAL 
+    ? 'depl ' + process.env.WEB_REPL_RENEWAL 
+    : null;
+
+  if (!xReplitToken) {
+    throw new Error('X_REPLIT_TOKEN not found for repl/depl');
+  }
+
+  connectionSettings = await fetch(
+    'https://' + hostname + '/api/v2/connection?include_secrets=true&connector_names=twilio',
+    {
+      headers: {
+        'Accept': 'application/json',
+        'X_REPLIT_TOKEN': xReplitToken
+      }
+    }
+  ).then(res => res.json()).then(data => data.items?.[0]);
+
+  if (!connectionSettings || (!connectionSettings.settings.account_sid || !connectionSettings.settings.api_key || !connectionSettings.settings.api_key_secret)) {
+    throw new Error('Twilio not connected');
+  }
+  return {
+    accountSid: connectionSettings.settings.account_sid,
+    apiKey: connectionSettings.settings.api_key,
+    apiKeySecret: connectionSettings.settings.api_key_secret,
+    phoneNumber: connectionSettings.settings.phone_number
+  };
+}
+
+async function getTwilioClient() {
+  const { accountSid, apiKey, apiKeySecret } = await getCredentials();
+  return twilio(apiKey, apiKeySecret, {
+    accountSid: accountSid
+  });
+}
+
+async function getTwilioFromPhoneNumber() {
+  const { phoneNumber } = await getCredentials();
+  return phoneNumber;
+}
 
 /**
- * Sanitizes and formats phone numbers for SimpleTexting API compatibility
+ * Sanitizes and formats phone numbers for Twilio API compatibility
  * Handles various input formats from photographers and converts to E.164 format
  */
 function sanitizePhoneNumber(phoneNumber: string): string {
@@ -52,31 +98,30 @@ interface SmsParams {
   body: string;
 }
 
-interface SimpleTextingResponse {
-  success: boolean;
-  message_id?: string;
-  error?: string;
-}
-
 export async function sendSms(params: SmsParams): Promise<{ success: boolean; sid?: string; error?: string }> {
-  if (!process.env.SIMPLETEXTING_API_TOKEN) {
-    console.warn('SimpleTexting API token not configured - skipping SMS');
-    return { 
-      success: false, 
-      error: 'SMS service not configured' 
-    };
-  }
-
-  if (!process.env.SIMPLETEXTING_PHONE_NUMBER) {
-    console.error('SIMPLETEXTING_PHONE_NUMBER not set');
-    return { 
-      success: false, 
-      error: 'SMS phone number not configured' 
-    };
-  }
-
   try {
-    // Sanitize the phone number to ensure SimpleTexting compatibility
+    // Validate message body is not empty
+    if (!params.body || params.body.trim() === '') {
+      console.error('SMS body is empty or blank, aborting send');
+      return {
+        success: false,
+        error: 'SMS message body cannot be empty'
+      };
+    }
+
+    // Get Twilio client and phone number
+    const client = await getTwilioClient();
+    const fromPhone = await getTwilioFromPhoneNumber();
+
+    if (!fromPhone) {
+      console.error('Twilio phone number not configured');
+      return {
+        success: false,
+        error: 'SMS phone number not configured'
+      };
+    }
+
+    // Sanitize the recipient phone number
     let sanitizedPhone: string;
     try {
       sanitizedPhone = sanitizePhoneNumber(params.to);
@@ -89,50 +134,23 @@ export async function sendSms(params: SmsParams): Promise<{ success: boolean; si
       };
     }
 
-    console.log('Sending SMS via SimpleTexting to:', sanitizedPhone);
-    console.log('From phone:', process.env.SIMPLETEXTING_PHONE_NUMBER);
-    
-    const requestPayload = {
-      contactPhone: sanitizedPhone,
-      accountPhone: process.env.SIMPLETEXTING_PHONE_NUMBER,
-      text: params.body
-    };
-    
-    // Validate message body is not empty
-    if (!params.body || params.body.trim() === '') {
-      console.error('SMS body is empty or blank, aborting send');
-      return {
-        success: false,
-        error: 'SMS message body cannot be empty'
-      };
-    }
-    
-    const response = await fetch(`${SIMPLETEXTING_API_URL}/messages`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${process.env.SIMPLETEXTING_API_TOKEN}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(requestPayload)
+    console.log('Sending SMS via Twilio to:', sanitizedPhone);
+    console.log('From phone:', fromPhone);
+
+    // Send SMS via Twilio
+    const message = await client.messages.create({
+      body: params.body,
+      from: fromPhone,
+      to: sanitizedPhone
     });
 
-    const responseData = await response.json() as SimpleTextingResponse;
-    
-    if (!response.ok) {
-      console.error('SimpleTexting SMS error:', responseData);
-      return { 
-        success: false, 
-        error: responseData.error || `HTTP ${response.status}: ${response.statusText}` 
-      };
-    }
-    
-    console.log('SMS sent successfully via SimpleTexting, ID:', responseData.message_id);
-    return { success: true, sid: responseData.message_id };
+    console.log('SMS sent successfully via Twilio, SID:', message.sid);
+    return { success: true, sid: message.sid };
   } catch (error: any) {
-    console.error('SimpleTexting SMS error:', error);
-    return { 
-      success: false, 
-      error: error?.message || 'Failed to send SMS' 
+    console.error('Twilio SMS error:', error);
+    return {
+      success: false,
+      error: error?.message || 'Failed to send SMS'
     };
   }
 }
