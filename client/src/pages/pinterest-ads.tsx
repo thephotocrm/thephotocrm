@@ -1,5 +1,5 @@
 import { SiPinterest } from "react-icons/si";
-import { TrendingUp, Target, DollarSign, Search, BarChart3, ImageIcon } from "lucide-react";
+import { TrendingUp, Target, DollarSign, Search, BarChart3, Image } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function PinterestAds() {
@@ -35,7 +35,7 @@ export default function PinterestAds() {
         <Card>
           <CardHeader>
             <div className="p-2 rounded-md bg-pink-500/10 w-fit mb-2">
-              <ImageIcon className="w-5 h-5 text-pink-500" />
+              <Image className="w-5 h-5 text-pink-500" />
             </div>
             <CardTitle className="text-lg">Visual Portfolio Ads</CardTitle>
             <CardDescription>

@@ -1,6 +1,6 @@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Lock, Sparkles, TrendingUp, Target, Zap, Heart, ImageIcon, Video } from "lucide-react";
+import { Lock, Sparkles, TrendingUp, Target, Zap, Heart, Image, Video } from "lucide-react";
 
 interface UpgradeModalProps {
   open: boolean;
@@ -58,7 +58,7 @@ export function UpgradeModal({ open, onOpenChange }: UpgradeModalProps) {
 
             <div className="flex items-start gap-3">
               <div className="p-1.5 rounded-md bg-red-500/10 mt-0.5">
-                <ImageIcon className="w-4 h-4 text-red-500" />
+                <Image className="w-4 h-4 text-red-500" />
               </div>
               <div>
                 <h4 className="font-medium text-sm">Pinterest Ads Integration</h4>
