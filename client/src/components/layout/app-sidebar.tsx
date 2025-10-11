@@ -431,6 +431,21 @@ export function AppSidebar() {
                               </button>
                             )}
                           </div>
+                          
+                          {/* Upgrade CTA */}
+                          {!hasPremiumAccess && (
+                            <div className="mt-3 pt-3 border-t border-slate-700">
+                              <button
+                                onClick={() => setShowUpgradeModal(true)}
+                                className="w-full text-center py-2 text-white hover:text-white/90 transition-colors"
+                                data-testid="upgrade-cta"
+                              >
+                                <p className="text-sm font-medium">
+                                  Upgrade to unlock all advertising tools
+                                </p>
+                              </button>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>

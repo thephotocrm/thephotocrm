@@ -7,11 +7,16 @@ Lazy Photog is a comprehensive multi-tenant CRM system designed for wedding phot
 **Premium Features System (October 11, 2025)**
 - Added `hasPremiumAccess` boolean field to photographers schema for subscription tier management
 - Created eye-catching "Get Leads" premium section in sidebar with gradient border design (purple-pink-orange)
-- Title positioned to visually "interrupt" the top border using absolute positioning technique
-- Implemented lock/unlock functionality for Facebook Ads and Google Ads menu items based on subscription status
+- Title positioned to visually "interrupt" the top border using absolute positioning technique with matching gradient border
+- Implemented lock/unlock functionality for 5 advertising platforms based on subscription status
 - Built comprehensive Upgrade Modal with premium feature descriptions and CTA
-- Created placeholder pages for Facebook Ads (/facebook-ads) and Google Ads (/google-ads) with feature showcases
-- Pages display feature cards and "Coming Soon" messages with "In Development" badge
+- Created placeholder pages for all advertising platforms with feature showcases and "Coming Soon" messaging:
+  - Facebook Ads (/facebook-ads) - Targeting, budget control, analytics, optimization, lead integration, retargeting
+  - Google Ads (/google-ads) - Search campaigns, local targeting, keyword optimization, smart bidding, performance tracking
+  - Instagram Ads (/instagram-ads) - Visual storytelling, engaged audiences, Stories/Reels, lead forms, performance insights
+  - Pinterest Ads (/pinterest-ads) - Intent-based discovery, visual portfolios, long-lasting visibility, shopping features
+  - TikTok Ads (/tiktok-ads) - Video-first ads, younger demographics, viral potential, competitive pricing
+- White text CTA below menu prompts non-premium users to "Upgrade to unlock all advertising tools"
 - Premium features properly gated with upgrade prompts for non-premium users
 
 **Twilio SMS Migration (October 11, 2025)**
