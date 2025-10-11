@@ -4,6 +4,13 @@
 Lazy Photog is a comprehensive multi-tenant CRM system designed for wedding photographers. It streamlines workflows from contact inquiry to project completion by offering contact pipeline management, automated communication, a Smart Files proposal/invoice builder, payment processing, and scheduling. The project aims to deliver a production-ready MVP that significantly enhances efficiency for photographers.
 
 ### Recent Changes (October 11, 2025)
+**Wedding Drip Campaign Testing Mode (October 11, 2025)**
+- Modified wedding drip campaign email intervals to 5-minute increments for testing purposes
+- All 24 emails now send every 5 minutes instead of over 7 months (0, 5, 10, 15... 115 minutes)
+- Complete campaign sequence completes in under 2 hours for rapid testing
+- ⚠️ Production timing (days/weeks apart) should be restored before launch
+- File: `server/services/staticCampaigns.ts` - WEDDING_EMAIL_TEMPLATES
+
 **Premium Features System (October 11, 2025)**
 - Added `hasPremiumAccess` boolean field to photographers schema for subscription tier management
 - Created eye-catching "Get Leads" premium section in sidebar with gradient border design (purple-pink-orange)

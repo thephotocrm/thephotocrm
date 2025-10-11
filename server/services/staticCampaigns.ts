@@ -106,7 +106,7 @@ function generateEmailHTML(
   const logoUrl = photographer.logoUrl || '';
 
   // Get layout based on sequence index (cycles through 5 layouts)
-  const layoutKeys = Object.keys(EMAIL_LAYOUTS);
+  const layoutKeys = Object.keys(EMAIL_LAYOUTS) as Array<keyof typeof EMAIL_LAYOUTS>;
   const layoutKey = layoutKeys[sequenceIndex % layoutKeys.length];
   const layout = EMAIL_LAYOUTS[layoutKey];
   
@@ -246,6 +246,7 @@ function generateConsistentTemplate(
 }
 
 // Static Email Templates with Research-Backed Timing
+// ⚠️ TESTING MODE: 5-minute intervals (normally days/weeks apart)
 const WEDDING_EMAIL_TEMPLATES = {
   projectType: 'WEDDING' as const,
   emails: [
@@ -253,7 +254,7 @@ const WEDDING_EMAIL_TEMPLATES = {
       sequenceIndex: 0,
       subject: "Welcome to Your Wedding Journey!",
       weeksAfterStart: 0,
-      daysAfterStart: 0,
+      daysAfterStart: 0, // 0 minutes
       htmlBody: "",
       textBody: "Your wedding planning adventure begins now with expert guidance every step of the way."
     },
@@ -261,7 +262,7 @@ const WEDDING_EMAIL_TEMPLATES = {
       sequenceIndex: 1,
       subject: "Setting Your Wedding Vision",
       weeksAfterStart: 0,
-      daysAfterStart: 3,
+      daysAfterStart: 0.003472, // 5 minutes
       htmlBody: "",
       textBody: "Define your unique style and create a cohesive vision for your perfect day."
     },
@@ -269,7 +270,7 @@ const WEDDING_EMAIL_TEMPLATES = {
       sequenceIndex: 2,
       subject: "Your Wedding Budget: Planning Made Simple",
       weeksAfterStart: 1,
-      daysAfterStart: 7,
+      daysAfterStart: 0.006944, // 10 minutes
       htmlBody: "",
       textBody: "Learn practical strategies for creating and managing your wedding budget effectively."
     },
@@ -277,7 +278,7 @@ const WEDDING_EMAIL_TEMPLATES = {
       sequenceIndex: 3,
       subject: "Choosing Your Perfect Wedding Venue",
       weeksAfterStart: 2,
-      daysAfterStart: 14,
+      daysAfterStart: 0.010417, // 15 minutes
       htmlBody: "",
       textBody: "Essential tips for finding and booking the ideal venue for your celebration."
     },
@@ -285,7 +286,7 @@ const WEDDING_EMAIL_TEMPLATES = {
       sequenceIndex: 4,
       subject: "Building Your Dream Wedding Team",
       weeksAfterStart: 3,
-      daysAfterStart: 21,
+      daysAfterStart: 0.013889, // 20 minutes
       htmlBody: "",
       textBody: "How to research, interview, and select the perfect vendors for your wedding day."
     },
@@ -293,7 +294,7 @@ const WEDDING_EMAIL_TEMPLATES = {
       sequenceIndex: 5,
       subject: "Wedding Photography Styles Explained",
       weeksAfterStart: 4,
-      daysAfterStart: 28,
+      daysAfterStart: 0.017361, // 25 minutes
       htmlBody: "",
       textBody: "Understanding different photography styles to choose what's perfect for you."
     },
@@ -301,7 +302,7 @@ const WEDDING_EMAIL_TEMPLATES = {
       sequenceIndex: 6,
       subject: "Planning Your Engagement Session",
       weeksAfterStart: 5,
-      daysAfterStart: 35,
+      daysAfterStart: 0.020833, // 30 minutes
       htmlBody: "",
       textBody: "Make the most of your engagement session with these expert preparation tips."
     },
@@ -309,7 +310,7 @@ const WEDDING_EMAIL_TEMPLATES = {
       sequenceIndex: 7,
       subject: "Wedding Dress Shopping Success",
       weeksAfterStart: 6,
-      daysAfterStart: 42,
+      daysAfterStart: 0.024306, // 35 minutes
       htmlBody: "",
       textBody: "Navigate dress shopping like a pro with our insider guide to finding 'the one'."
     },
@@ -317,7 +318,7 @@ const WEDDING_EMAIL_TEMPLATES = {
       sequenceIndex: 8,
       subject: "Groom's Guide to Wedding Attire",
       weeksAfterStart: 7,
-      daysAfterStart: 49,
+      daysAfterStart: 0.027778, // 40 minutes
       htmlBody: "",
       textBody: "Everything the groom needs to know about looking sharp on the wedding day."
     },
@@ -325,7 +326,7 @@ const WEDDING_EMAIL_TEMPLATES = {
       sequenceIndex: 9,
       subject: "Wedding Menu & Catering Insights",
       weeksAfterStart: 8,
-      daysAfterStart: 56,
+      daysAfterStart: 0.031250, // 45 minutes
       htmlBody: "",
       textBody: "Create a memorable dining experience that your guests will rave about."
     },
@@ -333,7 +334,7 @@ const WEDDING_EMAIL_TEMPLATES = {
       sequenceIndex: 10,
       subject: "Music & Entertainment Planning",
       weeksAfterStart: 9,
-      daysAfterStart: 63,
+      daysAfterStart: 0.034722, // 50 minutes
       htmlBody: "",
       textBody: "Set the perfect mood with music and entertainment that reflects your style."
     },
@@ -341,7 +342,7 @@ const WEDDING_EMAIL_TEMPLATES = {
       sequenceIndex: 11,
       subject: "Wedding Flowers & Decor Ideas",
       weeksAfterStart: 10,
-      daysAfterStart: 70,
+      daysAfterStart: 0.038194, // 55 minutes
       htmlBody: "",
       textBody: "Transform your venue with beautiful florals and decor that tell your story."
     },
@@ -349,7 +350,7 @@ const WEDDING_EMAIL_TEMPLATES = {
       sequenceIndex: 12,
       subject: "Guest List Management Made Easy",
       weeksAfterStart: 11,
-      daysAfterStart: 77,
+      daysAfterStart: 0.041667, // 60 minutes (1 hour)
       htmlBody: "",
       textBody: "Navigate the guest list challenge with tact and practical organization tips."
     },
@@ -357,7 +358,7 @@ const WEDDING_EMAIL_TEMPLATES = {
       sequenceIndex: 13,
       subject: "Wedding Invitations & Stationery",
       weeksAfterStart: 12,
-      daysAfterStart: 84,
+      daysAfterStart: 0.045139, // 65 minutes
       htmlBody: "",
       textBody: "Create beautiful invitations that set the tone for your celebration."
     },
@@ -365,7 +366,7 @@ const WEDDING_EMAIL_TEMPLATES = {
       sequenceIndex: 14,
       subject: "Wedding Registry Essentials",
       weeksAfterStart: 13,
-      daysAfterStart: 91,
+      daysAfterStart: 0.048611, // 70 minutes
       htmlBody: "",
       textBody: "Build a thoughtful registry that helps you start your married life together."
     },
@@ -373,7 +374,7 @@ const WEDDING_EMAIL_TEMPLATES = {
       sequenceIndex: 15,
       subject: "Honeymoon Planning Perfection",
       weeksAfterStart: 15,
-      daysAfterStart: 105,
+      daysAfterStart: 0.052083, // 75 minutes
       htmlBody: "",
       textBody: "Plan the romantic getaway that marks the perfect start to married life."
     },
@@ -381,7 +382,7 @@ const WEDDING_EMAIL_TEMPLATES = {
       sequenceIndex: 16,
       subject: "Wedding Day Timeline Success",
       weeksAfterStart: 17,
-      daysAfterStart: 119,
+      daysAfterStart: 0.055556, // 80 minutes
       htmlBody: "",
       textBody: "Create a realistic timeline that ensures your day flows smoothly and stress-free."
     },
@@ -389,7 +390,7 @@ const WEDDING_EMAIL_TEMPLATES = {
       sequenceIndex: 17,
       subject: "Handling Wedding Day Stress",
       weeksAfterStart: 19,
-      daysAfterStart: 133,
+      daysAfterStart: 0.059028, // 85 minutes
       htmlBody: "",
       textBody: "Stay calm and centered on your wedding day with these proven stress-busting strategies."
     },
@@ -397,7 +398,7 @@ const WEDDING_EMAIL_TEMPLATES = {
       sequenceIndex: 18,
       subject: "Final Wedding Week Checklist",
       weeksAfterStart: 21,
-      daysAfterStart: 147,
+      daysAfterStart: 0.062500, // 90 minutes
       htmlBody: "",
       textBody: "Everything you need to do in the final week to ensure a flawless celebration."
     },
@@ -405,7 +406,7 @@ const WEDDING_EMAIL_TEMPLATES = {
       sequenceIndex: 19,
       subject: "Wedding Vendor Communication Tips",
       weeksAfterStart: 23,
-      daysAfterStart: 161,
+      daysAfterStart: 0.065972, // 95 minutes
       htmlBody: "",
       textBody: "Build strong relationships with your vendors for the best possible wedding day experience."
     },
@@ -413,7 +414,7 @@ const WEDDING_EMAIL_TEMPLATES = {
       sequenceIndex: 20,
       subject: "Rehearsal Dinner Planning",
       weeksAfterStart: 25,
-      daysAfterStart: 175,
+      daysAfterStart: 0.069444, // 100 minutes
       htmlBody: "",
       textBody: "Plan the perfect rehearsal dinner to kick off your wedding celebration."
     },
@@ -421,7 +422,7 @@ const WEDDING_EMAIL_TEMPLATES = {
       sequenceIndex: 21,
       subject: "Wedding Morning Preparation",
       weeksAfterStart: 27,
-      daysAfterStart: 189,
+      daysAfterStart: 0.072917, // 105 minutes
       htmlBody: "",
       textBody: "Start your wedding day perfectly with our morning preparation guide."
     },
@@ -429,7 +430,7 @@ const WEDDING_EMAIL_TEMPLATES = {
       sequenceIndex: 22,
       subject: "Making the Most of Your Wedding Day",
       weeksAfterStart: 29,
-      daysAfterStart: 203,
+      daysAfterStart: 0.076389, // 110 minutes
       htmlBody: "",
       textBody: "Savor every moment of your wedding day with these mindfulness tips."
     },
@@ -437,7 +438,7 @@ const WEDDING_EMAIL_TEMPLATES = {
       sequenceIndex: 23,
       subject: "After the Wedding: Next Steps",
       weeksAfterStart: 31,
-      daysAfterStart: 217,
+      daysAfterStart: 0.079861, // 115 minutes
       htmlBody: "",
       textBody: "Navigate post-wedding tasks and begin your happily ever after journey."
     }
