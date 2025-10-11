@@ -10,42 +10,44 @@ const app = express();
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: false, limit: '50mb' }));
 
-// SimpleTexting POST Webhook Handler (MMS and potentially SMS)
-// NOTE: GET webhooks don't work on Replit due to infrastructure routing issues.
-// SimpleTexting sends SMS as GET and MMS as POST. Only POST webhooks work here.
-console.log('🚀 Registering SimpleTexting POST webhook handler');
+// Twilio Webhook Handler for incoming SMS/MMS
+console.log('🚀 Registering Twilio webhook handler');
 
-app.post("/webhooks/simpletexting/inbound", async (req, res) => {
-  console.log('✅ SIMPLETEXTING MMS WEBHOOK (POST) - Received at', new Date().toISOString());
+app.post("/webhooks/twilio/inbound", async (req, res) => {
+  console.log('✅ TWILIO WEBHOOK (POST) - Received at', new Date().toISOString());
   console.log('Request body:', JSON.stringify(req.body, null, 2));
   
   try {
-    const { from, to, text, subject, attachments } = req.body;
+    // Twilio sends data as application/x-www-form-urlencoded
+    const { From: from, To: to, Body: text, NumMedia: numMedia, MessageSid: messageSid } = req.body;
     
     if (!from || !text) {
-      console.error('Invalid SimpleTexting MMS webhook payload:', req.body);
-      return res.status(400).json({ error: 'Invalid payload' });
+      console.error('Invalid Twilio webhook payload:', req.body);
+      return res.status(400).send('<?xml version="1.0" encoding="UTF-8"?><Response></Response>');
     }
 
     const contact = await storage.getContactByPhone(from);
     
     if (!contact) {
       console.log(`No contact found for phone number: ${from}`);
-      return res.status(200).json({ message: 'Contact not found' });
+      // Return TwiML response to acknowledge receipt
+      return res.status(200).send('<?xml version="1.0" encoding="UTF-8"?><Response></Response>');
     }
 
     const photographer = await storage.getPhotographer(contact.photographerId);
     
     if (!photographer) {
       console.error(`No photographer found for contact: ${contact.id}`);
-      return res.status(200).json({ message: 'Photographer not found' });
+      return res.status(200).send('<?xml version="1.0" encoding="UTF-8"?><Response></Response>');
     }
 
     const contactWithProjects = await storage.getContact(contact.id);
     const latestProject = contactWithProjects?.projects?.[0];
 
-    const messageBody = attachments && attachments.length > 0 
-      ? `${text} [${attachments.length} attachment(s): ${attachments.join(', ')}]`
+    // Handle media attachments (MMS)
+    const mediaCount = parseInt(numMedia || '0', 10);
+    const messageBody = mediaCount > 0 
+      ? `${text} [${mediaCount} attachment(s)]`
       : text;
 
     await storage.createSmsLog({
@@ -54,12 +56,14 @@ app.post("/webhooks/simpletexting/inbound", async (req, res) => {
       status: 'received',
       direction: 'INBOUND',
       fromPhone: from,
-      toPhone: to || process.env.SIMPLETEXTING_PHONE_NUMBER || '',
+      toPhone: to,
       messageBody: messageBody,
       isForwarded: false,
+      providerId: messageSid,
       sentAt: new Date()
     });
 
+    // Forward message to photographer
     if (photographer.phone) {
       const projectContext = latestProject ? `${latestProject.projectType} Project` : 'Contact';
       const contextMessage = `${contact.firstName} ${contact.lastName} (${projectContext}): ${messageBody}`;
@@ -75,7 +79,7 @@ app.post("/webhooks/simpletexting/inbound", async (req, res) => {
           projectId: latestProject?.id || null,
           status: 'sent',
           direction: 'OUTBOUND',
-          fromPhone: process.env.SIMPLETEXTING_PHONE_NUMBER || '',
+          fromPhone: to,
           toPhone: photographer.phone,
           messageBody: contextMessage,
           isForwarded: true,
@@ -83,16 +87,17 @@ app.post("/webhooks/simpletexting/inbound", async (req, res) => {
           sentAt: new Date()
         });
 
-        console.log(`Forwarded MMS to photographer: ${photographer.phone}`);
+        console.log(`Forwarded SMS to photographer: ${photographer.phone}`);
       } else {
-        console.error('Failed to forward MMS to photographer:', forwardResult.error);
+        console.error('Failed to forward SMS to photographer:', forwardResult.error);
       }
     }
 
-    return res.status(200).json({ message: 'MMS processed successfully' });
+    // Return TwiML response to acknowledge receipt
+    return res.status(200).send('<?xml version="1.0" encoding="UTF-8"?><Response></Response>');
   } catch (error: any) {
-    console.error('SimpleTexting MMS webhook error:', error);
-    return res.status(500).json({ error: 'Internal server error' });
+    console.error('Twilio webhook error:', error);
+    return res.status(500).send('<?xml version="1.0" encoding="UTF-8"?><Response></Response>');
   }
 });
 
