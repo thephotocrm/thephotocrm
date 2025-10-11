@@ -5924,7 +5924,12 @@ ${photographer.businessName}`
         });
       }
       
-      res.json(form);
+      const photographer = await storage.getPhotographer(form.photographerId);
+      
+      res.json({
+        ...form,
+        photographerName: photographer?.businessName || 'The Photo CRM'
+      });
     } catch (error) {
       console.error("[GET FORM CONFIG ERROR]", error);
       res.status(500).json({ 
