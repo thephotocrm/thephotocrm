@@ -413,7 +413,7 @@ export default function Projects() {
             />
           </div>
 
-          {/* Projects Table */}
+          {/* Projects List */}
           {projectsLoading ? (
             <div className="flex items-center justify-center py-8">
               <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
@@ -431,52 +431,29 @@ export default function Projects() {
               </div>
             </Card>
           ) : (
-            <Card>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>PROJECT NAME</TableHead>
-                    <TableHead>CONTACT</TableHead>
-                    <TableHead>TYPE</TableHead>
-                    <TableHead>DATE</TableHead>
-                    <TableHead>STAGE</TableHead>
-                    <TableHead className="w-12"></TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredProjects.map((project) => (
-                    <TableRow 
-                      key={project.id}
-                      className="cursor-pointer hover:bg-muted/50"
-                      onClick={() => setLocation(`/projects/${project.id}`)}
-                      data-testid={`row-project-${project.id}`}
-                    >
-                      <TableCell className="font-medium" data-testid={`text-project-title-${project.id}`}>
-                        {project.title}
-                      </TableCell>
-                      <TableCell>{project.client?.firstName} {project.client?.lastName}</TableCell>
-                      <TableCell>{getProjectTypeLabel(project.projectType)}</TableCell>
-                      <TableCell>
-                        {project.eventDate ? formatDate(project.eventDate) : 'TBD'}
-                      </TableCell>
-                      <TableCell>
-                        {project.stage && (
-                          <Badge 
-                            variant="outline"
-                            style={{
-                              borderColor: project.stage.color,
-                              color: project.stage.color,
-                              backgroundColor: `${project.stage.color}10`
-                            }}
-                          >
-                            {project.stage.name}
-                          </Badge>
-                        )}
-                      </TableCell>
-                      <TableCell>
+            <>
+              {/* Mobile Card View */}
+              <div className="space-y-3 md:hidden">
+                {filteredProjects.map((project) => (
+                  <Card
+                    key={project.id}
+                    className="p-4 cursor-pointer hover:bg-muted/50 transition-colors"
+                    onClick={() => setLocation(`/projects/${project.id}`)}
+                    data-testid={`row-project-${project.id}`}
+                  >
+                    <div className="space-y-3">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-semibold break-words" data-testid={`text-project-title-${project.id}`}>
+                            {project.title}
+                          </h3>
+                          <p className="text-sm text-muted-foreground mt-1">
+                            {project.client?.firstName} {project.client?.lastName}
+                          </p>
+                        </div>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                            <Button variant="ghost" size="sm" data-testid={`button-actions-${project.id}`}>
+                            <Button variant="ghost" size="sm" className="shrink-0" data-testid={`button-actions-${project.id}`}>
                               <MoreVertical className="w-4 h-4" />
                             </Button>
                           </DropdownMenuTrigger>
@@ -489,12 +466,102 @@ export default function Projects() {
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
-                      </TableCell>
+                      </div>
+                      
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Badge variant="secondary" className="text-xs">
+                          {getProjectTypeLabel(project.projectType)}
+                        </Badge>
+                        {project.stage && (
+                          <Badge 
+                            variant="outline"
+                            className="text-xs"
+                            style={{
+                              borderColor: project.stage.color,
+                              color: project.stage.color,
+                              backgroundColor: `${project.stage.color}10`
+                            }}
+                          >
+                            {project.stage.name}
+                          </Badge>
+                        )}
+                      </div>
+                      
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <Calendar className="w-3 h-3" />
+                        <span>{project.eventDate ? formatDate(project.eventDate) : 'TBD'}</span>
+                      </div>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+
+              {/* Desktop Table View */}
+              <Card className="hidden md:block">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>PROJECT NAME</TableHead>
+                      <TableHead>CONTACT</TableHead>
+                      <TableHead>TYPE</TableHead>
+                      <TableHead>DATE</TableHead>
+                      <TableHead>STAGE</TableHead>
+                      <TableHead className="w-12"></TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </Card>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredProjects.map((project) => (
+                      <TableRow 
+                        key={project.id}
+                        className="cursor-pointer hover:bg-muted/50"
+                        onClick={() => setLocation(`/projects/${project.id}`)}
+                        data-testid={`row-project-${project.id}`}
+                      >
+                        <TableCell className="font-medium" data-testid={`text-project-title-${project.id}`}>
+                          {project.title}
+                        </TableCell>
+                        <TableCell>{project.client?.firstName} {project.client?.lastName}</TableCell>
+                        <TableCell>{getProjectTypeLabel(project.projectType)}</TableCell>
+                        <TableCell>
+                          {project.eventDate ? formatDate(project.eventDate) : 'TBD'}
+                        </TableCell>
+                        <TableCell>
+                          {project.stage && (
+                            <Badge 
+                              variant="outline"
+                              style={{
+                                borderColor: project.stage.color,
+                                color: project.stage.color,
+                                backgroundColor: `${project.stage.color}10`
+                              }}
+                            >
+                              {project.stage.name}
+                            </Badge>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                              <Button variant="ghost" size="sm" data-testid={`button-actions-${project.id}`}>
+                                <MoreVertical className="w-4 h-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={(e) => {
+                                e.stopPropagation();
+                                setLocation(`/projects/${project.id}`);
+                              }}>
+                                View Details
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </Card>
+            </>
           )}
         </div>
       </div>
