@@ -37,6 +37,9 @@ import Earnings from "@/pages/earnings";
 import Settings from "@/pages/settings";
 import FacebookAds from "@/pages/facebook-ads";
 import GoogleAds from "@/pages/google-ads";
+import InstagramAds from "@/pages/instagram-ads";
+import PinterestAds from "@/pages/pinterest-ads";
+import TikTokAds from "@/pages/tiktok-ads";
 import ClientPortal from "@/pages/client-portal";
 import PublicSmartFile from "@/pages/public-smart-file";
 import SmartFileSuccess from "@/pages/smart-file-success";
@@ -100,6 +103,9 @@ function ProtectedRoutes() {
             <Route path="/earnings" component={Earnings} />
             <Route path="/facebook-ads" component={FacebookAds} />
             <Route path="/google-ads" component={GoogleAds} />
+            <Route path="/instagram-ads" component={InstagramAds} />
+            <Route path="/pinterest-ads" component={PinterestAds} />
+            <Route path="/tiktok-ads" component={TikTokAds} />
             <Route path="/settings" component={Settings} />
             <Route component={NotFound} />
           </Switch>

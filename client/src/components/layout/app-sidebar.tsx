@@ -34,7 +34,7 @@ import {
   Lock,
   Rocket
 } from "lucide-react";
-import { SiFacebook, SiGoogle } from "react-icons/si";
+import { SiFacebook, SiGoogle, SiInstagram, SiPinterest, SiTiktok } from "react-icons/si";
 import {
   Sidebar,
   SidebarContent,
@@ -367,6 +367,66 @@ export function AppSidebar() {
                               >
                                 <SiGoogle className="w-5 h-5 text-[#4285F4]/50" />
                                 <span className="text-sm font-medium">Google Ads</span>
+                                <Lock className="w-3 h-3 ml-auto text-yellow-400" />
+                              </button>
+                            )}
+
+                            {/* Instagram Ads */}
+                            {hasPremiumAccess ? (
+                              <Link href="/instagram-ads" data-testid="nav-instagram-ads">
+                                <button className="w-full flex items-center gap-3 px-3 py-2 rounded-md transition-all hover:bg-slate-700/50 text-white">
+                                  <SiInstagram className="w-5 h-5 text-[#E4405F]" />
+                                  <span className="text-sm font-medium">Instagram Ads</span>
+                                </button>
+                              </Link>
+                            ) : (
+                              <button
+                                onClick={() => setShowUpgradeModal(true)}
+                                className="w-full flex items-center gap-3 px-3 py-2 rounded-md transition-all opacity-60 cursor-not-allowed text-white/70"
+                                data-testid="nav-instagram-ads-locked"
+                              >
+                                <SiInstagram className="w-5 h-5 text-[#E4405F]/50" />
+                                <span className="text-sm font-medium">Instagram Ads</span>
+                                <Lock className="w-3 h-3 ml-auto text-yellow-400" />
+                              </button>
+                            )}
+
+                            {/* Pinterest Ads */}
+                            {hasPremiumAccess ? (
+                              <Link href="/pinterest-ads" data-testid="nav-pinterest-ads">
+                                <button className="w-full flex items-center gap-3 px-3 py-2 rounded-md transition-all hover:bg-slate-700/50 text-white">
+                                  <SiPinterest className="w-5 h-5 text-[#E60023]" />
+                                  <span className="text-sm font-medium">Pinterest Ads</span>
+                                </button>
+                              </Link>
+                            ) : (
+                              <button
+                                onClick={() => setShowUpgradeModal(true)}
+                                className="w-full flex items-center gap-3 px-3 py-2 rounded-md transition-all opacity-60 cursor-not-allowed text-white/70"
+                                data-testid="nav-pinterest-ads-locked"
+                              >
+                                <SiPinterest className="w-5 h-5 text-[#E60023]/50" />
+                                <span className="text-sm font-medium">Pinterest Ads</span>
+                                <Lock className="w-3 h-3 ml-auto text-yellow-400" />
+                              </button>
+                            )}
+
+                            {/* TikTok Ads */}
+                            {hasPremiumAccess ? (
+                              <Link href="/tiktok-ads" data-testid="nav-tiktok-ads">
+                                <button className="w-full flex items-center gap-3 px-3 py-2 rounded-md transition-all hover:bg-slate-700/50 text-white">
+                                  <SiTiktok className="w-5 h-5 text-white" />
+                                  <span className="text-sm font-medium">TikTok Ads</span>
+                                </button>
+                              </Link>
+                            ) : (
+                              <button
+                                onClick={() => setShowUpgradeModal(true)}
+                                className="w-full flex items-center gap-3 px-3 py-2 rounded-md transition-all opacity-60 cursor-not-allowed text-white/70"
+                                data-testid="nav-tiktok-ads-locked"
+                              >
+                                <SiTiktok className="w-5 h-5 text-white/50" />
+                                <span className="text-sm font-medium">TikTok Ads</span>
                                 <Lock className="w-3 h-3 ml-auto text-yellow-400" />
                               </button>
                             )}

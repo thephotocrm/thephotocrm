@@ -1,6 +1,6 @@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Lock, Sparkles, TrendingUp, Target, Zap } from "lucide-react";
+import { Lock, Sparkles, TrendingUp, Target, Zap, Heart, ImageIcon, Video } from "lucide-react";
 
 interface UpgradeModalProps {
   open: boolean;
@@ -48,7 +48,37 @@ export function UpgradeModal({ open, onOpenChange }: UpgradeModalProps) {
 
             <div className="flex items-start gap-3">
               <div className="p-1.5 rounded-md bg-pink-500/10 mt-0.5">
-                <Zap className="w-4 h-4 text-pink-500" />
+                <Heart className="w-4 h-4 text-pink-500" />
+              </div>
+              <div>
+                <h4 className="font-medium text-sm">Instagram Ads Integration</h4>
+                <p className="text-sm text-muted-foreground">Reach engaged couples on Instagram</p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-3">
+              <div className="p-1.5 rounded-md bg-red-500/10 mt-0.5">
+                <ImageIcon className="w-4 h-4 text-red-500" />
+              </div>
+              <div>
+                <h4 className="font-medium text-sm">Pinterest Ads Integration</h4>
+                <p className="text-sm text-muted-foreground">Connect with planning couples on Pinterest</p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-3">
+              <div className="p-1.5 rounded-md bg-slate-700/10 mt-0.5">
+                <Video className="w-4 h-4 text-slate-700" />
+              </div>
+              <div>
+                <h4 className="font-medium text-sm">TikTok Ads Integration</h4>
+                <p className="text-sm text-muted-foreground">Reach Gen Z and millennial couples</p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-3">
+              <div className="p-1.5 rounded-md bg-green-500/10 mt-0.5">
+                <Zap className="w-4 h-4 text-green-500" />
               </div>
               <div>
                 <h4 className="font-medium text-sm">Advanced Analytics</h4>
