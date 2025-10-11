@@ -54,6 +54,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { UpgradeModal } from "@/components/upgrade-modal";
 
 export function AppSidebar() {
   const [location] = useLocation();
@@ -425,6 +426,12 @@ export function AppSidebar() {
           Logout
         </Button>
       </SidebarFooter>
+
+      {/* Upgrade Modal */}
+      <UpgradeModal 
+        open={showUpgradeModal} 
+        onOpenChange={setShowUpgradeModal} 
+      />
     </Sidebar>
   );
 }
