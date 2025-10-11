@@ -119,6 +119,7 @@ export const photographers = pgTable("photographers", {
   subscriptionStatus: text("subscription_status"), // trialing, active, past_due, canceled, incomplete
   trialEndsAt: timestamp("trial_ends_at"),
   subscriptionCurrentPeriodEnd: timestamp("subscription_current_period_end"),
+  hasPremiumAccess: boolean("has_premium_access").default(false),
   createdAt: timestamp("created_at").defaultNow()
 });
 
