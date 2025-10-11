@@ -262,17 +262,17 @@ export default function DripCampaigns() {
               {/* Campaign Header with Master Toggle */}
               <Card>
                 <CardHeader>
-                  <div className="flex justify-between items-start">
+                  <div className="space-y-4">
                     <div>
-                      <CardTitle className="flex items-center gap-2">
-                        {selectedProjectType.charAt(0) + selectedProjectType.slice(1).toLowerCase()} Email Campaign
-                        <Badge variant="secondary">24 Professional Emails</Badge>
+                      <CardTitle className="flex flex-col sm:flex-row sm:items-center gap-2 text-lg sm:text-xl">
+                        <span>{selectedProjectType.charAt(0) + selectedProjectType.slice(1).toLowerCase()} Email Campaign</span>
+                        <Badge variant="secondary" className="w-fit text-xs">24 Professional Emails</Badge>
                       </CardTitle>
-                      <CardDescription className="mt-1">
+                      <CardDescription className="mt-2 text-xs sm:text-sm">
                         Research-backed email sequence designed for {selectedProjectType.toLowerCase()} photography clients
                       </CardDescription>
                     </div>
-                    <div className="flex items-center gap-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
                       <div className="flex items-center space-x-2">
                         <input
                           type="checkbox"
@@ -301,6 +301,7 @@ export default function DripCampaigns() {
                           });
                         }}
                         disabled={saveSettingsMutation.isPending}
+                        className="w-full sm:w-auto"
                       >
                         {saveSettingsMutation.isPending ? 'Saving...' : 'Save Settings'}
                       </Button>
@@ -320,8 +321,8 @@ export default function DripCampaigns() {
                     return (
                       <Card key={index} className={`transition-opacity ${isEnabled ? 'opacity-100' : 'opacity-60'}`}>
                         <CardContent className="p-4">
-                          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
-                            <div className="flex items-center space-x-4 flex-1">
+                          <div className="space-y-3">
+                            <div className="flex items-start gap-3">
                               {/* Email Toggle */}
                               <input
                                 type="checkbox"
@@ -331,20 +332,20 @@ export default function DripCampaigns() {
                                   ...prev,
                                   [emailKey]: e.target.checked
                                 }))}
-                                className="w-4 h-4"
+                                className="w-4 h-4 mt-1 flex-shrink-0"
                                 data-testid={`toggle-email-${index}`}
                               />
                               
                               {/* Email Info */}
-                              <div className="flex-1">
-                                <div className="flex flex-wrap items-center space-x-3">
-                                  <Mail className="h-4 w-4 text-muted-foreground" />
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <Mail className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                                   <span className="font-medium">Email {index + 1}</span>
                                   <Badge variant="outline" className="text-xs">
                                     Day {email.daysAfterStart}
                                   </Badge>
                                 </div>
-                                <h4 className="font-medium mt-1 text-sm">{email.subject}</h4>
+                                <h4 className="font-medium mt-1 text-sm break-words">{email.subject}</h4>
                                 <p className="text-xs text-muted-foreground mt-1">
                                   Sent {email.daysAfterStart === 0 ? 'immediately' : `${email.daysAfterStart} days after signup`}
                                 </p>
@@ -352,7 +353,7 @@ export default function DripCampaigns() {
                             </div>
                             
                             {/* Preview Button */}
-                            <div className="flex justify-center sm:justify-start">
+                            <div className="flex">
                               <Button
                                 size="sm"
                                 variant="outline"
@@ -360,6 +361,7 @@ export default function DripCampaigns() {
                                   setSelectedEmailForPreview(email);
                                   setPreviewDialogOpen(true);
                                 }}
+                                className="w-full sm:w-auto"
                                 data-testid={`button-preview-email-${index}`}
                               >
                                 <Eye className="h-4 w-4 mr-1" />
@@ -391,26 +393,29 @@ export default function DripCampaigns() {
       {/* Preview Dialog for Individual Emails */}
       {selectedEmailForPreview && (
         <Dialog open={previewDialogOpen} onOpenChange={setPreviewDialogOpen}>
-          <DialogContent className="max-w-4xl max-h-[80vh]">
+          <DialogContent className="w-full max-w-[100vw] md:max-w-4xl max-h-[90vh] md:max-h-[80vh] p-4 md:p-6">
             <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
-                <Mail className="h-5 w-5" />
-                Email Preview: {selectedEmailForPreview.subject}
-                <Badge variant="outline">Day {selectedEmailForPreview.daysAfterStart}</Badge>
+              <DialogTitle className="flex flex-col sm:flex-row sm:items-center gap-2 text-base sm:text-lg">
+                <div className="flex items-center gap-2">
+                  <Mail className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
+                  <span className="truncate">Email Preview</span>
+                </div>
+                <Badge variant="outline" className="text-xs w-fit">Day {selectedEmailForPreview.daysAfterStart}</Badge>
               </DialogTitle>
-              <DialogDescription>
-                Preview of {selectedProjectType.toLowerCase()} photography email content
+              <DialogDescription className="text-xs sm:text-sm break-words">
+                {selectedEmailForPreview.subject}
               </DialogDescription>
             </DialogHeader>
-            <div className="space-y-4 h-[70vh]">
+            <div className="space-y-4 h-[calc(90vh-120px)] md:h-[calc(80vh-120px)]">
               {/* Email Content Display */}
               <div className="h-full">
-                <div className="flex gap-4 mb-4">
+                <div className="flex gap-2 sm:gap-4 mb-4">
                   <Button
                     size="sm"
                     variant={selectedEmailPreview === 'html' ? 'default' : 'outline'}
                     onClick={() => setSelectedEmailPreview('html')}
                     data-testid="button-preview-html"
+                    className="flex-1 sm:flex-none text-xs sm:text-sm"
                   >
                     HTML Preview
                   </Button>
@@ -419,19 +424,20 @@ export default function DripCampaigns() {
                     variant={selectedEmailPreview === 'text' ? 'default' : 'outline'}
                     onClick={() => setSelectedEmailPreview('text')}
                     data-testid="button-preview-text"
+                    className="flex-1 sm:flex-none text-xs sm:text-sm"
                   >
                     Text Version
                   </Button>
                 </div>
                 <ScrollArea className="h-[calc(100%-60px)] border rounded-lg">
-                  <div className="p-4">
+                  <div className="p-3 md:p-4">
                     {selectedEmailPreview === 'html' ? (
                       <div 
                         dangerouslySetInnerHTML={{ __html: selectedEmailForPreview.htmlBody || '' }}
-                        className="prose prose-sm max-w-none"
+                        className="prose prose-sm max-w-none text-sm"
                       />
                     ) : (
-                      <div className="whitespace-pre-wrap font-mono text-sm">
+                      <div className="whitespace-pre-wrap font-mono text-xs sm:text-sm break-words">
                         {selectedEmailForPreview.textBody || selectedEmailForPreview.subject}
                       </div>
                     )}

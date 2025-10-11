@@ -250,7 +250,7 @@ export function AppSidebar() {
                       >
                         <div className="relative">
                           <Icon className="w-8 h-8 text-white mb-2" />
-                          {'badge' in item && item.badge && item.badge > 0 && (
+                          {'badge' in item && item.badge > 0 && (
                             <div 
                               className="absolute -top-2 -right-2 h-[23px] w-[23px] rounded-full flex items-center justify-center text-xs font-bold bg-green-500 text-white"
                               data-testid="inbox-unread-badge"
