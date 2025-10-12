@@ -1832,6 +1832,76 @@ ${photographer?.businessName || 'Your Photography Team'}`;
     }
   });
 
+  // Send email to selected recipients (HoneyBook-style with recipient selection)
+  app.post("/api/projects/:id/send-email", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
+    try {
+      const { subject, body, recipients = [] } = req.body;
+      
+      if (!subject || !body) {
+        return res.status(400).json({ message: "Subject and body are required" });
+      }
+
+      if (!recipients || recipients.length === 0) {
+        return res.status(400).json({ message: "At least one recipient is required" });
+      }
+      
+      // Verify project belongs to photographer
+      const project = await storage.getProject(req.params.id);
+      if (!project || project.photographerId !== req.user!.photographerId!) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+      
+      // Send to first recipient as primary, rest as BCC
+      const primaryEmail = recipients[0];
+      const bccEmails = recipients.slice(1);
+      
+      // Send email via Gmail (fallback to SendGrid)
+      const { sendEmail } = await import('./services/email');
+      const result = await sendEmail({
+        to: primaryEmail,
+        subject,
+        html: body.replace(/\n/g, '<br>'),
+        text: body,
+        bcc: bccEmails.length > 0 ? bccEmails : undefined,
+        photographerId: req.user!.photographerId!,
+        clientId: project.clientId,
+        projectId: project.id,
+        source: 'MANUAL'
+      });
+      
+      if (!result.success) {
+        return res.status(500).json({ message: "Failed to send email", error: result.error });
+      }
+      
+      // Log to activity log
+      await storage.addProjectActivityLog({
+        projectId: req.params.id,
+        activityType: 'EMAIL_SENT',
+        action: 'SENT',
+        title: `Manual email: ${subject}`,
+        description: `Email sent to ${recipients.length} recipient${recipients.length > 1 ? 's' : ''}`,
+        metadata: JSON.stringify({
+          subject,
+          recipients,
+          recipientCount: recipients.length,
+          source: result.source || 'MANUAL'
+        }),
+        relatedId: result.messageId || null,
+        relatedType: 'EMAIL'
+      });
+      
+      res.json({ 
+        success: true, 
+        message: "Email sent successfully",
+        recipients,
+        source: result.source
+      });
+    } catch (error) {
+      console.error("Send email error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   // Project Participants
   app.get("/api/projects/:id/participants", authenticateToken, async (req, res) => {
     try {

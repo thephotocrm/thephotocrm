@@ -184,6 +184,8 @@ export default function ProjectDetail() {
   const [meetingTitle, setMeetingTitle] = useState("");
   const [meetingDuration, setMeetingDuration] = useState("60");
   const [showEmailComposer, setShowEmailComposer] = useState(false);
+  const [selectedRecipients, setSelectedRecipients] = useState<string[]>([]);
+  const [showAiOptions, setShowAiOptions] = useState(false);
 
   const { data: project, isLoading } = useQuery<Project>({
     queryKey: ["/api/projects", id],
@@ -294,7 +296,7 @@ export default function ProjectDetail() {
   });
 
   const sendEmailMutation = useMutation({
-    mutationFn: async (data: { subject: string; body: string; sendToParticipants: boolean }) => {
+    mutationFn: async (data: { subject: string; body: string; recipients: string[] }) => {
       return await apiRequest("POST", `/api/projects/${id}/send-email`, data);
     },
     onSuccess: () => {
@@ -577,7 +579,17 @@ export default function ProjectDetail() {
                 {/* Email Composer */}
                 {!showEmailComposer ? (
                   <Button 
-                    onClick={() => setShowEmailComposer(true)}
+                    onClick={() => {
+                      setShowEmailComposer(true);
+                      // Auto-select all recipients when opening composer
+                      const allRecipients = [];
+                      const mainContact = getContactInfo(project);
+                      if (mainContact?.email) allRecipients.push(mainContact.email);
+                      participants?.forEach(p => {
+                        if (p.client.email) allRecipients.push(p.client.email);
+                      });
+                      setSelectedRecipients(allRecipients);
+                    }}
                     variant="outline"
                     className="w-full justify-start"
                     data-testid="button-send-new-email"
@@ -608,10 +620,44 @@ export default function ProjectDetail() {
                         <Label className="text-xs text-muted-foreground">Reply to:</Label>
                         <div className="flex items-center gap-2 mt-1 flex-wrap">
                           {getContactInfo(project)?.email && (
-                            <Badge variant="secondary">{getContactInfo(project)?.email}</Badge>
+                            <Badge 
+                              variant={selectedRecipients.includes(getContactInfo(project)!.email) ? "default" : "secondary"}
+                              className="cursor-pointer flex items-center gap-1"
+                              onClick={() => {
+                                const email = getContactInfo(project)!.email;
+                                setSelectedRecipients(prev => 
+                                  prev.includes(email) 
+                                    ? prev.filter(e => e !== email)
+                                    : [...prev, email]
+                                );
+                              }}
+                              data-testid={`badge-recipient-${getContactInfo(project)?.email}`}
+                            >
+                              {getContactInfo(project)?.firstName} {getContactInfo(project)?.lastName}
+                              {selectedRecipients.includes(getContactInfo(project)!.email) && (
+                                <X className="w-3 h-3 ml-1" />
+                              )}
+                            </Badge>
                           )}
-                          {participants && participants.map((p) => (
-                            <Badge key={p.id} variant="secondary">{p.client.email}</Badge>
+                          {participants?.map((p) => (
+                            <Badge 
+                              key={p.id}
+                              variant={selectedRecipients.includes(p.client.email) ? "default" : "secondary"}
+                              className="cursor-pointer flex items-center gap-1"
+                              onClick={() => {
+                                setSelectedRecipients(prev => 
+                                  prev.includes(p.client.email)
+                                    ? prev.filter(e => e !== p.client.email)
+                                    : [...prev, p.client.email]
+                                );
+                              }}
+                              data-testid={`badge-recipient-${p.client.email}`}
+                            >
+                              {p.client.firstName} {p.client.lastName}
+                              {selectedRecipients.includes(p.client.email) && (
+                                <X className="w-3 h-3 ml-1" />
+                              )}
+                            </Badge>
                           ))}
                         </div>
                       </div>
@@ -635,6 +681,33 @@ export default function ProjectDetail() {
                           rows={6}
                           data-testid="textarea-email-body"
                         />
+                        <div className="flex items-center gap-2 mt-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setShowAiOptions(!showAiOptions)}
+                            className="text-blue-600 hover:text-blue-700"
+                            data-testid="button-edit-with-ai"
+                          >
+                            <svg className="w-4 h-4 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" />
+                            </svg>
+                            Edit with AI
+                          </Button>
+                          {showAiOptions && (
+                            <>
+                              <Button variant="ghost" size="sm" className="text-sm" data-testid="button-ai-tone">
+                                Change tone
+                              </Button>
+                              <Button variant="ghost" size="sm" className="text-sm" data-testid="button-ai-shorter">
+                                Make it shorter
+                              </Button>
+                              <Button variant="ghost" size="sm" className="text-sm" data-testid="button-ai-clarity">
+                                Improve clarity
+                              </Button>
+                            </>
+                          )}
+                        </div>
                       </div>
 
                       <div className="flex items-center justify-between pt-2 border-t">
@@ -646,9 +719,9 @@ export default function ProjectDetail() {
                           onClick={() => sendEmailMutation.mutate({ 
                             subject: messageSubject, 
                             body: messageBody,
-                            sendToParticipants: true 
+                            recipients: selectedRecipients 
                           })}
-                          disabled={!messageSubject || !messageBody || sendEmailMutation.isPending}
+                          disabled={!messageSubject || !messageBody || selectedRecipients.length === 0 || sendEmailMutation.isPending}
                           data-testid="button-send-email"
                         >
                           {sendEmailMutation.isPending ? "Sending..." : "SEND"}
