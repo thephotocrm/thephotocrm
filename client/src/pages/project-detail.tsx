@@ -57,7 +57,15 @@ interface Project {
   createdAt: string;
   leadSource?: string;
   referralName?: string;
-  client: {
+  contactId?: string;
+  client?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone?: string;
+  };
+  contact?: {
     id: string;
     firstName: string;
     lastName: string;
@@ -137,6 +145,19 @@ type TimelineEvent =
       createdAt: string;
     };
 
+// Helper to safely get contact info from project
+function getContactInfo(project: Project | undefined) {
+  if (!project) return null;
+  const contact = project.contact || project.client;
+  return contact ? {
+    id: contact.id || project.contactId || '',
+    firstName: contact.firstName || '',
+    lastName: contact.lastName || '',
+    email: contact.email || '',
+    phone: contact.phone || ''
+  } : null;
+}
+
 export default function ProjectDetail() {
   const { id } = useParams();
   const { user } = useAuth();
@@ -157,6 +178,12 @@ export default function ProjectDetail() {
   const [messageSubject, setMessageSubject] = useState("");
   const [messageBody, setMessageBody] = useState("");
   const [sendToParticipants, setSendToParticipants] = useState(false);
+  const [scheduleDialogOpen, setScheduleDialogOpen] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<string>("");
+  const [selectedTime, setSelectedTime] = useState<string>("");
+  const [meetingTitle, setMeetingTitle] = useState("");
+  const [meetingDuration, setMeetingDuration] = useState("60");
+  const [showEmailComposer, setShowEmailComposer] = useState(false);
 
   const { data: project, isLoading } = useQuery<Project>({
     queryKey: ["/api/projects", id],
@@ -266,18 +293,50 @@ export default function ProjectDetail() {
     }
   });
 
-  const sendMessageMutation = useMutation({
+  const sendEmailMutation = useMutation({
     mutationFn: async (data: { subject: string; body: string; sendToParticipants: boolean }) => {
-      return await apiRequest("POST", `/api/projects/${id}/send-message`, data);
+      return await apiRequest("POST", `/api/projects/${id}/send-email`, data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/projects", id, "history"] });
       setMessageSubject("");
       setMessageBody("");
       setMessageDialogOpen(false);
+      setShowEmailComposer(false);
       toast({
         title: "Message sent",
         description: "Your email has been sent successfully."
+      });
+    }
+  });
+
+  const createBookingMutation = useMutation({
+    mutationFn: async (data: { 
+      title: string;
+      startAt: string;
+      endAt: string;
+      projectId: string;
+      clientId: string;
+    }) => {
+      return await apiRequest("POST", `/api/bookings`, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/bookings"] });
+      setScheduleDialogOpen(false);
+      setSelectedDate("");
+      setSelectedTime("");
+      setMeetingTitle("");
+      setMeetingDuration("60");
+      toast({
+        title: "Meeting scheduled",
+        description: "The meeting has been scheduled successfully."
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to schedule meeting",
+        description: error.message || "An error occurred",
+        variant: "destructive"
       });
     }
   });
@@ -382,9 +441,9 @@ export default function ProjectDetail() {
               {/* Main Contact Avatar */}
               <div 
                 className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-medium border-2 border-white"
-                title={`${project.client.firstName} ${project.client.lastName}`}
+                title={`${getContactInfo(project)?.firstName || ''} ${getContactInfo(project)?.lastName || ''}`}
               >
-                {getInitials(project.client.firstName, project.client.lastName)}
+                {getInitials(getContactInfo(project)?.firstName || '', getContactInfo(project)?.lastName || '')}
               </div>
               
               {/* Participant Avatars */}
@@ -415,7 +474,12 @@ export default function ProjectDetail() {
       <div className="border-b bg-white px-6 py-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" data-testid="button-schedule">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => setScheduleDialogOpen(true)}
+              data-testid="button-schedule"
+            >
               <Calendar className="w-4 h-4 mr-2" />
               Schedule
             </Button>
@@ -510,6 +574,90 @@ export default function ProjectDetail() {
           <div className="lg:col-span-2 space-y-4">
             <TabsContent value="activity" className="m-0">
               <div className="space-y-4">
+                {/* Email Composer */}
+                {!showEmailComposer ? (
+                  <Button 
+                    onClick={() => setShowEmailComposer(true)}
+                    variant="outline"
+                    className="w-full justify-start"
+                    data-testid="button-send-new-email"
+                  >
+                    <Mail className="w-4 h-4 mr-2" />
+                    SEND NEW EMAIL
+                  </Button>
+                ) : (
+                  <Card className="border-2">
+                    <CardContent className="p-4 space-y-4">
+                      <div className="flex items-center justify-between">
+                        <h3 className="font-medium">New Email</h3>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            setShowEmailComposer(false);
+                            setMessageSubject("");
+                            setMessageBody("");
+                          }}
+                          data-testid="button-close-email-composer"
+                        >
+                          <X className="w-4 h-4" />
+                        </Button>
+                      </div>
+                      
+                      <div>
+                        <Label className="text-xs text-muted-foreground">Reply to:</Label>
+                        <div className="flex items-center gap-2 mt-1 flex-wrap">
+                          {getContactInfo(project)?.email && (
+                            <Badge variant="secondary">{getContactInfo(project)?.email}</Badge>
+                          )}
+                          {participants && participants.map((p) => (
+                            <Badge key={p.id} variant="secondary">{p.client.email}</Badge>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div>
+                        <Label htmlFor="email-subject">SUBJECT</Label>
+                        <Input
+                          id="email-subject"
+                          value={messageSubject}
+                          onChange={(e) => setMessageSubject(e.target.value)}
+                          placeholder="Re: Contract Agreement"
+                          data-testid="input-email-subject"
+                        />
+                      </div>
+
+                      <div>
+                        <Textarea
+                          value={messageBody}
+                          onChange={(e) => setMessageBody(e.target.value)}
+                          placeholder="Type [ to add a smart field"
+                          rows={6}
+                          data-testid="textarea-email-body"
+                        />
+                      </div>
+
+                      <div className="flex items-center justify-between pt-2 border-t">
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <span>Default</span>
+                          <ChevronDown className="w-4 h-4" />
+                        </div>
+                        <Button 
+                          onClick={() => sendEmailMutation.mutate({ 
+                            subject: messageSubject, 
+                            body: messageBody,
+                            sendToParticipants: true 
+                          })}
+                          disabled={!messageSubject || !messageBody || sendEmailMutation.isPending}
+                          data-testid="button-send-email"
+                        >
+                          {sendEmailMutation.isPending ? "Sending..." : "SEND"}
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
                 <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
                   <span className="font-medium">RECENT ACTIVITY</span>
                 </div>
@@ -686,16 +834,16 @@ export default function ProjectDetail() {
                   <CardContent className="space-y-3">
                     <div>
                       <p className="font-medium">
-                        {project.client.firstName} {project.client.lastName}
+                        {getContactInfo(project)?.firstName} {getContactInfo(project)?.lastName}
                       </p>
                       <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
                         <Mail className="w-4 h-4" />
-                        <span>{project.client.email}</span>
+                        <span>{getContactInfo(project)?.email}</span>
                       </div>
-                      {project.client.phone && (
+                      {getContactInfo(project)?.phone && (
                         <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
                           <Phone className="w-4 h-4" />
-                          <span>{project.client.phone}</span>
+                          <span>{getContactInfo(project)?.phone}</span>
                         </div>
                       )}
                     </div>
@@ -950,11 +1098,95 @@ export default function ProjectDetail() {
               </div>
             )}
             <Button 
-              onClick={() => sendMessageMutation.mutate({ subject: messageSubject, body: messageBody, sendToParticipants })}
-              disabled={!messageSubject || !messageBody || sendMessageMutation.isPending}
-              data-testid="button-send-message"
+              onClick={() => sendEmailMutation.mutate({ subject: messageSubject, body: messageBody, sendToParticipants })}
+              disabled={!messageSubject || !messageBody || sendEmailMutation.isPending}
+              data-testid="button-send-email"
             >
               Send Email
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Schedule Meeting Dialog */}
+      <Dialog open={scheduleDialogOpen} onOpenChange={setScheduleDialogOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Schedule a Meeting</DialogTitle>
+            <DialogDescription>
+              Schedule a meeting with {project?.contact?.firstName || project?.client?.firstName} {project?.contact?.lastName || project?.client?.lastName}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="meeting-title">Meeting Title</Label>
+              <Input
+                id="meeting-title"
+                value={meetingTitle}
+                onChange={(e) => setMeetingTitle(e.target.value)}
+                placeholder="e.g., Initial Consultation"
+                data-testid="input-meeting-title"
+              />
+            </div>
+            
+            <div>
+              <Label htmlFor="meeting-date">Date</Label>
+              <Input
+                id="meeting-date"
+                type="date"
+                value={selectedDate}
+                onChange={(e) => setSelectedDate(e.target.value)}
+                min={new Date().toISOString().split('T')[0]}
+                data-testid="input-meeting-date"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="meeting-time">Time</Label>
+              <Input
+                id="meeting-time"
+                type="time"
+                value={selectedTime}
+                onChange={(e) => setSelectedTime(e.target.value)}
+                data-testid="input-meeting-time"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="meeting-duration">Duration (minutes)</Label>
+              <Select value={meetingDuration} onValueChange={setMeetingDuration}>
+                <SelectTrigger id="meeting-duration" data-testid="select-meeting-duration">
+                  <SelectValue placeholder="Select duration" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="30">30 minutes</SelectItem>
+                  <SelectItem value="60">1 hour</SelectItem>
+                  <SelectItem value="90">1.5 hours</SelectItem>
+                  <SelectItem value="120">2 hours</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <Button 
+              onClick={() => {
+                if (!project || !selectedDate || !selectedTime || !meetingTitle) return;
+                
+                const startDateTime = new Date(`${selectedDate}T${selectedTime}:00`);
+                const endDateTime = new Date(startDateTime.getTime() + parseInt(meetingDuration) * 60000);
+                
+                createBookingMutation.mutate({
+                  title: meetingTitle,
+                  startAt: startDateTime.toISOString(),
+                  endAt: endDateTime.toISOString(),
+                  projectId: project.id,
+                  clientId: project.contact?.id || project.client?.id || project.contactId || ''
+                });
+              }}
+              disabled={!meetingTitle || !selectedDate || !selectedTime || createBookingMutation.isPending}
+              className="w-full"
+              data-testid="button-schedule-submit"
+            >
+              {createBookingMutation.isPending ? "Scheduling..." : "Schedule Meeting"}
             </Button>
           </div>
         </DialogContent>
@@ -988,7 +1220,7 @@ export default function ProjectDetail() {
           projectSmartFileId={pendingSmartFileToSend.id}
           contractPage={contractPageToSign}
           projectData={{
-            clientName: `${project.client.firstName} ${project.client.lastName}`,
+            clientName: `${getContactInfo(project)?.firstName || ''} ${getContactInfo(project)?.lastName || ''}`,
             photographerName: user?.photographerName || '',
             projectTitle: project.title,
             projectType: project.projectType,

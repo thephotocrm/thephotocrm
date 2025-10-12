@@ -4603,7 +4603,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       // Critical security check: If clientId is provided, validate tenant ownership
       if (bookingData.clientId) {
         const contact = await storage.getContact(bookingData.clientId);
-        if (!client || contact.photographerId !== photographerId) {
+        if (!contact || contact.photographerId !== photographerId) {
           return res.status(403).json({ message: "Client not found or access denied" });
         }
         
