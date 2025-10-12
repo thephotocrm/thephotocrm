@@ -399,28 +399,59 @@ async function processAutomationStep(contact: any, step: any, automation: any): 
       return;
     }
   } else {
-    if (!step.templateId) {
-      console.log(`📝 No template ID for ${contact.firstName} ${contact.lastName}, skipping (no reservation)`);
-      return;
-    }
-    
-    [template] = await db
-      .select()
-      .from(templates)
-      .where(and(
-        eq(templates.id, step.templateId),
-        eq(templates.photographerId, contact.photographerId)
-      ));
+    // For SMS, allow either template OR custom content
+    if (actionType === 'SMS') {
+      if (!step.templateId && !step.customSmsContent) {
+        console.log(`📝 No template ID or custom SMS content for ${contact.firstName} ${contact.lastName}, skipping (no reservation)`);
+        return;
+      }
+      
+      // Only fetch template if templateId is provided
+      if (step.templateId) {
+        [template] = await db
+          .select()
+          .from(templates)
+          .where(and(
+            eq(templates.id, step.templateId),
+            eq(templates.photographerId, contact.photographerId)
+          ));
 
-    if (!template) {
-      console.log(`📝 Template not found for ${contact.firstName} ${contact.lastName}, templateId: ${step.templateId}, skipping (no reservation)`);
-      return;
-    }
+        if (!template) {
+          console.log(`📝 Template not found for ${contact.firstName} ${contact.lastName}, templateId: ${step.templateId}, skipping (no reservation)`);
+          return;
+        }
 
-    // Validate template-channel match BEFORE reservation
-    if (template.channel !== actionType) {
-      console.log(`❌ Template channel mismatch for automation ${automation.name}: template=${template.channel}, action=${actionType}, skipping (no reservation)`);
-      return;
+        // Validate template-channel match BEFORE reservation
+        if (template.channel !== actionType) {
+          console.log(`❌ Template channel mismatch for automation ${automation.name}: template=${template.channel}, action=${actionType}, skipping (no reservation)`);
+          return;
+        }
+      }
+    } else {
+      // For EMAIL and other types, template is required
+      if (!step.templateId) {
+        console.log(`📝 No template ID for ${contact.firstName} ${contact.lastName}, skipping (no reservation)`);
+        return;
+      }
+      
+      [template] = await db
+        .select()
+        .from(templates)
+        .where(and(
+          eq(templates.id, step.templateId),
+          eq(templates.photographerId, contact.photographerId)
+        ));
+
+      if (!template) {
+        console.log(`📝 Template not found for ${contact.firstName} ${contact.lastName}, templateId: ${step.templateId}, skipping (no reservation)`);
+        return;
+      }
+
+      // Validate template-channel match BEFORE reservation
+      if (template.channel !== actionType) {
+        console.log(`❌ Template channel mismatch for automation ${automation.name}: template=${template.channel}, action=${actionType}, skipping (no reservation)`);
+        return;
+      }
     }
   }
 
@@ -648,8 +679,12 @@ async function processAutomationStep(contact: any, step: any, automation: any): 
       // 🔒 BULLETPROOF EXECUTION TRACKING - Update reservation status
       await updateExecutionStatus(reservation.executionId!, success ? 'SUCCESS' : 'FAILED');
 
-    } else if (actionType === 'SMS' && template && contact.phone) {
-    const body = renderSmsTemplate(template.textBody || '', variables);
+    } else if (actionType === 'SMS' && contact.phone && (template || step.customSmsContent)) {
+    // Use custom SMS content if available, otherwise use template
+    const smsContent = step.customSmsContent || template?.textBody || '';
+    const body = renderSmsTemplate(smsContent, variables);
+
+    console.log(`📱 Sending SMS to ${contact.firstName} ${contact.lastName}: ${step.customSmsContent ? 'custom message' : 'template'}`);
 
     const result = await sendSms({
       to: contact.phone,

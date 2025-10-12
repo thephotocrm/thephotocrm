@@ -281,6 +281,7 @@ export const automationSteps = pgTable("automation_steps", {
   actionType: text("action_type").notNull().default("EMAIL"), // EMAIL, SMS, SMART_FILE
   templateId: varchar("template_id").references(() => templates.id), // For EMAIL/SMS
   smartFileTemplateId: varchar("smart_file_template_id").references(() => smartFiles.id), // For SMART_FILE
+  customSmsContent: text("custom_sms_content"), // Custom SMS message (alternative to template)
   enabled: boolean("enabled").default(true),
   quietHoursStart: integer("quiet_hours_start"),
   quietHoursEnd: integer("quiet_hours_end")

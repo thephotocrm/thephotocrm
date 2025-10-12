@@ -13,6 +13,7 @@ import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -1511,6 +1512,8 @@ export default function Automations() {
     channel: z.string().default("EMAIL"),
     templateId: z.string().optional(),
     smartFileTemplateId: z.string().optional(),
+    smsMessageType: z.enum(['template', 'custom']).default('template').optional(),
+    customSmsContent: z.string().optional(),
     delayMinutes: z.coerce.number().min(0).default(0),
     delayHours: z.coerce.number().min(0).default(0),
     delayDays: z.coerce.number().min(0).default(0),
@@ -1542,14 +1545,20 @@ export default function Automations() {
         const hasTemplate = data.templateId && data.templateId.length > 0 && data.templateId !== "unavailable";
         const hasQuestionnaire = data.questionnaireTemplateId && data.questionnaireTemplateId.length > 0 && data.questionnaireTemplateId !== "none" && data.questionnaireTemplateId !== "unavailable";
         const hasSmartFile = data.smartFileTemplateId && data.smartFileTemplateId.length > 0 && data.smartFileTemplateId !== "unavailable";
+        const hasCustomSms = data.customSmsContent && data.customSmsContent.length > 0;
         
         // For SMART_FILE channel, only smartFileTemplateId is required
         if (data.channel === 'SMART_FILE') {
           if (!hasSmartFile) {
             return false;
           }
+        } else if (data.channel === 'SMS') {
+          // For SMS, require template, custom content, or questionnaire
+          if (!hasTemplate && !hasCustomSms && !hasQuestionnaire) {
+            return false;
+          }
         } else {
-          // For EMAIL/SMS, require template or questionnaire
+          // For EMAIL, require template or questionnaire
           if (!hasTemplate && !hasQuestionnaire) {
             return false;
           }
@@ -1865,8 +1874,9 @@ export default function Automations() {
           const hasTemplate = data.templateId && data.templateId !== "unavailable";
           const hasSmartFile = data.smartFileTemplateId && data.smartFileTemplateId !== "unavailable";
           const hasQuestionnaire = data.questionnaireTemplateId && data.questionnaireTemplateId !== "unavailable" && data.questionnaireTemplateId !== "none";
+          const hasCustomSms = data.customSmsContent && data.customSmsContent.length > 0;
           
-          if (hasTemplate || hasSmartFile || hasQuestionnaire) {
+          if (hasTemplate || hasSmartFile || hasQuestionnaire || hasCustomSms) {
             const totalDelayMinutes = timingMode === 'immediate' ? 0 : 
               (data.delayDays * 24 * 60) + (data.delayHours * 60) + data.delayMinutes;
             
@@ -1882,6 +1892,8 @@ export default function Automations() {
               stepData.templateId = data.templateId;
             } else if (hasSmartFile) {
               stepData.smartFileTemplateId = data.smartFileTemplateId;
+            } else if (hasCustomSms) {
+              stepData.customSmsContent = data.customSmsContent;
             }
             
             await apiRequest("POST", `/api/automations/${commAutomation.id}/steps`, stepData);
@@ -2603,13 +2615,112 @@ export default function Automations() {
                     )}
                   />
 
-                  {form.watch('channel') !== 'SMART_FILE' && (
+                  {form.watch('channel') === 'SMS' && (
+                    <>
+                      <FormField
+                        control={form.control}
+                        name="smsMessageType"
+                        render={({ field }) => (
+                          <FormItem className="space-y-3">
+                            <FormLabel>Message Type</FormLabel>
+                            <FormControl>
+                              <RadioGroup
+                                onValueChange={(value) => {
+                                  field.onChange(value);
+                                  // Clear the other field when switching
+                                  if (value === 'custom') {
+                                    form.setValue('templateId', '');
+                                  } else {
+                                    form.setValue('customSmsContent', '');
+                                  }
+                                }}
+                                value={field.value || 'template'}
+                                className="flex flex-col space-y-1"
+                              >
+                                <div className="flex items-center space-x-2">
+                                  <RadioGroupItem value="template" id="template" />
+                                  <Label htmlFor="template" className="font-normal cursor-pointer">
+                                    Use Template
+                                  </Label>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                  <RadioGroupItem value="custom" id="custom" />
+                                  <Label htmlFor="custom" className="font-normal cursor-pointer">
+                                    Custom Message
+                                  </Label>
+                                </div>
+                              </RadioGroup>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      {form.watch('smsMessageType') === 'custom' ? (
+                        <FormField
+                          control={form.control}
+                          name="customSmsContent"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Custom SMS Message</FormLabel>
+                              <FormControl>
+                                <Textarea
+                                  placeholder="Type your SMS message here... (supports variables like {{firstName}}, {{lastName}}, {{projectType}})"
+                                  className="min-h-[100px]"
+                                  {...field}
+                                  data-testid="textarea-custom-sms"
+                                />
+                              </FormControl>
+                              <FormDescription>
+                                You can use variables: {'{{'} firstName {'}}'},  {'{{'} lastName {'}}'},  {'{{'} projectType {'}}'},  {'{{'} eventDate {'}}'}
+                              </FormDescription>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      ) : (
+                        <FormField
+                          control={form.control}
+                          name="templateId"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>SMS Template</FormLabel>
+                              <Select onValueChange={field.onChange} value={field.value || ""}>
+                                <FormControl>
+                                  <SelectTrigger data-testid="select-template">
+                                    <SelectValue placeholder="Choose a message template" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {templates
+                                    .filter((t: any) => t.channel === 'SMS')
+                                    .map((template: any) => (
+                                      <SelectItem key={template.id} value={template.id}>
+                                        {template.name}
+                                      </SelectItem>
+                                    ))}
+                                  {templates.filter((t: any) => t.channel === 'SMS').length === 0 && (
+                                    <SelectItem value="unavailable" disabled>
+                                      No SMS templates available - create templates first
+                                    </SelectItem>
+                                  )}
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      )}
+                    </>
+                  )}
+
+                  {form.watch('channel') === 'EMAIL' && (
                     <FormField
                       control={form.control}
                       name="templateId"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>What to send</FormLabel>
+                          <FormLabel>Email Template</FormLabel>
                           <Select onValueChange={field.onChange} value={field.value || ""}>
                             <FormControl>
                               <SelectTrigger data-testid="select-template">
@@ -2618,15 +2729,15 @@ export default function Automations() {
                             </FormControl>
                             <SelectContent>
                               {templates
-                                .filter((t: any) => t.channel === form.watch('channel'))
+                                .filter((t: any) => t.channel === 'EMAIL')
                                 .map((template: any) => (
                                   <SelectItem key={template.id} value={template.id}>
                                     {template.name}
                                   </SelectItem>
                                 ))}
-                              {templates.filter((t: any) => t.channel === form.watch('channel')).length === 0 && (
+                              {templates.filter((t: any) => t.channel === 'EMAIL').length === 0 && (
                                 <SelectItem value="unavailable" disabled>
-                                  No {form.watch('channel').toLowerCase()} templates available - create templates first
+                                  No email templates available - create templates first
                                 </SelectItem>
                               )}
                             </SelectContent>
