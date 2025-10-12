@@ -186,6 +186,7 @@ export const projects = pgTable("projects", {
   projectType: text("project_type").notNull().default("WEDDING"),
   title: text("title").notNull(),
   leadSource: text("lead_source").default("MANUAL"),
+  referralName: text("referral_name"),
   eventDate: timestamp("event_date"),
   hasEventDate: boolean("has_event_date").notNull().default(false),
   notes: text("notes"),

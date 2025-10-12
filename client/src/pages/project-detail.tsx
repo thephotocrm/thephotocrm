@@ -1,18 +1,17 @@
 import { useParams, useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
-import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Calendar, User, Mail, Phone, MapPin, FileText, DollarSign, Clock, ArrowLeft, ClipboardCheck, ClipboardList, UserPlus, X, History, Send, MessageSquare, Plus, Copy, Eye, MoreVertical, Trash } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Calendar, User, Mail, Phone, FileText, DollarSign, Clock, Copy, Eye, MoreVertical, Trash, Send, MessageSquare, Plus, X, Heart, Briefcase, Camera, ChevronDown, Menu, Link as LinkIcon, ExternalLink, Lock, Settings, Tag } from "lucide-react";
 import { Link } from "wouter";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
 import {
   Dialog,
   DialogContent,
@@ -36,7 +35,17 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Switch } from "@/components/ui/switch";
 import { PhotographerSignatureDialog } from "@/components/photographer-signature-dialog";
+import heroImage from "@assets/stock_images/vintage_camera_photo_e2b0b796.jpg";
 
 interface Project {
   id: string;
@@ -46,6 +55,8 @@ interface Project {
   notes?: string;
   status: string;
   createdAt: string;
+  leadSource?: string;
+  referralName?: string;
   client: {
     id: string;
     firstName: string;
@@ -57,15 +68,6 @@ interface Project {
     id: string;
     name: string;
   };
-}
-
-interface ProjectQuestionnaire {
-  id: string;
-  templateId: string;
-  answers?: any;
-  submittedAt?: string;
-  createdAt: string;
-  templateTitle: string;
 }
 
 interface Participant {
@@ -93,6 +95,8 @@ interface ProjectSmartFile {
   acceptedAt?: string;
   paidAt?: string;
   createdAt: string;
+  pagesSnapshot?: any[];
+  formAnswers?: any;
 }
 
 interface SmartFile {
@@ -123,61 +127,53 @@ type TimelineEvent =
       sentAt?: string;
       openedAt?: string;
       clickedAt?: string;
-      bouncedAt?: string;
       createdAt: string;
-      templateName?: string;
-      templateSubject?: string;
-      automationName?: string;
     }
   | {
       type: 'sms';
       id: string;
-      title: string;
-      description: string;
-      status: string;
-      sentAt?: string;
-      deliveredAt?: string;
+      body: string;
+      direction: string;
       createdAt: string;
-      direction?: string;
-      messageBody?: string;
-      templateName?: string;
-      automationName?: string;
     };
 
 export default function ProjectDetail() {
-  const { id } = useParams<{ id: string }>();
-  const { user, loading } = useAuth();
+  const { id } = useParams();
+  const { user } = useAuth();
+  const [, navigate] = useLocation();
   const { toast } = useToast();
-  const [, setLocation] = useLocation();
-  const [participantEmail, setParticipantEmail] = useState("");
+  const [activeTab, setActiveTab] = useState("activity");
+  
+  // State for various dialogs
   const [isAddingParticipant, setIsAddingParticipant] = useState(false);
-  const [messageSubject, setMessageSubject] = useState("");
-  const [messageBody, setMessageBody] = useState("");
-  const [sendToParticipants, setSendToParticipants] = useState(true);
+  const [participantEmail, setParticipantEmail] = useState("");
   const [attachSmartFileOpen, setAttachSmartFileOpen] = useState(false);
   const [selectedSmartFileId, setSelectedSmartFileId] = useState("");
   const [smartFileToSend, setSmartFileToSend] = useState<ProjectSmartFile | null>(null);
-  const [smartFileToRemove, setSmartFileToRemove] = useState<ProjectSmartFile | null>(null);
-  const [signatureDialogOpen, setSignatureDialogOpen] = useState(false);
-  const [contractPageToSign, setContractPageToSign] = useState<any>(null);
   const [pendingSmartFileToSend, setPendingSmartFileToSend] = useState<ProjectSmartFile | null>(null);
+  const [contractPageToSign, setContractPageToSign] = useState<any>(null);
+  const [signatureDialogOpen, setSignatureDialogOpen] = useState(false);
+  const [messageDialogOpen, setMessageDialogOpen] = useState(false);
+  const [messageSubject, setMessageSubject] = useState("");
+  const [messageBody, setMessageBody] = useState("");
+  const [sendToParticipants, setSendToParticipants] = useState(false);
 
-  const { data: project, isLoading: projectLoading } = useQuery<Project>({
+  const { data: project, isLoading } = useQuery<Project>({
     queryKey: ["/api/projects", id],
     enabled: !!user && !!id
   });
 
-  const { data: questionnaires } = useQuery<ProjectQuestionnaire[]>({
-    queryKey: ["/api/projects", id, "questionnaires"],
-    enabled: !!user && !!id
+  const { data: stages } = useQuery<any[]>({
+    queryKey: ["/api/stages"],
+    enabled: !!user
   });
 
-  const { data: participants, isLoading: participantsLoading } = useQuery<Participant[]>({
+  const { data: participants } = useQuery<Participant[]>({
     queryKey: ["/api/projects", id, "participants"],
     enabled: !!user && !!id
   });
 
-  const { data: history, isLoading: historyLoading } = useQuery<TimelineEvent[]>({
+  const { data: history } = useQuery<TimelineEvent[]>({
     queryKey: ["/api/projects", id, "history"],
     enabled: !!user && !!id
   });
@@ -192,6 +188,19 @@ export default function ProjectDetail() {
     enabled: !!user && attachSmartFileOpen
   });
 
+  const updateProjectMutation = useMutation({
+    mutationFn: async (data: Partial<Project>) => {
+      return await apiRequest("PATCH", `/api/projects/${id}`, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/projects", id] });
+      toast({
+        title: "Project updated",
+        description: "The project has been updated successfully."
+      });
+    }
+  });
+
   const addParticipantMutation = useMutation({
     mutationFn: async (email: string) => {
       return await apiRequest("POST", `/api/projects/${id}/participants`, { email });
@@ -202,56 +211,7 @@ export default function ProjectDetail() {
       setIsAddingParticipant(false);
       toast({
         title: "Participant added",
-        description: "The participant has been added and will receive automated emails."
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Failed to add participant",
-        description: error.message || "An error occurred",
-        variant: "destructive"
-      });
-    }
-  });
-
-  const removeParticipantMutation = useMutation({
-    mutationFn: async (participantId: string) => {
-      return await apiRequest("DELETE", `/api/projects/${id}/participants/${participantId}`);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/projects", id, "participants"] });
-      toast({
-        title: "Participant removed",
-        description: "The participant has been removed from the project."
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Failed to remove participant",
-        description: error.message || "An error occurred",
-        variant: "destructive"
-      });
-    }
-  });
-
-  const sendMessageMutation = useMutation({
-    mutationFn: async (data: { subject: string; body: string; sendToParticipants: boolean }) => {
-      return await apiRequest("POST", `/api/projects/${id}/send-message`, data);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/projects", id, "history"] });
-      setMessageSubject("");
-      setMessageBody("");
-      toast({
-        title: "Message sent",
-        description: "Your email has been sent successfully."
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Failed to send message",
-        description: error.message || "An error occurred",
-        variant: "destructive"
+        description: "The participant has been added successfully."
       });
     }
   });
@@ -267,13 +227,6 @@ export default function ProjectDetail() {
       toast({
         title: "Smart File attached",
         description: "The Smart File has been attached to this project."
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Failed to attach Smart File",
-        description: error.message || "An error occurred",
-        variant: "destructive"
       });
     }
   });
@@ -292,9 +245,7 @@ export default function ProjectDetail() {
       });
     },
     onError: (error: any) => {
-      // Check if photographer signature is required
       if (error.code === "PHOTOGRAPHER_SIGNATURE_REQUIRED" && smartFileToSend) {
-        // Find the contract page from the Smart File
         const pagesSnapshot = smartFileToSend.pagesSnapshot || [];
         const contractPage = pagesSnapshot.find((page: any) => page.pageType === 'CONTRACT');
         
@@ -315,935 +266,749 @@ export default function ProjectDetail() {
     }
   });
 
-  const sendSmartFileSMSMutation = useMutation({
-    mutationFn: async (projectSmartFileId: string) => {
-      return await apiRequest("POST", `/api/projects/${id}/smart-files/${projectSmartFileId}/send-sms`);
+  const sendMessageMutation = useMutation({
+    mutationFn: async (data: { subject: string; body: string; sendToParticipants: boolean }) => {
+      return await apiRequest("POST", `/api/projects/${id}/send-message`, data);
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/projects", id, "history"] });
+      setMessageSubject("");
+      setMessageBody("");
+      setMessageDialogOpen(false);
       toast({
-        title: "SMS sent",
-        description: "The Smart File link has been sent via text message."
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Failed to send SMS",
-        description: error.message || "Client phone number may be missing",
-        variant: "destructive"
+        title: "Message sent",
+        description: "Your email has been sent successfully."
       });
     }
   });
 
-  const removeSmartFileMutation = useMutation({
-    mutationFn: async (projectSmartFileId: string) => {
-      return await apiRequest("DELETE", `/api/projects/${id}/smart-files/${projectSmartFileId}`);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/projects", id, "smart-files"] });
-      setSmartFileToRemove(null);
-      toast({
-        title: "Smart File removed",
-        description: "The Smart File has been removed from this project."
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Failed to remove Smart File",
-        description: error.message || "An error occurred",
-        variant: "destructive"
-      });
-    }
-  });
-
-  const handleAddParticipant = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!participantEmail.trim()) return;
-    addParticipantMutation.mutate(participantEmail.trim());
-  };
-
-  const handleSendMessage = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!messageSubject.trim() || !messageBody.trim()) return;
-    sendMessageMutation.mutate({
-      subject: messageSubject.trim(),
-      body: messageBody.trim(),
-      sendToParticipants
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
     });
   };
 
-  if (loading || projectLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
-      </div>
-    );
-  }
-
-  if (!project) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <h2 className="text-2xl font-semibold mb-2">Project Not Found</h2>
-          <p className="text-muted-foreground mb-4">The project you're looking for doesn't exist.</p>
-          <Link href="/projects">
-            <Button>
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Projects
-            </Button>
-          </Link>
-        </div>
-      </div>
-    );
-  }
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString();
-  };
-
-  const formatCurrency = (cents: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(cents / 100);
-  };
-
-  const getStatusColor = (status: string | null | undefined) => {
-    if (!status) return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300';
-    
-    switch (status.toLowerCase()) {
-      case 'active': return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
-      case 'completed': return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300';
-      case 'cancelled': return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300';
-      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300';
+  const getProjectTypeIcon = (type: string) => {
+    switch (type) {
+      case 'WEDDING':
+        return <Heart className="w-4 h-4" />;
+      case 'PORTRAIT':
+        return <User className="w-4 h-4" />;
+      case 'COMMERCIAL':
+        return <Briefcase className="w-4 h-4" />;
+      default:
+        return <Camera className="w-4 h-4" />;
     }
   };
 
-  const getProjectTypeLabel = (type: string | null | undefined) => {
-    if (!type) return 'Unknown';
+  const getProjectTypeLabel = (type: string) => {
     return type.charAt(0) + type.slice(1).toLowerCase();
   };
 
-  const getQuestionnaireStatusColor = (questionnaire: ProjectQuestionnaire) => {
-    if (questionnaire.submittedAt) {
-      return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
+  const getActivityIcon = (event: TimelineEvent) => {
+    if (event.type === 'email') return <Mail className="w-4 h-4" />;
+    if (event.type === 'sms') return <MessageSquare className="w-4 h-4" />;
+    if (event.type === 'activity') {
+      if (event.activityType === 'SMART_FILE_SENT') return <FileText className="w-4 h-4" />;
+      if (event.activityType === 'SMART_FILE_VIEWED') return <Eye className="w-4 h-4" />;
     }
-    return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300';
+    return <FileText className="w-4 h-4" />;
   };
 
-  const getQuestionnaireStatus = (questionnaire: ProjectQuestionnaire) => {
-    if (questionnaire.submittedAt) {
-      return 'Completed';
-    }
-    return 'Pending';
+  const getInitials = (firstName: string, lastName: string) => {
+    return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
   };
 
-  const getSmartFileStatusColor = (status: string) => {
-    switch (status.toUpperCase()) {
-      case 'DRAFT': return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300';
-      case 'SENT': return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300';
-      case 'VIEWED': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300';
-      case 'ACCEPTED': return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
-      case 'DEPOSIT_PAID': return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300';
-      case 'PAID': return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
-      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300';
-    }
-  };
+  if (isLoading || !project) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-2 text-sm text-muted-foreground">Loading project...</p>
+        </div>
+      </div>
+    );
+  }
 
-  const handleAttachSmartFile = () => {
-    if (!selectedSmartFileId) return;
-    attachSmartFileMutation.mutate(selectedSmartFileId);
-  };
-
-  const handleCopyLink = (smartFile: ProjectSmartFile) => {
-    const link = `${window.location.origin}/smart-file/${smartFile.token}`;
-    navigator.clipboard.writeText(link);
-    toast({
-      title: "Link copied",
-      description: "Smart File link has been copied to clipboard."
-    });
-  };
+  const totalParticipants = (participants?.length || 0) + 1; // +1 for main contact
 
   return (
-    <>
-      {/* Header */}
-      <header className="bg-card border-b border-border px-6 py-4">
-        <div className="flex items-center gap-3">
-          <SidebarTrigger data-testid="button-menu-toggle" />
-            <Link href="/projects">
-              <Button variant="ghost" size="sm" data-testid="button-back-projects">
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to Projects
-              </Button>
-            </Link>
-            <div className="flex items-center gap-3">
-              <div>
-                <h1 className="text-2xl font-semibold" data-testid="text-project-title">
-                  {project.title}
-                </h1>
-                <div className="flex items-center gap-2 mt-1">
-                  <Badge variant="secondary" data-testid="badge-project-type">
-                    {getProjectTypeLabel(project.projectType)}
-                  </Badge>
-                  <Badge 
-                    className={getStatusColor(project.status)}
-                    data-testid="badge-project-status"
-                  >
-                    {project.status}
-                  </Badge>
-                  {project.stage && (
-                    <Badge variant="outline" data-testid="badge-project-stage">
-                      {project.stage.name}
-                    </Badge>
-                  )}
-                </div>
-              </div>
+    <div className="min-h-screen bg-background">
+      {/* Hero Section */}
+      <div className="relative h-64 bg-gradient-to-br from-slate-500 to-slate-600">
+        <div 
+          className="absolute inset-0 bg-cover bg-center opacity-40"
+          style={{ backgroundImage: `url(${heroImage})` }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+        
+        <div className="relative h-full flex flex-col justify-between p-6">
+          {/* Breadcrumb */}
+          <div className="flex items-center gap-2 text-white/90 text-sm">
+            <Menu className="w-4 h-4" />
+            <span className="uppercase tracking-wider font-medium">PROJECTS</span>
+          </div>
+
+          {/* Project Title */}
+          <div>
+            <h1 className="text-4xl font-semibold text-white mb-2" data-testid="text-project-title">
+              {project.title}
+            </h1>
+            <div className="flex items-center gap-2 text-white/90">
+              {getProjectTypeIcon(project.projectType)}
+              <span className="capitalize">{getProjectTypeLabel(project.projectType)}</span>
+              {project.eventDate && (
+                <>
+                  <span className="mx-1">•</span>
+                  <span>{formatDate(project.eventDate)}</span>
+                </>
+              )}
             </div>
           </div>
-        </header>
+        </div>
+      </div>
 
-        <div className="p-6 space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Contact Information */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <User className="w-5 h-5" />
-                  Contact Information
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="space-y-2">
-                  <p className="font-medium" data-testid="text-client-name">
-                    {project.client.firstName} {project.client.lastName}
-                  </p>
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Mail className="w-4 h-4" />
-                    <span data-testid="text-client-email">{project.client.email}</span>
-                  </div>
-                  {project.client.phone && (
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Phone className="w-4 h-4" />
-                      <span data-testid="text-client-phone">{project.client.phone}</span>
-                    </div>
-                  )}
+      {/* Participants Bar */}
+      <div className="border-b bg-white px-6 py-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <span className="text-sm text-muted-foreground">
+              Visible to you + {totalParticipants - 1} participant{totalParticipants - 1 !== 1 ? 's' : ''}
+            </span>
+            <div className="flex items-center -space-x-2">
+              {/* Main Contact Avatar */}
+              <div 
+                className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-medium border-2 border-white"
+                title={`${project.client.firstName} ${project.client.lastName}`}
+              >
+                {getInitials(project.client.firstName, project.client.lastName)}
+              </div>
+              
+              {/* Participant Avatars */}
+              {participants?.slice(0, 3).map((participant) => (
+                <div 
+                  key={participant.id}
+                  className="w-8 h-8 rounded-full bg-purple-500 text-white flex items-center justify-center text-xs font-medium border-2 border-white"
+                  title={`${participant.client.firstName} ${participant.client.lastName}`}
+                >
+                  {getInitials(participant.client.firstName, participant.client.lastName)}
                 </div>
-                <Link href={`/contacts/${project.client.id}`}>
-                  <Button variant="outline" size="sm" className="w-full" data-testid="button-view-contact">
-                    View Contact Details
-                  </Button>
-                </Link>
-              </CardContent>
-            </Card>
-
-            {/* Project Details */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Calendar className="w-5 h-5" />
-                  Project Details
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {project.eventDate && (
-                  <div className="flex items-center gap-2 text-sm">
-                    <Calendar className="w-4 h-4 text-muted-foreground" />
-                    <span>Event Date:</span>
-                    <span className="font-medium" data-testid="text-event-date">
-                      {formatDate(project.eventDate)}
-                    </span>
-                  </div>
-                )}
-                <div className="flex items-center gap-2 text-sm">
-                  <Clock className="w-4 h-4 text-muted-foreground" />
-                  <span>Created:</span>
-                  <span className="font-medium" data-testid="text-created-date">
-                    {formatDate(project.createdAt)}
-                  </span>
-                </div>
-                {project.notes && (
-                  <div className="space-y-2">
-                    <p className="text-sm font-medium">Notes:</p>
-                    <p className="text-sm text-muted-foreground bg-muted p-3 rounded-md" data-testid="text-project-notes">
-                      {project.notes}
-                    </p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Quick Actions */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <FileText className="w-5 h-5" />
-                  Quick Actions
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <Link href={`/clients/${project.client.id}`}>
-                  <Button variant="outline" size="sm" className="w-full" data-testid="button-view-full-client">
-                    <User className="w-4 h-4 mr-2" />
-                    View Full Client Profile
-                  </Button>
-                </Link>
-              </CardContent>
-            </Card>
+              ))}
+              
+              {/* Add Button */}
+              <button 
+                onClick={() => setIsAddingParticipant(true)}
+                className="w-8 h-8 rounded-full border-2 border-dashed border-gray-300 flex items-center justify-center hover:border-gray-400 hover:bg-gray-50 transition-colors"
+                data-testid="button-add-participant"
+              >
+                <Plus className="w-4 h-4 text-gray-500" />
+              </button>
+            </div>
           </div>
+        </div>
+      </div>
 
-          {/* Smart Files */}
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="flex items-center gap-2">
-                  <FileText className="w-5 h-5" />
-                  Smart Files
-                </CardTitle>
-                <Button size="sm" onClick={() => setAttachSmartFileOpen(true)} data-testid="button-attach-smart-file">
-                  <Plus className="w-4 h-4 mr-2" />
-                  Attach Smart File
+      {/* Action Bar */}
+      <div className="border-b bg-white px-6 py-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" data-testid="button-schedule">
+              <Calendar className="w-4 h-4 mr-2" />
+              Schedule
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => setAttachSmartFileOpen(true)}
+              data-testid="button-attach"
+            >
+              <LinkIcon className="w-4 h-4 mr-2" />
+              Attach
+            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" data-testid="button-ai-actions">
+                  AI ACTIONS <ChevronDown className="w-4 h-4 ml-2" />
                 </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              {smartFiles && smartFiles.length > 0 ? (
-                <div className="space-y-3">
-                  {smartFiles.map((sf) => {
-                    // Extract form fields from pagesSnapshot if this is a FORM smart file
-                    const formPage = sf.pagesSnapshot?.find((page: any) => page.pageType === 'FORM');
-                    const formFields: any[] = [];
-                    
-                    if (formPage && formPage.content?.sections) {
-                      formPage.content.sections.forEach((section: any) => {
-                        if (section.columns) {
-                          section.columns.forEach((column: any) => {
-                            if (column.blocks) {
-                              column.blocks.forEach((block: any) => {
-                                if (block.type === 'FORM_FIELD' && block.content) {
-                                  formFields.push({
-                                    id: block.id,
-                                    label: block.content.label,
-                                    fieldType: block.content.fieldType,
-                                    options: block.content.options
-                                  });
-                                }
-                              });
-                            }
-                          });
-                        }
-                      });
-                    }
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem onClick={() => setMessageDialogOpen(true)}>
+                  <Mail className="w-4 h-4 mr-2" />
+                  Send Email
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <MessageSquare className="w-4 h-4 mr-2" />
+                  Send SMS
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+          <Button 
+            size="sm" 
+            className="bg-black hover:bg-black/90 text-white"
+            onClick={() => setAttachSmartFileOpen(true)}
+            data-testid="button-create-file"
+          >
+            CREATE FILE
+          </Button>
+        </div>
+      </div>
 
-                    const hasFormAnswers = sf.formAnswers && Object.keys(sf.formAnswers).length > 0;
+      {/* Tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="px-6">
+        <TabsList className="border-b w-full justify-start rounded-none h-auto p-0 bg-transparent">
+          <TabsTrigger 
+            value="activity" 
+            className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent"
+            data-testid="tab-activity"
+          >
+            Activity
+          </TabsTrigger>
+          <TabsTrigger 
+            value="files" 
+            className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent"
+            data-testid="tab-files"
+          >
+            Files
+          </TabsTrigger>
+          <TabsTrigger 
+            value="tasks" 
+            className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent"
+            data-testid="tab-tasks"
+          >
+            Tasks
+          </TabsTrigger>
+          <TabsTrigger 
+            value="financials" 
+            className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent"
+            data-testid="tab-financials"
+          >
+            Financials
+          </TabsTrigger>
+          <TabsTrigger 
+            value="notes" 
+            className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent"
+            data-testid="tab-notes"
+          >
+            Notes
+          </TabsTrigger>
+          <TabsTrigger 
+            value="details" 
+            className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent"
+            data-testid="tab-details"
+          >
+            Details
+          </TabsTrigger>
+        </TabsList>
 
-                    return (
-                    <div 
-                      key={sf.id} 
-                      className="p-4 border rounded-lg space-y-3"
-                      data-testid={`smart-file-${sf.id}`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="space-y-1 flex-1">
-                          <p className="font-medium" data-testid={`smart-file-name-${sf.id}`}>
-                            {sf.smartFileName}
-                          </p>
-                          <div className="flex items-center gap-2">
-                            <Badge 
-                              className={getSmartFileStatusColor(sf.status)}
-                              data-testid={`smart-file-status-${sf.id}`}
-                            >
-                              {sf.status}
-                            </Badge>
-                            {sf.sentAt && (
-                              <span className="text-sm text-muted-foreground">
-                                Sent {formatDate(sf.sentAt)}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="sm" data-testid={`button-smart-file-menu-${sf.id}`}>
-                              <MoreVertical className="w-4 h-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            {sf.status === 'DRAFT' && (
-                              <DropdownMenuItem 
-                                onClick={() => setSmartFileToSend(sf)}
-                                data-testid={`button-send-smart-file-${sf.id}`}
-                              >
-                                <Send className="w-4 h-4 mr-2" />
-                                Send to Client
-                              </DropdownMenuItem>
-                            )}
-                            {['SENT', 'VIEWED', 'ACCEPTED', 'PAID', 'DEPOSIT_PAID'].includes(sf.status) && (
-                              <>
-                                <DropdownMenuItem 
-                                  onClick={() => handleCopyLink(sf)}
-                                  data-testid={`button-copy-link-${sf.id}`}
-                                >
-                                  <Copy className="w-4 h-4 mr-2" />
-                                  Copy Link
-                                </DropdownMenuItem>
-                                <DropdownMenuItem 
-                                  onClick={() => sendSmartFileSMSMutation.mutate(sf.id)}
-                                  data-testid={`button-send-sms-${sf.id}`}
-                                >
-                                  <MessageSquare className="w-4 h-4 mr-2" />
-                                  Send via Text
-                                </DropdownMenuItem>
-                              </>
-                            )}
-                            <DropdownMenuItem 
-                              onClick={() => setLocation(`/smart-files/${sf.smartFileId}/edit`)}
-                              data-testid={`button-view-smart-file-${sf.id}`}
-                            >
-                              <Eye className="w-4 h-4 mr-2" />
-                              View Details
-                            </DropdownMenuItem>
-                            {/* Only show remove option if no payments or signatures */}
-                            {sf.status !== 'DEPOSIT_PAID' && sf.status !== 'PAID' && !sf.clientSignatureUrl && !sf.photographerSignatureUrl && (
-                              <DropdownMenuItem 
-                                onClick={() => setSmartFileToRemove(sf)}
-                                data-testid={`button-remove-smart-file-${sf.id}`}
-                              >
-                                <Trash className="w-4 h-4 mr-2" />
-                                Remove
-                              </DropdownMenuItem>
-                            )}
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
-
-                      {/* Form Answers Display */}
-                      {hasFormAnswers && formFields.length > 0 && (
-                        <div className="pt-3 border-t space-y-2" data-testid={`form-answers-${sf.id}`}>
-                          <p className="text-sm font-semibold flex items-center gap-2">
-                            <ClipboardList className="w-4 h-4" />
-                            Form Responses
-                          </p>
-                          <div className="space-y-3 pl-6">
-                            {formFields.map((field) => {
-                              const answer = sf.formAnswers[field.id];
-                              if (!answer) return null;
-
-                              return (
-                                <div key={field.id} className="space-y-1">
-                                  <p className="text-sm font-medium text-muted-foreground">{field.label}</p>
-                                  <p className="text-sm" data-testid={`form-answer-${field.id}`}>
-                                    {Array.isArray(answer) ? answer.join(', ') : answer}
-                                  </p>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                    );
-                  })}
+        {/* Content Area with Sidebar */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 py-6">
+          {/* Main Content */}
+          <div className="lg:col-span-2 space-y-4">
+            <TabsContent value="activity" className="m-0">
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
+                  <span className="font-medium">RECENT ACTIVITY</span>
                 </div>
-              ) : (
-                <div className="text-center py-8">
-                  <FileText className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-muted-foreground mb-4">No Smart Files attached yet</p>
-                  <Button onClick={() => setAttachSmartFileOpen(true)} data-testid="button-attach-first-smart-file">
-                    <Plus className="w-4 h-4 mr-2" />
-                    Attach First Smart File
-                  </Button>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Questionnaires */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <ClipboardCheck className="w-5 h-5" />
-                Questionnaires
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {questionnaires && questionnaires.length > 0 ? (
-                <div className="space-y-3">
-                  {questionnaires.map((questionnaire) => (
-                    <div 
-                      key={questionnaire.id} 
-                      className="flex items-center justify-between p-4 border rounded-lg"
-                      data-testid={`questionnaire-${questionnaire.id}`}
-                    >
-                      <div className="space-y-1">
-                        <p className="font-medium" data-testid={`questionnaire-title-${questionnaire.id}`}>
-                          {questionnaire.templateTitle}
-                        </p>
-                        <div className="flex items-center gap-2">
-                          <Badge 
-                            className={getQuestionnaireStatusColor(questionnaire)}
-                            data-testid={`questionnaire-status-${questionnaire.id}`}
-                          >
-                            {getQuestionnaireStatus(questionnaire)}
-                          </Badge>
-                          <span className="text-sm text-muted-foreground">
-                            Assigned {formatDate(questionnaire.createdAt)}
-                          </span>
-                          {questionnaire.submittedAt && (
-                            <span className="text-sm text-muted-foreground">
-                              • Completed {formatDate(questionnaire.submittedAt)}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        {questionnaire.submittedAt ? (
-                          <Button variant="outline" size="sm" data-testid={`button-view-questionnaire-${questionnaire.id}`}>
-                            View Responses
-                          </Button>
-                        ) : (
-                          <Button variant="outline" size="sm" data-testid={`button-send-questionnaire-${questionnaire.id}`}>
-                            Send to Client
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <ClipboardCheck className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-muted-foreground mb-4">No questionnaires assigned yet</p>
-                  <Link href="/questionnaires">
-                    <Button data-testid="button-manage-questionnaires">
-                      <ClipboardCheck className="w-4 h-4 mr-2" />
-                      Manage Questionnaires
-                    </Button>
-                  </Link>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Participants */}
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="flex items-center gap-2">
-                  <UserPlus className="w-5 h-5" />
-                  Participants
-                </CardTitle>
-                {!isAddingParticipant && (
-                  <Button 
-                    onClick={() => setIsAddingParticipant(true)} 
-                    size="sm"
-                    data-testid="button-add-participant"
-                  >
-                    <UserPlus className="w-4 h-4 mr-2" />
-                    Add Participant
-                  </Button>
-                )}
-              </div>
-            </CardHeader>
-            <CardContent>
-              {isAddingParticipant && (
-                <form onSubmit={handleAddParticipant} className="mb-4 p-4 border rounded-lg bg-muted/50">
+                
+                {history && history.length > 0 ? (
                   <div className="space-y-3">
-                    <div>
-                      <label className="text-sm font-medium mb-2 block">
-                        Participant Email
-                      </label>
-                      <Input
-                        type="email"
-                        placeholder="participant@example.com"
-                        value={participantEmail}
-                        onChange={(e) => setParticipantEmail(e.target.value)}
-                        required
-                        data-testid="input-participant-email"
-                      />
-                      <p className="text-sm text-muted-foreground mt-1">
-                        Participants receive automated emails and can view project details through their own portal.
-                      </p>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button 
-                        type="submit" 
-                        size="sm"
-                        disabled={addParticipantMutation.isPending}
-                        data-testid="button-confirm-add-participant"
+                    {history.map((event) => (
+                      <div 
+                        key={event.id} 
+                        className="flex gap-4 p-4 bg-gray-50 rounded-lg"
+                        data-testid={`activity-${event.id}`}
                       >
-                        {addParticipantMutation.isPending ? "Adding..." : "Add"}
-                      </Button>
-                      <Button 
-                        type="button"
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => {
-                          setIsAddingParticipant(false);
-                          setParticipantEmail("");
-                        }}
-                        data-testid="button-cancel-add-participant"
-                      >
-                        Cancel
-                      </Button>
-                    </div>
-                  </div>
-                </form>
-              )}
-
-              {participantsLoading ? (
-                <div className="text-center py-8">
-                  <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto" />
-                </div>
-              ) : participants && participants.length > 0 ? (
-                <div className="space-y-3">
-                  {participants.map((participant) => (
-                    <div 
-                      key={participant.id} 
-                      className="flex items-center justify-between p-4 border rounded-lg"
-                      data-testid={`participant-${participant.id}`}
-                    >
-                      <div className="space-y-1">
-                        <p className="font-medium" data-testid={`participant-name-${participant.id}`}>
-                          {participant.client.firstName} {participant.client.lastName}
-                        </p>
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Mail className="w-4 h-4" />
-                          <span data-testid={`participant-email-${participant.id}`}>
-                            {participant.client.email}
-                          </span>
-                        </div>
-                        <p className="text-xs text-muted-foreground">
-                          Added {formatDate(participant.addedAt)}
-                        </p>
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => removeParticipantMutation.mutate(participant.id)}
-                        disabled={removeParticipantMutation.isPending}
-                        data-testid={`button-remove-participant-${participant.id}`}
-                      >
-                        <X className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <UserPlus className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-muted-foreground mb-2">No participants added yet</p>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    Add family members, friends, or wedding planners who should receive automated updates
-                  </p>
-                  {!isAddingParticipant && (
-                    <Button onClick={() => setIsAddingParticipant(true)} data-testid="button-add-first-participant">
-                      <UserPlus className="w-4 h-4 mr-2" />
-                      Add First Participant
-                    </Button>
-                  )}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Message Composer */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Send className="w-5 h-5" />
-                Send Message
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSendMessage} className="space-y-4">
-                <div>
-                  <Label htmlFor="message-subject">Subject</Label>
-                  <Input
-                    id="message-subject"
-                    type="text"
-                    placeholder="Enter email subject"
-                    value={messageSubject}
-                    onChange={(e) => setMessageSubject(e.target.value)}
-                    required
-                    data-testid="input-message-subject"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="message-body">Message</Label>
-                  <Textarea
-                    id="message-body"
-                    placeholder="Type your message here..."
-                    value={messageBody}
-                    onChange={(e) => setMessageBody(e.target.value)}
-                    required
-                    rows={6}
-                    data-testid="textarea-message-body"
-                  />
-                </div>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    id="send-to-participants"
-                    checked={sendToParticipants}
-                    onChange={(e) => setSendToParticipants(e.target.checked)}
-                    className="w-4 h-4"
-                    data-testid="checkbox-send-participants"
-                  />
-                  <Label htmlFor="send-to-participants" className="text-sm font-normal cursor-pointer">
-                    BCC participants ({participants?.length || 0} participants)
-                  </Label>
-                </div>
-                <div className="flex gap-2">
-                  <Button 
-                    type="submit" 
-                    disabled={sendMessageMutation.isPending}
-                    data-testid="button-send-message"
-                  >
-                    <Send className="w-4 h-4 mr-2" />
-                    {sendMessageMutation.isPending ? "Sending..." : "Send Email"}
-                  </Button>
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Email will be sent via Gmail (or SendGrid if Gmail is unavailable) to {project.client.email}
-                  {sendToParticipants && participants && participants.length > 0 && ` with ${participants.length} participant(s) BCC'd`}
-                </p>
-              </form>
-            </CardContent>
-          </Card>
-
-          {/* Project History Timeline */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <History className="w-5 h-5" />
-                Project History
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {historyLoading ? (
-                <div className="text-center py-8">
-                  <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto" />
-                </div>
-              ) : history && history.length > 0 ? (
-                <div className="space-y-4">
-                  {history.map((event) => (
-                    <div 
-                      key={event.id} 
-                      className="border-l-2 border-muted pl-4 pb-4 last:pb-0"
-                      data-testid={`timeline-event-${event.id}`}
-                    >
-                      <div className="flex items-start gap-3">
-                        <div className="flex-shrink-0 mt-1">
-                          {event.type === 'email' && <Mail className="w-4 h-4 text-blue-500" />}
-                          {event.type === 'sms' && <MessageSquare className="w-4 h-4 text-green-500" />}
-                          {event.type === 'activity' && <Clock className="w-4 h-4 text-gray-500" />}
+                        <div className="w-10 h-10 rounded-full bg-white border flex items-center justify-center flex-shrink-0">
+                          {getActivityIcon(event)}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-start justify-between gap-2">
-                            <div className="flex-1">
-                              <p className="font-medium text-sm" data-testid={`timeline-title-${event.id}`}>
-                                {event.title}
-                              </p>
+                          {event.type === 'activity' && (
+                            <div>
+                              <p className="font-medium text-sm">{event.title}</p>
                               {event.description && (
-                                <p className="text-sm text-muted-foreground mt-1" data-testid={`timeline-description-${event.id}`}>
-                                  {event.description}
-                                </p>
+                                <p className="text-sm text-muted-foreground mt-1">{event.description}</p>
                               )}
-                              <div className="flex items-center gap-2 mt-2">
+                              <p className="text-xs text-muted-foreground mt-2">
+                                {formatDate(event.createdAt)}
+                              </p>
+                            </div>
+                          )}
+                          {event.type === 'email' && (
+                            <div>
+                              <p className="font-medium text-sm">{event.title}</p>
+                              <p className="text-sm text-muted-foreground mt-1">{event.description}</p>
+                              <div className="flex items-center gap-3 mt-2">
                                 <Badge variant="secondary" className="text-xs">
-                                  {event.type}
+                                  {event.status}
                                 </Badge>
-                                {event.type === 'email' && (
-                                  <>
-                                    <Badge variant="outline" className="text-xs">
-                                      {event.status}
-                                    </Badge>
-                                    {event.openedAt && (
-                                      <Badge variant="outline" className="text-xs bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-300">
-                                        Opened
-                                      </Badge>
-                                    )}
-                                  </>
-                                )}
-                                {event.type === 'sms' && (
-                                  <Badge variant="outline" className="text-xs">
-                                    {event.status}
-                                  </Badge>
-                                )}
+                                <p className="text-xs text-muted-foreground">
+                                  {event.sentAt && formatDate(event.sentAt)}
+                                </p>
                               </div>
                             </div>
-                            <span className="text-xs text-muted-foreground whitespace-nowrap">
-                              {formatDate(event.createdAt)}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <History className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-muted-foreground">No activity yet</p>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Project communications and updates will appear here
-                  </p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Attach Smart File Dialog */}
-        <Dialog open={attachSmartFileOpen} onOpenChange={setAttachSmartFileOpen}>
-          <DialogContent data-testid="dialog-attach-smart-file">
-            <DialogHeader>
-              <DialogTitle>Attach Smart File</DialogTitle>
-              <DialogDescription>
-                Select a Smart File to attach to this project
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4">
-              {allSmartFiles && allSmartFiles.length > 0 ? (
-                <div className="space-y-2 max-h-96 overflow-y-auto">
-                  {allSmartFiles
-                    .filter(sf => sf.status === 'ACTIVE')
-                    .map((smartFile) => (
-                      <div
-                        key={smartFile.id}
-                        className={`p-4 border rounded-lg cursor-pointer transition-colors ${
-                          selectedSmartFileId === smartFile.id
-                            ? 'border-primary bg-primary/5'
-                            : 'hover:bg-muted/50'
-                        }`}
-                        onClick={() => setSelectedSmartFileId(smartFile.id)}
-                        data-testid={`select-smart-file-${smartFile.id}`}
-                      >
-                        <div className="space-y-1">
-                          <p className="font-medium">{smartFile.name}</p>
-                          {smartFile.description && (
-                            <p className="text-sm text-muted-foreground">
-                              {smartFile.description}
-                            </p>
                           )}
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                            {smartFile.projectType && (
-                              <Badge variant="outline" className="text-xs">
-                                {smartFile.projectType}
-                              </Badge>
-                            )}
-                            {smartFile.pages && (
-                              <span>{smartFile.pages.length} pages</span>
-                            )}
-                          </div>
+                          {event.type === 'sms' && (
+                            <div>
+                              <p className="text-sm">{event.body}</p>
+                              <p className="text-xs text-muted-foreground mt-2">
+                                {event.direction === 'OUTBOUND' ? 'Sent' : 'Received'} • {formatDate(event.createdAt)}
+                              </p>
+                            </div>
+                          )}
                         </div>
                       </div>
                     ))}
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <FileText className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-muted-foreground mb-4">No Smart Files available</p>
-                  <Button onClick={() => {
-                    setAttachSmartFileOpen(false);
-                    setLocation('/smart-files');
-                  }} data-testid="button-create-smart-file">
-                    <Plus className="w-4 h-4 mr-2" />
-                    Create Smart File
-                  </Button>
-                </div>
-              )}
-              <div className="flex justify-end gap-2">
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setAttachSmartFileOpen(false);
-                    setSelectedSmartFileId("");
-                  }}
-                  data-testid="button-cancel-attach"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  onClick={handleAttachSmartFile}
-                  disabled={!selectedSmartFileId || attachSmartFileMutation.isPending}
-                  data-testid="button-confirm-attach"
-                >
-                  {attachSmartFileMutation.isPending ? "Attaching..." : "Attach"}
-                </Button>
+                  </div>
+                ) : (
+                  <div className="text-center py-12 text-muted-foreground">
+                    <FileText className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                    <p>No activity yet</p>
+                  </div>
+                )}
               </div>
+            </TabsContent>
+
+            <TabsContent value="files" className="m-0">
+              <div className="space-y-4">
+                {smartFiles && smartFiles.length > 0 ? (
+                  <div className="space-y-3">
+                    {smartFiles.map((sf) => (
+                      <div 
+                        key={sf.id} 
+                        className="p-4 border rounded-lg hover:shadow-sm transition-shadow"
+                        data-testid={`smart-file-${sf.id}`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3 flex-1">
+                            <FileText className="w-10 h-10 text-muted-foreground" />
+                            <div>
+                              <p className="font-medium">{sf.smartFileName}</p>
+                              <div className="flex items-center gap-2 mt-1">
+                                <Badge variant="secondary" className="text-xs">
+                                  {sf.status}
+                                </Badge>
+                                {sf.sentAt && (
+                                  <span className="text-xs text-muted-foreground">
+                                    Sent {formatDate(sf.sentAt)}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="sm">
+                                <MoreVertical className="w-4 h-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              {sf.status === 'DRAFT' && (
+                                <DropdownMenuItem onClick={() => setSmartFileToSend(sf)}>
+                                  <Send className="w-4 h-4 mr-2" />
+                                  Send to Client
+                                </DropdownMenuItem>
+                              )}
+                              <DropdownMenuItem asChild>
+                                <a href={`/smart-files/${sf.smartFileId}?projectId=${project.id}`} target="_blank" rel="noopener noreferrer">
+                                  <Eye className="w-4 h-4 mr-2" />
+                                  Preview
+                                </a>
+                              </DropdownMenuItem>
+                              {sf.token && (
+                                <DropdownMenuItem onClick={() => {
+                                  const url = `${window.location.origin}/p/${sf.token}`;
+                                  navigator.clipboard.writeText(url);
+                                  toast({ title: "Link copied to clipboard" });
+                                }}>
+                                  <Copy className="w-4 h-4 mr-2" />
+                                  Copy Client Link
+                                </DropdownMenuItem>
+                              )}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-12 text-muted-foreground">
+                    <FileText className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                    <p>No files attached yet</p>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="mt-4"
+                      onClick={() => setAttachSmartFileOpen(true)}
+                    >
+                      Attach Smart File
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </TabsContent>
+
+            <TabsContent value="tasks" className="m-0">
+              <div className="text-center py-12 text-muted-foreground">
+                <p>Tasks feature coming soon</p>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="financials" className="m-0">
+              <div className="text-center py-12 text-muted-foreground">
+                <p>Financials feature coming soon</p>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="notes" className="m-0">
+              <div className="space-y-4">
+                {project.notes ? (
+                  <div className="p-4 bg-gray-50 rounded-lg">
+                    <p className="text-sm whitespace-pre-wrap">{project.notes}</p>
+                  </div>
+                ) : (
+                  <div className="text-center py-12 text-muted-foreground">
+                    <p>No notes yet</p>
+                  </div>
+                )}
+              </div>
+            </TabsContent>
+
+            <TabsContent value="details" className="m-0">
+              <div className="space-y-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Contact Information</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div>
+                      <p className="font-medium">
+                        {project.client.firstName} {project.client.lastName}
+                      </p>
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
+                        <Mail className="w-4 h-4" />
+                        <span>{project.client.email}</span>
+                      </div>
+                      {project.client.phone && (
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
+                          <Phone className="w-4 h-4" />
+                          <span>{project.client.phone}</span>
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
+          </div>
+
+          {/* Right Sidebar */}
+          <div className="space-y-4">
+            {/* Client Portal Card */}
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between pb-3">
+                <CardTitle className="text-sm font-medium">Client portal</CardTitle>
+                <Settings className="w-4 h-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-md">
+                  <span className="text-sm text-muted-foreground truncate flex-1">
+                    https://lazyphotog.com/p/{project.id.slice(0, 8)}...
+                  </span>
+                  <div className="flex items-center gap-1">
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="h-8 w-8 p-0"
+                      onClick={() => {
+                        navigator.clipboard.writeText(`${window.location.origin}/p/${project.id}`);
+                        toast({ title: "Link copied to clipboard" });
+                      }}
+                    >
+                      <Copy className="w-4 h-4" />
+                    </Button>
+                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                      <ExternalLink className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm">Include client portal links in files and emails</span>
+                  <Switch defaultChecked />
+                </div>
+                <Button variant="link" className="text-sm p-0 h-auto">
+                  What is the client portal?
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* About This Project Card */}
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between pb-3">
+                <div className="flex items-center gap-2">
+                  <Lock className="w-4 h-4" />
+                  <CardTitle className="text-sm font-medium">About this project</CardTitle>
+                </div>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                      <MoreVertical className="w-4 h-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    <DropdownMenuItem>Edit</DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-xs text-muted-foreground">
+                  Only visible to you and your team
+                </p>
+                
+                {/* Stage */}
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Stage</Label>
+                  <Select 
+                    value={project.stage?.id || ''} 
+                    onValueChange={(value) => updateProjectMutation.mutate({ stageId: value })}
+                  >
+                    <SelectTrigger data-testid="select-stage">
+                      <SelectValue placeholder="Select stage" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {stages?.map((stage) => (
+                        <SelectItem key={stage.id} value={stage.id}>
+                          {stage.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Lead Source */}
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Lead Source</Label>
+                  <Select 
+                    value={project.leadSource || ''} 
+                    onValueChange={(value) => updateProjectMutation.mutate({ leadSource: value })}
+                  >
+                    <SelectTrigger data-testid="select-lead-source">
+                      <SelectValue placeholder="Select source" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Website">Website</SelectItem>
+                      <SelectItem value="Instagram">Instagram</SelectItem>
+                      <SelectItem value="Facebook">Facebook</SelectItem>
+                      <SelectItem value="Google">Google</SelectItem>
+                      <SelectItem value="Client Referral">Client Referral</SelectItem>
+                      <SelectItem value="Vendor Referral">Vendor Referral</SelectItem>
+                      <SelectItem value="Other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  
+                  {project.leadSource === 'Client Referral' && (
+                    <Input 
+                      placeholder="Who's your referral?"
+                      value={project.referralName || ''}
+                      onChange={(e) => updateProjectMutation.mutate({ referralName: e.target.value })}
+                      className="mt-2"
+                      data-testid="input-referral-name"
+                    />
+                  )}
+                </div>
+
+                {/* Tags */}
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Tags</Label>
+                  <Select>
+                    <SelectTrigger data-testid="select-tags">
+                      <SelectValue placeholder="Add tags..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="vip">VIP</SelectItem>
+                      <SelectItem value="priority">Priority</SelectItem>
+                      <SelectItem value="follow-up">Follow Up</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Manage company tags
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </Tabs>
+
+      {/* Dialogs */}
+      <Dialog open={isAddingParticipant} onOpenChange={setIsAddingParticipant}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add Participant</DialogTitle>
+            <DialogDescription>
+              Add a participant to this project. They will receive automated emails.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="participant-email">Email Address</Label>
+              <Input
+                id="participant-email"
+                type="email"
+                value={participantEmail}
+                onChange={(e) => setParticipantEmail(e.target.value)}
+                placeholder="participant@example.com"
+                data-testid="input-participant-email"
+              />
             </div>
-          </DialogContent>
-        </Dialog>
+            <Button 
+              onClick={() => addParticipantMutation.mutate(participantEmail)}
+              disabled={!participantEmail || addParticipantMutation.isPending}
+              data-testid="button-add-participant-submit"
+            >
+              Add Participant
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
-        {/* Send Smart File Confirmation Dialog */}
-        <AlertDialog open={!!smartFileToSend} onOpenChange={(open) => !open && setSmartFileToSend(null)}>
-          <AlertDialogContent data-testid="dialog-send-smart-file">
-            <AlertDialogHeader>
-              <AlertDialogTitle>Send Smart File to Client</AlertDialogTitle>
-              <AlertDialogDescription>
-                This will send the Smart File "{smartFileToSend?.smartFileName}" to {project?.client.firstName} {project?.client.lastName} via email. Continue?
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel data-testid="button-cancel-send">Cancel</AlertDialogCancel>
-              <AlertDialogAction
-                onClick={() => smartFileToSend && sendSmartFileMutation.mutate(smartFileToSend.id)}
-                disabled={sendSmartFileMutation.isPending}
-                data-testid="button-confirm-send"
-              >
-                {sendSmartFileMutation.isPending ? "Sending..." : "Send"}
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+      <Dialog open={attachSmartFileOpen} onOpenChange={setAttachSmartFileOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Attach Smart File</DialogTitle>
+            <DialogDescription>
+              Select a Smart File to attach to this project.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <Select value={selectedSmartFileId} onValueChange={setSelectedSmartFileId}>
+              <SelectTrigger data-testid="select-smart-file">
+                <SelectValue placeholder="Select Smart File" />
+              </SelectTrigger>
+              <SelectContent>
+                {allSmartFiles?.map((sf) => (
+                  <SelectItem key={sf.id} value={sf.id}>
+                    {sf.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button 
+              onClick={() => attachSmartFileMutation.mutate(selectedSmartFileId)}
+              disabled={!selectedSmartFileId || attachSmartFileMutation.isPending}
+              data-testid="button-attach-submit"
+            >
+              Attach
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
-        {/* Remove Smart File Confirmation Dialog */}
-        <AlertDialog open={!!smartFileToRemove} onOpenChange={(open) => !open && setSmartFileToRemove(null)}>
-          <AlertDialogContent data-testid="dialog-remove-smart-file">
-            <AlertDialogHeader>
-              <AlertDialogTitle>Remove Smart File</AlertDialogTitle>
-              <AlertDialogDescription>
-                This will remove "{smartFileToRemove?.smartFileName}" from this project. The Smart File itself will not be deleted. Continue?
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel data-testid="button-cancel-remove">Cancel</AlertDialogCancel>
-              <AlertDialogAction
-                onClick={() => smartFileToRemove && removeSmartFileMutation.mutate(smartFileToRemove.id)}
-                disabled={removeSmartFileMutation.isPending}
-                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                data-testid="button-confirm-remove"
-              >
-                {removeSmartFileMutation.isPending ? "Removing..." : "Remove"}
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+      <Dialog open={messageDialogOpen} onOpenChange={setMessageDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Send Email</DialogTitle>
+            <DialogDescription>
+              Send an email to the project contact{participants && participants.length > 0 ? ' and participants' : ''}.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="message-subject">Subject</Label>
+              <Input
+                id="message-subject"
+                value={messageSubject}
+                onChange={(e) => setMessageSubject(e.target.value)}
+                placeholder="Email subject"
+                data-testid="input-message-subject"
+              />
+            </div>
+            <div>
+              <Label htmlFor="message-body">Message</Label>
+              <Textarea
+                id="message-body"
+                value={messageBody}
+                onChange={(e) => setMessageBody(e.target.value)}
+                placeholder="Email body"
+                rows={8}
+                data-testid="textarea-message-body"
+              />
+            </div>
+            {participants && participants.length > 0 && (
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="send-to-participants"
+                  checked={sendToParticipants}
+                  onCheckedChange={setSendToParticipants}
+                />
+                <Label htmlFor="send-to-participants">
+                  Also send to participants
+                </Label>
+              </div>
+            )}
+            <Button 
+              onClick={() => sendMessageMutation.mutate({ subject: messageSubject, body: messageBody, sendToParticipants })}
+              disabled={!messageSubject || !messageBody || sendMessageMutation.isPending}
+              data-testid="button-send-message"
+            >
+              Send Email
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
-        {/* Photographer Signature Dialog */}
-        {pendingSmartFileToSend && project && (
-          <PhotographerSignatureDialog
-            open={signatureDialogOpen}
-            onOpenChange={setSignatureDialogOpen}
-            projectId={id!}
-            projectSmartFileId={pendingSmartFileToSend.id}
-            contractPage={contractPageToSign}
-            projectData={{
-              clientName: `${project.client.firstName} ${project.client.lastName}`,
-              photographerName: user?.photographerName || '',
-              projectTitle: project.title,
-              projectType: project.projectType,
-              eventDate: project.eventDate ? new Date(project.eventDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : null,
-            }}
-            onSignatureComplete={() => {
-              // After signing, retry sending the Smart File
-              if (pendingSmartFileToSend) {
-                setSmartFileToSend(pendingSmartFileToSend);
-                sendSmartFileMutation.mutate(pendingSmartFileToSend.id);
-              }
-            }}
-          />
-        )}
-    </>
+      <AlertDialog open={!!smartFileToSend} onOpenChange={() => setSmartFileToSend(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Send Smart File to Client?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will send "{smartFileToSend?.smartFileName}" to the client via email. They will receive a link to view and interact with the Smart File.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={() => smartFileToSend && sendSmartFileMutation.mutate(smartFileToSend.id)}
+              data-testid="button-confirm-send"
+            >
+              Send
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {pendingSmartFileToSend && (
+        <PhotographerSignatureDialog
+          open={signatureDialogOpen}
+          onOpenChange={setSignatureDialogOpen}
+          projectId={project.id}
+          projectSmartFileId={pendingSmartFileToSend.id}
+          contractPage={contractPageToSign}
+          projectData={{
+            clientName: `${project.client.firstName} ${project.client.lastName}`,
+            photographerName: user?.photographerName || '',
+            projectTitle: project.title,
+            projectType: project.projectType,
+            eventDate: project.eventDate || null,
+            selectedPackages: '',
+            selectedAddOns: '',
+            totalAmount: '',
+            depositAmount: '',
+            depositPercent: ''
+          }}
+          onSignatureComplete={() => {
+            if (pendingSmartFileToSend) {
+              sendSmartFileMutation.mutate(pendingSmartFileToSend.id);
+            }
+            setSignatureDialogOpen(false);
+            setContractPageToSign(null);
+            setPendingSmartFileToSend(null);
+          }}
+        />
+      )}
+    </div>
   );
 }
