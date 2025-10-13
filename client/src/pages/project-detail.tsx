@@ -602,95 +602,110 @@ export default function ProjectDetail() {
           <div className="lg:col-span-2 space-y-4">
             <TabsContent value="activity" className="m-0">
               <div className="space-y-4">
-                {/* Email Composer - Always Visible */}
-                <Card className="border">
-                  <CardContent className="p-4">
-                    <div className="flex items-start gap-3">
-                      <Avatar className="h-8 w-8 mt-1">
-                        <AvatarFallback className="bg-primary/10 text-primary text-xs">
-                          {user?.email?.substring(0, 2).toUpperCase() || "AP"}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="text-sm text-muted-foreground">Reply to:</span>
-                          {getContactInfo(project) && (
-                            <Badge 
-                              variant="secondary" 
-                              className="flex items-center gap-1"
-                              data-testid={`badge-recipient-chip-${getContactInfo(project)?.email}`}
-                            >
-                              {getContactInfo(project)?.firstName} {getContactInfo(project)?.lastName}
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-4 w-4 p-0 hover:bg-transparent"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                }}
-                              >
-                                <X className="w-3 h-3" />
-                              </Button>
-                            </Badge>
-                          )}
-                          {participants?.map((p) => (
-                            <Badge 
-                              key={p.id}
-                              variant="secondary" 
-                              className="flex items-center gap-1"
-                              data-testid={`badge-recipient-chip-${p.client.email}`}
-                            >
-                              {p.client.firstName} {p.client.lastName}
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-4 w-4 p-0 hover:bg-transparent"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                }}
-                              >
-                                <X className="w-3 h-3" />
-                              </Button>
-                            </Badge>
-                          ))}
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-6 w-6 p-0 rounded-full"
-                            onClick={() => {
-                              // Open add participant dialog or similar
-                            }}
-                          >
-                            <Plus className="w-4 h-4" />
-                          </Button>
-                        </div>
+                {/* Email Composer - Collapsed State */}
+                {selectedRecipients.length === 0 && (
+                  <Card 
+                    className="border cursor-pointer hover:border-primary/50 transition-colors" 
+                    onClick={() => {
+                      const allRecipients = [];
+                      const mainContact = getContactInfo(project);
+                      if (mainContact?.email) allRecipients.push(mainContact.email);
+                      participants?.forEach(p => {
+                        if (p.client.email) allRecipients.push(p.client.email);
+                      });
+                      setSelectedRecipients(allRecipients);
+                    }}
+                    data-testid="compose-collapsed"
+                  >
+                    <CardContent className="p-3">
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-8 w-8">
+                          <AvatarFallback className="bg-primary/10 text-primary text-xs">
+                            {user?.email?.substring(0, 2).toUpperCase() || "AP"}
+                          </AvatarFallback>
+                        </Avatar>
+                        <span className="text-sm text-muted-foreground">
+                          Reply to: '{project?.title || 'Contract Agreement'}'
+                        </span>
                       </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          const allRecipients = [];
-                          const mainContact = getContactInfo(project);
-                          if (mainContact?.email) allRecipients.push(mainContact.email);
-                          participants?.forEach(p => {
-                            if (p.client.email) allRecipients.push(p.client.email);
-                          });
-                          setSelectedRecipients(allRecipients);
-                        }}
-                        className="shrink-0"
-                        data-testid="button-send-new-email"
-                      >
-                        SEND NEW EMAIL
-                        <X className="w-3 h-3 ml-2" />
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
+                    </CardContent>
+                  </Card>
+                )}
 
                 {/* Expanded Email Editor - Shows when recipients are selected */}
                 {selectedRecipients.length > 0 && (
                   <Card className="border-2 border-primary/20">
                     <CardContent className="p-4 space-y-3">
+                      {/* Recipient Header Row */}
+                      <div className="flex items-start gap-3 pb-2">
+                        <Avatar className="h-8 w-8 mt-1">
+                          <AvatarFallback className="bg-primary/10 text-primary text-xs">
+                            {user?.email?.substring(0, 2).toUpperCase() || "AP"}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="text-sm text-muted-foreground">Reply to:</span>
+                            {selectedRecipients.map((email) => {
+                              // Find contact data for this email
+                              const mainContact = getContactInfo(project);
+                              const isMainContact = mainContact?.email === email;
+                              const participant = participants?.find(p => p.client.email === email);
+                              
+                              const firstName = isMainContact ? mainContact?.firstName : participant?.client.firstName;
+                              const lastName = isMainContact ? mainContact?.lastName : participant?.client.lastName;
+                              
+                              return (
+                                <Badge 
+                                  key={email}
+                                  variant="secondary" 
+                                  className="flex items-center gap-1"
+                                  data-testid={`badge-recipient-chip-${email}`}
+                                >
+                                  {firstName} {lastName}
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-4 w-4 p-0 hover:bg-transparent"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setSelectedRecipients(prev => prev.filter(e => e !== email));
+                                    }}
+                                  >
+                                    <X className="w-3 h-3" />
+                                  </Button>
+                                </Badge>
+                              );
+                            })}
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 w-6 p-0 rounded-full"
+                              onClick={() => {
+                                // Open add participant dialog or similar
+                              }}
+                            >
+                              <Plus className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setMessageSubject("");
+                            setMessageBody("");
+                            setSelectedRecipients([]);
+                            setAiPrompt("");
+                          }}
+                          className="shrink-0"
+                          data-testid="button-close-composer"
+                        >
+                          SEND NEW EMAIL
+                          <X className="w-3 h-3 ml-2" />
+                        </Button>
+                      </div>
+                      
                       <div className="space-y-3">
                         <div>
                           <Label className="text-xs font-semibold text-gray-700">SUBJECT</Label>
