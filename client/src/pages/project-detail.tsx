@@ -720,7 +720,7 @@ export default function ProjectDetail() {
                             value={messageSubject}
                             onChange={(e) => setMessageSubject(e.target.value)}
                             placeholder="Re: Contract Agreement"
-                            className="mt-1 border-0 border-b border-gray-200 rounded-none focus-visible:ring-0 focus-visible:border-primary px-0"
+                            className="mt-1 border-0 border-b border-gray-200 rounded-none focus-visible:ring-0 focus-visible:border-primary px-3"
                             data-testid="input-email-subject"
                           />
                         </div>
@@ -731,7 +731,7 @@ export default function ProjectDetail() {
                             onChange={(e) => setMessageBody(e.target.value)}
                             placeholder="Type | to add a smart field"
                             rows={6}
-                            className="border-0 resize-none focus-visible:ring-0 px-0"
+                            className="border-0 resize-none focus-visible:ring-0 px-3"
                             style={{
                               fontFamily: emailFontFamily === "Default" ? "inherit" : emailFontFamily,
                               fontSize: `${emailFontSize}px`
