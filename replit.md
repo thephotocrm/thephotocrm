@@ -16,7 +16,7 @@ Preferred communication style: Simple, everyday language.
 *   **Comprehensive Automations UI:** Professional, modern design with enhanced visual hierarchy, color-coded badges, and a timeline-style display for steps with collapsible cards.
 *   **Navigation System:** Refactored collapsible sidebar navigation with grouped sections (Sales & Proposals, Marketing & Automation, Business Tools) and core items always visible. Mobile sidebar is 85vw wide with enlarged touch targets and a unified gradient for consistency.
 *   **Frontend:** Built with React and Vite, using Wouter for routing, Shadcn/ui (Radix UI-based) for components, and Tailwind CSS for styling.
-*   **HoneyBook-Style Project Detail Page:** Redesigned project detail page with a hero section, participant bar, action buttons (Schedule, Attach, AI Actions, Create File), tabbed content area (Activity, Files, Tasks, Financials, Notes, Details), and a right sidebar ("About Project" with Stage, Lead Source, Tags). Includes a timeline/activity feed displaying SMS, emails, and CRM activities.
+*   **HoneyBook-Style Project Detail Page:** Redesigned project detail page with a hero section, participant bar, action buttons (Schedule, Attach, AI Actions, Create File), tabbed content area (Activity, Files, Tasks, Financials, Notes, Details), and a right sidebar ("About Project" with Stage, Lead Source, Tags). Includes a timeline/activity feed displaying SMS, emails, and project activities.
 
 **Technical Implementations:**
 *   **Static Email Marketing Platform:** Drip campaign system with 24 pre-written wedding email templates, 3-phase timing, and support for Wedding, Portrait, and Commercial project types, including 5 visual themes and semantic keyword detection.
@@ -42,8 +42,8 @@ Preferred communication style: Simple, everyday language.
 ### External Dependencies
 
 **Communication Services:**
-*   **Gmail API:** For direct email sending and conversation tracking.
-*   **Twilio:** For SMS/MMS messaging and two-way client communication via Replit's native connector.
+*   **Gmail API:** For direct email sending and conversation tracking. Photographers communicate with clients via email through their connected Gmail account.
+*   **Twilio:** For SMS/MMS messaging and two-way client communication via Replit's native connector. The SMS inbox provides a centralized interface for all text message conversations with clients.
 
 **Payment Processing:**
 *   **Stripe:** For payment infrastructure and Stripe Connect.

@@ -407,6 +407,7 @@ export default function ProjectDetail() {
     if (event.type === 'activity') {
       if (event.activityType === 'SMART_FILE_SENT') return <FileText className="w-4 h-4" />;
       if (event.activityType === 'SMART_FILE_VIEWED') return <Eye className="w-4 h-4" />;
+      if (event.activityType === 'SMS_SENT' || event.activityType === 'SMS_RECEIVED') return <MessageSquare className="w-4 h-4" />;
     }
     return <FileText className="w-4 h-4" />;
   };

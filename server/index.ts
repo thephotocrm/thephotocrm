@@ -63,6 +63,20 @@ app.post("/webhooks/twilio/inbound", async (req, res) => {
       sentAt: new Date()
     });
 
+    // Log SMS to project activity if contact has a project
+    if (latestProject) {
+      const messagePreview = messageBody.length > 100 ? messageBody.substring(0, 100) + '...' : messageBody;
+      await storage.addProjectActivityLog({
+        projectId: latestProject.id,
+        activityType: 'SMS_RECEIVED',
+        action: 'RECEIVED',
+        title: `SMS received from ${contact.firstName} ${contact.lastName}`,
+        description: messagePreview,
+        relatedId: messageSid,
+        relatedType: 'SMS_LOG'
+      });
+    }
+
     // Forward message to photographer
     if (photographer.phone) {
       const projectContext = latestProject ? `${latestProject.projectType} Project` : 'Contact';

@@ -31,7 +31,7 @@ interface Conversation {
 }
 
 interface ThreadMessage {
-  type: 'SMS' | 'EMAIL' | 'CRM';
+  type: 'SMS' | 'EMAIL';
   id: string;
   content: string | null;
   direction: 'OUTBOUND' | 'INBOUND';
@@ -437,31 +437,6 @@ export default function Inbox() {
                               </div>
                               <Link href={`/contacts/${selectedContactId}`}>
                                 <Button variant="ghost" size="sm" className="text-blue-600 dark:text-blue-400" data-testid="button-view-email">
-                                  View
-                                </Button>
-                              </Link>
-                            </div>
-                          </div>
-                        );
-                      } else if (message.type === 'CRM') {
-                        return (
-                          <div
-                            key={message.id}
-                            className="flex justify-center my-4"
-                            data-testid={`crm-notification-${message.id}`}
-                          >
-                            <div className="bg-purple-50 dark:bg-purple-950 border border-purple-200 dark:border-purple-800 rounded-lg px-4 py-2 flex items-center gap-2 max-w-md">
-                              <MessageCircle className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-                              <div className="flex-1 min-w-0">
-                                <p className="text-sm text-purple-900 dark:text-purple-100">
-                                  {message.isInbound ? 'Contact sent CRM message' : 'You sent CRM message'}
-                                </p>
-                                <p className="text-xs text-purple-600 dark:text-purple-400">
-                                  {formatTime(message.timestamp)}
-                                </p>
-                              </div>
-                              <Link href={`/contacts/${selectedContactId}`}>
-                                <Button variant="ghost" size="sm" className="text-purple-600 dark:text-purple-400" data-testid="button-view-crm">
                                   View
                                 </Button>
                               </Link>

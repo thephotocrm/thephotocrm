@@ -4,7 +4,7 @@ import {
   packages, packageItems, addOns, questionnaireTemplates, questionnaireQuestions, projectQuestionnaires,
   availabilitySlots, bookings,
   photographerEarnings, photographerPayouts,
-  messages, projectActivityLog, clientPortalTokens, conversationReads,
+  projectActivityLog, clientPortalTokens, conversationReads,
   dailyAvailabilityTemplates, dailyAvailabilityBreaks, dailyAvailabilityOverrides,
   dripCampaigns, dripCampaignEmails, dripCampaignSubscriptions, dripEmailDeliveries, staticCampaignSettings,
   shortLinks, adminActivityLog,
@@ -20,7 +20,7 @@ import {
   type QuestionnaireTemplate, type InsertQuestionnaireTemplate,
   type QuestionnaireQuestion, type InsertQuestionnaireQuestion,
   type ProjectQuestionnaire,
-  type Message, type InsertMessage, type SmsLog, type InsertSmsLog, type EmailHistory, type InsertEmailHistory, type ProjectActivityLog, type TimelineEvent, type ClientPortalToken, type InsertClientPortalToken,
+  type SmsLog, type InsertSmsLog, type EmailHistory, type InsertEmailHistory, type ProjectActivityLog, type TimelineEvent, type ClientPortalToken, type InsertClientPortalToken,
   type ConversationRead, type InsertConversationRead,
   type DailyAvailabilityTemplate, type InsertDailyAvailabilityTemplate,
   type DailyAvailabilityBreak, type InsertDailyAvailabilityBreak,
@@ -72,8 +72,6 @@ export interface IStorage {
   createProject(project: InsertProject): Promise<Project>;
   updateProject(id: string, project: Partial<Project>): Promise<Project>;
   getProjectHistory(projectId: string): Promise<TimelineEvent[]>;
-  getClientMessages(clientId: string): Promise<Message[]>;
-  createMessage(message: InsertMessage): Promise<Message>;
   
   // Project Participants
   getProjectParticipants(projectId: string): Promise<(ProjectParticipant & { client: Contact })[]>;
@@ -620,9 +618,6 @@ export class DatabaseStorage implements IStorage {
           .where(inArray(projects.id, projectIds));
       }
       
-      // Delete messages directly related to contact
-      await tx.delete(messages)
-        .where(eq(messages.clientId, id));
       
       // Delete SMS logs directly related to contact (not just by project)
       await tx.delete(smsLogs)
@@ -1242,58 +1237,6 @@ export class DatabaseStorage implements IStorage {
     );
   }
 
-  async getClientMessages(clientId: string): Promise<Message[]> {
-    // Get regular messages
-    const regularMessages = await db.select({
-      id: messages.id,
-      clientId: messages.clientId,
-      photographerId: messages.photographerId,
-      content: messages.content,
-      sentByPhotographer: messages.sentByPhotographer,
-      channel: messages.channel,
-      readAt: messages.readAt,
-      createdAt: messages.createdAt
-    }).from(messages)
-      .where(eq(messages.clientId, clientId));
-
-    // Get SMS messages and convert them to Message format
-    const smsMessages = await db.select({
-      id: smsLogs.id,
-      clientId: smsLogs.clientId,
-      content: smsLogs.messageBody,
-      direction: smsLogs.direction,
-      sentAt: smsLogs.sentAt,
-      createdAt: smsLogs.createdAt,
-      photographerId: contacts.photographerId
-    }).from(smsLogs)
-      .innerJoin(contacts, eq(smsLogs.clientId, contacts.id))
-      .where(eq(smsLogs.clientId, clientId));
-
-    // Convert SMS messages to Message format
-    const convertedSmsMessages = smsMessages.map(sms => ({
-      id: sms.id,
-      clientId: sms.clientId,
-      photographerId: sms.photographerId,
-      content: sms.content || '',
-      sentByPhotographer: sms.direction === 'OUTBOUND',
-      channel: 'SMS' as const,
-      readAt: null,
-      createdAt: sms.createdAt || sms.sentAt
-    }));
-
-    // Combine and sort all messages by creation time
-    const allMessages = [...regularMessages, ...convertedSmsMessages];
-    return allMessages.sort((a, b) => {
-      const aTime = a.createdAt?.getTime() || 0;
-      const bTime = b.createdAt?.getTime() || 0;
-      return bTime - aTime; // Most recent first
-    });
-  }
-
-  async createMessage(message: InsertMessage): Promise<Message> {
-    const [created] = await db.insert(messages).values(message).returning();
-    return created;
-  }
 
   async getClientPortalTokensByClient(clientId: string, after?: Date): Promise<ClientPortalToken[]> {
     const conditions = [eq(clientPortalTokens.clientId, clientId)];

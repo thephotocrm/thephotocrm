@@ -826,17 +826,6 @@ export const photographerPayouts = pgTable("photographer_payouts", {
   photographerStatusIdx: index("photographer_payouts_photographer_status_idx").on(table.photographerId, table.status)
 }));
 
-export const messages = pgTable("messages", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  clientId: varchar("client_id").notNull().references(() => contacts.id),
-  photographerId: varchar("photographer_id").notNull().references(() => photographers.id),
-  content: text("content").notNull(),
-  sentByPhotographer: boolean("sent_by_photographer").notNull(),
-  channel: text("channel").notNull(), // EMAIL, SMS, INTERNAL
-  readAt: timestamp("read_at"),
-  createdAt: timestamp("created_at").defaultNow()
-});
-
 // Track when photographers last read conversations with contacts for inbox unread badges
 export const conversationReads = pgTable("conversation_reads", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -890,7 +879,6 @@ export const photographersRelations = relations(photographers, ({ many }) => ({
   contacts: many(contacts),
   projects: many(projects),
   bookings: many(bookings),
-  messages: many(messages),
   emailHistory: many(emailHistory)
 }));
 
@@ -916,7 +904,6 @@ export const contactsRelations = relations(contacts, ({ one, many }) => ({
     references: [photographers.id]
   }),
   projects: many(projects),
-  messages: many(messages),
   emailHistory: many(emailHistory),
   participantProjects: many(projectParticipants)
 }));
@@ -1102,17 +1089,6 @@ export const bookingsRelations = relations(bookings, ({ one }) => ({
   })
 }));
 
-export const messagesRelations = relations(messages, ({ one }) => ({
-  client: one(contacts, {
-    fields: [messages.clientId],
-    references: [contacts.id]
-  }),
-  photographer: one(photographers, {
-    fields: [messages.photographerId],
-    references: [photographers.id]
-  })
-}));
-
 export const projectActivityLogRelations = relations(projectActivityLog, ({ one }) => ({
   project: one(projects, {
     fields: [projectActivityLog.projectId],
@@ -1233,11 +1209,6 @@ export const insertQuestionnaireQuestionSchema = createInsertSchema(questionnair
 });
 
 export const insertProjectQuestionnaireSchema = createInsertSchema(projectQuestionnaires).omit({
-  id: true,
-  createdAt: true
-});
-
-export const insertMessageSchema = createInsertSchema(messages).omit({
   id: true,
   createdAt: true
 });
@@ -1377,8 +1348,6 @@ export type QuestionnaireTemplate = typeof questionnaireTemplates.$inferSelect;
 export type InsertQuestionnaireTemplate = z.infer<typeof insertQuestionnaireTemplateSchema>;
 export type QuestionnaireQuestion = typeof questionnaireQuestions.$inferSelect;
 export type InsertQuestionnaireQuestion = z.infer<typeof insertQuestionnaireQuestionSchema>;
-export type Message = typeof messages.$inferSelect;
-export type InsertMessage = z.infer<typeof insertMessageSchema>;
 export type ConversationRead = typeof conversationReads.$inferSelect;
 export type InsertConversationRead = z.infer<typeof insertConversationReadSchema>;
 export type SmsLog = typeof smsLogs.$inferSelect;

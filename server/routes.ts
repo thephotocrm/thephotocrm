@@ -15,7 +15,7 @@ import { googleCalendarService, createBookingCalendarEvent } from "./services/ca
 import { slotGenerationService } from "./services/slotGeneration";
 import { insertUserSchema, insertPhotographerSchema, insertContactSchema, insertStageSchema, 
          insertTemplateSchema, insertAutomationSchema, validateAutomationSchema, insertAutomationStepSchema, insertAutomationBusinessTriggerSchema, insertPackageSchema, insertAddOnSchema, insertLeadFormSchema,
-         insertMessageSchema, insertBookingSchema, updateBookingSchema, 
+         insertBookingSchema, updateBookingSchema, 
          bookingConfirmationSchema, sanitizedBookingSchema, insertQuestionnaireTemplateSchema, insertQuestionnaireQuestionSchema, 
          emailLogs, smsLogs, projectActivityLog, projectSmartFiles, photographerEarnings, projects,
          projectTypeEnum, createOnboardingLinkSchema, createPayoutSchema, insertDailyAvailabilityTemplateSchema,
@@ -1315,73 +1315,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(emails);
     } catch (error) {
       console.error('Get email thread error:', error);
-      res.status(500).json({ message: "Internal server error" });
-    }
-  });
-
-  app.get("/api/contacts/:id/messages", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
-    try {
-      const contact = await storage.getContact(req.params.id);
-      if (!contact || contact.photographerId !== req.user!.photographerId!) {
-        return res.status(404).json({ message: "Contact not found" });
-      }
-      
-      const messages = await storage.getClientMessages(req.params.id);
-      res.json(messages);
-    } catch (error) {
-      res.status(500).json({ message: "Internal server error" });
-    }
-  });
-
-  app.post("/api/messages", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
-    try {
-      // Add photographerId before validation since it's required by the schema
-      const messageData = insertMessageSchema.parse({
-        ...req.body,
-        photographerId: req.user!.photographerId!
-      });
-      
-      // Verify contact belongs to photographer
-      const contact = await storage.getContact(messageData.contactId);
-      if (!contact || contact.photographerId !== req.user!.photographerId!) {
-        return res.status(404).json({ message: "Contact not found" });
-      }
-      
-      // Create the message first
-      const message = await storage.createMessage(messageData);
-      
-      // Send SMS if contact has SMS opt-in and phone number
-      if (contact.smsOptIn && contact.phone && messageData.sentByPhotographer) {
-        try {
-          console.log(`📱 Sending dual-channel SMS to ${contact.firstName} ${contact.lastName} (${contact.phone})`);
-          
-          const smsResult = await sendSms({
-            to: contact.phone,
-            body: messageData.content
-          });
-          
-          // Log the SMS attempt
-          await db.insert(smsLogs).values({
-            contactId: contact.id,
-            direction: 'OUTBOUND',
-            messageBody: messageData.content,
-            status: smsResult.success ? 'sent' : 'failed',
-            providerId: smsResult.sid,
-            sentAt: smsResult.success ? new Date() : null
-          });
-          
-          console.log(`📱 Dual-channel SMS ${smsResult.success ? 'sent successfully' : 'FAILED'} to ${contact.firstName} ${contact.lastName}`);
-        } catch (smsError) {
-          console.error(`❌ Error sending dual-channel SMS to ${contact.firstName} ${contact.lastName}:`, smsError);
-          // Don't fail the entire request if SMS fails - the message was still created
-        }
-      }
-      
-      res.status(201).json(message);
-    } catch (error: any) {
-      if (error.name === 'ZodError') {
-        return res.status(400).json({ message: "Invalid request data", errors: error.errors });
-      }
       res.status(500).json({ message: "Internal server error" });
     }
   });
@@ -7200,6 +7133,22 @@ ${photographer.businessName}
         toPhone: contact.phone,
         messageBody: message
       });
+
+      // Log SMS to project activity if contact has a project
+      const contactWithProjects = await storage.getContact(contactId);
+      const latestProject = contactWithProjects?.projects?.[0];
+      if (latestProject) {
+        const messagePreview = message.length > 100 ? message.substring(0, 100) + '...' : message;
+        await storage.addProjectActivityLog({
+          projectId: latestProject.id,
+          activityType: 'SMS_SENT',
+          action: 'SENT',
+          title: `SMS sent to ${contact.firstName} ${contact.lastName}`,
+          description: messagePreview,
+          relatedId: result.sid,
+          relatedType: 'SMS_LOG'
+        });
+      }
 
       // Mark conversation as read (since photographer just sent a message)
       await storage.markConversationAsRead(photographerId, contactId);
