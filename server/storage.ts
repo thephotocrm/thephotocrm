@@ -2029,46 +2029,24 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getProjectHistory(projectId: string): Promise<TimelineEvent[]> {
-    // Fetch all project-specific events in parallel
-    const [activityLogs, emailLogEntries, smsLogEntries, emailHistoryEntries] = await Promise.all([
-      // Activity log entries (stage changes, proposals, etc.)
-      db.select({
-        id: projectActivityLog.id,
-        activityType: projectActivityLog.activityType,
-        title: projectActivityLog.title,
-        description: projectActivityLog.description,
-        metadata: projectActivityLog.metadata,
-        relatedId: projectActivityLog.relatedId,
-        relatedType: projectActivityLog.relatedType,
-        createdAt: projectActivityLog.createdAt
-      }).from(projectActivityLog)
-        .where(eq(projectActivityLog.projectId, projectId))
-        .orderBy(desc(projectActivityLog.createdAt)),
-      
-      // Automated email logs (from automations) - TEMPORARILY DISABLED due to Drizzle join issue
-      Promise.resolve([]),
-      
-      // SMS logs - TEMPORARILY DISABLED due to Drizzle join issue
-      Promise.resolve([]),
-      
-      // Email history (manual emails via Gmail/SendGrid)
-      db.select({
-        id: emailHistory.id,
-        direction: emailHistory.direction,
-        subject: emailHistory.subject,
-        fromEmail: emailHistory.fromEmail,
-        toEmails: emailHistory.toEmails,
-        ccEmails: emailHistory.ccEmails,
-        bccEmails: emailHistory.bccEmails,
-        bodyPreview: emailHistory.bodyPreview,
-        source: emailHistory.source,
-        sentAt: emailHistory.sentAt,
-        createdAt: emailHistory.createdAt
-      })
-        .from(emailHistory)
-        .where(eq(emailHistory.projectId, projectId))
-        .orderBy(desc(emailHistory.createdAt))
-    ]);
+    // Fetch all project-specific events
+    const activityLogs = await db.select({
+      id: projectActivityLog.id,
+      activityType: projectActivityLog.activityType,
+      title: projectActivityLog.title,
+      description: projectActivityLog.description,
+      metadata: projectActivityLog.metadata,
+      relatedId: projectActivityLog.relatedId,
+      relatedType: projectActivityLog.relatedType,
+      createdAt: projectActivityLog.createdAt
+    }).from(projectActivityLog)
+      .where(eq(projectActivityLog.projectId, projectId))
+      .orderBy(desc(projectActivityLog.createdAt));
+    
+    // Temporarily disabled queries causing issues
+    const emailLogEntries: any[] = [];
+    const smsLogEntries: any[] = [];
+    const emailHistoryEntries: any[] = [];
 
     // Transform to TimelineEvent format
     const timeline: TimelineEvent[] = [];
