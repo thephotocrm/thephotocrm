@@ -4580,6 +4580,26 @@ ${photographer?.businessName || 'Your Photography Team'}`;
               stripePaymentIntentId: paymentIntentId
             });
 
+            // Log payment to project activity
+            const paymentAmount = (totalAmountCents / 100).toFixed(2);
+            const paymentTypeLabel = paymentType === 'DEPOSIT' ? 'Deposit' : paymentType === 'BALANCE' ? 'Balance' : 'Full Payment';
+            await storage.addProjectActivityLog({
+              projectId: metadata.projectId || currentProjectSmartFile.projectId,
+              activityType: 'PAYMENT_RECEIVED',
+              action: 'PAYMENT',
+              title: `${paymentTypeLabel} payment received: $${paymentAmount}`,
+              description: `Client paid $${paymentAmount} ${paymentType === 'DEPOSIT' ? 'deposit' : paymentType === 'BALANCE' ? 'balance' : 'in full'} for "${currentProjectSmartFile.smartFileName}"${newBalanceDue > 0 ? `. Balance due: $${(newBalanceDue / 100).toFixed(2)}` : ''}`,
+              relatedId: metadata.projectSmartFileId,
+              relatedType: 'PROJECT_SMART_FILE',
+              metadata: JSON.stringify({
+                paymentIntentId,
+                amountCents: totalAmountCents,
+                paymentType,
+                balanceDueCents: newBalanceDue,
+                status: newStatus
+              })
+            });
+
             try {
               // Get payment intent details
               const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId, {
