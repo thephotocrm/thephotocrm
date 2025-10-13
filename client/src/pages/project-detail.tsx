@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Calendar, User, Mail, Phone, FileText, DollarSign, Clock, Copy, Eye, MoreVertical, Trash, Send, MessageSquare, Plus, X, Heart, Briefcase, Camera, ChevronDown, Menu, Link as LinkIcon, ExternalLink, Lock, Settings, Tag, Sparkles } from "lucide-react";
+import { Calendar, User, Mail, Phone, FileText, DollarSign, Clock, Copy, Eye, MoreVertical, Trash, Send, MessageSquare, Plus, X, Heart, Briefcase, Camera, ChevronDown, Menu, Link as LinkIcon, ExternalLink, Lock, Settings, Tag, Sparkles, Bold, Italic, Underline, AlignLeft, AlignCenter, AlignRight, List, ListOrdered, Paperclip, Image as ImageIcon, Video, Smile, Code, Undo, Redo, Strikethrough, Subscript, Superscript, Palette, Type, Mic } from "lucide-react";
 import { Link } from "wouter";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useState } from "react";
@@ -179,6 +179,8 @@ export default function ProjectDetail() {
   const [messageSubject, setMessageSubject] = useState("");
   const [messageBody, setMessageBody] = useState("");
   const [sendToParticipants, setSendToParticipants] = useState(false);
+  const [emailFontFamily, setEmailFontFamily] = useState("Default");
+  const [emailFontSize, setEmailFontSize] = useState("16");
   const [scheduleDialogOpen, setScheduleDialogOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string>("");
   const [selectedTime, setSelectedTime] = useState<string>("");
@@ -601,33 +603,86 @@ export default function ProjectDetail() {
             <TabsContent value="activity" className="m-0">
               <div className="space-y-4">
                 {/* Email Composer - Always Visible */}
-                <Card 
-                  className="border cursor-pointer hover:border-primary/50 transition-colors" 
-                  onClick={() => {
-                    // Auto-select all recipients when clicking
-                    if (selectedRecipients.length === 0) {
-                      const allRecipients = [];
-                      const mainContact = getContactInfo(project);
-                      if (mainContact?.email) allRecipients.push(mainContact.email);
-                      participants?.forEach(p => {
-                        if (p.client.email) allRecipients.push(p.client.email);
-                      });
-                      setSelectedRecipients(allRecipients);
-                    }
-                  }}
-                >
+                <Card className="border">
                   <CardContent className="p-4">
-                    <div className="flex items-center gap-3">
-                      <Avatar className="h-10 w-10">
-                        <AvatarFallback className="bg-primary/10 text-primary">
+                    <div className="flex items-start gap-3">
+                      <Avatar className="h-8 w-8 mt-1">
+                        <AvatarFallback className="bg-primary/10 text-primary text-xs">
                           {user?.email?.substring(0, 2).toUpperCase() || "AP"}
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex-1">
-                        <div className="text-sm text-muted-foreground">
-                          Reply to: '{project?.title || 'Project'}'
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-sm text-muted-foreground">Reply to:</span>
+                          {getContactInfo(project) && (
+                            <Badge 
+                              variant="secondary" 
+                              className="flex items-center gap-1"
+                              data-testid={`badge-recipient-chip-${getContactInfo(project)?.email}`}
+                            >
+                              {getContactInfo(project)?.firstName} {getContactInfo(project)?.lastName}
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-4 w-4 p-0 hover:bg-transparent"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                }}
+                              >
+                                <X className="w-3 h-3" />
+                              </Button>
+                            </Badge>
+                          )}
+                          {participants?.map((p) => (
+                            <Badge 
+                              key={p.id}
+                              variant="secondary" 
+                              className="flex items-center gap-1"
+                              data-testid={`badge-recipient-chip-${p.client.email}`}
+                            >
+                              {p.client.firstName} {p.client.lastName}
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-4 w-4 p-0 hover:bg-transparent"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                }}
+                              >
+                                <X className="w-3 h-3" />
+                              </Button>
+                            </Badge>
+                          ))}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 w-6 p-0 rounded-full"
+                            onClick={() => {
+                              // Open add participant dialog or similar
+                            }}
+                          >
+                            <Plus className="w-4 h-4" />
+                          </Button>
                         </div>
                       </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          const allRecipients = [];
+                          const mainContact = getContactInfo(project);
+                          if (mainContact?.email) allRecipients.push(mainContact.email);
+                          participants?.forEach(p => {
+                            if (p.client.email) allRecipients.push(p.client.email);
+                          });
+                          setSelectedRecipients(allRecipients);
+                        }}
+                        className="shrink-0"
+                        data-testid="button-send-new-email"
+                      >
+                        SEND NEW EMAIL
+                        <X className="w-3 h-3 ml-2" />
+                      </Button>
                     </div>
                   </CardContent>
                 </Card>
@@ -635,119 +690,213 @@ export default function ProjectDetail() {
                 {/* Expanded Email Editor - Shows when recipients are selected */}
                 {selectedRecipients.length > 0 && (
                   <Card className="border-2 border-primary/20">
-                    <CardContent className="p-4 space-y-4">
-                      <div className="flex items-center justify-between">
-                        <h3 className="font-medium">New Email</h3>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {
-                            setMessageSubject("");
-                            setMessageBody("");
-                            setSelectedRecipients([]);
-                            setAiPrompt("");
-                          }}
-                          data-testid="button-close-email-composer"
-                        >
-                          <X className="w-4 h-4" />
-                        </Button>
-                      </div>
-                      
-                      <div>
-                        <Label className="text-xs text-muted-foreground">TO:</Label>
-                        <div className="flex items-center gap-2 mt-1 flex-wrap">
-                          {getContactInfo(project)?.email && (
-                            <Badge 
-                              variant={selectedRecipients.includes(getContactInfo(project)!.email) ? "default" : "secondary"}
-                              className="cursor-pointer flex items-center gap-1"
-                              onClick={() => {
-                                const email = getContactInfo(project)!.email;
-                                setSelectedRecipients(prev => 
-                                  prev.includes(email) 
-                                    ? prev.filter(e => e !== email)
-                                    : [...prev, email]
-                                );
-                              }}
-                              data-testid={`badge-recipient-${getContactInfo(project)?.email}`}
-                            >
-                              {getContactInfo(project)?.firstName} {getContactInfo(project)?.lastName}
-                              {selectedRecipients.includes(getContactInfo(project)!.email) && (
-                                <X className="w-3 h-3 ml-1" />
-                              )}
-                            </Badge>
-                          )}
-                          {participants?.map((p) => (
-                            <Badge 
-                              key={p.id}
-                              variant={selectedRecipients.includes(p.client.email) ? "default" : "secondary"}
-                              className="cursor-pointer flex items-center gap-1"
-                              onClick={() => {
-                                setSelectedRecipients(prev => 
-                                  prev.includes(p.client.email)
-                                    ? prev.filter(e => e !== p.client.email)
-                                    : [...prev, p.client.email]
-                                );
-                              }}
-                              data-testid={`badge-recipient-${p.client.email}`}
-                            >
-                              {p.client.firstName} {p.client.lastName}
-                              {selectedRecipients.includes(p.client.email) && (
-                                <X className="w-3 h-3 ml-1" />
-                              )}
-                            </Badge>
-                          ))}
+                    <CardContent className="p-4 space-y-3">
+                      <div className="space-y-3">
+                        <div>
+                          <Label className="text-xs font-semibold text-gray-700">SUBJECT</Label>
+                          <Input
+                            id="email-subject"
+                            value={messageSubject}
+                            onChange={(e) => setMessageSubject(e.target.value)}
+                            placeholder="Re: Contract Agreement"
+                            className="mt-1 border-0 border-b border-gray-200 rounded-none focus-visible:ring-0 focus-visible:border-primary px-0"
+                            data-testid="input-email-subject"
+                          />
                         </div>
-                      </div>
 
-                      <div>
-                        <Label htmlFor="email-subject">SUBJECT</Label>
-                        <Input
-                          id="email-subject"
-                          value={messageSubject}
-                          onChange={(e) => setMessageSubject(e.target.value)}
-                          placeholder="Re: Contract Agreement"
-                          data-testid="input-email-subject"
-                        />
-                      </div>
+                        <div>
+                          <Textarea
+                            value={messageBody}
+                            onChange={(e) => setMessageBody(e.target.value)}
+                            placeholder="Type | to add a smart field"
+                            rows={6}
+                            className="border-0 resize-none focus-visible:ring-0 px-0"
+                            style={{
+                              fontFamily: emailFontFamily === "Default" ? "inherit" : emailFontFamily,
+                              fontSize: `${emailFontSize}px`
+                            }}
+                            data-testid="textarea-email-body"
+                          />
+                        </div>
 
-                      <div>
-                        <Textarea
-                          value={messageBody}
-                          onChange={(e) => setMessageBody(e.target.value)}
-                          placeholder="Type [ to add a smart field"
-                          rows={6}
-                          data-testid="textarea-email-body"
-                        />
-                        <div className="flex items-center gap-2 mt-2">
+                        <div className="flex items-center gap-2 pb-2 border-b">
                           <Button
                             variant="ghost"
                             size="sm"
                             onClick={() => setShowAiModal(true)}
-                            className="text-blue-600 hover:text-blue-700"
+                            className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
                             data-testid="button-edit-with-ai"
                           >
                             <Sparkles className="w-4 h-4 mr-1" />
                             Edit with AI
                           </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-muted-foreground hover:text-foreground"
+                          >
+                            Change tone
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-muted-foreground hover:text-foreground"
+                          >
+                            Make it shorter
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-muted-foreground hover:text-foreground"
+                          >
+                            Improve clarity
+                          </Button>
                         </div>
-                      </div>
 
-                      <div className="flex items-center justify-between pt-2 border-t">
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <span>Default</span>
-                          <ChevronDown className="w-4 h-4" />
+                        {/* Formatting Toolbar */}
+                        <div className="flex items-center gap-1 py-2 border-b flex-wrap">
+                          <Select value={emailFontFamily} onValueChange={setEmailFontFamily}>
+                            <SelectTrigger className="w-[120px] h-8 text-xs border-0 focus:ring-0" data-testid="select-font-family">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Default">Default</SelectItem>
+                              <SelectItem value="Arial">Arial</SelectItem>
+                              <SelectItem value="Times New Roman">Times New Roman</SelectItem>
+                              <SelectItem value="Courier New">Courier New</SelectItem>
+                              <SelectItem value="Georgia">Georgia</SelectItem>
+                              <SelectItem value="Verdana">Verdana</SelectItem>
+                              <SelectItem value="Helvetica">Helvetica</SelectItem>
+                              <SelectItem value="Comic Sans MS">Comic Sans MS</SelectItem>
+                              <SelectItem value="Impact">Impact</SelectItem>
+                              <SelectItem value="Trebuchet MS">Trebuchet MS</SelectItem>
+                              <SelectItem value="Palatino">Palatino</SelectItem>
+                              <SelectItem value="Garamond">Garamond</SelectItem>
+                              <SelectItem value="Bookman">Bookman</SelectItem>
+                              <SelectItem value="Tahoma">Tahoma</SelectItem>
+                            </SelectContent>
+                          </Select>
+
+                          <Select value={emailFontSize} onValueChange={setEmailFontSize}>
+                            <SelectTrigger className="w-[70px] h-8 text-xs border-0 focus:ring-0" data-testid="select-font-size">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="10">10</SelectItem>
+                              <SelectItem value="12">12</SelectItem>
+                              <SelectItem value="14">14</SelectItem>
+                              <SelectItem value="16">16</SelectItem>
+                              <SelectItem value="18">18</SelectItem>
+                              <SelectItem value="20">20</SelectItem>
+                              <SelectItem value="24">24</SelectItem>
+                              <SelectItem value="32">32</SelectItem>
+                            </SelectContent>
+                          </Select>
+
+                          <div className="w-px h-6 bg-gray-200 mx-1"></div>
+
+                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0" data-testid="button-format-bold">
+                            <Bold className="w-4 h-4" />
+                          </Button>
+                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0" data-testid="button-format-italic">
+                            <Italic className="w-4 h-4" />
+                          </Button>
+                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0" data-testid="button-format-underline">
+                            <Underline className="w-4 h-4" />
+                          </Button>
+
+                          <div className="w-px h-6 bg-gray-200 mx-1"></div>
+
+                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0" data-testid="button-text-color">
+                            <Type className="w-4 h-4" />
+                          </Button>
+                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0" data-testid="button-bg-color">
+                            <Palette className="w-4 h-4" />
+                          </Button>
+
+                          <div className="w-px h-6 bg-gray-200 mx-1"></div>
+
+                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                            <AlignLeft className="w-4 h-4" />
+                          </Button>
+                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                            <List className="w-4 h-4" />
+                          </Button>
+                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                            <ListOrdered className="w-4 h-4" />
+                          </Button>
+
+                          <div className="w-px h-6 bg-gray-200 mx-1"></div>
+
+                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                            <LinkIcon className="w-4 h-4" />
+                          </Button>
+                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                            <Strikethrough className="w-4 h-4" />
+                          </Button>
+                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                            <Code className="w-4 h-4" />
+                          </Button>
+
+                          <div className="w-px h-6 bg-gray-200 mx-1"></div>
+
+                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                            <Undo className="w-4 h-4" />
+                          </Button>
+                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                            <Redo className="w-4 h-4" />
+                          </Button>
                         </div>
-                        <Button 
-                          onClick={() => sendEmailMutation.mutate({ 
-                            subject: messageSubject, 
-                            body: messageBody,
-                            recipients: selectedRecipients 
-                          })}
-                          disabled={!messageSubject || !messageBody || selectedRecipients.length === 0 || sendEmailMutation.isPending}
-                          data-testid="button-send-email"
-                        >
-                          {sendEmailMutation.isPending ? "Sending..." : "SEND"}
-                        </Button>
+
+                        {/* Bottom Toolbar */}
+                        <div className="flex items-center justify-between pt-2">
+                          <div className="flex items-center gap-1">
+                            <Button variant="ghost" size="sm" className="h-8 text-xs">
+                              Templates
+                              <ChevronDown className="w-3 h-3 ml-1" />
+                            </Button>
+                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                              <Type className="w-4 h-4" />
+                            </Button>
+                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                              <Smile className="w-4 h-4" />
+                            </Button>
+                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                              <Paperclip className="w-4 h-4" />
+                            </Button>
+                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                              <Plus className="w-4 h-4" />
+                            </Button>
+                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                              <ImageIcon className="w-4 h-4" />
+                            </Button>
+                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                              <Video className="w-4 h-4" />
+                            </Button>
+                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                              <Code className="w-4 h-4" />
+                            </Button>
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                              <Mic className="w-4 h-4" />
+                            </Button>
+                            <Button 
+                              onClick={() => sendEmailMutation.mutate({ 
+                                subject: messageSubject, 
+                                body: messageBody,
+                                recipients: selectedRecipients 
+                              })}
+                              disabled={!messageSubject || !messageBody || selectedRecipients.length === 0 || sendEmailMutation.isPending}
+                              className="h-8 bg-black text-white hover:bg-black/90"
+                              data-testid="button-send-email"
+                            >
+                              {sendEmailMutation.isPending ? "SENDING..." : "SEND"}
+                              <ChevronDown className="w-3 h-3 ml-1" />
+                            </Button>
+                          </div>
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
