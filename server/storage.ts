@@ -2045,48 +2045,11 @@ export class DatabaseStorage implements IStorage {
         .where(eq(projectActivityLog.projectId, projectId))
         .orderBy(desc(projectActivityLog.createdAt)),
       
-      // Automated email logs (from automations)
-      db.select({
-        id: emailLogs.id,
-        automationStepId: emailLogs.automationStepId,
-        status: emailLogs.status,
-        providerId: emailLogs.providerId,
-        sentAt: emailLogs.sentAt,
-        openedAt: emailLogs.openedAt,
-        clickedAt: emailLogs.clickedAt,
-        bouncedAt: emailLogs.bouncedAt,
-        templateName: templates.name,
-        templateSubject: templates.subject,
-        automationName: automations.name
-      })
-        .from(emailLogs)
-        .leftJoin(automationSteps, eq(emailLogs.automationStepId, automationSteps.id))
-        .leftJoin(templates, eq(automationSteps.templateId, templates.id))
-        .leftJoin(automations, eq(automationSteps.automationId, automations.id))
-        .where(eq(emailLogs.projectId, projectId))
-        .orderBy(desc(emailLogs.sentAt)),
+      // Automated email logs (from automations) - TEMPORARILY DISABLED due to Drizzle join issue
+      Promise.resolve([]),
       
-      // SMS logs
-      db.select({
-        id: smsLogs.id,
-        automationStepId: smsLogs.automationStepId,
-        status: smsLogs.status,
-        sentAt: smsLogs.sentAt,
-        deliveredAt: smsLogs.deliveredAt,
-        direction: smsLogs.direction,
-        messageBody: smsLogs.messageBody,
-        fromPhone: smsLogs.fromPhone,
-        toPhone: smsLogs.toPhone,
-        createdAt: smsLogs.createdAt,
-        templateName: templates.name,
-        automationName: automations.name
-      })
-        .from(smsLogs)
-        .leftJoin(automationSteps, eq(smsLogs.automationStepId, automationSteps.id))
-        .leftJoin(templates, eq(automationSteps.templateId, templates.id))
-        .leftJoin(automations, eq(automationSteps.automationId, automations.id))
-        .where(eq(smsLogs.projectId, projectId))
-        .orderBy(desc(smsLogs.createdAt)),
+      // SMS logs - TEMPORARILY DISABLED due to Drizzle join issue
+      Promise.resolve([]),
       
       // Email history (manual emails via Gmail/SendGrid)
       db.select({
