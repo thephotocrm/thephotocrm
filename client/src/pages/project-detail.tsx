@@ -189,6 +189,12 @@ export default function ProjectDetail() {
   const [selectedRecipients, setSelectedRecipients] = useState<string[]>([]);
   const [showAiModal, setShowAiModal] = useState(false);
   const [aiPrompt, setAiPrompt] = useState("");
+  const [showFormattingToolbar, setShowFormattingToolbar] = useState(true);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [showLinkDialog, setShowLinkDialog] = useState(false);
+  const [linkUrl, setLinkUrl] = useState("");
+  const [linkText, setLinkText] = useState("");
+  const [showSmartFields, setShowSmartFields] = useState(false);
 
   const { data: project, isLoading } = useQuery<Project>({
     queryKey: ["/api/projects", id],
@@ -769,8 +775,9 @@ export default function ProjectDetail() {
                         </div>
 
                         {/* Formatting Toolbar */}
-                        <div className="flex items-center gap-1 py-2 border-b flex-wrap">
-                          <Select value={emailFontFamily} onValueChange={setEmailFontFamily}>
+                        {showFormattingToolbar && (
+                          <div className="flex items-center gap-1 py-2 border-b flex-wrap">
+                            <Select value={emailFontFamily} onValueChange={setEmailFontFamily}>
                             <SelectTrigger className="w-[120px] h-8 text-xs border-0 focus:ring-0" data-testid="select-font-family">
                               <SelectValue />
                             </SelectTrigger>
@@ -862,6 +869,7 @@ export default function ProjectDetail() {
                             <Redo className="w-4 h-4" />
                           </Button>
                         </div>
+                        )}
 
                         {/* Bottom Toolbar */}
                         <div className="flex items-center justify-between pt-2">
@@ -870,25 +878,135 @@ export default function ProjectDetail() {
                               Templates
                               <ChevronDown className="w-3 h-3 ml-1" />
                             </Button>
-                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="h-8 w-8 p-0"
+                              onClick={() => setShowFormattingToolbar(!showFormattingToolbar)}
+                              data-testid="button-toggle-formatting"
+                              title="Toggle formatting toolbar"
+                            >
                               <Type className="w-4 h-4" />
                             </Button>
-                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                              <Smile className="w-4 h-4" />
-                            </Button>
-                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                            <DropdownMenu open={showEmojiPicker} onOpenChange={setShowEmojiPicker}>
+                              <DropdownMenuTrigger asChild>
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm" 
+                                  className="h-8 w-8 p-0"
+                                  data-testid="button-emoji-picker"
+                                  title="Insert emoji"
+                                >
+                                  <Smile className="w-4 h-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent className="w-64 p-2">
+                                <div className="grid grid-cols-8 gap-1">
+                                  {["😊", "😂", "❤️", "👍", "🎉", "📸", "📅", "💍", "🌟", "✨", "🎊", "🎈", "🥂", "💐", "🌹", "💕"].map((emoji) => (
+                                    <Button
+                                      key={emoji}
+                                      variant="ghost"
+                                      size="sm"
+                                      className="h-8 w-8 p-0 hover:bg-accent"
+                                      onClick={() => {
+                                        setMessageBody(messageBody + emoji);
+                                        setShowEmojiPicker(false);
+                                      }}
+                                    >
+                                      {emoji}
+                                    </Button>
+                                  ))}
+                                </div>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="h-8 w-8 p-0"
+                              onClick={() => setShowLinkDialog(true)}
+                              data-testid="button-insert-link"
+                              title="Insert link"
+                            >
                               <Paperclip className="w-4 h-4" />
                             </Button>
-                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                              <Plus className="w-4 h-4" />
+                            <DropdownMenu open={showSmartFields} onOpenChange={setShowSmartFields}>
+                              <DropdownMenuTrigger asChild>
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm" 
+                                  className="h-8 w-8 p-0"
+                                  data-testid="button-smart-fields"
+                                  title="Insert smart field"
+                                >
+                                  <Plus className="w-4 h-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent>
+                                <DropdownMenuItem onClick={() => {
+                                  setMessageBody(messageBody + "{{firstName}}");
+                                  setShowSmartFields(false);
+                                }}>
+                                  First Name
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => {
+                                  setMessageBody(messageBody + "{{lastName}}");
+                                  setShowSmartFields(false);
+                                }}>
+                                  Last Name
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => {
+                                  setMessageBody(messageBody + "{{email}}");
+                                  setShowSmartFields(false);
+                                }}>
+                                  Email
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => {
+                                  setMessageBody(messageBody + "{{projectTitle}}");
+                                  setShowSmartFields(false);
+                                }}>
+                                  Project Title
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => {
+                                  setMessageBody(messageBody + "{{eventDate}}");
+                                  setShowSmartFields(false);
+                                }}>
+                                  Event Date
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="h-8 w-8 p-0"
+                              disabled
+                              title="Calendar availability (coming soon)"
+                            >
+                              <ImageIcon className="w-4 h-4 opacity-40" />
                             </Button>
-                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                              <ImageIcon className="w-4 h-4" />
-                            </Button>
-                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="h-8 w-8 p-0"
+                              onClick={() => {
+                                // Insert photographer's email signature
+                                const signature = user?.photographer?.emailSignature || "\n\nBest regards,\n" + (user?.photographer?.businessName || user?.email || "");
+                                setMessageBody(messageBody + signature);
+                              }}
+                              data-testid="button-insert-signature"
+                              title="Insert email signature"
+                            >
                               <Video className="w-4 h-4" />
                             </Button>
-                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="h-8 w-8 p-0"
+                              onClick={() => {
+                                setMessageBody(messageBody + "\n\n{{unsubscribeLink}}");
+                              }}
+                              data-testid="button-insert-unsubscribe"
+                              title="Insert unsubscribe link"
+                            >
                               <Code className="w-4 h-4" />
                             </Button>
                           </div>
@@ -1500,6 +1618,71 @@ export default function ProjectDetail() {
           }}
         />
       )}
+
+      {/* Link Insertion Dialog */}
+      <Dialog open={showLinkDialog} onOpenChange={setShowLinkDialog}>
+        <DialogContent className="sm:max-w-[500px]" data-testid="dialog-insert-link">
+          <DialogHeader>
+            <DialogTitle>Insert Link</DialogTitle>
+            <DialogDescription>
+              Add a hyperlink to your email message.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div>
+              <Label htmlFor="link-text">Link Text</Label>
+              <Input
+                id="link-text"
+                value={linkText}
+                onChange={(e) => setLinkText(e.target.value)}
+                placeholder="Click here"
+                data-testid="input-link-text"
+              />
+            </div>
+            <div>
+              <Label htmlFor="link-url">URL</Label>
+              <Input
+                id="link-url"
+                value={linkUrl}
+                onChange={(e) => setLinkUrl(e.target.value)}
+                placeholder="https://example.com"
+                data-testid="input-link-url"
+              />
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-3">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowLinkDialog(false);
+                setLinkText("");
+                setLinkUrl("");
+              }}
+              data-testid="button-cancel-link"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={() => {
+                if (linkUrl && linkText) {
+                  const linkMarkdown = `[${linkText}](${linkUrl})`;
+                  setMessageBody(messageBody + linkMarkdown);
+                  setShowLinkDialog(false);
+                  setLinkText("");
+                  setLinkUrl("");
+                }
+              }}
+              disabled={!linkUrl || !linkText}
+              className="bg-black text-white hover:bg-black/90"
+              data-testid="button-insert-link-confirm"
+            >
+              Insert Link
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* AI Email Writer Modal */}
       <Dialog open={showAiModal} onOpenChange={setShowAiModal}>
