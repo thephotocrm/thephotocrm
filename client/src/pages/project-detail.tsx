@@ -305,6 +305,8 @@ export default function ProjectDetail() {
       setMessageBody("");
       setMessageDialogOpen(false);
       setShowEmailComposer(false);
+      setSelectedRecipients([]);
+      setShowAiOptions(false);
       toast({
         title: "Message sent",
         description: "Your email has been sent successfully."
@@ -609,6 +611,8 @@ export default function ProjectDetail() {
                             setShowEmailComposer(false);
                             setMessageSubject("");
                             setMessageBody("");
+                            setSelectedRecipients([]);
+                            setShowAiOptions(false);
                           }}
                           data-testid="button-close-email-composer"
                         >
