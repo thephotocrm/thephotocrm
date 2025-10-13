@@ -2055,14 +2055,14 @@ export class DatabaseStorage implements IStorage {
         openedAt: emailLogs.openedAt,
         clickedAt: emailLogs.clickedAt,
         bouncedAt: emailLogs.bouncedAt,
-        templateName: sql<string | null>`${templates.name}`,
-        templateSubject: sql<string | null>`${templates.subject}`,
-        automationName: sql<string | null>`${automations.name}`
+        templateName: templates.name,
+        templateSubject: templates.subject,
+        automationName: automations.name
       })
         .from(emailLogs)
         .leftJoin(automationSteps, eq(emailLogs.automationStepId, automationSteps.id))
-        .leftJoin(templates, and(isNotNull(automationSteps.templateId), eq(automationSteps.templateId, templates.id)))
-        .leftJoin(automations, and(isNotNull(automationSteps.automationId), eq(automationSteps.automationId, automations.id)))
+        .leftJoin(templates, eq(automationSteps.templateId, templates.id))
+        .leftJoin(automations, eq(automationSteps.automationId, automations.id))
         .where(eq(emailLogs.projectId, projectId))
         .orderBy(desc(emailLogs.sentAt)),
       
@@ -2078,13 +2078,13 @@ export class DatabaseStorage implements IStorage {
         fromPhone: smsLogs.fromPhone,
         toPhone: smsLogs.toPhone,
         createdAt: smsLogs.createdAt,
-        templateName: sql<string | null>`${templates.name}`,
-        automationName: sql<string | null>`${automations.name}`
+        templateName: templates.name,
+        automationName: automations.name
       })
         .from(smsLogs)
         .leftJoin(automationSteps, eq(smsLogs.automationStepId, automationSteps.id))
-        .leftJoin(templates, and(isNotNull(automationSteps.templateId), eq(automationSteps.templateId, templates.id)))
-        .leftJoin(automations, and(isNotNull(automationSteps.automationId), eq(automationSteps.automationId, automations.id)))
+        .leftJoin(templates, eq(automationSteps.templateId, templates.id))
+        .leftJoin(automations, eq(automationSteps.automationId, automations.id))
         .where(eq(smsLogs.projectId, projectId))
         .orderBy(desc(smsLogs.createdAt)),
       
