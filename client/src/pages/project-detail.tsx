@@ -275,6 +275,7 @@ export default function ProjectDetail() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/projects", id, "smart-files"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/projects", id, "history"] });
       setSmartFileToSend(null);
       setPendingSmartFileToSend(null);
       toast({

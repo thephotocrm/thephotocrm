@@ -2669,7 +2669,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
           storage.getSmartFile(projectSmartFile.smartFileId)
         ]);
 
-        if (client && contact.email && contact.emailOptIn && photographer && smartFile) {
+        if (contact && contact.email && contact.emailOptIn && photographer && smartFile) {
           const smartFileUrl = `${process.env.VITE_APP_URL || 'https://thephotocrm.com'}/smart-file/${updatedProjectSmartFile.token}`;
           
           await sendEmail({
