@@ -643,60 +643,57 @@ export default function ProjectDetail() {
                   <Card className="border-2 border-primary/20">
                     <CardContent className="p-4 space-y-3">
                       {/* Recipient Header Row */}
-                      <div className="flex items-start gap-3 pb-2">
-                        <Avatar className="h-8 w-8 mt-1">
-                          <AvatarFallback className="bg-primary/10 text-primary text-xs">
+                      <div className="flex items-center gap-2 pb-3 border-b">
+                        <Avatar className="h-7 w-7">
+                          <AvatarFallback className="bg-gray-200 text-gray-700 text-xs font-medium">
                             {user?.email?.substring(0, 2).toUpperCase() || "AP"}
                           </AvatarFallback>
                         </Avatar>
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <span className="text-sm text-muted-foreground">Reply to:</span>
-                            {selectedRecipients.map((email) => {
-                              // Find contact data for this email
-                              const mainContact = getContactInfo(project);
-                              const isMainContact = mainContact?.email === email;
-                              const participant = participants?.find(p => p.client.email === email);
-                              
-                              const firstName = isMainContact ? mainContact?.firstName : participant?.client.firstName;
-                              const lastName = isMainContact ? mainContact?.lastName : participant?.client.lastName;
-                              
-                              return (
-                                <Badge 
-                                  key={email}
-                                  variant="secondary" 
-                                  className="flex items-center gap-1"
-                                  data-testid={`badge-recipient-chip-${email}`}
+                        <span className="text-sm text-gray-600">Reply to:</span>
+                        <div className="flex items-center gap-2 flex-wrap flex-1">
+                          {selectedRecipients.map((email) => {
+                            // Find contact data for this email
+                            const mainContact = getContactInfo(project);
+                            const isMainContact = mainContact?.email === email;
+                            const participant = participants?.find(p => p.client.email === email);
+                            
+                            const firstName = isMainContact ? mainContact?.firstName : participant?.client.firstName;
+                            const lastName = isMainContact ? mainContact?.lastName : participant?.client.lastName;
+                            
+                            return (
+                              <div 
+                                key={email}
+                                className="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-100 rounded text-sm"
+                                data-testid={`badge-recipient-chip-${email}`}
+                              >
+                                <span>{firstName} {lastName}</span>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-4 w-4 p-0 hover:bg-transparent"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setSelectedRecipients(prev => prev.filter(e => e !== email));
+                                  }}
                                 >
-                                  {firstName} {lastName}
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="h-4 w-4 p-0 hover:bg-transparent"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      setSelectedRecipients(prev => prev.filter(e => e !== email));
-                                    }}
-                                  >
-                                    <X className="w-3 h-3" />
-                                  </Button>
-                                </Badge>
-                              );
-                            })}
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-6 w-6 p-0 rounded-full"
-                              onClick={() => {
-                                // Open add participant dialog or similar
-                              }}
-                            >
-                              <Plus className="w-4 h-4" />
-                            </Button>
-                          </div>
+                                  <X className="w-3 h-3 text-gray-500 hover:text-gray-700" />
+                                </Button>
+                              </div>
+                            );
+                          })}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 w-6 p-0 rounded-sm hover:bg-gray-100"
+                            onClick={() => {
+                              // Open add participant dialog or similar
+                            }}
+                          >
+                            <Plus className="w-4 h-4 text-gray-600" />
+                          </Button>
                         </div>
                         <Button
-                          variant="outline"
+                          variant="ghost"
                           size="sm"
                           onClick={() => {
                             setMessageSubject("");
@@ -704,11 +701,11 @@ export default function ProjectDetail() {
                             setSelectedRecipients([]);
                             setAiPrompt("");
                           }}
-                          className="shrink-0"
+                          className="shrink-0 text-sm font-medium"
                           data-testid="button-close-composer"
                         >
                           SEND NEW EMAIL
-                          <X className="w-3 h-3 ml-2" />
+                          <X className="w-4 h-4 ml-2" />
                         </Button>
                       </div>
                       
