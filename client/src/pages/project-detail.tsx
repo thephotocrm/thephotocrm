@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Calendar, User, Mail, Phone, FileText, DollarSign, Clock, Copy, Eye, MoreVertical, Trash, Send, MessageSquare, Plus, X, Heart, Briefcase, Camera, ChevronDown, Menu, Link as LinkIcon, ExternalLink, Lock, Settings, Tag, Sparkles, Bold, Italic, Underline, AlignLeft, AlignCenter, AlignRight, List, ListOrdered, Paperclip, Image as ImageIcon, Video, Smile, Code, Undo, Redo, Strikethrough, Subscript, Superscript, Palette, Type, Mic } from "lucide-react";
+import { Calendar, User, Mail, Phone, FileText, DollarSign, Clock, Copy, Eye, MoreVertical, Trash, Send, MessageSquare, Plus, X, Heart, Briefcase, Camera, ChevronDown, Menu, Link as LinkIcon, ExternalLink, Lock, Settings, Tag, Sparkles, Bold, Italic, Underline, AlignLeft, AlignCenter, AlignRight, List, ListOrdered, Paperclip, Image as ImageIcon, Video, Smile, Code, Undo, Redo, Strikethrough, Subscript, Superscript, Palette, Type, Mic, ArrowLeft } from "lucide-react";
 import { Link } from "wouter";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useState } from "react";
@@ -432,32 +432,52 @@ export default function ProjectDetail() {
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
-      <div className="relative h-64 bg-gradient-to-br from-slate-500 to-slate-600">
+      <div className="relative h-40 md:h-64 bg-gradient-to-br from-slate-500 to-slate-600">
         <div 
           className="absolute inset-0 bg-cover bg-center opacity-40"
           style={{ backgroundImage: `url(${heroImage})` }}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
         
-        <div className="relative h-full flex flex-col justify-between p-6">
-          {/* Breadcrumb */}
-          <div className="flex items-center gap-2 text-white/90 text-sm">
-            <Menu className="w-4 h-4" />
-            <span className="uppercase tracking-wider font-medium">PROJECTS</span>
+        <div className="relative h-full flex flex-col justify-between p-4 md:p-6">
+          {/* Breadcrumb & Exit Button */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-white/90 text-sm">
+              <Link href="/projects">
+                <button className="hover:bg-white/10 p-1 rounded transition-colors md:hidden" data-testid="button-back-mobile">
+                  <ArrowLeft className="w-4 h-4" />
+                </button>
+              </Link>
+              <Menu className="w-4 h-4 hidden md:block" />
+              <span className="uppercase tracking-wider font-medium hidden md:inline">PROJECTS</span>
+            </div>
+            
+            {/* Desktop Exit Button */}
+            <Link href="/projects">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="hidden md:flex text-white hover:bg-white/10 hover:text-white"
+                data-testid="button-exit-project"
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Exit Project
+              </Button>
+            </Link>
           </div>
 
           {/* Project Title */}
           <div>
-            <h1 className="text-4xl font-semibold text-white mb-2" data-testid="text-project-title">
+            <h1 className="text-2xl md:text-4xl font-semibold text-white mb-1 md:mb-2" data-testid="text-project-title">
               {project.title}
             </h1>
-            <div className="flex items-center gap-2 text-white/90">
+            <div className="flex items-center gap-2 text-white/90 text-sm md:text-base">
               {getProjectTypeIcon(project.projectType)}
               <span className="capitalize">{getProjectTypeLabel(project.projectType)}</span>
               {project.eventDate && (
                 <>
                   <span className="mx-1">•</span>
-                  <span>{formatDate(project.eventDate)}</span>
+                  <span className="hidden sm:inline">{formatDate(project.eventDate)}</span>
                 </>
               )}
             </div>
@@ -466,16 +486,16 @@ export default function ProjectDetail() {
       </div>
 
       {/* Participants Bar */}
-      <div className="border-b bg-white px-6 py-3">
+      <div className="border-b bg-white px-4 md:px-6 py-2 md:py-3">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <span className="text-sm text-muted-foreground">
+          <div className="flex items-center gap-2 md:gap-4">
+            <span className="text-xs md:text-sm text-muted-foreground hidden sm:inline">
               Visible to you + {totalParticipants - 1} participant{totalParticipants - 1 !== 1 ? 's' : ''}
             </span>
             <div className="flex items-center -space-x-2">
               {/* Main Contact Avatar */}
               <div 
-                className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-medium border-2 border-white"
+                className="w-7 h-7 md:w-8 md:h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-medium border-2 border-white"
                 title={`${getContactInfo(project)?.firstName || ''} ${getContactInfo(project)?.lastName || ''}`}
               >
                 {getInitials(getContactInfo(project)?.firstName || '', getContactInfo(project)?.lastName || '')}
@@ -485,7 +505,7 @@ export default function ProjectDetail() {
               {participants?.slice(0, 3).map((participant) => (
                 <div 
                   key={participant.id}
-                  className="w-8 h-8 rounded-full bg-purple-500 text-white flex items-center justify-center text-xs font-medium border-2 border-white"
+                  className="w-7 h-7 md:w-8 md:h-8 rounded-full bg-purple-500 text-white flex items-center justify-center text-xs font-medium border-2 border-white"
                   title={`${participant.client.firstName} ${participant.client.lastName}`}
                 >
                   {getInitials(participant.client.firstName, participant.client.lastName)}
@@ -495,10 +515,10 @@ export default function ProjectDetail() {
               {/* Add Button */}
               <button 
                 onClick={() => setIsAddingParticipant(true)}
-                className="w-8 h-8 rounded-full border-2 border-dashed border-gray-300 flex items-center justify-center hover:border-gray-400 hover:bg-gray-50 transition-colors"
+                className="w-7 h-7 md:w-8 md:h-8 rounded-full border-2 border-dashed border-gray-300 flex items-center justify-center hover:border-gray-400 hover:bg-gray-50 transition-colors"
                 data-testid="button-add-participant"
               >
-                <Plus className="w-4 h-4 text-gray-500" />
+                <Plus className="w-3 h-3 md:w-4 md:h-4 text-gray-500" />
               </button>
             </div>
           </div>
@@ -506,31 +526,37 @@ export default function ProjectDetail() {
       </div>
 
       {/* Action Bar */}
-      <div className="border-b bg-white px-6 py-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
+      <div className="border-b bg-white px-4 md:px-6 py-2 md:py-3">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-1 md:gap-2 flex-wrap">
             <Button 
               variant="outline" 
               size="sm" 
               onClick={() => setScheduleDialogOpen(true)}
               data-testid="button-schedule"
+              className="h-8 md:h-9"
+              aria-label="Schedule"
             >
-              <Calendar className="w-4 h-4 mr-2" />
-              Schedule
+              <Calendar className="w-3 h-3 md:w-4 md:h-4 md:mr-2" />
+              <span className="hidden md:inline">Schedule</span>
             </Button>
             <Button 
               variant="outline" 
               size="sm" 
               onClick={() => setAttachSmartFileOpen(true)}
               data-testid="button-attach"
+              className="h-8 md:h-9"
+              aria-label="Attach"
             >
-              <LinkIcon className="w-4 h-4 mr-2" />
-              Attach
+              <LinkIcon className="w-3 h-3 md:w-4 md:h-4 md:mr-2" />
+              <span className="hidden md:inline">Attach</span>
             </Button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" data-testid="button-ai-actions">
-                  AI ACTIONS <ChevronDown className="w-4 h-4 ml-2" />
+                <Button variant="outline" size="sm" data-testid="button-ai-actions" className="h-8 md:h-9" aria-label="AI Actions">
+                  <Sparkles className="w-3 h-3 md:w-4 md:h-4 md:mr-1" />
+                  <span className="hidden sm:inline ml-1">AI</span>
+                  <ChevronDown className="w-3 h-3 ml-1" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent>
@@ -547,61 +573,66 @@ export default function ProjectDetail() {
           </div>
           <Button 
             size="sm" 
-            className="bg-black hover:bg-black/90 text-white"
+            className="bg-black hover:bg-black/90 text-white h-8 md:h-9 text-xs md:text-sm px-3 md:px-4"
             onClick={() => setAttachSmartFileOpen(true)}
             data-testid="button-create-file"
+            aria-label="Create File"
           >
-            CREATE FILE
+            <Plus className="w-3 h-3 md:hidden mr-1" />
+            <span className="hidden md:inline">CREATE FILE</span>
+            <span className="md:hidden">FILE</span>
           </Button>
         </div>
       </div>
 
       {/* Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="px-6">
-        <TabsList className="border-b w-full justify-start rounded-none h-auto p-0 bg-transparent">
-          <TabsTrigger 
-            value="activity" 
-            className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent"
-            data-testid="tab-activity"
-          >
-            Activity
-          </TabsTrigger>
-          <TabsTrigger 
-            value="files" 
-            className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent"
-            data-testid="tab-files"
-          >
-            Files
-          </TabsTrigger>
-          <TabsTrigger 
-            value="tasks" 
-            className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent"
-            data-testid="tab-tasks"
-          >
-            Tasks
-          </TabsTrigger>
-          <TabsTrigger 
-            value="financials" 
-            className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent"
-            data-testid="tab-financials"
-          >
-            Financials
-          </TabsTrigger>
-          <TabsTrigger 
-            value="notes" 
-            className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent"
-            data-testid="tab-notes"
-          >
-            Notes
-          </TabsTrigger>
-          <TabsTrigger 
-            value="details" 
-            className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent"
-            data-testid="tab-details"
-          >
-            Details
-          </TabsTrigger>
-        </TabsList>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="px-4 md:px-6">
+        <div className="overflow-x-auto scrollbar-hide">
+          <TabsList className="border-b w-full justify-start rounded-none h-auto p-0 bg-transparent inline-flex min-w-full">
+            <TabsTrigger 
+              value="activity" 
+              className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent text-sm whitespace-nowrap"
+              data-testid="tab-activity"
+            >
+              Activity
+            </TabsTrigger>
+            <TabsTrigger 
+              value="files" 
+              className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent text-sm whitespace-nowrap"
+              data-testid="tab-files"
+            >
+              Files
+            </TabsTrigger>
+            <TabsTrigger 
+              value="tasks" 
+              className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent text-sm whitespace-nowrap"
+              data-testid="tab-tasks"
+            >
+              Tasks
+            </TabsTrigger>
+            <TabsTrigger 
+              value="financials" 
+              className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent text-sm whitespace-nowrap"
+              data-testid="tab-financials"
+            >
+              Financials
+            </TabsTrigger>
+            <TabsTrigger 
+              value="notes" 
+              className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent text-sm whitespace-nowrap"
+              data-testid="tab-notes"
+            >
+              Notes
+            </TabsTrigger>
+            <TabsTrigger 
+              value="details" 
+              className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent text-sm whitespace-nowrap"
+              data-testid="tab-details"
+            >
+              Details
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
         {/* Content Area with Sidebar */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 py-6">
