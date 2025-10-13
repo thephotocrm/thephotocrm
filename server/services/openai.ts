@@ -439,6 +439,70 @@ Please create an improved version that addresses the feedback while maintaining 
   }
 }
 
+export async function generateEmailFromPrompt(
+  prompt: string,
+  context: {
+    projectTitle: string;
+    contactName: string;
+    projectType: string;
+    photographerName: string;
+    existingEmailBody?: string;
+  }
+): Promise<{ subject: string; body: string }> {
+  const { projectTitle, contactName, projectType, photographerName, existingEmailBody } = context;
+
+  const systemPrompt = `You are an expert email writer for ${photographerName}, a professional photographer. 
+  
+Your task is to help compose professional, friendly, and personalized emails to clients about their ${projectType} photography projects.
+
+Context:
+- Project: ${projectTitle}
+- Client: ${contactName}
+- Photographer: ${photographerName}
+${existingEmailBody ? `- Current email draft: ${existingEmailBody}` : ''}
+
+Guidelines:
+- Use a warm, professional tone
+- Be concise and clear
+- Personalize where appropriate
+- Include proper email etiquette
+- Match the photographer's voice and style
+${existingEmailBody ? '- If improving existing content, maintain the core message while making it better' : ''}
+
+Respond with JSON in this format:
+{
+  "subject": "Email subject line",
+  "body": "Email body content"
+}`;
+
+  const userPrompt = existingEmailBody 
+    ? `Based on the current email draft, ${prompt}` 
+    : `Create an email that: ${prompt}`;
+
+  try {
+    // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
+    const response = await openai.chat.completions.create({
+      model: "gpt-5",
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt }
+      ],
+      response_format: { type: "json_object" },
+      max_completion_tokens: 1000,
+    });
+
+    const result = JSON.parse(response.choices[0].message.content || '{}');
+    
+    return {
+      subject: result.subject || '',
+      body: result.body || ''
+    };
+  } catch (error) {
+    console.error('Error generating email from prompt:', error);
+    throw new Error(`Failed to generate email: ${(error as Error).message}`);
+  }
+}
+
 // Helper function to strip HTML tags for text version
 function stripHtml(html: string): string {
   return html

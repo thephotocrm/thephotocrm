@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Calendar, User, Mail, Phone, FileText, DollarSign, Clock, Copy, Eye, MoreVertical, Trash, Send, MessageSquare, Plus, X, Heart, Briefcase, Camera, ChevronDown, Menu, Link as LinkIcon, ExternalLink, Lock, Settings, Tag } from "lucide-react";
+import { Calendar, User, Mail, Phone, FileText, DollarSign, Clock, Copy, Eye, MoreVertical, Trash, Send, MessageSquare, Plus, X, Heart, Briefcase, Camera, ChevronDown, Menu, Link as LinkIcon, ExternalLink, Lock, Settings, Tag, Sparkles } from "lucide-react";
 import { Link } from "wouter";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useState } from "react";
@@ -44,6 +44,7 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { PhotographerSignatureDialog } from "@/components/photographer-signature-dialog";
 import heroImage from "@assets/stock_images/vintage_camera_photo_e2b0b796.jpg";
 
@@ -183,9 +184,9 @@ export default function ProjectDetail() {
   const [selectedTime, setSelectedTime] = useState<string>("");
   const [meetingTitle, setMeetingTitle] = useState("");
   const [meetingDuration, setMeetingDuration] = useState("60");
-  const [showEmailComposer, setShowEmailComposer] = useState(false);
   const [selectedRecipients, setSelectedRecipients] = useState<string[]>([]);
-  const [showAiOptions, setShowAiOptions] = useState(false);
+  const [showAiModal, setShowAiModal] = useState(false);
+  const [aiPrompt, setAiPrompt] = useState("");
 
   const { data: project, isLoading } = useQuery<Project>({
     queryKey: ["/api/projects", id],
@@ -304,12 +305,33 @@ export default function ProjectDetail() {
       setMessageSubject("");
       setMessageBody("");
       setMessageDialogOpen(false);
-      setShowEmailComposer(false);
       setSelectedRecipients([]);
-      setShowAiOptions(false);
       toast({
         title: "Message sent",
         description: "Your email has been sent successfully."
+      });
+    }
+  });
+
+  const generateEmailMutation = useMutation({
+    mutationFn: async (data: { prompt: string; existingEmailBody?: string }) => {
+      return await apiRequest("POST", `/api/projects/${id}/generate-email`, data);
+    },
+    onSuccess: (data: { subject: string; body: string }) => {
+      setMessageSubject(data.subject);
+      setMessageBody(data.body);
+      setShowAiModal(false);
+      setAiPrompt("");
+      toast({
+        title: "Draft generated",
+        description: "Your AI-generated email draft is ready to review."
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to generate draft",
+        description: error.message || "An error occurred",
+        variant: "destructive"
       });
     }
   });
@@ -578,12 +600,12 @@ export default function ProjectDetail() {
           <div className="lg:col-span-2 space-y-4">
             <TabsContent value="activity" className="m-0">
               <div className="space-y-4">
-                {/* Email Composer */}
-                {!showEmailComposer ? (
-                  <Button 
-                    onClick={() => {
-                      setShowEmailComposer(true);
-                      // Auto-select all recipients when opening composer
+                {/* Email Composer - Always Visible */}
+                <Card 
+                  className="border cursor-pointer hover:border-primary/50 transition-colors" 
+                  onClick={() => {
+                    // Auto-select all recipients when clicking
+                    if (selectedRecipients.length === 0) {
                       const allRecipients = [];
                       const mainContact = getContactInfo(project);
                       if (mainContact?.email) allRecipients.push(mainContact.email);
@@ -591,16 +613,28 @@ export default function ProjectDetail() {
                         if (p.client.email) allRecipients.push(p.client.email);
                       });
                       setSelectedRecipients(allRecipients);
-                    }}
-                    variant="outline"
-                    className="w-full justify-start"
-                    data-testid="button-send-new-email"
-                  >
-                    <Mail className="w-4 h-4 mr-2" />
-                    SEND NEW EMAIL
-                  </Button>
-                ) : (
-                  <Card className="border-2">
+                    }
+                  }}
+                >
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-3">
+                      <Avatar className="h-10 w-10">
+                        <AvatarFallback className="bg-primary/10 text-primary">
+                          {user?.email?.substring(0, 2).toUpperCase() || "AP"}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1">
+                        <div className="text-sm text-muted-foreground">
+                          Reply to: '{project?.title || 'Project'}'
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Expanded Email Editor - Shows when recipients are selected */}
+                {selectedRecipients.length > 0 && (
+                  <Card className="border-2 border-primary/20">
                     <CardContent className="p-4 space-y-4">
                       <div className="flex items-center justify-between">
                         <h3 className="font-medium">New Email</h3>
@@ -608,11 +642,10 @@ export default function ProjectDetail() {
                           variant="ghost"
                           size="sm"
                           onClick={() => {
-                            setShowEmailComposer(false);
                             setMessageSubject("");
                             setMessageBody("");
                             setSelectedRecipients([]);
-                            setShowAiOptions(false);
+                            setAiPrompt("");
                           }}
                           data-testid="button-close-email-composer"
                         >
@@ -621,7 +654,7 @@ export default function ProjectDetail() {
                       </div>
                       
                       <div>
-                        <Label className="text-xs text-muted-foreground">Reply to:</Label>
+                        <Label className="text-xs text-muted-foreground">TO:</Label>
                         <div className="flex items-center gap-2 mt-1 flex-wrap">
                           {getContactInfo(project)?.email && (
                             <Badge 
@@ -689,28 +722,13 @@ export default function ProjectDetail() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => setShowAiOptions(!showAiOptions)}
+                            onClick={() => setShowAiModal(true)}
                             className="text-blue-600 hover:text-blue-700"
                             data-testid="button-edit-with-ai"
                           >
-                            <svg className="w-4 h-4 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                              <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" />
-                            </svg>
+                            <Sparkles className="w-4 h-4 mr-1" />
                             Edit with AI
                           </Button>
-                          {showAiOptions && (
-                            <>
-                              <Button variant="ghost" size="sm" className="text-sm" data-testid="button-ai-tone">
-                                Change tone
-                              </Button>
-                              <Button variant="ghost" size="sm" className="text-sm" data-testid="button-ai-shorter">
-                                Make it shorter
-                              </Button>
-                              <Button variant="ghost" size="sm" className="text-sm" data-testid="button-ai-clarity">
-                                Improve clarity
-                              </Button>
-                            </>
-                          )}
                         </div>
                       </div>
 
@@ -1318,6 +1336,68 @@ export default function ProjectDetail() {
           }}
         />
       )}
+
+      {/* AI Email Writer Modal */}
+      <Dialog open={showAiModal} onOpenChange={setShowAiModal}>
+        <DialogContent className="sm:max-w-[600px]" data-testid="dialog-ai-email-writer">
+          <DialogHeader>
+            <DialogTitle>Edit with AI</DialogTitle>
+            <DialogDescription>
+              Use a prompt to edit the suggestion or write it from scratch. AI will match your tone, voice, and past communication details.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="relative">
+              <Textarea
+                value={aiPrompt}
+                onChange={(e) => setAiPrompt(e.target.value)}
+                placeholder="For example, remove the list of services and add pricing, or write a new message with your own details."
+                rows={6}
+                className="resize-none"
+                maxLength={500}
+                data-testid="textarea-ai-prompt"
+              />
+              <div className="absolute bottom-2 right-2 text-xs text-muted-foreground">
+                {aiPrompt.length}/500
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <div className="w-5 h-5 rounded-full border-2 border-muted-foreground flex items-center justify-center">
+                ?
+              </div>
+              <span className="text-xs">Add a prompt to write a draft.</span>
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-3">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowAiModal(false);
+                setAiPrompt("");
+              }}
+              data-testid="button-cancel-ai"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={() => {
+                generateEmailMutation.mutate({
+                  prompt: aiPrompt,
+                  existingEmailBody: messageBody || undefined
+                });
+              }}
+              disabled={!aiPrompt.trim() || generateEmailMutation.isPending}
+              className="bg-black text-white hover:bg-black/90"
+              data-testid="button-write-draft"
+            >
+              {generateEmailMutation.isPending ? "GENERATING..." : "WRITE DRAFT"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

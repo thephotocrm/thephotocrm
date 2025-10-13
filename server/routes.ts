@@ -1832,6 +1832,46 @@ ${photographer?.businessName || 'Your Photography Team'}`;
     }
   });
 
+  // Generate email content using AI
+  app.post("/api/projects/:id/generate-email", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
+    try {
+      const { prompt, existingEmailBody } = req.body;
+      
+      if (!prompt) {
+        return res.status(400).json({ message: "Prompt is required" });
+      }
+      
+      // Verify project belongs to photographer
+      const project = await storage.getProject(req.params.id);
+      if (!project || project.photographerId !== req.user!.photographerId!) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+      
+      // Get project contact info
+      const contact = project.contactId ? await storage.getContact(project.contactId) : null;
+      const contactName = contact ? `${contact.firstName} ${contact.lastName}` : 'Client';
+      
+      // Get photographer info
+      const photographer = await storage.getPhotographer(req.user!.photographerId!);
+      const photographerName = photographer?.businessName || 'Photographer';
+      
+      // Generate email using OpenAI
+      const { generateEmailFromPrompt } = await import('./services/openai');
+      const result = await generateEmailFromPrompt(prompt, {
+        projectTitle: project.title,
+        contactName,
+        projectType: project.projectType,
+        photographerName,
+        existingEmailBody
+      });
+      
+      res.json(result);
+    } catch (error) {
+      console.error("Generate email error:", error);
+      res.status(500).json({ message: (error as Error).message || "Failed to generate email" });
+    }
+  });
+
   // Send email to selected recipients (HoneyBook-style with recipient selection)
   app.post("/api/projects/:id/send-email", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
