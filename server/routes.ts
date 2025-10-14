@@ -1893,7 +1893,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       if (req.user!.clientId) {
         // Get client to verify photographer ownership
         const contact = await storage.getContact(req.user!.clientId);
-        if (!client || contact.photographerId !== project.photographerId) {
+        if (!contact || contact.photographerId !== project.photographerId) {
           return res.status(403).json({ message: "Access denied" });
         }
         
@@ -1939,7 +1939,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       // For clients, verify they belong to the same photographer as the project
       if (req.user!.clientId) {
         const contact = await storage.getContact(req.user!.clientId);
-        if (!client || contact.photographerId !== project.photographerId) {
+        if (!contact || contact.photographerId !== project.photographerId) {
           return res.status(403).json({ message: "Access denied" });
         }
         isPrimaryClient = req.user!.clientId === project.clientId;
@@ -1960,7 +1960,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       // Look up or create client
       let contact = await storage.getContactByEmail(email.toLowerCase(), project.photographerId);
       
-      if (!client) {
+      if (!contact) {
         // Create new client (they'll use portal tokens for authentication)
         const newClientData = insertClientSchema.parse({
           photographerId: project.photographerId,
@@ -2011,7 +2011,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       // For clients, verify they belong to the same photographer as the project
       if (req.user!.clientId) {
         const contact = await storage.getContact(req.user!.clientId);
-        if (!client || contact.photographerId !== project.photographerId) {
+        if (!contact || contact.photographerId !== project.photographerId) {
           return res.status(403).json({ message: "Access denied" });
         }
         isPrimaryClient = req.user!.clientId === project.clientId;
@@ -6088,14 +6088,16 @@ ${photographer.businessName}`
       // Check if client already exists (by photographer + email)
       let contact = await storage.getContactByEmail(submissionData.email, photographer.id);
       
-      if (!client) {
-        // Create new client with contact information
+      if (!contact) {
+        // Create new client with contact information from lead form
         contact = await storage.createContact({
           photographerId: photographer.id,
           firstName: submissionData.firstName,
           lastName: submissionData.lastName,
           email: submissionData.email,
-          phone: submissionData.phone
+          phone: submissionData.phone,
+          leadSource: `LEAD_FORM:${form.id}`, // Track which form captured this lead
+          projectType: form.projectType
         });
       } else {
         // Update existing client info if provided
