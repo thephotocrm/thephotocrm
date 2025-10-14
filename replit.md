@@ -33,6 +33,7 @@ Preferred communication style: Simple, everyday language.
 *   **Authentication & Authorization:** Three-tier role system (PHOTOGRAPHER, CLIENT, ADMIN) with stateless JWT authentication and role-based middleware.
 *   **Super Admin Dashboard:** Manages photographers, subscriptions, account impersonation, activity logging, and provides role-based route protection.
 *   **Premium Features System:** Implemented `hasPremiumAccess` for subscription management, a "Get Leads" premium section in the sidebar, and lock/unlock functionality for advertising platforms (Facebook, Google, Instagram, Pinterest, TikTok Ads) with a comprehensive Upgrade Modal and placeholder feature showcase pages.
+*   **Managed Advertising Platform:** White-label advertising service where the platform runs Google Ads and Facebook campaigns through master MCC/Business Manager accounts. Features include tiered pricing (25% markup under $2k/month, 20% for $2k-$5k, 15% over $5k), budget slider, lead estimates, campaign status tracking, and payment method management. Database tables: ad_campaigns, ad_payment_methods, ad_performance, ad_billing_transactions.
 *   **Terminology Refactor:** System-wide change from "Clients" to "Contacts" across frontend, backend, UI, and database.
 
 **System Design Choices:**
