@@ -79,6 +79,7 @@ export function ChatbotWidget({ context = "general", photographerName }: Chatbot
 
       setMessages(prev => [...prev, assistantMessage]);
     } catch (error) {
+      console.error("Chatbot error:", error);
       const errorMessage: Message = {
         role: "assistant",
         content: "Sorry, I'm having trouble responding right now. Please try again.",
