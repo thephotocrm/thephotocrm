@@ -68,9 +68,20 @@ export async function getChatbotResponse(
       max_completion_tokens: 500
     });
 
+    console.log("OpenAI Response:", JSON.stringify(response, null, 2));
+    
+    if (!response.choices || !response.choices[0] || !response.choices[0].message) {
+      console.error("Invalid OpenAI response structure:", response);
+      return "I'm sorry, I couldn't generate a response. Please try again.";
+    }
+
     return response.choices[0].message.content || "I'm sorry, I couldn't generate a response. Please try again.";
   } catch (error: any) {
-    console.error("Chatbot error:", error);
+    console.error("Chatbot error details:", {
+      message: error.message,
+      stack: error.stack,
+      response: error.response?.data
+    });
     throw new Error("Failed to get chatbot response");
   }
 }
