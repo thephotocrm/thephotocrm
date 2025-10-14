@@ -3741,6 +3741,8 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       const { extractAutomationFromDescription } = await import("./services/chatbot");
       const extracted = await extractAutomationFromDescription(description, photographerId);
 
+      console.log('AI Extracted data:', JSON.stringify(extracted, null, 2));
+
       // Create the automation
       const automationData = validateAutomationSchema.parse({
         photographerId,
@@ -3758,8 +3760,14 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       for (let i = 0; i < extracted.steps.length; i++) {
         const step = extracted.steps[i];
         
-        // Convert delay to minutes
-        const delayMinutes = (step.delayDays * 24 * 60) + (step.delayHours * 60);
+        console.log('Processing step:', i, step);
+        
+        // Convert delay to minutes, defaulting to 0 if undefined
+        const delayDays = step.delayDays ?? 0;
+        const delayHours = step.delayHours ?? 0;
+        const delayMinutes = (delayDays * 24 * 60) + (delayHours * 60);
+        
+        console.log('Delay calculation:', { delayDays, delayHours, delayMinutes });
         
         const stepData = insertAutomationStepSchema.parse({
           automationId: automation.id,
