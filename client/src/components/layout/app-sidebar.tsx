@@ -347,7 +347,7 @@ export function AppSidebar() {
           <>
           <SidebarGroup>
             <SidebarGroupContent>
-              <SidebarMenu className="space-y-2">
+              <SidebarMenu>
                 {showAdminNav ? (
                   // Admin Navigation (flat structure)
                   adminNavigation.map((item) => {
@@ -429,7 +429,7 @@ export function AppSidebar() {
                             </SidebarMenuButton>
                           </CollapsibleTrigger>
                           <CollapsibleContent>
-                            <SidebarMenuSub className="space-y-1 mt-1">
+                            <SidebarMenuSub>
                               {group.items.map((item) => {
                                 const isActive = location === item.href;
                                 const Icon = item.icon;
@@ -474,7 +474,7 @@ export function AppSidebar() {
                             </div>
                           </div>
                           
-                          <div className="space-y-2 mt-4">
+                          <div className="space-y-1 mt-4">
                             {/* Lead Hub */}
                             {hasPremiumAccess ? (
                               <Link href="/lead-hub" data-testid="nav-lead-hub">
