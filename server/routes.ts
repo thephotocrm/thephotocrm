@@ -2884,7 +2884,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       const contact = await storage.getContact(projectSmartFile.clientId);
       const photographer = await storage.getPhotographer(projectSmartFile.photographerId);
 
-      if (!project || !client || !photographer) {
+      if (!project || !contact || !photographer) {
         return res.status(404).json({ message: "Smart File not found" });
       }
 
