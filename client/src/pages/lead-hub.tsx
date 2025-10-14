@@ -1,439 +1,321 @@
-import { useState, useEffect } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { Rocket, TrendingUp, Target, DollarSign, Users, BarChart3, Zap, CreditCard, AlertCircle, CheckCircle2 } from "lucide-react";
-import { SiFacebook, SiGoogle } from "react-icons/si";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { Users, TrendingUp, Calendar, Mail, Phone, MapPin, Filter, Search, Plus, ExternalLink } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
-import { Slider } from "@/components/ui/slider";
+import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Separator } from "@/components/ui/separator";
-import { queryClient, apiRequest } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { useLocation } from "wouter";
+import { format } from "date-fns";
 
-interface AdCampaign {
+interface Contact {
   id: string;
-  platform: "GOOGLE" | "FACEBOOK";
-  status: string;
-  monthlyBudgetCents: number;
-  markupPercent: number;
-  currentSpendCents: number;
-  totalLeadsGenerated: number;
-}
-
-interface PaymentMethod {
-  id: string;
-  cardBrand: string;
-  cardLast4: string;
-  cardExpMonth: number;
-  cardExpYear: number;
-  isDefault: boolean;
+  firstName: string;
+  lastName: string | null;
+  email: string;
+  phone: string | null;
+  address: string | null;
+  city: string | null;
+  state: string | null;
+  zip: string | null;
+  leadSource: string;
+  projectType: string;
+  createdAt: string;
 }
 
 export default function LeadHub() {
-  const { toast } = useToast();
-  const [budget, setBudget] = useState(1000);
-  const [googleEnabled, setGoogleEnabled] = useState(false);
-  const [facebookEnabled, setFacebookEnabled] = useState(false);
+  const [, setLocation] = useLocation();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterSource, setFilterSource] = useState<string>("all");
+  const [filterDate, setFilterDate] = useState<string>("all");
 
-  // Fetch existing campaigns
-  const { data: campaigns = [], isLoading: campaignsLoading } = useQuery<AdCampaign[]>({
-    queryKey: ['/api/ad-campaigns']
+  // Fetch contacts (leads)
+  const { data: contacts = [], isLoading } = useQuery<Contact[]>({
+    queryKey: ['/api/contacts']
   });
 
-  // Fetch payment methods
-  const { data: paymentMethods = [] } = useQuery<PaymentMethod[]>({
-    queryKey: ['/api/ad-payment-methods']
-  });
+  // Calculate stats
+  const totalLeads = contacts.length;
+  const thisMonth = contacts.filter(c => {
+    const createdDate = new Date(c.createdAt);
+    const now = new Date();
+    return createdDate.getMonth() === now.getMonth() && 
+           createdDate.getFullYear() === now.getFullYear();
+  }).length;
 
-  const googleCampaign = campaigns.find(c => c.platform === 'GOOGLE');
-  const facebookCampaign = campaigns.find(c => c.platform === 'FACEBOOK');
-  const hasPaymentMethod = paymentMethods.length > 0;
+  const leadSources = Array.from(new Set(contacts.map(c => c.leadSource)));
 
-  // Initialize budget and state from existing campaigns
-  useEffect(() => {
-    if (googleCampaign && googleCampaign.monthlyBudgetCents > 0) {
-      setBudget(googleCampaign.monthlyBudgetCents / 100);
-      setGoogleEnabled(googleCampaign.status === 'ACTIVE');
-    }
-    if (facebookCampaign && facebookCampaign.monthlyBudgetCents > 0) {
-      setBudget(facebookCampaign.monthlyBudgetCents / 100);
-      setFacebookEnabled(facebookCampaign.status === 'ACTIVE');
-    }
-  }, [campaigns]);
-
-  // Calculate tiered pricing
-  const calculateMarkup = (budgetAmount: number) => {
-    if (budgetAmount < 2000) return 25;
-    if (budgetAmount < 5000) return 20;
-    return 15;
-  };
-
-  const markupPercent = calculateMarkup(budget);
-  const platformCost = budget;
-  const ourFee = (budget * markupPercent) / 100;
-  const totalCost = platformCost + ourFee;
-  
-  // Estimate leads (rough industry average: $50-100 per lead for wedding photography)
-  const estimatedLeadsMin = Math.floor(budget / 100);
-  const estimatedLeadsMax = Math.floor(budget / 50);
-
-  // Toggle campaign mutation
-  const toggleCampaignMutation = useMutation({
-    mutationFn: async ({ platform, enabled }: { platform: "GOOGLE" | "FACEBOOK"; enabled: boolean }) => {
-      const campaign = platform === 'GOOGLE' ? googleCampaign : facebookCampaign;
+  // Filter contacts
+  const filteredContacts = contacts.filter(contact => {
+    const matchesSearch = 
+      contact.firstName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      contact.lastName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      contact.email?.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    const matchesSource = filterSource === "all" || contact.leadSource === filterSource;
+    
+    let matchesDate = true;
+    if (filterDate !== "all") {
+      const createdDate = new Date(contact.createdAt);
+      const now = new Date();
       
-      if (enabled) {
-        // If campaign exists, activate it. Otherwise, create new one.
-        if (campaign) {
-          return await apiRequest(`/api/ad-campaigns/${campaign.id}`, {
-            method: 'PATCH',
-            body: JSON.stringify({ 
-              status: 'ACTIVE',
-              monthlyBudgetCents: budget * 100,
-              markupPercent: markupPercent
-            })
-          });
-        } else {
-          return await apiRequest(`/api/ad-campaigns`, {
-            method: 'POST',
-            body: JSON.stringify({
-              platform,
-              monthlyBudgetCents: budget * 100,
-              markupPercent: markupPercent
-            })
-          });
-        }
-      } else {
-        if (campaign) {
-          return await apiRequest(`/api/ad-campaigns/${campaign.id}`, {
-            method: 'PATCH',
-            body: JSON.stringify({ status: 'PAUSED' })
-          });
-        }
+      if (filterDate === "today") {
+        matchesDate = createdDate.toDateString() === now.toDateString();
+      } else if (filterDate === "week") {
+        const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        matchesDate = createdDate >= weekAgo;
+      } else if (filterDate === "month") {
+        matchesDate = createdDate.getMonth() === now.getMonth() && 
+                     createdDate.getFullYear() === now.getFullYear();
       }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/ad-campaigns'] });
-      toast({
-        title: "Campaign updated",
-        description: "Your advertising campaign has been updated successfully."
-      });
-    },
-    onError: () => {
-      toast({
-        title: "Error",
-        description: "Failed to update campaign. Please try again.",
-        variant: "destructive"
-      });
     }
+
+    return matchesSearch && matchesSource && matchesDate;
   });
 
-  const handleGoogleToggle = (enabled: boolean) => {
-    if (enabled && !hasPaymentMethod) {
-      toast({
-        title: "Payment method required",
-        description: "Please add a payment method before enabling ads.",
-        variant: "destructive"
-      });
-      return;
-    }
-    setGoogleEnabled(enabled);
-    toggleCampaignMutation.mutate({ platform: "GOOGLE", enabled });
+  // Get source badge color
+  const getSourceBadgeVariant = (source: string) => {
+    if (source.includes('WEBSITE') || source.includes('WIDGET')) return 'default';
+    if (source.includes('ADVERTISING')) return 'destructive';
+    if (source.includes('REFERRAL')) return 'secondary';
+    return 'outline';
   };
 
-  const handleFacebookToggle = (enabled: boolean) => {
-    if (enabled && !hasPaymentMethod) {
-      toast({
-        title: "Payment method required",
-        description: "Please add a payment method before enabling ads.",
-        variant: "destructive"
-      });
-      return;
-    }
-    setFacebookEnabled(enabled);
-    toggleCampaignMutation.mutate({ platform: "FACEBOOK", enabled });
-  };
-
-  const handleAddPaymentMethod = async () => {
-    // This will be implemented with Stripe Elements
-    toast({
-      title: "Coming soon",
-      description: "Payment method integration will be available shortly."
-    });
+  // Get initials for avatar
+  const getInitials = (firstName: string, lastName: string | null) => {
+    const first = firstName?.charAt(0) || '';
+    const last = lastName?.charAt(0) || '';
+    return (first + last).toUpperCase();
   };
 
   return (
-    <div className="min-h-screen p-8" data-testid="lead-hub-page">
+    <div className="p-6 space-y-6">
       {/* Header */}
-      <div className="max-w-7xl mx-auto mb-8">
-        <div className="flex items-center gap-4 mb-4">
-          <div className="p-3 rounded-full bg-gradient-to-r from-purple-500/10 via-pink-500/10 to-orange-500/10">
-            <Rocket className="w-8 h-8 text-purple-500" />
-          </div>
-          <div>
-            <h1 className="text-3xl font-bold">Lead Hub</h1>
-            <p className="text-muted-foreground">
-              Fully managed advertising that delivers exclusive leads directly to your CRM
-            </p>
-          </div>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold mb-2" data-testid="text-page-title">Lead Hub</h1>
+          <p className="text-muted-foreground">
+            Manage and track all your exclusive leads in one place
+          </p>
         </div>
+        <Button 
+          onClick={() => setLocation('/contacts')}
+          data-testid="button-add-contact"
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          Add Contact
+        </Button>
       </div>
 
-      {/* Payment Method Alert */}
-      {!hasPaymentMethod && (
-        <div className="max-w-7xl mx-auto mb-6">
-          <Alert>
-            <CreditCard className="h-4 w-4" />
-            <AlertDescription className="flex items-center justify-between">
-              <span>Add a payment method to start running ads</span>
-              <Button size="sm" onClick={handleAddPaymentMethod} data-testid="button-add-payment">
-                Add Payment Method
-              </Button>
-            </AlertDescription>
-          </Alert>
-        </div>
-      )}
-
-      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left Column: Platform Controls */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Ad Platforms */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Advertising Platforms</CardTitle>
-              <CardDescription>Enable the platforms where you want to run ads</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {/* Google Ads */}
-              <div className="flex items-center justify-between p-4 bg-black/20 border border-gray-400 rounded-lg">
-                <div className="flex items-center gap-4">
-                  <div className="p-3 rounded-full bg-[#4285F4]/10">
-                    <SiGoogle className="w-6 h-6 text-[#4285F4]" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold">Google Ads</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Capture high-intent searches from couples looking for photographers
-                    </p>
-                    {googleCampaign && (
-                      <div className="flex gap-2 mt-2">
-                        <Badge variant="outline" className="text-xs">
-                          {googleCampaign.totalLeadsGenerated} leads
-                        </Badge>
-                        <Badge variant="outline" className="text-xs">
-                          ${(googleCampaign.currentSpendCents / 100).toFixed(2)} spent
-                        </Badge>
-                      </div>
-                    )}
-                  </div>
-                </div>
-                <Switch
-                  checked={googleEnabled || googleCampaign?.status === 'ACTIVE'}
-                  onCheckedChange={handleGoogleToggle}
-                  disabled={!hasPaymentMethod || toggleCampaignMutation.isPending}
-                  data-testid="switch-google-ads"
-                />
-              </div>
-
-              {/* Facebook Ads */}
-              <div className="flex items-center justify-between p-4 bg-black/20 border border-gray-400 rounded-lg">
-                <div className="flex items-center gap-4">
-                  <div className="p-3 rounded-full bg-[#1877F2]/10">
-                    <SiFacebook className="w-6 h-6 text-[#1877F2]" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold">Facebook & Instagram Ads</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Reach engaged couples with visual storytelling
-                    </p>
-                    {facebookCampaign && (
-                      <div className="flex gap-2 mt-2">
-                        <Badge variant="outline" className="text-xs">
-                          {facebookCampaign.totalLeadsGenerated} leads
-                        </Badge>
-                        <Badge variant="outline" className="text-xs">
-                          ${(facebookCampaign.currentSpendCents / 100).toFixed(2)} spent
-                        </Badge>
-                      </div>
-                    )}
-                  </div>
-                </div>
-                <Switch
-                  checked={facebookEnabled || facebookCampaign?.status === 'ACTIVE'}
-                  onCheckedChange={handleFacebookToggle}
-                  disabled={!hasPaymentMethod || toggleCampaignMutation.isPending}
-                  data-testid="switch-facebook-ads"
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Budget Control */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Monthly Budget</CardTitle>
-              <CardDescription>Set your total monthly advertising budget</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Card className="border-blue-500/20 bg-gradient-to-br from-blue-500/5 to-cyan-500/5">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Total Leads</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-2">
+              <Users className="w-8 h-8 text-blue-500" />
               <div>
-                <div className="flex items-center justify-between mb-4">
-                  <span className="text-3xl font-bold">${budget.toLocaleString()}</span>
-                  <span className="text-sm text-muted-foreground">per month</span>
-                </div>
-                <Slider
-                  value={[budget]}
-                  onValueChange={(value) => setBudget(value[0])}
-                  min={500}
-                  max={10000}
-                  step={100}
-                  className="mb-2"
-                  data-testid="slider-budget"
+                <div className="text-3xl font-bold" data-testid="text-total-leads">{totalLeads}</div>
+                <p className="text-xs text-muted-foreground">All time</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-green-500/20 bg-gradient-to-br from-green-500/5 to-emerald-500/5">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-muted-foreground">This Month</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-2">
+              <TrendingUp className="w-8 h-8 text-green-500" />
+              <div>
+                <div className="text-3xl font-bold" data-testid="text-monthly-leads">{thisMonth}</div>
+                <p className="text-xs text-muted-foreground">New leads</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-purple-500/20 bg-gradient-to-br from-purple-500/5 to-pink-500/5">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Lead Sources</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-2">
+              <Calendar className="w-8 h-8 text-purple-500" />
+              <div>
+                <div className="text-3xl font-bold" data-testid="text-lead-sources">{leadSources.length}</div>
+                <p className="text-xs text-muted-foreground">Active sources</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Filters and Search */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Leads</CardTitle>
+          <CardDescription>Search and filter your leads</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex-1">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search by name or email..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10"
+                  data-testid="input-search-leads"
                 />
-                <div className="flex justify-between text-xs text-muted-foreground mt-2">
-                  <span>$500</span>
-                  <span>$10,000</span>
-                </div>
               </div>
+            </div>
+            
+            <Select value={filterSource} onValueChange={setFilterSource}>
+              <SelectTrigger className="w-full md:w-[200px]" data-testid="select-filter-source">
+                <SelectValue placeholder="Filter by source" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Sources</SelectItem>
+                {leadSources.map(source => (
+                  <SelectItem key={source} value={source}>{source.replace(/_/g, ' ')}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
 
-              <Separator />
+            <Select value={filterDate} onValueChange={setFilterDate}>
+              <SelectTrigger className="w-full md:w-[200px]" data-testid="select-filter-date">
+                <SelectValue placeholder="Filter by date" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Time</SelectItem>
+                <SelectItem value="today">Today</SelectItem>
+                <SelectItem value="week">This Week</SelectItem>
+                <SelectItem value="month">This Month</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </CardContent>
+      </Card>
 
-              {/* Pricing Breakdown */}
-              <div className="space-y-3">
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Platform ad spend</span>
-                  <span className="font-medium">${platformCost.toLocaleString()}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">
-                    Our fee ({markupPercent}%)
-                    <Badge variant="secondary" className="ml-2 text-xs">
-                      {budget < 2000 ? "Standard" : budget < 5000 ? "Growth" : "Enterprise"}
-                    </Badge>
-                  </span>
-                  <span className="font-medium">${ourFee.toLocaleString()}</span>
-                </div>
-                <Separator />
-                <div className="flex justify-between">
-                  <span className="font-semibold">Total monthly cost</span>
-                  <span className="text-xl font-bold">${totalCost.toLocaleString()}</span>
-                </div>
-              </div>
-
-              <Alert className="bg-blue-500/10 border-blue-500/20">
-                <TrendingUp className="h-4 w-4 text-blue-500" />
-                <AlertDescription className="text-sm">
-                  <strong>Higher budgets = better rates!</strong> Get 15% fee on budgets over $5,000/month
-                </AlertDescription>
-              </Alert>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Right Column: Stats & Info */}
-        <div className="space-y-6">
-          {/* Lead Estimates */}
+      {/* Lead Cards */}
+      <div className="space-y-4">
+        {isLoading ? (
+          <div className="text-center py-12">
+            <p className="text-muted-foreground">Loading leads...</p>
+          </div>
+        ) : filteredContacts.length === 0 ? (
           <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Users className="w-5 h-5" />
-                Estimated Leads
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-4">
-                <div className="text-4xl font-bold mb-2">
-                  {estimatedLeadsMin}-{estimatedLeadsMax}
-                </div>
-                <p className="text-sm text-muted-foreground">leads per month</p>
-                <p className="text-xs text-muted-foreground mt-2">
-                  Based on ${budget.toLocaleString()} budget
-                </p>
-              </div>
-              <Separator className="my-4" />
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Cost per lead</span>
-                  <span className="font-medium">$50-$100</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Expected CTR</span>
-                  <span className="font-medium">2-4%</span>
-                </div>
-              </div>
+            <CardContent className="py-12 text-center">
+              <Users className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+              <h3 className="text-lg font-semibold mb-2">No leads found</h3>
+              <p className="text-muted-foreground mb-4">
+                {searchQuery || filterSource !== "all" || filterDate !== "all" 
+                  ? "Try adjusting your filters"
+                  : "Your leads will appear here once they start coming in"}
+              </p>
+              {!searchQuery && filterSource === "all" && filterDate === "all" && (
+                <Button onClick={() => setLocation('/budget-estimator')} variant="outline">
+                  <ExternalLink className="w-4 h-4 mr-2" />
+                  Set Up Advertising
+                </Button>
+              )}
             </CardContent>
           </Card>
+        ) : (
+          filteredContacts.map((contact) => (
+            <Card key={contact.id} className="hover:shadow-md transition-shadow" data-testid={`card-lead-${contact.id}`}>
+              <CardContent className="p-6">
+                <div className="flex items-start gap-4">
+                  <Avatar className="w-12 h-12">
+                    <AvatarFallback className="bg-gradient-to-br from-purple-500 to-pink-500 text-white font-semibold">
+                      {getInitials(contact.firstName, contact.lastName)}
+                    </AvatarFallback>
+                  </Avatar>
 
-          {/* Key Features */}
-          <Card>
-            <CardHeader>
-              <CardTitle>What's Included</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex items-start gap-3">
-                <CheckCircle2 className="w-5 h-5 text-green-500 mt-0.5" />
-                <div>
-                  <p className="font-medium text-sm">Professional Campaign Management</p>
-                  <p className="text-xs text-muted-foreground">We handle everything for you</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <CheckCircle2 className="w-5 h-5 text-green-500 mt-0.5" />
-                <div>
-                  <p className="font-medium text-sm">Automatic Lead Capture</p>
-                  <p className="text-xs text-muted-foreground">Leads added to your CRM instantly</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <CheckCircle2 className="w-5 h-5 text-green-500 mt-0.5" />
-                <div>
-                  <p className="font-medium text-sm">Performance Tracking</p>
-                  <p className="text-xs text-muted-foreground">Real-time analytics dashboard</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <CheckCircle2 className="w-5 h-5 text-green-500 mt-0.5" />
-                <div>
-                  <p className="font-medium text-sm">Budget Protection</p>
-                  <p className="text-xs text-muted-foreground">Auto-pause at monthly limit</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Payment Method */}
-          {hasPaymentMethod && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <CreditCard className="w-5 h-5" />
-                  Payment Method
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {paymentMethods.map((pm) => (
-                  <div key={pm.id} className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 bg-background rounded">
-                        <CreditCard className="w-4 h-4" />
-                      </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-4 mb-2">
                       <div>
-                        <p className="font-medium text-sm">{pm.cardBrand.toUpperCase()} •••• {pm.cardLast4}</p>
+                        <h3 className="text-lg font-semibold" data-testid={`text-lead-name-${contact.id}`}>
+                          {contact.firstName} {contact.lastName || ''}
+                        </h3>
+                        <div className="flex items-center gap-2 mt-1">
+                          <Badge variant={getSourceBadgeVariant(contact.leadSource)} data-testid={`badge-source-${contact.id}`}>
+                            {contact.leadSource.replace(/_/g, ' ')}
+                          </Badge>
+                          <Badge variant="outline">{contact.projectType}</Badge>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm text-muted-foreground">
+                          {format(new Date(contact.createdAt), 'MMM d, yyyy')}
+                        </p>
                         <p className="text-xs text-muted-foreground">
-                          Expires {pm.cardExpMonth}/{pm.cardExpYear}
+                          {format(new Date(contact.createdAt), 'h:mm a')}
                         </p>
                       </div>
                     </div>
-                    {pm.isDefault && (
-                      <Badge variant="secondary" className="text-xs">Default</Badge>
-                    )}
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
+                      {contact.email && (
+                        <div className="flex items-center gap-2 text-sm">
+                          <Mail className="w-4 h-4 text-muted-foreground" />
+                          <a href={`mailto:${contact.email}`} className="text-blue-600 hover:underline truncate">
+                            {contact.email}
+                          </a>
+                        </div>
+                      )}
+                      
+                      {contact.phone && (
+                        <div className="flex items-center gap-2 text-sm">
+                          <Phone className="w-4 h-4 text-muted-foreground" />
+                          <a href={`tel:${contact.phone}`} className="text-blue-600 hover:underline">
+                            {contact.phone}
+                          </a>
+                        </div>
+                      )}
+
+                      {(contact.city || contact.state) && (
+                        <div className="flex items-center gap-2 text-sm">
+                          <MapPin className="w-4 h-4 text-muted-foreground" />
+                          <span className="text-muted-foreground">
+                            {[contact.city, contact.state].filter(Boolean).join(', ')}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="flex gap-2 mt-4">
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={() => setLocation(`/contacts`)}
+                        data-testid={`button-view-contact-${contact.id}`}
+                      >
+                        View Details
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={() => setLocation(`/projects`)}
+                        data-testid={`button-create-project-${contact.id}`}
+                      >
+                        Create Project
+                      </Button>
+                    </div>
                   </div>
-                ))}
+                </div>
               </CardContent>
             </Card>
-          )}
-        </div>
+          ))
+        )}
       </div>
     </div>
   );
