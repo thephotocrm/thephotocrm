@@ -50,9 +50,9 @@ export default function LeadHub() {
   // Filter contacts
   const filteredContacts = contacts.filter(contact => {
     const matchesSearch = 
-      contact.firstName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      contact.lastName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      contact.email?.toLowerCase().includes(searchQuery.toLowerCase());
+      (contact.firstName ?? "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (contact.lastName ?? "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (contact.email ?? "").toLowerCase().includes(searchQuery.toLowerCase());
     
     const matchesSource = filterSource === "all" || contact.leadSource === filterSource;
     
