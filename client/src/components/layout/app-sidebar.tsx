@@ -32,7 +32,8 @@ import {
   TrendingUp as BusinessIcon,
   Inbox as InboxIcon,
   Lock,
-  Rocket
+  Rocket,
+  Info
 } from "lucide-react";
 import { SiFacebook, SiGoogle, SiInstagram, SiPinterest, SiTiktok } from "react-icons/si";
 import {
@@ -307,6 +308,27 @@ export function AppSidebar() {
                       <Lock className="absolute -top-1 -right-1 w-4 h-4 text-yellow-400" />
                     </button>
                   )}
+                  
+                  <Link
+                    href="/how-it-works"
+                    data-testid="nav-how-it-works-mobile"
+                  >
+                    <div
+                      className={`
+                        relative aspect-square rounded-xl flex flex-col items-center justify-center p-3
+                        transition-all duration-200 border border-gray-400
+                        ${location === '/how-it-works'
+                          ? 'bg-white/20 shadow-lg scale-105' 
+                          : 'bg-white/10 hover:bg-white/15 hover:scale-105'
+                        }
+                      `}
+                    >
+                      <Info className="w-8 h-8 text-blue-400 mb-2" />
+                      <span className="text-[10px] font-medium text-white text-center leading-tight">
+                        How It Works
+                      </span>
+                    </div>
+                  </Link>
                 </div>
                 {!hasPremiumAccess && (
                   <button
@@ -456,7 +478,7 @@ export function AppSidebar() {
                             {/* Lead Hub */}
                             {hasPremiumAccess ? (
                               <Link href="/lead-hub" data-testid="nav-lead-hub">
-                                <button className="w-full flex items-center gap-3 px-3 py-2 rounded-md transition-all hover:bg-slate-700/50 text-white bg-black/20 border border-gray-400">
+                                <button className={`w-full flex items-center gap-3 px-3 py-2 rounded-md transition-all hover:bg-slate-700/50 text-white ${location === '/lead-hub' ? 'bg-slate-700' : 'bg-black/20'} border border-gray-400`}>
                                   <TrendingUp className="w-5 h-5 text-purple-400" />
                                   <span className="text-sm font-medium">Lead Hub</span>
                                 </button>
@@ -472,6 +494,14 @@ export function AppSidebar() {
                                 <Lock className="w-3 h-3 ml-auto text-yellow-400" />
                               </button>
                             )}
+                            
+                            {/* How It Works */}
+                            <Link href="/how-it-works" data-testid="nav-how-it-works">
+                              <button className={`w-full flex items-center gap-3 px-3 py-2 rounded-md transition-all hover:bg-slate-700/50 text-white ${location === '/how-it-works' ? 'bg-slate-700' : 'bg-black/20'} border border-gray-400`}>
+                                <Info className="w-5 h-5 text-blue-400" />
+                                <span className="text-sm font-medium">How It Works</span>
+                              </button>
+                            </Link>
                           </div>
                           
                           {/* Upgrade CTA */}
