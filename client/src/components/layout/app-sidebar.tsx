@@ -452,7 +452,7 @@ export function AppSidebar() {
                             </div>
                           </div>
                           
-                          <div className="space-y-1 mt-1">
+                          <div className="space-y-1 mt-4">
                             {/* Lead Hub */}
                             {hasPremiumAccess ? (
                               <Link href="/lead-hub" data-testid="nav-lead-hub">
