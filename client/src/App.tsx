@@ -180,6 +180,7 @@ function Router() {
       <Route path="/pinterest-ads"><ProtectedRoutes /></Route>
       <Route path="/tiktok-ads"><ProtectedRoutes /></Route>
       <Route path="/settings"><ProtectedRoutes /></Route>
+      <Route path="/tutorials"><ProtectedRoutes /></Route>
       
       {/* Landing page - must be last so other routes match first */}
       <Route path="/" component={Landing} />

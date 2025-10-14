@@ -11,12 +11,10 @@ import {
   FileText,
   MessageSquare,
   Package,
-  ShoppingBag,
-  Calendar,
   TrendingUp,
   BarChart3,
   Workflow,
-  X
+  Calendar
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -33,9 +31,8 @@ interface Tutorial {
   title: string;
   description: string;
   duration: string;
-  videoId?: string; // YouTube video ID placeholder
+  videoId?: string;
   icon: any;
-  completed?: boolean;
 }
 
 export default function Tutorials() {
@@ -189,7 +186,7 @@ export default function Tutorials() {
     });
   };
 
-  const TutorialCard = ({ tutorial, category }: { tutorial: Tutorial; category: string }) => {
+  const TutorialCard = ({ tutorial }: { tutorial: Tutorial }) => {
     const isCompleted = completedTutorials.has(tutorial.id);
     const Icon = tutorial.icon;
     
@@ -203,7 +200,6 @@ export default function Tutorials() {
         )}
         data-testid={`tutorial-${tutorial.id}`}
       >
-        {/* Completion Badge */}
         {isCompleted && (
           <div className="absolute top-4 right-4">
             <CheckCircle2 className="w-6 h-6 text-green-500" />
@@ -270,6 +266,9 @@ export default function Tutorials() {
     return Math.round((completed / tutorials.length) * 100);
   };
 
+  const totalTutorials = setupTutorials.length + perPageTutorials.length + workflowTutorials.length;
+  const overallProgress = Math.round((completedTutorials.size / totalTutorials) * 100);
+
   return (
     <div className="min-h-screen p-8" data-testid="tutorials-page">
       {/* Header */}
@@ -291,15 +290,13 @@ export default function Tutorials() {
           <div className="flex items-center justify-between mb-3">
             <h3 className="font-semibold">Your Learning Progress</h3>
             <span className="text-sm text-muted-foreground">
-              {completedTutorials.size} of {setupTutorials.length + perPageTutorials.length + workflowTutorials.length} completed
+              {completedTutorials.size} of {totalTutorials} completed
             </span>
           </div>
           <div className="w-full h-3 bg-background rounded-full overflow-hidden">
             <div 
               className="h-full bg-gradient-to-r from-purple-500 to-pink-500 transition-all duration-500"
-              style={{ 
-                width: `${Math.round((completedTutorials.size / (setupTutorials.length + perPageTutorials.length + workflowTutorials.length)) * 100)}%` 
-              }}
+              style={{ width: `${overallProgress}%` }}
             />
           </div>
         </div>
@@ -325,7 +322,7 @@ export default function Tutorials() {
           </div>
           <div className="grid md:grid-cols-2 gap-6">
             {setupTutorials.map(tutorial => (
-              <TutorialCard key={tutorial.id} tutorial={tutorial} category="setup" />
+              <TutorialCard key={tutorial.id} tutorial={tutorial} />
             ))}
           </div>
         </section>
@@ -349,7 +346,7 @@ export default function Tutorials() {
           </div>
           <div className="grid md:grid-cols-2 gap-6">
             {perPageTutorials.map(tutorial => (
-              <TutorialCard key={tutorial.id} tutorial={tutorial} category="feature" />
+              <TutorialCard key={tutorial.id} tutorial={tutorial} />
             ))}
           </div>
         </section>
@@ -373,7 +370,7 @@ export default function Tutorials() {
           </div>
           <div className="grid md:grid-cols-1 gap-6">
             {workflowTutorials.map(tutorial => (
-              <TutorialCard key={tutorial.id} tutorial={tutorial} category="workflow" />
+              <TutorialCard key={tutorial.id} tutorial={tutorial} />
             ))}
           </div>
         </section>
