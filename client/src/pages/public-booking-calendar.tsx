@@ -26,6 +26,7 @@ import {
   ChevronLeft,
   ChevronRight
 } from "lucide-react";
+import { ChatbotWidget } from "@/components/chatbot-widget";
 
 interface TimeSlot {
   id: string;
@@ -679,6 +680,11 @@ export default function PublicBookingCalendar() {
           )}
         </DialogContent>
       </Dialog>
+      
+      <ChatbotWidget 
+        context="booking" 
+        photographerName={photographer.businessName}
+      />
     </div>
   );
 }
