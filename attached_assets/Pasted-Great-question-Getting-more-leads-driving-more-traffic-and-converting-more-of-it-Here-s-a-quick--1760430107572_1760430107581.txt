@@ -1,0 +1,57 @@
+Great question! Getting more leads = driving more traffic and converting more of it. Here’s a quick, high-impact plan using Lazy Photog plus a few proven wedding marketing tactics.
+
+Quick wins inside Lazy Photog (do these this week)
+- Create a high‑intent lead form
+  - Include: name, email, phone (required for SMS), wedding date, venue, guest count, how they heard about you, budget.
+  - Set default pipeline stage to New Inquiry and auto-tag lead source.
+  - Publish the shareable link on your website, Instagram bio, and email signature. Use it at bridal shows too.
+- Turn on instant autoresponders
+  - Email: thank them, set expectations, link to your consult calendar, and attach a one-page pricing guide.
+  - SMS: “Hi {First}, it’s Demo Photography Studio—got your inquiry! What’s your venue? Here’s my consult link: {link}”
+  - Use the pre-written wedding templates to save time.
+- Add a consult scheduler
+  - Connect Google Calendar and set availability. Include the Meet link.
+  - Drop the scheduler link into your form confirmation page and autoresponder.
+- Build a 1‑click booking proposal (Smart File)
+  - Include your top 3 global packages + add‑ons, contract, and invoice with a retainer via Stripe.
+  - Keep it ready so you can send it immediately after a consult.
+- Use two‑way SMS to follow up within 5 minutes
+  - Create canned replies for common questions (availability, pricing, travel fees). Fast replies dramatically raise booking rates.
+
+Drive more traffic/leads
+- Website and SEO
+  - Add your lead form to the hero section with a strong CTA.
+  - Publish 3 venue spotlight posts (e.g., “Best Wedding Photo Spots at [Venue]”) and link each to your lead form.
+  - Keep your Google Business Profile updated; add recent weddings, FAQs, and a direct “Request a Quote” link to your form.
+- Social and ads
+  - Run a simple Instagram/FB campaign to engaged couples within 25–40 miles. Offer a free Wedding Timeline PDF gated by your lead form.
+  - Feature carousel posts/reels with before/after edits and “Book a consult” linking to your scheduler.
+- Vendor and referral partnerships
+  - Create a vendor-friendly pricing PDF and send it to planners and venues; offer fast-turnaround previews they can share.
+  - Set up a post-delivery automation asking clients for reviews and referrals (include a small print credit incentive).
+
+Reactivation and nurture
+- Warm up past inquiries
+  - Filter inquiries from the last 12 months who didn’t book; send a 3‑email sequence: availability update, favorite venues gallery, limited-time bonus (e.g., complimentary engagement mini).
+- Drip for new leads who go quiet
+  - Day 0: instant email/SMS
+  - Day 1: portfolio + testimonial
+  - Day 3: packages + FAQs
+  - Day 7: “Only X 2025 dates left” + consult link
+
+Track what’s working
+- Tag every lead source (Website, Instagram, Google, Vendor, Bridal Show, Referral, Ads).
+- Watch conversion by pipeline stage: New Inquiry → Consult Booked → Proposal Sent → Booked.
+- Key metrics: response time (target under 5 minutes), consult-book rate, proposal-sent rate, booking rate, and cost per lead (for ads).
+
+Want help setting this up? I can walk you through:
+1) Creating a lead form and autoresponders
+2) Connecting Google Calendar and adding the scheduler to your messages
+3) Building a ready-to-send Smart File proposal
+4) Setting up a 7‑day inquiry nurture automation
+
+Quick context questions so I can tailor the setup:
+- What city/region do you serve?
+- Average wedding package price?
+- Top current lead sources (website, Instagram, Google, referrals, ads)?
+- Do you already have a Google Calendar connected?
