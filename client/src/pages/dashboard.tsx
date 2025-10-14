@@ -57,10 +57,12 @@ export default function Dashboard() {
   });
 
   // Filter for upcoming bookings (next 3)
-  const upcomingBookings = allBookings
-    .filter((booking: any) => new Date(booking.startTime) > new Date())
-    .sort((a: any, b: any) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime())
-    .slice(0, 3);
+  const upcomingBookings = Array.isArray(allBookings) 
+    ? allBookings
+        .filter((booking: any) => new Date(booking.startTime) > new Date())
+        .sort((a: any, b: any) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime())
+        .slice(0, 3)
+    : [];
 
   if (loading) {
     return (
