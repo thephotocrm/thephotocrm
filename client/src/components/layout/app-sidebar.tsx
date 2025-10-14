@@ -197,7 +197,7 @@ export function AppSidebar() {
 
   // Premium items for mobile grid
   const premiumItems = [
-    { name: "Lead Hub", href: "/lead-hub", icon: Rocket, iconColor: "text-purple-400", locked: !hasPremiumAccess },
+    { name: "Lead Hub", href: "/lead-hub", icon: TrendingUp, iconColor: "text-purple-400", locked: !hasPremiumAccess },
   ];
 
   return (
@@ -288,7 +288,7 @@ export function AppSidebar() {
                           }
                         `}
                       >
-                        <Rocket className="w-8 h-8 text-purple-400 mb-2" />
+                        <TrendingUp className="w-8 h-8 text-purple-400 mb-2" />
                         <span className="text-[10px] font-medium text-white text-center leading-tight">
                           Lead Hub
                         </span>
@@ -300,7 +300,7 @@ export function AppSidebar() {
                       className="relative aspect-square rounded-xl flex flex-col items-center justify-center p-3 bg-white/5 opacity-60 cursor-not-allowed"
                       data-testid="nav-lead-hub-locked"
                     >
-                      <Rocket className="w-8 h-8 text-purple-400/50 mb-2" />
+                      <TrendingUp className="w-8 h-8 text-purple-400/50 mb-2" />
                       <span className="text-[10px] font-medium text-white/70 text-center leading-tight">
                         Lead Hub
                       </span>
@@ -456,18 +456,18 @@ export function AppSidebar() {
                             {/* Lead Hub */}
                             {hasPremiumAccess ? (
                               <Link href="/lead-hub" data-testid="nav-lead-hub">
-                                <button className="w-full flex items-center gap-3 px-3 py-2 rounded-md transition-all hover:bg-slate-700/50 text-white">
-                                  <Rocket className="w-5 h-5 text-purple-400" />
+                                <button className="w-full flex items-center gap-3 px-3 py-2 rounded-md transition-all hover:bg-slate-700/50 text-white bg-black/20">
+                                  <TrendingUp className="w-5 h-5 text-purple-400" />
                                   <span className="text-sm font-medium">Lead Hub</span>
                                 </button>
                               </Link>
                             ) : (
                               <button
                                 onClick={() => setShowUpgradeModal(true)}
-                                className="w-full flex items-center gap-3 px-3 py-2 rounded-md transition-all opacity-60 cursor-not-allowed text-white/70"
+                                className="w-full flex items-center gap-3 px-3 py-2 rounded-md transition-all opacity-60 cursor-not-allowed text-white/70 bg-black/20"
                                 data-testid="nav-lead-hub-locked"
                               >
-                                <Rocket className="w-5 h-5 text-purple-400/50" />
+                                <TrendingUp className="w-5 h-5 text-purple-400/50" />
                                 <span className="text-sm font-medium">Lead Hub</span>
                                 <Lock className="w-3 h-3 ml-auto text-yellow-400" />
                               </button>
