@@ -165,8 +165,12 @@ function Router() {
       <Route path="/scheduling"><ProtectedRoutes /></Route>
       <Route path="/reports"><ProtectedRoutes /></Route>
       <Route path="/earnings"><ProtectedRoutes /></Route>
+      <Route path="/lead-hub"><ProtectedRoutes /></Route>
       <Route path="/facebook-ads"><ProtectedRoutes /></Route>
       <Route path="/google-ads"><ProtectedRoutes /></Route>
+      <Route path="/instagram-ads"><ProtectedRoutes /></Route>
+      <Route path="/pinterest-ads"><ProtectedRoutes /></Route>
+      <Route path="/tiktok-ads"><ProtectedRoutes /></Route>
       <Route path="/settings"><ProtectedRoutes /></Route>
       
       {/* Landing page - must be last so other routes match first */}
