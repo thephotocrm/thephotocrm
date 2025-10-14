@@ -65,7 +65,7 @@ export async function getChatbotResponse(
     const response = await openai.chat.completions.create({
       model: "gpt-5",
       messages: messages as any,
-      max_completion_tokens: 2000 // Increased to allow for reasoning + response
+      max_completion_tokens: 8000 // High limit for GPT-5's unpredictable reasoning token usage
     });
 
     console.log("OpenAI Response:", JSON.stringify(response, null, 2));
