@@ -2036,6 +2036,9 @@ export default function Automations() {
   // AI automation creation mutation (step 2 - after confirmation)
   const createAiAutomationMutation = useMutation({
     mutationFn: async ({ extractedData, selectedStageId }: any) => {
+      console.log('Mutation received:', { extractedData, selectedStageId });
+      console.log('ExtractedData is:', extractedData);
+      console.log('ExtractedData type:', typeof extractedData);
       return apiRequest("POST", "/api/automations/create-with-ai", { extractedData, selectedStageId });
     },
     onSuccess: (automation) => {
@@ -2072,7 +2075,22 @@ export default function Automations() {
   };
 
   const handleConfirmAiAutomation = () => {
-    createAiAutomationMutation.mutate({ extractedData, selectedStageId: aiSelectedStageId });
+    if (!extractedData) {
+      toast({
+        title: "Error",
+        description: "No automation data available. Please try again.",
+        variant: "destructive"
+      });
+      return;
+    }
+    console.log('Creating automation with data:', { extractedData, selectedStageId: aiSelectedStageId });
+    // Explicitly pass the current values to avoid closure issues
+    const dataToSend = {
+      extractedData: extractedData,
+      selectedStageId: aiSelectedStageId || null
+    };
+    console.log('Data to send:', dataToSend);
+    createAiAutomationMutation.mutate(dataToSend);
   };
 
   // Toggle automation mutation
