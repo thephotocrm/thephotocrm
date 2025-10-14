@@ -35,6 +35,7 @@ import Scheduling from "@/pages/scheduling";
 import Reports from "@/pages/reports";
 import Earnings from "@/pages/earnings";
 import Settings from "@/pages/settings";
+import LeadHub from "@/pages/lead-hub";
 import FacebookAds from "@/pages/facebook-ads";
 import GoogleAds from "@/pages/google-ads";
 import InstagramAds from "@/pages/instagram-ads";
@@ -101,6 +102,7 @@ function ProtectedRoutes() {
             <Route path="/scheduling" component={Scheduling} />
             <Route path="/reports" component={Reports} />
             <Route path="/earnings" component={Earnings} />
+            <Route path="/lead-hub" component={LeadHub} />
             <Route path="/facebook-ads" component={FacebookAds} />
             <Route path="/google-ads" component={GoogleAds} />
             <Route path="/instagram-ads" component={InstagramAds} />

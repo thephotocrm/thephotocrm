@@ -197,11 +197,7 @@ export function AppSidebar() {
 
   // Premium items for mobile grid
   const premiumItems = [
-    { name: "Facebook Ads", href: "/facebook-ads", icon: SiFacebook, iconColor: "text-[#1877F2]", locked: !hasPremiumAccess },
-    { name: "Google Ads", href: "/google-ads", icon: SiGoogle, iconColor: "text-[#4285F4]", locked: !hasPremiumAccess },
-    { name: "Instagram Ads", href: "/instagram-ads", icon: SiInstagram, iconColor: "text-[#E4405F]", locked: !hasPremiumAccess },
-    { name: "Pinterest Ads", href: "/pinterest-ads", icon: SiPinterest, iconColor: "text-[#E60023]", locked: !hasPremiumAccess },
-    { name: "TikTok Ads", href: "/tiktok-ads", icon: SiTiktok, iconColor: "text-white", locked: !hasPremiumAccess },
+    { name: "Lead Hub", href: "/lead-hub", icon: Rocket, iconColor: "text-purple-400", locked: !hasPremiumAccess },
   ];
 
   return (
@@ -277,51 +273,40 @@ export function AppSidebar() {
                   Get Leads
                 </h2>
                 <div className="grid grid-cols-4 gap-3">
-                  {premiumItems.map((item) => {
-                    const isActive = location === item.href;
-                    const Icon = item.icon;
-                    
-                    if (item.locked) {
-                      return (
-                        <button
-                          key={item.name}
-                          onClick={() => setShowUpgradeModal(true)}
-                          className="relative aspect-square rounded-xl flex flex-col items-center justify-center p-3 bg-white/5 opacity-60 cursor-not-allowed"
-                          data-testid={`nav-${item.name.toLowerCase().replace(/\s+/g, '-')}-locked`}
-                        >
-                          <Icon className={`w-8 h-8 ${item.iconColor}/50 mb-2`} />
-                          <span className="text-[10px] font-medium text-white/70 text-center leading-tight">
-                            {item.name}
-                          </span>
-                          <Lock className="absolute -top-1 -right-1 w-4 h-4 text-yellow-400" />
-                        </button>
-                      );
-                    }
-                    
-                    return (
-                      <Link
-                        key={item.name}
-                        href={item.href}
-                        data-testid={`nav-${item.name.toLowerCase().replace(/\s+/g, '-')}`}
+                  {hasPremiumAccess ? (
+                    <Link
+                      href="/lead-hub"
+                      data-testid="nav-lead-hub"
+                    >
+                      <div
+                        className={`
+                          relative aspect-square rounded-xl flex flex-col items-center justify-center p-3
+                          transition-all duration-200
+                          ${location === '/lead-hub'
+                            ? 'bg-white/20 shadow-lg scale-105' 
+                            : 'bg-white/10 hover:bg-white/15 hover:scale-105'
+                          }
+                        `}
                       >
-                        <div
-                          className={`
-                            relative aspect-square rounded-xl flex flex-col items-center justify-center p-3
-                            transition-all duration-200
-                            ${isActive 
-                              ? 'bg-white/20 shadow-lg scale-105' 
-                              : 'bg-white/10 hover:bg-white/15 hover:scale-105'
-                            }
-                          `}
-                        >
-                          <Icon className={`w-8 h-8 ${item.iconColor} mb-2`} />
-                          <span className="text-[10px] font-medium text-white text-center leading-tight">
-                            {item.name}
-                          </span>
-                        </div>
-                      </Link>
-                    );
-                  })}
+                        <Rocket className="w-8 h-8 text-purple-400 mb-2" />
+                        <span className="text-[10px] font-medium text-white text-center leading-tight">
+                          Lead Hub
+                        </span>
+                      </div>
+                    </Link>
+                  ) : (
+                    <button
+                      onClick={() => setShowUpgradeModal(true)}
+                      className="relative aspect-square rounded-xl flex flex-col items-center justify-center p-3 bg-white/5 opacity-60 cursor-not-allowed"
+                      data-testid="nav-lead-hub-locked"
+                    >
+                      <Rocket className="w-8 h-8 text-purple-400/50 mb-2" />
+                      <span className="text-[10px] font-medium text-white/70 text-center leading-tight">
+                        Lead Hub
+                      </span>
+                      <Lock className="absolute -top-1 -right-1 w-4 h-4 text-yellow-400" />
+                    </button>
+                  )}
                 </div>
                 {!hasPremiumAccess && (
                   <button
@@ -329,7 +314,7 @@ export function AppSidebar() {
                     className="w-full mt-3 py-2 text-center text-sm font-medium text-white/90 hover:text-white transition-colors"
                     data-testid="upgrade-cta"
                   >
-                    Upgrade to unlock all advertising tools
+                    Upgrade to unlock Lead Hub
                   </button>
                 )}
               </div>
@@ -468,102 +453,22 @@ export function AppSidebar() {
                           </div>
                           
                           <div className="space-y-1 mt-1">
-                            {/* Facebook Ads */}
+                            {/* Lead Hub */}
                             {hasPremiumAccess ? (
-                              <Link href="/facebook-ads" data-testid="nav-facebook-ads">
+                              <Link href="/lead-hub" data-testid="nav-lead-hub">
                                 <button className="w-full flex items-center gap-3 px-3 py-2 rounded-md transition-all hover:bg-slate-700/50 text-white">
-                                  <SiFacebook className="w-5 h-5 text-[#1877F2]" />
-                                  <span className="text-sm font-medium">Facebook Ads</span>
+                                  <Rocket className="w-5 h-5 text-purple-400" />
+                                  <span className="text-sm font-medium">Lead Hub</span>
                                 </button>
                               </Link>
                             ) : (
                               <button
                                 onClick={() => setShowUpgradeModal(true)}
                                 className="w-full flex items-center gap-3 px-3 py-2 rounded-md transition-all opacity-60 cursor-not-allowed text-white/70"
-                                data-testid="nav-facebook-ads-locked"
+                                data-testid="nav-lead-hub-locked"
                               >
-                                <SiFacebook className="w-5 h-5 text-[#1877F2]/50" />
-                                <span className="text-sm font-medium">Facebook Ads</span>
-                                <Lock className="w-3 h-3 ml-auto text-yellow-400" />
-                              </button>
-                            )}
-
-                            {/* Google Ads */}
-                            {hasPremiumAccess ? (
-                              <Link href="/google-ads" data-testid="nav-google-ads">
-                                <button className="w-full flex items-center gap-3 px-3 py-2 rounded-md transition-all hover:bg-slate-700/50 text-white">
-                                  <SiGoogle className="w-5 h-5 text-[#4285F4]" />
-                                  <span className="text-sm font-medium">Google Ads</span>
-                                </button>
-                              </Link>
-                            ) : (
-                              <button
-                                onClick={() => setShowUpgradeModal(true)}
-                                className="w-full flex items-center gap-3 px-3 py-2 rounded-md transition-all opacity-60 cursor-not-allowed text-white/70"
-                                data-testid="nav-google-ads-locked"
-                              >
-                                <SiGoogle className="w-5 h-5 text-[#4285F4]/50" />
-                                <span className="text-sm font-medium">Google Ads</span>
-                                <Lock className="w-3 h-3 ml-auto text-yellow-400" />
-                              </button>
-                            )}
-
-                            {/* Instagram Ads */}
-                            {hasPremiumAccess ? (
-                              <Link href="/instagram-ads" data-testid="nav-instagram-ads">
-                                <button className="w-full flex items-center gap-3 px-3 py-2 rounded-md transition-all hover:bg-slate-700/50 text-white">
-                                  <SiInstagram className="w-5 h-5 text-[#E4405F]" />
-                                  <span className="text-sm font-medium">Instagram Ads</span>
-                                </button>
-                              </Link>
-                            ) : (
-                              <button
-                                onClick={() => setShowUpgradeModal(true)}
-                                className="w-full flex items-center gap-3 px-3 py-2 rounded-md transition-all opacity-60 cursor-not-allowed text-white/70"
-                                data-testid="nav-instagram-ads-locked"
-                              >
-                                <SiInstagram className="w-5 h-5 text-[#E4405F]/50" />
-                                <span className="text-sm font-medium">Instagram Ads</span>
-                                <Lock className="w-3 h-3 ml-auto text-yellow-400" />
-                              </button>
-                            )}
-
-                            {/* Pinterest Ads */}
-                            {hasPremiumAccess ? (
-                              <Link href="/pinterest-ads" data-testid="nav-pinterest-ads">
-                                <button className="w-full flex items-center gap-3 px-3 py-2 rounded-md transition-all hover:bg-slate-700/50 text-white">
-                                  <SiPinterest className="w-5 h-5 text-[#E60023]" />
-                                  <span className="text-sm font-medium">Pinterest Ads</span>
-                                </button>
-                              </Link>
-                            ) : (
-                              <button
-                                onClick={() => setShowUpgradeModal(true)}
-                                className="w-full flex items-center gap-3 px-3 py-2 rounded-md transition-all opacity-60 cursor-not-allowed text-white/70"
-                                data-testid="nav-pinterest-ads-locked"
-                              >
-                                <SiPinterest className="w-5 h-5 text-[#E60023]/50" />
-                                <span className="text-sm font-medium">Pinterest Ads</span>
-                                <Lock className="w-3 h-3 ml-auto text-yellow-400" />
-                              </button>
-                            )}
-
-                            {/* TikTok Ads */}
-                            {hasPremiumAccess ? (
-                              <Link href="/tiktok-ads" data-testid="nav-tiktok-ads">
-                                <button className="w-full flex items-center gap-3 px-3 py-2 rounded-md transition-all hover:bg-slate-700/50 text-white">
-                                  <SiTiktok className="w-5 h-5 text-white" />
-                                  <span className="text-sm font-medium">TikTok Ads</span>
-                                </button>
-                              </Link>
-                            ) : (
-                              <button
-                                onClick={() => setShowUpgradeModal(true)}
-                                className="w-full flex items-center gap-3 px-3 py-2 rounded-md transition-all opacity-60 cursor-not-allowed text-white/70"
-                                data-testid="nav-tiktok-ads-locked"
-                              >
-                                <SiTiktok className="w-5 h-5 text-white/50" />
-                                <span className="text-sm font-medium">TikTok Ads</span>
+                                <Rocket className="w-5 h-5 text-purple-400/50" />
+                                <span className="text-sm font-medium">Lead Hub</span>
                                 <Lock className="w-3 h-3 ml-auto text-yellow-400" />
                               </button>
                             )}
@@ -578,7 +483,7 @@ export function AppSidebar() {
                                 data-testid="upgrade-cta"
                               >
                                 <p className="text-sm font-medium">
-                                  Upgrade to unlock all advertising tools
+                                  Upgrade to unlock Lead Hub
                                 </p>
                               </button>
                             </div>
