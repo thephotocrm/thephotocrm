@@ -58,16 +58,26 @@ Bad: [Long paragraph with 10 bullet points explaining everything about lead gene
 Good: "The fastest way to get more leads is through lead capture forms. Want me to create a wedding inquiry form for you? I'll set it up with name/email/phone/date fields and add it to your Marketing → Lead Forms section."
 
 **AI Creation Powers:**
-You CAN create things for users! When appropriate, offer to create:
-- Lead capture forms (with custom fields, automations)
-- Automations (email/SMS workflows)
-- Contacts (add new leads to their pipeline)
-- Templates (email/SMS templates)
+You CAN create things for users! When they confirm they want something created, return a JSON action command.
 
-When offering to create something:
-1. Confirm what they want: "Want me to create a wedding inquiry form with name/email/phone/date fields?"
-2. Use the creation API endpoint
-3. Respond with success + link: "Done! Your form is ready: [link]"
+**Action Format:**
+When user confirms creation (e.g., "yes, create it" or "yes, do it"), respond with:
+
+ACTION: {"type": "CREATE_LEAD_FORM", "params": {"name": "Wedding Inquiry Form", "description": "...", "projectType": "WEDDING"}}
+
+OR
+
+ACTION: {"type": "CREATE_CONTACT", "params": {"firstName": "Jane", "lastName": "Smith", "email": "jane@example.com", "phone": "+15551234567", "projectType": "WEDDING"}}
+
+**Available Actions:**
+- CREATE_LEAD_FORM: params = {name, description?, projectType?, fields?}
+- CREATE_CONTACT: params = {firstName, lastName?, email, phone?, projectType?}
+
+**Important:**
+- ONLY return ACTION when user explicitly confirms
+- First ask: "Want me to create X for you?"
+- If yes → return ACTION command
+- If no → just give directions
 
 **Remember:**
 - Short answers > long explanations
@@ -80,7 +90,8 @@ export async function getChatbotResponse(
   message: string,
   context: string = "general",
   photographerName?: string,
-  history: ChatMessage[] = []
+  history: ChatMessage[] = [],
+  photographerId?: string
 ): Promise<string> {
   try {
     // Build context-aware system message
@@ -92,6 +103,12 @@ export async function getChatbotResponse(
     
     if (context !== "general") {
       systemMessage += `\n\nThe user is currently on the ${context} page.`;
+    }
+
+    if (photographerId) {
+      systemMessage += `\n\nIMPORTANT: You can create things for this user! When they confirm, use ACTION commands.`;
+    } else {
+      systemMessage += `\n\nNOTE: You cannot create things for this user (not authenticated). Only provide directions.`;
     }
 
     // Prepare messages for OpenAI
@@ -114,7 +131,26 @@ export async function getChatbotResponse(
       return "I'm sorry, I couldn't generate a response. Please try again.";
     }
 
-    return response.choices[0].message.content || "I'm sorry, I couldn't generate a response. Please try again.";
+    let aiResponse = response.choices[0].message.content || "I'm sorry, I couldn't generate a response. Please try again.";
+
+    // Check for ACTION commands in response
+    if (photographerId && aiResponse.includes("ACTION:")) {
+      const actionMatch = aiResponse.match(/ACTION:\s*({.*?})/s);
+      if (actionMatch) {
+        try {
+          const action = JSON.parse(actionMatch[1]);
+          const actionResult = await executeAction(action, photographerId);
+          
+          // Replace ACTION command with result message
+          aiResponse = aiResponse.replace(/ACTION:\s*{.*?}/s, actionResult);
+        } catch (error) {
+          console.error("Action execution error:", error);
+          aiResponse = aiResponse.replace(/ACTION:\s*{.*?}/s, "Sorry, I had trouble creating that. Please try manually.");
+        }
+      }
+    }
+
+    return aiResponse;
   } catch (error: any) {
     console.error("Chatbot error details:", {
       message: error.message,
@@ -122,5 +158,81 @@ export async function getChatbotResponse(
       response: error.response?.data
     });
     throw new Error("Failed to get chatbot response");
+  }
+}
+
+async function executeAction(action: any, photographerId: string): Promise<string> {
+  const { storage } = await import("../storage");
+  
+  switch (action.type) {
+    case "CREATE_LEAD_FORM": {
+      const { name, description, projectType = "WEDDING", fields = [] } = action.params;
+      
+      const defaultConfig = {
+        title: name || "Wedding Inquiry Form",
+        description: description || "Let's discuss your wedding photography needs",
+        primaryColor: "#3b82f6",
+        backgroundColor: "#ffffff",
+        buttonText: "Send Inquiry",
+        successMessage: "Thank you! We'll be in touch soon.",
+        showPhone: true,
+        showMessage: true,
+        showEventDate: true,
+        redirectUrl: "",
+        customFields: fields.length > 0 ? fields : [
+          { id: "firstName", type: "text", label: "First Name", placeholder: "Jane", required: true, isSystem: true, width: "half" },
+          { id: "lastName", type: "text", label: "Last Name", placeholder: "Smith", required: true, isSystem: true, width: "half" },
+          { id: "email", type: "email", label: "Email", placeholder: "jane@example.com", required: true, isSystem: true, width: "full" },
+          { id: "phone", type: "phone", label: "Phone", placeholder: "(555) 123-4567", required: true, isSystem: false, width: "full" },
+          { id: "eventDate", type: "date", label: "Wedding Date", required: false, isSystem: false, width: "half" },
+          { id: "venue", type: "text", label: "Venue Name", placeholder: "e.g. The Grand Hotel", required: false, isSystem: false, width: "half" },
+          { id: "message", type: "textarea", label: "Tell us about your wedding", placeholder: "Share any details...", required: false, isSystem: false, width: "full" },
+          { id: "optInSms", type: "checkbox", label: "I agree to receive SMS updates", required: false, options: ["Yes, text me updates"], isSystem: false, width: "full" }
+        ]
+      };
+
+      const leadForm = await storage.createLeadForm({
+        photographerId,
+        name: name || "Wedding Inquiry Form",
+        description: description || "AI-generated wedding inquiry form",
+        projectType: projectType as any,
+        config: defaultConfig,
+        status: "ACTIVE"
+      });
+
+      const domain = process.env.REPLIT_DOMAINS?.split(',')[0] || '';
+      return `✅ Done! I created "${leadForm.name}" for you. View it in Marketing → Lead Forms, or share this link: ${domain}/f/${leadForm.publicToken}`;
+    }
+
+    case "CREATE_CONTACT": {
+      const { firstName, lastName, email, phone, projectType = "WEDDING" } = action.params;
+      
+      if (!firstName || !email) {
+        return "❌ I need at least a first name and email to create a contact.";
+      }
+
+      const stages = await storage.getStagesByPhotographer(photographerId);
+      const firstStage = stages.find(s => s.order === 1) || stages[0];
+
+      if (!firstStage) {
+        return "❌ You need to set up your pipeline stages first before I can add contacts.";
+      }
+
+      const contact = await storage.createContact({
+        photographerId,
+        firstName,
+        lastName: lastName || "",
+        email,
+        phone: phone || null,
+        currentStageId: firstStage.id,
+        projectType: projectType as any,
+        leadSource: "AI_ASSISTANT"
+      });
+
+      return `✅ Added ${firstName} ${lastName || ''} to your ${firstStage.name} stage! View in Contacts page.`;
+    }
+
+    default:
+      return "❌ Unknown action type.";
   }
 }

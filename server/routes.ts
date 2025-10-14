@@ -7333,7 +7333,7 @@ ${photographer.businessName}
 
   // ==================== CHATBOT ROUTES ====================
 
-  // Chatbot message handler (public endpoint - no auth required)
+  // Chatbot message handler (public endpoint - optional auth)
   app.post("/api/chatbot", async (req, res) => {
     try {
       const { message, context = "general", photographerName, history = [] } = req.body;
@@ -7342,8 +7342,21 @@ ${photographer.businessName}
         return res.status(400).json({ message: "Message is required" });
       }
 
+      // Check if user is authenticated (optional)
+      let photographerId: string | undefined;
+      const token = req.cookies?.token;
+      if (token) {
+        try {
+          const jwt = await import('jsonwebtoken');
+          const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any;
+          photographerId = decoded.photographerId;
+        } catch {
+          // Token invalid or expired - continue without auth
+        }
+      }
+
       const { getChatbotResponse } = await import("./services/chatbot");
-      const response = await getChatbotResponse(message, context, photographerName, history);
+      const response = await getChatbotResponse(message, context, photographerName, history, photographerId);
       
       res.json({ message: response });
     } catch (error: any) {
