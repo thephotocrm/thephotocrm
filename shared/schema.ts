@@ -82,6 +82,20 @@ export const triggerTypeEnum = {
   APPOINTMENT_BOOKED: "APPOINTMENT_BOOKED"
 } as const;
 
+export const adPlatformEnum = {
+  GOOGLE: "GOOGLE",
+  FACEBOOK: "FACEBOOK"
+} as const;
+
+export const adCampaignStatusEnum = {
+  DRAFT: "DRAFT",
+  ACTIVE: "ACTIVE",
+  PAUSED: "PAUSED",
+  BUDGET_EXCEEDED: "BUDGET_EXCEEDED",
+  PAYMENT_FAILED: "PAYMENT_FAILED",
+  COMPLETED: "COMPLETED"
+} as const;
+
 // Tables
 export const photographers = pgTable("photographers", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -865,6 +879,84 @@ export const clientPortalTokens = pgTable("client_portal_tokens", {
   createdAt: timestamp("created_at").defaultNow()
 });
 
+// Advertising System Tables
+export const adCampaigns = pgTable("ad_campaigns", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  photographerId: varchar("photographer_id").notNull().references(() => photographers.id),
+  platform: text("platform").notNull(), // GOOGLE, FACEBOOK
+  status: text("status").notNull().default("DRAFT"), // DRAFT, ACTIVE, PAUSED, BUDGET_EXCEEDED, PAYMENT_FAILED, COMPLETED
+  monthlyBudgetCents: integer("monthly_budget_cents").notNull(), // Budget in cents
+  markupPercent: integer("markup_percent").notNull(), // Markup percentage (e.g., 2500 = 25%)
+  // External platform IDs
+  googleAdAccountId: text("google_ad_account_id"),
+  googleCampaignId: text("google_campaign_id"),
+  facebookAdAccountId: text("facebook_ad_account_id"),
+  facebookCampaignId: text("facebook_campaign_id"),
+  // Landing page
+  landingPageSubdomain: text("landing_page_subdomain").unique(),
+  landingPageUrl: text("landing_page_url"),
+  // Tracking
+  currentSpendCents: integer("current_spend_cents").default(0),
+  totalLeadsGenerated: integer("total_leads_generated").default(0),
+  lastSyncedAt: timestamp("last_synced_at"),
+  activatedAt: timestamp("activated_at"),
+  pausedAt: timestamp("paused_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+}, (table) => ({
+  photographerIdx: index("ad_campaigns_photographer_idx").on(table.photographerId),
+  statusIdx: index("ad_campaigns_status_idx").on(table.status),
+  platformIdx: index("ad_campaigns_platform_idx").on(table.platform)
+}));
+
+export const adPaymentMethods = pgTable("ad_payment_methods", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  photographerId: varchar("photographer_id").notNull().references(() => photographers.id),
+  stripePaymentMethodId: text("stripe_payment_method_id").notNull(),
+  cardBrand: text("card_brand"), // visa, mastercard, etc.
+  cardLast4: text("card_last_4"),
+  cardExpMonth: integer("card_exp_month"),
+  cardExpYear: integer("card_exp_year"),
+  isDefault: boolean("is_default").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+}, (table) => ({
+  photographerIdx: index("ad_payment_methods_photographer_idx").on(table.photographerId)
+}));
+
+export const adPerformance = pgTable("ad_performance", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  campaignId: varchar("campaign_id").notNull().references(() => adCampaigns.id),
+  date: timestamp("date").notNull(),
+  impressions: integer("impressions").default(0),
+  clicks: integer("clicks").default(0),
+  leads: integer("leads").default(0),
+  spendCents: integer("spend_cents").default(0),
+  createdAt: timestamp("created_at").defaultNow()
+}, (table) => ({
+  campaignDateIdx: index("ad_performance_campaign_date_idx").on(table.campaignId, table.date)
+}));
+
+export const adBillingTransactions = pgTable("ad_billing_transactions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  photographerId: varchar("photographer_id").notNull().references(() => photographers.id),
+  campaignId: varchar("campaign_id").references(() => adCampaigns.id),
+  type: text("type").notNull(), // CHARGE, REFUND
+  amountCents: integer("amount_cents").notNull(),
+  platformSpendCents: integer("platform_spend_cents").notNull(), // Actual spend on ad platform
+  markupCents: integer("markup_cents").notNull(), // Our markup amount
+  stripeChargeId: text("stripe_charge_id"),
+  stripeRefundId: text("stripe_refund_id"),
+  status: text("status").notNull().default("PENDING"), // PENDING, SUCCEEDED, FAILED
+  failureReason: text("failure_reason"),
+  billingPeriodStart: timestamp("billing_period_start"),
+  billingPeriodEnd: timestamp("billing_period_end"),
+  createdAt: timestamp("created_at").defaultNow()
+}, (table) => ({
+  photographerIdx: index("ad_billing_photographer_idx").on(table.photographerId),
+  statusIdx: index("ad_billing_status_idx").on(table.status)
+}));
+
 // Relations
 export const photographersRelations = relations(photographers, ({ many }) => ({
   users: many(users),
@@ -1600,6 +1692,51 @@ export type InsertLeadForm = z.infer<typeof insertLeadFormSchema>;
 // Smart Files Types
 export type SmartFile = typeof smartFiles.$inferSelect;
 export type InsertSmartFile = z.infer<typeof insertSmartFileSchema>;
+
+// Advertising System Schemas
+export const insertAdCampaignSchema = createInsertSchema(adCampaigns).omit({
+  id: true,
+  currentSpendCents: true,
+  totalLeadsGenerated: true,
+  lastSyncedAt: true,
+  createdAt: true,
+  updatedAt: true
+});
+
+export const insertAdPaymentMethodSchema = createInsertSchema(adPaymentMethods).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true
+});
+
+export const insertAdPerformanceSchema = createInsertSchema(adPerformance).omit({
+  id: true,
+  createdAt: true
+});
+
+export const insertAdBillingTransactionSchema = createInsertSchema(adBillingTransactions).omit({
+  id: true,
+  createdAt: true
+});
+
+// Advertising System Types
+export type AdCampaign = typeof adCampaigns.$inferSelect;
+export type InsertAdCampaign = z.infer<typeof insertAdCampaignSchema>;
+export type AdPaymentMethod = typeof adPaymentMethods.$inferSelect;
+export type InsertAdPaymentMethod = z.infer<typeof insertAdPaymentMethodSchema>;
+export type AdPerformance = typeof adPerformance.$inferSelect;
+export type InsertAdPerformance = z.infer<typeof insertAdPerformanceSchema>;
+export type AdBillingTransaction = typeof adBillingTransactions.$inferSelect;
+export type InsertAdBillingTransaction = z.infer<typeof insertAdBillingTransactionSchema>;
+
+// Extended types for ad campaign management
+export type AdCampaignWithPerformance = AdCampaign & {
+  totalImpressions: number;
+  totalClicks: number;
+  totalLeads: number;
+  averageCostPerLead: number;
+  clickThroughRate: number;
+};
 export type SmartFilePage = typeof smartFilePages.$inferSelect;
 export type InsertSmartFilePage = z.infer<typeof insertSmartFilePageSchema>;
 export type ProjectSmartFile = typeof projectSmartFiles.$inferSelect;
