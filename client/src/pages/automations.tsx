@@ -17,7 +17,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Plus, Zap, Clock, Mail, Smartphone, Settings, Edit2, ArrowRight, Calendar, Users, AlertCircle, Trash2, Target, CheckCircle2, Briefcase, ChevronDown, ChevronUp } from "lucide-react";
+import { Plus, Zap, Clock, Mail, Smartphone, Settings, Edit2, ArrowRight, Calendar, Users, AlertCircle, Trash2, Target, CheckCircle2, Briefcase, ChevronDown, ChevronUp, Sparkles } from "lucide-react";
 import { insertAutomationSchema, projectTypeEnum, automationTypeEnum, triggerTypeEnum, insertAutomationBusinessTriggerSchema } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -1460,6 +1460,8 @@ export default function Automations() {
   
   // ALL STATE HOOKS MUST BE BEFORE ANY CONDITIONAL RETURNS
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [aiDialogOpen, setAiDialogOpen] = useState(false);
+  const [aiDescription, setAiDescription] = useState("");
   const [manageRulesDialogOpen, setManageRulesDialogOpen] = useState(false);
   const [selectedStage, setSelectedStage] = useState<any>(null);
   const [timingMode, setTimingMode] = useState<'immediate' | 'delayed'>('immediate');
@@ -2004,6 +2006,42 @@ export default function Automations() {
 
   const handleDeleteAutomation = (automationId: string) => {
     deleteAutomationMutation.mutate(automationId);
+  };
+
+  // AI automation creation mutation
+  const createAiAutomationMutation = useMutation({
+    mutationFn: async (description: string) => {
+      return apiRequest("POST", "/api/automations/create-with-ai", { description });
+    },
+    onSuccess: (automation) => {
+      toast({ 
+        title: "Automation created successfully",
+        description: `"${automation.name}" has been created and is ready to use.`
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/automations"] });
+      setAiDialogOpen(false);
+      setAiDescription("");
+    },
+    onError: (error: any) => {
+      console.error('Create AI automation error:', error);
+      toast({ 
+        title: "Failed to create automation", 
+        description: error?.message || "Unknown error occurred",
+        variant: "destructive" 
+      });
+    }
+  });
+
+  const handleCreateAiAutomation = () => {
+    if (!aiDescription.trim()) {
+      toast({
+        title: "Description required",
+        description: "Please describe what you want the automation to do.",
+        variant: "destructive"
+      });
+      return;
+    }
+    createAiAutomationMutation.mutate(aiDescription);
   };
 
   // Toggle automation mutation
@@ -3313,7 +3351,7 @@ export default function Automations() {
               ))}
             </div>
             
-            {/* Mobile dropdown and button */}
+            {/* Mobile dropdown and buttons */}
             <div className="flex flex-col sm:flex-row gap-4 md:hidden w-full">
               <Select value={activeProjectType} onValueChange={setActiveProjectType}>
                 <SelectTrigger className="w-full sm:max-w-xs" data-testid="select-project-type">
@@ -3333,25 +3371,45 @@ export default function Automations() {
                   <SelectItem value="OTHER">📁 Other</SelectItem>
                 </SelectContent>
               </Select>
+              <div className="flex gap-2 w-full sm:w-auto">
+                <Button
+                  onClick={() => setAiDialogOpen(true)}
+                  variant="outline"
+                  data-testid="button-create-ai-automation"
+                  className="flex-1 sm:flex-auto"
+                >
+                  <Sparkles className="w-4 h-4 mr-2" />
+                  AI Create
+                </Button>
+                <Button
+                  onClick={() => setCreateDialogOpen(true)}
+                  data-testid="button-create-automation"
+                  className="flex-1 sm:flex-auto"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  New
+                </Button>
+              </div>
+            </div>
+            
+            {/* Desktop buttons */}
+            <div className="hidden md:flex gap-2">
+              <Button
+                onClick={() => setAiDialogOpen(true)}
+                variant="outline"
+                data-testid="button-create-ai-automation"
+              >
+                <Sparkles className="w-4 h-4 mr-2" />
+                Create with AI
+              </Button>
               <Button
                 onClick={() => setCreateDialogOpen(true)}
                 data-testid="button-create-automation"
-                className="w-full sm:w-auto"
               >
                 <Plus className="w-4 h-4 mr-2" />
                 New Automation
               </Button>
             </div>
-            
-            {/* Desktop button */}
-            <Button
-              onClick={() => setCreateDialogOpen(true)}
-              data-testid="button-create-automation"
-              className="hidden md:flex"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              New Automation
-            </Button>
           </div>
 
 {activeProjectType && (
@@ -3641,6 +3699,75 @@ export default function Automations() {
         </div>
       </div>
     </div>
+
+    {/* AI Automation Dialog */}
+    <Dialog open={aiDialogOpen} onOpenChange={setAiDialogOpen}>
+      <DialogContent className="sm:max-w-[600px]">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Sparkles className="w-5 h-5 text-purple-600" />
+            Create Automation with AI
+          </DialogTitle>
+          <DialogDescription>
+            Describe what you want the automation to do and AI will set it up for you.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4 py-4">
+          <div className="space-y-2">
+            <Label htmlFor="ai-description">What do you want to automate?</Label>
+            <Textarea
+              id="ai-description"
+              data-testid="textarea-ai-description"
+              placeholder="Example: Send a thank you email 1 day after booking, then follow up with a questionnaire 3 days later"
+              className="min-h-[120px]"
+              value={aiDescription}
+              onChange={(e) => setAiDescription(e.target.value)}
+            />
+          </div>
+          <div className="bg-muted/30 p-4 rounded-lg space-y-2">
+            <h4 className="text-sm font-medium flex items-center gap-2">
+              <Zap className="w-4 h-4" />
+              Try these examples:
+            </h4>
+            <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
+              <li>"Send welcome email when someone enters inquiry stage"</li>
+              <li>"Text them 2 days before wedding with preparation tips"</li>
+              <li>"Send proposal via email 3 hours after first contact"</li>
+              <li>"Remind me to follow up 5 days after booking"</li>
+            </ul>
+          </div>
+        </div>
+        <div className="flex justify-end gap-2">
+          <Button
+            variant="outline"
+            onClick={() => {
+              setAiDialogOpen(false);
+              setAiDescription("");
+            }}
+            data-testid="button-cancel-ai"
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleCreateAiAutomation}
+            disabled={createAiAutomationMutation.isPending || !aiDescription.trim()}
+            data-testid="button-create-ai"
+          >
+            {createAiAutomationMutation.isPending ? (
+              <>
+                <Sparkles className="w-4 h-4 mr-2 animate-spin" />
+                Creating...
+              </>
+            ) : (
+              <>
+                <Sparkles className="w-4 h-4 mr-2" />
+                Create Automation
+              </>
+            )}
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
     </div>
   );
 }
