@@ -10,6 +10,7 @@ import {
   shortLinks, adminActivityLog,
   leadForms,
   smartFiles, smartFilePages, projectSmartFiles,
+  adCampaigns, adPaymentMethods, adPerformance, adBillingTransactions,
   type User, type InsertUser, type Photographer, type InsertPhotographer,
   type AdminActivityLog, type InsertAdminActivityLog,
   type Contact, type InsertContact, type Project, type InsertProject, type ProjectParticipant, type InsertProjectParticipant, type ProjectWithClientAndStage, type ContactWithProjects, type Stage, type InsertStage,
@@ -37,7 +38,9 @@ import {
   type SmartFile, type InsertSmartFile,
   type SmartFilePage, type InsertSmartFilePage,
   type ProjectSmartFile, type InsertProjectSmartFile,
-  type SmartFileWithPages
+  type SmartFileWithPages,
+  type AdCampaign, type InsertAdCampaign,
+  type AdPaymentMethod, type InsertAdPaymentMethod
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, inArray, gte, lte, gt, sql, isNotNull } from "drizzle-orm";
@@ -340,6 +343,17 @@ export interface IStorage {
   updatePhotographerSubscription(photographerId: string, subscriptionStatus: string): Promise<Photographer>;
   logAdminActivity(activity: InsertAdminActivityLog): Promise<AdminActivityLog>;
   getAdminActivityLog(adminUserId?: string, limit?: number): Promise<AdminActivityLog[]>;
+  
+  // Ad Campaigns
+  getAdCampaigns(photographerId: string): Promise<AdCampaign[]>;
+  getAdCampaign(id: string): Promise<AdCampaign | undefined>;
+  createAdCampaign(campaign: InsertAdCampaign): Promise<AdCampaign>;
+  updateAdCampaign(id: string, campaign: Partial<AdCampaign>): Promise<AdCampaign>;
+  
+  // Ad Payment Methods
+  getAdPaymentMethods(photographerId: string): Promise<AdPaymentMethod[]>;
+  createAdPaymentMethod(method: InsertAdPaymentMethod): Promise<AdPaymentMethod>;
+  deleteAdPaymentMethod(id: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -3242,6 +3256,54 @@ export class DatabaseStorage implements IStorage {
       .where(eq(photographers.id, photographerId))
       .returning();
     return updated;
+  }
+
+  // Ad Campaigns
+  async getAdCampaigns(photographerId: string): Promise<AdCampaign[]> {
+    return await db.select()
+      .from(adCampaigns)
+      .where(eq(adCampaigns.photographerId, photographerId));
+  }
+
+  async getAdCampaign(id: string): Promise<AdCampaign | undefined> {
+    const [campaign] = await db.select()
+      .from(adCampaigns)
+      .where(eq(adCampaigns.id, id));
+    return campaign || undefined;
+  }
+
+  async createAdCampaign(campaign: InsertAdCampaign): Promise<AdCampaign> {
+    const [created] = await db.insert(adCampaigns)
+      .values(campaign)
+      .returning();
+    return created;
+  }
+
+  async updateAdCampaign(id: string, campaign: Partial<AdCampaign>): Promise<AdCampaign> {
+    const [updated] = await db.update(adCampaigns)
+      .set({ ...campaign, updatedAt: new Date() })
+      .where(eq(adCampaigns.id, id))
+      .returning();
+    return updated;
+  }
+
+  // Ad Payment Methods
+  async getAdPaymentMethods(photographerId: string): Promise<AdPaymentMethod[]> {
+    return await db.select()
+      .from(adPaymentMethods)
+      .where(eq(adPaymentMethods.photographerId, photographerId));
+  }
+
+  async createAdPaymentMethod(method: InsertAdPaymentMethod): Promise<AdPaymentMethod> {
+    const [created] = await db.insert(adPaymentMethods)
+      .values(method)
+      .returning();
+    return created;
+  }
+
+  async deleteAdPaymentMethod(id: string): Promise<void> {
+    await db.delete(adPaymentMethods)
+      .where(eq(adPaymentMethods.id, id));
   }
 }
 

@@ -7207,6 +7207,128 @@ ${photographer.businessName}
     }
   });
 
+  // ==================== AD CAMPAIGNS ROUTES ====================
+
+  // Get all ad campaigns for photographer
+  app.get("/api/ad-campaigns", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
+    try {
+      const photographerId = req.user!.photographerId!;
+      const campaigns = await storage.getAdCampaigns(photographerId);
+      res.json(campaigns);
+    } catch (error: any) {
+      console.error('Error getting ad campaigns:', error);
+      res.status(500).json({ 
+        message: "Failed to get ad campaigns",
+        error: error.message 
+      });
+    }
+  });
+
+  // Create new ad campaign
+  app.post("/api/ad-campaigns", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
+    try {
+      const photographerId = req.user!.photographerId!;
+      
+      const { platform, monthlyBudgetCents, markupPercent } = req.body;
+      
+      if (!platform || !monthlyBudgetCents || !markupPercent) {
+        return res.status(400).json({ message: "Missing required fields" });
+      }
+
+      // Check if photographer has a payment method
+      const paymentMethods = await storage.getAdPaymentMethods(photographerId);
+      if (paymentMethods.length === 0) {
+        return res.status(400).json({ message: "Payment method required" });
+      }
+
+      // Create campaign
+      const campaign = await storage.createAdCampaign({
+        photographerId,
+        platform,
+        status: 'DRAFT',
+        monthlyBudgetCents,
+        markupPercent
+      });
+
+      res.json(campaign);
+    } catch (error: any) {
+      console.error('Error creating ad campaign:', error);
+      res.status(500).json({ 
+        message: "Failed to create ad campaign",
+        error: error.message 
+      });
+    }
+  });
+
+  // Update ad campaign
+  app.patch("/api/ad-campaigns/:id", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
+    try {
+      const photographerId = req.user!.photographerId!;
+      const { id } = req.params;
+
+      // Verify campaign belongs to photographer
+      const campaign = await storage.getAdCampaign(id);
+      if (!campaign || campaign.photographerId !== photographerId) {
+        return res.status(404).json({ message: "Campaign not found" });
+      }
+
+      const updated = await storage.updateAdCampaign(id, req.body);
+      res.json(updated);
+    } catch (error: any) {
+      console.error('Error updating ad campaign:', error);
+      res.status(500).json({ 
+        message: "Failed to update ad campaign",
+        error: error.message 
+      });
+    }
+  });
+
+  // Get payment methods for photographer
+  app.get("/api/ad-payment-methods", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
+    try {
+      const photographerId = req.user!.photographerId!;
+      const paymentMethods = await storage.getAdPaymentMethods(photographerId);
+      res.json(paymentMethods);
+    } catch (error: any) {
+      console.error('Error getting payment methods:', error);
+      res.status(500).json({ 
+        message: "Failed to get payment methods",
+        error: error.message 
+      });
+    }
+  });
+
+  // Add payment method
+  app.post("/api/ad-payment-methods", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
+    try {
+      const photographerId = req.user!.photographerId!;
+      
+      const { stripePaymentMethodId, cardBrand, cardLast4, cardExpMonth, cardExpYear } = req.body;
+      
+      if (!stripePaymentMethodId) {
+        return res.status(400).json({ message: "Payment method ID required" });
+      }
+
+      const paymentMethod = await storage.createAdPaymentMethod({
+        photographerId,
+        stripePaymentMethodId,
+        cardBrand,
+        cardLast4,
+        cardExpMonth,
+        cardExpYear,
+        isDefault: true
+      });
+
+      res.json(paymentMethod);
+    } catch (error: any) {
+      console.error('Error adding payment method:', error);
+      res.status(500).json({ 
+        message: "Failed to add payment method",
+        error: error.message 
+      });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
