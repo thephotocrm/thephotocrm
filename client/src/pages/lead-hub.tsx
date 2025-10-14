@@ -175,10 +175,84 @@ export default function LeadHub() {
           <div>
             <h1 className="text-3xl font-bold">Lead Hub</h1>
             <p className="text-muted-foreground">
-              Manage your advertising campaigns and generate quality leads
+              Fully managed advertising that delivers exclusive leads directly to your CRM
             </p>
           </div>
         </div>
+      </div>
+
+      {/* How It Works Section */}
+      <div className="max-w-7xl mx-auto mb-6">
+        <Card className="border-purple-500/20 bg-gradient-to-br from-purple-500/5 to-pink-500/5">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Zap className="w-5 h-5 text-purple-500" />
+              How Our Managed Advertising Works
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-full bg-purple-500 text-white flex items-center justify-center font-bold">1</div>
+                  <h3 className="font-semibold">Set Your Budget</h3>
+                </div>
+                <p className="text-sm text-muted-foreground pl-10">
+                  Choose your monthly ad spend. We handle all campaign setup, management, and optimization.
+                </p>
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-full bg-purple-500 text-white flex items-center justify-center font-bold">2</div>
+                  <h3 className="font-semibold">We Run the Ads</h3>
+                </div>
+                <p className="text-sm text-muted-foreground pl-10">
+                  Our expert team creates and manages campaigns through our master Google & Facebook accounts.
+                </p>
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-full bg-purple-500 text-white flex items-center justify-center font-bold">3</div>
+                  <h3 className="font-semibold">Get Exclusive Leads</h3>
+                </div>
+                <p className="text-sm text-muted-foreground pl-10">
+                  Leads flow directly into your CRM. They're yours alone - never shared with other photographers.
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-border">
+              <div className="flex items-start gap-3">
+                <CheckCircle2 className="w-5 h-5 text-green-500 mt-0.5" />
+                <div>
+                  <p className="font-medium">100% Exclusive Leads</p>
+                  <p className="text-sm text-muted-foreground">Every lead generated belongs to you alone</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <CheckCircle2 className="w-5 h-5 text-green-500 mt-0.5" />
+                <div>
+                  <p className="font-medium">Tiered Pricing Discounts</p>
+                  <p className="text-sm text-muted-foreground">Save more as you scale (25% → 20% → 15%)</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <CheckCircle2 className="w-5 h-5 text-green-500 mt-0.5" />
+                <div>
+                  <p className="font-medium">Zero Setup Hassle</p>
+                  <p className="text-sm text-muted-foreground">No ad account creation or credit cards with platforms</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <CheckCircle2 className="w-5 h-5 text-green-500 mt-0.5" />
+                <div>
+                  <p className="font-medium">Expert Management</p>
+                  <p className="text-sm text-muted-foreground">Professional optimization and targeting included</p>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Payment Method Alert */}
