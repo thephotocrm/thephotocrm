@@ -281,7 +281,7 @@ export function AppSidebar() {
                       <div
                         className={`
                           relative aspect-square rounded-xl flex flex-col items-center justify-center p-3
-                          transition-all duration-200
+                          transition-all duration-200 border border-gray-400
                           ${location === '/lead-hub'
                             ? 'bg-white/20 shadow-lg scale-105' 
                             : 'bg-white/10 hover:bg-white/15 hover:scale-105'
@@ -297,7 +297,7 @@ export function AppSidebar() {
                   ) : (
                     <button
                       onClick={() => setShowUpgradeModal(true)}
-                      className="relative aspect-square rounded-xl flex flex-col items-center justify-center p-3 bg-white/5 opacity-60 cursor-not-allowed"
+                      className="relative aspect-square rounded-xl flex flex-col items-center justify-center p-3 bg-white/5 opacity-60 cursor-not-allowed border border-gray-400"
                       data-testid="nav-lead-hub-locked"
                     >
                       <TrendingUp className="w-8 h-8 text-purple-400/50 mb-2" />
@@ -456,7 +456,7 @@ export function AppSidebar() {
                             {/* Lead Hub */}
                             {hasPremiumAccess ? (
                               <Link href="/lead-hub" data-testid="nav-lead-hub">
-                                <button className="w-full flex items-center gap-3 px-3 py-2 rounded-md transition-all hover:bg-slate-700/50 text-white bg-black/20">
+                                <button className="w-full flex items-center gap-3 px-3 py-2 rounded-md transition-all hover:bg-slate-700/50 text-white bg-black/20 border border-gray-400">
                                   <TrendingUp className="w-5 h-5 text-purple-400" />
                                   <span className="text-sm font-medium">Lead Hub</span>
                                 </button>
@@ -464,7 +464,7 @@ export function AppSidebar() {
                             ) : (
                               <button
                                 onClick={() => setShowUpgradeModal(true)}
-                                className="w-full flex items-center gap-3 px-3 py-2 rounded-md transition-all opacity-60 cursor-not-allowed text-white/70 bg-black/20"
+                                className="w-full flex items-center gap-3 px-3 py-2 rounded-md transition-all opacity-60 cursor-not-allowed text-white/70 bg-black/20 border border-gray-400"
                                 data-testid="nav-lead-hub-locked"
                               >
                                 <TrendingUp className="w-5 h-5 text-purple-400/50" />
