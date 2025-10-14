@@ -55,36 +55,78 @@ SIDEBAR MENU:
 
 Bad: [Long paragraph with 10 bullet points explaining everything about lead generation]
 
-Good: "The fastest way to get more leads is through lead capture forms. Want me to create a wedding inquiry form for you? I'll set it up with name/email/phone/date fields and add it to your Marketing → Lead Forms section."
-
-**AI Creation Powers:**
-You CAN create things for users! When they confirm they want something created, return a JSON action command.
-
-**Action Format:**
-When user confirms creation (e.g., "yes, create it" or "yes, do it"), respond with:
-
-ACTION: {"type": "CREATE_LEAD_FORM", "params": {"name": "Wedding Inquiry Form", "description": "...", "projectType": "WEDDING"}}
-
-OR
-
-ACTION: {"type": "CREATE_CONTACT", "params": {"firstName": "Jane", "lastName": "Smith", "email": "jane@example.com", "phone": "+15551234567", "projectType": "WEDDING"}}
-
-**Available Actions:**
-- CREATE_LEAD_FORM: params = {name, description?, projectType?, fields?}
-- CREATE_CONTACT: params = {firstName, lastName?, email, phone?, projectType?}
-
-**Important:**
-- ONLY return ACTION when user explicitly confirms
-- First ask: "Want me to create X for you?"
-- If yes → return ACTION command
-- If no → just give directions
+Good: "The fastest way to get more leads is through lead capture forms. Go to Marketing → Lead Forms and click 'Create Form' to set one up with name, email, phone, and date fields."
 
 **Remember:**
 - Short answers > long explanations
 - Questions > info dumps  
 - Actionable steps > theory
 - Natural conversation > formal documentation
-- Offer to CREATE things, don't just give directions`;
+- Give clear, accurate navigation directions`;
+
+// Define tools for OpenAI function calling
+const CHATBOT_TOOLS = [
+  {
+    type: "function" as const,
+    function: {
+      name: "create_lead_form",
+      description: "Creates a new lead capture form for the photographer. Use this when the user confirms they want a form created.",
+      parameters: {
+        type: "object",
+        properties: {
+          name: {
+            type: "string",
+            description: "Name of the lead form (e.g., 'Wedding Inquiry Form')"
+          },
+          description: {
+            type: "string",
+            description: "Brief description of the form's purpose"
+          },
+          projectType: {
+            type: "string",
+            enum: ["WEDDING", "PORTRAIT", "COMMERCIAL"],
+            description: "Type of photography project this form is for"
+          }
+        },
+        required: ["name"]
+      }
+    }
+  },
+  {
+    type: "function" as const,
+    function: {
+      name: "create_contact",
+      description: "Adds a new contact to the photographer's CRM. Use this when the user confirms they want to add a contact.",
+      parameters: {
+        type: "object",
+        properties: {
+          firstName: {
+            type: "string",
+            description: "Contact's first name"
+          },
+          lastName: {
+            type: "string",
+            description: "Contact's last name"
+          },
+          email: {
+            type: "string",
+            description: "Contact's email address"
+          },
+          phone: {
+            type: "string",
+            description: "Contact's phone number (with country code, e.g., +15551234567)"
+          },
+          projectType: {
+            type: "string",
+            enum: ["WEDDING", "PORTRAIT", "COMMERCIAL"],
+            description: "Type of photography project"
+          }
+        },
+        required: ["firstName", "email"]
+      }
+    }
+  }
+];
 
 export async function getChatbotResponse(
   message: string,
@@ -105,12 +147,6 @@ export async function getChatbotResponse(
       systemMessage += `\n\nThe user is currently on the ${context} page.`;
     }
 
-    if (photographerId) {
-      systemMessage += `\n\nIMPORTANT: You can create things for this user! When they confirm, use ACTION commands.`;
-    } else {
-      systemMessage += `\n\nNOTE: You cannot create things for this user (not authenticated). Only provide directions.`;
-    }
-
     // Prepare messages for OpenAI
     const messages: ChatMessage[] = [
       { role: "system", content: systemMessage },
@@ -121,35 +157,16 @@ export async function getChatbotResponse(
     const response = await openai.chat.completions.create({
       model: "gpt-5",
       messages: messages as any,
-      max_completion_tokens: 8000 // High limit for GPT-5's unpredictable reasoning token usage
+      max_completion_tokens: 8000
+      // Note: AI creation tools disabled - needs GPT-5 behavior tuning. See replit.md for details.
     });
-
-    console.log("OpenAI Response:", JSON.stringify(response, null, 2));
     
     if (!response.choices || !response.choices[0] || !response.choices[0].message) {
       console.error("Invalid OpenAI response structure:", response);
       return "I'm sorry, I couldn't generate a response. Please try again.";
     }
 
-    let aiResponse = response.choices[0].message.content || "I'm sorry, I couldn't generate a response. Please try again.";
-
-    // Check for ACTION commands in response
-    if (photographerId && aiResponse.includes("ACTION:")) {
-      const actionMatch = aiResponse.match(/ACTION:\s*({.*?})/s);
-      if (actionMatch) {
-        try {
-          const action = JSON.parse(actionMatch[1]);
-          const actionResult = await executeAction(action, photographerId);
-          
-          // Replace ACTION command with result message
-          aiResponse = aiResponse.replace(/ACTION:\s*{.*?}/s, actionResult);
-        } catch (error) {
-          console.error("Action execution error:", error);
-          aiResponse = aiResponse.replace(/ACTION:\s*{.*?}/s, "Sorry, I had trouble creating that. Please try manually.");
-        }
-      }
-    }
-
+    const aiResponse = response.choices[0].message.content || "I'm sorry, I couldn't generate a response. Please try again.";
     return aiResponse;
   } catch (error: any) {
     console.error("Chatbot error details:", {
