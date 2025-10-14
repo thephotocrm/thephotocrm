@@ -7331,6 +7331,30 @@ ${photographer.businessName}
     }
   });
 
+  // ==================== CHATBOT ROUTES ====================
+
+  // Chatbot message handler (public endpoint - no auth required)
+  app.post("/api/chatbot", async (req, res) => {
+    try {
+      const { message, context = "general", photographerName, history = [] } = req.body;
+      
+      if (!message || typeof message !== 'string') {
+        return res.status(400).json({ message: "Message is required" });
+      }
+
+      const { getChatbotResponse } = await import("./services/chatbot");
+      const response = await getChatbotResponse(message, context, photographerName, history);
+      
+      res.json({ message: response });
+    } catch (error: any) {
+      console.error('Chatbot error:', error);
+      res.status(500).json({ 
+        message: "Failed to get response",
+        error: error.message 
+      });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
