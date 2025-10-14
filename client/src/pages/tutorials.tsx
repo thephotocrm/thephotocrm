@@ -15,10 +15,18 @@ import {
   Calendar,
   TrendingUp,
   BarChart3,
-  Workflow
+  Workflow,
+  X
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 
 interface Tutorial {
   id: string;
@@ -32,6 +40,7 @@ interface Tutorial {
 
 export default function Tutorials() {
   const [completedTutorials, setCompletedTutorials] = useState<Set<string>>(new Set());
+  const [watchingTutorial, setWatchingTutorial] = useState<Tutorial | null>(null);
 
   const setupTutorials: Tutorial[] = [
     {
@@ -227,6 +236,7 @@ export default function Tutorials() {
 
         <div className="flex items-center gap-3">
           <button
+            onClick={() => setWatchingTutorial(tutorial)}
             className={cn(
               "flex-1 px-4 py-2 rounded-lg font-medium transition-colors flex items-center justify-center gap-2",
               isCompleted
@@ -385,6 +395,39 @@ export default function Tutorials() {
           </div>
         </section>
       </div>
+
+      {/* Video Modal */}
+      <Dialog open={!!watchingTutorial} onOpenChange={(open) => !open && setWatchingTutorial(null)}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>{watchingTutorial?.title}</DialogTitle>
+            <DialogDescription>{watchingTutorial?.description}</DialogDescription>
+          </DialogHeader>
+          <div className="mt-4">
+            {watchingTutorial?.videoId ? (
+              <div className="aspect-video bg-black rounded-lg flex items-center justify-center">
+                <iframe
+                  width="100%"
+                  height="100%"
+                  src={`https://www.youtube.com/embed/${watchingTutorial.videoId}`}
+                  title={watchingTutorial.title}
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  className="rounded-lg"
+                />
+              </div>
+            ) : (
+              <div className="aspect-video bg-gradient-to-br from-purple-500/10 to-pink-500/10 rounded-lg flex flex-col items-center justify-center border border-purple-500/20">
+                <Play className="w-16 h-16 text-purple-500 mb-4" />
+                <h4 className="text-lg font-semibold mb-2">Video Coming Soon</h4>
+                <p className="text-muted-foreground text-center max-w-md">
+                  This tutorial video is currently being produced. Check back soon for the full walkthrough!
+                </p>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
