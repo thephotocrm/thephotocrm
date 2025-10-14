@@ -7355,6 +7355,110 @@ ${photographer.businessName}
     }
   });
 
+  // AI Creation Endpoints - Authenticated chatbot actions
+  app.post("/api/chatbot/create-lead-form", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
+    try {
+      const { name, description, projectType = "WEDDING", fields = [] } = req.body;
+      const photographerId = req.user!.photographerId!;
+      
+      // Build default config for a wedding inquiry form
+      const defaultConfig = {
+        title: name || "Wedding Inquiry Form",
+        description: description || "Let's discuss your wedding photography needs",
+        primaryColor: "#3b82f6",
+        backgroundColor: "#ffffff",
+        buttonText: "Send Inquiry",
+        successMessage: "Thank you! We'll be in touch soon.",
+        showPhone: true,
+        showMessage: true,
+        showEventDate: true,
+        redirectUrl: "",
+        customFields: fields.length > 0 ? fields : [
+          { id: "firstName", type: "text", label: "First Name", placeholder: "Jane", required: true, isSystem: true, width: "half" },
+          { id: "lastName", type: "text", label: "Last Name", placeholder: "Smith", required: true, isSystem: true, width: "half" },
+          { id: "email", type: "email", label: "Email", placeholder: "jane@example.com", required: true, isSystem: true, width: "full" },
+          { id: "phone", type: "phone", label: "Phone", placeholder: "(555) 123-4567", required: true, isSystem: false, width: "full" },
+          { id: "eventDate", type: "date", label: "Wedding Date", required: false, isSystem: false, width: "half" },
+          { id: "venue", type: "text", label: "Venue Name", placeholder: "e.g. The Grand Hotel", required: false, isSystem: false, width: "half" },
+          { id: "message", type: "textarea", label: "Tell us about your wedding", placeholder: "Share any details...", required: false, isSystem: false, width: "full" },
+          { id: "optInSms", type: "checkbox", label: "I agree to receive SMS updates", required: false, options: ["Yes, text me updates"], isSystem: false, width: "full" }
+        ]
+      };
+
+      const leadForm = await storage.createLeadForm({
+        photographerId,
+        name: name || "Wedding Inquiry Form",
+        description: description || "AI-generated wedding inquiry form",
+        projectType: projectType as any,
+        config: defaultConfig,
+        status: "ACTIVE"
+      });
+
+      res.status(201).json({
+        success: true,
+        form: leadForm,
+        shareLink: `${process.env.REPLIT_DOMAINS?.split(',')[0] || ''}/f/${leadForm.publicToken}`,
+        message: "Lead form created successfully!"
+      });
+    } catch (error: any) {
+      console.error('AI create lead form error:', error);
+      res.status(500).json({ 
+        success: false,
+        message: "Failed to create lead form",
+        error: error.message 
+      });
+    }
+  });
+
+  app.post("/api/chatbot/create-contact", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
+    try {
+      const { firstName, lastName, email, phone, projectType = "WEDDING" } = req.body;
+      const photographerId = req.user!.photographerId!;
+      
+      if (!firstName || !email) {
+        return res.status(400).json({ 
+          success: false,
+          message: "First name and email are required" 
+        });
+      }
+
+      // Get the photographer's first stage
+      const stages = await storage.getStagesByPhotographer(photographerId);
+      const firstStage = stages.find(s => s.order === 1) || stages[0];
+
+      if (!firstStage) {
+        return res.status(400).json({ 
+          success: false,
+          message: "No pipeline stages found. Please set up your pipeline first." 
+        });
+      }
+
+      const contact = await storage.createContact({
+        photographerId,
+        firstName,
+        lastName: lastName || "",
+        email,
+        phone: phone || null,
+        currentStageId: firstStage.id,
+        projectType: projectType as any,
+        leadSource: "AI_ASSISTANT"
+      });
+
+      res.status(201).json({
+        success: true,
+        contact,
+        message: `Contact ${firstName} ${lastName || ''} added to ${firstStage.name}!`
+      });
+    } catch (error: any) {
+      console.error('AI create contact error:', error);
+      res.status(500).json({ 
+        success: false,
+        message: "Failed to create contact",
+        error: error.message 
+      });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
