@@ -35,6 +35,7 @@ import Scheduling from "@/pages/scheduling";
 import Reports from "@/pages/reports";
 import Earnings from "@/pages/earnings";
 import Settings from "@/pages/settings";
+import Tutorials from "@/pages/tutorials";
 import LeadHub from "@/pages/lead-hub";
 import BudgetEstimator from "@/pages/budget-estimator";
 import HowItWorks from "@/pages/how-it-works";
@@ -113,6 +114,7 @@ function ProtectedRoutes() {
             <Route path="/pinterest-ads" component={PinterestAds} />
             <Route path="/tiktok-ads" component={TikTokAds} />
             <Route path="/settings" component={Settings} />
+            <Route path="/tutorials" component={Tutorials} />
             <Route component={NotFound} />
           </Switch>
         </SidebarInset>
