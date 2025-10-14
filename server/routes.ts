@@ -3743,13 +3743,22 @@ ${photographer?.businessName || 'Your Photography Team'}`;
 
       console.log('AI Extracted data:', JSON.stringify(extracted, null, 2));
 
+      // Check if triggerStageId is a valid UUID (if not, it's probably a stage name, so set to null)
+      let validStageId = null;
+      if (extracted.triggerStageId) {
+        const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+        if (uuidPattern.test(extracted.triggerStageId)) {
+          validStageId = extracted.triggerStageId;
+        }
+      }
+
       // Create the automation
       const automationData = validateAutomationSchema.parse({
         photographerId,
         name: extracted.name,
         description: extracted.description,
         triggerType: extracted.triggerType,
-        triggerStageId: extracted.triggerStageId || null,
+        triggerStageId: validStageId,
         projectType: extracted.projectType,
         enabled: true
       });
@@ -3782,10 +3791,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
         await storage.createAutomationStep(stepData);
       }
 
-      // Fetch the complete automation with steps
-      const completeAutomation = await storage.getAutomationById(automation.id);
-      
-      res.status(201).json(completeAutomation);
+      res.status(201).json(automation);
     } catch (error: any) {
       console.error('Create automation with AI error:', error);
       if (error.name === 'ZodError') {
