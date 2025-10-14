@@ -1462,6 +1462,10 @@ export default function Automations() {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [aiDialogOpen, setAiDialogOpen] = useState(false);
   const [aiDescription, setAiDescription] = useState("");
+  const [aiConfirmDialogOpen, setAiConfirmDialogOpen] = useState(false);
+  const [extractedData, setExtractedData] = useState<any>(null);
+  const [availableStages, setAvailableStages] = useState<any[]>([]);
+  const [aiSelectedStageId, setAiSelectedStageId] = useState<string>("");
   const [manageRulesDialogOpen, setManageRulesDialogOpen] = useState(false);
   const [selectedStage, setSelectedStage] = useState<any>(null);
   const [timingMode, setTimingMode] = useState<'immediate' | 'delayed'>('immediate');
@@ -2008,10 +2012,31 @@ export default function Automations() {
     deleteAutomationMutation.mutate(automationId);
   };
 
-  // AI automation creation mutation
-  const createAiAutomationMutation = useMutation({
+  // AI automation extraction mutation (step 1)
+  const extractAiAutomationMutation = useMutation({
     mutationFn: async (description: string) => {
-      return apiRequest("POST", "/api/automations/create-with-ai", { description });
+      return apiRequest("POST", "/api/automations/extract-with-ai", { description });
+    },
+    onSuccess: (data: any) => {
+      setExtractedData(data.extracted);
+      setAvailableStages(data.availableStages);
+      setAiDialogOpen(false);
+      setAiConfirmDialogOpen(true);
+    },
+    onError: (error: any) => {
+      console.error('Extract AI automation error:', error);
+      toast({ 
+        title: "Failed to process request", 
+        description: error?.message || "Unknown error occurred",
+        variant: "destructive" 
+      });
+    }
+  });
+
+  // AI automation creation mutation (step 2 - after confirmation)
+  const createAiAutomationMutation = useMutation({
+    mutationFn: async ({ extractedData, selectedStageId }: any) => {
+      return apiRequest("POST", "/api/automations/create-with-ai", { extractedData, selectedStageId });
     },
     onSuccess: (automation) => {
       toast({ 
@@ -2019,8 +2044,10 @@ export default function Automations() {
         description: `"${automation.name}" has been created and is ready to use.`
       });
       queryClient.invalidateQueries({ queryKey: ["/api/automations"] });
-      setAiDialogOpen(false);
+      setAiConfirmDialogOpen(false);
       setAiDescription("");
+      setExtractedData(null);
+      setAiSelectedStageId("");
     },
     onError: (error: any) => {
       console.error('Create AI automation error:', error);
@@ -2032,7 +2059,7 @@ export default function Automations() {
     }
   });
 
-  const handleCreateAiAutomation = () => {
+  const handleExtractAiAutomation = () => {
     if (!aiDescription.trim()) {
       toast({
         title: "Description required",
@@ -2041,7 +2068,11 @@ export default function Automations() {
       });
       return;
     }
-    createAiAutomationMutation.mutate(aiDescription);
+    extractAiAutomationMutation.mutate(aiDescription);
+  };
+
+  const handleConfirmAiAutomation = () => {
+    createAiAutomationMutation.mutate({ extractedData, selectedStageId: aiSelectedStageId });
   };
 
   // Toggle automation mutation
@@ -3749,9 +3780,112 @@ export default function Automations() {
             Cancel
           </Button>
           <Button
-            onClick={handleCreateAiAutomation}
-            disabled={createAiAutomationMutation.isPending || !aiDescription.trim()}
+            onClick={handleExtractAiAutomation}
+            disabled={extractAiAutomationMutation.isPending || !aiDescription.trim()}
             data-testid="button-create-ai"
+          >
+            {extractAiAutomationMutation.isPending ? (
+              <>
+                <Sparkles className="w-4 h-4 mr-2 animate-spin" />
+                Analyzing...
+              </>
+            ) : (
+              <>
+                <Sparkles className="w-4 h-4 mr-2" />
+                Continue
+              </>
+            )}
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+
+    {/* AI Automation Confirmation Dialog */}
+    <Dialog open={aiConfirmDialogOpen} onOpenChange={setAiConfirmDialogOpen}>
+      <DialogContent className="sm:max-w-[700px]">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Sparkles className="w-5 h-5 text-purple-600" />
+            Confirm Automation Details
+          </DialogTitle>
+          <DialogDescription>
+            Review and adjust the automation before creating it.
+          </DialogDescription>
+        </DialogHeader>
+        {extractedData && (
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>Automation Name</Label>
+              <p className="text-sm font-medium">{extractedData.name}</p>
+            </div>
+            <div className="space-y-2">
+              <Label>Description</Label>
+              <p className="text-sm text-muted-foreground">{extractedData.description}</p>
+            </div>
+            <div className="space-y-2">
+              <Label>Trigger</Label>
+              <p className="text-sm">
+                {extractedData.triggerType === 'SPECIFIC_STAGE' ? 'When contact enters a specific stage' : 'When stage changes'}
+              </p>
+            </div>
+            {extractedData.triggerType === 'SPECIFIC_STAGE' && (
+              <div className="space-y-2">
+                <Label htmlFor="stage-select">Select Stage *</Label>
+                {availableStages.length > 0 ? (
+                  <Select value={aiSelectedStageId} onValueChange={setAiSelectedStageId}>
+                    <SelectTrigger id="stage-select">
+                      <SelectValue placeholder="Choose a stage..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableStages.map((stage: any) => (
+                        <SelectItem key={stage.id} value={stage.id}>
+                          {stage.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <p className="text-sm text-yellow-600 bg-yellow-50 dark:bg-yellow-950 p-3 rounded">
+                    ⚠️ You don't have any stages set up yet. The automation will be created as a global automation.
+                  </p>
+                )}
+              </div>
+            )}
+            <div className="space-y-2">
+              <Label>Actions</Label>
+              <div className="bg-muted/30 p-3 rounded-lg space-y-2">
+                {extractedData.steps.map((step: any, idx: number) => (
+                  <div key={idx} className="text-sm">
+                    <p className="font-medium">
+                      Step {idx + 1}: {step.type === 'SMS' ? 'Send SMS' : step.type === 'EMAIL' ? 'Send Email' : 'Send Smart File'}
+                    </p>
+                    <p className="text-muted-foreground">
+                      Delay: {step.delayDays > 0 ? `${step.delayDays} day${step.delayDays > 1 ? 's' : ''}` : ''} 
+                      {step.delayHours > 0 ? ` ${step.delayHours} hour${step.delayHours > 1 ? 's' : ''}` : ''}
+                      {step.delayDays === 0 && step.delayHours === 0 ? 'Immediate' : ''}
+                    </p>
+                    <p className="text-muted-foreground italic">"{step.content.substring(0, 100)}..."</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+        <div className="flex justify-end gap-2">
+          <Button
+            variant="outline"
+            onClick={() => {
+              setAiConfirmDialogOpen(false);
+              setAiDialogOpen(true);
+            }}
+            data-testid="button-back-ai"
+          >
+            Back
+          </Button>
+          <Button
+            onClick={handleConfirmAiAutomation}
+            disabled={createAiAutomationMutation.isPending}
+            data-testid="button-confirm-ai"
           >
             {createAiAutomationMutation.isPending ? (
               <>

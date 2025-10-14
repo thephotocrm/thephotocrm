@@ -484,8 +484,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const defaultStages = [
           { name: "Inquiry", orderIndex: 0, isDefault: true },
           { name: "Consultation", orderIndex: 1, isDefault: false },
-          { name: "Proposal Sent", orderIndex: 2, isDefault: false },
-          { name: "Booked", orderIndex: 3, isDefault: false }
+          { name: "Payment Made", orderIndex: 2, isDefault: false },
+          { name: "Booked", orderIndex: 3, isDefault: false },
+          { name: "Finished", orderIndex: 4, isDefault: false }
         ];
 
         for (const stage of defaultStages) {
@@ -3727,8 +3728,8 @@ ${photographer?.businessName || 'Your Photography Team'}`;
     }
   });
 
-  // AI-powered automation creation
-  app.post("/api/automations/create-with-ai", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
+  // AI-powered automation extraction (preview only)
+  app.post("/api/automations/extract-with-ai", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       const { description } = req.body;
       const photographerId = req.user!.photographerId!;
@@ -3741,42 +3742,51 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       const { extractAutomationFromDescription } = await import("./services/chatbot");
       const extracted = await extractAutomationFromDescription(description, photographerId);
 
-      console.log('AI Extracted data:', JSON.stringify(extracted, null, 2));
+      // Get stages for display
+      const stages = await storage.getStagesByPhotographer(photographerId);
+      
+      // Return extracted data for user confirmation
+      res.json({
+        extracted,
+        availableStages: stages
+      });
+    } catch (error: any) {
+      console.error('Extract automation with AI error:', error);
+      res.status(500).json({ message: error.message || "Internal server error" });
+    }
+  });
 
-      // Check if triggerStageId is a valid UUID (if not, it's probably a stage name, so set to null)
-      let validStageId = null;
-      if (extracted.triggerStageId) {
-        const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-        if (uuidPattern.test(extracted.triggerStageId)) {
-          validStageId = extracted.triggerStageId;
-        }
+  // AI-powered automation creation (after user confirmation)
+  app.post("/api/automations/create-with-ai", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
+    try {
+      const { extractedData, selectedStageId } = req.body;
+      const photographerId = req.user!.photographerId!;
+
+      if (!extractedData) {
+        return res.status(400).json({ message: "Extracted data is required" });
       }
 
-      // Create the automation
+      // Create the automation with user-confirmed stage
       const automationData = validateAutomationSchema.parse({
         photographerId,
-        name: extracted.name,
-        description: extracted.description,
-        triggerType: extracted.triggerType,
-        triggerStageId: validStageId,
-        projectType: extracted.projectType,
+        name: extractedData.name,
+        description: extractedData.description,
+        triggerType: extractedData.triggerType,
+        triggerStageId: selectedStageId || null,
+        projectType: extractedData.projectType,
         enabled: true
       });
 
       const automation = await storage.createAutomation(automationData);
 
       // Create automation steps
-      for (let i = 0; i < extracted.steps.length; i++) {
-        const step = extracted.steps[i];
-        
-        console.log('Processing step:', i, step);
+      for (let i = 0; i < extractedData.steps.length; i++) {
+        const step = extractedData.steps[i];
         
         // Convert delay to minutes, defaulting to 0 if undefined
         const delayDays = step.delayDays ?? 0;
         const delayHours = step.delayHours ?? 0;
         const delayMinutes = (delayDays * 24 * 60) + (delayHours * 60);
-        
-        console.log('Delay calculation:', { delayDays, delayHours, delayMinutes });
         
         const stepData = insertAutomationStepSchema.parse({
           automationId: automation.id,
