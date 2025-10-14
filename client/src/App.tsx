@@ -9,6 +9,7 @@ import { MobileHeader } from "@/components/layout/mobile-header";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { AdminHeader } from "@/components/admin-header";
+import { ChatbotWidget } from "@/components/chatbot-widget";
 import Landing from "@/pages/landing";
 import Login from "@/pages/login";
 import Register from "@/pages/register";
@@ -118,6 +119,7 @@ function ProtectedRoutes() {
             <Route component={NotFound} />
           </Switch>
         </SidebarInset>
+        <ChatbotWidget context="dashboard" photographerName={user?.businessName} />
       </SidebarProvider>
     </>
   );
