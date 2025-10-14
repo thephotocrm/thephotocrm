@@ -1,4 +1,6 @@
 import OpenAI from "openai";
+import { zodResponseFormat } from "openai/helpers/zod";
+import { z } from "zod";
 
 // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
@@ -252,4 +254,68 @@ async function executeAction(action: any, photographerId: string): Promise<strin
     default:
       return "❌ Unknown action type.";
   }
+}
+
+// Zod schema for automation extraction
+const AutomationStep = z.object({
+  type: z.enum(["EMAIL", "SMS", "SMART_FILE"]),
+  delayDays: z.number().min(0).max(365),
+  delayHours: z.number().min(0).max(23).default(0),
+  subject: z.string().optional(),
+  content: z.string(),
+  recipientType: z.enum(["CONTACT", "PHOTOGRAPHER"])
+});
+
+const AutomationExtraction = z.object({
+  name: z.string().describe("A short descriptive name for this automation"),
+  description: z.string().describe("A brief description of what this automation does"),
+  triggerType: z.enum(["STAGE_CHANGE", "SPECIFIC_STAGE"]).describe("What triggers this automation"),
+  triggerStageId: z.string().optional().describe("The stage ID if trigger is SPECIFIC_STAGE"),
+  projectType: z.enum(["WEDDING", "PORTRAIT", "COMMERCIAL"]).default("WEDDING"),
+  steps: z.array(AutomationStep).min(1).max(10).describe("The sequence of actions to take")
+});
+
+export async function extractAutomationFromDescription(
+  description: string,
+  photographerId: string
+): Promise<z.infer<typeof AutomationExtraction>> {
+  const { storage } = await import("../storage");
+  
+  // Get photographer's stages for context
+  const stages = await storage.getStagesByPhotographer(photographerId);
+  const stagesList = stages.map(s => `${s.name} (ID: ${s.id})`).join(", ");
+
+  const systemPrompt = `You are an expert at understanding photographer workflow automation requests.
+
+The photographer has these pipeline stages: ${stagesList}
+
+Extract automation parameters from the user's description. Be smart about:
+1. Trigger: If they mention "when someone books" or "after booking" → SPECIFIC_STAGE with booking stage
+2. Delays: Convert "1 day later" → delayDays: 1, "3 hours" → delayHours: 3, "immediately" → delayDays: 0
+3. Content: Write professional, friendly email/SMS content that matches their request
+4. Recipient: Usually CONTACT, but could be PHOTOGRAPHER for internal reminders
+5. Subject: Email needs subject, SMS doesn't
+
+Examples:
+- "Send thank you email next day after booking" → EMAIL step, delayDays: 1, to CONTACT
+- "Text them welcome message right away when they enter inquiry stage" → SMS step, delayDays: 0, SPECIFIC_STAGE trigger
+- "Remind me to follow up 3 days after proposal sent" → EMAIL/SMS to PHOTOGRAPHER, delayDays: 3`;
+
+  const response = await openai.beta.chat.completions.parse({
+    model: "gpt-5",
+    messages: [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: description }
+    ],
+    response_format: zodResponseFormat(AutomationExtraction, "automation"),
+    max_completion_tokens: 2000
+  });
+
+  const extracted = response.choices[0].message.parsed;
+  
+  if (!extracted) {
+    throw new Error("Failed to extract automation parameters");
+  }
+
+  return extracted;
 }
