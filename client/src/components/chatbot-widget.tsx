@@ -58,15 +58,18 @@ export function ChatbotWidget({ context = "general", photographerName }: Chatbot
     setIsLoading(true);
 
     try {
-      const response = await apiRequest<{ message: string }>("/api/chatbot", {
-        method: "POST",
-        body: JSON.stringify({
+      const res = await apiRequest(
+        "POST",
+        "/api/chatbot",
+        {
           message: input,
           context,
           photographerName,
           history: messages.map(m => ({ role: m.role, content: m.content }))
-        })
-      });
+        }
+      );
+
+      const response = await res.json() as { message: string };
 
       const assistantMessage: Message = {
         role: "assistant",
