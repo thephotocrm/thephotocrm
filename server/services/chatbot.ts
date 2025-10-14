@@ -261,7 +261,7 @@ const AutomationStep = z.object({
   type: z.enum(["EMAIL", "SMS", "SMART_FILE"]),
   delayDays: z.number().min(0).max(365),
   delayHours: z.number().min(0).max(23).default(0),
-  subject: z.string().optional(),
+  subject: z.string().nullish(),
   content: z.string(),
   recipientType: z.enum(["CONTACT", "PHOTOGRAPHER"])
 });
@@ -270,7 +270,7 @@ const AutomationExtraction = z.object({
   name: z.string().describe("A short descriptive name for this automation"),
   description: z.string().describe("A brief description of what this automation does"),
   triggerType: z.enum(["STAGE_CHANGE", "SPECIFIC_STAGE"]).describe("What triggers this automation"),
-  triggerStageId: z.string().optional().describe("The stage ID if trigger is SPECIFIC_STAGE"),
+  triggerStageId: z.string().nullish().describe("The stage ID if trigger is SPECIFIC_STAGE"),
   projectType: z.enum(["WEDDING", "PORTRAIT", "COMMERCIAL"]).default("WEDDING"),
   steps: z.array(AutomationStep).min(1).max(10).describe("The sequence of actions to take")
 });
