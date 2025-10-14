@@ -3755,15 +3755,21 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       const automation = await storage.createAutomation(automationData);
 
       // Create automation steps
-      for (const step of extracted.steps) {
+      for (let i = 0; i < extracted.steps.length; i++) {
+        const step = extracted.steps[i];
+        
+        // Convert delay to minutes
+        const delayMinutes = (step.delayDays * 24 * 60) + (step.delayHours * 60);
+        
         const stepData = insertAutomationStepSchema.parse({
           automationId: automation.id,
-          type: step.type,
-          delayDays: step.delayDays,
-          delayHours: step.delayHours,
-          subject: step.subject || null,
-          content: step.content,
-          recipientType: step.recipientType
+          stepIndex: i,
+          delayMinutes,
+          actionType: step.type,
+          customSmsContent: step.type === 'SMS' ? step.content : null,
+          templateId: null, // AI doesn't use templates
+          smartFileTemplateId: null,
+          enabled: true
         });
         await storage.createAutomationStep(stepData);
       }
