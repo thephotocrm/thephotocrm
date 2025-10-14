@@ -101,7 +101,7 @@ export function ChatbotWidget({ context = "general", photographerName }: Chatbot
   return (
     <>
       {isOpen && (
-        <div className="fixed bottom-24 right-6 w-96 h-[500px] bg-white dark:bg-gray-900 rounded-lg shadow-2xl border border-gray-200 dark:border-gray-700 flex flex-col z-50">
+        <div className="fixed inset-0 md:inset-auto md:bottom-24 md:right-6 md:w-[600px] md:h-[700px] w-full h-full bg-white dark:bg-gray-900 md:rounded-lg shadow-2xl border border-gray-200 dark:border-gray-700 flex flex-col z-50">
           <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
