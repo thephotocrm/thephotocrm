@@ -474,7 +474,7 @@ export function AppSidebar() {
                             </div>
                           </div>
                           
-                          <div className="space-y-1 mt-4">
+                          <div className="mt-4">
                             {/* Lead Hub */}
                             {hasPremiumAccess ? (
                               <Link href="/lead-hub" data-testid="nav-lead-hub">
@@ -497,7 +497,7 @@ export function AppSidebar() {
                             
                             {/* How It Works */}
                             <Link href="/how-it-works" data-testid="nav-how-it-works">
-                              <button className={`w-full flex items-center gap-3 px-3 py-2 rounded-md transition-all hover:bg-slate-700/50 text-white ${location === '/how-it-works' ? 'bg-slate-700' : 'bg-black/20'} border border-gray-400`}>
+                              <button className={`w-full flex items-center gap-3 px-3 py-2 rounded-md transition-all hover:bg-slate-700/50 text-white ${location === '/how-it-works' ? 'bg-slate-700' : 'bg-black/20'} border border-gray-400 mt-2`}>
                                 <Info className="w-5 h-5 text-blue-400" />
                                 <span className="text-sm font-medium">How It Works</span>
                               </button>
