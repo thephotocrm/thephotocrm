@@ -33,7 +33,8 @@ import {
   Inbox as InboxIcon,
   Lock,
   Rocket,
-  Info
+  Info,
+  GraduationCap
 } from "lucide-react";
 import { SiFacebook, SiGoogle, SiInstagram, SiPinterest, SiTiktok } from "react-icons/si";
 import {
@@ -194,6 +195,7 @@ export function AppSidebar() {
     ...coreNavigation,
     ...(showAdminNav ? adminNavigation : groupedNavigation.flatMap(g => g.items)),
     { name: "Settings", href: "/settings", icon: Settings },
+    { name: "Tutorials", href: "/tutorials", icon: GraduationCap },
   ];
 
   // Premium items for mobile grid
@@ -572,6 +574,19 @@ export function AppSidebar() {
                   <Link href="/settings">
                     <Settings className="w-6 h-6" />
                     <span className="text-base">Settings</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  isActive={location === "/tutorials"}
+                  data-testid="nav-tutorials"
+                  className="bg-slate-800/50 text-white hover:bg-slate-700/70 data-[active=true]:bg-slate-700 data-[active=true]:text-white"
+                >
+                  <Link href="/tutorials">
+                    <GraduationCap className="w-6 h-6" />
+                    <span className="text-base">Tutorials</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
