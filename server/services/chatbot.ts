@@ -231,7 +231,7 @@ async function executeAction(action: any, photographerId: string): Promise<strin
       }
 
       const stages = await storage.getStagesByPhotographer(photographerId);
-      const firstStage = stages.find(s => s.order === 1) || stages[0];
+      const firstStage = stages.find(s => s.orderIndex === 1) || stages[0];
 
       if (!firstStage) {
         return "❌ You need to set up your pipeline stages first before I can add contacts.";
@@ -243,7 +243,7 @@ async function executeAction(action: any, photographerId: string): Promise<strin
         lastName: lastName || "",
         email,
         phone: phone || null,
-        currentStageId: firstStage.id,
+        stageId: firstStage.id,
         projectType: projectType as any,
         leadSource: "AI_ASSISTANT"
       });
@@ -301,7 +301,7 @@ Examples:
 - "Text them welcome message right away when they enter inquiry stage" → SMS step, delayDays: 0, SPECIFIC_STAGE trigger
 - "Remind me to follow up 3 days after proposal sent" → EMAIL/SMS to PHOTOGRAPHER, delayDays: 3`;
 
-  const response = await openai.beta.chat.completions.parse({
+  const response = await openai.chat.completions.create({
     model: "gpt-5",
     messages: [
       { role: "system", content: systemPrompt },
@@ -311,7 +311,12 @@ Examples:
     max_completion_tokens: 2000
   });
 
-  const extracted = response.choices[0].message.parsed;
+  const content = response.choices[0].message.content;
+  if (!content) {
+    throw new Error("No content in OpenAI response");
+  }
+  
+  const extracted = JSON.parse(content) as z.infer<typeof AutomationExtraction>;
   
   if (!extracted) {
     throw new Error("Failed to extract automation parameters");

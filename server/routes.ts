@@ -3727,6 +3727,60 @@ ${photographer?.businessName || 'Your Photography Team'}`;
     }
   });
 
+  // AI-powered automation creation
+  app.post("/api/automations/create-with-ai", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
+    try {
+      const { description } = req.body;
+      const photographerId = req.user!.photographerId!;
+
+      if (!description || typeof description !== 'string') {
+        return res.status(400).json({ message: "Description is required" });
+      }
+
+      // Extract automation parameters using AI
+      const { extractAutomationFromDescription } = await import("./services/chatbot");
+      const extracted = await extractAutomationFromDescription(description, photographerId);
+
+      // Create the automation
+      const automationData = validateAutomationSchema.parse({
+        photographerId,
+        name: extracted.name,
+        description: extracted.description,
+        triggerType: extracted.triggerType,
+        triggerStageId: extracted.triggerStageId || null,
+        projectType: extracted.projectType,
+        enabled: true
+      });
+
+      const automation = await storage.createAutomation(automationData);
+
+      // Create automation steps
+      for (const step of extracted.steps) {
+        const stepData = insertAutomationStepSchema.parse({
+          automationId: automation.id,
+          type: step.type,
+          delayDays: step.delayDays,
+          delayHours: step.delayHours,
+          subject: step.subject || null,
+          content: step.content,
+          recipientType: step.recipientType
+        });
+        await storage.createAutomationStep(stepData);
+      }
+
+      // Fetch the complete automation with steps
+      const completeAutomation = await storage.getAutomationById(automation.id);
+      
+      res.status(201).json(completeAutomation);
+    } catch (error: any) {
+      console.error('Create automation with AI error:', error);
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ message: "Invalid request data", errors: error.errors });
+      }
+      res.status(500).json({ message: error.message || "Internal server error" });
+    }
+  });
+
   app.patch("/api/automations/:id", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       // First verify the automation belongs to this photographer
