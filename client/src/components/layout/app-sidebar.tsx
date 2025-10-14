@@ -310,6 +310,27 @@ export function AppSidebar() {
                   )}
                   
                   <Link
+                    href="/budget-estimator"
+                    data-testid="nav-budget-estimator-mobile"
+                  >
+                    <div
+                      className={`
+                        relative aspect-square rounded-xl flex flex-col items-center justify-center p-3
+                        transition-all duration-200 border border-gray-400
+                        ${location === '/budget-estimator'
+                          ? 'bg-white/20 shadow-lg scale-105' 
+                          : 'bg-white/10 hover:bg-white/15 hover:scale-105'
+                        }
+                      `}
+                    >
+                      <DollarSign className="w-8 h-8 text-green-400 mb-2" />
+                      <span className="text-[10px] font-medium text-white text-center leading-tight">
+                        Budget Estimator
+                      </span>
+                    </div>
+                  </Link>
+                  
+                  <Link
                     href="/how-it-works"
                     data-testid="nav-how-it-works-mobile"
                   >
@@ -494,6 +515,14 @@ export function AppSidebar() {
                                 <Lock className="w-3 h-3 ml-auto text-yellow-400" />
                               </button>
                             )}
+                            
+                            {/* Budget Estimator */}
+                            <Link href="/budget-estimator" data-testid="nav-budget-estimator">
+                              <button className={`w-full flex items-center gap-3 px-3 py-2 rounded-md transition-all hover:bg-slate-700/50 text-white ${location === '/budget-estimator' ? 'bg-slate-700' : 'bg-black/20'} border border-gray-400 mt-2`}>
+                                <DollarSign className="w-5 h-5 text-green-400" />
+                                <span className="text-sm font-medium">Budget Estimator</span>
+                              </button>
+                            </Link>
                             
                             {/* How It Works */}
                             <Link href="/how-it-works" data-testid="nav-how-it-works">

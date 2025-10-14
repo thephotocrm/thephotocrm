@@ -36,6 +36,7 @@ import Reports from "@/pages/reports";
 import Earnings from "@/pages/earnings";
 import Settings from "@/pages/settings";
 import LeadHub from "@/pages/lead-hub";
+import BudgetEstimator from "@/pages/budget-estimator";
 import HowItWorks from "@/pages/how-it-works";
 import FacebookAds from "@/pages/facebook-ads";
 import GoogleAds from "@/pages/google-ads";
@@ -104,6 +105,7 @@ function ProtectedRoutes() {
             <Route path="/reports" component={Reports} />
             <Route path="/earnings" component={Earnings} />
             <Route path="/lead-hub" component={LeadHub} />
+            <Route path="/budget-estimator" component={BudgetEstimator} />
             <Route path="/how-it-works" component={HowItWorks} />
             <Route path="/facebook-ads" component={FacebookAds} />
             <Route path="/google-ads" component={GoogleAds} />
@@ -168,6 +170,7 @@ function Router() {
       <Route path="/reports"><ProtectedRoutes /></Route>
       <Route path="/earnings"><ProtectedRoutes /></Route>
       <Route path="/lead-hub"><ProtectedRoutes /></Route>
+      <Route path="/budget-estimator"><ProtectedRoutes /></Route>
       <Route path="/how-it-works"><ProtectedRoutes /></Route>
       <Route path="/facebook-ads"><ProtectedRoutes /></Route>
       <Route path="/google-ads"><ProtectedRoutes /></Route>
