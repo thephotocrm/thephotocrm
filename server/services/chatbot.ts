@@ -361,6 +361,7 @@ const ConversationState = z.object({
     actionType: z.enum(["EMAIL", "SMS", "SMART_FILE"]).nullable(),
     delayDays: z.number().nullable(),
     delayHours: z.number().nullable(),
+    delayMinutes: z.number().nullable(), // 0-59 for minute-level delays
     scheduledHour: z.number().nullable(), // 0-23 for time of day
     scheduledMinute: z.number().nullable(), // 0-59
     subject: z.string().nullable(),
@@ -413,9 +414,12 @@ export async function conversationalAutomationBuilder(
    - NEVER skip asking about the stage - it's critical for automation functionality
    
 2. **Timing**: When should it send?
-   - Extract delay in days/hours (e.g., "2 days later" → delayDays: 2, "immediately" → delayDays: 0)
+   - Extract delay in days/hours/minutes (e.g., "2 days later" → delayDays: 2, "15 minutes" → delayMinutes: 15, "immediately" → delayDays: 0, delayMinutes: 0)
    - If they mention specific time like "6pm" or "2:30pm", extract scheduledHour and scheduledMinute
-   - Examples: "2 days from now at 6pm" → delayDays: 2, scheduledHour: 18, scheduledMinute: 0
+   - Examples: 
+     - "2 days from now at 6pm" → delayDays: 2, scheduledHour: 18, scheduledMinute: 0
+     - "15 minutes after" → delayMinutes: 15
+     - "1 hour later" → delayHours: 1
    
 3. **Action Type**: What to send?
    - EMAIL, SMS, or SMART_FILE (proposal/invoice/contract)
@@ -446,6 +450,20 @@ export async function conversationalAutomationBuilder(
 - needsStageSelection: true if user needs to pick a stage from dropdown
 - options: Array of {label, value} options if providing choices
 
+**CONFIRMATION MESSAGE (when status = "confirming"):**
+When you have ALL required info (stage, timing, action type, content), set status to "confirming" and write a friendly summary in nextQuestion like:
+
+"Okay, I think I've got it! Here's what we'll create:
+
+📍 **Trigger:** When a client enters the [Stage Name] stage
+⏰ **Timing:** [Wait X days/hours] [at specific time if applicable]
+📧/📱/📄 **Action:** Send [email/SMS/Smart File]
+✉️ **Message:** [Brief preview of content or "You'll select a template"]
+
+Does this look good? Reply 'yes' to create it, or let me know what to change!"
+
+Make it conversational, clear, and easy to understand. Use emojis to make it friendly.
+
 **Examples:**
 
 User: "Send a thank you email 1 day after booking"
@@ -464,12 +482,20 @@ Response: {
   needsStageSelection: false
 }
 
-User: "Send SMS to consultation stage contacts"
+User: "Thanks for reaching out! We'll get back to you soon."
 Response: {
-  status: "collecting",
-  collectedInfo: { actionType: "SMS", stageId: "[consultation-stage-id-from-list]", stageName: "Consultation", delayDays: 0 },
-  nextQuestion: "When should I send this SMS? (e.g., immediately, 1 day later, 2 days at 3pm)",
-  needsStageSelection: false
+  status: "confirming",
+  collectedInfo: { stageId: "[id]", stageName: "Inquiry", actionType: "EMAIL", delayDays: 1, content: "Thanks for reaching out! We'll get back to you soon." },
+  nextQuestion: "Okay, I think I've got it! Here's what we'll create:\n\n📍 **Trigger:** When a client enters the Inquiry stage\n⏰ **Timing:** Wait 1 day\n📧 **Action:** Send email\n✉️ **Message:** \"Thanks for reaching out! We'll get back to you soon.\"\n\nDoes this look good? Reply 'yes' to create it, or let me know what to change!",
+  needsTemplateSelection: false
+}
+
+User: "yes" (or "looks good" or "create it")
+Response: {
+  status: "complete",
+  collectedInfo: { [same as above] },
+  nextQuestion: "Perfect! Creating your automation now...",
+  needsTemplateSelection: false
 }
 
 Current State: ${JSON.stringify(currentState || {})}

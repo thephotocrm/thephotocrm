@@ -3962,8 +3962,8 @@ ${photographer?.businessName || 'Your Photography Team'}`;
         // Determine channel based on action type
         const channel = collectedInfo.actionType || 'EMAIL';
         
-        // Calculate delay in minutes
-        const delayMinutes = (collectedInfo.delayDays || 0) * 24 * 60 + (collectedInfo.delayHours || 0) * 60;
+        // Calculate delay in minutes (include days, hours, AND minutes)
+        const delayMinutes = (collectedInfo.delayDays || 0) * 24 * 60 + (collectedInfo.delayHours || 0) * 60 + (collectedInfo.delayMinutes || 0);
         
         // Create automation
         const automationData = validateAutomationSchema.parse({
