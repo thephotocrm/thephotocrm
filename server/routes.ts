@@ -3897,10 +3897,10 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       }
 
       // Create the automation with user-confirmed stage
-      // AI creates COMMUNICATION automations (SMS/Email)
+      // AI creates COMMUNICATION automations (SMS/Email/Smart File)
       // Determine channel based on first step type
       const firstStepType = extractedData.steps[0]?.type;
-      const channel = firstStepType === 'SMS' ? 'SMS' : firstStepType === 'EMAIL' ? 'EMAIL' : null;
+      const channel = firstStepType === 'SMS' ? 'SMS' : firstStepType === 'EMAIL' ? 'EMAIL' : firstStepType === 'SMART_FILE' ? 'SMART_FILE' : null;
       
       console.log('🔍 About to create automation with stageId:', selectedStageId || null);
       
@@ -3927,16 +3927,23 @@ ${photographer?.businessName || 'Your Photography Team'}`;
         const delayHours = step.delayHours ?? 0;
         const delayMinutes = (delayDays * 24 * 60) + (delayHours * 60);
         
-        // For SMART_FILE type, look up the template ID by name
+        // For SMART_FILE type, use the provided template ID or look up by name as fallback
         let smartFileTemplateId = null;
-        if (step.type === 'SMART_FILE' && step.smartFileTemplateName) {
-          const smartFileTemplates = await storage.getSmartFilesByPhotographer(photographerId);
-          const matchingTemplate = smartFileTemplates.find(t => 
-            t.name.toLowerCase().includes(step.smartFileTemplateName.toLowerCase()) ||
-            step.smartFileTemplateName.toLowerCase().includes(t.name.toLowerCase())
-          );
-          if (matchingTemplate) {
-            smartFileTemplateId = matchingTemplate.id;
+        if (step.type === 'SMART_FILE') {
+          // Prefer the direct template ID if provided
+          if (step.smartFileTemplateId) {
+            smartFileTemplateId = step.smartFileTemplateId;
+          }
+          // Fallback to name lookup if template name is provided but no ID
+          else if (step.smartFileTemplateName) {
+            const smartFileTemplates = await storage.getSmartFilesByPhotographer(photographerId);
+            const matchingTemplate = smartFileTemplates.find(t => 
+              t.name.toLowerCase().includes(step.smartFileTemplateName.toLowerCase()) ||
+              step.smartFileTemplateName.toLowerCase().includes(t.name.toLowerCase())
+            );
+            if (matchingTemplate) {
+              smartFileTemplateId = matchingTemplate.id;
+            }
           }
         }
         

@@ -297,8 +297,7 @@ Extract automation parameters from the user's description. Be smart about:
    - EMAIL: For email messages
    - SMS: For text messages
    - SMART_FILE: When photographer mentions sending "proposal", "invoice", "contract", or "smart file"
-     For SMART_FILE type, include smartFileTemplateName with common names like:
-     "Wedding Proposal", "Portrait Proposal", "Wedding Contract", "Wedding Invoice", etc.
+     For SMART_FILE type, leave smartFileTemplateName as null - the user will select their template in the UI
 4. Content: Write professional, friendly email/SMS content that matches their request
    
    ALLOWED PLACEHOLDERS - These will be replaced with actual values:

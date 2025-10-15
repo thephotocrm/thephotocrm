@@ -1473,6 +1473,7 @@ export default function Automations() {
   const [extractedData, setExtractedData] = useState<any>(null);
   const [availableStages, setAvailableStages] = useState<any[]>([]);
   const [aiSelectedStageId, setAiSelectedStageId] = useState<string>("");
+  const [aiSelectedSmartFileTemplateIds, setAiSelectedSmartFileTemplateIds] = useState<Record<number, string>>({});
   const [editedMessageContent, setEditedMessageContent] = useState<string>("");
   const [manageRulesDialogOpen, setManageRulesDialogOpen] = useState(false);
   const [selectedStage, setSelectedStage] = useState<any>(null);
@@ -2065,6 +2066,7 @@ export default function Automations() {
       setAiDescription("");
       setExtractedData(null);
       setAiSelectedStageId("");
+      setAiSelectedSmartFileTemplateIds({});
       setEditedMessageContent("");
     },
     onError: (error: any) => {
@@ -2099,12 +2101,28 @@ export default function Automations() {
       return;
     }
     
-    // Update the extracted data with the edited message content
+    // Validate smart file template selection if needed
+    const missingTemplateSteps = extractedData.steps
+      .map((step: any, idx: number) => ({ step, idx }))
+      .filter(({ step, idx }: any) => step.type === 'SMART_FILE' && !aiSelectedSmartFileTemplateIds[idx]);
+    
+    if (missingTemplateSteps.length > 0) {
+      toast({
+        title: "Template Required",
+        description: "Please select a Smart File template for all Smart File steps.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // Update the extracted data with the edited message content and smart file templates
     const updatedExtractedData = {
       ...extractedData,
-      steps: extractedData.steps.map((step: any, idx: number) => 
-        idx === 0 ? { ...step, content: editedMessageContent } : step
-      )
+      steps: extractedData.steps.map((step: any, idx: number) => ({
+        ...step,
+        content: idx === 0 ? editedMessageContent : step.content,
+        smartFileTemplateId: step.type === 'SMART_FILE' ? aiSelectedSmartFileTemplateIds[idx] : undefined
+      }))
     };
     
     console.log('Creating automation with data:', { extractedData: updatedExtractedData, selectedStageId: aiSelectedStageId });
@@ -3883,6 +3901,36 @@ export default function Automations() {
                   </p>
                 )}
               </div>
+            )}
+            {extractedData.steps.map((step: any, idx: number) => 
+              step.type === 'SMART_FILE' ? (
+                <div key={idx} className="space-y-2">
+                  <Label htmlFor={`smart-file-select-${idx}`}>
+                    Select Smart File Template {extractedData.steps.filter((s: any) => s.type === 'SMART_FILE').length > 1 ? `(Step ${idx + 1})` : ''} *
+                  </Label>
+                  {smartFiles.length > 0 ? (
+                    <Select 
+                      value={aiSelectedSmartFileTemplateIds[idx] || ''} 
+                      onValueChange={(value) => setAiSelectedSmartFileTemplateIds(prev => ({ ...prev, [idx]: value }))}
+                    >
+                      <SelectTrigger id={`smart-file-select-${idx}`}>
+                        <SelectValue placeholder="Choose a template..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {smartFiles.map((template: any) => (
+                          <SelectItem key={template.id} value={template.id}>
+                            {template.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <p className="text-sm text-yellow-600 bg-yellow-50 dark:bg-yellow-950 p-3 rounded">
+                      ⚠️ You don't have any Smart File templates yet. Create one first in Sales & Proposals → Smart Files.
+                    </p>
+                  )}
+                </div>
+              ) : null
             )}
             <div className="space-y-2">
               <Label>Message Content</Label>
