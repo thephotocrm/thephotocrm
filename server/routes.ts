@@ -3767,16 +3767,17 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       }
 
       // Create the automation with user-confirmed stage
-      // If user selected a stage in the dropdown, override the triggerType to SPECIFIC_STAGE
-      const triggerType = selectedStageId ? 'SPECIFIC_STAGE' : extractedData.triggerType;
-      const triggerStageId = selectedStageId || (extractedData.triggerType === 'SPECIFIC_STAGE' ? extractedData.triggerStageId : null);
+      // AI creates COMMUNICATION automations (SMS/Email)
+      // Determine channel based on first step type
+      const firstStepType = extractedData.steps[0]?.type;
+      const channel = firstStepType === 'SMS' ? 'SMS' : firstStepType === 'EMAIL' ? 'EMAIL' : null;
       
       const automationData = validateAutomationSchema.parse({
         photographerId,
         name: extractedData.name,
-        description: extractedData.description,
-        triggerType,
-        triggerStageId,
+        automationType: 'COMMUNICATION',
+        stageId: selectedStageId || null, // User-selected stage from dropdown
+        channel,
         projectType: extractedData.projectType,
         enabled: true
       });
