@@ -230,6 +230,7 @@ export default function Settings() {
 
   // ALL useState hooks MUST be called before any conditional returns
   const [businessName, setBusinessName] = useState("");
+  const [photographerName, setPhotographerName] = useState("");
   const [logoUrl, setLogoUrl] = useState("");
   const [brandPrimary, setBrandPrimary] = useState("#3b82f6");
   const [brandSecondary, setBrandSecondary] = useState("#64748b");
@@ -244,6 +245,7 @@ export default function Settings() {
     if (photographer) {
       const p = photographer as any;
       setBusinessName(p.businessName || "");
+      setPhotographerName(p.photographerName || "");
       setLogoUrl(p.logoUrl || "");
       setBrandPrimary(p.brandPrimary || "#3b82f6");
       setBrandSecondary(p.brandSecondary || "#64748b");
@@ -279,6 +281,7 @@ export default function Settings() {
   const handleSaveProfile = () => {
     updatePhotographerMutation.mutate({
       businessName,
+      photographerName: photographerName || undefined,
       logoUrl: logoUrl || undefined,
       emailFromName: emailFromName || undefined,
       emailFromAddr: emailFromAddr || undefined,
@@ -430,28 +433,46 @@ export default function Settings() {
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
+                      <Label htmlFor="photographerName">Your Name</Label>
+                      <Input
+                        id="photographerName"
+                        value={photographerName}
+                        onChange={(e) => setPhotographerName(e.target.value)}
+                        placeholder="e.g., Sarah Johnson"
+                        data-testid="input-photographer-name"
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Used in {'{{PHOTOGRAPHER_NAME}}'} placeholders
+                      </p>
+                    </div>
+                    <div className="space-y-2">
                       <Label htmlFor="businessName">Business Name</Label>
                       <Input
                         id="businessName"
                         value={businessName}
                         onChange={(e) => setBusinessName(e.target.value)}
+                        placeholder="e.g., Sarah Johnson Photography"
                         data-testid="input-business-name"
                       />
+                      <p className="text-xs text-muted-foreground">
+                        Used in {'{{BUSINESS_NAME}}'} placeholders
+                      </p>
                     </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="timezone">Timezone</Label>
-                      <Select value={timezone} onValueChange={setTimezone}>
-                        <SelectTrigger data-testid="select-timezone">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="America/New_York">Eastern Time</SelectItem>
-                          <SelectItem value="America/Chicago">Central Time</SelectItem>
-                          <SelectItem value="America/Denver">Mountain Time</SelectItem>
-                          <SelectItem value="America/Los_Angeles">Pacific Time</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="timezone">Timezone</Label>
+                    <Select value={timezone} onValueChange={setTimezone}>
+                      <SelectTrigger data-testid="select-timezone">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="America/New_York">Eastern Time</SelectItem>
+                        <SelectItem value="America/Chicago">Central Time</SelectItem>
+                        <SelectItem value="America/Denver">Mountain Time</SelectItem>
+                        <SelectItem value="America/Los_Angeles">Pacific Time</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                   
                   <div className="space-y-2">

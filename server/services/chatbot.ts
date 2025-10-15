@@ -263,7 +263,8 @@ const AutomationStep = z.object({
   delayHours: z.number().min(0).max(23).default(0),
   subject: z.string().nullish(),
   content: z.string(),
-  recipientType: z.enum(["CONTACT", "PHOTOGRAPHER"])
+  recipientType: z.enum(["CONTACT", "PHOTOGRAPHER"]),
+  smartFileTemplateName: z.string().nullish().describe("Name of the smart file template to send (for SMART_FILE type)")
 });
 
 const AutomationExtraction = z.object({
@@ -292,19 +293,29 @@ The photographer has these pipeline stages: ${stagesList}
 Extract automation parameters from the user's description. Be smart about:
 1. Trigger: If they mention "when someone books" or "after booking" → SPECIFIC_STAGE with booking stage
 2. Delays: Convert "1 day later" → delayDays: 1, "3 hours" → delayHours: 3, "immediately" → delayDays: 0
-3. Content: Write professional, friendly email/SMS content that matches their request
-   CRITICAL: NEVER use placeholders like [Your Name], {yourname}, [Business Name], etc. 
-   These messages are sent directly to clients - write them ready-to-use!
-   Use generic professional language like "I'll be in touch" instead of "I'll be in touch - [Your Name]"
+3. Action Types:
+   - EMAIL: For email messages
+   - SMS: For text messages
+   - SMART_FILE: When photographer mentions sending "proposal", "invoice", "contract", or "smart file"
+     For SMART_FILE type, include smartFileTemplateName with common names like:
+     "Wedding Proposal", "Portrait Proposal", "Wedding Contract", "Wedding Invoice", etc.
+4. Content: Write professional, friendly email/SMS content that matches their request
    
-   EXCEPTION - Scheduling Links: If the photographer specifically asks to send a booking/scheduling link, 
-   include the {{SCHEDULING_LINK}} placeholder. This is the ONLY allowed placeholder.
-   Examples of when to use it:
-   - "send them a link to book" → include "Book your session here: {{SCHEDULING_LINK}}"
-   - "include scheduling link" → include "{{SCHEDULING_LINK}}"
-   - "send booking link" → include "{{SCHEDULING_LINK}}"
-4. Recipient: Usually CONTACT, but could be PHOTOGRAPHER for internal reminders
-5. Subject: Email needs subject, SMS doesn't
+   ALLOWED PLACEHOLDERS - These will be replaced with actual values:
+   - {{PHOTOGRAPHER_NAME}} - The photographer's name
+   - {{BUSINESS_NAME}} - The business/studio name
+   - {{SCHEDULING_LINK}} - Booking calendar link (only when photographer specifically requests it)
+   
+   Use these placeholders naturally in messages. For example:
+   - "Thanks for reaching out! - {{PHOTOGRAPHER_NAME}}"
+   - "We're excited to work with you! - {{BUSINESS_NAME}}"
+   - "Book a time that works for you: {{SCHEDULING_LINK}}"
+   
+   NEVER use non-functional placeholders like [Your Name], {yourname}, [Business Name], etc.
+   Only use the exact placeholders listed above.
+   
+5. Recipient: Usually CONTACT, but could be PHOTOGRAPHER for internal reminders
+6. Subject: Email needs subject, SMS doesn't
 
 Examples:
 - "Send thank you email next day after booking" → EMAIL step, delayDays: 1, to CONTACT
@@ -312,9 +323,10 @@ Examples:
 - "Remind me to follow up 3 days after proposal sent" → EMAIL/SMS to PHOTOGRAPHER, delayDays: 3
 - "Send SMS with booking link when they enter consultation stage" → SMS with "{{SCHEDULING_LINK}}" in content
 
-BAD message (has placeholder): "Thanks for reaching out! I'll be in touch soon. - [Your Name]"
-GOOD message (no placeholders): "Thanks for reaching out! I'll be in touch soon to discuss your photography needs."
-GOOD message (with scheduling link): "Ready to book your session? Schedule here: {{SCHEDULING_LINK}}"`;
+BAD message (non-functional placeholder): "Thanks for reaching out! I'll be in touch soon. - [Your Name]"
+GOOD message (with proper placeholder): "Thanks for reaching out! I'll be in touch soon. - {{PHOTOGRAPHER_NAME}}"
+GOOD message (with scheduling link): "Ready to book your session? Schedule here: {{SCHEDULING_LINK}}"
+GOOD message (with business name): "Looking forward to capturing your special day! - {{BUSINESS_NAME}}"`;
 
   const response = await openai.chat.completions.create({
     model: "gpt-5",

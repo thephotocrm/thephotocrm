@@ -100,6 +100,7 @@ export const adCampaignStatusEnum = {
 export const photographers = pgTable("photographers", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   businessName: text("business_name").notNull(),
+  photographerName: text("photographer_name"),
   logoUrl: text("logo_url"),
   brandPrimary: text("brand_primary"),
   brandSecondary: text("brand_secondary"),

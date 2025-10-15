@@ -3801,6 +3801,19 @@ ${photographer?.businessName || 'Your Photography Team'}`;
         const delayHours = step.delayHours ?? 0;
         const delayMinutes = (delayDays * 24 * 60) + (delayHours * 60);
         
+        // For SMART_FILE type, look up the template ID by name
+        let smartFileTemplateId = null;
+        if (step.type === 'SMART_FILE' && step.smartFileTemplateName) {
+          const smartFileTemplates = await storage.getSmartFilesByPhotographer(photographerId);
+          const matchingTemplate = smartFileTemplates.find(t => 
+            t.name.toLowerCase().includes(step.smartFileTemplateName.toLowerCase()) ||
+            step.smartFileTemplateName.toLowerCase().includes(t.name.toLowerCase())
+          );
+          if (matchingTemplate) {
+            smartFileTemplateId = matchingTemplate.id;
+          }
+        }
+        
         const stepData = insertAutomationStepSchema.parse({
           automationId: automation.id,
           stepIndex: i,
@@ -3808,7 +3821,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
           actionType: step.type,
           customSmsContent: step.type === 'SMS' ? step.content : null,
           templateId: null, // AI doesn't use templates
-          smartFileTemplateId: null,
+          smartFileTemplateId,
           enabled: true
         });
         await storage.createAutomationStep(stepData);

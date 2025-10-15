@@ -542,9 +542,14 @@ async function processAutomationStep(contact: any, step: any, automation: any): 
     email: contact.email || '',
     phone: contact.phone || '',
     businessName: photographer?.businessName || 'Your Photographer',
+    photographerName: photographer?.photographerName || photographer?.businessName || 'Your Photographer',
     eventDate: contact.eventDate ? new Date(contact.eventDate).toLocaleDateString() : 'Not set',
     weddingDate: contact.eventDate ? new Date(contact.eventDate).toLocaleDateString() : 'Not set', // Backward compatibility
-    scheduling_link: schedulingLink
+    scheduling_link: schedulingLink,
+    // Uppercase versions for AI-generated placeholders
+    SCHEDULING_LINK: schedulingLink,
+    PHOTOGRAPHER_NAME: photographer?.photographerName || photographer?.businessName || 'Your Photographer',
+    BUSINESS_NAME: photographer?.businessName || 'Your Photographer'
   };
 
   // 🔒 BULLETPROOF ERROR HANDLING - Wrap all send operations to prevent PENDING reservations on errors
@@ -1146,11 +1151,16 @@ async function sendCountdownMessage(project: any, automation: any, photographerI
     email: project.email || '',
     phone: project.phone || '',
     businessName: photographer?.businessName || 'Your Photographer',
+    photographerName: photographer?.photographerName || photographer?.businessName || 'Your Photographer',
     eventDate: eventDateInTz.toLocaleDateString(),
     weddingDate: eventDateInTz.toLocaleDateString(), // Backward compatibility
     daysRemaining: daysRemaining.toString(),
     daysBefore: automation.daysBefore.toString(),
-    scheduling_link: schedulingLink
+    scheduling_link: schedulingLink,
+    // Uppercase versions for AI-generated placeholders
+    SCHEDULING_LINK: schedulingLink,
+    PHOTOGRAPHER_NAME: photographer?.photographerName || photographer?.businessName || 'Your Photographer',
+    BUSINESS_NAME: photographer?.businessName || 'Your Photographer'
   };
 
   // 🔒 BULLETPROOF ERROR HANDLING - Wrap send operations to prevent PENDING reservations on errors
@@ -1555,8 +1565,13 @@ async function processSubscriptionEmail(subscription: any, campaign: any, projec
     email: contact.email || '',
     phone: contact.phone || '',
     businessName: photographer?.businessName || 'Your Photographer',
+    photographerName: photographer?.photographerName || photographer?.businessName || 'Your Photographer',
     eventDate: project.eventDate ? new Date(project.eventDate).toLocaleDateString() : 'Not set',
-    scheduling_link: schedulingLink
+    scheduling_link: schedulingLink,
+    // Uppercase versions for AI-generated placeholders
+    SCHEDULING_LINK: schedulingLink,
+    PHOTOGRAPHER_NAME: photographer?.photographerName || photographer?.businessName || 'Your Photographer',
+    BUSINESS_NAME: photographer?.businessName || 'Your Photographer'
   };
 
   // Render email content
