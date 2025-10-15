@@ -329,7 +329,7 @@ GOOD message (with scheduling link): "Ready to book your session? Schedule here:
 GOOD message (with business name): "Looking forward to capturing your special day! - {{BUSINESS_NAME}}"`;
 
   const response = await openai.chat.completions.create({
-    model: "gpt-5",
+    model: "gpt-4o-mini",
     messages: [
       { role: "system", content: systemPrompt },
       { role: "user", content: description }
