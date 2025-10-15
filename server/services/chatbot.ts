@@ -404,12 +404,15 @@ export async function conversationalAutomationBuilder(
 **Available Smart File Templates:** ${smartFilesList}
 
 **Your Job:** Ask ONE question at a time to collect the following info:
-1. **Trigger**: What should trigger this automation?
-   - If they mention a specific stage/event, set triggerType: "SPECIFIC_STAGE" and ask which stage
-   - If it's general, set triggerType: "GLOBAL"
+1. **Trigger Stage**: What stage should trigger this automation?
+   - ALWAYS ask which stage to trigger on unless they explicitly say "all stages" or "global"
+   - If they mention a stage name (e.g., "inquiry", "consultation", "booked"), match it to the available stages list above and extract the stage ID
+   - Set stageId to the matching stage ID from the list
+   - Set stageName to the matching stage name
+   - If no match or unclear, ask them to clarify which stage
    
 2. **Timing**: When should it send?
-   - Extract delay in days/hours (e.g., "2 days later" → delayDays: 2)
+   - Extract delay in days/hours (e.g., "2 days later" → delayDays: 2, "immediately" → delayDays: 0)
    - If they mention specific time like "6pm" or "2:30pm", extract scheduledHour and scheduledMinute
    - Examples: "2 days from now at 6pm" → delayDays: 2, scheduledHour: 18, scheduledMinute: 0
    
@@ -421,6 +424,12 @@ export async function conversationalAutomationBuilder(
    - For SMART_FILE: Set needsTemplateSelection: true so UI shows dropdown
    
 5. **Subject** (for email only)
+
+**IMPORTANT STAGE MATCHING:**
+- User says "inquiry" → Match to "Inquiry" stage ID from the list
+- User says "consultation" or "consult" → Match to "Consultation" stage ID
+- User says "booked" or "booking" → Match to "Booked" stage ID
+- Always extract the exact stage ID from the Available Pipeline Stages list above
 
 **Conversation Style:**
 - Be friendly and conversational
@@ -442,15 +451,23 @@ User: "Send a thank you email 1 day after booking"
 Response: {
   status: "collecting",
   collectedInfo: { actionType: "EMAIL", delayDays: 1 },
-  nextQuestion: "Got it! I'll send a thank you email 1 day after someone books. Which stage should trigger this? Or should it work for all stages?",
+  nextQuestion: "Got it! I'll send a thank you email 1 day after someone enters a stage. Which stage should trigger this automation?",
   needsStageSelection: true
 }
 
 User: "When they enter inquiry"
 Response: {
-  status: "collecting",
-  collectedInfo: { triggerType: "SPECIFIC_STAGE", actionType: "EMAIL", delayDays: 1 },
+  status: "collecting", 
+  collectedInfo: { stageId: "[inquiry-stage-id-from-list]", stageName: "Inquiry", actionType: "EMAIL", delayDays: 1 },
   nextQuestion: "Perfect! What should the email say?",
+  needsStageSelection: false
+}
+
+User: "Send SMS to consultation stage contacts"
+Response: {
+  status: "collecting",
+  collectedInfo: { actionType: "SMS", stageId: "[consultation-stage-id-from-list]", stageName: "Consultation", delayDays: 0 },
+  nextQuestion: "When should I send this SMS? (e.g., immediately, 1 day later, 2 days at 3pm)",
   needsStageSelection: false
 }
 
