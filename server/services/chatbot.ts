@@ -468,7 +468,10 @@ export async function conversationalAutomationBuilder(
   const smartFilesList = smartFiles.map(sf => `${sf.name} (ID: ${sf.id})`).join(", ");
 
   // MULTI-AUTOMATION DETECTION: Check if this is the first message and contains multiple automations
+  console.log(`🔍 Multi-automation check: currentState=${!!currentState}, historyLength=${conversationHistory.length}`);
+  
   if (!currentState && conversationHistory.length === 0) {
+    console.log('🔎 Running multi-automation detection...');
     const detection = await detectMultipleAutomations(userMessage, photographerId);
     
     if (detection.isMultiAutomation && detection.automationCount > 1) {
