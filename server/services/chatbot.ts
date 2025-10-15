@@ -562,6 +562,13 @@ ${isMultiMode ? `\n**MULTI-AUTOMATION MODE:** You are working on automation ${cu
 - needsStageSelection: true if user needs to pick a stage from dropdown
 - options: Array of {label, value} options if providing choices
 
+**CRITICAL - Multi-Automation Queue Preservation:**
+${isMultiMode ? `⚠️ IMPORTANT: You are in MULTI-AUTOMATION MODE. You MUST preserve these fields in EVERY response:
+- automationQueue: ${JSON.stringify(currentState?.automationQueue)} (copy this EXACTLY)
+- currentAutomationIndex: ${currentState?.currentAutomationIndex}
+- totalAutomations: ${currentState?.totalAutomations}
+These fields track the queue of automations being created. DO NOT set them to null or omit them!` : ""}
+
 **CONFIRMATION MESSAGE (when status = "confirming"):**
 When you have ALL required info (stage, timing, action type, content), set status to "confirming" and write a friendly summary in nextQuestion like:
 

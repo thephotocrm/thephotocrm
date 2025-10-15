@@ -3904,6 +3904,62 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       
       console.log(`✅ Chat response ready, status: ${newState.status}`);
 
+      // 🔄 MULTI-AUTOMATION QUEUE ADVANCEMENT
+      // If user confirmed an automation in multi-automation mode, advance to next
+      if (newState.status === "confirming" && 
+          newState.automationQueue && 
+          newState.automationQueue.length > 1 &&
+          newState.currentAutomationIndex !== null &&
+          newState.totalAutomations) {
+        
+        const currentIndex = newState.currentAutomationIndex;
+        
+        // Save the current automation details to the queue
+        if (newState.collectedInfo && currentIndex < newState.automationQueue.length) {
+          newState.automationQueue[currentIndex] = newState.collectedInfo;
+          console.log(`💾 Saved automation ${currentIndex + 1} to queue`);
+        }
+        
+        // Check if user confirmed (looking for affirmative responses)
+        const isConfirming = message.toLowerCase().match(/^(yes|yeah|yep|sure|ok|okay|looks good|perfect|correct|that's right|sounds good|create it|do it)/);
+        
+        if (isConfirming) {
+          const nextIndex = currentIndex + 1;
+          
+          // Check if there are more automations to create
+          if (nextIndex < newState.totalAutomations) {
+            // Move to next automation
+            newState.currentAutomationIndex = nextIndex;
+            newState.collectedInfo = newState.automationQueue[nextIndex] || {
+              triggerType: null,
+              stageId: null,
+              stageName: null,
+              actionType: null,
+              delayDays: null,
+              delayHours: null,
+              delayMinutes: null,
+              scheduledHour: null,
+              scheduledMinute: null,
+              subject: null,
+              content: null,
+              smartFileTemplateId: null,
+              smartFileTemplateName: null,
+            };
+            newState.status = "collecting";
+            newState.nextQuestion = `Great! Automation ${currentIndex + 1} is ready. Now let's set up the next one.\n\n**Automation ${nextIndex + 1} of ${newState.totalAutomations}**\n\nWhich stage should trigger this automation?`;
+            newState.needsStageSelection = true;
+            newState.options = (await storage.getStagesByPhotographer(photographerId)).map(s => ({ label: s.name, value: s.id }));
+            
+            console.log(`➡️ Advanced to automation ${nextIndex + 1} of ${newState.totalAutomations}`);
+            return res.json({ state: newState });
+          } else {
+            // All automations confirmed! Set to complete to create them all
+            newState.status = "complete";
+            console.log(`✅ All ${newState.totalAutomations} automations confirmed, ready to create`);
+          }
+        }
+      }
+
       // 🔍 STAGE RECONCILIATION LAYER - Validate and match stage IDs
       if (newState.collectedInfo && (newState.status === "confirming" || newState.status === "complete")) {
         const stages = await storage.getStagesByPhotographer(photographerId);
