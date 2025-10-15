@@ -467,11 +467,14 @@ export async function conversationalAutomationBuilder(
   const smartFiles = await storage.getSmartFilesByPhotographer(photographerId);
   const smartFilesList = smartFiles.map(sf => `${sf.name} (ID: ${sf.id})`).join(", ");
 
-  // MULTI-AUTOMATION DETECTION: Check if this is the first message and contains multiple automations
-  console.log(`🔍 Multi-automation check: currentState=${!!currentState}, historyLength=${conversationHistory.length}`);
+  // MULTI-AUTOMATION DETECTION: Check if this is the FIRST USER MESSAGE (not first message overall)
+  // Count only user messages in history to determine if this is the first user input
+  const userMessagesInHistory = conversationHistory.filter(m => m.role === 'user').length;
+  console.log(`🔍 Multi-automation check: currentState=${!!currentState}, historyLength=${conversationHistory.length}, userMessages=${userMessagesInHistory}`);
   
-  if (!currentState && conversationHistory.length === 0) {
-    console.log('🔎 Running multi-automation detection...');
+  // Run detection if: no current state AND this is the first USER message
+  if (!currentState && userMessagesInHistory === 0) {
+    console.log('🔎 Running multi-automation detection (first user message)...');
     const detection = await detectMultipleAutomations(userMessage, photographerId);
     
     if (detection.isMultiAutomation && detection.automationCount > 1) {
