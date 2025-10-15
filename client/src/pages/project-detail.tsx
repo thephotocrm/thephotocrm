@@ -173,6 +173,9 @@ export default function ProjectDetail() {
   const [selectedSmartFileId, setSelectedSmartFileId] = useState("");
   const [smartFileToSend, setSmartFileToSend] = useState<ProjectSmartFile | null>(null);
   const [pendingSmartFileToSend, setPendingSmartFileToSend] = useState<ProjectSmartFile | null>(null);
+  const [sendFileDialogOpen, setSendFileDialogOpen] = useState(false);
+  const [sendFileTemplateId, setSendFileTemplateId] = useState("");
+  const [sendFileMethod, setSendFileMethod] = useState<"email" | "sms">("email");
   const [contractPageToSign, setContractPageToSign] = useState<any>(null);
   const [signatureDialogOpen, setSignatureDialogOpen] = useState(false);
   const [messageDialogOpen, setMessageDialogOpen] = useState(false);
@@ -223,7 +226,7 @@ export default function ProjectDetail() {
 
   const { data: allSmartFiles } = useQuery<SmartFile[]>({
     queryKey: ["/api/smart-files"],
-    enabled: !!user && attachSmartFileOpen
+    enabled: !!user && (attachSmartFileOpen || sendFileDialogOpen)
   });
 
   const updateProjectMutation = useMutation({
@@ -297,6 +300,29 @@ export default function ProjectDetail() {
         }
       }
       
+      toast({
+        title: "Failed to send Smart File",
+        description: error.message || "An error occurred",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const sendFileFromTemplateMutation = useMutation({
+    mutationFn: async (data: { templateId: string; method: "email" | "sms" }) => {
+      return await apiRequest("POST", `/api/projects/${id}/send-smart-file`, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/projects", id, "smart-files"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/projects", id, "history"] });
+      setSendFileDialogOpen(false);
+      setSendFileTemplateId("");
+      toast({
+        title: "Smart File sent",
+        description: "The Smart File has been sent to the client."
+      });
+    },
+    onError: (error: any) => {
       toast({
         title: "Failed to send Smart File",
         description: error.message || "An error occurred",
@@ -572,17 +598,31 @@ export default function ProjectDetail() {
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
-          <Button 
-            size="sm" 
-            className="bg-black hover:bg-black/90 text-white h-8 md:h-9 text-xs md:text-sm px-3 md:px-4"
-            onClick={() => setAttachSmartFileOpen(true)}
-            data-testid="button-create-file"
-            aria-label="Create File"
-          >
-            <Plus className="w-3 h-3 md:hidden mr-1" />
-            <span className="hidden md:inline">CREATE FILE</span>
-            <span className="md:hidden">FILE</span>
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              size="sm" 
+              variant="outline"
+              className="h-8 md:h-9 text-xs md:text-sm px-3 md:px-4"
+              onClick={() => setSendFileDialogOpen(true)}
+              data-testid="button-send-file"
+              aria-label="Send File"
+            >
+              <Send className="w-3 h-3 md:w-4 md:h-4 md:mr-2" />
+              <span className="hidden md:inline">SEND FILE</span>
+              <span className="md:hidden">SEND</span>
+            </Button>
+            <Button 
+              size="sm" 
+              className="bg-black hover:bg-black/90 text-white h-8 md:h-9 text-xs md:text-sm px-3 md:px-4"
+              onClick={() => setAttachSmartFileOpen(true)}
+              data-testid="button-create-file"
+              aria-label="Create File"
+            >
+              <Plus className="w-3 h-3 md:hidden mr-1" />
+              <span className="hidden md:inline">CREATE FILE</span>
+              <span className="md:hidden">FILE</span>
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -1457,6 +1497,53 @@ export default function ProjectDetail() {
               data-testid="button-attach-submit"
             >
               Attach
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={sendFileDialogOpen} onOpenChange={setSendFileDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Send Smart File</DialogTitle>
+            <DialogDescription>
+              Select a Smart File template to send to the client.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="send-file-template">Smart File Template</Label>
+              <Select value={sendFileTemplateId} onValueChange={setSendFileTemplateId}>
+                <SelectTrigger id="send-file-template" data-testid="select-send-file-template">
+                  <SelectValue placeholder="Select Template" />
+                </SelectTrigger>
+                <SelectContent>
+                  {allSmartFiles?.map((sf) => (
+                    <SelectItem key={sf.id} value={sf.id}>
+                      {sf.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="send-method">Delivery Method</Label>
+              <Select value={sendFileMethod} onValueChange={(v) => setSendFileMethod(v as "email" | "sms")}>
+                <SelectTrigger id="send-method" data-testid="select-send-method">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="email">Email</SelectItem>
+                  <SelectItem value="sms">SMS</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <Button 
+              onClick={() => sendFileFromTemplateMutation.mutate({ templateId: sendFileTemplateId, method: sendFileMethod })}
+              disabled={!sendFileTemplateId || sendFileFromTemplateMutation.isPending}
+              data-testid="button-send-file-submit"
+            >
+              {sendFileFromTemplateMutation.isPending ? "Sending..." : "Send File"}
             </Button>
           </div>
         </DialogContent>

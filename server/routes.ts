@@ -2851,6 +2851,132 @@ ${photographer?.businessName || 'Your Photography Team'}`;
     }
   });
 
+  // POST /api/projects/:projectId/send-smart-file - Create and send a smart file from template
+  app.post("/api/projects/:projectId/send-smart-file", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      const { projectId } = req.params;
+      const { templateId, method } = req.body;
+
+      if (!templateId || !method) {
+        return res.status(400).json({ message: "Template ID and delivery method are required" });
+      }
+
+      if (method !== 'email' && method !== 'sms') {
+        return res.status(400).json({ message: "Invalid delivery method. Must be 'email' or 'sms'" });
+      }
+
+      // Verify project ownership
+      const project = await storage.getProject(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+      if (project.photographerId !== req.user!.photographerId!) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // Get template and verify ownership
+      const template = await storage.getSmartFile(templateId);
+      if (!template) {
+        return res.status(404).json({ message: "Template not found" });
+      }
+      if (template.photographerId !== req.user!.photographerId!) {
+        return res.status(404).json({ message: "Template not found" });
+      }
+
+      // Get client and photographer info
+      const [contact, photographer] = await Promise.all([
+        storage.getContact(project.clientId),
+        storage.getPhotographer(project.photographerId)
+      ]);
+
+      if (!contact) {
+        return res.status(404).json({ message: "Contact not found" });
+      }
+
+      if (!photographer) {
+        return res.status(404).json({ message: "Photographer not found" });
+      }
+
+      // Check delivery method requirements
+      if (method === 'sms' && !contact.phone) {
+        return res.status(400).json({ message: "Contact phone number required for SMS delivery" });
+      }
+
+      if (method === 'email' && !contact.email) {
+        return res.status(400).json({ message: "Contact email required for email delivery" });
+      }
+
+      // Create project smart file from template
+      const { nanoid } = await import("nanoid");
+      const token = nanoid(32);
+
+      const projectSmartFile = await storage.createProjectSmartFile({
+        projectId,
+        smartFileId: templateId,
+        photographerId: photographer.id,
+        clientId: contact.id,
+        token,
+        status: 'SENT',
+        sentAt: new Date(),
+        pagesSnapshot: template.pages || []
+      });
+
+      // Build Smart File URL
+      const smartFileUrl = `${process.env.VITE_APP_URL || 'https://thephotocrm.com'}/smart-file/${token}`;
+      
+      // Send via selected method
+      if (method === 'email') {
+        const { sendGmailEmail } = await import("./services/gmail");
+        const emailSubject = `${template.name} from ${photographer.businessName}`;
+        const emailBody = `Hi ${contact.firstName},\n\n${photographer.photographerName || photographer.businessName} has sent you a ${template.name}.\n\nView it here: ${smartFileUrl}\n\nBest regards,\n${photographer.businessName}`;
+
+        await sendGmailEmail({
+          photographerId: photographer.id,
+          to: contact.email,
+          subject: emailSubject,
+          textBody: emailBody
+        });
+
+        // Log activity
+        await storage.createProjectActivity({
+          projectId,
+          photographerId: photographer.id,
+          title: `${template.name} Sent via Email`,
+          description: `Sent ${template.name} to ${contact.firstName} ${contact.lastName} at ${contact.email}`
+        });
+      } else {
+        // Send SMS
+        const { sendSms } = await import("./services/twilio");
+        const smsBody = `Hi ${contact.firstName}! ${photographer.photographerName || photographer.businessName} sent you a ${template.name}. View it here: ${smartFileUrl}`;
+
+        const result = await sendSms({
+          to: contact.phone!,
+          body: smsBody
+        });
+
+        if (!result.success) {
+          return res.status(500).json({ message: result.error || "Failed to send SMS" });
+        }
+
+        // Log activity
+        await storage.createProjectActivity({
+          projectId,
+          photographerId: photographer.id,
+          title: `${template.name} Sent via SMS`,
+          description: `Sent ${template.name} to ${contact.firstName} ${contact.lastName} at ${contact.phone}`
+        });
+      }
+
+      res.json({ 
+        success: true,
+        projectSmartFile
+      });
+    } catch (error: any) {
+      console.error("Send smart file error:", error);
+      res.status(500).json({ message: error.message || "Internal server error" });
+    }
+  });
+
   // GET /api/public/smart-files/:token - Get Smart File by token for client viewing (PUBLIC ROUTE)
   app.get("/api/public/smart-files/:token", async (req, res) => {
     try {
