@@ -362,6 +362,9 @@ function AutomationStepManager({ automation, onDelete }: { automation: any, onDe
                   <div className="space-y-3">
                     {steps.map((step: any, index: number) => {
                       const template = templates?.find(t => t.id === step.templateId);
+                      const smartFile = smartFiles?.find(sf => sf.id === step.smartFileTemplateId);
+                      const isSmartFile = step.actionType === 'SMART_FILE' || automation.channel === 'SMART_FILE';
+                      
                       return (
                         <div key={step.id} className="relative pl-6 pb-3 border-l-2 border-primary/30 last:border-0">
                           {/* Step Number Badge */}
@@ -378,12 +381,49 @@ function AutomationStepManager({ automation, onDelete }: { automation: any, onDe
                               </Badge>
                               <span className="text-xs text-muted-foreground">→</span>
                               <span className="text-xs font-medium">
-                                {automation.channel === 'EMAIL' ? '📧 Send Email' : '📱 Send SMS'}
+                                {isSmartFile ? '📄 Send Smart File' : automation.channel === 'EMAIL' ? '📧 Send Email' : '📱 Send SMS'}
                               </span>
                             </div>
                             
+                            {/* Smart File Template Selector */}
+                            {isSmartFile && smartFiles && smartFiles.length > 0 && (
+                              <div className="space-y-2">
+                                <Label className="text-xs">Smart File Template</Label>
+                                <Select
+                                  value={step.smartFileTemplateId || ''}
+                                  onValueChange={(value) => {
+                                    // Update the step with new Smart File template
+                                    apiRequest("PATCH", `/api/automation-steps/${step.id}`, {
+                                      smartFileTemplateId: value
+                                    }).then(() => {
+                                      toast({ title: "Smart File template updated" });
+                                      queryClient.invalidateQueries({ queryKey: ["/api/automations", automation.id, "steps"] });
+                                    }).catch(() => {
+                                      toast({ title: "Failed to update template", variant: "destructive" });
+                                    });
+                                  }}
+                                >
+                                  <SelectTrigger className="h-8 text-xs">
+                                    <SelectValue placeholder="Select Smart File template" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {smartFiles.map((sf: any) => (
+                                      <SelectItem key={sf.id} value={sf.id} className="text-xs">
+                                        {sf.name}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                                {smartFile && (
+                                  <p className="text-xs text-muted-foreground">
+                                    Currently selected: {smartFile.name}
+                                  </p>
+                                )}
+                              </div>
+                            )}
+                            
                             {/* Template Info or Custom Message */}
-                            {template ? (
+                            {template && !isSmartFile ? (
                               <div className="bg-muted/50 rounded-md p-2 text-xs space-y-1">
                                 <p className="font-medium">{template.name}</p>
                                 {template.subject && (
@@ -395,16 +435,16 @@ function AutomationStepManager({ automation, onDelete }: { automation: any, onDe
                                   {template.textBody || 'No message content'}
                                 </p>
                               </div>
-                            ) : step.customSmsContent ? (
+                            ) : step.customSmsContent && !isSmartFile ? (
                               <div className="bg-muted/50 rounded-md p-2 text-xs space-y-1">
                                 <p className="font-medium text-primary">Custom Message</p>
                                 <p className="text-muted-foreground line-clamp-3">
                                   {step.customSmsContent}
                                 </p>
                               </div>
-                            ) : (
+                            ) : !isSmartFile && !template && !step.customSmsContent ? (
                               <p className="text-xs text-muted-foreground italic">No message configured</p>
-                            )}
+                            ) : null}
                           </div>
                         </div>
                       );
@@ -415,7 +455,9 @@ function AutomationStepManager({ automation, onDelete }: { automation: any, onDe
                 )}
               </div>
               <p className="text-xs text-muted-foreground">
-                To modify steps, delete this automation and create a new one with the desired configuration.
+                {steps.some((s: any) => s.actionType === 'SMART_FILE' || automation.channel === 'SMART_FILE')
+                  ? 'Smart File templates can be changed directly above. To modify other settings, delete this automation and create a new one.'
+                  : 'To modify steps, delete this automation and create a new one with the desired configuration.'}
               </p>
             </div>
 
