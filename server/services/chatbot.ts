@@ -355,26 +355,26 @@ GOOD message (with business name): "Looking forward to capturing your special da
 const ConversationState = z.object({
   status: z.enum(["collecting", "confirming", "complete"]),
   collectedInfo: z.object({
-    triggerType: z.enum(["SPECIFIC_STAGE", "GLOBAL"]).optional(),
-    stageId: z.string().optional(),
-    stageName: z.string().optional(),
-    actionType: z.enum(["EMAIL", "SMS", "SMART_FILE"]).optional(),
-    delayDays: z.number().optional(),
-    delayHours: z.number().optional(),
-    scheduledHour: z.number().optional(), // 0-23 for time of day
-    scheduledMinute: z.number().optional(), // 0-59
-    subject: z.string().optional(),
-    content: z.string().optional(),
-    smartFileTemplateId: z.string().optional(),
-    smartFileTemplateName: z.string().optional(),
+    triggerType: z.enum(["SPECIFIC_STAGE", "GLOBAL"]).nullable(),
+    stageId: z.string().nullable(),
+    stageName: z.string().nullable(),
+    actionType: z.enum(["EMAIL", "SMS", "SMART_FILE"]).nullable(),
+    delayDays: z.number().nullable(),
+    delayHours: z.number().nullable(),
+    scheduledHour: z.number().nullable(), // 0-23 for time of day
+    scheduledMinute: z.number().nullable(), // 0-59
+    subject: z.string().nullable(),
+    content: z.string().nullable(),
+    smartFileTemplateId: z.string().nullable(),
+    smartFileTemplateName: z.string().nullable(),
   }),
   nextQuestion: z.string(),
-  needsTemplateSelection: z.boolean().optional(),
-  needsStageSelection: z.boolean().optional(),
+  needsTemplateSelection: z.boolean().nullable(),
+  needsStageSelection: z.boolean().nullable(),
   options: z.array(z.object({
     label: z.string(),
     value: z.string()
-  })).optional()
+  })).nullable()
 });
 
 export type ConversationStateType = z.infer<typeof ConversationState>;
