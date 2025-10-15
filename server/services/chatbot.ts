@@ -351,31 +351,99 @@ GOOD message (with business name): "Looking forward to capturing your special da
   return extracted;
 }
 
+// Schema for detecting multiple automations in one request
+const MultiAutomationDetection = z.object({
+  isMultiAutomation: z.boolean().describe("True if the request contains multiple separate automation requests"),
+  automationCount: z.number().describe("Number of separate automations detected"),
+  automations: z.array(z.object({
+    summary: z.string().describe("Brief summary of this automation (e.g., 'SMS 5 min after inquiry')"),
+    triggerStage: z.string().nullable().describe("Stage name that triggers this"),
+    actionType: z.enum(["EMAIL", "SMS", "SMART_FILE"]).describe("Type of action"),
+    timing: z.string().describe("When it should trigger (e.g., '5 minutes', '1 day at 6pm')"),
+    purpose: z.string().describe("What this automation does")
+  })).describe("List of detected automations")
+});
+
+/**
+ * Detect if a message contains multiple automation requests
+ */
+export async function detectMultipleAutomations(
+  message: string,
+  photographerId: string
+): Promise<z.infer<typeof MultiAutomationDetection>> {
+  const { storage } = await import("../storage");
+  const stages = await storage.getStagesByPhotographer(photographerId);
+  const stagesList = stages.map(s => s.name).join(", ");
+
+  const systemPrompt = `You are analyzing a photographer's automation request to detect if they want to create multiple automations in one message.
+
+Available stages: ${stagesList}
+
+Look for patterns like:
+- "send X, then send Y" = 2 automations
+- "send X at the same time send Y, and then send Z" = 3 automations  
+- "when someone does X, send them Y via email and also send Z via text" = 2 automations
+- Sequential actions: "first do X, then do Y, then do Z" = multiple automations
+
+Each separate ACTION (email, SMS, Smart File) = 1 automation, even if they happen at the same time.
+
+Examples:
+✅ "send SMS after 5 min and email at same time" → 2 automations (SMS + Email)
+✅ "when inquiry comes in, text them and send proposal" → 2 automations (SMS + Smart File)
+✅ "send email, then follow up with text next day" → 2 automations
+❌ "send them a welcome email" → 1 automation (single action)
+
+Analyze the request and identify each separate automation.`;
+
+  const response = await openai.chat.completions.create({
+    model: "gpt-4o-mini",
+    messages: [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: message }
+    ],
+    response_format: zodResponseFormat(MultiAutomationDetection, "detection"),
+    max_completion_tokens: 1000
+  });
+
+  const content = response.choices[0].message.content;
+  if (!content) {
+    throw new Error("No content in detection response");
+  }
+
+  return JSON.parse(content) as z.infer<typeof MultiAutomationDetection>;
+}
+
 // Conversation state schema for building automations
+const AutomationInfo = z.object({
+  triggerType: z.enum(["SPECIFIC_STAGE", "GLOBAL"]).nullable(),
+  stageId: z.string().nullable(),
+  stageName: z.string().nullable(),
+  actionType: z.enum(["EMAIL", "SMS", "SMART_FILE"]).nullable(),
+  delayDays: z.number().nullable(),
+  delayHours: z.number().nullable(),
+  delayMinutes: z.number().nullable(), // 0-59 for minute-level delays
+  scheduledHour: z.number().nullable(), // 0-23 for time of day
+  scheduledMinute: z.number().nullable(), // 0-59
+  subject: z.string().nullable(),
+  content: z.string().nullable(),
+  smartFileTemplateId: z.string().nullable(),
+  smartFileTemplateName: z.string().nullable(),
+});
+
 const ConversationState = z.object({
   status: z.enum(["collecting", "confirming", "complete"]),
-  collectedInfo: z.object({
-    triggerType: z.enum(["SPECIFIC_STAGE", "GLOBAL"]).nullable(),
-    stageId: z.string().nullable(),
-    stageName: z.string().nullable(),
-    actionType: z.enum(["EMAIL", "SMS", "SMART_FILE"]).nullable(),
-    delayDays: z.number().nullable(),
-    delayHours: z.number().nullable(),
-    delayMinutes: z.number().nullable(), // 0-59 for minute-level delays
-    scheduledHour: z.number().nullable(), // 0-23 for time of day
-    scheduledMinute: z.number().nullable(), // 0-59
-    subject: z.string().nullable(),
-    content: z.string().nullable(),
-    smartFileTemplateId: z.string().nullable(),
-    smartFileTemplateName: z.string().nullable(),
-  }),
+  collectedInfo: AutomationInfo,
   nextQuestion: z.string(),
   needsTemplateSelection: z.boolean().nullable(),
   needsStageSelection: z.boolean().nullable(),
   options: z.array(z.object({
     label: z.string(),
     value: z.string()
-  })).nullable()
+  })).nullable(),
+  // Multi-automation support
+  automationQueue: z.array(AutomationInfo).nullable(), // Queue of automations to create
+  currentAutomationIndex: z.number().nullable(), // Which automation we're working on (0-based)
+  totalAutomations: z.number().nullable(), // Total count for progress display
 });
 
 export type ConversationStateType = z.infer<typeof ConversationState>;
@@ -399,10 +467,54 @@ export async function conversationalAutomationBuilder(
   const smartFiles = await storage.getSmartFilesByPhotographer(photographerId);
   const smartFilesList = smartFiles.map(sf => `${sf.name} (ID: ${sf.id})`).join(", ");
 
+  // MULTI-AUTOMATION DETECTION: Check if this is the first message and contains multiple automations
+  if (!currentState && conversationHistory.length === 0) {
+    const detection = await detectMultipleAutomations(userMessage, photographerId);
+    
+    if (detection.isMultiAutomation && detection.automationCount > 1) {
+      // Multi-automation detected! Set up the queue
+      const queue: z.infer<typeof AutomationInfo>[] = detection.automations.map(() => ({
+        triggerType: null,
+        stageId: null,
+        stageName: null,
+        actionType: null,
+        delayDays: null,
+        delayHours: null,
+        delayMinutes: null,
+        scheduledHour: null,
+        scheduledMinute: null,
+        subject: null,
+        content: null,
+        smartFileTemplateId: null,
+        smartFileTemplateName: null,
+      }));
+
+      // Create initial state with queue info
+      return {
+        status: "collecting",
+        collectedInfo: queue[0], // Start with first automation
+        nextQuestion: `I can see you want to create ${detection.automationCount} automations here! Let me help you set them up one at a time.\n\n**Automation 1 of ${detection.automationCount}:** ${detection.automations[0].summary}\n\nWhich stage should trigger this first automation?`,
+        needsTemplateSelection: null,
+        needsStageSelection: true,
+        options: stages.map(s => ({ label: s.name, value: s.id })),
+        automationQueue: queue,
+        currentAutomationIndex: 0,
+        totalAutomations: detection.automationCount,
+      };
+    }
+  }
+
+  // Check if we're in multi-automation mode
+  const isMultiMode = currentState?.automationQueue && currentState.automationQueue.length > 1;
+  const currentIndex = currentState?.currentAutomationIndex ?? 0;
+  const totalAutomations = currentState?.totalAutomations ?? 1;
+  const progressText = isMultiMode ? `\n\n**PROGRESS: Automation ${currentIndex + 1} of ${totalAutomations}**` : "";
+
   const systemPrompt = `You are helping a photographer create an automation through conversation.
 
 **Available Pipeline Stages:** ${stagesList}
 **Available Smart File Templates:** ${smartFilesList}
+${isMultiMode ? `\n**MULTI-AUTOMATION MODE:** You are working on automation ${currentIndex + 1} of ${totalAutomations}. After this one is confirmed, move to the next.` : ""}
 
 **Your Job:** Ask ONE question at a time to collect the following info:
 1. **Trigger Stage**: What stage should trigger this automation? (REQUIRED unless explicitly global)
@@ -453,7 +565,7 @@ export async function conversationalAutomationBuilder(
 **CONFIRMATION MESSAGE (when status = "confirming"):**
 When you have ALL required info (stage, timing, action type, content), set status to "confirming" and write a friendly summary in nextQuestion like:
 
-"Okay, I think I've got it! Here's what we'll create:
+"Okay, I think I've got it! Here's what we'll create${progressText}:
 
 📍 **Trigger:** When a client enters the [Stage Name] stage
 ⏰ **Timing:** [Wait X days/hours] [at specific time if applicable]
@@ -462,7 +574,7 @@ When you have ALL required info (stage, timing, action type, content), set statu
 
 Does this look good? Reply 'yes' to create it, or let me know what to change!"
 
-Make it conversational, clear, and easy to understand. Use emojis to make it friendly.
+Make it conversational, clear, and easy to understand. Use emojis to make it friendly.${isMultiMode ? "\n\n**IMPORTANT:** After user confirms, you'll move to the next automation in the queue automatically." : ""}
 
 **Examples:**
 
@@ -527,8 +639,39 @@ Conversation History: ${JSON.stringify(conversationHistory.slice(-4))} (showing 
       throw new Error("No content in OpenAI response");
     }
     
-    const state = JSON.parse(content) as ConversationStateType;
+    let state = JSON.parse(content) as ConversationStateType;
     console.log('✅ OpenAI response received, status:', state.status);
+    
+    // MULTI-AUTOMATION QUEUE HANDLING
+    // If user confirmed and we're in multi-automation mode, advance to next automation
+    if (state.status === "complete" && isMultiMode && state.automationQueue) {
+      const nextIndex = currentIndex + 1;
+      
+      if (nextIndex < totalAutomations) {
+        // More automations in queue! Move to next one
+        console.log(`📋 Moving to automation ${nextIndex + 1} of ${totalAutomations}`);
+        
+        // Save completed automation in queue
+        state.automationQueue[currentIndex] = state.collectedInfo;
+        
+        // Reset to start collecting next automation
+        state = {
+          status: "collecting",
+          collectedInfo: state.automationQueue[nextIndex], // Next automation
+          nextQuestion: `Great! Automation ${currentIndex + 1} is ready to create.\n\n**Now let's set up Automation ${nextIndex + 1} of ${totalAutomations}**\n\nWhat stage should trigger this automation?`,
+          needsTemplateSelection: null,
+          needsStageSelection: true,
+          options: stages.map(s => ({ label: s.name, value: s.id })),
+          automationQueue: state.automationQueue,
+          currentAutomationIndex: nextIndex,
+          totalAutomations: totalAutomations,
+        };
+      } else {
+        // Last automation confirmed - mark as truly complete
+        console.log(`✅ All ${totalAutomations} automations confirmed!`);
+        state.automationQueue[currentIndex] = state.collectedInfo;
+      }
+    }
     
     return state;
   } catch (error: any) {

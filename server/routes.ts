@@ -3955,48 +3955,76 @@ ${photographer?.businessName || 'Your Photography Team'}`;
         }
       }
 
-      // If status is "complete", create the automation
+      // If status is "complete", create the automation(s)
       if (newState.status === "complete" && newState.collectedInfo) {
-        const { collectedInfo } = newState;
+        const createdAutomations = [];
         
-        // Determine channel based on action type
-        const channel = collectedInfo.actionType || 'EMAIL';
+        // Check if multi-automation mode (queue exists)
+        const automationsToCreate = newState.automationQueue && newState.automationQueue.length > 0
+          ? newState.automationQueue
+          : [newState.collectedInfo];
         
-        // Calculate delay in minutes (include days, hours, AND minutes)
-        const delayMinutes = (collectedInfo.delayDays || 0) * 24 * 60 + (collectedInfo.delayHours || 0) * 60 + (collectedInfo.delayMinutes || 0);
+        console.log(`📝 Creating ${automationsToCreate.length} automation(s)...`);
         
-        // Create automation
-        const automationData = validateAutomationSchema.parse({
-          photographerId,
-          name: `${channel} automation - ${collectedInfo.stageName || 'Global'}`,
-          automationType: 'COMMUNICATION',
-          stageId: collectedInfo.stageId || null,
-          channel,
-          projectType: 'WEDDING',
-          enabled: true
-        });
-        
-        const automation = await storage.createAutomation(automationData);
-        
-        // Create automation step
-        const stepData = {
-          automationId: automation.id,
-          stepIndex: 0,
-          delayMinutes,
-          actionType: collectedInfo.actionType || 'EMAIL',
-          customSmsContent: collectedInfo.actionType === 'SMS' ? collectedInfo.content : null,
-          smartFileTemplateId: collectedInfo.smartFileTemplateId || null,
-          enabled: true,
-          scheduledHour: collectedInfo.scheduledHour,
-          scheduledMinute: collectedInfo.scheduledMinute
-        };
-        
-        await storage.createAutomationStep(stepData);
+        // Create all automations from queue
+        for (let i = 0; i < automationsToCreate.length; i++) {
+          const collectedInfo = automationsToCreate[i];
+          
+          // Skip if incomplete (missing action type, or missing stageId when it's required)
+          if (!collectedInfo.actionType) {
+            console.log(`⏭️ Skipping incomplete automation ${i + 1} (no action type)`);
+            continue;
+          }
+          
+          // If trigger type is SPECIFIC_STAGE, we MUST have a stageId
+          if (collectedInfo.triggerType === "SPECIFIC_STAGE" && !collectedInfo.stageId) {
+            console.log(`⏭️ Skipping incomplete automation ${i + 1} (SPECIFIC_STAGE requires stageId)`);
+            continue;
+          }
+          
+          // Determine channel based on action type
+          const channel = collectedInfo.actionType || 'EMAIL';
+          
+          // Calculate delay in minutes (include days, hours, AND minutes)
+          const delayMinutes = (collectedInfo.delayDays || 0) * 24 * 60 + (collectedInfo.delayHours || 0) * 60 + (collectedInfo.delayMinutes || 0);
+          
+          // Create automation
+          const automationData = validateAutomationSchema.parse({
+            photographerId,
+            name: `${channel} automation - ${collectedInfo.stageName || 'Global'}`,
+            automationType: 'COMMUNICATION',
+            stageId: collectedInfo.stageId || null,
+            channel,
+            projectType: 'WEDDING',
+            enabled: true
+          });
+          
+          const automation = await storage.createAutomation(automationData);
+          
+          // Create automation step
+          const stepData = {
+            automationId: automation.id,
+            stepIndex: 0,
+            delayMinutes,
+            actionType: collectedInfo.actionType || 'EMAIL',
+            customSmsContent: collectedInfo.actionType === 'SMS' ? collectedInfo.content : null,
+            smartFileTemplateId: collectedInfo.smartFileTemplateId || null,
+            enabled: true,
+            scheduledHour: collectedInfo.scheduledHour,
+            scheduledMinute: collectedInfo.scheduledMinute
+          };
+          
+          await storage.createAutomationStep(stepData);
+          createdAutomations.push(automation);
+          
+          console.log(`✅ Created automation ${i + 1}/${automationsToCreate.length}: ${automation.name}`);
+        }
         
         return res.json({
           state: newState,
-          automation,
-          created: true
+          automations: createdAutomations,
+          created: true,
+          count: createdAutomations.length
         });
       }
 
