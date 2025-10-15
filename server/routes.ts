@@ -3762,6 +3762,10 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       const { extractedData, selectedStageId } = req.body;
       const photographerId = req.user!.photographerId!;
 
+      console.log('🔍 AI Automation Creation - Request body:', JSON.stringify(req.body, null, 2));
+      console.log('🔍 selectedStageId:', selectedStageId);
+      console.log('🔍 extractedData:', extractedData);
+
       if (!extractedData) {
         return res.status(400).json({ message: "Extracted data is required" });
       }
@@ -3772,6 +3776,8 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       const firstStepType = extractedData.steps[0]?.type;
       const channel = firstStepType === 'SMS' ? 'SMS' : firstStepType === 'EMAIL' ? 'EMAIL' : null;
       
+      console.log('🔍 About to create automation with stageId:', selectedStageId || null);
+      
       const automationData = validateAutomationSchema.parse({
         photographerId,
         name: extractedData.name,
@@ -3781,6 +3787,8 @@ ${photographer?.businessName || 'Your Photography Team'}`;
         projectType: extractedData.projectType,
         enabled: true
       });
+      
+      console.log('🔍 Parsed automation data:', automationData);
 
       const automation = await storage.createAutomation(automationData);
 
