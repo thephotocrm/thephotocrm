@@ -365,7 +365,7 @@ function AutomationStepManager({ automation, onDelete }: { automation: any, onDe
                               </span>
                             </div>
                             
-                            {/* Template Info */}
+                            {/* Template Info or Custom Message */}
                             {template ? (
                               <div className="bg-muted/50 rounded-md p-2 text-xs space-y-1">
                                 <p className="font-medium">{template.name}</p>
@@ -378,8 +378,15 @@ function AutomationStepManager({ automation, onDelete }: { automation: any, onDe
                                   {template.textBody || 'No message content'}
                                 </p>
                               </div>
+                            ) : step.customSmsContent ? (
+                              <div className="bg-muted/50 rounded-md p-2 text-xs space-y-1">
+                                <p className="font-medium text-primary">Custom Message</p>
+                                <p className="text-muted-foreground line-clamp-3">
+                                  {step.customSmsContent}
+                                </p>
+                              </div>
                             ) : (
-                              <p className="text-xs text-muted-foreground italic">Template not found</p>
+                              <p className="text-xs text-muted-foreground italic">No message configured</p>
                             )}
                           </div>
                         </div>
