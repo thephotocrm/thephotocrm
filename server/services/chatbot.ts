@@ -296,6 +296,13 @@ Extract automation parameters from the user's description. Be smart about:
    CRITICAL: NEVER use placeholders like [Your Name], {yourname}, [Business Name], etc. 
    These messages are sent directly to clients - write them ready-to-use!
    Use generic professional language like "I'll be in touch" instead of "I'll be in touch - [Your Name]"
+   
+   EXCEPTION - Scheduling Links: If the photographer specifically asks to send a booking/scheduling link, 
+   include the {{SCHEDULING_LINK}} placeholder. This is the ONLY allowed placeholder.
+   Examples of when to use it:
+   - "send them a link to book" → include "Book your session here: {{SCHEDULING_LINK}}"
+   - "include scheduling link" → include "{{SCHEDULING_LINK}}"
+   - "send booking link" → include "{{SCHEDULING_LINK}}"
 4. Recipient: Usually CONTACT, but could be PHOTOGRAPHER for internal reminders
 5. Subject: Email needs subject, SMS doesn't
 
@@ -303,9 +310,11 @@ Examples:
 - "Send thank you email next day after booking" → EMAIL step, delayDays: 1, to CONTACT
 - "Text them welcome message right away when they enter inquiry stage" → SMS step, delayDays: 0, SPECIFIC_STAGE trigger
 - "Remind me to follow up 3 days after proposal sent" → EMAIL/SMS to PHOTOGRAPHER, delayDays: 3
+- "Send SMS with booking link when they enter consultation stage" → SMS with "{{SCHEDULING_LINK}}" in content
 
 BAD message (has placeholder): "Thanks for reaching out! I'll be in touch soon. - [Your Name]"
-GOOD message (no placeholders): "Thanks for reaching out! I'll be in touch soon to discuss your photography needs."`;
+GOOD message (no placeholders): "Thanks for reaching out! I'll be in touch soon to discuss your photography needs."
+GOOD message (with scheduling link): "Ready to book your session? Schedule here: {{SCHEDULING_LINK}}"`;
 
   const response = await openai.chat.completions.create({
     model: "gpt-5",
