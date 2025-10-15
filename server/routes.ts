@@ -3767,12 +3767,16 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       }
 
       // Create the automation with user-confirmed stage
+      // If user selected a stage in the dropdown, override the triggerType to SPECIFIC_STAGE
+      const triggerType = selectedStageId ? 'SPECIFIC_STAGE' : extractedData.triggerType;
+      const triggerStageId = selectedStageId || (extractedData.triggerType === 'SPECIFIC_STAGE' ? extractedData.triggerStageId : null);
+      
       const automationData = validateAutomationSchema.parse({
         photographerId,
         name: extractedData.name,
         description: extractedData.description,
-        triggerType: extractedData.triggerType,
-        triggerStageId: selectedStageId || null,
+        triggerType,
+        triggerStageId,
         projectType: extractedData.projectType,
         enabled: true
       });
