@@ -3373,7 +3373,7 @@ export default function Automations() {
         <div className="p-3 sm:p-6 space-y-6">
         {/* Project Type Selection */}
         <div className="w-full">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+          <div className="flex flex-col md:flex-row md:items-center gap-4 mb-6">
             {/* Desktop project type buttons */}
             <div className="hidden md:flex flex-wrap gap-2 max-w-5xl">
               {(Object.keys(projectTypeEnum) as Array<keyof typeof projectTypeEnum>).map((value) => (
@@ -3400,10 +3400,10 @@ export default function Automations() {
               ))}
             </div>
             
-            {/* Mobile dropdown and buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 md:hidden w-full">
+            {/* Mobile dropdown */}
+            <div className="md:hidden w-full">
               <Select value={activeProjectType} onValueChange={setActiveProjectType}>
-                <SelectTrigger className="w-full sm:max-w-xs" data-testid="select-project-type">
+                <SelectTrigger className="w-full" data-testid="select-project-type">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -3420,44 +3420,6 @@ export default function Automations() {
                   <SelectItem value="OTHER">📁 Other</SelectItem>
                 </SelectContent>
               </Select>
-              <div className="flex gap-2 w-full sm:w-auto">
-                <Button
-                  onClick={() => setAiDialogOpen(true)}
-                  variant="outline"
-                  data-testid="button-create-ai-automation"
-                  className="flex-1 sm:flex-auto"
-                >
-                  <Sparkles className="w-4 h-4 mr-2" />
-                  AI Create
-                </Button>
-                <Button
-                  onClick={() => setCreateDialogOpen(true)}
-                  data-testid="button-create-automation"
-                  className="flex-1 sm:flex-auto"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  New
-                </Button>
-              </div>
-            </div>
-            
-            {/* Desktop buttons */}
-            <div className="hidden md:flex gap-2">
-              <Button
-                onClick={() => setAiDialogOpen(true)}
-                variant="outline"
-                data-testid="button-create-ai-automation"
-              >
-                <Sparkles className="w-4 h-4 mr-2" />
-                Create with AI
-              </Button>
-              <Button
-                onClick={() => setCreateDialogOpen(true)}
-                data-testid="button-create-automation"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                New Automation
-              </Button>
             </div>
           </div>
 
@@ -3504,13 +3466,42 @@ export default function Automations() {
               {/* Automation List */}
               <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Zap className="h-5 w-5" />
-                    {activeProjectType.charAt(0) + activeProjectType.slice(1).toLowerCase()} Automations
-                  </CardTitle>
-                  <CardDescription>
-                    Automated workflows for {activeProjectType.toLowerCase()} projects
-                  </CardDescription>
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                      <CardTitle className="flex items-center gap-2">
+                        <Zap className="h-5 w-5" />
+                        {activeProjectType.charAt(0) + activeProjectType.slice(1).toLowerCase()} Automations
+                      </CardTitle>
+                      <CardDescription>
+                        Automated workflows for {activeProjectType.toLowerCase()} projects
+                      </CardDescription>
+                    </div>
+                    
+                    {/* Action Buttons */}
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={() => setAiDialogOpen(true)}
+                        variant="outline"
+                        size="sm"
+                        data-testid="button-create-ai-automation"
+                        className="flex-1 sm:flex-auto"
+                      >
+                        <Sparkles className="w-4 h-4 mr-2" />
+                        <span className="hidden sm:inline">Create with AI</span>
+                        <span className="sm:hidden">AI Create</span>
+                      </Button>
+                      <Button
+                        onClick={() => setCreateDialogOpen(true)}
+                        size="sm"
+                        data-testid="button-create-automation"
+                        className="flex-1 sm:flex-auto"
+                      >
+                        <Plus className="w-4 h-4 mr-2" />
+                        <span className="hidden sm:inline">New Automation</span>
+                        <span className="sm:hidden">New</span>
+                      </Button>
+                    </div>
+                  </div>
                 </CardHeader>
                 <CardContent>
                   {automationsLoading ? (
