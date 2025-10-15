@@ -328,8 +328,42 @@ async function processAutomationStep(contact: any, step: any, automation: any): 
 
   const now = new Date();
   const stageEnteredAt = new Date(contact.stageEnteredAt);
-  const delayMs = step.delayMinutes * 60 * 1000;
-  const shouldSendAt = new Date(stageEnteredAt.getTime() + delayMs);
+  
+  // Calculate the target send date/time
+  let shouldSendAt: Date;
+  
+  if (step.scheduledHour !== null && step.scheduledHour !== undefined) {
+    // If scheduled time is specified, calculate days from delay and set exact time
+    const delayDays = Math.floor(step.delayMinutes / (24 * 60));
+    const delayHours = Math.floor((step.delayMinutes % (24 * 60)) / 60);
+    const delayMins = step.delayMinutes % 60;
+    
+    // Start with stage entered date
+    shouldSendAt = new Date(stageEnteredAt);
+    
+    // Add the delay days
+    shouldSendAt.setDate(shouldSendAt.getDate() + delayDays);
+    
+    // Set to the scheduled time on that day
+    shouldSendAt.setHours(step.scheduledHour, step.scheduledMinute || 0, 0, 0);
+    
+    // If there's also hour/minute delay (in addition to days), add it
+    if (delayHours > 0 || delayMins > 0) {
+      shouldSendAt.setHours(shouldSendAt.getHours() + delayHours);
+      shouldSendAt.setMinutes(shouldSendAt.getMinutes() + delayMins);
+    }
+    
+    // CRITICAL: For same-day scenarios (0 delay days), if scheduled time has passed, bump to next day
+    // Example: entered 9pm, delay 0 days, scheduled 6pm → should send next day at 6pm (next occurrence)
+    // Multi-day delays (e.g., "2 days at 6pm") should NOT bump - they're meant for that specific target day
+    if (delayDays === 0 && shouldSendAt.getTime() < stageEnteredAt.getTime()) {
+      shouldSendAt.setDate(shouldSendAt.getDate() + 1);
+    }
+  } else {
+    // No scheduled time, just use the delay
+    const delayMs = step.delayMinutes * 60 * 1000;
+    shouldSendAt = new Date(stageEnteredAt.getTime() + delayMs);
+  }
 
   // Check if it's time to send
   if (now < shouldSendAt) {

@@ -1475,6 +1475,12 @@ export default function Automations() {
   const [aiSelectedStageId, setAiSelectedStageId] = useState<string>("");
   const [aiSelectedSmartFileTemplateIds, setAiSelectedSmartFileTemplateIds] = useState<Record<number, string>>({});
   const [editedMessageContent, setEditedMessageContent] = useState<string>("");
+  
+  // Conversational AI state
+  const [chatDialogOpen, setChatDialogOpen] = useState(false);
+  const [chatMessages, setChatMessages] = useState<Array<{role: 'user' | 'assistant', content: string}>>([]);
+  const [currentChatMessage, setCurrentChatMessage] = useState("");
+  const [conversationState, setConversationState] = useState<any>(null);
   const [manageRulesDialogOpen, setManageRulesDialogOpen] = useState(false);
   const [selectedStage, setSelectedStage] = useState<any>(null);
   const [timingMode, setTimingMode] = useState<'immediate' | 'delayed'>('immediate');
@@ -2089,6 +2095,64 @@ export default function Automations() {
       return;
     }
     extractAiAutomationMutation.mutate(aiDescription);
+  };
+
+  // Conversational AI chat mutation
+  const chatMutation = useMutation({
+    mutationFn: async (message: string) => {
+      const response = await apiRequest("POST", "/api/automations/chat", {
+        message,
+        conversationHistory: chatMessages,
+        currentState: conversationState
+      });
+      return response.json();
+    },
+    onSuccess: (data: any) => {
+      // Add AI's response to chat
+      const aiMessage = { role: 'assistant' as const, content: data.state.nextQuestion };
+      setChatMessages(prev => [...prev, aiMessage]);
+      setConversationState(data.state);
+      setCurrentChatMessage("");
+
+      // If automation was created, close dialog and show success
+      if (data.created) {
+        toast({
+          title: "Automation created!",
+          description: "Your automation has been set up successfully.",
+        });
+        queryClient.invalidateQueries({ queryKey: ["/api/automations"] });
+        setChatDialogOpen(false);
+        setChatMessages([]);
+        setConversationState(null);
+      }
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error?.message || "Failed to process message",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const handleSendChatMessage = () => {
+    if (!currentChatMessage.trim()) return;
+    
+    // Add user message to chat
+    const userMessage = { role: 'user' as const, content: currentChatMessage };
+    setChatMessages(prev => [...prev, userMessage]);
+    
+    // Send to AI
+    chatMutation.mutate(currentChatMessage);
+  };
+
+  const startConversationalAI = () => {
+    setChatMessages([{
+      role: 'assistant',
+      content: "Hi! I'll help you create an automation. What would you like to automate? For example, you could say 'Send a thank you email 1 day after someone books' or 'Send a proposal 2 days after inquiry at 6pm'"
+    }]);
+    setConversationState(null);
+    setChatDialogOpen(true);
   };
 
   const handleConfirmAiAutomation = () => {
@@ -3522,6 +3586,17 @@ export default function Automations() {
                     {/* Action Buttons */}
                     <div className="flex gap-2">
                       <Button
+                        onClick={startConversationalAI}
+                        variant="default"
+                        size="sm"
+                        data-testid="button-chat-ai-automation"
+                        className="flex-1 sm:flex-auto bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+                      >
+                        <Sparkles className="w-4 h-4 mr-2" />
+                        <span className="hidden sm:inline">Chat with AI</span>
+                        <span className="sm:hidden">AI Chat</span>
+                      </Button>
+                      <Button
                         onClick={() => setAiDialogOpen(true)}
                         variant="outline"
                         size="sm"
@@ -3529,8 +3604,8 @@ export default function Automations() {
                         className="flex-1 sm:flex-auto"
                       >
                         <Sparkles className="w-4 h-4 mr-2" />
-                        <span className="hidden sm:inline">Create with AI</span>
-                        <span className="sm:hidden">AI Create</span>
+                        <span className="hidden sm:inline">Quick Create</span>
+                        <span className="sm:hidden">Quick AI</span>
                       </Button>
                       <Button
                         onClick={() => setCreateDialogOpen(true)}
@@ -3847,6 +3922,77 @@ export default function Automations() {
               </>
             )}
           </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+
+    {/* Conversational AI Chat Dialog */}
+    <Dialog open={chatDialogOpen} onOpenChange={setChatDialogOpen}>
+      <DialogContent className="sm:max-w-[600px] h-[600px] flex flex-col p-0">
+        <DialogHeader className="p-6 pb-4">
+          <DialogTitle className="flex items-center gap-2">
+            <Sparkles className="w-5 h-5 text-purple-600" />
+            AI Automation Assistant
+          </DialogTitle>
+          <DialogDescription>
+            Chat with AI to create your automation step-by-step
+          </DialogDescription>
+        </DialogHeader>
+        
+        {/* Chat Messages */}
+        <div className="flex-1 overflow-y-auto px-6 space-y-4">
+          {chatMessages.map((msg, idx) => (
+            <div
+              key={idx}
+              className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+            >
+              <div
+                className={`max-w-[80%] rounded-lg px-4 py-2 ${
+                  msg.role === 'user'
+                    ? 'bg-purple-600 text-white'
+                    : 'bg-muted text-foreground'
+                }`}
+              >
+                <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+              </div>
+            </div>
+          ))}
+          {chatMutation.isPending && (
+            <div className="flex justify-start">
+              <div className="bg-muted rounded-lg px-4 py-2">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 animate-spin" />
+                  <p className="text-sm">Thinking...</p>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Input Area */}
+        <div className="border-t p-4">
+          <div className="flex gap-2">
+            <Input
+              placeholder="Type your message..."
+              value={currentChatMessage}
+              onChange={(e) => setCurrentChatMessage(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSendChatMessage();
+                }
+              }}
+              data-testid="input-chat-message"
+              disabled={chatMutation.isPending}
+            />
+            <Button
+              onClick={handleSendChatMessage}
+              disabled={chatMutation.isPending || !currentChatMessage.trim()}
+              data-testid="button-send-chat"
+            >
+              Send
+            </Button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>
