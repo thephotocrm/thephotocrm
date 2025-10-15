@@ -481,19 +481,32 @@ Conversation History: ${JSON.stringify(conversationHistory.slice(-4))} (showing 
     { role: "user", content: userMessage }
   ];
 
-  const response = await openai.chat.completions.create({
-    model: "gpt-4o-mini",
-    messages,
-    response_format: zodResponseFormat(ConversationState, "conversation"),
-    max_completion_tokens: 1500
-  });
+  console.log('🤖 Calling OpenAI for conversational automation...');
+  
+  try {
+    const response = await Promise.race([
+      openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages,
+        response_format: zodResponseFormat(ConversationState, "conversation"),
+        max_completion_tokens: 1500
+      }),
+      new Promise<never>((_, reject) => 
+        setTimeout(() => reject(new Error('OpenAI API timeout after 30 seconds')), 30000)
+      )
+    ]);
 
-  const content = response.choices[0].message.content;
-  if (!content) {
-    throw new Error("No content in OpenAI response");
+    const content = response.choices[0].message.content;
+    if (!content) {
+      throw new Error("No content in OpenAI response");
+    }
+    
+    const state = JSON.parse(content) as ConversationStateType;
+    console.log('✅ OpenAI response received, status:', state.status);
+    
+    return state;
+  } catch (error: any) {
+    console.error('❌ OpenAI API error:', error.message);
+    throw error;
   }
-  
-  const state = JSON.parse(content) as ConversationStateType;
-  
-  return state;
 }

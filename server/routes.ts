@@ -3892,6 +3892,8 @@ ${photographer?.businessName || 'Your Photography Team'}`;
         return res.status(400).json({ message: "Message is required" });
       }
 
+      console.log(`📨 Chat message received: "${message.substring(0, 50)}..." (photographer: ${photographerId})`);
+
       const { conversationalAutomationBuilder } = await import("./services/chatbot");
       let newState = await conversationalAutomationBuilder(
         message,
@@ -3899,6 +3901,8 @@ ${photographer?.businessName || 'Your Photography Team'}`;
         photographerId,
         currentState
       );
+      
+      console.log(`✅ Chat response ready, status: ${newState.status}`);
 
       // 🔍 STAGE RECONCILIATION LAYER - Validate and match stage IDs
       if (newState.collectedInfo && (newState.status === "confirming" || newState.status === "complete")) {
