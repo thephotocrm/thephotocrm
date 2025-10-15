@@ -293,13 +293,19 @@ Extract automation parameters from the user's description. Be smart about:
 1. Trigger: If they mention "when someone books" or "after booking" → SPECIFIC_STAGE with booking stage
 2. Delays: Convert "1 day later" → delayDays: 1, "3 hours" → delayHours: 3, "immediately" → delayDays: 0
 3. Content: Write professional, friendly email/SMS content that matches their request
+   CRITICAL: NEVER use placeholders like [Your Name], {yourname}, [Business Name], etc. 
+   These messages are sent directly to clients - write them ready-to-use!
+   Use generic professional language like "I'll be in touch" instead of "I'll be in touch - [Your Name]"
 4. Recipient: Usually CONTACT, but could be PHOTOGRAPHER for internal reminders
 5. Subject: Email needs subject, SMS doesn't
 
 Examples:
 - "Send thank you email next day after booking" → EMAIL step, delayDays: 1, to CONTACT
 - "Text them welcome message right away when they enter inquiry stage" → SMS step, delayDays: 0, SPECIFIC_STAGE trigger
-- "Remind me to follow up 3 days after proposal sent" → EMAIL/SMS to PHOTOGRAPHER, delayDays: 3`;
+- "Remind me to follow up 3 days after proposal sent" → EMAIL/SMS to PHOTOGRAPHER, delayDays: 3
+
+BAD message (has placeholder): "Thanks for reaching out! I'll be in touch soon. - [Your Name]"
+GOOD message (no placeholders): "Thanks for reaching out! I'll be in touch soon to discuss your photography needs."`;
 
   const response = await openai.chat.completions.create({
     model: "gpt-5",

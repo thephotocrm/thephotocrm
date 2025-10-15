@@ -1473,6 +1473,7 @@ export default function Automations() {
   const [extractedData, setExtractedData] = useState<any>(null);
   const [availableStages, setAvailableStages] = useState<any[]>([]);
   const [aiSelectedStageId, setAiSelectedStageId] = useState<string>("");
+  const [editedMessageContent, setEditedMessageContent] = useState<string>("");
   const [manageRulesDialogOpen, setManageRulesDialogOpen] = useState(false);
   const [selectedStage, setSelectedStage] = useState<any>(null);
   const [timingMode, setTimingMode] = useState<'immediate' | 'delayed'>('immediate');
@@ -2028,6 +2029,10 @@ export default function Automations() {
     onSuccess: (data: any) => {
       setExtractedData(data.extracted);
       setAvailableStages(data.availableStages);
+      // Initialize edited message content with the first step's content
+      if (data.extracted?.steps?.[0]?.content) {
+        setEditedMessageContent(data.extracted.steps[0].content);
+      }
       setAiDialogOpen(false);
       setAiConfirmDialogOpen(true);
     },
@@ -2060,6 +2065,7 @@ export default function Automations() {
       setAiDescription("");
       setExtractedData(null);
       setAiSelectedStageId("");
+      setEditedMessageContent("");
     },
     onError: (error: any) => {
       console.error('Create AI automation error:', error);
@@ -2092,10 +2098,19 @@ export default function Automations() {
       });
       return;
     }
-    console.log('Creating automation with data:', { extractedData, selectedStageId: aiSelectedStageId });
+    
+    // Update the extracted data with the edited message content
+    const updatedExtractedData = {
+      ...extractedData,
+      steps: extractedData.steps.map((step: any, idx: number) => 
+        idx === 0 ? { ...step, content: editedMessageContent } : step
+      )
+    };
+    
+    console.log('Creating automation with data:', { extractedData: updatedExtractedData, selectedStageId: aiSelectedStageId });
     // Explicitly pass the current values to avoid closure issues
     const dataToSend = {
-      extractedData: extractedData,
+      extractedData: updatedExtractedData,
       selectedStageId: aiSelectedStageId || null
     };
     console.log('Data to send:', dataToSend);
@@ -3870,21 +3885,22 @@ export default function Automations() {
               </div>
             )}
             <div className="space-y-2">
-              <Label>Actions</Label>
-              <div className="bg-muted/30 p-3 rounded-lg space-y-2">
-                {extractedData.steps.map((step: any, idx: number) => (
-                  <div key={idx} className="text-sm">
-                    <p className="font-medium">
-                      Step {idx + 1}: {step.type === 'SMS' ? 'Send SMS' : step.type === 'EMAIL' ? 'Send Email' : 'Send Smart File'}
-                    </p>
-                    <p className="text-muted-foreground">
-                      Delay: {step.delayDays > 0 ? `${step.delayDays} day${step.delayDays > 1 ? 's' : ''}` : ''} 
-                      {step.delayHours > 0 ? ` ${step.delayHours} hour${step.delayHours > 1 ? 's' : ''}` : ''}
-                      {step.delayDays === 0 && step.delayHours === 0 ? 'Immediate' : ''}
-                    </p>
-                    <p className="text-muted-foreground italic">"{step.content.substring(0, 100)}..."</p>
-                  </div>
-                ))}
+              <Label>Message Content</Label>
+              <p className="text-xs text-muted-foreground mb-2">
+                Edit the AI-generated message below. Make any changes needed before creating the automation.
+              </p>
+              <Textarea
+                value={editedMessageContent}
+                onChange={(e) => setEditedMessageContent(e.target.value)}
+                rows={6}
+                className="font-mono text-sm"
+                placeholder="Enter your message content..."
+                data-testid="textarea-edit-ai-message"
+              />
+              <div className="text-xs text-muted-foreground mt-1">
+                Timing: {extractedData.steps[0].delayDays > 0 ? `${extractedData.steps[0].delayDays} day${extractedData.steps[0].delayDays > 1 ? 's' : ''}` : ''} 
+                {extractedData.steps[0].delayHours > 0 ? ` ${extractedData.steps[0].delayHours} hour${extractedData.steps[0].delayHours > 1 ? 's' : ''}` : ''}
+                {extractedData.steps[0].delayDays === 0 && extractedData.steps[0].delayHours === 0 ? 'Sent immediately' : ' after stage entry'}
               </div>
             </div>
           </div>
