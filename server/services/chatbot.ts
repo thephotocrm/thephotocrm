@@ -472,8 +472,8 @@ export async function conversationalAutomationBuilder(
   const userMessagesInHistory = conversationHistory.filter(m => m.role === 'user').length;
   console.log(`🔍 Multi-automation check: currentState=${!!currentState}, historyLength=${conversationHistory.length}, userMessages=${userMessagesInHistory}`);
   
-  // Run detection if: no current state AND this is the first USER message
-  if (!currentState && userMessagesInHistory === 0) {
+  // Run detection if: no current state AND this is the first USER message (count=1 because current msg is already in history)
+  if (!currentState && userMessagesInHistory === 1) {
     console.log('🔎 Running multi-automation detection (first user message)...');
     const detection = await detectMultipleAutomations(userMessage, photographerId);
     
