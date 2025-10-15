@@ -2015,7 +2015,8 @@ export default function Automations() {
   // AI automation extraction mutation (step 1)
   const extractAiAutomationMutation = useMutation({
     mutationFn: async (description: string) => {
-      return apiRequest("POST", "/api/automations/extract-with-ai", { description });
+      const response = await apiRequest("POST", "/api/automations/extract-with-ai", { description });
+      return response.json();
     },
     onSuccess: (data: any) => {
       setExtractedData(data.extracted);
@@ -2039,7 +2040,8 @@ export default function Automations() {
       console.log('Mutation received:', { extractedData, selectedStageId });
       console.log('ExtractedData is:', extractedData);
       console.log('ExtractedData type:', typeof extractedData);
-      return apiRequest("POST", "/api/automations/create-with-ai", { extractedData, selectedStageId });
+      const response = await apiRequest("POST", "/api/automations/create-with-ai", { extractedData, selectedStageId });
+      return response.json();
     },
     onSuccess: (automation) => {
       toast({ 

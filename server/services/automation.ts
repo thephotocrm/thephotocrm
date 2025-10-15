@@ -132,14 +132,19 @@ export async function processAutomations(photographerId: string): Promise<void> 
     console.log(`Found ${allAutomations.length} enabled automations`);
 
     for (const automation of allAutomations) {
-      if (automation.automationType === 'COMMUNICATION') {
-        await processCommunicationAutomation(automation, photographerId);
-      } else if (automation.automationType === 'STAGE_CHANGE') {
-        await processStageChangeAutomation(automation, photographerId);
-      } else if (automation.automationType === 'COUNTDOWN') {
-        await processCountdownAutomation(automation, photographerId);
-      } else if (automation.automationType === 'NURTURE') {
-        await processNurtureAutomation(automation, photographerId);
+      try {
+        console.log(`Processing automation: ${automation.name} (type: ${automation.automationType})`);
+        if (automation.automationType === 'COMMUNICATION') {
+          await processCommunicationAutomation(automation, photographerId);
+        } else if (automation.automationType === 'STAGE_CHANGE') {
+          await processStageChangeAutomation(automation, photographerId);
+        } else if (automation.automationType === 'COUNTDOWN') {
+          await processCountdownAutomation(automation, photographerId);
+        } else if (automation.automationType === 'NURTURE') {
+          await processNurtureAutomation(automation, photographerId);
+        }
+      } catch (error) {
+        console.error(`Error processing automation ${automation.name} (${automation.automationType}):`, error);
       }
     }
   } catch (error) {
@@ -162,7 +167,7 @@ async function processCommunicationAutomation(automation: any, photographerId: s
   const projectsInStage = await db
     .select({
       id: projects.id,
-      contactId: projects.contactId,
+      contactId: projects.clientId,
       stageEnteredAt: projects.stageEnteredAt,
       eventDate: projects.eventDate,
       smsOptIn: projects.smsOptIn,
@@ -175,7 +180,7 @@ async function processCommunicationAutomation(automation: any, photographerId: s
       phone: contacts.phone
     })
     .from(projects)
-    .innerJoin(contacts, eq(projects.contactId, contacts.id))
+    .innerJoin(contacts, eq(projects.clientId, contacts.id))
     .where(and(
       eq(projects.photographerId, photographerId),
       eq(projects.stageId, automation.stageId!)
@@ -222,7 +227,7 @@ async function processStageChangeAutomation(automation: any, photographerId: str
       contacts: contacts
     })
     .from(projects)
-    .innerJoin(contacts, eq(projects.contactId, contacts.id))
+    .innerJoin(contacts, eq(projects.clientId, contacts.id))
     .where(and(
       eq(projects.photographerId, photographerId),
       eq(projects.projectType, automation.projectType),
@@ -899,7 +904,7 @@ async function processCountdownAutomation(automation: any, photographerId: strin
   const activeProjects = await db
     .select({
       id: projects.id,
-      contactId: projects.contactId,
+      contactId: projects.clientId,
       eventDate: projects.eventDate,
       stageId: projects.stageId,
       stageEnteredAt: projects.stageEnteredAt,
@@ -913,7 +918,7 @@ async function processCountdownAutomation(automation: any, photographerId: strin
       phone: contacts.phone
     })
     .from(projects)
-    .innerJoin(contacts, eq(projects.contactId, contacts.id))
+    .innerJoin(contacts, eq(projects.clientId, contacts.id))
     .where(and(...whereConditions));
 
   console.log(`Found ${activeProjects.length} active projects to check for countdown automation (stage filter: ${automation.stageCondition || 'none'})`);
@@ -1333,7 +1338,7 @@ async function subscribeNewProjectsToCampaign(campaign: any, photographerId: str
   const eligibleProjects = await db
     .select({
       id: projects.id,
-      contactId: projects.contactId,
+      contactId: projects.clientId,
       stageEnteredAt: projects.stageEnteredAt,
       eventDate: projects.eventDate,
       emailOptIn: projects.emailOptIn,
@@ -1343,7 +1348,7 @@ async function subscribeNewProjectsToCampaign(campaign: any, photographerId: str
       email: contacts.email
     })
     .from(projects)
-    .innerJoin(contacts, eq(projects.contactId, contacts.id))
+    .innerJoin(contacts, eq(projects.clientId, contacts.id))
     .leftJoin(dripCampaignSubscriptions, and(
       eq(dripCampaignSubscriptions.projectId, projects.id),
       eq(dripCampaignSubscriptions.campaignId, campaign.id)
@@ -1397,7 +1402,7 @@ async function processExistingSubscriptions(campaign: any, photographerId: strin
     })
     .from(dripCampaignSubscriptions)
     .innerJoin(projects, eq(dripCampaignSubscriptions.projectId, projects.id))
-    .innerJoin(contacts, eq(projects.contactId, contacts.id))
+    .innerJoin(contacts, eq(projects.clientId, contacts.id))
     .where(and(
       eq(dripCampaignSubscriptions.campaignId, campaign.id),
       eq(dripCampaignSubscriptions.status, 'ACTIVE'),
