@@ -4282,6 +4282,12 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       }
 
       const steps = await storage.getAutomationSteps(req.params.id);
+      
+      // Debug logging for Smart File automations
+      if (automation.channel === 'SMART_FILE' && steps.length > 0) {
+        console.log('🔍 Smart File automation steps:', JSON.stringify(steps, null, 2));
+      }
+      
       res.json(steps);
     } catch (error) {
       console.error('Get automation steps error:', error);
