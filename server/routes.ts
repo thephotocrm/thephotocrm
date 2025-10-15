@@ -1552,7 +1552,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
 
       // Verify client belongs to photographer
       const contact = await storage.getContact(projectData.clientId);
-      if (!client || contact.photographerId !== req.user!.photographerId!) {
+      if (!contact || contact.photographerId !== req.user!.photographerId!) {
         return res.status(400).json({ message: "Invalid client ID" });
       }
 
