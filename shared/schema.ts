@@ -300,7 +300,10 @@ export const automationSteps = pgTable("automation_steps", {
   customSmsContent: text("custom_sms_content"), // Custom SMS message (alternative to template)
   enabled: boolean("enabled").default(true),
   quietHoursStart: integer("quiet_hours_start"),
-  quietHoursEnd: integer("quiet_hours_end")
+  quietHoursEnd: integer("quiet_hours_end"),
+  // Time-based scheduling (e.g., "2 days from now at 6pm")
+  scheduledHour: integer("scheduled_hour"), // Hour of day (0-23) to send, null = send immediately after delay
+  scheduledMinute: integer("scheduled_minute").default(0) // Minute (0-59) to send
 });
 
 export const emailLogs = pgTable("email_logs", {

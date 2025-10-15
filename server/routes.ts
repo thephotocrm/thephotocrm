@@ -3882,6 +3882,77 @@ ${photographer?.businessName || 'Your Photography Team'}`;
     }
   });
 
+  // Conversational AI automation builder
+  app.post("/api/automations/chat", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
+    try {
+      const { message, conversationHistory, currentState } = req.body;
+      const photographerId = req.user!.photographerId!;
+
+      if (!message || typeof message !== 'string') {
+        return res.status(400).json({ message: "Message is required" });
+      }
+
+      const { conversationalAutomationBuilder } = await import("./services/chatbot");
+      const newState = await conversationalAutomationBuilder(
+        message,
+        conversationHistory || [],
+        photographerId,
+        currentState
+      );
+
+      // If status is "complete", create the automation
+      if (newState.status === "complete" && newState.collectedInfo) {
+        const { collectedInfo } = newState;
+        
+        // Determine channel based on action type
+        const channel = collectedInfo.actionType || 'EMAIL';
+        
+        // Calculate delay in minutes
+        const delayMinutes = (collectedInfo.delayDays || 0) * 24 * 60 + (collectedInfo.delayHours || 0) * 60;
+        
+        // Create automation
+        const automationData = validateAutomationSchema.parse({
+          photographerId,
+          name: `${channel} automation - ${collectedInfo.stageName || 'Global'}`,
+          automationType: 'COMMUNICATION',
+          stageId: collectedInfo.stageId || null,
+          channel,
+          projectType: 'WEDDING',
+          enabled: true
+        });
+        
+        const automation = await storage.createAutomation(automationData);
+        
+        // Create automation step
+        const stepData = {
+          automationId: automation.id,
+          stepIndex: 0,
+          delayMinutes,
+          actionType: collectedInfo.actionType || 'EMAIL',
+          customSmsContent: collectedInfo.actionType === 'SMS' ? collectedInfo.content : null,
+          smartFileTemplateId: collectedInfo.smartFileTemplateId || null,
+          enabled: true,
+          scheduledHour: collectedInfo.scheduledHour,
+          scheduledMinute: collectedInfo.scheduledMinute
+        };
+        
+        await storage.createAutomationStep(stepData);
+        
+        return res.json({
+          state: newState,
+          automation,
+          created: true
+        });
+      }
+
+      // Return current conversation state
+      res.json({ state: newState });
+    } catch (error: any) {
+      console.error('Conversational automation builder error:', error);
+      res.status(500).json({ message: error.message || "Internal server error" });
+    }
+  });
+
   // AI-powered automation creation (after user confirmation)
   app.post("/api/automations/create-with-ai", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {

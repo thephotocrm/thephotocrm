@@ -350,3 +350,132 @@ GOOD message (with business name): "Looking forward to capturing your special da
 
   return extracted;
 }
+
+// Conversation state schema for building automations
+const ConversationState = z.object({
+  status: z.enum(["collecting", "confirming", "complete"]),
+  collectedInfo: z.object({
+    triggerType: z.enum(["SPECIFIC_STAGE", "GLOBAL"]).optional(),
+    stageId: z.string().optional(),
+    stageName: z.string().optional(),
+    actionType: z.enum(["EMAIL", "SMS", "SMART_FILE"]).optional(),
+    delayDays: z.number().optional(),
+    delayHours: z.number().optional(),
+    scheduledHour: z.number().optional(), // 0-23 for time of day
+    scheduledMinute: z.number().optional(), // 0-59
+    subject: z.string().optional(),
+    content: z.string().optional(),
+    smartFileTemplateId: z.string().optional(),
+    smartFileTemplateName: z.string().optional(),
+  }),
+  nextQuestion: z.string(),
+  needsTemplateSelection: z.boolean().optional(),
+  needsStageSelection: z.boolean().optional(),
+  options: z.array(z.object({
+    label: z.string(),
+    value: z.string()
+  })).optional()
+});
+
+export type ConversationStateType = z.infer<typeof ConversationState>;
+
+/**
+ * Conversational AI automation builder
+ * Asks questions progressively to build an automation
+ */
+export async function conversationalAutomationBuilder(
+  userMessage: string,
+  conversationHistory: ChatMessage[],
+  photographerId: string,
+  currentState?: ConversationStateType
+): Promise<ConversationStateType> {
+  const { storage } = await import("../storage");
+  
+  // Get photographer context
+  const stages = await storage.getStagesByPhotographer(photographerId);
+  const stagesList = stages.map(s => `${s.name} (ID: ${s.id})`).join(", ");
+  
+  const smartFiles = await storage.getSmartFilesByPhotographer(photographerId);
+  const smartFilesList = smartFiles.map(sf => `${sf.name} (ID: ${sf.id})`).join(", ");
+
+  const systemPrompt = `You are helping a photographer create an automation through conversation.
+
+**Available Pipeline Stages:** ${stagesList}
+**Available Smart File Templates:** ${smartFilesList}
+
+**Your Job:** Ask ONE question at a time to collect the following info:
+1. **Trigger**: What should trigger this automation?
+   - If they mention a specific stage/event, set triggerType: "SPECIFIC_STAGE" and ask which stage
+   - If it's general, set triggerType: "GLOBAL"
+   
+2. **Timing**: When should it send?
+   - Extract delay in days/hours (e.g., "2 days later" → delayDays: 2)
+   - If they mention specific time like "6pm" or "2:30pm", extract scheduledHour and scheduledMinute
+   - Examples: "2 days from now at 6pm" → delayDays: 2, scheduledHour: 18, scheduledMinute: 0
+   
+3. **Action Type**: What to send?
+   - EMAIL, SMS, or SMART_FILE (proposal/invoice/contract)
+   
+4. **Content**: What message or template?
+   - For EMAIL/SMS: Generate content or ask what they want to say
+   - For SMART_FILE: Set needsTemplateSelection: true so UI shows dropdown
+   
+5. **Subject** (for email only)
+
+**Conversation Style:**
+- Be friendly and conversational
+- Ask ONE clear question at a time
+- Confirm details before marking complete
+- Use natural language, not technical jargon
+
+**Response Format:**
+- status: "collecting" (still gathering info), "confirming" (have everything, asking to confirm), or "complete" (user confirmed)
+- collectedInfo: Object with the info gathered so far
+- nextQuestion: The next question to ask the user (or confirmation message)
+- needsTemplateSelection: true if user needs to pick a Smart File template from dropdown
+- needsStageSelection: true if user needs to pick a stage from dropdown
+- options: Array of {label, value} options if providing choices
+
+**Examples:**
+
+User: "Send a thank you email 1 day after booking"
+Response: {
+  status: "collecting",
+  collectedInfo: { actionType: "EMAIL", delayDays: 1 },
+  nextQuestion: "Got it! I'll send a thank you email 1 day after someone books. Which stage should trigger this? Or should it work for all stages?",
+  needsStageSelection: true
+}
+
+User: "When they enter inquiry"
+Response: {
+  status: "collecting",
+  collectedInfo: { triggerType: "SPECIFIC_STAGE", actionType: "EMAIL", delayDays: 1 },
+  nextQuestion: "Perfect! What should the email say?",
+  needsStageSelection: false
+}
+
+Current State: ${JSON.stringify(currentState || {})}
+Conversation History: ${JSON.stringify(conversationHistory.slice(-4))} (showing last 4 messages)`;
+
+  const messages: ChatMessage[] = [
+    { role: "system", content: systemPrompt },
+    ...conversationHistory,
+    { role: "user", content: userMessage }
+  ];
+
+  const response = await openai.chat.completions.create({
+    model: "gpt-4o-mini",
+    messages,
+    response_format: zodResponseFormat(ConversationState, "conversation"),
+    max_completion_tokens: 1500
+  });
+
+  const content = response.choices[0].message.content;
+  if (!content) {
+    throw new Error("No content in OpenAI response");
+  }
+  
+  const state = JSON.parse(content) as ConversationStateType;
+  
+  return state;
+}
