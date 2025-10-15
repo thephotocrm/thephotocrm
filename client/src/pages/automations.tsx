@@ -840,6 +840,16 @@ function EditAutomationDetails({ automationId, automation }: { automationId: str
               const smartFile = smartFiles.find(sf => sf.id === step.smartFileTemplateId);
               const isSmartFile = step.actionType === 'SMART_FILE' || automation.channel === 'SMART_FILE';
               
+              console.log('🔍 Step data:', {
+                stepId: step.id,
+                actionType: step.actionType,
+                smartFileTemplateId: step.smartFileTemplateId,
+                templateId: step.templateId,
+                isSmartFile,
+                smartFileFound: !!smartFile,
+                smartFileName: smartFile?.name
+              });
+              
               return (
                 <div key={step.id} className="bg-background border rounded-lg p-3 space-y-2">
                   <div className="flex items-center space-x-2">
