@@ -53,6 +53,11 @@ function AutomationStepManager({ automation, onDelete }: { automation: any, onDe
     enabled: !!automation.id
   });
 
+  // Fetch Smart File templates for the automation
+  const { data: smartFiles } = useQuery<any[]>({
+    queryKey: ["/api/smart-files"],
+    enabled: !!automation.id
+  });
 
   // Delete step mutation  
   const deleteStepMutation = useMutation({
@@ -241,11 +246,23 @@ function AutomationStepManager({ automation, onDelete }: { automation: any, onDe
           ) : (
             steps.map((step: any, index: number) => {
             const template = templates?.find(t => t.id === step.templateId);
+            const smartFile = smartFiles?.find(sf => sf.id === step.smartFileTemplateId);
+            const isSmartFile = step.actionType === 'SMART_FILE' || automation.channel === 'SMART_FILE';
             
             return (
               <div key={step.id}>
+                {/* Smart File Preview */}
+                {smartFile && isSmartFile && (
+                  <div className="bg-muted/50 border rounded-md p-3 text-sm">
+                    <p className="font-semibold mb-2">📄 Smart File: {smartFile.name}</p>
+                    <p className="text-muted-foreground">
+                      Will send a smart file template to the client
+                    </p>
+                  </div>
+                )}
+                
                 {/* Message Preview */}
-                {template && (
+                {template && !isSmartFile && (
                   <div className="bg-muted/50 border rounded-md p-3 text-sm">
                     <p className="font-semibold mb-2">
                       {automation.channel === 'EMAIL' ? 'Email Message:' : 'Text Message:'}
