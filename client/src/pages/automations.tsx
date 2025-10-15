@@ -2203,7 +2203,7 @@ export default function Automations() {
       <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
             <DialogContent className="w-[95vw] sm:max-w-2xl max-h-[92vh] p-0 flex flex-col overflow-hidden">
                 <DialogHeader className="sticky top-0 z-10 bg-background px-6 py-4 border-b">
-                  <DialogTitle>Create Automation</DialogTitle>
+                  <DialogTitle>Create new {activeProjectType.toLowerCase()} automation</DialogTitle>
                   <DialogDescription>
                     Save time by automating routine tasks for your clients
                   </DialogDescription>
@@ -3746,7 +3746,7 @@ export default function Automations() {
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-purple-600" />
-            Create Automation with AI
+            Create new {activeProjectType.toLowerCase()} automation with AI
           </DialogTitle>
           <DialogDescription>
             Describe what you want the automation to do and AI will set it up for you.

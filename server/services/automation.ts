@@ -217,7 +217,10 @@ async function processStageChangeAutomation(automation: any, photographerId: str
   
   // Get all active projects for this photographer and project type
   const activeProjects = await db
-    .select()
+    .select({
+      projects: projects,
+      contacts: contacts
+    })
     .from(projects)
     .innerJoin(contacts, eq(projects.contactId, contacts.id))
     .where(and(
@@ -1330,17 +1333,17 @@ async function subscribeNewProjectsToCampaign(campaign: any, photographerId: str
   const eligibleProjects = await db
     .select({
       id: projects.id,
-      clientId: projects.clientId,
+      contactId: projects.contactId,
       stageEnteredAt: projects.stageEnteredAt,
       eventDate: projects.eventDate,
       emailOptIn: projects.emailOptIn,
-      // Client details
-      firstName: clients.firstName,
-      lastName: clients.lastName,
-      email: clients.email
+      // Contact details
+      firstName: contacts.firstName,
+      lastName: contacts.lastName,
+      email: contacts.email
     })
     .from(projects)
-    .innerJoin(clients, eq(projects.clientId, clients.id))
+    .innerJoin(contacts, eq(projects.contactId, contacts.id))
     .leftJoin(dripCampaignSubscriptions, and(
       eq(dripCampaignSubscriptions.projectId, projects.id),
       eq(dripCampaignSubscriptions.campaignId, campaign.id)
@@ -1371,7 +1374,7 @@ async function subscribeNewProjectsToCampaign(campaign: any, photographerId: str
     await db.insert(dripCampaignSubscriptions).values({
       campaignId: campaign.id,
       projectId: project.id,
-      clientId: project.clientId,
+      clientId: project.contactId,
       startedAt: now,
       nextEmailIndex: 0,
       nextEmailAt: nextEmailAt,
@@ -1390,11 +1393,11 @@ async function processExistingSubscriptions(campaign: any, photographerId: strin
     .select({
       subscription: dripCampaignSubscriptions,
       project: projects,
-      client: clients
+      contact: contacts
     })
     .from(dripCampaignSubscriptions)
     .innerJoin(projects, eq(dripCampaignSubscriptions.projectId, projects.id))
-    .innerJoin(clients, eq(projects.clientId, clients.id))
+    .innerJoin(contacts, eq(projects.contactId, contacts.id))
     .where(and(
       eq(dripCampaignSubscriptions.campaignId, campaign.id),
       eq(dripCampaignSubscriptions.status, 'ACTIVE'),
@@ -1404,13 +1407,13 @@ async function processExistingSubscriptions(campaign: any, photographerId: strin
 
   console.log(`Found ${readySubscriptions.length} subscriptions ready for next email in campaign ${campaign.name}`);
 
-  for (const { subscription, project, client } of readySubscriptions) {
-    await processSubscriptionEmail(subscription, campaign, project, client, photographerId);
+  for (const { subscription, project, contact } of readySubscriptions) {
+    await processSubscriptionEmail(subscription, campaign, project, contact, photographerId);
   }
 }
 
-async function processSubscriptionEmail(subscription: any, campaign: any, project: any, client: any, photographerId: string): Promise<void> {
-  console.log(`Processing subscription email for ${client.firstName} ${client.lastName}, next email index: ${subscription.nextEmailIndex}`);
+async function processSubscriptionEmail(subscription: any, campaign: any, project: any, contact: any, photographerId: string): Promise<void> {
+  console.log(`Processing subscription email for ${contact.firstName} ${contact.lastName}, next email index: ${subscription.nextEmailIndex}`);
 
   // Get the next email in the sequence
   const nextEmail = await db
@@ -1541,11 +1544,11 @@ async function processSubscriptionEmail(subscription: any, campaign: any, projec
 
   // Prepare variables for template rendering
   const variables = {
-    firstName: client.firstName,
-    lastName: client.lastName,
-    fullName: `${client.firstName} ${client.lastName}`,
-    email: client.email || '',
-    phone: client.phone || '',
+    firstName: contact.firstName,
+    lastName: contact.lastName,
+    fullName: `${contact.firstName} ${contact.lastName}`,
+    email: contact.email || '',
+    phone: contact.phone || '',
     businessName: photographer?.businessName || 'Your Photographer',
     eventDate: project.eventDate ? new Date(project.eventDate).toLocaleDateString() : 'Not set',
     scheduling_link: schedulingLink
@@ -1560,7 +1563,7 @@ async function processSubscriptionEmail(subscription: any, campaign: any, projec
   const deliveryRecord = await db.insert(dripEmailDeliveries).values({
     subscriptionId: subscription.id,
     emailId: emailToSend.id,
-    clientId: client.id,
+    clientId: contact.id,
     projectId: project.id,
     status: 'PENDING'
   }).returning({ id: dripEmailDeliveries.id });
@@ -1569,7 +1572,7 @@ async function processSubscriptionEmail(subscription: any, campaign: any, projec
 
   try {
     // Send email
-    console.log(`📧 Sending drip email to ${client.firstName} ${client.lastName} (${client.email})...`);
+    console.log(`📧 Sending drip email to ${contact.firstName} ${contact.lastName} (${contact.email})...`);
     
     // Get participant emails for BCC
     const participantEmails = await getParticipantEmailsForBCC(project.id);
@@ -1582,15 +1585,15 @@ async function processSubscriptionEmail(subscription: any, campaign: any, projec
     const replyToEmail = photographer?.emailFromAddr || process.env.SENDGRID_REPLY_TO || fromEmail;
     
     const success = await sendEmail({
-      to: client.email,
+      to: contact.email,
       from: `${fromName} <${fromEmail}>`,
       replyTo: `${fromName} <${replyToEmail}>`,
       subject,
       html: htmlBody,
       text: textBody,
       bcc: participantEmails.length > 0 ? participantEmails : undefined,
-      photographerId: client.photographerId,
-      clientId: client.clientId,
+      photographerId: contact.photographerId,
+      clientId: contact.id,
       projectId: project.id,
       automationStepId: null,
       source: 'DRIP_CAMPAIGN' as const
@@ -1618,7 +1621,7 @@ async function processSubscriptionEmail(subscription: any, campaign: any, projec
         })
         .where(eq(dripCampaignSubscriptions.id, subscription.id));
 
-      console.log(`✅ Sent drip email ${emailToSend.sequenceIndex} to ${client.firstName} ${client.lastName}. Next email scheduled for ${nextEmailAt}`);
+      console.log(`✅ Sent drip email ${emailToSend.sequenceIndex} to ${contact.firstName} ${contact.lastName}. Next email scheduled for ${nextEmailAt}`);
     } else {
       // Mark delivery as failed
       await db
@@ -1626,10 +1629,10 @@ async function processSubscriptionEmail(subscription: any, campaign: any, projec
         .set({ status: 'FAILED' })
         .where(eq(dripEmailDeliveries.id, deliveryId));
 
-      console.log(`❌ Failed to send drip email to ${client.firstName} ${client.lastName}`);
+      console.log(`❌ Failed to send drip email to ${contact.firstName} ${contact.lastName}`);
     }
   } catch (error) {
-    console.error(`❌ Error sending drip email to ${client.firstName} ${client.lastName}:`, error);
+    console.error(`❌ Error sending drip email to ${contact.firstName} ${contact.lastName}:`, error);
     
     // Mark delivery as failed
     await db
