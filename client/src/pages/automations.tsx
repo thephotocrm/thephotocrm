@@ -717,6 +717,11 @@ function EditAutomationDetails({ automationId, automation }: { automationId: str
     enabled: !!automationId && automation.automationType === 'COMMUNICATION'
   });
 
+  const { data: smartFiles = [] } = useQuery<any[]>({
+    queryKey: ["/api/smart-files"],
+    enabled: !!automationId && automation.automationType === 'COMMUNICATION'
+  });
+
   const { data: stages = [] } = useQuery<any[]>({
     queryKey: ["/api/stages"],
     enabled: !!automationId
@@ -832,6 +837,9 @@ function EditAutomationDetails({ automationId, automation }: { automationId: str
           <div className="border rounded-lg p-3 bg-muted max-h-64 overflow-y-auto space-y-2">
             {steps.map((step: any, index: number) => {
               const template = templates.find(t => t.id === step.templateId);
+              const smartFile = smartFiles.find(sf => sf.id === step.smartFileTemplateId);
+              const isSmartFile = step.actionType === 'SMART_FILE' || automation.channel === 'SMART_FILE';
+              
               return (
                 <div key={step.id} className="bg-background border rounded-lg p-3 space-y-2">
                   <div className="flex items-center space-x-2">
@@ -843,12 +851,12 @@ function EditAutomationDetails({ automationId, automation }: { automationId: str
                       <span className="font-medium">{formatDelay(step.delayMinutes)}</span>
                       <span className="text-muted-foreground">→</span>
                       <span>
-                        {automation.channel === 'EMAIL' ? '📧 Email' : '📱 SMS'}
+                        {isSmartFile ? '📄 Smart File' : automation.channel === 'EMAIL' ? '📧 Email' : '📱 SMS'}
                       </span>
                     </div>
                   </div>
                   
-                  {template && (
+                  {template && !isSmartFile && (
                     <div className="pl-7 space-y-1">
                       <p className="text-xs font-medium text-muted-foreground">Message:</p>
                       <div className="bg-accent border rounded p-2 text-xs">
@@ -859,6 +867,24 @@ function EditAutomationDetails({ automationId, automation }: { automationId: str
                           {template.textBody || 'No message content'}
                         </p>
                       </div>
+                    </div>
+                  )}
+                  
+                  {smartFile && isSmartFile && (
+                    <div className="pl-7 space-y-1">
+                      <p className="text-xs font-medium text-muted-foreground">Smart File Template:</p>
+                      <div className="bg-accent border rounded p-2 text-xs">
+                        <p className="font-semibold text-foreground">📄 {smartFile.name}</p>
+                        <p className="text-muted-foreground text-xs mt-1">
+                          Will send a {smartFile.isTemplate ? 'template' : 'file'} to the client
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {!template && !smartFile && (
+                    <div className="pl-7 space-y-1">
+                      <p className="text-xs text-muted-foreground italic">No content configured</p>
                     </div>
                   )}
                 </div>

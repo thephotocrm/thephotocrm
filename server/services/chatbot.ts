@@ -404,12 +404,13 @@ export async function conversationalAutomationBuilder(
 **Available Smart File Templates:** ${smartFilesList}
 
 **Your Job:** Ask ONE question at a time to collect the following info:
-1. **Trigger Stage**: What stage should trigger this automation?
-   - ALWAYS ask which stage to trigger on unless they explicitly say "all stages" or "global"
+1. **Trigger Stage**: What stage should trigger this automation? (REQUIRED unless explicitly global)
+   - This is MANDATORY - you MUST collect a stage unless they explicitly say "all stages" or "global"
    - If they mention a stage name (e.g., "inquiry", "consultation", "booked"), match it to the available stages list above and extract the stage ID
    - Set stageId to the matching stage ID from the list
    - Set stageName to the matching stage name
    - If no match or unclear, ask them to clarify which stage
+   - NEVER skip asking about the stage - it's critical for automation functionality
    
 2. **Timing**: When should it send?
    - Extract delay in days/hours (e.g., "2 days later" → delayDays: 2, "immediately" → delayDays: 0)

@@ -3893,12 +3893,63 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       }
 
       const { conversationalAutomationBuilder } = await import("./services/chatbot");
-      const newState = await conversationalAutomationBuilder(
+      let newState = await conversationalAutomationBuilder(
         message,
         conversationHistory || [],
         photographerId,
         currentState
       );
+
+      // 🔍 STAGE RECONCILIATION LAYER - Validate and match stage IDs
+      if (newState.collectedInfo && (newState.status === "confirming" || newState.status === "complete")) {
+        const stages = await storage.getStagesByPhotographer(photographerId);
+        
+        // ALWAYS validate stageId if provided (prevent bogus IDs from slipping through)
+        if (newState.collectedInfo.stageId) {
+          const validStage = stages.find(s => s.id === newState.collectedInfo.stageId);
+          if (!validStage) {
+            console.log(`⚠️ Stage reconciliation: Invalid stageId "${newState.collectedInfo.stageId}", attempting name match`);
+            newState.collectedInfo.stageId = null; // Clear bogus ID
+          } else {
+            console.log(`✅ Stage reconciliation: Validated stageId "${newState.collectedInfo.stageId}" (${validStage.name})`);
+            newState.collectedInfo.stageName = validStage.name; // Ensure name matches ID
+          }
+        }
+        
+        // Try to match by stageName if no valid stageId
+        if (!newState.collectedInfo.stageId && newState.collectedInfo.stageName) {
+          // Try to match stageName to actual stages (case-insensitive fuzzy matching)
+          const matchedStage = stages.find(s => 
+            s.name.toLowerCase() === newState.collectedInfo.stageName?.toLowerCase() ||
+            s.name.toLowerCase().includes(newState.collectedInfo.stageName?.toLowerCase() || '') ||
+            newState.collectedInfo.stageName?.toLowerCase().includes(s.name.toLowerCase())
+          );
+          
+          if (matchedStage) {
+            console.log(`🔗 Stage reconciliation: Matched "${newState.collectedInfo.stageName}" to stage "${matchedStage.name}" (${matchedStage.id})`);
+            newState.collectedInfo.stageId = matchedStage.id;
+            newState.collectedInfo.stageName = matchedStage.name;
+          } else {
+            console.log(`⚠️ Stage reconciliation: Could not match "${newState.collectedInfo.stageName}" to any stage`);
+            // Force user to select stage from dropdown
+            newState.status = "collecting";
+            newState.needsStageSelection = true;
+            newState.nextQuestion = `I couldn't find a stage called "${newState.collectedInfo.stageName}". Which stage should trigger this automation?`;
+            newState.options = stages.map(s => ({ label: s.name, value: s.id }));
+            return res.json({ state: newState });
+          }
+        }
+        
+        // If still no stageId and not explicitly "global", require stage selection
+        if (!newState.collectedInfo.stageId && newState.collectedInfo.triggerType !== "GLOBAL") {
+          console.log(`⚠️ No stage ID found, requiring stage selection`);
+          newState.status = "collecting";
+          newState.needsStageSelection = true;
+          newState.nextQuestion = "Which stage should trigger this automation?";
+          newState.options = stages.map(s => ({ label: s.name, value: s.id }));
+          return res.json({ state: newState });
+        }
+      }
 
       // If status is "complete", create the automation
       if (newState.status === "complete" && newState.collectedInfo) {
