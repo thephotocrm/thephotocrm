@@ -482,11 +482,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         // Create default stages
         const defaultStages = [
-          { name: "Inquiry", orderIndex: 0, isDefault: true },
-          { name: "Consultation", orderIndex: 1, isDefault: false },
-          { name: "Payment Made", orderIndex: 2, isDefault: false },
-          { name: "Booked", orderIndex: 3, isDefault: false },
-          { name: "Finished", orderIndex: 4, isDefault: false }
+          { name: "New Inquiry", orderIndex: 0, isDefault: true },
+          { name: "Discovery Call Scheduled", orderIndex: 1, isDefault: false },
+          { name: "Proposal Sent", orderIndex: 2, isDefault: false },
+          { name: "Booked / Retainer Paid", orderIndex: 3, isDefault: false },
+          { name: "Pre-Event Planning", orderIndex: 4, isDefault: false },
+          { name: "Event Completed / Editing", orderIndex: 5, isDefault: false },
+          { name: "Gallery Delivered", orderIndex: 6, isDefault: false },
+          { name: "Album / Print Ordered", orderIndex: 7, isDefault: false },
+          { name: "Completed Client / Review Requested", orderIndex: 8, isDefault: false }
         ];
 
         for (const stage of defaultStages) {
