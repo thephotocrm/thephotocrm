@@ -1589,6 +1589,7 @@ export default function Automations() {
   const [selectedStage, setSelectedStage] = useState<any>(null);
   const [timingMode, setTimingMode] = useState<'immediate' | 'delayed'>('immediate');
   const [activeProjectType, setActiveProjectType] = useState<string>('WEDDING');
+  const [isSettingUpDefaults, setIsSettingUpDefaults] = useState(false);
   const [enableCommunication, setEnableCommunication] = useState(true);
   const [enablePipeline, setEnablePipeline] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -3688,39 +3689,74 @@ export default function Automations() {
                     </div>
                     
                     {/* Action Buttons */}
-                    <div className="flex gap-2">
-                      <Button
-                        onClick={startConversationalAI}
-                        variant="default"
-                        size="sm"
-                        data-testid="button-chat-ai-automation"
-                        className="flex-1 sm:flex-auto bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
-                      >
-                        <Sparkles className="w-4 h-4 mr-2" />
-                        <span className="hidden sm:inline">Chat with AI</span>
-                        <span className="sm:hidden">AI Chat</span>
-                      </Button>
-                      <Button
-                        onClick={() => setAiDialogOpen(true)}
-                        variant="outline"
-                        size="sm"
-                        data-testid="button-create-ai-automation"
-                        className="flex-1 sm:flex-auto"
-                      >
-                        <Sparkles className="w-4 h-4 mr-2" />
-                        <span className="hidden sm:inline">Quick Create</span>
-                        <span className="sm:hidden">Quick AI</span>
-                      </Button>
-                      <Button
-                        onClick={() => setCreateDialogOpen(true)}
-                        size="sm"
-                        data-testid="button-create-automation"
-                        className="flex-1 sm:flex-auto"
-                      >
-                        <Plus className="w-4 h-4 mr-2" />
-                        <span className="hidden sm:inline">New Automation</span>
-                        <span className="sm:hidden">New</span>
-                      </Button>
+                    <div className="flex flex-col sm:flex-row gap-2">
+                      {activeProjectType === "WEDDING" && (
+                        <Button
+                          onClick={async () => {
+                            if (isSettingUpDefaults) return;
+                            
+                            setIsSettingUpDefaults(true);
+                            try {
+                              await apiRequest("POST", "/api/automations/setup-wedding-inquiry-defaults");
+                              toast({
+                                title: "Success!",
+                                description: "Wedding inquiry automation sequence has been set up successfully. 10 automations created.",
+                              });
+                              queryClient.invalidateQueries({ queryKey: ["/api/automations"] });
+                            } catch (error: any) {
+                              toast({
+                                title: "Error",
+                                description: error.message || "Failed to set up automation sequence",
+                                variant: "destructive"
+                              });
+                            } finally {
+                              setIsSettingUpDefaults(false);
+                            }
+                          }}
+                          disabled={isSettingUpDefaults}
+                          variant="default"
+                          size="sm"
+                          data-testid="button-setup-wedding-defaults"
+                          className="w-full sm:w-auto bg-green-600 hover:bg-green-700 disabled:opacity-50"
+                        >
+                          <Zap className="w-4 h-4 mr-2" />
+                          {isSettingUpDefaults ? "Setting up..." : "Setup Inquiry Sequence"}
+                        </Button>
+                      )}
+                      <div className="flex gap-2">
+                        <Button
+                          onClick={startConversationalAI}
+                          variant="default"
+                          size="sm"
+                          data-testid="button-chat-ai-automation"
+                          className="flex-1 sm:flex-auto bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+                        >
+                          <Sparkles className="w-4 h-4 mr-2" />
+                          <span className="hidden sm:inline">Chat with AI</span>
+                          <span className="sm:hidden">AI Chat</span>
+                        </Button>
+                        <Button
+                          onClick={() => setAiDialogOpen(true)}
+                          variant="outline"
+                          size="sm"
+                          data-testid="button-create-ai-automation"
+                          className="flex-1 sm:flex-auto"
+                        >
+                          <Sparkles className="w-4 h-4 mr-2" />
+                          <span className="hidden sm:inline">Quick Create</span>
+                          <span className="sm:hidden">Quick AI</span>
+                        </Button>
+                        <Button
+                          onClick={() => setCreateDialogOpen(true)}
+                          size="sm"
+                          data-testid="button-create-automation"
+                          className="flex-1 sm:flex-auto"
+                        >
+                          <Plus className="w-4 h-4 mr-2" />
+                          <span className="hidden sm:inline">New Automation</span>
+                          <span className="sm:hidden">New</span>
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 </CardHeader>

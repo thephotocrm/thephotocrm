@@ -4618,43 +4618,61 @@ ${photographer?.businessName || 'Your Photography Team'}`;
         return res.status(404).json({ message: "New Inquiry stage not found for Wedding projects" });
       }
 
-      const createdAutomations = [];
+      // Check if this sequence already exists (idempotency check)
+      const existingAutomations = await storage.getAutomationsByPhotographer(photographerId, "WEDDING");
+      const hasInquirySequence = existingAutomations.some(a => 
+        a.stageId === inquiryStage.id && 
+        a.name.includes("immediately when contact enters New Inquiry")
+      );
 
-      // PHASE 1: Instant Response (0 minutes)
-      // 1.1 - Instant Email
-      const instantEmailTemplate = await storage.createTemplate({
-        photographerId,
-        name: "Wedding Inquiry - Instant Email",
-        channel: "EMAIL",
-        subject: "Thanks for reaching out about your photos!",
-        htmlBody: `<p>Hi {{first_name}},</p>
+      if (hasInquirySequence) {
+        return res.status(400).json({ 
+          message: "Wedding inquiry automation sequence already exists. Please delete existing automations first if you want to recreate them." 
+        });
+      }
+
+      const createdAutomations = [];
+      const createdTemplates = [];
+      const createdSteps = [];
+
+      try {
+        // PHASE 1: Instant Response (0 minutes)
+        // 1.1 - Instant Email
+        const instantEmailTemplate = await storage.createTemplate({
+          photographerId,
+          name: "Wedding Inquiry - Instant Email",
+          channel: "EMAIL",
+          subject: "Thanks for reaching out about your photos!",
+          htmlBody: `<p>Hi {{first_name}},</p>
 <p>Thank you for reaching out! I'd love to learn more about your day and style.</p>
 <p>Here's my calendar to chat: {{scheduler_link}}</p>
 <p>You'll get ideas, pricing, and sample galleries.</p>
 <p>– {{photographer_name}}</p>`,
-        textBody: `Hi {{first_name}},\n\nThank you for reaching out! I'd love to learn more about your day and style.\n\nHere's my calendar to chat: {{scheduler_link}}\n\nYou'll get ideas, pricing, and sample galleries.\n\n– {{photographer_name}}`
-      });
+          textBody: `Hi {{first_name}},\n\nThank you for reaching out! I'd love to learn more about your day and style.\n\nHere's my calendar to chat: {{scheduler_link}}\n\nYou'll get ideas, pricing, and sample galleries.\n\n– {{photographer_name}}`
+        });
+        createdTemplates.push(instantEmailTemplate);
 
-      const instantEmailAutomation = await storage.createAutomation({
-        photographerId,
-        name: "Send email immediately when contact enters New Inquiry",
-        description: "Instant email response to wedding inquiries - sent within 5 minutes of form submission",
-        automationType: "COMMUNICATION",
-        stageId: inquiryStage.id,
-        channel: "EMAIL",
-        projectType: "WEDDING",
-        enabled: true
-      });
+        const instantEmailAutomation = await storage.createAutomation({
+          photographerId,
+          name: "Send email immediately when contact enters New Inquiry",
+          description: "Instant email response to wedding inquiries - sent within 5 minutes of form submission",
+          automationType: "COMMUNICATION",
+          stageId: inquiryStage.id,
+          channel: "EMAIL",
+          projectType: "WEDDING",
+          enabled: true
+        });
+        createdAutomations.push(instantEmailAutomation);
 
-      await storage.createAutomationStep({
-        automationId: instantEmailAutomation.id,
-        stepIndex: 0,
-        delayMinutes: 0,
-        actionType: "EMAIL",
-        templateId: instantEmailTemplate.id,
-        enabled: true
-      });
-      createdAutomations.push(instantEmailAutomation);
+        const instantEmailStep = await storage.createAutomationStep({
+          automationId: instantEmailAutomation.id,
+          stepIndex: 0,
+          delayMinutes: 0,
+          actionType: "EMAIL",
+          templateId: instantEmailTemplate.id,
+          enabled: true
+        });
+        createdSteps.push(instantEmailStep);
 
       // 1.2 - Instant SMS
       const instantSmsAutomation = await storage.createAutomation({
@@ -4905,13 +4923,39 @@ ${photographer?.businessName || 'Your Photography Team'}`;
         templateId: t21DaysTemplate.id,
         enabled: true
       });
-      createdAutomations.push(t21DaysAutomation);
+        createdAutomations.push(t21DaysAutomation);
 
-      res.status(201).json({
-        message: "Wedding inquiry automation sequence created successfully",
-        automations: createdAutomations,
-        count: createdAutomations.length
-      });
+        // Successfully created all automations
+        res.status(201).json({
+          message: "Wedding inquiry automation sequence created successfully",
+          automations: createdAutomations,
+          count: createdAutomations.length
+        });
+      } catch (creationError: any) {
+        // Rollback - delete all created items on error
+        console.error('Error during automation creation, rolling back...', creationError);
+        
+        try {
+          // Delete all created automation steps
+          for (const step of createdSteps) {
+            await storage.deleteAutomationStep(step.id).catch(() => {});
+          }
+          
+          // Delete all created automations
+          for (const automation of createdAutomations) {
+            await storage.deleteAutomation(automation.id).catch(() => {});
+          }
+          
+          // Delete all created templates
+          for (const template of createdTemplates) {
+            await storage.deleteTemplate(template.id).catch(() => {});
+          }
+        } catch (rollbackError) {
+          console.error('Error during rollback:', rollbackError);
+        }
+        
+        throw new Error(`Failed to create automation sequence: ${creationError.message}. All changes have been rolled back.`);
+      }
     } catch (error: any) {
       console.error('Setup wedding inquiry defaults error:', error);
       res.status(500).json({ message: error.message || "Internal server error" });
