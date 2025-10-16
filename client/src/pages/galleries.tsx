@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { useLocation, Link } from "wouter";
@@ -17,12 +18,18 @@ export default function Galleries() {
     enabled: !!user
   });
 
+  // Handle unauthorized access in useEffect to avoid render-time state updates
+  useEffect(() => {
+    if (!loading && (!user || user.role !== "PHOTOGRAPHER")) {
+      setLocation("/");
+    }
+  }, [user, loading, setLocation]);
+
   if (loading) {
     return <div className="flex items-center justify-center h-screen">Loading...</div>;
   }
 
   if (!user || user.role !== "PHOTOGRAPHER") {
-    setLocation("/");
     return null;
   }
 

@@ -121,9 +121,10 @@ export function AppSidebar() {
       name: "Marketing",
       icon: Target,
       items: [
-        { name: "Templates", href: "/templates", icon: MessageSquare },
         { name: "Automations", href: "/automations", icon: Zap },
         { name: "Drip Campaigns", href: "/drip-campaigns", icon: Sparkles },
+        { name: "Templates", href: "/templates", icon: MessageSquare },
+        { name: "Email Branding", href: "/settings", icon: Send },
         { name: "Lead Forms", href: "/lead-forms", icon: FileText },
       ]
     },
@@ -134,6 +135,8 @@ export function AppSidebar() {
       items: [
         { name: "Reports", href: "/reports", icon: BarChart3 },
         { name: "Earnings", href: "/earnings", icon: DollarSign },
+        { name: "Tutorials", href: "/tutorials", icon: GraduationCap },
+        { name: "Settings", href: "/settings", icon: Settings },
       ]
     }
   ];
