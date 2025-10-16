@@ -53,6 +53,9 @@ export default function Galleries() {
         <div className="flex items-center gap-2">
           <Images className="w-6 h-6 text-purple-600" />
           <h1 className="text-xl font-semibold">Client Galleries</h1>
+          <Badge variant="secondary" className="ml-2">
+            Default
+          </Badge>
         </div>
         <div className="flex-1 max-w-md">
           <div className="relative">
