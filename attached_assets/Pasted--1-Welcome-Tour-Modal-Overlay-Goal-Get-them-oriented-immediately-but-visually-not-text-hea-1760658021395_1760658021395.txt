@@ -1,0 +1,124 @@
+🧭 1. Welcome Tour (Modal Overlay)
+
+Goal: Get them oriented immediately — but visually, not text-heavy.
+
+UI Elements:
+
+Full-screen modal with a friendly welcome message (e.g., “Welcome to ThePhotoCRM, [First Name]!”)
+
+Subtext: “Let’s get your studio set up so you can book your next client in minutes.”
+
+A progress indicator (3–4 dots or a line bar)
+
+Buttons: “Start Setup” or “Skip for Now”
+
+✨ Optional: Add your mascot or simple camera icon illustration here for warmth.
+
+🧩 2. Guided Setup Checklist (Sidebar or Dashboard Widget)
+
+Goal: Visually show setup progress like a to-do list.
+
+UI Style:
+
+Appears in the dashboard as a card or collapsible sidebar panel
+
+Each task has a checkbox and progress bar (e.g., “2 of 5 steps complete”)
+
+Example tasks:
+
+Add your logo & brand colors 🎨
+
+Create your first project 📸
+
+Set up your inquiry form 📝
+
+Connect your calendar 📅
+
+Send a test message 💬
+
+UX Tip: As they complete each, auto-check and animate progress (confetti, smooth fill animation).
+
+🖼️ 3. Inline Tooltips / Hotspots (First Use)
+
+Goal: Teach the interface by showing, not telling.
+
+UI Elements:
+
+Little glowing hotspots next to key icons (“Projects,” “Messages,” “Leads”)
+
+When clicked or hovered:
+
+Small tooltip with concise text like:
+
+“Track all your shoots here 👇”
+
+“See client texts and emails in one place 💬”
+
+A “Next” button moves to the next hotspot.
+
+Tip: Don’t overdo it — 4–5 max on first run.
+
+🧠 4. Starter Templates or Demo Data
+
+Goal: Prevent empty-state confusion.
+
+UI Design:
+
+When they first open “Projects” or “Leads,” show:
+
+A sample project card labeled “Demo Wedding Project”
+
+Subtext: “Explore how real client workflows look.”
+
+Option to “Remove Demo Data” once they start adding real clients.
+
+Visually:
+Use faded placeholder photos, sample client names, and quick action buttons like “Replace with My Own.”
+
+⚙️ 5. Personalized Branding Step (Optional Modal)
+
+Goal: Let them make it feel like theirs fast.
+
+UI Flow:
+
+After setup checklist hits 50%, pop up a modal:
+
+Upload logo
+
+Choose color palette (light theme preview)
+
+Optional font pick
+
+Preview updates the dashboard instantly — immediate satisfaction.
+
+🚀 6. Success Screen / Next Step Prompt
+
+Goal: Reinforce success and prompt real usage.
+
+UI Elements:
+
+Full-width success banner or modal:
+
+“Nice work! Your studio is ready.”
+
+Subtext: “Next up: add your first real lead or sync your inbox.”
+
+CTA buttons:
+
+“Add My First Client” (Primary)
+
+“Explore My Dashboard” (Secondary)
+
+Add a celebratory animation (confetti burst, checkmark pulse, or progress badge).
+
+🧱 Bonus Visual Details
+
+Use soft pastels or your CRM’s brand tones for a friendly feel.
+
+Rounded cards + drop shadows = modern, approachable design.
+
+Icons for each checklist step improve scannability.
+
+Use empty states wisely:
+
+Example: “No messages yet — try sending a welcome note!” + CTA button.
