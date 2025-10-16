@@ -3651,6 +3651,22 @@ ${photographer?.businessName || 'Your Photography Team'}`;
         })
       });
 
+      // Auto-create gallery if deposit was paid and gallery platform is configured
+      if (paymentType === 'DEPOSIT' && newStatus === 'DEPOSIT_PAID') {
+        try {
+          const photographer = await storage.getPhotographer(projectSmartFile.photographerId);
+          
+          if (photographer?.galleryPlatform && !projectSmartFile.galleryUrl) {
+            console.log(`Auto-creating gallery for project ${projectSmartFile.projectId}`);
+            const { galleryService } = await import('./services/gallery');
+            await galleryService.createGallery(projectSmartFile.projectId, projectSmartFile.photographerId);
+          }
+        } catch (galleryError) {
+          console.error('Failed to auto-create gallery:', galleryError);
+          // Don't fail the payment if gallery creation fails
+        }
+      }
+
       // Send payment receipt email to client
       try {
         const [project, client] = await Promise.all([
@@ -5569,6 +5585,23 @@ ${photographer?.businessName || 'Your Photography Team'}`;
               })
             });
 
+            // Auto-create gallery if deposit was paid and gallery platform is configured
+            if (paymentType === 'DEPOSIT' && newStatus === 'DEPOSIT_PAID') {
+              try {
+                const photographer = await storage.getPhotographer(metadata.photographerId);
+                const project = await storage.getProject(metadata.projectId || currentProjectSmartFile.projectId);
+                
+                if (photographer?.galleryPlatform && project && !project.galleryUrl) {
+                  console.log(`Auto-creating gallery for project ${project.id}`);
+                  const { galleryService } = await import('./services/gallery');
+                  await galleryService.createGallery(project.id, metadata.photographerId);
+                }
+              } catch (galleryError) {
+                console.error('Failed to auto-create gallery:', galleryError);
+                // Don't fail the webhook if gallery creation fails
+              }
+            }
+
             try {
               // Get payment intent details
               const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId, {
@@ -6558,6 +6591,397 @@ ${photographer.businessName}`
     } catch (error) {
       console.error('Calendar disconnect error:', error);
       res.status(500).json({ message: "Failed to disconnect calendar" });
+    }
+  });
+
+  // === GALLERY INTEGRATION ROUTES ===
+
+  // Update gallery platform selection
+  app.put("/api/gallery/platform", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
+    try {
+      const photographerId = req.user!.photographerId!;
+      const { platform } = req.body;
+
+      if (platform && platform !== "GOOGLE_DRIVE" && platform !== "SHOOTPROOF") {
+        return res.status(400).json({ message: "Invalid platform. Must be GOOGLE_DRIVE or SHOOTPROOF" });
+      }
+
+      await storage.updatePhotographer(photographerId, { galleryPlatform: platform || null });
+      res.json({ message: "Gallery platform updated successfully" });
+    } catch (error) {
+      console.error('Gallery platform update error:', error);
+      res.status(500).json({ message: "Failed to update gallery platform" });
+    }
+  });
+
+  // Get gallery integration status
+  app.get("/api/gallery/status", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
+    try {
+      const photographerId = req.user!.photographerId!;
+      const photographer = await storage.getPhotographer(photographerId);
+      
+      if (!photographer) {
+        return res.status(404).json({ message: "Photographer not found" });
+      }
+
+      const googleDriveConnected = !!(photographer.googleDriveAccessToken && photographer.googleDriveRefreshToken);
+      const shootproofConnected = !!(photographer.shootproofAccessToken && photographer.shootproofRefreshToken);
+
+      res.json({
+        platform: photographer.galleryPlatform || null,
+        googleDrive: {
+          connected: googleDriveConnected,
+          email: photographer.googleDriveEmail || null,
+          connectedAt: photographer.googleDriveConnectedAt || null
+        },
+        shootproof: {
+          connected: shootproofConnected,
+          email: photographer.shootproofEmail || null,
+          studioId: photographer.shootproofStudioId || null,
+          connectedAt: photographer.shootproofConnectedAt || null
+        }
+      });
+    } catch (error) {
+      console.error('Gallery status error:', error);
+      res.status(500).json({ message: "Failed to get gallery status" });
+    }
+  });
+
+  // Initiate Google Drive OAuth
+  app.get("/api/auth/google-drive", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
+    try {
+      const { OAuth2Client } = await import('google-auth-library');
+      const photographerId = req.user!.photographerId!;
+
+      const clientId = process.env.GOOGLE_CLIENT_ID;
+      const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+
+      if (!clientId || !clientSecret) {
+        return res.status(503).json({ 
+          message: "Google Drive integration not configured. Please contact support." 
+        });
+      }
+
+      const redirectUri = process.env.GOOGLE_DRIVE_REDIRECT_URI || `https://${req.get('host')}/api/auth/google-drive/callback`;
+      
+      const oauth2Client = new OAuth2Client(clientId, clientSecret, redirectUri);
+
+      const state = Buffer.from(JSON.stringify({ 
+        photographerId,
+        nonce: nanoid(),
+        timestamp: Date.now()
+      })).toString('base64url');
+
+      const authUrl = oauth2Client.generateAuthUrl({
+        access_type: 'offline',
+        scope: ['https://www.googleapis.com/auth/drive.file', 'https://www.googleapis.com/auth/userinfo.email'],
+        prompt: 'consent',
+        state
+      });
+
+      res.json({ authUrl });
+    } catch (error) {
+      console.error('Google Drive auth URL error:', error);
+      res.status(500).json({ message: "Failed to generate authorization URL" });
+    }
+  });
+
+  // Google Drive OAuth callback
+  app.get("/api/auth/google-drive/callback", async (req, res) => {
+    try {
+      const { code, state } = req.query;
+      
+      if (!code || !state) {
+        return res.status(400).send(`
+          <html>
+            <body style="font-family: Arial, sans-serif; text-align: center; padding: 50px;">
+              <h2 style="color: red;">❌ Authorization Failed</h2>
+              <p>Missing authorization code or state.</p>
+            </body>
+          </html>
+        `);
+      }
+
+      const stateData = JSON.parse(Buffer.from(state as string, 'base64url').toString());
+      const photographerId = stateData.photographerId;
+
+      const { OAuth2Client } = await import('google-auth-library');
+      const clientId = process.env.GOOGLE_CLIENT_ID;
+      const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+      const redirectUri = process.env.GOOGLE_DRIVE_REDIRECT_URI || `https://${req.get('host')}/api/auth/google-drive/callback`;
+
+      const oauth2Client = new OAuth2Client(clientId, clientSecret, redirectUri);
+      const { tokens } = await oauth2Client.getToken(code as string);
+
+      oauth2Client.setCredentials(tokens);
+
+      const { google } = await import('googleapis');
+      const oauth2 = google.oauth2({ version: 'v2', auth: oauth2Client });
+      const userInfo = await oauth2.userinfo.get();
+
+      await storage.updatePhotographer(photographerId, {
+        googleDriveAccessToken: tokens.access_token || null,
+        googleDriveRefreshToken: tokens.refresh_token || null,
+        googleDriveTokenExpiry: tokens.expiry_date ? new Date(tokens.expiry_date) : null,
+        googleDriveEmail: userInfo.data.email || null,
+        googleDriveConnectedAt: new Date()
+      });
+
+      res.send(`
+        <html>
+          <body style="font-family: Arial, sans-serif; text-align: center; padding: 50px;">
+            <h2 style="color: green;">✅ Google Drive Connected Successfully!</h2>
+            <p>Your gallery integration is now active. You can close this window.</p>
+            <script>
+              setTimeout(() => {
+                window.close();
+              }, 3000);
+            </script>
+          </body>
+        </html>
+      `);
+    } catch (error) {
+      console.error('Google Drive callback error:', error);
+      res.status(500).send(`
+        <html>
+          <body style="font-family: Arial, sans-serif; text-align: center; padding: 50px;">
+            <h2 style="color: red;">❌ Authorization Failed</h2>
+            <p>An unexpected error occurred. Please try again or contact support.</p>
+          </body>
+        </html>
+      `);
+    }
+  });
+
+  // Disconnect Google Drive
+  app.delete("/api/gallery/google-drive/disconnect", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
+    try {
+      const photographerId = req.user!.photographerId!;
+      
+      await storage.updatePhotographer(photographerId, {
+        googleDriveAccessToken: null,
+        googleDriveRefreshToken: null,
+        googleDriveTokenExpiry: null,
+        googleDriveEmail: null,
+        googleDriveConnectedAt: null
+      });
+
+      res.json({ message: "Google Drive disconnected successfully" });
+    } catch (error) {
+      console.error('Google Drive disconnect error:', error);
+      res.status(500).json({ message: "Failed to disconnect Google Drive" });
+    }
+  });
+
+  // Initiate ShootProof OAuth
+  app.get("/api/auth/shootproof", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
+    try {
+      const photographerId = req.user!.photographerId!;
+      const clientId = process.env.SHOOTPROOF_CLIENT_ID;
+
+      if (!clientId) {
+        return res.status(503).json({ 
+          message: "ShootProof integration not configured. Please contact support." 
+        });
+      }
+
+      const redirectUri = process.env.SHOOTPROOF_REDIRECT_URI || `https://${req.get('host')}/api/auth/shootproof/callback`;
+      
+      const state = Buffer.from(JSON.stringify({ 
+        photographerId,
+        nonce: nanoid(),
+        timestamp: Date.now()
+      })).toString('base64url');
+
+      const authUrl = `https://api.shootproof.com/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&state=${state}`;
+
+      res.json({ authUrl });
+    } catch (error) {
+      console.error('ShootProof auth URL error:', error);
+      res.status(500).json({ message: "Failed to generate authorization URL" });
+    }
+  });
+
+  // ShootProof OAuth callback
+  app.get("/api/auth/shootproof/callback", async (req, res) => {
+    try {
+      const { code, state } = req.query;
+      
+      if (!code || !state) {
+        return res.status(400).send(`
+          <html>
+            <body style="font-family: Arial, sans-serif; text-align: center; padding: 50px;">
+              <h2 style="color: red;">❌ Authorization Failed</h2>
+              <p>Missing authorization code or state.</p>
+            </body>
+          </html>
+        `);
+      }
+
+      const stateData = JSON.parse(Buffer.from(state as string, 'base64url').toString());
+      const photographerId = stateData.photographerId;
+
+      const clientId = process.env.SHOOTPROOF_CLIENT_ID;
+      const clientSecret = process.env.SHOOTPROOF_CLIENT_SECRET;
+      const redirectUri = process.env.SHOOTPROOF_REDIRECT_URI || `https://${req.get('host')}/api/auth/shootproof/callback`;
+
+      const tokenResponse = await fetch('https://api.shootproof.com/oauth/token', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+          grant_type: 'authorization_code',
+          code: code as string,
+          client_id: clientId!,
+          client_secret: clientSecret!,
+          redirect_uri: redirectUri
+        })
+      });
+
+      if (!tokenResponse.ok) {
+        throw new Error('Failed to exchange code for tokens');
+      }
+
+      const tokens = await tokenResponse.json();
+
+      const userResponse = await fetch('https://api.shootproof.com/v2/studio', {
+        headers: {
+          'Authorization': `Bearer ${tokens.access_token}`
+        }
+      });
+
+      const userData = await userResponse.json();
+
+      await storage.updatePhotographer(photographerId, {
+        shootproofAccessToken: tokens.access_token,
+        shootproofRefreshToken: tokens.refresh_token,
+        shootproofTokenExpiry: new Date(Date.now() + tokens.expires_in * 1000),
+        shootproofStudioId: userData.id || null,
+        shootproofEmail: userData.email || null,
+        shootproofConnectedAt: new Date()
+      });
+
+      res.send(`
+        <html>
+          <body style="font-family: Arial, sans-serif; text-align: center; padding: 50px;">
+            <h2 style="color: green;">✅ ShootProof Connected Successfully!</h2>
+            <p>Your gallery integration is now active. You can close this window.</p>
+            <script>
+              setTimeout(() => {
+                window.close();
+              }, 3000);
+            </script>
+          </body>
+        </html>
+      `);
+    } catch (error) {
+      console.error('ShootProof callback error:', error);
+      res.status(500).send(`
+        <html>
+          <body style="font-family: Arial, sans-serif; text-align: center; padding: 50px;">
+            <h2 style="color: red;">❌ Authorization Failed</h2>
+            <p>An unexpected error occurred. Please try again or contact support.</p>
+          </body>
+        </html>
+      `);
+    }
+  });
+
+  // Disconnect ShootProof
+  app.delete("/api/gallery/shootproof/disconnect", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
+    try {
+      const photographerId = req.user!.photographerId!;
+      
+      await storage.updatePhotographer(photographerId, {
+        shootproofAccessToken: null,
+        shootproofRefreshToken: null,
+        shootproofTokenExpiry: null,
+        shootproofStudioId: null,
+        shootproofEmail: null,
+        shootproofConnectedAt: null
+      });
+
+      res.json({ message: "ShootProof disconnected successfully" });
+    } catch (error) {
+      console.error('ShootProof disconnect error:', error);
+      res.status(500).json({ message: "Failed to disconnect ShootProof" });
+    }
+  });
+
+  // Create gallery for a project
+  app.post("/api/projects/:projectId/gallery/create", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
+    try {
+      const { projectId } = req.params;
+      const photographerId = req.user!.photographerId!;
+
+      const { galleryService } = await import('./services/gallery');
+      const result = await galleryService.createGallery(projectId, photographerId);
+
+      res.json({ 
+        message: "Gallery created successfully",
+        galleryUrl: result.url,
+        galleryId: result.id
+      });
+    } catch (error: any) {
+      console.error('Gallery creation error:', error);
+      res.status(500).json({ message: error.message || "Failed to create gallery" });
+    }
+  });
+
+  // Mark gallery as ready and trigger GALLERY_SHARED automation
+  app.post("/api/projects/:projectId/gallery/share", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
+    try {
+      const { projectId } = req.params;
+      const photographerId = req.user!.photographerId!;
+
+      const project = await storage.getProject(projectId);
+      
+      if (!project || project.photographerId !== photographerId) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      if (!project.galleryUrl) {
+        return res.status(400).json({ message: "No gallery URL set for this project" });
+      }
+
+      await storage.updateProject(projectId, {
+        galleryReady: true,
+        gallerySharedAt: new Date()
+      });
+
+      // Trigger GALLERY_SHARED automation
+      await processAutomations("GALLERY_SHARED", projectId, photographerId);
+
+      res.json({ message: "Gallery marked as ready and automation triggered" });
+    } catch (error) {
+      console.error('Gallery share error:', error);
+      res.status(500).json({ message: "Failed to share gallery" });
+    }
+  });
+
+  // Update gallery URL manually (fallback for photographers using other platforms)
+  app.put("/api/projects/:projectId/gallery", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
+    try {
+      const { projectId } = req.params;
+      const { galleryUrl } = req.body;
+      const photographerId = req.user!.photographerId!;
+
+      const project = await storage.getProject(projectId);
+      
+      if (!project || project.photographerId !== photographerId) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      await storage.updateProject(projectId, {
+        galleryUrl,
+        galleryCreatedAt: new Date()
+      });
+
+      res.json({ message: "Gallery URL updated successfully" });
+    } catch (error) {
+      console.error('Gallery URL update error:', error);
+      res.status(500).json({ message: "Failed to update gallery URL" });
     }
   });
 

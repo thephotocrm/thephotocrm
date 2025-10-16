@@ -198,8 +198,10 @@ export default function ProjectDetail() {
   const [linkUrl, setLinkUrl] = useState("");
   const [linkText, setLinkText] = useState("");
   const [showSmartFields, setShowSmartFields] = useState(false);
+  const [manualGalleryUrl, setManualGalleryUrl] = useState("");
+  const [isEditingGalleryUrl, setIsEditingGalleryUrl] = useState(false);
 
-  const { data: project, isLoading } = useQuery<Project>({
+  const { data: project, isLoading} = useQuery<Project>({
     queryKey: ["/api/projects", id],
     enabled: !!user && !!id
   });
@@ -396,6 +398,69 @@ export default function ProjectDetail() {
     onError: (error: any) => {
       toast({
         title: "Failed to schedule meeting",
+        description: error.message || "An error occurred",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const createGalleryMutation = useMutation({
+    mutationFn: async () => {
+      return await apiRequest("POST", `/api/projects/${id}/gallery/create`, {});
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/projects", id] });
+      toast({
+        title: "Gallery created",
+        description: "Gallery folder has been created successfully."
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to create gallery",
+        description: error.message || "An error occurred",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const shareGalleryMutation = useMutation({
+    mutationFn: async () => {
+      return await apiRequest("POST", `/api/projects/${id}/gallery/share`, {});
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/projects", id] });
+      queryClient.invalidateQueries({ queryKey: ["/api/projects", id, "history"] });
+      toast({
+        title: "Gallery shared",
+        description: "Gallery link has been sent to client."
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to share gallery",
+        description: error.message || "An error occurred",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const updateGalleryUrlMutation = useMutation({
+    mutationFn: async (galleryUrl: string) => {
+      return await apiRequest("PUT", `/api/projects/${id}/gallery`, { galleryUrl });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/projects", id] });
+      setIsEditingGalleryUrl(false);
+      setManualGalleryUrl("");
+      toast({
+        title: "Gallery URL updated",
+        description: "Gallery link has been updated successfully."
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to update gallery URL",
         description: error.message || "An error occurred",
         variant: "destructive"
       });
@@ -664,6 +729,13 @@ export default function ProjectDetail() {
               data-testid="tab-notes"
             >
               Notes
+            </TabsTrigger>
+            <TabsTrigger 
+              value="gallery" 
+              className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent text-sm whitespace-nowrap"
+              data-testid="tab-gallery"
+            >
+              Gallery
             </TabsTrigger>
             <TabsTrigger 
               value="details" 
@@ -1269,6 +1341,157 @@ export default function ProjectDetail() {
                     <p>No notes yet</p>
                   </div>
                 )}
+              </div>
+            </TabsContent>
+
+            <TabsContent value="gallery" className="m-0">
+              <div className="space-y-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Client Gallery</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {(project as any)?.galleryUrl ? (
+                      <div className="space-y-4">
+                        <div className="p-4 bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded-lg">
+                          <div className="flex items-start gap-3">
+                            <Camera className="w-5 h-5 text-green-600 mt-0.5" />
+                            <div className="flex-1">
+                              <p className="font-medium text-green-800 dark:text-green-200">Gallery Created</p>
+                              <p className="text-sm text-green-700 dark:text-green-300 mt-1">
+                                {(project as any).galleryReady 
+                                  ? "Gallery has been shared with client" 
+                                  : "Gallery folder is ready for photos"}
+                              </p>
+                              <div className="mt-3 flex items-center gap-2">
+                                <Input 
+                                  value={(project as any).galleryUrl} 
+                                  readOnly 
+                                  className="flex-1 text-sm"
+                                  data-testid="input-gallery-url"
+                                />
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => {
+                                    navigator.clipboard.writeText((project as any).galleryUrl);
+                                    toast({ title: "Gallery link copied!" });
+                                  }}
+                                  data-testid="button-copy-gallery-url"
+                                >
+                                  <Copy className="w-4 h-4" />
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => window.open((project as any).galleryUrl, '_blank')}
+                                  data-testid="button-open-gallery"
+                                >
+                                  <ExternalLink className="w-4 h-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {!(project as any).galleryReady && (
+                          <div className="flex items-center justify-between p-4 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg">
+                            <div>
+                              <p className="font-medium text-blue-800 dark:text-blue-200">Ready to share?</p>
+                              <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
+                                Mark gallery as ready to send the link to your client
+                              </p>
+                            </div>
+                            <Button
+                              onClick={() => shareGalleryMutation.mutate()}
+                              disabled={shareGalleryMutation.isPending}
+                              data-testid="button-share-gallery"
+                            >
+                              {shareGalleryMutation.isPending ? "Sharing..." : "Share Gallery"}
+                            </Button>
+                          </div>
+                        )}
+
+                        {(project as any).galleryReady && (
+                          <div className="p-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <Clock className="w-4 h-4" />
+                              <span>Shared {(project as any).gallerySharedAt ? formatDate((project as any).gallerySharedAt) : 'recently'}</span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        <div className="text-center py-8">
+                          <Camera className="w-12 h-12 mx-auto text-muted-foreground mb-3" />
+                          <h3 className="font-medium mb-2">No Gallery Created Yet</h3>
+                          <p className="text-sm text-muted-foreground mb-4">
+                            Create a gallery folder or add a link manually
+                          </p>
+                          <div className="flex flex-col gap-3 max-w-md mx-auto">
+                            <Button
+                              onClick={() => createGalleryMutation.mutate()}
+                              disabled={createGalleryMutation.isPending}
+                              data-testid="button-create-gallery"
+                              className="w-full"
+                            >
+                              {createGalleryMutation.isPending ? "Creating..." : "Auto-Create Gallery"}
+                            </Button>
+                            {!isEditingGalleryUrl ? (
+                              <Button
+                                variant="outline"
+                                onClick={() => setIsEditingGalleryUrl(true)}
+                                data-testid="button-add-manual-gallery"
+                                className="w-full"
+                              >
+                                Add Gallery Link Manually
+                              </Button>
+                            ) : (
+                              <div className="flex gap-2">
+                                <Input
+                                  placeholder="https://..."
+                                  value={manualGalleryUrl}
+                                  onChange={(e) => setManualGalleryUrl(e.target.value)}
+                                  data-testid="input-manual-gallery-url"
+                                />
+                                <Button
+                                  onClick={() => updateGalleryUrlMutation.mutate(manualGalleryUrl)}
+                                  disabled={!manualGalleryUrl || updateGalleryUrlMutation.isPending}
+                                  data-testid="button-save-manual-gallery"
+                                >
+                                  Save
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  onClick={() => {
+                                    setIsEditingGalleryUrl(false);
+                                    setManualGalleryUrl("");
+                                  }}
+                                  data-testid="button-cancel-manual-gallery"
+                                >
+                                  Cancel
+                                </Button>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="p-3 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg">
+                          <div className="flex items-start gap-2">
+                            <LinkIcon className="w-4 h-4 text-blue-600 mt-0.5" />
+                            <div className="text-sm">
+                              <p className="font-medium text-blue-800 dark:text-blue-200">Automatic gallery creation</p>
+                              <p className="text-blue-700 dark:text-blue-300 mt-1">
+                                Galleries are automatically created when clients pay their deposit. Configure your gallery platform in Settings → Integrations.
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
               </div>
             </TabsContent>
 

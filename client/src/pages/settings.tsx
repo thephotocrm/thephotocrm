@@ -209,6 +209,184 @@ export default function Settings() {
     }
   });
 
+  // Gallery Integration queries and mutations
+  const { data: galleryStatus, refetch: refetchGalleryStatus } = useQuery({
+    queryKey: ["/api/gallery/status"],
+    enabled: !!user
+  });
+
+  const updateGalleryPlatformMutation = useMutation({
+    mutationFn: async (platform: string | null) => {
+      await apiRequest("PUT", "/api/gallery/platform", { platform });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/gallery/status"] });
+      toast({
+        title: "Gallery Platform Updated",
+        description: "Your gallery platform preference has been saved.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Update Failed",
+        description: "Failed to update gallery platform. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const connectGoogleDriveMutation = useMutation({
+    mutationFn: async () => {
+      const response = await fetch("/api/auth/google-drive", {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error("Failed to get auth URL");
+      const data = await response.json();
+      return data;
+    }
+  });
+
+  const handleConnectGoogleDrive = () => {
+    const popup = window.open('', '_blank', 'width=500,height=600');
+    
+    connectGoogleDriveMutation.mutate(undefined, {
+      onSuccess: (data) => {
+        if (data.authUrl && popup) {
+          popup.location.href = data.authUrl;
+          
+          const pollInterval = setInterval(async () => {
+            const result = await refetchGalleryStatus();
+            if ((result.data as any)?.googleDrive?.connected) {
+              clearInterval(pollInterval);
+              if (popup && !popup.closed) {
+                popup.close();
+              }
+              toast({
+                title: "Google Drive Connected!",
+                description: "Your gallery integration is now active.",
+              });
+            }
+          }, 2000);
+          
+          setTimeout(() => {
+            clearInterval(pollInterval);
+            if (popup && !popup.closed) {
+              popup.close();
+            }
+          }, 5 * 60 * 1000);
+        } else if (popup) {
+          popup.close();
+        }
+      },
+      onError: () => {
+        if (popup && !popup.closed) {
+          popup.close();
+        }
+        toast({
+          title: "Connection Failed",
+          description: "Failed to connect to Google Drive. Please try again.",
+          variant: "destructive"
+        });
+      }
+    });
+  };
+
+  const disconnectGoogleDriveMutation = useMutation({
+    mutationFn: async () => {
+      await apiRequest("DELETE", "/api/gallery/google-drive/disconnect");
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/gallery/status"] });
+      toast({
+        title: "Google Drive Disconnected",
+        description: "Your Google Drive has been disconnected.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Disconnection Failed",
+        description: "Failed to disconnect Google Drive. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const connectShootProofMutation = useMutation({
+    mutationFn: async () => {
+      const response = await fetch("/api/auth/shootproof", {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error("Failed to get auth URL");
+      const data = await response.json();
+      return data;
+    }
+  });
+
+  const handleConnectShootProof = () => {
+    const popup = window.open('', '_blank', 'width=500,height=600');
+    
+    connectShootProofMutation.mutate(undefined, {
+      onSuccess: (data) => {
+        if (data.authUrl && popup) {
+          popup.location.href = data.authUrl;
+          
+          const pollInterval = setInterval(async () => {
+            const result = await refetchGalleryStatus();
+            if ((result.data as any)?.shootproof?.connected) {
+              clearInterval(pollInterval);
+              if (popup && !popup.closed) {
+                popup.close();
+              }
+              toast({
+                title: "ShootProof Connected!",
+                description: "Your gallery integration is now active.",
+              });
+            }
+          }, 2000);
+          
+          setTimeout(() => {
+            clearInterval(pollInterval);
+            if (popup && !popup.closed) {
+              popup.close();
+            }
+          }, 5 * 60 * 1000);
+        } else if (popup) {
+          popup.close();
+        }
+      },
+      onError: () => {
+        if (popup && !popup.closed) {
+          popup.close();
+        }
+        toast({
+          title: "Connection Failed",
+          description: "Failed to connect to ShootProof. Please try again.",
+          variant: "destructive"
+        });
+      }
+    });
+  };
+
+  const disconnectShootProofMutation = useMutation({
+    mutationFn: async () => {
+      await apiRequest("DELETE", "/api/gallery/shootproof/disconnect");
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/gallery/status"] });
+      toast({
+        title: "ShootProof Disconnected",
+        description: "Your ShootProof account has been disconnected.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Disconnection Failed",
+        description: "Failed to disconnect ShootProof. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
   const updatePhotographerMutation = useMutation({
     mutationFn: async (data: any) => {
       await apiRequest("PUT", "/api/photographer", data);
@@ -937,6 +1115,180 @@ export default function Settings() {
                           </div>
                         </div>
                       )}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Gallery Integration */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Gallery Integration</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-6">
+                      {/* Platform Selection */}
+                      <div className="space-y-4">
+                        <div>
+                          <Label>Gallery Platform</Label>
+                          <p className="text-sm text-muted-foreground mb-3">
+                            Choose where client galleries will be created automatically when deposits are paid
+                          </p>
+                          <Select
+                            value={(galleryStatus as any)?.platform || ""}
+                            onValueChange={(value) => updateGalleryPlatformMutation.mutate(value || null)}
+                            data-testid="select-gallery-platform"
+                          >
+                            <SelectTrigger className="w-full">
+                              <SelectValue placeholder="Select platform" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="GOOGLE_DRIVE">Google Drive</SelectItem>
+                              <SelectItem value="SHOOTPROOF">ShootProof</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+
+                      {/* Google Drive */}
+                      <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0 p-4 border border-border rounded-lg">
+                        <div className="flex items-center space-x-3">
+                          <svg className="w-8 h-8" viewBox="0 0 24 24">
+                            <path fill="#3777E3" d="M8.5 21l-3.5-6h7l3.5 6z"/>
+                            <path fill="#FFCF63" d="M12 3L8.5 9h14L19 3z"/>
+                            <path fill="#11A861" d="M2 15l3.5-6L12 21H5z"/>
+                          </svg>
+                          <div>
+                            <h3 className="font-medium">Google Drive</h3>
+                            <p className="text-sm text-muted-foreground">
+                              Auto-create folders in your Google Drive
+                            </p>
+                            {(galleryStatus as any)?.googleDrive?.connected && (galleryStatus as any)?.googleDrive?.email && (
+                              <p className="text-xs text-muted-foreground mt-1">
+                                Connected as: {(galleryStatus as any).googleDrive.email}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-3">
+                          {(galleryStatus as any)?.googleDrive?.connected ? (
+                            <>
+                              <div className="flex items-center text-green-600">
+                                <CheckCircle className="w-4 h-4 mr-1" />
+                                <span className="text-sm font-medium">Connected</span>
+                              </div>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => disconnectGoogleDriveMutation.mutate()}
+                                disabled={disconnectGoogleDriveMutation.isPending}
+                                data-testid="button-disconnect-google-drive"
+                              >
+                                {disconnectGoogleDriveMutation.isPending ? "Disconnecting..." : "Disconnect"}
+                              </Button>
+                            </>
+                          ) : (
+                            <>
+                              <div className="flex items-center text-gray-500">
+                                <XCircle className="w-4 h-4 mr-1" />
+                                <span className="text-sm">Not Connected</span>
+                              </div>
+                              <Button
+                                onClick={handleConnectGoogleDrive}
+                                disabled={connectGoogleDriveMutation.isPending}
+                                data-testid="button-connect-google-drive"
+                                className="flex items-center"
+                              >
+                                {connectGoogleDriveMutation.isPending ? (
+                                  "Connecting..."
+                                ) : (
+                                  <>
+                                    Connect
+                                    <ExternalLink className="w-4 h-4 ml-1" />
+                                  </>
+                                )}
+                              </Button>
+                            </>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* ShootProof */}
+                      <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0 p-4 border border-border rounded-lg">
+                        <div className="flex items-center space-x-3">
+                          <svg className="w-8 h-8" viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="10" fill="#FF6B35"/>
+                            <path fill="white" d="M12 6c-3.3 0-6 2.7-6 6s2.7 6 6 6 6-2.7 6-6-2.7-6-6-6zm0 10c-2.2 0-4-1.8-4-4s1.8-4 4-4 4 1.8 4 4-1.8 4-4 4z"/>
+                          </svg>
+                          <div>
+                            <h3 className="font-medium">ShootProof</h3>
+                            <p className="text-sm text-muted-foreground">
+                              Create albums in your ShootProof account
+                            </p>
+                            {(galleryStatus as any)?.shootproof?.connected && (galleryStatus as any)?.shootproof?.email && (
+                              <p className="text-xs text-muted-foreground mt-1">
+                                Connected as: {(galleryStatus as any).shootproof.email}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-3">
+                          {(galleryStatus as any)?.shootproof?.connected ? (
+                            <>
+                              <div className="flex items-center text-green-600">
+                                <CheckCircle className="w-4 h-4 mr-1" />
+                                <span className="text-sm font-medium">Connected</span>
+                              </div>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => disconnectShootProofMutation.mutate()}
+                                disabled={disconnectShootProofMutation.isPending}
+                                data-testid="button-disconnect-shootproof"
+                              >
+                                {disconnectShootProofMutation.isPending ? "Disconnecting..." : "Disconnect"}
+                              </Button>
+                            </>
+                          ) : (
+                            <>
+                              <div className="flex items-center text-gray-500">
+                                <XCircle className="w-4 h-4 mr-1" />
+                                <span className="text-sm">Not Connected</span>
+                              </div>
+                              <Button
+                                onClick={handleConnectShootProof}
+                                disabled={connectShootProofMutation.isPending}
+                                data-testid="button-connect-shootproof"
+                                className="flex items-center"
+                              >
+                                {connectShootProofMutation.isPending ? (
+                                  "Connecting..."
+                                ) : (
+                                  <>
+                                    Connect
+                                    <ExternalLink className="w-4 h-4 ml-1" />
+                                  </>
+                                )}
+                              </Button>
+                            </>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Info Box */}
+                      <div className="p-3 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg">
+                        <div className="flex items-start space-x-2">
+                          <AlertCircle className="w-4 h-4 text-blue-600 mt-0.5" />
+                          <div className="text-sm">
+                            <p className="font-medium text-blue-800 dark:text-blue-200">How gallery automation works</p>
+                            <ul className="text-blue-700 dark:text-blue-300 mt-1 list-disc list-inside space-y-1">
+                              <li>When a client pays their deposit, a gallery folder/album is automatically created</li>
+                              <li>Upload photos to your connected platform (Google Drive or ShootProof)</li>
+                              <li>Mark the gallery as ready in the project to send the link to your client</li>
+                              <li>Can also manually add gallery links from any platform</li>
+                            </ul>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
