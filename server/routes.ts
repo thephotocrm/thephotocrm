@@ -4631,6 +4631,20 @@ ${photographer?.businessName || 'Your Photography Team'}`;
         });
       }
 
+      // Get all existing templates to avoid duplicates
+      const existingTemplates = await storage.getTemplatesByPhotographer(photographerId);
+      
+      // Helper function to get or create template
+      const getOrCreateTemplate = async (templateData: any) => {
+        const existing = existingTemplates.find(t => t.name === templateData.name);
+        if (existing) {
+          return existing;
+        }
+        const newTemplate = await storage.createTemplate(templateData);
+        createdTemplates.push(newTemplate);
+        return newTemplate;
+      };
+
       const createdAutomations = [];
       const createdTemplates = [];
       const createdSteps = [];
@@ -4638,7 +4652,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       try {
         // PHASE 1: Instant Response (0 minutes)
         // 1.1 - Instant Email
-        const instantEmailTemplate = await storage.createTemplate({
+        const instantEmailTemplate = await getOrCreateTemplate({
           photographerId,
           name: "Wedding Inquiry - Instant Email",
           channel: "EMAIL",
@@ -4650,7 +4664,6 @@ ${photographer?.businessName || 'Your Photography Team'}`;
 <p>– {{photographer_name}}</p>`,
           textBody: `Hi {{first_name}},\n\nThank you for reaching out! I'd love to learn more about your day and style.\n\nHere's my calendar to chat: {{scheduler_link}}\n\nYou'll get ideas, pricing, and sample galleries.\n\n– {{photographer_name}}`
         });
-        createdTemplates.push(instantEmailTemplate);
 
         const instantEmailAutomation = await storage.createAutomation({
           photographerId,
@@ -4698,7 +4711,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
 
       // PHASE 2: Short-Term Follow-Up (0–72 Hours)
       // 2.1 - T+24 Hours Email
-      const t24EmailTemplate = await storage.createTemplate({
+      const t24EmailTemplate = await getOrCreateTemplate({
         photographerId,
         name: "Wedding Inquiry - 24h Follow-up",
         channel: "EMAIL",
@@ -4754,7 +4767,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       createdAutomations.push(t24SmsAutomation);
 
       // 2.3 - T+48 Hours Email
-      const t48EmailTemplate = await storage.createTemplate({
+      const t48EmailTemplate = await getOrCreateTemplate({
         photographerId,
         name: "Wedding Inquiry - 48h Social Proof",
         channel: "EMAIL",
@@ -4789,7 +4802,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       createdAutomations.push(t48EmailAutomation);
 
       // 2.4 - T+72 Hours Email (Final)
-      const t72EmailTemplate = await storage.createTemplate({
+      const t72EmailTemplate = await getOrCreateTemplate({
         photographerId,
         name: "Wedding Inquiry - 72h Final Check",
         channel: "EMAIL",
@@ -4824,7 +4837,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
 
       // PHASE 3: Re-Engagement (1–3 Weeks Later)
       // 3.1 - T+7 Days
-      const t7DaysTemplate = await storage.createTemplate({
+      const t7DaysTemplate = await getOrCreateTemplate({
         photographerId,
         name: "Wedding Inquiry - 7 Day Re-engagement",
         channel: "EMAIL",
@@ -4858,7 +4871,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       createdAutomations.push(t7DaysAutomation);
 
       // 3.2 - T+14 Days
-      const t14DaysTemplate = await storage.createTemplate({
+      const t14DaysTemplate = await getOrCreateTemplate({
         photographerId,
         name: "Wedding Inquiry - 14 Day Limited Offer",
         channel: "EMAIL",
@@ -4892,7 +4905,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       createdAutomations.push(t14DaysAutomation);
 
       // 3.3 - T+21 Days (Final)
-      const t21DaysTemplate = await storage.createTemplate({
+      const t21DaysTemplate = await getOrCreateTemplate({
         photographerId,
         name: "Wedding Inquiry - 21 Day Final Calendar Check",
         channel: "EMAIL",
