@@ -2,8 +2,6 @@ import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { useLocation, Link } from "wouter";
-import { SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/sidebar";
-import { AppSidebar } from "@/components/layout/app-sidebar";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -37,24 +35,21 @@ export default function Galleries() {
   const projectsReadyForGallery = projects?.filter((project: any) => !project.galleryUrl) || [];
 
   return (
-    <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset>
-        <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4 bg-white dark:bg-gray-950">
-          <SidebarTrigger className="-ml-1" />
-          <div className="flex items-center gap-2 flex-1">
-            <Images className="w-6 h-6 text-purple-600" />
-            <h1 className="text-xl font-semibold">Client Galleries</h1>
-          </div>
-          <Link href="/settings">
-            <Button variant="outline" size="sm" data-testid="button-gallery-settings">
-              <Settings className="w-4 h-4 mr-2" />
-              Gallery Settings
-            </Button>
-          </Link>
-        </header>
+    <>
+      <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4 bg-white dark:bg-gray-950">
+        <div className="flex items-center gap-2 flex-1">
+          <Images className="w-6 h-6 text-purple-600" />
+          <h1 className="text-xl font-semibold">Client Galleries</h1>
+        </div>
+        <Link href="/settings">
+          <Button variant="outline" size="sm" data-testid="button-gallery-settings">
+            <Settings className="w-4 h-4 mr-2" />
+            Gallery Settings
+          </Button>
+        </Link>
+      </header>
 
-        <div className="flex-1 p-6 overflow-auto">
+      <div className="flex-1 p-6 overflow-auto">
           {/* Active Galleries */}
           <div className="mb-8">
             <div className="flex items-center justify-between mb-4">
@@ -186,8 +181,7 @@ export default function Galleries() {
               )}
             </div>
           )}
-        </div>
-      </SidebarInset>
-    </SidebarProvider>
+      </div>
+    </>
   );
 }
