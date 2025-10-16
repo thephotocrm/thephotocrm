@@ -415,8 +415,12 @@ Analyze the request and identify each separate automation.`;
 
 // Conversation state schema for building automations
 const AutomationInfo = z.object({
+  // Automation type
+  automationType: z.enum(["COMMUNICATION", "STAGE_CHANGE", "COUNTDOWN"]).nullable(),
+  
+  // COMMUNICATION automation fields (stage-based triggers)
   triggerType: z.enum(["SPECIFIC_STAGE", "GLOBAL"]).nullable(),
-  stageId: z.string().nullable(),
+  stageId: z.string().nullable(), // Source stage for communication automations
   stageName: z.string().nullable(),
   actionType: z.enum(["EMAIL", "SMS", "SMART_FILE"]).nullable(),
   delayDays: z.number().nullable(),
@@ -428,6 +432,15 @@ const AutomationInfo = z.object({
   content: z.string().nullable(),
   smartFileTemplateId: z.string().nullable(),
   smartFileTemplateName: z.string().nullable(),
+  
+  // STAGE_CHANGE automation fields (business event triggers)
+  businessTrigger: z.enum(["APPOINTMENT_BOOKED", "DEPOSIT_PAID", "FULL_PAYMENT_MADE", "CONTRACT_SIGNED"]).nullable(),
+  targetStageId: z.string().nullable(), // Where to move contact
+  targetStageName: z.string().nullable(),
+  
+  // COUNTDOWN automation fields (event date triggers)
+  eventType: z.enum(["WEDDING_DATE", "EVENT_DATE"]).nullable(),
+  daysBefore: z.number().nullable(), // Days before event to trigger
 });
 
 const ConversationState = z.object({
@@ -480,6 +493,7 @@ export async function conversationalAutomationBuilder(
     if (detection.isMultiAutomation && detection.automationCount > 1) {
       // Multi-automation detected! Set up the queue
       const queue: z.infer<typeof AutomationInfo>[] = detection.automations.map(() => ({
+        automationType: null,
         triggerType: null,
         stageId: null,
         stageName: null,
@@ -493,6 +507,11 @@ export async function conversationalAutomationBuilder(
         content: null,
         smartFileTemplateId: null,
         smartFileTemplateName: null,
+        businessTrigger: null,
+        targetStageId: null,
+        targetStageName: null,
+        eventType: null,
+        daysBefore: null,
       }));
 
       // Create initial state with queue info
@@ -522,31 +541,41 @@ export async function conversationalAutomationBuilder(
 **Available Smart File Templates:** ${smartFilesList}
 ${isMultiMode ? `\n**MULTI-AUTOMATION MODE:** You are working on automation ${currentIndex + 1} of ${totalAutomations}. After this one is confirmed, move to the next.` : ""}
 
-**Your Job:** Ask ONE question at a time to collect the following info:
-1. **Trigger Stage**: What stage should trigger this automation? (REQUIRED unless explicitly global)
-   - This is MANDATORY - you MUST collect a stage unless they explicitly say "all stages" or "global"
-   - If they mention a stage name (e.g., "inquiry", "consultation", "booked"), match it to the available stages list above and extract the stage ID
-   - Set stageId to the matching stage ID from the list
-   - Set stageName to the matching stage name
-   - If no match or unclear, ask them to clarify which stage
-   - NEVER skip asking about the stage - it's critical for automation functionality
-   
-2. **Timing**: When should it send?
-   - Extract delay in days/hours/minutes (e.g., "2 days later" → delayDays: 2, "15 minutes" → delayMinutes: 15, "immediately" → delayDays: 0, delayMinutes: 0)
-   - If they mention specific time like "6pm" or "2:30pm", extract scheduledHour and scheduledMinute
-   - Examples: 
-     - "2 days from now at 6pm" → delayDays: 2, scheduledHour: 18, scheduledMinute: 0
-     - "15 minutes after" → delayMinutes: 15
-     - "1 hour later" → delayHours: 1
-   
-3. **Action Type**: What to send?
-   - EMAIL, SMS, or SMART_FILE (proposal/invoice/contract)
-   
-4. **Content**: What message or template?
-   - For EMAIL/SMS: Generate content or ask what they want to say
-   - For SMART_FILE: Set needsTemplateSelection: true so UI shows dropdown
-   
-5. **Subject** (for email only)
+**AUTOMATION TYPES:**
+1. **COMMUNICATION** - Send email/SMS/Smart File when contact enters a stage
+2. **STAGE_CHANGE** - Move contact to different stage when business event happens (appointment booked, payment made, etc.)
+3. **COUNTDOWN** - Send email/SMS before event date (e.g., "7 days before wedding")
+
+**FIRST: Determine automation type from user's message**
+- If they mention "send", "email", "text", "SMS" with "when enters stage" → COMMUNICATION
+- If they mention "move to", "change stage", "appointment booked", "payment made" → STAGE_CHANGE  
+- If they mention "days before", "before wedding", "before event" → COUNTDOWN
+- If unclear, ask: "What kind of automation do you want? (1) Send a message when someone enters a stage, (2) Move contacts between stages automatically, or (3) Send reminders before an event date?"
+
+**FOR COMMUNICATION AUTOMATIONS (stage-based messaging):**
+1. Set automationType: "COMMUNICATION"
+2. Ask for trigger stage (stageId, stageName) - REQUIRED
+3. Ask when to send (delayDays/Hours/Minutes, scheduledHour/Minute)
+4. Ask what to send (actionType: EMAIL/SMS/SMART_FILE)
+5. Ask for content (subject, content, or smartFileTemplateId)
+
+**FOR STAGE_CHANGE AUTOMATIONS (business event triggers):**
+1. Set automationType: "STAGE_CHANGE"
+2. Ask what event should trigger it: 
+   - "APPOINTMENT_BOOKED" - when appointment is scheduled
+   - "DEPOSIT_PAID" - when deposit payment received
+   - "FULL_PAYMENT_MADE" - when full payment received
+   - "CONTRACT_SIGNED" - when contract is signed
+   Set businessTrigger to the event type
+3. Ask which stage to move contacts to (targetStageId, targetStageName)
+4. Done! Stage change automations don't send messages, they just move contacts
+
+**FOR COUNTDOWN AUTOMATIONS (event date reminders):**
+1. Set automationType: "COUNTDOWN"
+2. Ask what event date to use (eventType: "WEDDING_DATE" or "EVENT_DATE")
+3. Ask how many days before (daysBefore: number)
+4. Ask what to send (actionType: EMAIL/SMS)
+5. Ask for content (subject, content)
 
 **IMPORTANT STAGE MATCHING:**
 - User says "inquiry" → Match to "Inquiry" stage ID from the list
@@ -576,14 +605,32 @@ ${isMultiMode ? `⚠️ IMPORTANT: You are in MULTI-AUTOMATION MODE. You MUST pr
 These fields track the queue of automations being created. DO NOT set them to null or omit them!` : ""}
 
 **CONFIRMATION MESSAGE (when status = "confirming"):**
-When you have ALL required info (stage, timing, action type, content), set status to "confirming" and write a friendly summary in nextQuestion like:
+When you have ALL required info, set status to "confirming" and write a friendly summary based on type:
 
+**For COMMUNICATION automations:**
 "Okay, I think I've got it! Here's what we'll create${progressText}:
 
 📍 **Trigger:** When a client enters the [Stage Name] stage
 ⏰ **Timing:** [Wait X days/hours] [at specific time if applicable]
 📧/📱/📄 **Action:** Send [email/SMS/Smart File]
 ✉️ **Message:** [Brief preview of content or "You'll select a template"]
+
+Does this look good? Reply 'yes' to create it, or let me know what to change!"
+
+**For STAGE_CHANGE automations:**
+"Okay, I think I've got it! Here's what we'll create${progressText}:
+
+🎯 **Trigger:** When [business event] happens (e.g., appointment is booked)
+➡️ **Action:** Move contact from their current stage to [Target Stage Name]
+
+Does this look good? Reply 'yes' to create it, or let me know what to change!"
+
+**For COUNTDOWN automations:**
+"Okay, I think I've got it! Here's what we'll create${progressText}:
+
+📅 **Trigger:** [X] days before [event type] (e.g., wedding date)
+📧/📱 **Action:** Send [email/SMS]
+✉️ **Message:** [Brief preview of content]
 
 Does this look good? Reply 'yes' to create it, or let me know what to change!"
 

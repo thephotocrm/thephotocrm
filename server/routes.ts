@@ -4025,10 +4025,92 @@ ${photographer?.businessName || 'Your Photography Team'}`;
         // Create all automations from queue
         for (let i = 0; i < automationsToCreate.length; i++) {
           const collectedInfo = automationsToCreate[i];
+          const automationType = collectedInfo.automationType || 'COMMUNICATION';
           
-          // Skip if incomplete (missing action type, or missing stageId when it's required)
+          // STAGE_CHANGE automations - Move contacts based on business events
+          if (automationType === 'STAGE_CHANGE') {
+            if (!collectedInfo.businessTrigger || !collectedInfo.targetStageId) {
+              console.log(`⏭️ Skipping incomplete STAGE_CHANGE automation ${i + 1} (missing businessTrigger or targetStageId)`);
+              continue;
+            }
+            
+            const automationData = validateAutomationSchema.parse({
+              photographerId,
+              name: `Stage Change: ${collectedInfo.businessTrigger} → ${collectedInfo.targetStageName}`,
+              automationType: 'STAGE_CHANGE',
+              triggerType: collectedInfo.businessTrigger,
+              targetStageId: collectedInfo.targetStageId,
+              projectType: 'WEDDING',
+              enabled: true
+            });
+            
+            const automation = await storage.createAutomation(automationData);
+            
+            // Create business trigger record
+            await db.insert(automationBusinessTriggers).values({
+              automationId: automation.id,
+              triggerType: collectedInfo.businessTrigger,
+              enabled: true
+            });
+            
+            createdAutomations.push(automation);
+            console.log(`✅ Created STAGE_CHANGE automation ${i + 1}/${automationsToCreate.length}: ${automation.name}`);
+            continue;
+          }
+          
+          // COUNTDOWN automations - Send messages before event dates
+          if (automationType === 'COUNTDOWN') {
+            if (!collectedInfo.eventType || collectedInfo.daysBefore === null || !collectedInfo.actionType) {
+              console.log(`⏭️ Skipping incomplete COUNTDOWN automation ${i + 1} (missing eventType, daysBefore, or actionType)`);
+              continue;
+            }
+            
+            const channel = collectedInfo.actionType;
+            const automationData = validateAutomationSchema.parse({
+              photographerId,
+              name: `${collectedInfo.daysBefore} days before ${collectedInfo.eventType}`,
+              automationType: 'COUNTDOWN',
+              eventType: collectedInfo.eventType,
+              daysBefore: collectedInfo.daysBefore,
+              channel,
+              projectType: 'WEDDING',
+              enabled: true
+            });
+            
+            const automation = await storage.createAutomation(automationData);
+            
+            // Create automation step for countdown
+            const stepData = {
+              automationId: automation.id,
+              stepIndex: 0,
+              delayMinutes: 0, // Countdown timing is handled by daysBefore
+              actionType: collectedInfo.actionType,
+              customSmsContent: collectedInfo.actionType === 'SMS' ? collectedInfo.content : null,
+              enabled: true
+            };
+            
+            // Add email template if it's email
+            if (collectedInfo.actionType === 'EMAIL' && collectedInfo.content) {
+              // Create email template for countdown
+              const template = await storage.createTemplate({
+                photographerId,
+                name: `Countdown Email - ${collectedInfo.daysBefore} days before`,
+                subject: collectedInfo.subject || `Reminder: ${collectedInfo.daysBefore} days until your event`,
+                content: collectedInfo.content,
+                projectType: 'WEDDING'
+              });
+              stepData.templateId = template.id;
+            }
+            
+            await storage.createAutomationStep(stepData);
+            createdAutomations.push(automation);
+            console.log(`✅ Created COUNTDOWN automation ${i + 1}/${automationsToCreate.length}: ${automation.name}`);
+            continue;
+          }
+          
+          // COMMUNICATION automations - Send messages when entering stage
           if (!collectedInfo.actionType) {
-            console.log(`⏭️ Skipping incomplete automation ${i + 1} (no action type)`);
+            console.log(`⏭️ Skipping incomplete COMMUNICATION automation ${i + 1} (no action type)`);
             continue;
           }
           
@@ -4073,7 +4155,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
           await storage.createAutomationStep(stepData);
           createdAutomations.push(automation);
           
-          console.log(`✅ Created automation ${i + 1}/${automationsToCreate.length}: ${automation.name}`);
+          console.log(`✅ Created COMMUNICATION automation ${i + 1}/${automationsToCreate.length}: ${automation.name}`);
         }
         
         return res.json({
