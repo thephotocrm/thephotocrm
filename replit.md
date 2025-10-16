@@ -38,6 +38,7 @@ Preferred communication style: Simple, everyday language.
 *   **Photographer Settings with Personalization:** Allows configuration of photographer and business names for personalizing automated messages.
 *   **Manual Smart File Sending:** Enables instant sending of Smart Files from the project detail page via email or SMS with template selection.
 *   **Email Branding System:** Professional email headers and signatures with 4 header styles (minimal, professional, bold, classic) and 4 signature styles (simple, professional, detailed, branded). Photographers can customize contact information, business address, website, and social media links. Branding is automatically applied to all outgoing emails via both Gmail and SendGrid, with branded versions stored in email history for accurate audit trails.
+*   **Gallery Integration & Auto-Creation System:** Comprehensive gallery automation with OAuth integration for Google Drive and ShootProof. Features automatic gallery creation when clients pay deposits, with secure read-only permissions (Google Drive) and public URL verification (ShootProof). Photographers can manually create galleries, add custom gallery links, mark galleries ready, and trigger GALLERY_SHARED automations for client notifications. Includes Gallery tab on project detail page and Gallery Integration section in settings for platform connection management.
 *   **Terminology Refactor:** System-wide change from "Clients" to "Contacts."
 
 **System Design Choices:**
