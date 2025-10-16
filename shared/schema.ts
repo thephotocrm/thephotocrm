@@ -138,6 +138,7 @@ export const photographers = pgTable("photographers", {
   // Email Branding
   emailHeaderStyle: text("email_header_style"), // minimal, professional, bold, classic, or null for none
   emailSignatureStyle: text("email_signature_style"), // simple, professional, detailed, branded, or null for none
+  headshotUrl: text("headshot_url"), // Photographer's headshot for email signatures
   website: text("website"),
   businessAddress: text("business_address"),
   socialLinksJson: jsonb("social_links_json"), // {facebook: "url", instagram: "url", twitter: "url", linkedin: "url"}

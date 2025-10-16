@@ -9,7 +9,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Settings as SettingsIcon, User, Palette, Mail, Clock, Shield, Calendar, CheckCircle, XCircle, ExternalLink, CreditCard, AlertCircle } from "lucide-react";
+import { Settings as SettingsIcon, User, Palette, Mail, Clock, Shield, Calendar, CheckCircle, XCircle, ExternalLink, CreditCard, AlertCircle, Edit } from "lucide-react";
+import { EmailBrandingModal } from "@/components/email-branding-modal";
 import {
   Select,
   SelectContent,
@@ -249,6 +250,9 @@ export default function Settings() {
   const [instagram, setInstagram] = useState("");
   const [twitter, setTwitter] = useState("");
   const [linkedin, setLinkedin] = useState("");
+  
+  // Modal state
+  const [isBrandingModalOpen, setIsBrandingModalOpen] = useState(false);
 
   // Update state when photographer data loads
   useEffect(() => {
@@ -319,20 +323,26 @@ export default function Settings() {
     });
   };
 
-  const handleSaveEmailBranding = () => {
-    const socialLinksJson = {
-      ...(facebook && { facebook }),
-      ...(instagram && { instagram }),
-      ...(twitter && { twitter }),
-      ...(linkedin && { linkedin })
-    };
+  const handleSaveEmailBranding = (data: any) => {
+    // Update local state
+    setEmailHeaderStyle(data.emailHeaderStyle);
+    setEmailSignatureStyle(data.emailSignatureStyle);
+    setWebsite(data.website);
+    setBusinessAddress(data.businessAddress);
+    const socialLinks = data.socialLinksJson || {};
+    setFacebook(socialLinks.facebook || "");
+    setInstagram(socialLinks.instagram || "");
+    setTwitter(socialLinks.twitter || "");
+    setLinkedin(socialLinks.linkedin || "");
 
+    // Save to backend
     updatePhotographerMutation.mutate({
-      emailHeaderStyle: emailHeaderStyle || null,
-      emailSignatureStyle: emailSignatureStyle || null,
-      website: website || undefined,
-      businessAddress: businessAddress || undefined,
-      socialLinksJson: Object.keys(socialLinksJson).length > 0 ? socialLinksJson : undefined
+      emailHeaderStyle: data.emailHeaderStyle || null,
+      emailSignatureStyle: data.emailSignatureStyle || null,
+      headshotUrl: data.headshotUrl || undefined,
+      website: data.website || undefined,
+      businessAddress: data.businessAddress || undefined,
+      socialLinksJson: Object.keys(data.socialLinksJson).length > 0 ? data.socialLinksJson : undefined
     });
   };
 
@@ -660,138 +670,44 @@ export default function Settings() {
                       Customize the look of your automated emails with professional headers and signatures
                     </p>
                   </CardHeader>
-                  <CardContent className="space-y-6">
-                    {/* Header Style Selection */}
-                    <div className="space-y-3">
-                      <Label htmlFor="emailHeaderStyle">Header Style</Label>
-                      <Select
-                        value={emailHeaderStyle || "none"}
-                        onValueChange={(val) => setEmailHeaderStyle(val === "none" ? null : val)}
-                      >
-                        <SelectTrigger id="emailHeaderStyle" data-testid="select-header-style">
-                          <SelectValue placeholder="Select header style" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="none">None</SelectItem>
-                          <SelectItem value="minimal">Minimal - Simple logo centered</SelectItem>
-                          <SelectItem value="professional">Professional - Logo + business name with divider</SelectItem>
-                          <SelectItem value="bold">Bold - Full-width colored banner</SelectItem>
-                          <SelectItem value="classic">Classic - Logo left, name right</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    {/* Signature Style Selection */}
-                    <div className="space-y-3">
-                      <Label htmlFor="emailSignatureStyle">Signature Style</Label>
-                      <Select
-                        value={emailSignatureStyle || "none"}
-                        onValueChange={(val) => setEmailSignatureStyle(val === "none" ? null : val)}
-                      >
-                        <SelectTrigger id="emailSignatureStyle" data-testid="select-signature-style">
-                          <SelectValue placeholder="Select signature style" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="none">None</SelectItem>
-                          <SelectItem value="simple">Simple - Basic contact info</SelectItem>
-                          <SelectItem value="professional">Professional - Logo + contact details + social</SelectItem>
-                          <SelectItem value="detailed">Detailed - Full contact card with all info</SelectItem>
-                          <SelectItem value="branded">Branded - Styled with brand colors</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    {/* Contact Information */}
-                    <div className="space-y-4 pt-4 border-t">
-                      <h3 className="text-lg font-medium">Contact Information</h3>
-                      <p className="text-sm text-muted-foreground">
-                        This information will be included in your email signatures
-                      </p>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="website">Website</Label>
-                          <Input
-                            id="website"
-                            type="url"
-                            value={website}
-                            onChange={(e) => setWebsite(e.target.value)}
-                            placeholder="https://yourwebsite.com"
-                            data-testid="input-website"
-                          />
+                  <CardContent className="space-y-4">
+                    <div className="flex items-center justify-between p-4 border rounded-lg">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium">Current Branding:</span>
+                          <span className="text-sm text-muted-foreground">
+                            {emailHeaderStyle ? emailHeaderStyle.charAt(0).toUpperCase() + emailHeaderStyle.slice(1) : 'None'} header
+                            {' • '}
+                            {emailSignatureStyle ? emailSignatureStyle.charAt(0).toUpperCase() + emailSignatureStyle.slice(1) : 'None'} signature
+                          </span>
                         </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="businessAddress">Business Address</Label>
-                          <Input
-                            id="businessAddress"
-                            value={businessAddress}
-                            onChange={(e) => setBusinessAddress(e.target.value)}
-                            placeholder="123 Main St, City, State"
-                            data-testid="input-business-address"
-                          />
-                        </div>
+                        {(website || businessAddress) && (
+                          <div className="text-sm text-muted-foreground">
+                            {website && `Website: ${website.replace(/^https?:\/\//, '')}`}
+                            {website && businessAddress && ' • '}
+                            {businessAddress && `Address: ${businessAddress.substring(0, 30)}${businessAddress.length > 30 ? '...' : ''}`}
+                          </div>
+                        )}
                       </div>
-
-                      <div className="space-y-4 pt-4">
-                        <h4 className="text-sm font-medium">Social Media Links</h4>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div className="space-y-2">
-                            <Label htmlFor="facebook">Facebook</Label>
-                            <Input
-                              id="facebook"
-                              type="url"
-                              value={facebook}
-                              onChange={(e) => setFacebook(e.target.value)}
-                              placeholder="https://facebook.com/yourpage"
-                              data-testid="input-facebook"
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="instagram">Instagram</Label>
-                            <Input
-                              id="instagram"
-                              type="url"
-                              value={instagram}
-                              onChange={(e) => setInstagram(e.target.value)}
-                              placeholder="https://instagram.com/yourprofile"
-                              data-testid="input-instagram"
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="twitter">Twitter</Label>
-                            <Input
-                              id="twitter"
-                              type="url"
-                              value={twitter}
-                              onChange={(e) => setTwitter(e.target.value)}
-                              placeholder="https://twitter.com/yourhandle"
-                              data-testid="input-twitter"
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="linkedin">LinkedIn</Label>
-                            <Input
-                              id="linkedin"
-                              type="url"
-                              value={linkedin}
-                              onChange={(e) => setLinkedin(e.target.value)}
-                              placeholder="https://linkedin.com/in/yourprofile"
-                              data-testid="input-linkedin"
-                            />
-                          </div>
-                        </div>
-                      </div>
+                      <Button 
+                        variant="outline" 
+                        onClick={() => setIsBrandingModalOpen(true)}
+                        data-testid="button-edit-email-branding"
+                      >
+                        <Edit className="w-4 h-4 mr-2" />
+                        Edit
+                      </Button>
                     </div>
-
-                    <Button 
-                      onClick={handleSaveEmailBranding}
-                      disabled={updatePhotographerMutation.isPending}
-                      data-testid="button-save-email-branding"
-                    >
-                      {updatePhotographerMutation.isPending ? "Saving..." : "Save Email Branding"}
-                    </Button>
                   </CardContent>
                 </Card>
+
+                {/* Email Branding Modal */}
+                <EmailBrandingModal
+                  open={isBrandingModalOpen}
+                  onOpenChange={setIsBrandingModalOpen}
+                  photographer={photographer}
+                  onSave={handleSaveEmailBranding}
+                />
               </div>
             </TabsContent>
 

@@ -7,6 +7,7 @@ export interface BrandingData {
   businessName?: string;
   photographerName?: string;
   logoUrl?: string;
+  headshotUrl?: string;
   brandPrimary?: string;
   brandSecondary?: string;
   phone?: string;
@@ -96,11 +97,17 @@ export function generateSignature(style: string | null, data: BrandingData): str
       `;
 
     case 'professional':
+      // Default placeholder headshot if none provided
+      const defaultHeadshot = 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop&crop=faces';
+      const headshotUrl = data.headshotUrl || defaultHeadshot;
+      
       return `
         <div style="margin-top: 30px; padding: 20px; border-top: 2px solid ${primaryColor}; color: ${secondaryColor}; font-size: 14px;">
           <table style="width: 100%; max-width: 500px;">
             <tr>
-              ${data.logoUrl ? `<td style="width: 80px; vertical-align: top; padding-right: 15px;"><img src="${data.logoUrl}" alt="Logo" style="max-width: 60px; height: auto;" /></td>` : ''}
+              <td style="width: 80px; vertical-align: top; padding-right: 15px;">
+                <img src="${headshotUrl}" alt="${data.photographerName || 'Photographer'}" style="width: 70px; height: 70px; border-radius: 50%; object-fit: cover; border: 2px solid ${primaryColor};" />
+              </td>
               <td style="vertical-align: top;">
                 <p style="margin: 0 0 8px 0; font-size: 16px; font-weight: 600; color: ${primaryColor};">${data.photographerName || data.businessName || ''}</p>
                 ${data.businessName && data.photographerName ? `<p style="margin: 0 0 8px 0; font-size: 12px; color: ${secondaryColor};">${data.businessName}</p>` : ''}
