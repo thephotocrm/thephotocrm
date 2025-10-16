@@ -345,7 +345,7 @@ export default function Projects() {
       </header>
 
       <div className="flex-1 overflow-y-auto overflow-x-hidden">
-        <div className="p-4 md:p-6 space-y-4">
+        <div className="p-4 md:p-6 space-y-4 max-w-full">
           {/* Project Type Filter */}
           <div className="flex items-center gap-2 text-sm">
             <span className="text-muted-foreground">View:</span>
@@ -364,8 +364,8 @@ export default function Projects() {
           </div>
 
           {/* Horizontal Stage Slider */}
-          <div className="relative w-full">
-            <div className="flex gap-2 overflow-x-auto pb-2 hide-scrollbar max-w-full">
+          <div className="relative -mx-4 md:-mx-6 px-4 md:px-6">
+            <div className="flex gap-2 overflow-x-auto pb-2 hide-scrollbar">
               <Button
                 variant={selectedStage === "ALL" ? "default" : "outline"}
                 className={cn(
