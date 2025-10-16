@@ -4599,6 +4599,325 @@ ${photographer?.businessName || 'Your Photography Team'}`;
     }
   });
 
+  // Setup default Wedding inquiry automations
+  app.post("/api/automations/setup-wedding-inquiry-defaults", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
+    try {
+      const photographerId = req.user!.photographerId!;
+      
+      // Get photographer details for personalization
+      const photographer = await storage.getPhotographer(photographerId);
+      if (!photographer) {
+        return res.status(404).json({ message: "Photographer not found" });
+      }
+
+      // Get the "New Inquiry" stage for Wedding projects
+      const stages = await storage.getStagesByPhotographer(photographerId, "WEDDING");
+      const inquiryStage = stages.find(s => s.name === "New Inquiry");
+      
+      if (!inquiryStage) {
+        return res.status(404).json({ message: "New Inquiry stage not found for Wedding projects" });
+      }
+
+      const createdAutomations = [];
+
+      // PHASE 1: Instant Response (0 minutes)
+      // 1.1 - Instant Email
+      const instantEmailTemplate = await storage.createTemplate({
+        photographerId,
+        name: "Wedding Inquiry - Instant Email",
+        channel: "EMAIL",
+        subject: "Thanks for reaching out about your photos!",
+        htmlBody: `<p>Hi {{first_name}},</p>
+<p>Thank you for reaching out! I'd love to learn more about your day and style.</p>
+<p>Here's my calendar to chat: {{scheduler_link}}</p>
+<p>You'll get ideas, pricing, and sample galleries.</p>
+<p>– {{photographer_name}}</p>`,
+        textBody: `Hi {{first_name}},\n\nThank you for reaching out! I'd love to learn more about your day and style.\n\nHere's my calendar to chat: {{scheduler_link}}\n\nYou'll get ideas, pricing, and sample galleries.\n\n– {{photographer_name}}`
+      });
+
+      const instantEmailAutomation = await storage.createAutomation({
+        photographerId,
+        name: "Send email immediately when contact enters New Inquiry",
+        description: "Instant email response to wedding inquiries - sent within 5 minutes of form submission",
+        automationType: "COMMUNICATION",
+        stageId: inquiryStage.id,
+        channel: "EMAIL",
+        projectType: "WEDDING",
+        enabled: true
+      });
+
+      await storage.createAutomationStep({
+        automationId: instantEmailAutomation.id,
+        stepIndex: 0,
+        delayMinutes: 0,
+        actionType: "EMAIL",
+        templateId: instantEmailTemplate.id,
+        enabled: true
+      });
+      createdAutomations.push(instantEmailAutomation);
+
+      // 1.2 - Instant SMS
+      const instantSmsAutomation = await storage.createAutomation({
+        photographerId,
+        name: "Send text immediately when contact enters New Inquiry",
+        description: "Instant SMS response to wedding inquiries - conversational and friendly",
+        automationType: "COMMUNICATION",
+        stageId: inquiryStage.id,
+        channel: "SMS",
+        projectType: "WEDDING",
+        enabled: true
+      });
+
+      await storage.createAutomationStep({
+        automationId: instantSmsAutomation.id,
+        stepIndex: 0,
+        delayMinutes: 0,
+        actionType: "SMS",
+        customSmsContent: "Hey {{first_name}}! This is {{business_name}}—got your inquiry 🎉 When's a good time to chat about your session or wedding? You can also grab a time here: {{scheduler_link}}",
+        enabled: true
+      });
+      createdAutomations.push(instantSmsAutomation);
+
+      // PHASE 2: Short-Term Follow-Up (0–72 Hours)
+      // 2.1 - T+24 Hours Email
+      const t24EmailTemplate = await storage.createTemplate({
+        photographerId,
+        name: "Wedding Inquiry - 24h Follow-up",
+        channel: "EMAIL",
+        subject: "Still want to chat?",
+        htmlBody: `<p>Hi {{first_name}},</p>
+<p>Just wanted to follow up in case you missed my message. I'd love to help you plan an amazing photo experience.</p>
+<p>You can grab a time here: {{scheduler_link}}</p>
+<p>– {{photographer_name}}</p>`,
+        textBody: `Hi {{first_name}},\n\nJust wanted to follow up in case you missed my message. I'd love to help you plan an amazing photo experience.\n\nYou can grab a time here: {{scheduler_link}}\n\n– {{photographer_name}}`
+      });
+
+      const t24EmailAutomation = await storage.createAutomation({
+        photographerId,
+        name: "Send email 24 hours after entering New Inquiry",
+        description: "24-hour follow-up email to check if they want to chat",
+        automationType: "COMMUNICATION",
+        stageId: inquiryStage.id,
+        channel: "EMAIL",
+        projectType: "WEDDING",
+        enabled: true
+      });
+
+      await storage.createAutomationStep({
+        automationId: t24EmailAutomation.id,
+        stepIndex: 0,
+        delayMinutes: 1440, // 24 hours
+        actionType: "EMAIL",
+        templateId: t24EmailTemplate.id,
+        enabled: true
+      });
+      createdAutomations.push(t24EmailAutomation);
+
+      // 2.2 - T+24 Hours SMS (Optional)
+      const t24SmsAutomation = await storage.createAutomation({
+        photographerId,
+        name: "Send text 24 hours after entering New Inquiry",
+        description: "24-hour follow-up SMS - gentle check-in",
+        automationType: "COMMUNICATION",
+        stageId: inquiryStage.id,
+        channel: "SMS",
+        projectType: "WEDDING",
+        enabled: true
+      });
+
+      await storage.createAutomationStep({
+        automationId: t24SmsAutomation.id,
+        stepIndex: 0,
+        delayMinutes: 1440, // 24 hours
+        actionType: "SMS",
+        customSmsContent: "Hey {{first_name}}, just checking in 🙂—still looking for a photographer for {{event_date}}?",
+        enabled: true
+      });
+      createdAutomations.push(t24SmsAutomation);
+
+      // 2.3 - T+48 Hours Email
+      const t48EmailTemplate = await storage.createTemplate({
+        photographerId,
+        name: "Wedding Inquiry - 48h Social Proof",
+        channel: "EMAIL",
+        subject: "Here's what our clients love most",
+        htmlBody: `<p>Hi {{first_name}},</p>
+<p>I wanted to share what our past clients love most about working with us!</p>
+<p>✨ Include 3–5 sample images and a short testimonial here ✨</p>
+<p><strong>Want me to hold your date for 48 hours while you decide?</strong> Just hit reply.</p>
+<p>– {{photographer_name}}</p>`,
+        textBody: `Hi {{first_name}},\n\nI wanted to share what our past clients love most about working with us!\n\n✨ Include 3–5 sample images and a short testimonial here ✨\n\nWant me to hold your date for 48 hours while you decide? Just hit reply.\n\n– {{photographer_name}}`
+      });
+
+      const t48EmailAutomation = await storage.createAutomation({
+        photographerId,
+        name: "Send email 48 hours after entering New Inquiry",
+        description: "48-hour follow-up with social proof and date hold offer",
+        automationType: "COMMUNICATION",
+        stageId: inquiryStage.id,
+        channel: "EMAIL",
+        projectType: "WEDDING",
+        enabled: true
+      });
+
+      await storage.createAutomationStep({
+        automationId: t48EmailAutomation.id,
+        stepIndex: 0,
+        delayMinutes: 2880, // 48 hours
+        actionType: "EMAIL",
+        templateId: t48EmailTemplate.id,
+        enabled: true
+      });
+      createdAutomations.push(t48EmailAutomation);
+
+      // 2.4 - T+72 Hours Email (Final)
+      const t72EmailTemplate = await storage.createTemplate({
+        photographerId,
+        name: "Wedding Inquiry - 72h Final Check",
+        channel: "EMAIL",
+        subject: "Quick question before I close your file",
+        htmlBody: `<p>Hi {{first_name}},</p>
+<p>I don't want to bug you, but I also don't want you to miss out if you're still deciding.</p>
+<p>Should I keep your date open or release it? Either way, just reply with a quick yes or no.</p>
+<p>– {{photographer_name}}</p>`,
+        textBody: `Hi {{first_name}},\n\nI don't want to bug you, but I also don't want you to miss out if you're still deciding.\n\nShould I keep your date open or release it? Either way, just reply with a quick yes or no.\n\n– {{photographer_name}}`
+      });
+
+      const t72EmailAutomation = await storage.createAutomation({
+        photographerId,
+        name: "Send email 72 hours after entering New Inquiry",
+        description: "72-hour final check before closing the file",
+        automationType: "COMMUNICATION",
+        stageId: inquiryStage.id,
+        channel: "EMAIL",
+        projectType: "WEDDING",
+        enabled: true
+      });
+
+      await storage.createAutomationStep({
+        automationId: t72EmailAutomation.id,
+        stepIndex: 0,
+        delayMinutes: 4320, // 72 hours
+        actionType: "EMAIL",
+        templateId: t72EmailTemplate.id,
+        enabled: true
+      });
+      createdAutomations.push(t72EmailAutomation);
+
+      // PHASE 3: Re-Engagement (1–3 Weeks Later)
+      // 3.1 - T+7 Days
+      const t7DaysTemplate = await storage.createTemplate({
+        photographerId,
+        name: "Wedding Inquiry - 7 Day Re-engagement",
+        channel: "EMAIL",
+        subject: "We just posted a new gallery you might love",
+        htmlBody: `<p>Hi {{first_name}},</p>
+<p>We just posted a new gallery that I thought you might love! Check it out here: [link to portfolio or blog post]</p>
+<p>Let me know if you'd like to chat about your own special day!</p>
+<p>– {{photographer_name}}</p>`,
+        textBody: `Hi {{first_name}},\n\nWe just posted a new gallery that I thought you might love! Check it out here: [link to portfolio or blog post]\n\nLet me know if you'd like to chat about your own special day!\n\n– {{photographer_name}}`
+      });
+
+      const t7DaysAutomation = await storage.createAutomation({
+        photographerId,
+        name: "Send email 7 days after entering New Inquiry",
+        description: "7-day re-engagement with new portfolio content",
+        automationType: "COMMUNICATION",
+        stageId: inquiryStage.id,
+        channel: "EMAIL",
+        projectType: "WEDDING",
+        enabled: true
+      });
+
+      await storage.createAutomationStep({
+        automationId: t7DaysAutomation.id,
+        stepIndex: 0,
+        delayMinutes: 10080, // 7 days
+        actionType: "EMAIL",
+        templateId: t7DaysTemplate.id,
+        enabled: true
+      });
+      createdAutomations.push(t7DaysAutomation);
+
+      // 3.2 - T+14 Days
+      const t14DaysTemplate = await storage.createTemplate({
+        photographerId,
+        name: "Wedding Inquiry - 14 Day Limited Offer",
+        channel: "EMAIL",
+        subject: "New limited-time bonus for you",
+        htmlBody: `<p>Hi {{first_name}},</p>
+<p><strong>New limited-time bonus:</strong> free engagement session for weddings booked this month!</p>
+<p>This is our way of saying thank you for considering us. Want to chat about it?</p>
+<p>– {{photographer_name}}</p>`,
+        textBody: `Hi {{first_name}},\n\nNew limited-time bonus: free engagement session for weddings booked this month!\n\nThis is our way of saying thank you for considering us. Want to chat about it?\n\n– {{photographer_name}}`
+      });
+
+      const t14DaysAutomation = await storage.createAutomation({
+        photographerId,
+        name: "Send email 14 days after entering New Inquiry",
+        description: "14-day limited-time bonus offer to re-engage",
+        automationType: "COMMUNICATION",
+        stageId: inquiryStage.id,
+        channel: "EMAIL",
+        projectType: "WEDDING",
+        enabled: true
+      });
+
+      await storage.createAutomationStep({
+        automationId: t14DaysAutomation.id,
+        stepIndex: 0,
+        delayMinutes: 20160, // 14 days
+        actionType: "EMAIL",
+        templateId: t14DaysTemplate.id,
+        enabled: true
+      });
+      createdAutomations.push(t14DaysAutomation);
+
+      // 3.3 - T+21 Days (Final)
+      const t21DaysTemplate = await storage.createTemplate({
+        photographerId,
+        name: "Wedding Inquiry - 21 Day Final Calendar Check",
+        channel: "EMAIL",
+        subject: "Finalizing our calendar",
+        htmlBody: `<p>Hi {{first_name}},</p>
+<p>We're finalizing our calendar — still want me to hold {{event_date}}?</p>
+<p>Let me know either way so I can plan accordingly!</p>
+<p>– {{photographer_name}}</p>`,
+        textBody: `Hi {{first_name}},\n\nWe're finalizing our calendar — still want me to hold {{event_date}}?\n\nLet me know either way so I can plan accordingly!\n\n– {{photographer_name}}`
+      });
+
+      const t21DaysAutomation = await storage.createAutomation({
+        photographerId,
+        name: "Send email 21 days after entering New Inquiry",
+        description: "21-day final calendar check before releasing date",
+        automationType: "COMMUNICATION",
+        stageId: inquiryStage.id,
+        channel: "EMAIL",
+        projectType: "WEDDING",
+        enabled: true
+      });
+
+      await storage.createAutomationStep({
+        automationId: t21DaysAutomation.id,
+        stepIndex: 0,
+        delayMinutes: 30240, // 21 days
+        actionType: "EMAIL",
+        templateId: t21DaysTemplate.id,
+        enabled: true
+      });
+      createdAutomations.push(t21DaysAutomation);
+
+      res.status(201).json({
+        message: "Wedding inquiry automation sequence created successfully",
+        automations: createdAutomations,
+        count: createdAutomations.length
+      });
+    } catch (error: any) {
+      console.error('Setup wedding inquiry defaults error:', error);
+      res.status(500).json({ message: error.message || "Internal server error" });
+    }
+  });
+
   // Drip Campaign routes
   app.get("/api/drip-campaigns", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
