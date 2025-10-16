@@ -34,7 +34,9 @@ import {
   Lock,
   Rocket,
   Info,
-  GraduationCap
+  GraduationCap,
+  Images,
+  Send
 } from "lucide-react";
 import { SiFacebook, SiGoogle, SiInstagram, SiPinterest, SiTiktok } from "react-icons/si";
 import {
@@ -92,22 +94,24 @@ export function AppSidebar() {
     { name: "Support Cases", href: "/admin/support", icon: Headphones }
   ];
 
-  // Core workspace items (always visible)
+  // Core workspace items (always visible - daily operations)
   const coreNavigation = [
     { name: "Dashboard", href: "/", icon: LayoutDashboard },
     { name: "Projects", href: "/projects", icon: FolderOpen },
     { name: "Contacts", href: "/contacts", icon: Users },
     { name: "Inbox", href: "/inbox", icon: InboxIcon, badge: unreadCount },
+    { name: "Scheduling", href: "/scheduling", icon: Calendar },
   ];
 
-  // Grouped navigation for photographers
+  // Grouped navigation for photographers (phase-based workflow)
   const groupedNavigation = [
     {
-      id: "sales",
-      name: "Sales & Proposals",
-      icon: Briefcase,
+      id: "delivery",
+      name: "Client Delivery",
+      icon: Send,
       items: [
         { name: "Smart Files", href: "/smart-files", icon: Layers },
+        { name: "Galleries", href: "/galleries", icon: Images },
         { name: "Packages", href: "/packages", icon: Package },
         { name: "Add-ons", href: "/add-ons", icon: ShoppingBag },
       ]
@@ -128,7 +132,6 @@ export function AppSidebar() {
       name: "Business Tools",
       icon: BusinessIcon,
       items: [
-        { name: "Scheduling", href: "/scheduling", icon: Calendar },
         { name: "Reports", href: "/reports", icon: BarChart3 },
         { name: "Earnings", href: "/earnings", icon: DollarSign },
       ]
@@ -145,9 +148,9 @@ export function AppSidebar() {
     return null;
   };
 
-  // State for collapsible sections - default to sales open
+  // State for collapsible sections - default to delivery open
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
-    sales: true,
+    delivery: true,
     marketing: false,
     business: false,
   });

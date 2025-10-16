@@ -28,6 +28,7 @@ import Packages from "@/pages/packages";
 import AddOns from "@/pages/add-ons";
 import SmartFiles from "@/pages/smart-files";
 import SmartFileBuilder from "@/pages/smart-file-builder";
+import Galleries from "@/pages/galleries";
 import LeadForms from "@/pages/lead-forms";
 import LeadFormBuilder from "@/pages/lead-form-builder";
 import WidgetGenerator from "@/pages/widget-generator";
@@ -99,6 +100,7 @@ function ProtectedRoutes() {
             <Route path="/add-ons" component={AddOns} />
             <Route path="/smart-files" component={SmartFiles} />
             <Route path="/smart-files/:id/edit" component={SmartFileBuilder} />
+            <Route path="/galleries" component={Galleries} />
             <Route path="/lead-forms" component={LeadForms} />
             <Route path="/lead-forms/:id/configure" component={LeadFormBuilder} />
             <Route path="/widget-generator" component={WidgetGenerator} />
