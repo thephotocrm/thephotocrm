@@ -3849,6 +3849,11 @@ export default function Automations() {
                                   // For communication automations, check first step delay
                                   const firstStep = a.steps?.[0];
                                   return firstStep && firstStep.delayMinutes > 0;
+                                }).sort((a: any, b: any) => {
+                                  // Sort by delay minutes (shortest to longest)
+                                  const delayA = a.steps?.[0]?.delayMinutes || 0;
+                                  const delayB = b.steps?.[0]?.delayMinutes || 0;
+                                  return delayA - delayB;
                                 });
                                 
                                 const triggerBasedAutomations = group.automations.filter((a: any) => {
