@@ -17,7 +17,7 @@ import { insertUserSchema, insertPhotographerSchema, insertContactSchema, insert
          insertTemplateSchema, insertAutomationSchema, validateAutomationSchema, insertAutomationStepSchema, insertAutomationBusinessTriggerSchema, insertPackageSchema, insertAddOnSchema, insertLeadFormSchema,
          insertBookingSchema, updateBookingSchema, 
          bookingConfirmationSchema, sanitizedBookingSchema, insertQuestionnaireTemplateSchema, insertQuestionnaireQuestionSchema, 
-         emailLogs, smsLogs, projectActivityLog, projectSmartFiles, photographerEarnings, projects,
+         emailLogs, smsLogs, projectActivityLog, projectSmartFiles, photographerEarnings, projects, automationBusinessTriggers,
          projectTypeEnum, createOnboardingLinkSchema, createPayoutSchema, insertDailyAvailabilityTemplateSchema,
          insertDailyAvailabilityBreakSchema, insertDailyAvailabilityOverrideSchema,
          insertDripCampaignSchema, insertDripCampaignEmailSchema, insertDripCampaignSubscriptionSchema, insertProjectParticipantSchema,
