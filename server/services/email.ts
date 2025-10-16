@@ -3,9 +3,10 @@ import { OAuth2Client } from 'google-auth-library';
 import { MailService } from '@sendgrid/mail';
 import { storage } from '../storage';
 import { db } from '../db';
-import { users } from '@shared/schema';
+import { users, photographers } from '@shared/schema';
 import { eq } from 'drizzle-orm';
 import { renderTemplate } from '@shared/template-utils';
+import { wrapEmailContent, BrandingData } from './email-branding';
 
 // SendGrid fallback for backward compatibility
 const mailService = process.env.SENDGRID_API_KEY ? new MailService() : null;
@@ -161,8 +162,39 @@ async function sendViaGmail(params: EmailParams): Promise<EmailResult> {
 
     const fromEmail = params.from || user.email;
 
+    // Get photographer's branding settings
+    const [photographer] = await db.select()
+      .from(photographers)
+      .where(eq(photographers.id, params.photographerId))
+      .limit(1);
+
+    // Apply email branding if HTML content exists and branding is configured
+    let finalHtml = params.html;
+    if (photographer && finalHtml) {
+      const brandingData: BrandingData = {
+        businessName: photographer.businessName || undefined,
+        photographerName: photographer.photographerName || undefined,
+        logoUrl: photographer.logoUrl || undefined,
+        brandPrimary: photographer.brandPrimary || undefined,
+        brandSecondary: photographer.brandSecondary || undefined,
+        phone: photographer.phone || undefined,
+        email: user.email,
+        website: photographer.website || undefined,
+        businessAddress: photographer.businessAddress || undefined,
+        socialLinks: (photographer.socialLinksJson as any) || undefined
+      };
+
+      // Wrap email content with header and signature
+      finalHtml = wrapEmailContent(
+        finalHtml,
+        photographer.emailHeaderStyle,
+        photographer.emailSignatureStyle,
+        brandingData
+      );
+    }
+
     // Create RFC 2822 formatted email
-    const rawEmail = createRawEmail(params, fromEmail);
+    const rawEmail = createRawEmail({ ...params, html: finalHtml }, fromEmail);
     
     // Encode email in base64url format
     const encodedEmail = Buffer.from(rawEmail)
@@ -182,7 +214,7 @@ async function sendViaGmail(params: EmailParams): Promise<EmailResult> {
     const messageId = response.data.id;
     const threadId = response.data.threadId;
 
-    // Log to email history
+    // Log to email history (use finalHtml to store the branded version)
     await storage.createEmailHistory({
       photographerId: params.photographerId,
       clientId: params.clientId || null,
@@ -194,7 +226,7 @@ async function sendViaGmail(params: EmailParams): Promise<EmailResult> {
       ccEmails: params.cc ? (Array.isArray(params.cc) ? params.cc : [params.cc]) : null,
       bccEmails: params.bcc ? (Array.isArray(params.bcc) ? params.bcc : [params.bcc]) : null,
       subject: params.subject,
-      htmlBody: params.html || null,
+      htmlBody: finalHtml || null,
       textBody: params.text || null,
       gmailMessageId: messageId || null,
       gmailThreadId: threadId || null,
@@ -244,6 +276,39 @@ async function sendViaSendGrid(params: EmailParams): Promise<EmailResult> {
       fromEmail = fromMatch[2].trim();
     }
 
+    // Apply email branding if photographerId is provided and HTML content exists
+    let finalHtml = params.html;
+    if (params.photographerId && finalHtml) {
+      // Get photographer's branding settings
+      const [photographer] = await db.select()
+        .from(photographers)
+        .where(eq(photographers.id, params.photographerId))
+        .limit(1);
+
+      if (photographer) {
+        const brandingData: BrandingData = {
+          businessName: photographer.businessName || undefined,
+          photographerName: photographer.photographerName || undefined,
+          logoUrl: photographer.logoUrl || undefined,
+          brandPrimary: photographer.brandPrimary || undefined,
+          brandSecondary: photographer.brandSecondary || undefined,
+          phone: photographer.phone || undefined,
+          email: fromEmail,
+          website: photographer.website || undefined,
+          businessAddress: photographer.businessAddress || undefined,
+          socialLinks: (photographer.socialLinksJson as any) || undefined
+        };
+
+        // Wrap email content with header and signature
+        finalHtml = wrapEmailContent(
+          finalHtml,
+          photographer.emailHeaderStyle,
+          photographer.emailSignatureStyle,
+          brandingData
+        );
+      }
+    }
+
     const emailData: any = {
       to: Array.isArray(params.to) ? params.to : [params.to],
       from: {
@@ -280,8 +345,8 @@ async function sendViaSendGrid(params: EmailParams): Promise<EmailResult> {
     if (params.text) {
       emailData.text = params.text;
     }
-    if (params.html) {
-      emailData.html = params.html;
+    if (finalHtml) {
+      emailData.html = finalHtml;
     }
 
     await mailService.send(emailData);

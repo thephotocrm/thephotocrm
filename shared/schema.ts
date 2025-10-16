@@ -135,6 +135,12 @@ export const photographers = pgTable("photographers", {
   trialEndsAt: timestamp("trial_ends_at"),
   subscriptionCurrentPeriodEnd: timestamp("subscription_current_period_end"),
   hasPremiumAccess: boolean("has_premium_access").default(false),
+  // Email Branding
+  emailHeaderStyle: text("email_header_style"), // minimal, professional, bold, classic, or null for none
+  emailSignatureStyle: text("email_signature_style"), // simple, professional, detailed, branded, or null for none
+  website: text("website"),
+  businessAddress: text("business_address"),
+  socialLinksJson: jsonb("social_links_json"), // {facebook: "url", instagram: "url", twitter: "url", linkedin: "url"}
   createdAt: timestamp("created_at").defaultNow()
 });
 
