@@ -48,7 +48,7 @@ export default function Galleries() {
   });
 
   return (
-    <>
+    <div className="h-full flex flex-col">
       <header className="flex h-16 shrink-0 items-center gap-4 border-b px-4 bg-white dark:bg-gray-950">
         <div className="flex items-center gap-2">
           <Images className="w-6 h-6 text-purple-600" />
@@ -103,7 +103,7 @@ export default function Galleries() {
             </p>
           </div>
         ) : (
-          <>
+          <div>
             <div className="mb-4 text-sm text-muted-foreground">
               {filteredGalleries.length} {filteredGalleries.length === 1 ? 'gallery' : 'galleries'} found
             </div>
@@ -151,9 +151,9 @@ export default function Galleries() {
                 </Card>
               ))}
             </div>
-          </>
+          </div>
         )}
       </div>
-    </>
+    </div>
   );
 }
