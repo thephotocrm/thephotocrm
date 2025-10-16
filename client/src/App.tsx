@@ -168,6 +168,7 @@ function Router() {
       <Route path="/add-ons"><ProtectedRoutes /></Route>
       <Route path="/smart-files"><ProtectedRoutes /></Route>
       <Route path="/smart-files/:id/edit"><ProtectedRoutes /></Route>
+      <Route path="/galleries"><ProtectedRoutes /></Route>
       <Route path="/lead-forms"><ProtectedRoutes /></Route>
       <Route path="/lead-forms/:id/configure"><ProtectedRoutes /></Route>
       <Route path="/widget-generator"><ProtectedRoutes /></Route>
