@@ -1,0 +1,52 @@
+💬 Phase 1: Instant Response (First 5 Minutes)
+
+Goal: Make contact fast and set expectations.
+Trigger: Form submission or message received.
+
+Automation:
+
+Instant Email (professional + friendly)
+Subject: “Thanks for reaching out about your photos!”
+Body:
+“Hi {{first_name}}, thank you for reaching out! I’d love to learn more about your day and style. Here’s my calendar to chat: {{scheduler_link}}. You’ll get ideas, pricing, and sample galleries. – {{your_name}}”
+
+Instant SMS (short, conversational)
+“Hey {{first_name}}! This is {{studio_name}}—got your inquiry 🎉 When’s a good time to chat about your session or wedding? You can also grab a time here: {{scheduler_link}}.”
+
+CRM Task: “Call within 10 minutes if number is valid.”
+
+🕐 Phase 2: Short-Term Follow-Up (0–72 Hours)
+
+If no reply, run this 3-touch follow-up:
+
+T+24 Hours
+
+Email: “Still want to chat?”
+“Hi {{first_name}}, just wanted to follow up in case you missed my message. I’d love to help you plan an amazing photo experience. You can grab a time here: {{scheduler_link}}.”
+
+Optional SMS: “Hey {{first_name}}, just checking in 🙂—still looking for a photographer for {{event_date}}?”
+
+T+48 Hours
+
+Email: “Here’s what our clients love most”
+Include 3–5 sample images and a short testimonial.
+CTA: “Want me to hold your date for 48 hours while you decide? Just hit reply.”
+
+T+72 Hours
+
+Email: “Quick question before I close your file”
+“Hi {{first_name}}, I don’t want to bug you, but I also don’t want you to miss out if you’re still deciding. Should I keep your date open or release it? Either way, just reply with a quick yes or no.”
+
+🔁 Phase 3: Re-Engagement (1–3 Weeks Later)
+
+Goal: Revive quiet leads.
+
+Automation:
+
+T+7 Days – “We just posted a new gallery you might love” → include a link to portfolio or blog post.
+
+T+14 Days – “New limited-time bonus: free engagement session for weddings booked this month!”
+
+T+21 Days – “We’re finalizing our calendar — still want me to hold {{event_date}}?”
+
+If they click or reply → move back to Active Lead.
