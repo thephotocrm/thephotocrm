@@ -29,6 +29,7 @@ import AddOns from "@/pages/add-ons";
 import SmartFiles from "@/pages/smart-files";
 import SmartFileBuilder from "@/pages/smart-file-builder";
 import Galleries from "@/pages/galleries";
+import GalleryDetail from "@/pages/gallery-detail";
 import LeadForms from "@/pages/lead-forms";
 import LeadFormBuilder from "@/pages/lead-form-builder";
 import WidgetGenerator from "@/pages/widget-generator";
@@ -101,6 +102,7 @@ function ProtectedRoutes() {
             <Route path="/smart-files" component={SmartFiles} />
             <Route path="/smart-files/:id/edit" component={SmartFileBuilder} />
             <Route path="/galleries" component={Galleries} />
+            <Route path="/galleries/:galleryId" component={GalleryDetail} />
             <Route path="/lead-forms" component={LeadForms} />
             <Route path="/lead-forms/:id/configure" component={LeadFormBuilder} />
             <Route path="/widget-generator" component={WidgetGenerator} />
@@ -169,6 +171,7 @@ function Router() {
       <Route path="/smart-files"><ProtectedRoutes /></Route>
       <Route path="/smart-files/:id/edit"><ProtectedRoutes /></Route>
       <Route path="/galleries"><ProtectedRoutes /></Route>
+      <Route path="/galleries/:galleryId"><ProtectedRoutes /></Route>
       <Route path="/lead-forms"><ProtectedRoutes /></Route>
       <Route path="/lead-forms/:id/configure"><ProtectedRoutes /></Route>
       <Route path="/widget-generator"><ProtectedRoutes /></Route>

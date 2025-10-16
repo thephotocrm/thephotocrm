@@ -147,7 +147,7 @@ export default function Galleries() {
                 <Card 
                   key={project.id} 
                   className="break-inside-avoid hover:shadow-xl transition-all duration-300 group cursor-pointer mb-4"
-                  onClick={() => window.open(project.galleryUrl, '_blank')}
+                  onClick={() => setLocation(`/galleries/${project.id}`)}
                   data-testid={`gallery-tile-${project.id}`}
                 >
                   <div className="relative overflow-hidden">
