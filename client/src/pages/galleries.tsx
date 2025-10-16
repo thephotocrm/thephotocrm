@@ -18,6 +18,11 @@ export default function Galleries() {
     enabled: !!user
   });
 
+  const { data: photographer } = useQuery<any>({
+    queryKey: ["/api/photographer"],
+    enabled: !!user
+  });
+
   // Handle unauthorized access in useEffect to avoid render-time state updates
   useEffect(() => {
     if (!loading && (!user || user.role !== "PHOTOGRAPHER")) {
@@ -33,7 +38,22 @@ export default function Galleries() {
     return null;
   }
 
-  const projectsWithGalleries = projects?.filter((project: any) => project.galleryUrl) || [];
+  // Check if ShootProof is connected
+  const isShootProofConnected = !!photographer?.shootproofAccessToken;
+
+  // Default sample galleries for demo purposes (before ShootProof connection)
+  const defaultGalleries = [
+    { id: 'default-1', title: 'Summer Beach Wedding', client: { firstName: 'Sample', lastName: 'Client' }, galleryCreatedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), galleryReady: true, galleryUrl: '#' },
+    { id: 'default-2', title: 'Mountain Engagement', client: { firstName: 'Demo', lastName: 'Couple' }, galleryCreatedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(), galleryReady: true, galleryUrl: '#' },
+    { id: 'default-3', title: 'Rustic Barn Wedding', client: { firstName: 'Example', lastName: 'Bride' }, galleryCreatedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(), galleryReady: false, galleryUrl: '#' },
+    { id: 'default-4', title: 'City Skyline Portraits', client: { firstName: 'Test', lastName: 'User' }, galleryCreatedAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(), galleryReady: true, galleryUrl: '#' },
+    { id: 'default-5', title: 'Garden Party Wedding', client: { firstName: 'Preview', lastName: 'Client' }, galleryCreatedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), galleryReady: true, galleryUrl: '#' },
+    { id: 'default-6', title: 'Downtown Loft Wedding', client: { firstName: 'Sample', lastName: 'Couple' }, galleryCreatedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(), galleryReady: true, galleryUrl: '#' },
+  ];
+
+  // Use default galleries if not connected, actual galleries if connected
+  const actualProjectsWithGalleries = projects?.filter((project: any) => project.galleryUrl) || [];
+  const projectsWithGalleries = isShootProofConnected ? actualProjectsWithGalleries : defaultGalleries;
   
   // Filter galleries by search query
   const filteredGalleries = projectsWithGalleries.filter((project: any) => {
@@ -53,9 +73,11 @@ export default function Galleries() {
         <div className="flex items-center gap-2">
           <Images className="w-6 h-6 text-purple-600" />
           <h1 className="text-xl font-semibold">Client Galleries</h1>
-          <Badge variant="secondary" className="ml-2">
-            Default
-          </Badge>
+          {!isShootProofConnected && (
+            <Badge variant="secondary" className="ml-2">
+              Default
+            </Badge>
+          )}
         </div>
         <div className="flex-1 max-w-md">
           <div className="relative">
@@ -84,14 +106,18 @@ export default function Galleries() {
             <CardContent className="py-12">
               <div className="text-center">
                 <Images className="w-12 h-12 mx-auto text-muted-foreground mb-3" />
-                <h3 className="text-lg font-semibold mb-2">No Active Galleries</h3>
+                <h3 className="text-lg font-semibold mb-2">
+                  {isShootProofConnected ? 'No Galleries Yet' : 'Connect ShootProof to Get Started'}
+                </h3>
                 <p className="text-sm text-muted-foreground mb-4">
-                  Galleries are automatically created when clients pay their deposit
+                  {isShootProofConnected 
+                    ? 'Your ShootProof galleries will appear here once created'
+                    : 'Connect your ShootProof account to sync your professional galleries with client print ordering'}
                 </p>
                 <Link href="/settings">
                   <Button variant="outline">
                     <Settings className="w-4 h-4 mr-2" />
-                    Configure Gallery Platform
+                    {isShootProofConnected ? 'Gallery Settings' : 'Connect ShootProof'}
                   </Button>
                 </Link>
               </div>
@@ -125,6 +151,13 @@ export default function Galleries() {
                     <div className="aspect-[4/3] bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900 dark:to-pink-900 flex items-center justify-center">
                       <Images className="w-12 h-12 text-purple-400 opacity-50" />
                     </div>
+                    {!isShootProofConnected && (
+                      <div className="absolute top-2 right-2">
+                        <Badge variant="secondary" className="text-xs bg-white/90 dark:bg-gray-800/90">
+                          Demo
+                        </Badge>
+                      </div>
+                    )}
                     <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100">
                       <ExternalLink className="w-8 h-8 text-white" />
                     </div>
