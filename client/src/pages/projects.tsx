@@ -191,9 +191,9 @@ export default function Projects() {
   };
 
   return (
-    <div className="h-full flex flex-col w-full max-w-full overflow-hidden">
+    <div className="h-full flex flex-col w-full">
       {/* Header */}
-      <header className="bg-card border-b border-border px-4 md:px-6 py-4 shrink-0">
+      <header className="bg-card border-b border-border px-4 md:px-6 py-4 shrink-0 min-w-0">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3 min-w-0 flex-1">
             <SidebarTrigger 
@@ -344,8 +344,8 @@ export default function Projects() {
         </div>
       </header>
 
-      <div className="flex-1 w-full overflow-y-auto overflow-x-hidden">
-        <div className="p-4 md:p-6 space-y-4 w-full max-w-full">
+      <div className="flex-1 overflow-y-auto min-w-0">
+        <div className="p-4 md:p-6 space-y-4 min-w-0">
           {/* Project Type Filter */}
           <div className="flex items-center gap-2 text-sm">
             <span className="text-muted-foreground">View:</span>
@@ -364,8 +364,8 @@ export default function Projects() {
           </div>
 
           {/* Horizontal Stage Slider */}
-          <div className="relative -mx-4 md:-mx-6">
-            <div className="flex gap-2 px-4 md:px-6 overflow-x-auto pb-2">
+          <div className="relative -mx-4 md:-mx-6 max-w-full">
+            <div className="flex gap-2 px-4 md:px-6 overflow-x-auto pb-2 max-w-full">
               <Button
                 variant={selectedStage === "ALL" ? "default" : "outline"}
                 className={cn(
