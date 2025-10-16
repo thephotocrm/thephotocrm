@@ -239,6 +239,12 @@ async function processStageChangeAutomation(automation: any, photographerId: str
   for (const projectRow of activeProjects) {
     const project = projectRow.projects;
     
+    // If automation has a source stage filter, only process projects in that stage
+    if (automation.stageId && project.stageId !== automation.stageId) {
+      // Project not in the required source stage, skip
+      continue;
+    }
+    
     // Check each business trigger - if any trigger is satisfied, execute the automation
     for (const businessTrigger of businessTriggers) {
       // First check if trigger condition is met (don't reserve if not triggered)

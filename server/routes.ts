@@ -4034,11 +4034,17 @@ ${photographer?.businessName || 'Your Photography Team'}`;
               continue;
             }
             
+            // Build automation name with optional source stage filter
+            const sourceStagePart = collectedInfo.stageId && collectedInfo.stageName 
+              ? `${collectedInfo.stageName}: ` 
+              : '';
+            
             const automationData = validateAutomationSchema.parse({
               photographerId,
-              name: `Stage Change: ${collectedInfo.businessTrigger} → ${collectedInfo.targetStageName}`,
+              name: `${sourceStagePart}${collectedInfo.businessTrigger} → ${collectedInfo.targetStageName}`,
               automationType: 'STAGE_CHANGE',
               triggerType: collectedInfo.businessTrigger,
+              stageId: collectedInfo.stageId || null, // Source stage filter (optional)
               targetStageId: collectedInfo.targetStageId,
               projectType: 'WEDDING',
               enabled: true
