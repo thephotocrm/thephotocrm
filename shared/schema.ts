@@ -79,7 +79,8 @@ export const triggerTypeEnum = {
   EVENT_DATE_REACHED: "EVENT_DATE_REACHED",
   PROJECT_DELIVERED: "PROJECT_DELIVERED",
   CLIENT_ONBOARDED: "CLIENT_ONBOARDED",
-  APPOINTMENT_BOOKED: "APPOINTMENT_BOOKED"
+  APPOINTMENT_BOOKED: "APPOINTMENT_BOOKED",
+  GALLERY_SHARED: "GALLERY_SHARED"
 } as const;
 
 export const adPlatformEnum = {
@@ -142,6 +143,21 @@ export const photographers = pgTable("photographers", {
   website: text("website"),
   businessAddress: text("business_address"),
   socialLinksJson: jsonb("social_links_json"), // {facebook: "url", instagram: "url", twitter: "url", linkedin: "url"}
+  // Gallery Integration
+  galleryPlatform: text("gallery_platform"), // GOOGLE_DRIVE, SHOOTPROOF, or null
+  // Google Drive Integration
+  googleDriveAccessToken: text("google_drive_access_token"),
+  googleDriveRefreshToken: text("google_drive_refresh_token"),
+  googleDriveTokenExpiry: timestamp("google_drive_token_expiry"),
+  googleDriveConnectedAt: timestamp("google_drive_connected_at"),
+  googleDriveEmail: text("google_drive_email"),
+  // ShootProof Integration
+  shootproofAccessToken: text("shootproof_access_token"),
+  shootproofRefreshToken: text("shootproof_refresh_token"),
+  shootproofTokenExpiry: timestamp("shootproof_token_expiry"),
+  shootproofConnectedAt: timestamp("shootproof_connected_at"),
+  shootproofStudioId: text("shootproof_studio_id"),
+  shootproofEmail: text("shootproof_email"),
   createdAt: timestamp("created_at").defaultNow()
 });
 
@@ -219,6 +235,12 @@ export const projects = pgTable("projects", {
   emailOptIn: boolean("email_opt_in").default(true),
   leadFormId: varchar("lead_form_id").references(() => leadForms.id),
   formSubmissionData: jsonb("form_submission_data"),
+  // Gallery Integration
+  galleryUrl: text("gallery_url"), // Link to Google Drive folder or ShootProof album
+  galleryId: text("gallery_id"), // Platform-specific ID (folder ID or album ID)
+  galleryReady: boolean("gallery_ready").default(false), // Whether photographer marked it ready to send
+  galleryCreatedAt: timestamp("gallery_created_at"), // When auto-created
+  gallerySharedAt: timestamp("gallery_shared_at"), // When marked ready and sent to client
   createdAt: timestamp("created_at").defaultNow()
 });
 
