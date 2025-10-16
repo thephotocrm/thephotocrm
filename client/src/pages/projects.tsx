@@ -191,7 +191,7 @@ export default function Projects() {
   };
 
   return (
-    <div className="h-full flex flex-col w-full max-w-full">
+    <div className="h-full flex flex-col min-w-0 overflow-x-hidden">
       {/* Header */}
       <header className="bg-card border-b border-border px-4 md:px-6 py-4 shrink-0">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
