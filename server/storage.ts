@@ -1694,6 +1694,12 @@ export class DatabaseStorage implements IStorage {
       emailOptIn: projects.emailOptIn,
       notes: projects.notes,
       createdAt: projects.createdAt,
+      // Gallery fields
+      galleryUrl: projects.galleryUrl,
+      galleryId: projects.galleryId,
+      galleryReady: projects.galleryReady,
+      galleryCreatedAt: projects.galleryCreatedAt,
+      gallerySharedAt: projects.gallerySharedAt,
       // Client fields
       clientData: {
         id: contacts.id,
