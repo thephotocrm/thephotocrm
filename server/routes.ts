@@ -2044,15 +2044,79 @@ ${photographer?.businessName || 'Your Photography Team'}`;
     }
   });
 
+  // Helper function to convert text to simple HTML
+  const textToHtml = (text: string): string => {
+    if (!text) return '';
+    // Split by double line breaks for paragraphs, single line breaks for <br>
+    const paragraphs = text.split(/\n\n+/);
+    return paragraphs
+      .map(para => {
+        const lines = para.split(/\n/).filter(line => line.trim());
+        return `<p>${lines.join('<br>')}</p>`;
+      })
+      .join('\n');
+  };
+
   app.post("/api/templates", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       const templateData = insertTemplateSchema.parse({
         ...req.body,
         photographerId: req.user!.photographerId!
       });
+      
+      // Auto-generate HTML from text body for email templates
+      if (templateData.channel === 'EMAIL' && templateData.textBody) {
+        templateData.htmlBody = textToHtml(templateData.textBody);
+      }
+      
       const template = await storage.createTemplate(templateData);
       res.status(201).json(template);
     } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.put("/api/templates/:id", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
+    try {
+      // Verify template belongs to this photographer
+      const templates = await storage.getTemplatesByPhotographer(req.user!.photographerId!);
+      const existingTemplate = templates.find(t => t.id === req.params.id);
+      
+      if (!existingTemplate) {
+        return res.status(404).json({ message: "Template not found" });
+      }
+
+      const updates = insertTemplateSchema.partial().parse(req.body);
+      
+      // Auto-generate HTML from text body for email templates
+      if (updates.channel === 'EMAIL' && updates.textBody) {
+        updates.htmlBody = textToHtml(updates.textBody);
+      } else if (existingTemplate.channel === 'EMAIL' && updates.textBody) {
+        updates.htmlBody = textToHtml(updates.textBody);
+      }
+      
+      const updatedTemplate = await storage.updateTemplate(req.params.id, updates);
+      res.json(updatedTemplate);
+    } catch (error) {
+      console.error('Update template error:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.delete("/api/templates/:id", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
+    try {
+      // Verify template belongs to this photographer
+      const templates = await storage.getTemplatesByPhotographer(req.user!.photographerId!);
+      const existingTemplate = templates.find(t => t.id === req.params.id);
+      
+      if (!existingTemplate) {
+        return res.status(404).json({ message: "Template not found" });
+      }
+
+      await storage.deleteTemplate(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error('Delete template error:', error);
       res.status(500).json({ message: "Internal server error" });
     }
   });

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { useLocation } from "wouter";
@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, MessageSquare, Mail, Smartphone, Edit, Trash2 } from "lucide-react";
+import { Plus, MessageSquare, Mail, Smartphone, Edit, Trash2, ChevronDown } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -26,6 +26,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Table,
   TableBody,
@@ -57,8 +63,8 @@ export default function Templates() {
   const [name, setName] = useState("");
   const [channel, setChannel] = useState("");
   const [subject, setSubject] = useState("");
-  const [htmlBody, setHtmlBody] = useState("");
   const [textBody, setTextBody] = useState("");
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
   // ALL HOOKS MUST BE CALLED BEFORE ANY CONDITIONALS
   const { data: templates, isLoading } = useQuery({
@@ -132,7 +138,6 @@ export default function Templates() {
     setName("");
     setChannel("");
     setSubject("");
-    setHtmlBody("");
     setTextBody("");
     setIsEditMode(false);
     setEditingTemplateId(null);
@@ -144,9 +149,29 @@ export default function Templates() {
     setName(template.name);
     setChannel(template.channel);
     setSubject(template.subject || "");
-    setHtmlBody(template.htmlBody || "");
     setTextBody(template.textBody || "");
     setIsDialogOpen(true);
+  };
+
+  const insertVariable = (variable: string) => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const text = textBody;
+    const before = text.substring(0, start);
+    const after = text.substring(end);
+    
+    const newText = before + variable + after;
+    setTextBody(newText);
+    
+    // Set cursor position after the inserted variable
+    setTimeout(() => {
+      textarea.focus();
+      const newPosition = start + variable.length;
+      textarea.setSelectionRange(newPosition, newPosition);
+    }, 0);
   };
 
   const handleDelete = (templateId: string) => {
@@ -162,10 +187,22 @@ export default function Templates() {
       name,
       channel,
       subject: channel === "EMAIL" ? subject : undefined,
-      htmlBody: channel === "EMAIL" ? htmlBody : undefined,
       textBody
     });
   };
+
+  const variables = [
+    { value: '{{first_name}}', label: 'First Name' },
+    { value: '{{last_name}}', label: 'Last Name' },
+    { value: '{{full_name}}', label: 'Full Name' },
+    { value: '{{email}}', label: 'Email Address' },
+    { value: '{{phone}}', label: 'Phone Number' },
+    { value: '{{project_type}}', label: 'Project Type' },
+    { value: '{{event_date}}', label: 'Event Date' },
+    { value: '{{business_name}}', label: 'Business Name' },
+    { value: '{{photographer_name}}', label: 'Photographer Name' },
+    { value: '{{scheduler_link}}', label: 'Booking Link' },
+  ];
 
   const emailTemplates = (templates || []).filter((t: Template) => t.channel === "EMAIL");
   const smsTemplates = (templates || []).filter((t: Template) => t.channel === "SMS");
@@ -229,56 +266,56 @@ export default function Templates() {
                         id="subject"
                         value={subject}
                         onChange={(e) => setSubject(e.target.value)}
-                        placeholder="Welcome to {businessName}"
+                        placeholder="Welcome to {{business_name}}"
                         data-testid="input-subject"
                       />
                     </div>
                   )}
                   
-                  {channel === "EMAIL" && (
-                    <div className="space-y-2">
-                      <Label htmlFor="htmlBody">HTML Body</Label>
-                      <Textarea
-                        id="htmlBody"
-                        value={htmlBody}
-                        onChange={(e) => setHtmlBody(e.target.value)}
-                        placeholder="<h1>Welcome {firstName}!</h1><p>Thank you for your inquiry...</p>"
-                        rows={6}
-                        data-testid="textarea-html-body"
-                      />
-                    </div>
-                  )}
-                  
                   <div className="space-y-2">
-                    <Label htmlFor="textBody">
-                      {channel === "EMAIL" ? "Text Body (Fallback)" : "Message"}
-                    </Label>
+                    <Label htmlFor="textBody">Message</Label>
                     <Textarea
+                      ref={textareaRef}
                       id="textBody"
                       value={textBody}
                       onChange={(e) => setTextBody(e.target.value)}
                       placeholder={channel === "EMAIL" 
-                        ? "Welcome {firstName}! Thank you for your inquiry..."
-                        : "Hi {firstName}, thank you for your inquiry! We'll be in touch soon."
+                        ? "Hi {{first_name}}, thank you for reaching out! I'd love to learn more about your {{project_type}}..."
+                        : "Hi {{first_name}}, thank you for your inquiry! We'll be in touch soon."
                       }
-                      rows={4}
+                      rows={6}
                       required
                       data-testid="textarea-text-body"
                     />
-                  </div>
-                  
-                  <div className="bg-muted p-3 rounded-md">
-                    <p className="text-sm font-medium mb-2">Available Variables:</p>
-                    <div className="text-xs text-muted-foreground space-y-1">
-                      <p>{'{'}firstName{'}'} - Client's first name</p>
-                      <p>{'{'}lastName{'}'} - Client's last name</p>
-                      <p>{'{'}fullName{'}'} - Client's full name (first + last)</p>
-                      <p>{'{'}email{'}'} - Client's email address</p>
-                      <p>{'{'}phone{'}'} - Client's phone number</p>
-                      <p>{'{'}weddingDate{'}'} - Client's wedding date</p>
-                      <p>{'{'}businessName{'}'} - Your business name</p>
-                      <p>{'{'}scheduling_link{'}'} - Short URL to your booking calendar</p>
-                    </div>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button 
+                          type="button" 
+                          variant="outline" 
+                          size="sm" 
+                          className="w-full"
+                          data-testid="button-insert-variable"
+                        >
+                          <Plus className="w-4 h-4 mr-2" />
+                          Insert Variable
+                          <ChevronDown className="w-4 h-4 ml-2" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="start" className="w-[200px]">
+                        {variables.map((variable) => (
+                          <DropdownMenuItem
+                            key={variable.value}
+                            onClick={() => insertVariable(variable.value)}
+                            data-testid={`insert-${variable.value.replace(/[{}]/g, '')}`}
+                          >
+                            <span className="text-xs font-mono text-muted-foreground mr-2">
+                              {variable.value}
+                            </span>
+                            <span className="text-sm">{variable.label}</span>
+                          </DropdownMenuItem>
+                        ))}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                   
                   <div className="flex justify-end space-x-2">
