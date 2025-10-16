@@ -364,8 +364,8 @@ export default function Projects() {
           </div>
 
           {/* Horizontal Stage Slider */}
-          <div className="relative w-full overflow-hidden">
-            <div className="flex gap-2 overflow-x-auto pb-2 hide-scrollbar">
+          <div className="relative w-full overflow-x-auto pb-2">
+            <div className="flex gap-2">
               <Button
                 variant={selectedStage === "ALL" ? "default" : "outline"}
                 className={cn(
