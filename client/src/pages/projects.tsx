@@ -191,7 +191,7 @@ export default function Projects() {
   };
 
   return (
-    <div className="h-full flex flex-col min-w-0 overflow-x-hidden">
+    <div className="h-full flex flex-col w-full max-w-full overflow-hidden">
       {/* Header */}
       <header className="bg-card border-b border-border px-4 md:px-6 py-4 shrink-0">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -344,8 +344,8 @@ export default function Projects() {
         </div>
       </header>
 
-      <div className="flex-1 min-w-0 overflow-y-auto overflow-x-hidden">
-        <div className="p-4 md:p-6 space-y-4 min-w-0">
+      <div className="flex-1 w-full overflow-y-auto overflow-x-hidden">
+        <div className="p-4 md:p-6 space-y-4 w-full max-w-full">
           {/* Project Type Filter */}
           <div className="flex items-center gap-2 text-sm">
             <span className="text-muted-foreground">View:</span>
@@ -364,8 +364,8 @@ export default function Projects() {
           </div>
 
           {/* Horizontal Stage Slider */}
-          <div className="relative overflow-x-auto pb-2">
-            <div className="flex gap-2 flex-nowrap">
+          <div className="relative -mx-4 md:-mx-6">
+            <div className="flex gap-2 px-4 md:px-6 overflow-x-auto pb-2">
               <Button
                 variant={selectedStage === "ALL" ? "default" : "outline"}
                 className={cn(
