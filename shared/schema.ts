@@ -248,6 +248,7 @@ export const automations = pgTable("automations", {
   photographerId: varchar("photographer_id").notNull().references(() => photographers.id),
   projectType: text("project_type").notNull().default("WEDDING"),
   name: text("name").notNull(),
+  description: text("description"), // Human-readable description for details view
   automationType: text("automation_type").notNull().default("COMMUNICATION"), // COMMUNICATION, STAGE_CHANGE, COUNTDOWN
   // Communication automation fields
   stageId: varchar("stage_id").references(() => stages.id),

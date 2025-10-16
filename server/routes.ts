@@ -4034,14 +4034,19 @@ ${photographer?.businessName || 'Your Photography Team'}`;
               continue;
             }
             
-            // Build automation name with optional source stage filter
-            const sourceStagePart = collectedInfo.stageId && collectedInfo.stageName 
-              ? `${collectedInfo.stageName}: ` 
-              : '';
+            // Create friendly automation name and description
+            const triggerName = collectedInfo.businessTrigger.replace(/_/g, ' ').toLowerCase();
+            const automationName = `Move to ${collectedInfo.targetStageName} when ${triggerName}`;
+            
+            let description = `Automatically moves contacts to the ${collectedInfo.targetStageName} stage when ${triggerName}.`;
+            if (collectedInfo.stageId && collectedInfo.stageName) {
+              description += ` Only applies to contacts currently in the ${collectedInfo.stageName} stage.`;
+            }
             
             const automationData = validateAutomationSchema.parse({
               photographerId,
-              name: `${sourceStagePart}${collectedInfo.businessTrigger} → ${collectedInfo.targetStageName}`,
+              name: automationName,
+              description,
               automationType: 'STAGE_CHANGE',
               triggerType: collectedInfo.businessTrigger,
               stageId: collectedInfo.stageId || null, // Source stage filter (optional)
@@ -4072,9 +4077,18 @@ ${photographer?.businessName || 'Your Photography Team'}`;
             }
             
             const channel = collectedInfo.actionType;
+            
+            // Create friendly countdown name and description
+            const eventName = collectedInfo.eventType.replace(/_/g, ' ');
+            const actionType = collectedInfo.actionType === 'SMS' ? 'text' : collectedInfo.actionType.toLowerCase();
+            const automationName = `Send ${actionType} ${collectedInfo.daysBefore} days before ${eventName}`;
+            
+            const description = `Sends a ${actionType} message to contacts ${collectedInfo.daysBefore} ${collectedInfo.daysBefore === 1 ? 'day' : 'days'} before their ${eventName}.`;
+            
             const automationData = validateAutomationSchema.parse({
               photographerId,
-              name: `${collectedInfo.daysBefore} days before ${collectedInfo.eventType}`,
+              name: automationName,
+              description,
               automationType: 'COUNTDOWN',
               eventType: collectedInfo.eventType,
               daysBefore: collectedInfo.daysBefore,
@@ -4132,10 +4146,41 @@ ${photographer?.businessName || 'Your Photography Team'}`;
           // Calculate delay in minutes (include days, hours, AND minutes)
           const delayMinutes = (collectedInfo.delayDays || 0) * 24 * 60 + (collectedInfo.delayHours || 0) * 60 + (collectedInfo.delayMinutes || 0);
           
+          // Create friendly automation name and description
+          const actionType = collectedInfo.actionType === 'SMS' ? 'text' : 
+                           collectedInfo.actionType === 'EMAIL' ? 'email' :
+                           collectedInfo.actionType === 'SMART_FILE' ? 'proposal' : 'message';
+          
+          let timingPart = '';
+          let descTimingPart = '';
+          if (delayMinutes > 0) {
+            if (collectedInfo.delayDays > 0) {
+              timingPart = ` ${collectedInfo.delayDays} ${collectedInfo.delayDays === 1 ? 'day' : 'days'} after`;
+              descTimingPart = ` ${collectedInfo.delayDays} ${collectedInfo.delayDays === 1 ? 'day' : 'days'} after they enter`;
+            } else if (collectedInfo.delayHours > 0) {
+              timingPart = ` ${collectedInfo.delayHours} ${collectedInfo.delayHours === 1 ? 'hour' : 'hours'} after`;
+              descTimingPart = ` ${collectedInfo.delayHours} ${collectedInfo.delayHours === 1 ? 'hour' : 'hours'} after they enter`;
+            } else if (collectedInfo.delayMinutes > 0) {
+              timingPart = ` ${collectedInfo.delayMinutes} ${collectedInfo.delayMinutes === 1 ? 'minute' : 'minutes'} after`;
+              descTimingPart = ` ${collectedInfo.delayMinutes} ${collectedInfo.delayMinutes === 1 ? 'minute' : 'minutes'} after they enter`;
+            }
+          } else {
+            descTimingPart = ' when they enter';
+          }
+          
+          const automationName = collectedInfo.stageId 
+            ? `Send ${actionType}${timingPart || ' when entering'} ${collectedInfo.stageName}`
+            : `Send ${actionType}${timingPart || ' to all new contacts'}`;
+          
+          const description = collectedInfo.stageId
+            ? `Sends a ${actionType}${descTimingPart} the ${collectedInfo.stageName} stage.`
+            : `Sends a ${actionType} to all new contacts${descTimingPart === ' when they enter' ? ' when they\'re added' : descTimingPart}.`;
+          
           // Create automation
           const automationData = validateAutomationSchema.parse({
             photographerId,
-            name: `${channel} automation - ${collectedInfo.stageName || 'Global'}`,
+            name: automationName,
+            description,
             automationType: 'COMMUNICATION',
             stageId: collectedInfo.stageId || null,
             channel,

@@ -236,9 +236,18 @@ function AutomationStepManager({ automation, onDelete }: { automation: any, onDe
         </button>
       </div>
 
-      {/* Timeline Steps */}
+      {/* Details Section */}
       {isExpanded && (
         <div className="p-4 pt-0 space-y-3">
+          {/* Description */}
+          {automation.description && (
+            <div className="bg-muted/30 border border-border/50 rounded-md p-3">
+              <p className="text-sm text-foreground/90 leading-relaxed">
+                {automation.description}
+              </p>
+            </div>
+          )}
+          
           {isLoading ? (
             <p className="text-sm text-muted-foreground">Loading steps...</p>
           ) : steps.length === 0 ? (
