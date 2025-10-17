@@ -1,7 +1,7 @@
-import { lazy, Suspense, useEffect } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { Switch, Route, useLocation, Redirect } from "wouter";
 import { queryClient } from "./lib/queryClient";
-import { QueryClientProvider } from "@tanstack/react-query";
+import { QueryClientProvider, useQuery } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, useAuth } from "./hooks/use-auth";
@@ -10,6 +10,8 @@ import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { AdminHeader } from "@/components/admin-header";
 import { ChatbotWidget } from "@/components/chatbot-widget";
+import OnboardingBanner from "@/components/OnboardingBanner";
+import OnboardingModal from "@/components/OnboardingModal";
 import Landing from "@/pages/landing";
 import Login from "@/pages/login";
 import Register from "@/pages/register";
@@ -60,6 +62,20 @@ const Checkout = lazy(() => import("@/pages/checkout"));
 
 function ProtectedRoutes() {
   const { user, loading } = useAuth();
+  const [onboardingModalOpen, setOnboardingModalOpen] = useState(false);
+
+  // Fetch photographer data for onboarding (only for photographers)
+  const { data: photographer } = useQuery({
+    queryKey: ['/api/photographers/me'],
+    enabled: !!user && user.role === 'PHOTOGRAPHER'
+  });
+
+  // Show onboarding modal on first login
+  useEffect(() => {
+    if (photographer && !photographer.onboardingCompletedAt && !photographer.onboardingDismissed) {
+      setOnboardingModalOpen(true);
+    }
+  }, [photographer]);
 
   if (loading) {
     return (
@@ -85,6 +101,13 @@ function ProtectedRoutes() {
       <SidebarProvider>
         <AppSidebar />
         <SidebarInset>
+          {/* Onboarding Banner - Shows on all pages for photographers */}
+          {photographer && user.role === 'PHOTOGRAPHER' && (
+            <OnboardingBanner 
+              photographer={photographer}
+              onOpenModal={() => setOnboardingModalOpen(true)}
+            />
+          )}
           <MobileHeader />
           <Switch>
             <Route path="/dashboard" component={Dashboard} />
@@ -125,6 +148,14 @@ function ProtectedRoutes() {
         </SidebarInset>
         <ChatbotWidget context="dashboard" photographerName={user?.businessName} />
       </SidebarProvider>
+      
+      {/* Onboarding Modal - Global for photographers */}
+      {photographer && user.role === 'PHOTOGRAPHER' && (
+        <OnboardingModal
+          open={onboardingModalOpen}
+          onOpenChange={setOnboardingModalOpen}
+        />
+      )}
     </>
   );
 }

@@ -22,13 +22,10 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
-import OnboardingModal from "@/components/OnboardingModal";
-import OnboardingBanner from "@/components/OnboardingBanner";
 
 export default function Dashboard() {
   const { user, loading } = useAuth();
   const [, setLocation] = useLocation();
-  const [onboardingModalOpen, setOnboardingModalOpen] = useState(false);
 
   // Redirect admins to admin dashboard
   useEffect(() => {
@@ -36,19 +33,6 @@ export default function Dashboard() {
       setLocation('/admin/dashboard');
     }
   }, [user, setLocation]);
-
-  // Fetch photographer data for onboarding
-  const { data: photographer } = useQuery({
-    queryKey: ['/api/photographers/me'],
-    enabled: !!user && user.role === 'PHOTOGRAPHER'
-  });
-
-  // Show onboarding modal on first login
-  useEffect(() => {
-    if (photographer && !photographer.onboardingCompletedAt && !photographer.onboardingDismissed) {
-      setOnboardingModalOpen(true);
-    }
-  }, [photographer]);
 
   // Fetch summary stats
   const { data: stats } = useQuery({
@@ -148,14 +132,6 @@ export default function Dashboard() {
 
   return (
     <div className="h-full flex flex-col">
-      {/* Onboarding Banner */}
-      {photographer && (
-        <OnboardingBanner 
-          photographer={photographer}
-          onOpenModal={() => setOnboardingModalOpen(true)}
-        />
-      )}
-
       {/* Header */}
       <header className="bg-card border-b border-border px-4 md:px-6 py-4 shrink-0">
         <div className="flex items-center gap-3">
@@ -410,12 +386,6 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
-
-      {/* Onboarding Modal */}
-      <OnboardingModal
-        open={onboardingModalOpen}
-        onOpenChange={setOnboardingModalOpen}
-      />
     </div>
   );
 }
