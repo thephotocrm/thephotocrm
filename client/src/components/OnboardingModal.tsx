@@ -159,21 +159,65 @@ export default function OnboardingModal({
     }
   };
 
-  const handleConnectStripe = (e: React.MouseEvent<HTMLButtonElement>) => {
+  const handleConnectStripe = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     e.stopPropagation();
     
     setIsConnectingStripe(true);
     
-    toast({
-      title: "Redirecting to Stripe...",
-      description: "You'll be redirected back after setup."
-    });
-    
-    // Small delay for visual feedback, then redirect
-    setTimeout(() => {
-      window.location.href = '/api/stripe/connect';
-    }, 300);
+    try {
+      // First, check if account exists and create if needed
+      const statusResponse = await fetch('/api/stripe-connect/account-status', {
+        credentials: 'include'
+      });
+      
+      if (!statusResponse.ok) {
+        throw new Error('Failed to check Stripe status');
+      }
+      
+      const statusData = await statusResponse.json();
+      
+      // Create account if it doesn't exist
+      if (!statusData.hasStripeAccount) {
+        const createResponse = await apiRequest('POST', '/api/stripe-connect/create-account');
+        if (!createResponse.ok) {
+          throw new Error('Failed to create Stripe account');
+        }
+      }
+      
+      // Get onboarding link
+      const onboardingResponse = await apiRequest('POST', '/api/stripe-connect/create-onboarding-link', {
+        returnUrl: `${window.location.origin}/dashboard?stripe=success`,
+        refreshUrl: `${window.location.origin}/dashboard?stripe=refresh`
+      });
+      
+      if (!onboardingResponse.ok) {
+        throw new Error('Failed to get onboarding link');
+      }
+      
+      const onboardingData = await onboardingResponse.json();
+      
+      if (onboardingData.url) {
+        toast({
+          title: "Redirecting to Stripe...",
+          description: "You'll be redirected back after setup."
+        });
+        
+        // Small delay for visual feedback, then redirect
+        setTimeout(() => {
+          window.location.href = onboardingData.url;
+        }, 300);
+      } else {
+        throw new Error('No onboarding URL returned');
+      }
+    } catch (error) {
+      setIsConnectingStripe(false);
+      toast({
+        title: "Connection Failed",
+        description: "Could not connect to Stripe. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleSaveProfile = async () => {
