@@ -29,6 +29,8 @@ import path from "path";
 import bcrypt from "bcrypt";
 import { nanoid } from "nanoid";
 import crypto from "crypto";
+import multer from "multer";
+import fs from "fs";
 
 
 /**
@@ -174,6 +176,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.use(cookieParser());
+
+  // Serve attached_assets directory for uploaded files (logos, etc.)
+  const attachedAssetsPath = path.join(process.cwd(), 'attached_assets');
+  if (!fs.existsSync(attachedAssetsPath)) {
+    fs.mkdirSync(attachedAssetsPath, { recursive: true });
+  }
+  app.use('/attached_assets', (await import('express')).static(attachedAssetsPath));
 
   // Log ALL incoming requests
   app.use((req, res, next) => {
@@ -1022,6 +1031,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(photographer);
     } catch (error) {
       res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Configure multer for logo uploads
+  const logoStorage = multer.diskStorage({
+    destination: (req, file, cb) => {
+      const uploadsDir = path.join(process.cwd(), 'attached_assets', 'logos');
+      // Ensure directory exists
+      if (!fs.existsSync(uploadsDir)) {
+        fs.mkdirSync(uploadsDir, { recursive: true });
+      }
+      cb(null, uploadsDir);
+    },
+    filename: (req, file, cb) => {
+      // Generate unique filename with original extension
+      const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1E9)}`;
+      const ext = path.extname(file.originalname);
+      cb(null, `logo-${uniqueSuffix}${ext}`);
+    }
+  });
+
+  const uploadLogo = multer({ 
+    storage: logoStorage,
+    limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+    fileFilter: (req, file, cb) => {
+      // Accept images only
+      if (file.mimetype.startsWith('image/')) {
+        cb(null, true);
+      } else {
+        cb(new Error('Only image files are allowed'));
+      }
+    }
+  });
+
+  app.post("/api/upload/logo", authenticateToken, requirePhotographer, uploadLogo.single('logo'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "No file uploaded" });
+      }
+      
+      // Return the file path relative to attached_assets
+      const logoUrl = `/attached_assets/logos/${req.file.filename}`;
+      res.json({ logoUrl });
+    } catch (error) {
+      console.error("Logo upload error:", error);
+      res.status(500).json({ message: "Failed to upload logo" });
     }
   });
 

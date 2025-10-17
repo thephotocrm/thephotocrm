@@ -33,10 +33,13 @@ export default function OnboardingModal({
   const [currentStep, setCurrentStep] = useState<OnboardingStep>('profile');
   const [showConfetti, setShowConfetti] = useState(false);
   const { toast } = useToast();
+  const [hasInitialized, setHasInitialized] = useState(false);
 
   // Form state
   const [photographerName, setPhotographerName] = useState('');
   const [logoUrl, setLogoUrl] = useState('');
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string>('');
   const [brandPrimary, setBrandPrimary] = useState('#3b82f6');
   const [brandSecondary, setBrandSecondary] = useState('#8b5cf6');
 
@@ -49,10 +52,25 @@ export default function OnboardingModal({
     if (photographer) {
       setPhotographerName(photographer.photographerName || '');
       setLogoUrl(photographer.logoUrl || '');
+      setLogoPreview(photographer.logoUrl || '');
       setBrandPrimary(photographer.brandPrimary || '#3b82f6');
       setBrandSecondary(photographer.brandSecondary || '#8b5cf6');
     }
   }, [photographer]);
+
+  // Handle logo file selection
+  const handleLogoFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setLogoFile(file);
+      // Create preview URL
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setLogoPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const updatePhotographerMutation = useMutation({
     mutationFn: async (data: Partial<PhotographerData>) => {
@@ -136,13 +154,43 @@ export default function OnboardingModal({
   };
 
   const handleSaveBranding = async () => {
-    await updatePhotographerMutation.mutateAsync({
-      logoUrl: logoUrl || null,
-      brandPrimary: brandPrimary || null,
-      brandSecondary: brandSecondary || null,
-    });
-    toast({ title: "Branding saved!" });
-    setCurrentStep('google');
+    try {
+      let finalLogoUrl = logoUrl;
+      
+      // Upload logo file if one was selected
+      if (logoFile) {
+        const formData = new FormData();
+        formData.append('logo', logoFile);
+        
+        const response = await fetch('/api/upload/logo', {
+          method: 'POST',
+          body: formData,
+          credentials: 'include'
+        });
+        
+        if (!response.ok) {
+          throw new Error('Logo upload failed');
+        }
+        
+        const data = await response.json();
+        finalLogoUrl = data.logoUrl;
+      }
+      
+      await updatePhotographerMutation.mutateAsync({
+        logoUrl: finalLogoUrl || null,
+        brandPrimary: brandPrimary || null,
+        brandSecondary: brandSecondary || null,
+      });
+      
+      toast({ title: "Branding saved!" });
+      setCurrentStep('google');
+    } catch (error) {
+      toast({
+        title: "Upload Failed",
+        description: "Could not upload logo. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleSkipToComplete = () => {
@@ -178,6 +226,33 @@ export default function OnboardingModal({
   const isGoogleComplete = !!photographer?.googleCalendarRefreshToken;
   const isStripeComplete = !!photographer?.stripeConnectAccountId;
   const isProjectComplete = projects.length > 0;
+
+  // Navigate to first incomplete section when modal opens
+  useEffect(() => {
+    if (open && photographer && !hasInitialized) {
+      // Find first incomplete step
+      if (!isProfileComplete) {
+        setCurrentStep('profile');
+      } else if (!isBrandingComplete) {
+        setCurrentStep('branding');
+      } else if (!isGoogleComplete) {
+        setCurrentStep('google');
+      } else if (!isStripeComplete) {
+        setCurrentStep('stripe');
+      } else if (!isProjectComplete) {
+        setCurrentStep('project');
+      } else {
+        // All complete, show completion screen
+        setCurrentStep('complete');
+      }
+      setHasInitialized(true);
+    }
+    
+    // Reset when modal closes
+    if (!open) {
+      setHasInitialized(false);
+    }
+  }, [open, photographer, hasInitialized, isProfileComplete, isBrandingComplete, isGoogleComplete, isStripeComplete, isProjectComplete]);
 
   return (
     <>
@@ -232,18 +307,24 @@ export default function OnboardingModal({
                     return (
                       <div 
                         key={step.key} 
-                        className={`flex flex-col items-center gap-1 flex-1 ${isActive ? 'opacity-100' : 'opacity-50'}`}
+                        className={`flex flex-col items-center gap-1 flex-1 transition-all ${
+                          isComplete ? 'opacity-40' : 
+                          isActive ? 'opacity-100' : 
+                          'opacity-50'
+                        }`}
                         data-testid={`step-indicator-${step.key}`}
                       >
-                        <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                          isComplete ? 'bg-green-500 text-white' :
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
+                          isComplete ? 'bg-muted/60 text-muted-foreground/60' :
                           isActive ? 'bg-primary text-primary-foreground' : 
                           isPast ? 'bg-muted text-muted-foreground' :
                           'bg-muted text-muted-foreground'
                         }`}>
                           {isComplete ? <Check className="w-5 h-5" /> : <Icon className="w-5 h-5" />}
                         </div>
-                        <span className="text-xs text-center">{step.label}</span>
+                        <span className={`text-xs text-center transition-colors ${
+                          isComplete ? 'text-muted-foreground/60' : ''
+                        }`}>{step.label}</span>
                       </div>
                     );
                   })}
@@ -302,14 +383,34 @@ export default function OnboardingModal({
                     </div>
                     <div className="space-y-4">
                       <div>
-                        <Label htmlFor="logoUrl">Logo URL (optional)</Label>
-                        <Input
-                          id="logoUrl"
-                          placeholder="https://example.com/logo.png"
-                          value={logoUrl}
-                          onChange={(e) => setLogoUrl(e.target.value)}
-                          data-testid="input-logo-url"
-                        />
+                        <Label htmlFor="logoFile">Logo (optional)</Label>
+                        <div className="space-y-3">
+                          {logoPreview && (
+                            <div className="flex items-center gap-3 p-3 border rounded-lg bg-muted/30">
+                              <img 
+                                src={logoPreview} 
+                                alt="Logo preview" 
+                                className="w-16 h-16 object-contain rounded"
+                              />
+                              <div className="flex-1">
+                                <p className="text-sm font-medium">Logo preview</p>
+                                <p className="text-xs text-muted-foreground">
+                                  {logoFile ? logoFile.name : 'Current logo'}
+                                </p>
+                              </div>
+                            </div>
+                          )}
+                          <Input
+                            id="logoFile"
+                            type="file"
+                            accept="image/*"
+                            onChange={handleLogoFileChange}
+                            data-testid="input-logo-file"
+                          />
+                          <p className="text-xs text-muted-foreground">
+                            Upload your business logo (PNG, JPG, or SVG recommended)
+                          </p>
+                        </div>
                       </div>
                       <div className="grid grid-cols-2 gap-4">
                         <div>

@@ -23,6 +23,29 @@ export interface BrandingData {
 }
 
 /**
+ * Convert relative paths to absolute URLs for use in emails
+ * Email clients require absolute URLs for images
+ */
+function toAbsoluteUrl(urlOrPath: string | undefined): string | undefined {
+  if (!urlOrPath) return undefined;
+  
+  // If it's already an absolute URL, return as is
+  if (urlOrPath.startsWith('http://') || urlOrPath.startsWith('https://')) {
+    return urlOrPath;
+  }
+  
+  // Convert relative path to absolute URL using the app domain
+  const baseUrl = process.env.REPL_SLUG 
+    ? `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co`
+    : `http://localhost:${process.env.PORT || 5000}`;
+  
+  // Remove leading slash if present to avoid double slashes
+  const path = urlOrPath.startsWith('/') ? urlOrPath : `/${urlOrPath}`;
+  
+  return `${baseUrl}${path}`;
+}
+
+/**
  * Header Templates
  */
 
@@ -31,19 +54,23 @@ export function generateHeader(style: string | null, data: BrandingData): string
 
   const primaryColor = data.brandPrimary || '#000000';
   const secondaryColor = data.brandSecondary || '#666666';
+  
+  // Convert logo URL to absolute URL for emails
+  const absoluteLogoUrl = toAbsoluteUrl(data.logoUrl);
+  const absoluteHeadshotUrl = toAbsoluteUrl(data.headshotUrl);
 
   switch (style) {
     case 'minimal':
       return `
         <div style="text-align: center; padding: 20px 0; margin-bottom: 30px;">
-          ${data.logoUrl ? `<img src="${data.logoUrl}" alt="${data.businessName || 'Logo'}" style="max-width: 150px; height: auto;" />` : ''}
+          ${absoluteLogoUrl ? `<img src="${absoluteLogoUrl}" alt="${data.businessName || 'Logo'}" style="max-width: 150px; height: auto;" />` : ''}
         </div>
       `;
 
     case 'professional':
       return `
         <div style="text-align: center; padding: 20px 0; margin-bottom: 30px; border-bottom: 2px solid ${primaryColor};">
-          ${data.logoUrl ? `<img src="${data.logoUrl}" alt="${data.businessName || 'Logo'}" style="max-width: 150px; height: auto; margin-bottom: 10px;" />` : ''}
+          ${absoluteLogoUrl ? `<img src="${absoluteLogoUrl}" alt="${data.businessName || 'Logo'}" style="max-width: 150px; height: auto; margin-bottom: 10px;" />` : ''}
           ${data.businessName ? `<h2 style="margin: 10px 0 0 0; color: ${primaryColor}; font-size: 24px; font-weight: 600;">${data.businessName}</h2>` : ''}
         </div>
       `;
@@ -51,7 +78,7 @@ export function generateHeader(style: string | null, data: BrandingData): string
     case 'bold':
       return `
         <div style="background: linear-gradient(135deg, ${primaryColor} 0%, ${secondaryColor} 100%); padding: 30px 20px; text-align: center; margin-bottom: 30px;">
-          ${data.logoUrl ? `<img src="${data.logoUrl}" alt="${data.businessName || 'Logo'}" style="max-width: 150px; height: auto; margin-bottom: 10px; filter: brightness(0) invert(1);" />` : ''}
+          ${absoluteLogoUrl ? `<img src="${absoluteLogoUrl}" alt="${data.businessName || 'Logo'}" style="max-width: 150px; height: auto; margin-bottom: 10px; filter: brightness(0) invert(1);" />` : ''}
           ${data.businessName ? `<h1 style="margin: 10px 0 0 0; color: white; font-size: 28px; font-weight: 700; text-shadow: 0 2px 4px rgba(0,0,0,0.2);">${data.businessName}</h1>` : ''}
         </div>
       `;
@@ -60,7 +87,7 @@ export function generateHeader(style: string | null, data: BrandingData): string
       return `
         <div style="display: table; width: 100%; padding: 20px 0; margin-bottom: 30px; border-bottom: 1px solid #e0e0e0;">
           <div style="display: table-cell; vertical-align: middle; text-align: left;">
-            ${data.logoUrl ? `<img src="${data.logoUrl}" alt="${data.businessName || 'Logo'}" style="max-width: 120px; height: auto;" />` : ''}
+            ${absoluteLogoUrl ? `<img src="${absoluteLogoUrl}" alt="${data.businessName || 'Logo'}" style="max-width: 120px; height: auto;" />` : ''}
           </div>
           <div style="display: table-cell; vertical-align: middle; text-align: right;">
             ${data.businessName ? `<h2 style="margin: 0; color: ${primaryColor}; font-size: 22px; font-weight: 600;">${data.businessName}</h2>` : ''}
@@ -84,6 +111,10 @@ export function generateSignature(style: string | null, data: BrandingData): str
   const primaryColor = data.brandPrimary || '#000000';
   const secondaryColor = data.brandSecondary || '#666666';
   const socialLinks = data.socialLinks || {};
+  
+  // Convert URLs to absolute for emails
+  const absoluteLogoUrl = toAbsoluteUrl(data.logoUrl);
+  const absoluteHeadshotUrl = toAbsoluteUrl(data.headshotUrl);
 
   switch (style) {
     case 'simple':
@@ -99,7 +130,7 @@ export function generateSignature(style: string | null, data: BrandingData): str
     case 'professional':
       // Default placeholder headshot if none provided
       const defaultHeadshot = 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop&crop=faces';
-      const headshotUrl = data.headshotUrl || defaultHeadshot;
+      const headshotUrl = absoluteHeadshotUrl || defaultHeadshot;
       
       return `
         <div style="margin-top: 30px; padding: 20px; border-top: 2px solid ${primaryColor}; color: ${secondaryColor}; font-size: 14px;">
@@ -134,7 +165,7 @@ export function generateSignature(style: string | null, data: BrandingData): str
           <table style="width: 100%;">
             <tr>
               <td style="text-align: center; padding-bottom: 15px;">
-                ${data.logoUrl ? `<img src="${data.logoUrl}" alt="Logo" style="max-width: 100px; height: auto; margin-bottom: 10px;" />` : ''}
+                ${absoluteLogoUrl ? `<img src="${absoluteLogoUrl}" alt="Logo" style="max-width: 100px; height: auto; margin-bottom: 10px;" />` : ''}
                 <h3 style="margin: 0; color: ${primaryColor}; font-size: 18px; font-weight: 600;">${data.businessName || ''}</h3>
                 ${data.photographerName ? `<p style="margin: 5px 0 0 0; color: ${secondaryColor}; font-size: 14px;">${data.photographerName}</p>` : ''}
               </td>
@@ -164,7 +195,7 @@ export function generateSignature(style: string | null, data: BrandingData): str
       return `
         <div style="margin-top: 30px; padding: 0;">
           <div style="background: ${primaryColor}; padding: 20px; text-align: center;">
-            ${data.logoUrl ? `<img src="${data.logoUrl}" alt="Logo" style="max-width: 80px; height: auto; filter: brightness(0) invert(1);" />` : ''}
+            ${absoluteLogoUrl ? `<img src="${absoluteLogoUrl}" alt="Logo" style="max-width: 80px; height: auto; filter: brightness(0) invert(1);" />` : ''}
           </div>
           <div style="background: #f8f9fa; padding: 20px; border-left: 4px solid ${primaryColor};">
             <p style="margin: 0 0 10px 0; font-size: 16px; font-weight: 600; color: ${primaryColor};">${data.photographerName || data.businessName || ''}</p>
