@@ -1,6 +1,6 @@
 import { useAuth } from "@/hooks/use-auth";
 import { useLocation } from "wouter";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -22,10 +22,41 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Dashboard() {
   const { user, loading } = useAuth();
   const [, setLocation] = useLocation();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  // Check for OAuth callback status in URL parameters
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const googleConnected = params.get('google_connected');
+    const googleError = params.get('google_error');
+
+    if (googleConnected === 'true') {
+      toast({
+        title: "Google Calendar Connected!",
+        description: "Your calendar integration is now active.",
+      });
+      // Remove query params from URL
+      window.history.replaceState({}, '', '/dashboard');
+      // Invalidate queries to refresh data
+      queryClient.invalidateQueries({ queryKey: ["/api/calendar/status"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/photographers/me"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/photographer"] });
+    } else if (googleError) {
+      toast({
+        title: "Connection Failed",
+        description: `Failed to connect Google Calendar: ${decodeURIComponent(googleError)}`,
+        variant: "destructive"
+      });
+      // Remove query params from URL
+      window.history.replaceState({}, '', '/dashboard');
+    }
+  }, [toast, queryClient]);
 
   // Redirect admins to admin dashboard
   useEffect(() => {

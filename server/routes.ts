@@ -6506,7 +6506,8 @@ ${photographer.businessName}`
   app.get("/api/auth/google-calendar", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       const photographerId = req.user!.photographerId!;
-      const authResult = await googleCalendarService.getAuthUrl(photographerId);
+      const returnUrl = req.query.returnUrl as string | undefined;
+      const authResult = await googleCalendarService.getAuthUrl(photographerId, returnUrl);
       
       if (!authResult) {
         return res.status(503).json({ 
@@ -6533,67 +6534,31 @@ ${photographer.businessName}`
       
       if (!code || !state) {
         console.error('❌ Missing code or state in callback');
-        return res.status(400).send(`
-          <html>
-            <body style="font-family: Arial, sans-serif; text-align: center; padding: 50px;">
-              <h2 style="color: red;">❌ Invalid Authorization Request</h2>
-              <p>Missing required authorization parameters. Please try connecting your calendar again.</p>
-            </body>
-          </html>
-        `);
+        return res.redirect('/settings?google_error=missing_params');
       }
 
       // Validate state parameter for CSRF protection
       const stateValidation = googleCalendarService.validateState(state as string);
       if (!stateValidation.valid || !stateValidation.photographerId) {
-        return res.status(400).send(`
-          <html>
-            <body style="font-family: Arial, sans-serif; text-align: center; padding: 50px;">
-              <h2 style="color: red;">❌ Security Error</h2>
-              <p>Invalid or expired authorization request. Please try connecting your calendar again.</p>
-            </body>
-          </html>
-        `);
+        console.error('❌ Invalid state validation');
+        return res.redirect('/settings?google_error=invalid_state');
       }
 
       const photographerId = stateValidation.photographerId;
+      const returnUrl = stateValidation.returnUrl;
       const result = await googleCalendarService.exchangeCodeForTokens(code as string, photographerId);
       
       if (result.success) {
-        res.send(`
-          <html>
-            <body style="font-family: Arial, sans-serif; text-align: center; padding: 50px;">
-              <h2 style="color: green;">✅ Google Calendar Connected Successfully!</h2>
-              <p>Your calendar integration is now active. You can close this window.</p>
-              <script>
-                setTimeout(() => {
-                  window.close();
-                }, 3000);
-              </script>
-            </body>
-          </html>
-        `);
+        console.log('✅ Google Calendar connected successfully for photographer:', photographerId);
+        // Redirect back to the original page with success indicator
+        res.redirect(`${returnUrl}?google_connected=true`);
       } else {
-        res.status(500).send(`
-          <html>
-            <body style="font-family: Arial, sans-serif; text-align: center; padding: 50px;">
-              <h2 style="color: red;">❌ Calendar Connection Failed</h2>
-              <p>Error: ${result.error}</p>
-              <p>Please try again or contact support.</p>
-            </body>
-          </html>
-        `);
+        console.error('❌ Token exchange failed:', result.error);
+        res.redirect(`${returnUrl}?google_error=${encodeURIComponent(result.error || 'unknown')}`);
       }
     } catch (error) {
       console.error('Google Calendar callback error:', error);
-      res.status(500).send(`
-        <html>
-          <body style="font-family: Arial, sans-serif; text-align: center; padding: 50px;">
-            <h2 style="color: red;">❌ Authorization Failed</h2>
-            <p>An unexpected error occurred. Please try again or contact support.</p>
-          </body>
-        </html>
-      `);
+      res.redirect('/settings?google_error=callback_failed');
     }
   });
 

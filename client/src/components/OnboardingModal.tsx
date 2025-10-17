@@ -102,64 +102,29 @@ export default function OnboardingModal({
     }
   });
 
-  const handleConnectCalendar = () => {
-    // Pre-open popup synchronously from user click (mobile-safe)
-    const popup = window.open('', '_blank', 'width=500,height=600');
-    
-    connectCalendarMutation.mutate(undefined, {
-      onSuccess: (data) => {
-        if (data.authUrl && popup) {
-          popup.location.href = data.authUrl;
-          
-          // Poll for connection status
-          const pollInterval = setInterval(async () => {
-            // Fetch fresh data from server
-            const response = await fetch('/api/photographers/me', {
-              credentials: 'include'
-            });
-            
-            if (response.ok) {
-              const updatedPhotographer = await response.json() as PhotographerData;
-              
-              if (updatedPhotographer?.googleCalendarRefreshToken) {
-                clearInterval(pollInterval);
-                if (popup && !popup.closed) {
-                  popup.close();
-                }
-                
-                // Update the cache with fresh data
-                queryClient.setQueryData(['/api/photographers/me'], updatedPhotographer);
-                
-                toast({
-                  title: "Google Calendar Connected!",
-                  description: "Your calendar integration is now active.",
-                });
-              }
-            }
-          }, 2000);
-          
-          // Stop polling after 5 minutes
-          setTimeout(() => {
-            clearInterval(pollInterval);
-            if (popup && !popup.closed) {
-              popup.close();
-            }
-          }, 5 * 60 * 1000);
-        } else if (popup) {
-          popup.close();
-        }
-      },
-      onError: () => {
-        if (popup && !popup.closed) {
-          popup.close();
-        }
-        toast({
-          title: "Connection Failed",
-          description: "Failed to connect Google Calendar. Please try again.",
-          variant: "destructive"
-        });
+  const handleConnectCalendar = async () => {
+    try {
+      const response = await fetch("/api/auth/google-calendar?returnUrl=/dashboard", {
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        throw new Error("Failed to get auth URL");
       }
-    });
+      
+      const data = await response.json();
+      
+      if (data.authUrl) {
+        // Full page redirect to Google OAuth
+        window.location.href = data.authUrl;
+      }
+    } catch (error) {
+      toast({
+        title: "Connection Failed",
+        description: "Could not connect to Google Calendar. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleSaveProfile = async () => {

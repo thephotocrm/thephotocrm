@@ -28,6 +28,34 @@ export default function Settings() {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("profile");
 
+  // Check for OAuth callback status in URL parameters
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const googleConnected = params.get('google_connected');
+    const googleError = params.get('google_error');
+
+    if (googleConnected === 'true') {
+      toast({
+        title: "Google Calendar Connected!",
+        description: "Your calendar integration is now active.",
+      });
+      // Remove query params from URL
+      window.history.replaceState({}, '', '/settings');
+      // Invalidate queries to refresh data
+      queryClient.invalidateQueries({ queryKey: ["/api/calendar/status"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/photographers/me"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/photographer"] });
+    } else if (googleError) {
+      toast({
+        title: "Connection Failed",
+        description: `Failed to connect Google Calendar: ${decodeURIComponent(googleError)}`,
+        variant: "destructive"
+      });
+      // Remove query params from URL
+      window.history.replaceState({}, '', '/settings');
+    }
+  }, [toast, queryClient]);
+
   // ALL HOOKS MUST BE CALLED BEFORE ANY CONDITIONAL LOGIC
   const { data: photographer } = useQuery({
     queryKey: ["/api/photographer"],
@@ -139,54 +167,30 @@ export default function Settings() {
     }
   });
 
-  // Mobile-friendly connect function that pre-opens popup
-  const handleConnectCalendar = () => {
-    // Pre-open popup synchronously from user click (works on mobile)
-    const popup = window.open('', '_blank', 'width=500,height=600');
-    
-    connectCalendarMutation.mutate(undefined, {
-      onSuccess: (data) => {
-        if (data.authUrl && popup) {
-          // Set URL on pre-opened popup (mobile-safe)
-          popup.location.href = data.authUrl;
-          
-          // Poll for connection status after opening auth window
-          const pollInterval = setInterval(async () => {
-            const result = await refetchCalendarStatus();
-            if ((result.data as any)?.authenticated) {
-              clearInterval(pollInterval);
-              if (popup && !popup.closed) {
-                popup.close();
-              }
-              toast({
-                title: "Google Calendar Connected!",
-                description: "Your calendar integration is now active.",
-              });
-            }
-          }, 2000);
-          
-          // Stop polling after 5 minutes
-          setTimeout(() => {
-            clearInterval(pollInterval);
-            if (popup && !popup.closed) {
-              popup.close();
-            }
-          }, 5 * 60 * 1000);
-        } else if (popup) {
-          popup.close();
-        }
-      },
-      onError: () => {
-        if (popup && !popup.closed) {
-          popup.close();
-        }
-        toast({
-          title: "Connection Failed",
-          description: "Failed to connect to Google Calendar. Please try again.",
-          variant: "destructive"
-        });
+  // Full-page redirect OAuth flow (fixes popup blocking issues)
+  const handleConnectCalendar = async () => {
+    try {
+      const response = await fetch("/api/auth/google-calendar?returnUrl=/settings", {
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        throw new Error("Failed to get auth URL");
       }
-    });
+      
+      const data = await response.json();
+      
+      if (data.authUrl) {
+        // Full page redirect to Google OAuth
+        window.location.href = data.authUrl;
+      }
+    } catch (error) {
+      toast({
+        title: "Connection Failed",
+        description: "Failed to connect to Google Calendar. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   const disconnectCalendarMutation = useMutation({

@@ -27,6 +27,7 @@ export interface OAuthState {
   photographerId: string;
   nonce: string;
   timestamp: number;
+  returnUrl?: string;
 }
 
 export interface SignedOAuthState {
@@ -174,7 +175,7 @@ export class GoogleCalendarService {
   /**
    * Generate secure OAuth authorization URL with HMAC-signed state parameter for CSRF protection
    */
-  async getAuthUrl(photographerId: string): Promise<{ url: string; state: string } | null> {
+  async getAuthUrl(photographerId: string, returnUrl?: string): Promise<{ url: string; state: string } | null> {
     try {
       const oauth2Client = this.createOAuth2Client();
       if (!oauth2Client) {
@@ -182,11 +183,12 @@ export class GoogleCalendarService {
         return null;
       }
       
-      // Create secure state parameter with photographer ID and nonce
+      // Create secure state parameter with photographer ID, nonce, and return URL
       const state: OAuthState = {
         photographerId,
         nonce: nanoid(),
-        timestamp: Date.now()
+        timestamp: Date.now(),
+        returnUrl: returnUrl || '/settings'
       };
 
       // Encode the state payload
@@ -207,6 +209,7 @@ export class GoogleCalendarService {
 
       console.log(`Generated secure OAuth URL for photographer ${photographerId}`);
       console.log(`🔗 Redirect URI configured: ${GoogleCalendarService.REDIRECT_URI}`);
+      console.log(`🔗 Return URL: ${returnUrl || '/settings'}`);
       return { url, state: signedState };
     } catch (error) {
       console.error('Error generating auth URL:', error);
@@ -218,13 +221,13 @@ export class GoogleCalendarService {
    * Securely validate HMAC-signed state parameter and extract photographer ID
    * SECURITY: Prevents account linking attacks by verifying cryptographic signatures
    */
-  validateState(stateString: string): { photographerId: string; valid: boolean } {
+  validateState(stateString: string): { photographerId: string; returnUrl: string; valid: boolean } {
     try {
       // Parse signed state format: payload.signature
       const parts = stateString.split(GoogleCalendarService.STATE_SEPARATOR);
       if (parts.length !== 2) {
         console.warn('Invalid state format: missing signature component');
-        return { photographerId: '', valid: false };
+        return { photographerId: '', returnUrl: '/settings', valid: false };
       }
 
       const [payloadString, signature] = parts;
@@ -232,7 +235,7 @@ export class GoogleCalendarService {
       // Verify HMAC signature first (prevents processing of forged states)
       if (!this.verifyHMACSignature(payloadString, signature)) {
         console.error('SECURITY ALERT: Invalid state signature detected - possible forgery attempt');
-        return { photographerId: '', valid: false };
+        return { photographerId: '', returnUrl: '/settings', valid: false };
       }
 
       // Decode and parse the payload only after signature verification
@@ -256,11 +259,12 @@ export class GoogleCalendarService {
 
       return {
         photographerId: state.photographerId,
+        returnUrl: state.returnUrl || '/settings',
         valid: isValid
       };
     } catch (error) {
       console.error('State validation error:', error);
-      return { photographerId: '', valid: false };
+      return { photographerId: '', returnUrl: '/settings', valid: false };
     }
   }
 
