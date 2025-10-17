@@ -113,21 +113,28 @@ export default function OnboardingModal({
           
           // Poll for connection status
           const pollInterval = setInterval(async () => {
-            await queryClient.invalidateQueries({ 
-              queryKey: ['/api/photographers/me'] 
+            // Fetch fresh data from server
+            const response = await fetch('/api/photographers/me', {
+              credentials: 'include'
             });
             
-            const updatedPhotographer = queryClient.getQueryData<PhotographerData>(['/api/photographers/me']);
-            
-            if (updatedPhotographer?.googleCalendarRefreshToken) {
-              clearInterval(pollInterval);
-              if (popup && !popup.closed) {
-                popup.close();
+            if (response.ok) {
+              const updatedPhotographer = await response.json() as PhotographerData;
+              
+              if (updatedPhotographer?.googleCalendarRefreshToken) {
+                clearInterval(pollInterval);
+                if (popup && !popup.closed) {
+                  popup.close();
+                }
+                
+                // Update the cache with fresh data
+                queryClient.setQueryData(['/api/photographers/me'], updatedPhotographer);
+                
+                toast({
+                  title: "Google Calendar Connected!",
+                  description: "Your calendar integration is now active.",
+                });
               }
-              toast({
-                title: "Google Calendar Connected!",
-                description: "Your calendar integration is now active.",
-              });
             }
           }, 2000);
           
