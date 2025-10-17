@@ -108,19 +108,16 @@ export default function OnboardingModal({
     },
   });
 
-  // Google Calendar connection
-  const connectCalendarMutation = useMutation({
-    mutationFn: async () => {
-      const response = await fetch("/api/auth/google-calendar", {
-        credentials: 'include'
-      });
-      if (!response.ok) throw new Error("Failed to get auth URL");
-      const data = await response.json();
-      return data;
-    }
-  });
+  // Google Calendar connection state
+  const [isConnectingGoogle, setIsConnectingGoogle] = useState(false);
+  const [isConnectingStripe, setIsConnectingStripe] = useState(false);
 
-  const handleConnectCalendar = async () => {
+  const handleConnectCalendar = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    setIsConnectingGoogle(true);
+    
     try {
       const response = await fetch("/api/auth/google-calendar?returnUrl=/dashboard", {
         credentials: 'include'
@@ -133,16 +130,50 @@ export default function OnboardingModal({
       const data = await response.json();
       
       if (data.authUrl) {
-        // Full page redirect to Google OAuth
-        window.location.href = data.authUrl;
+        // Show loading state before redirect
+        toast({
+          title: "Redirecting to Google...",
+          description: "You'll be redirected back after authorization."
+        });
+        
+        // Small delay for visual feedback, then redirect
+        setTimeout(() => {
+          window.location.href = data.authUrl;
+        }, 300);
+      } else {
+        // Fallback if no authUrl returned
+        setIsConnectingGoogle(false);
+        toast({
+          title: "Connection Failed",
+          description: "Could not get authorization URL. Please try again.",
+          variant: "destructive"
+        });
       }
     } catch (error) {
+      setIsConnectingGoogle(false);
       toast({
         title: "Connection Failed",
         description: "Could not connect to Google Calendar. Please try again.",
         variant: "destructive"
       });
     }
+  };
+
+  const handleConnectStripe = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    setIsConnectingStripe(true);
+    
+    toast({
+      title: "Redirecting to Stripe...",
+      description: "You'll be redirected back after setup."
+    });
+    
+    // Small delay for visual feedback, then redirect
+    setTimeout(() => {
+      window.location.href = '/api/stripe/connect';
+    }, 300);
   };
 
   const handleSaveProfile = async () => {
@@ -497,13 +528,15 @@ export default function OnboardingModal({
                         </div>
                       ) : (
                         <Button 
+                          type="button"
                           onClick={handleConnectCalendar}
                           variant="outline"
                           className="w-full"
+                          disabled={isConnectingGoogle}
                           data-testid="button-connect-google"
                         >
                           <Calendar className="w-4 h-4 mr-2" />
-                          Connect Google Calendar
+                          {isConnectingGoogle ? "Redirecting..." : "Connect Google Calendar"}
                         </Button>
                       )}
                     </div>
@@ -546,13 +579,15 @@ export default function OnboardingModal({
                         </div>
                       ) : (
                         <Button 
-                          onClick={() => window.location.href = '/api/stripe/connect'}
+                          type="button"
+                          onClick={handleConnectStripe}
                           variant="outline"
                           className="w-full"
+                          disabled={isConnectingStripe}
                           data-testid="button-connect-stripe"
                         >
                           <CreditCard className="w-4 h-4 mr-2" />
-                          Connect Stripe
+                          {isConnectingStripe ? "Redirecting..." : "Connect Stripe"}
                         </Button>
                       )}
                     </div>
