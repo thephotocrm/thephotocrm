@@ -90,6 +90,70 @@ export default function OnboardingModal({
     },
   });
 
+  // Google Calendar connection
+  const connectCalendarMutation = useMutation({
+    mutationFn: async () => {
+      const response = await fetch("/api/auth/google-calendar", {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error("Failed to get auth URL");
+      const data = await response.json();
+      return data;
+    }
+  });
+
+  const handleConnectCalendar = () => {
+    // Pre-open popup synchronously from user click (mobile-safe)
+    const popup = window.open('', '_blank', 'width=500,height=600');
+    
+    connectCalendarMutation.mutate(undefined, {
+      onSuccess: (data) => {
+        if (data.authUrl && popup) {
+          popup.location.href = data.authUrl;
+          
+          // Poll for connection status
+          const pollInterval = setInterval(async () => {
+            const result = await queryClient.refetchQueries({ 
+              queryKey: ['/api/photographers/me'] 
+            });
+            const photographerData = result[0]?.data as PhotographerData | undefined;
+            
+            if (photographerData?.googleCalendarRefreshToken) {
+              clearInterval(pollInterval);
+              if (popup && !popup.closed) {
+                popup.close();
+              }
+              toast({
+                title: "Google Calendar Connected!",
+                description: "Your calendar integration is now active.",
+              });
+            }
+          }, 2000);
+          
+          // Stop polling after 5 minutes
+          setTimeout(() => {
+            clearInterval(pollInterval);
+            if (popup && !popup.closed) {
+              popup.close();
+            }
+          }, 5 * 60 * 1000);
+        } else if (popup) {
+          popup.close();
+        }
+      },
+      onError: () => {
+        if (popup && !popup.closed) {
+          popup.close();
+        }
+        toast({
+          title: "Connection Failed",
+          description: "Failed to connect Google Calendar. Please try again.",
+          variant: "destructive"
+        });
+      }
+    });
+  };
+
   const handleSaveProfile = async () => {
     await updatePhotographerMutation.mutateAsync({
       photographerName: photographerName || null,
@@ -359,7 +423,7 @@ export default function OnboardingModal({
                         </div>
                       ) : (
                         <Button 
-                          onClick={() => window.location.href = '/api/auth/google'}
+                          onClick={handleConnectCalendar}
                           variant="outline"
                           className="w-full"
                           data-testid="button-connect-google"
