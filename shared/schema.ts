@@ -158,6 +158,10 @@ export const photographers = pgTable("photographers", {
   shootproofConnectedAt: timestamp("shootproof_connected_at"),
   shootproofStudioId: text("shootproof_studio_id"),
   shootproofEmail: text("shootproof_email"),
+  // Onboarding tracking
+  onboardingVersion: integer("onboarding_version").default(1),
+  onboardingCompletedAt: timestamp("onboarding_completed_at"),
+  onboardingDismissed: boolean("onboarding_dismissed").default(false),
   createdAt: timestamp("created_at").defaultNow()
 });
 

@@ -1012,6 +1012,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Onboarding routes (alias for /api/photographer endpoints)
+  app.get("/api/photographers/me", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      const photographer = await storage.getPhotographer(req.user!.photographerId!);
+      if (!photographer) {
+        return res.status(404).json({ message: "Photographer not found" });
+      }
+      res.json(photographer);
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.patch("/api/photographers/me", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      const updated = await storage.updatePhotographer(req.user!.photographerId!, req.body);
+      res.json(updated);
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.post("/api/photographers/me/complete-onboarding", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      const updated = await storage.updatePhotographer(req.user!.photographerId!, {
+        onboardingCompletedAt: new Date(),
+        onboardingDismissed: false
+      });
+      res.json(updated);
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.post("/api/photographers/me/dismiss-onboarding", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      const updated = await storage.updatePhotographer(req.user!.photographerId!, {
+        onboardingDismissed: true
+      });
+      res.json(updated);
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   // Stages
   app.get("/api/stages", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
