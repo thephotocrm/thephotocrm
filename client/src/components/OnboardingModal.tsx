@@ -56,10 +56,7 @@ export default function OnboardingModal({
 
   const updatePhotographerMutation = useMutation({
     mutationFn: async (data: Partial<PhotographerData>) => {
-      return apiRequest('/api/photographers/me', {
-        method: 'PATCH',
-        body: JSON.stringify(data),
-      });
+      return apiRequest('PATCH', '/api/photographers/me', data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/photographers/me'] });
@@ -69,9 +66,7 @@ export default function OnboardingModal({
 
   const completeOnboardingMutation = useMutation({
     mutationFn: async () => {
-      return apiRequest('/api/photographers/me/complete-onboarding', {
-        method: 'POST',
-      });
+      return apiRequest('POST', '/api/photographers/me/complete-onboarding');
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/photographers/me'] });
@@ -86,9 +81,7 @@ export default function OnboardingModal({
 
   const dismissOnboardingMutation = useMutation({
     mutationFn: async () => {
-      return apiRequest('/api/photographers/me/dismiss-onboarding', {
-        method: 'POST',
-      });
+      return apiRequest('POST', '/api/photographers/me/dismiss-onboarding');
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/photographers/me'] });

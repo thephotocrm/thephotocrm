@@ -28,9 +28,7 @@ export default function OnboardingBanner({ photographer, onOpenModal }: Onboardi
 
   const dismissOnboardingMutation = useMutation({
     mutationFn: async () => {
-      return apiRequest('/api/photographers/me/dismiss-onboarding', {
-        method: 'POST',
-      });
+      return apiRequest('POST', '/api/photographers/me/dismiss-onboarding');
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/photographers/me'] });
