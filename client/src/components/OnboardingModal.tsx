@@ -113,12 +113,13 @@ export default function OnboardingModal({
           
           // Poll for connection status
           const pollInterval = setInterval(async () => {
-            const result = await queryClient.refetchQueries({ 
+            await queryClient.invalidateQueries({ 
               queryKey: ['/api/photographers/me'] 
             });
-            const photographerData = result[0]?.data as PhotographerData | undefined;
             
-            if (photographerData?.googleCalendarRefreshToken) {
+            const updatedPhotographer = queryClient.getQueryData<PhotographerData>(['/api/photographers/me']);
+            
+            if (updatedPhotographer?.googleCalendarRefreshToken) {
               clearInterval(pollInterval);
               if (popup && !popup.closed) {
                 popup.close();
