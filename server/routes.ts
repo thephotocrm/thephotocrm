@@ -1884,7 +1884,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
         return res.status(500).json({ message: "Failed to send email", error: result.error });
       }
       
-      // Log to activity log
+      // Log to activity log with full email content
       await storage.addProjectActivityLog({
         projectId: req.params.id,
         activityType: 'EMAIL_SENT',
@@ -1893,6 +1893,8 @@ ${photographer?.businessName || 'Your Photography Team'}`;
         description: `Email sent to ${primaryEmail}${bccEmails.length > 0 ? ` + ${bccEmails.length} participants` : ''}`,
         metadata: JSON.stringify({
           subject,
+          body: body,
+          htmlBody: body.replace(/\n/g, '<br>'),
           recipients: [primaryEmail, ...bccEmails],
           participantCount: bccEmails.length,
           source: result.source || 'MANUAL'

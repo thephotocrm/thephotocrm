@@ -1199,6 +1199,24 @@ export default function ProjectDetail() {
                               {event.description && (
                                 <p className="text-sm text-muted-foreground mt-1">{event.description}</p>
                               )}
+                              
+                              {/* Display full email body for EMAIL_SENT activities */}
+                              {event.activityType === 'EMAIL_SENT' && event.metadata && (() => {
+                                try {
+                                  const metadata = typeof event.metadata === 'string' ? JSON.parse(event.metadata) : event.metadata;
+                                  if (metadata.body) {
+                                    return (
+                                      <div className="mt-3 p-3 bg-white border rounded-md">
+                                        <p className="text-xs font-medium text-muted-foreground mb-2">EMAIL CONTENT</p>
+                                        <div className="text-sm whitespace-pre-wrap">{metadata.body}</div>
+                                      </div>
+                                    );
+                                  }
+                                } catch (e) {
+                                  return null;
+                                }
+                              })()}
+                              
                               <p className="text-xs text-muted-foreground mt-2">
                                 {formatDate(event.createdAt)}
                               </p>
@@ -1208,6 +1226,24 @@ export default function ProjectDetail() {
                             <div>
                               <p className="font-medium text-sm">{event.title}</p>
                               <p className="text-sm text-muted-foreground mt-1">{event.description}</p>
+                              
+                              {/* Display full email body if available in metadata */}
+                              {event.metadata && (() => {
+                                try {
+                                  const metadata = typeof event.metadata === 'string' ? JSON.parse(event.metadata) : event.metadata;
+                                  if (metadata.body) {
+                                    return (
+                                      <div className="mt-3 p-3 bg-white border rounded-md">
+                                        <p className="text-xs font-medium text-muted-foreground mb-2">EMAIL CONTENT</p>
+                                        <div className="text-sm whitespace-pre-wrap">{metadata.body}</div>
+                                      </div>
+                                    );
+                                  }
+                                } catch (e) {
+                                  return null;
+                                }
+                              })()}
+                              
                               <div className="flex items-center gap-3 mt-2">
                                 <Badge variant="secondary" className="text-xs">
                                   {event.status}
