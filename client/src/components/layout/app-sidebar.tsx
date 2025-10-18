@@ -499,14 +499,14 @@ export function AppSidebar() {
                       <div className="rounded-md bg-gradient-to-r from-yellow-600 to-yellow-400 p-[2px]">
                         <CollapsibleTrigger asChild>
                           <SidebarMenuButton
-                            className="bg-gradient-to-r from-black via-gray-900 to-black hover:from-gray-900 hover:via-gray-800 hover:to-gray-900 w-full"
+                            className="bg-gradient-to-r from-black via-gray-900 to-black hover:from-gray-900 hover:via-gray-800 hover:to-gray-900 w-full text-white"
                             data-testid="nav-group-get-leads"
                           >
-                            <Rocket className="w-5 h-5 text-yellow-500" />
-                            <span className="text-sm font-semibold bg-gradient-to-r from-yellow-600 to-yellow-400 bg-clip-text text-transparent">
+                            <Rocket className="w-5 h-5 !text-yellow-500" />
+                            <span className="text-sm font-semibold">
                               Get Leads
                             </span>
-                            <ChevronRight className={`ml-auto w-4 h-4 text-yellow-500 transition-transform ${getLeadsOpen ? 'rotate-90' : ''}`} />
+                            <ChevronRight className={`ml-auto w-4 h-4 !text-yellow-500 transition-transform ${getLeadsOpen ? 'rotate-90' : ''}`} />
                           </SidebarMenuButton>
                         </CollapsibleTrigger>
                       </div>
@@ -519,22 +519,22 @@ export function AppSidebar() {
                                 asChild
                                 isActive={location === '/lead-hub'}
                                 data-testid="nav-lead-hub"
-                                className="bg-gradient-to-r from-black via-gray-900 to-black hover:from-gray-900 hover:via-gray-800 hover:to-gray-900 data-[active=true]:from-gray-800 data-[active=true]:via-gray-700 data-[active=true]:to-gray-800 border border-yellow-600/20"
+                                className="bg-gradient-to-r from-black via-gray-900 to-black hover:from-gray-900 hover:via-gray-800 hover:to-gray-900 data-[active=true]:from-gray-800 data-[active=true]:via-gray-700 data-[active=true]:to-gray-800 border border-yellow-600/20 text-white"
                               >
                                 <Link href="/lead-hub">
-                                  <TrendingUp className="w-5 h-5 text-yellow-500" />
-                                  <span className="text-sm bg-gradient-to-r from-yellow-600 to-yellow-400 bg-clip-text text-transparent font-medium">Lead Hub</span>
+                                  <TrendingUp className="w-5 h-5 !text-yellow-500" />
+                                  <span className="text-sm font-medium">Lead Hub</span>
                                 </Link>
                               </SidebarMenuSubButton>
                             ) : (
                               <button
                                 onClick={() => setShowUpgradeModal(true)}
-                                className="w-full flex items-center gap-3 px-3 py-2 rounded-md transition-all opacity-60 cursor-not-allowed bg-gradient-to-r from-black via-gray-900 to-black border border-yellow-600/20"
+                                className="w-full flex items-center gap-3 px-3 py-2 rounded-md transition-all opacity-60 cursor-not-allowed bg-gradient-to-r from-black via-gray-900 to-black border border-yellow-600/20 text-white"
                                 data-testid="nav-lead-hub-locked"
                               >
-                                <TrendingUp className="w-5 h-5 text-yellow-500" />
-                                <span className="text-sm bg-gradient-to-r from-yellow-600 to-yellow-400 bg-clip-text text-transparent font-medium opacity-50">Lead Hub</span>
-                                <Lock className="w-3 h-3 ml-auto text-yellow-500" />
+                                <TrendingUp className="w-5 h-5 !text-yellow-500" />
+                                <span className="text-sm font-medium">Lead Hub</span>
+                                <Lock className="w-3 h-3 ml-auto !text-yellow-500" />
                               </button>
                             )}
                           </SidebarMenuSubItem>
@@ -545,11 +545,11 @@ export function AppSidebar() {
                               asChild
                               isActive={location === '/budget-estimator'}
                               data-testid="nav-budget-estimator"
-                              className="bg-gradient-to-r from-black via-gray-900 to-black hover:from-gray-900 hover:via-gray-800 hover:to-gray-900 data-[active=true]:from-gray-800 data-[active=true]:via-gray-700 data-[active=true]:to-gray-800 border border-yellow-600/20"
+                              className="bg-gradient-to-r from-black via-gray-900 to-black hover:from-gray-900 hover:via-gray-800 hover:to-gray-900 data-[active=true]:from-gray-800 data-[active=true]:via-gray-700 data-[active=true]:to-gray-800 border border-yellow-600/20 text-white"
                             >
                               <Link href="/budget-estimator">
-                                <DollarSign className="w-5 h-5 text-yellow-500" />
-                                <span className="text-sm bg-gradient-to-r from-yellow-600 to-yellow-400 bg-clip-text text-transparent font-medium">Budget Estimator</span>
+                                <DollarSign className="w-5 h-5 !text-yellow-500" />
+                                <span className="text-sm font-medium">Budget Estimator</span>
                               </Link>
                             </SidebarMenuSubButton>
                           </SidebarMenuSubItem>
@@ -560,11 +560,11 @@ export function AppSidebar() {
                               asChild
                               isActive={location === '/how-it-works'}
                               data-testid="nav-how-it-works"
-                              className="bg-gradient-to-r from-black via-gray-900 to-black hover:from-gray-900 hover:via-gray-800 hover:to-gray-900 data-[active=true]:from-gray-800 data-[active=true]:via-gray-700 data-[active=true]:to-gray-800 border border-yellow-600/20"
+                              className="bg-gradient-to-r from-black via-gray-900 to-black hover:from-gray-900 hover:via-gray-800 hover:to-gray-900 data-[active=true]:from-gray-800 data-[active=true]:via-gray-700 data-[active=true]:to-gray-800 border border-yellow-600/20 text-white"
                             >
                               <Link href="/how-it-works">
-                                <Info className="w-5 h-5 text-yellow-500" />
-                                <span className="text-sm bg-gradient-to-r from-yellow-600 to-yellow-400 bg-clip-text text-transparent font-medium">How It Works</span>
+                                <Info className="w-5 h-5 !text-yellow-500" />
+                                <span className="text-sm font-medium">How It Works</span>
                               </Link>
                             </SidebarMenuSubButton>
                           </SidebarMenuSubItem>
@@ -574,7 +574,7 @@ export function AppSidebar() {
                             <SidebarMenuSubItem>
                               <button
                                 onClick={() => setShowUpgradeModal(true)}
-                                className="w-full text-center py-2 transition-colors text-sm font-medium bg-gradient-to-r from-yellow-600 to-yellow-400 bg-clip-text text-transparent hover:opacity-80"
+                                className="w-full text-center py-2 transition-colors text-sm font-medium text-yellow-500 hover:text-yellow-400"
                                 data-testid="upgrade-cta"
                               >
                                 ✨ Upgrade for Lead Hub
