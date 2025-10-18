@@ -519,7 +519,7 @@ export function AppSidebar() {
                                 asChild
                                 isActive={location === '/lead-hub'}
                                 data-testid="nav-lead-hub"
-                                className="bg-black/40 hover:bg-gray-900/60 data-[active=true]:bg-gray-900 border border-yellow-600/20"
+                                className="bg-gradient-to-r from-black via-gray-900 to-black hover:from-gray-900 hover:via-gray-800 hover:to-gray-900 data-[active=true]:from-gray-800 data-[active=true]:via-gray-700 data-[active=true]:to-gray-800 border border-yellow-600/20"
                               >
                                 <Link href="/lead-hub">
                                   <TrendingUp className="w-5 h-5 text-yellow-500" />
@@ -529,12 +529,12 @@ export function AppSidebar() {
                             ) : (
                               <button
                                 onClick={() => setShowUpgradeModal(true)}
-                                className="w-full flex items-center gap-3 px-3 py-2 rounded-md transition-all opacity-60 cursor-not-allowed bg-black/40 border border-yellow-600/20"
+                                className="w-full flex items-center gap-3 px-3 py-2 rounded-md transition-all opacity-60 cursor-not-allowed bg-gradient-to-r from-black via-gray-900 to-black border border-yellow-600/20"
                                 data-testid="nav-lead-hub-locked"
                               >
-                                <TrendingUp className="w-5 h-5 text-yellow-500/50" />
+                                <TrendingUp className="w-5 h-5 text-yellow-500" />
                                 <span className="text-sm bg-gradient-to-r from-yellow-600 to-yellow-400 bg-clip-text text-transparent font-medium opacity-50">Lead Hub</span>
-                                <Lock className="w-3 h-3 ml-auto text-yellow-400" />
+                                <Lock className="w-3 h-3 ml-auto text-yellow-500" />
                               </button>
                             )}
                           </SidebarMenuSubItem>
@@ -545,7 +545,7 @@ export function AppSidebar() {
                               asChild
                               isActive={location === '/budget-estimator'}
                               data-testid="nav-budget-estimator"
-                              className="bg-black/40 hover:bg-gray-900/60 data-[active=true]:bg-gray-900 border border-yellow-600/20"
+                              className="bg-gradient-to-r from-black via-gray-900 to-black hover:from-gray-900 hover:via-gray-800 hover:to-gray-900 data-[active=true]:from-gray-800 data-[active=true]:via-gray-700 data-[active=true]:to-gray-800 border border-yellow-600/20"
                             >
                               <Link href="/budget-estimator">
                                 <DollarSign className="w-5 h-5 text-yellow-500" />
@@ -560,7 +560,7 @@ export function AppSidebar() {
                               asChild
                               isActive={location === '/how-it-works'}
                               data-testid="nav-how-it-works"
-                              className="bg-black/40 hover:bg-gray-900/60 data-[active=true]:bg-gray-900 border border-yellow-600/20"
+                              className="bg-gradient-to-r from-black via-gray-900 to-black hover:from-gray-900 hover:via-gray-800 hover:to-gray-900 data-[active=true]:from-gray-800 data-[active=true]:via-gray-700 data-[active=true]:to-gray-800 border border-yellow-600/20"
                             >
                               <Link href="/how-it-works">
                                 <Info className="w-5 h-5 text-yellow-500" />
