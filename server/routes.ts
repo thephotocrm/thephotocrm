@@ -1080,6 +1080,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Configure multer for headshot uploads
+  const headshotStorage = multer.diskStorage({
+    destination: (req, file, cb) => {
+      const uploadsDir = path.join(process.cwd(), 'attached_assets', 'headshots');
+      // Ensure directory exists
+      if (!fs.existsSync(uploadsDir)) {
+        fs.mkdirSync(uploadsDir, { recursive: true });
+      }
+      cb(null, uploadsDir);
+    },
+    filename: (req, file, cb) => {
+      // Generate unique filename with original extension
+      const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1E9)}`;
+      const ext = path.extname(file.originalname);
+      cb(null, `headshot-${uniqueSuffix}${ext}`);
+    }
+  });
+
+  const uploadHeadshot = multer({ 
+    storage: headshotStorage,
+    limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+    fileFilter: (req, file, cb) => {
+      // Accept images only
+      if (file.mimetype.startsWith('image/')) {
+        cb(null, true);
+      } else {
+        cb(new Error('Only image files are allowed'));
+      }
+    }
+  });
+
+  app.post("/api/upload/headshot", authenticateToken, requirePhotographer, uploadHeadshot.single('headshot'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "No file uploaded" });
+      }
+      
+      // Return the file path relative to attached_assets
+      const headshotUrl = `/attached_assets/headshots/${req.file.filename}`;
+      res.json({ headshotUrl });
+    } catch (error) {
+      console.error("Headshot upload error:", error);
+      res.status(500).json({ message: "Failed to upload headshot" });
+    }
+  });
+
   app.patch("/api/photographers/me", authenticateToken, requirePhotographer, async (req, res) => {
     try {
       const updated = await storage.updatePhotographer(req.user!.photographerId!, req.body);
