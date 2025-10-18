@@ -1975,8 +1975,11 @@ ${photographer?.businessName || 'Your Photography Team'}`;
         source: result.source
       });
     } catch (error) {
-      console.error("Send email error:", error);
-      res.status(500).json({ message: "Internal server error" });
+      console.error("=== SEND EMAIL ERROR ===");
+      console.error("Error details:", error);
+      console.error("Error message:", (error as Error).message);
+      console.error("Error stack:", (error as Error).stack);
+      res.status(500).json({ message: "Internal server error", error: (error as Error).message });
     }
   });
 
