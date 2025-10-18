@@ -56,6 +56,7 @@ import PublicBooking from "@/pages/public-booking";
 import PublicBookingCalendar from "@/pages/public-booking-calendar";
 import AdminDashboard from "@/pages/admin-dashboard";
 import AdminSetup from "@/pages/admin-setup";
+import LeadFormDemo from "@/pages/lead-form-demo";
 import NotFound from "@/pages/not-found";
 
 const Checkout = lazy(() => import("@/pages/checkout"));
@@ -185,6 +186,7 @@ function Router() {
       <Route path="/public/booking/:token" component={PublicBooking} />
       <Route path="/booking/calendar/:publicToken" component={PublicBookingCalendar} />
       <Route path="/admin/setup" component={AdminSetup} />
+      <Route path="/lead-form" component={LeadFormDemo} />
       
       {/* Protected app routes - match specific paths */}
       <Route path="/dashboard"><ProtectedRoutes /></Route>
