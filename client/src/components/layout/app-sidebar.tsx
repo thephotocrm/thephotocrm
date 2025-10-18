@@ -497,14 +497,14 @@ export function AppSidebar() {
                     <SidebarMenuItem>
                       <CollapsibleTrigger asChild>
                         <SidebarMenuButton
-                          className="bg-gradient-to-r from-purple-500/20 via-pink-500/20 to-orange-500/20 text-white hover:from-purple-500/30 hover:via-pink-500/30 hover:to-orange-500/30 border border-purple-500/30"
+                          className="bg-gradient-to-r from-black via-gray-900 to-black hover:from-gray-900 hover:via-gray-800 hover:to-gray-900 border border-yellow-600/40"
                           data-testid="nav-group-get-leads"
                         >
-                          <Rocket className="w-5 h-5 text-purple-400" />
-                          <span className="text-sm font-semibold bg-gradient-to-r from-purple-400 via-pink-400 to-orange-400 bg-clip-text text-transparent">
+                          <Rocket className="w-5 h-5 text-yellow-500" />
+                          <span className="text-sm font-semibold text-yellow-500">
                             Get Leads
                           </span>
-                          <ChevronRight className={`ml-auto w-4 h-4 text-purple-400 transition-transform ${getLeadsOpen ? 'rotate-90' : ''}`} />
+                          <ChevronRight className={`ml-auto w-4 h-4 text-yellow-500 transition-transform ${getLeadsOpen ? 'rotate-90' : ''}`} />
                         </SidebarMenuButton>
                       </CollapsibleTrigger>
                       <CollapsibleContent>
