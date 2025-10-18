@@ -61,38 +61,68 @@ export function generateHeader(style: string | null, data: BrandingData): string
 
   switch (style) {
     case 'minimal':
+      // If logo exists, show only logo. If no logo, show business name
       return `
         <div style="text-align: center; padding: 20px 0; margin-bottom: 30px;">
-          ${absoluteLogoUrl ? `<img src="${absoluteLogoUrl}" alt="${data.businessName || 'Logo'}" style="max-width: 150px; height: auto;" />` : ''}
+          ${absoluteLogoUrl 
+            ? `<img src="${absoluteLogoUrl}" alt="${data.businessName || 'Logo'}" style="max-width: 150px; height: auto;" />` 
+            : data.businessName 
+              ? `<h2 style="margin: 0; color: ${primaryColor}; font-size: 24px; font-weight: 600;">${data.businessName}</h2>` 
+              : ''
+          }
         </div>
       `;
 
     case 'professional':
+      // If logo exists, show only logo. If no logo, show business name
       return `
         <div style="text-align: center; padding: 20px 0; margin-bottom: 30px; border-bottom: 2px solid ${primaryColor};">
-          ${absoluteLogoUrl ? `<img src="${absoluteLogoUrl}" alt="${data.businessName || 'Logo'}" style="max-width: 150px; height: auto; margin-bottom: 10px;" />` : ''}
-          ${data.businessName ? `<h2 style="margin: 10px 0 0 0; color: ${primaryColor}; font-size: 24px; font-weight: 600;">${data.businessName}</h2>` : ''}
+          ${absoluteLogoUrl 
+            ? `<img src="${absoluteLogoUrl}" alt="${data.businessName || 'Logo'}" style="max-width: 150px; height: auto;" />` 
+            : data.businessName 
+              ? `<h2 style="margin: 0; color: ${primaryColor}; font-size: 24px; font-weight: 600;">${data.businessName}</h2>` 
+              : ''
+          }
         </div>
       `;
 
     case 'bold':
+      // If logo exists, show only logo. If no logo, show business name as text header
       return `
         <div style="background: linear-gradient(135deg, ${primaryColor} 0%, ${secondaryColor} 100%); padding: 30px 20px; text-align: center; margin-bottom: 30px;">
-          ${absoluteLogoUrl ? `<img src="${absoluteLogoUrl}" alt="${data.businessName || 'Logo'}" style="max-width: 150px; height: auto; margin-bottom: 10px; filter: brightness(0) invert(1);" />` : ''}
-          ${data.businessName ? `<h1 style="margin: 10px 0 0 0; color: white; font-size: 28px; font-weight: 700; text-shadow: 0 2px 4px rgba(0,0,0,0.2);">${data.businessName}</h1>` : ''}
+          ${absoluteLogoUrl 
+            ? `<img src="${absoluteLogoUrl}" alt="${data.businessName || 'Logo'}" style="max-width: 150px; height: auto; filter: brightness(0) invert(1);" />` 
+            : data.businessName 
+              ? `<h1 style="margin: 0; color: white; font-size: 28px; font-weight: 700; text-shadow: 0 2px 4px rgba(0,0,0,0.2);">${data.businessName}</h1>` 
+              : ''
+          }
         </div>
       `;
 
     case 'classic':
+      // Classic style: logo on left, business name on right
+      // If no logo, center the business name instead of showing broken image
       return `
-        <div style="display: table; width: 100%; padding: 20px 0; margin-bottom: 30px; border-bottom: 1px solid #e0e0e0;">
-          <div style="display: table-cell; vertical-align: middle; text-align: left;">
-            ${absoluteLogoUrl ? `<img src="${absoluteLogoUrl}" alt="${data.businessName || 'Logo'}" style="max-width: 120px; height: auto;" />` : ''}
-          </div>
-          <div style="display: table-cell; vertical-align: middle; text-align: right;">
-            ${data.businessName ? `<h2 style="margin: 0; color: ${primaryColor}; font-size: 22px; font-weight: 600;">${data.businessName}</h2>` : ''}
-            ${data.photographerName ? `<p style="margin: 5px 0 0 0; color: ${secondaryColor}; font-size: 14px;">${data.photographerName}</p>` : ''}
-          </div>
+        <div style="padding: 20px 0; margin-bottom: 30px; border-bottom: 1px solid #e0e0e0;">
+          ${absoluteLogoUrl 
+            ? `
+              <div style="display: table; width: 100%;">
+                <div style="display: table-cell; vertical-align: middle; text-align: left;">
+                  <img src="${absoluteLogoUrl}" alt="${data.businessName || 'Logo'}" style="max-width: 120px; height: auto;" />
+                </div>
+                <div style="display: table-cell; vertical-align: middle; text-align: right;">
+                  ${data.businessName ? `<h2 style="margin: 0; color: ${primaryColor}; font-size: 22px; font-weight: 600;">${data.businessName}</h2>` : ''}
+                  ${data.photographerName ? `<p style="margin: 5px 0 0 0; color: ${secondaryColor}; font-size: 14px;">${data.photographerName}</p>` : ''}
+                </div>
+              </div>
+            ` 
+            : `
+              <div style="text-align: center;">
+                ${data.businessName ? `<h2 style="margin: 0; color: ${primaryColor}; font-size: 22px; font-weight: 600;">${data.businessName}</h2>` : ''}
+                ${data.photographerName ? `<p style="margin: 5px 0 0 0; color: ${secondaryColor}; font-size: 14px;">${data.photographerName}</p>` : ''}
+              </div>
+            `
+          }
         </div>
       `;
 
