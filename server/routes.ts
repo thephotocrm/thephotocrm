@@ -6618,7 +6618,10 @@ ${photographer.businessName}`
 
       const photographerId = stateValidation.photographerId;
       const returnUrl = stateValidation.returnUrl;
-      const result = await googleCalendarService.exchangeCodeForTokens(code as string, photographerId);
+      
+      // Use the same redirect URI for token exchange as we used for auth URL
+      const redirectUri = `https://${req.get('host')}/api/auth/google-calendar/callback`;
+      const result = await googleCalendarService.exchangeCodeForTokens(code as string, photographerId, redirectUri);
       
       if (result.success) {
         console.log('✅ Google Calendar connected successfully for photographer:', photographerId);

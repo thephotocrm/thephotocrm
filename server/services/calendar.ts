@@ -276,9 +276,9 @@ export class GoogleCalendarService {
   /**
    * Exchange authorization code for access tokens and store them securely
    */
-  async exchangeCodeForTokens(code: string, photographerId: string): Promise<{ success: boolean; error?: string }> {
+  async exchangeCodeForTokens(code: string, photographerId: string, redirectUri?: string): Promise<{ success: boolean; error?: string }> {
     try {
-      const oauth2Client = this.createOAuth2Client();
+      const oauth2Client = this.createOAuth2Client(undefined, redirectUri);
       if (!oauth2Client) {
         return { success: false, error: 'Google Calendar not configured' };
       }
