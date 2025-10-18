@@ -6572,7 +6572,8 @@ ${photographer.businessName}`
       const returnUrl = req.query.returnUrl as string | undefined;
       
       // Build dynamic redirect URI based on current request's host (dev or prod)
-      const redirectUri = `${req.protocol}://${req.get('host')}/api/auth/google-calendar/callback`;
+      // Always use HTTPS for OAuth redirects (Replit domains use HTTPS)
+      const redirectUri = `https://${req.get('host')}/api/auth/google-calendar/callback`;
       
       const authResult = await googleCalendarService.getAuthUrl(photographerId, returnUrl, redirectUri);
       
@@ -6600,7 +6601,8 @@ ${photographer.businessName}`
       const { code, state } = req.query;
       
       // Build base URL from current request to redirect back to same domain (dev or prod)
-      const baseUrl = `${req.protocol}://${req.get('host')}`;
+      // Always use HTTPS for redirects (Replit domains use HTTPS)
+      const baseUrl = `https://${req.get('host')}`;
       
       if (!code || !state) {
         console.error('❌ Missing code or state in callback');
@@ -6628,7 +6630,7 @@ ${photographer.businessName}`
       }
     } catch (error) {
       console.error('Google Calendar callback error:', error);
-      const baseUrl = `${req.protocol}://${req.get('host')}`;
+      const baseUrl = `https://${req.get('host')}`;
       res.redirect(`${baseUrl}/settings?google_error=callback_failed`);
     }
   });
@@ -6744,7 +6746,8 @@ ${photographer.businessName}`
       }
 
       // Build dynamic redirect URI based on current request's host (dev or prod)
-      const redirectUri = `${req.protocol}://${req.get('host')}/api/auth/google-drive/callback`;
+      // Always use HTTPS for OAuth redirects (Replit domains use HTTPS)
+      const redirectUri = `https://${req.get('host')}/api/auth/google-drive/callback`;
       
       const oauth2Client = new OAuth2Client(clientId, clientSecret, redirectUri);
 
@@ -6776,7 +6779,8 @@ ${photographer.businessName}`
       const { code, state } = req.query;
       
       // Build base URL from current request to redirect back to same domain (dev or prod)
-      const baseUrl = `${req.protocol}://${req.get('host')}`;
+      // Always use HTTPS for redirects (Replit domains use HTTPS)
+      const baseUrl = `https://${req.get('host')}`;
       
       if (!code || !state) {
         console.error('❌ Missing code or state in Google Drive callback');
@@ -6789,7 +6793,7 @@ ${photographer.businessName}`
       const { OAuth2Client } = await import('google-auth-library');
       const clientId = process.env.GOOGLE_CLIENT_ID;
       const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
-      const redirectUri = process.env.GOOGLE_DRIVE_REDIRECT_URI || `https://${req.get('host')}/api/auth/google-drive/callback`;
+      const redirectUri = `https://${req.get('host')}/api/auth/google-drive/callback`;
 
       const oauth2Client = new OAuth2Client(clientId, clientSecret, redirectUri);
       const { tokens } = await oauth2Client.getToken(code as string);
@@ -6812,7 +6816,7 @@ ${photographer.businessName}`
       res.redirect(`${baseUrl}/settings?google_drive_connected=true`);
     } catch (error) {
       console.error('Google Drive callback error:', error);
-      const baseUrl = `${req.protocol}://${req.get('host')}`;
+      const baseUrl = `https://${req.get('host')}`;
       res.redirect(`${baseUrl}/settings?google_drive_error=callback_failed`);
     }
   });
