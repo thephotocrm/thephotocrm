@@ -61,7 +61,12 @@ export class GoogleCalendarService {
    * Get default redirect URI that works with both Replit and local development
    */
   private static getDefaultRedirectURI(): string {
-    // Check for current domain first (most accurate)
+    // Check for dev environment first (only exists in development)
+    if (process.env.REPLIT_DEV_DOMAIN) {
+      return `https://${process.env.REPLIT_DEV_DOMAIN}/api/auth/google-calendar/callback`;
+    }
+    
+    // Check for current domain (production)
     if (process.env.REPLIT_DOMAINS) {
       // Use the first domain from REPLIT_DOMAINS (this is the actual current domain)
       const domains = process.env.REPLIT_DOMAINS.split(',');
