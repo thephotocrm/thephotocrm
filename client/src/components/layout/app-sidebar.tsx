@@ -395,7 +395,7 @@ export function AppSidebar() {
                           className="bg-slate-800/50 text-white hover:bg-slate-700/70 data-[active=true]:bg-slate-700 data-[active=true]:text-white"
                         >
                           <Link href={item.href}>
-                            <Icon className="w-6 h-6" />
+                            <Icon className="w-5 h-5" />
                             <span className="text-sm">{item.name}</span>
                           </Link>
                         </SidebarMenuButton>
@@ -421,7 +421,7 @@ export function AppSidebar() {
                         >
                           <Link href={item.href} className="relative">
                             <div className="relative inline-block">
-                              <Icon className="w-6 h-6" />
+                              <Icon className="w-5 h-5" />
                               {'badge' in item && item.badge > 0 && (
                                 <div 
                                   className="absolute -top-2 -right-2 h-[23px] w-[23px] rounded-full flex items-center justify-center text-xs font-bold bg-green-500 text-white"
@@ -455,7 +455,7 @@ export function AppSidebar() {
                               className="bg-slate-800/50 text-white hover:bg-slate-700/70"
                               data-testid={`nav-group-${group.id}`}
                             >
-                              <GroupIcon className="w-6 h-6" />
+                              <GroupIcon className="w-5 h-5" />
                               <span className="text-sm">{group.name}</span>
                               <ChevronRight className={`ml-auto w-4 h-4 transition-transform ${openSections[group.id] ? 'rotate-90' : ''}`} />
                             </SidebarMenuButton>
@@ -500,7 +500,7 @@ export function AppSidebar() {
                           className="bg-gradient-to-r from-purple-500/20 via-pink-500/20 to-orange-500/20 text-white hover:from-purple-500/30 hover:via-pink-500/30 hover:to-orange-500/30 border border-purple-500/30"
                           data-testid="nav-group-get-leads"
                         >
-                          <Rocket className="w-6 h-6 text-purple-400" />
+                          <Rocket className="w-5 h-5 text-purple-400" />
                           <span className="text-sm font-semibold bg-gradient-to-r from-purple-400 via-pink-400 to-orange-400 bg-clip-text text-transparent">
                             Get Leads
                           </span>
@@ -601,7 +601,7 @@ export function AppSidebar() {
                   className="bg-slate-800/50 text-white hover:bg-slate-700/70 data-[active=true]:bg-slate-700 data-[active=true]:text-white"
                 >
                   <Link href="/settings">
-                    <Settings className="w-6 h-6" />
+                    <Settings className="w-5 h-5" />
                     <span className="text-sm">Settings</span>
                   </Link>
                 </SidebarMenuButton>
@@ -614,7 +614,7 @@ export function AppSidebar() {
                   className="bg-slate-800/50 text-white hover:bg-slate-700/70 data-[active=true]:bg-slate-700 data-[active=true]:text-white"
                 >
                   <Link href="/tutorials">
-                    <GraduationCap className="w-6 h-6" />
+                    <GraduationCap className="w-5 h-5" />
                     <span className="text-sm">Tutorials</span>
                   </Link>
                 </SidebarMenuButton>
