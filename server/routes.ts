@@ -6595,16 +6595,19 @@ ${photographer.businessName}`
       
       const { code, state } = req.query;
       
+      // Build base URL from current request to redirect back to same domain (dev or prod)
+      const baseUrl = `${req.protocol}://${req.get('host')}`;
+      
       if (!code || !state) {
         console.error('❌ Missing code or state in callback');
-        return res.redirect('/settings?google_error=missing_params');
+        return res.redirect(`${baseUrl}/settings?google_error=missing_params`);
       }
 
       // Validate state parameter for CSRF protection
       const stateValidation = googleCalendarService.validateState(state as string);
       if (!stateValidation.valid || !stateValidation.photographerId) {
         console.error('❌ Invalid state validation');
-        return res.redirect('/settings?google_error=invalid_state');
+        return res.redirect(`${baseUrl}/settings?google_error=invalid_state`);
       }
 
       const photographerId = stateValidation.photographerId;
@@ -6614,14 +6617,15 @@ ${photographer.businessName}`
       if (result.success) {
         console.log('✅ Google Calendar connected successfully for photographer:', photographerId);
         // Redirect back to the original page with success indicator
-        res.redirect(`${returnUrl}?google_connected=true`);
+        res.redirect(`${baseUrl}${returnUrl}?google_connected=true`);
       } else {
         console.error('❌ Token exchange failed:', result.error);
-        res.redirect(`${returnUrl}?google_error=${encodeURIComponent(result.error || 'unknown')}`);
+        res.redirect(`${baseUrl}${returnUrl}?google_error=${encodeURIComponent(result.error || 'unknown')}`);
       }
     } catch (error) {
       console.error('Google Calendar callback error:', error);
-      res.redirect('/settings?google_error=callback_failed');
+      const baseUrl = `${req.protocol}://${req.get('host')}`;
+      res.redirect(`${baseUrl}/settings?google_error=callback_failed`);
     }
   });
 
@@ -6764,15 +6768,12 @@ ${photographer.businessName}`
     try {
       const { code, state } = req.query;
       
+      // Build base URL from current request to redirect back to same domain (dev or prod)
+      const baseUrl = `${req.protocol}://${req.get('host')}`;
+      
       if (!code || !state) {
-        return res.status(400).send(`
-          <html>
-            <body style="font-family: Arial, sans-serif; text-align: center; padding: 50px;">
-              <h2 style="color: red;">❌ Authorization Failed</h2>
-              <p>Missing authorization code or state.</p>
-            </body>
-          </html>
-        `);
+        console.error('❌ Missing code or state in Google Drive callback');
+        return res.redirect(`${baseUrl}/settings?google_drive_error=missing_params`);
       }
 
       const stateData = JSON.parse(Buffer.from(state as string, 'base64url').toString());
@@ -6800,29 +6801,12 @@ ${photographer.businessName}`
         googleDriveConnectedAt: new Date()
       });
 
-      res.send(`
-        <html>
-          <body style="font-family: Arial, sans-serif; text-align: center; padding: 50px;">
-            <h2 style="color: green;">✅ Google Drive Connected Successfully!</h2>
-            <p>Your gallery integration is now active. You can close this window.</p>
-            <script>
-              setTimeout(() => {
-                window.close();
-              }, 3000);
-            </script>
-          </body>
-        </html>
-      `);
+      console.log('✅ Google Drive connected successfully for photographer:', photographerId);
+      res.redirect(`${baseUrl}/settings?google_drive_connected=true`);
     } catch (error) {
       console.error('Google Drive callback error:', error);
-      res.status(500).send(`
-        <html>
-          <body style="font-family: Arial, sans-serif; text-align: center; padding: 50px;">
-            <h2 style="color: red;">❌ Authorization Failed</h2>
-            <p>An unexpected error occurred. Please try again or contact support.</p>
-          </body>
-        </html>
-      `);
+      const baseUrl = `${req.protocol}://${req.get('host')}`;
+      res.redirect(`${baseUrl}/settings?google_drive_error=callback_failed`);
     }
   });
 
