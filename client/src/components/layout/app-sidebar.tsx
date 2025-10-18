@@ -396,7 +396,7 @@ export function AppSidebar() {
                         >
                           <Link href={item.href}>
                             <Icon className="w-6 h-6" />
-                            <span className="text-base">{item.name}</span>
+                            <span className="text-sm">{item.name}</span>
                           </Link>
                         </SidebarMenuButton>
                       </SidebarMenuItem>
@@ -431,7 +431,7 @@ export function AppSidebar() {
                                 </div>
                               )}
                             </div>
-                            <span className="text-base">{item.name}</span>
+                            <span className="text-sm">{item.name}</span>
                           </Link>
                         </SidebarMenuButton>
                       </SidebarMenuItem>
@@ -456,7 +456,7 @@ export function AppSidebar() {
                               data-testid={`nav-group-${group.id}`}
                             >
                               <GroupIcon className="w-6 h-6" />
-                              <span className="text-base">{group.name}</span>
+                              <span className="text-sm">{group.name}</span>
                               <ChevronRight className={`ml-auto w-4 h-4 transition-transform ${openSections[group.id] ? 'rotate-90' : ''}`} />
                             </SidebarMenuButton>
                           </CollapsibleTrigger>
@@ -501,7 +501,7 @@ export function AppSidebar() {
                           data-testid="nav-group-get-leads"
                         >
                           <Rocket className="w-6 h-6 text-purple-400" />
-                          <span className="text-base font-semibold bg-gradient-to-r from-purple-400 via-pink-400 to-orange-400 bg-clip-text text-transparent">
+                          <span className="text-sm font-semibold bg-gradient-to-r from-purple-400 via-pink-400 to-orange-400 bg-clip-text text-transparent">
                             Get Leads
                           </span>
                           <ChevronRight className={`ml-auto w-4 h-4 text-purple-400 transition-transform ${getLeadsOpen ? 'rotate-90' : ''}`} />
@@ -602,7 +602,7 @@ export function AppSidebar() {
                 >
                   <Link href="/settings">
                     <Settings className="w-6 h-6" />
-                    <span className="text-base">Settings</span>
+                    <span className="text-sm">Settings</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -615,7 +615,7 @@ export function AppSidebar() {
                 >
                   <Link href="/tutorials">
                     <GraduationCap className="w-6 h-6" />
-                    <span className="text-base">Tutorials</span>
+                    <span className="text-sm">Tutorials</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
