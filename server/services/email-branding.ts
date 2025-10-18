@@ -35,8 +35,8 @@ function toAbsoluteUrl(urlOrPath: string | undefined): string | undefined {
   }
   
   // Convert relative path to absolute URL using the app domain
-  const baseUrl = process.env.REPL_SLUG 
-    ? `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co`
+  const baseUrl = process.env.REPLIT_DEV_DOMAIN 
+    ? `https://${process.env.REPLIT_DEV_DOMAIN}`
     : `http://localhost:${process.env.PORT || 5000}`;
   
   // Remove leading slash if present to avoid double slashes
@@ -132,6 +132,16 @@ export function generateHeader(style: string | null, data: BrandingData): string
 }
 
 /**
+ * Social Media Icon SVGs (Base64 encoded for email compatibility)
+ */
+const SOCIAL_ICONS = {
+  facebook: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSIjMzE3N0ZGIj48cGF0aCBkPSJNMjQgMTJjMC02LjYyNy01LjM3My0xMi0xMi0xMlMwIDUuMzczIDAgMTJjMCA1Ljk5IDQuMzg4IDEwLjk1NCAxMC4xMjUgMTEuODU0di04LjM4NUg3LjA3OHYtMy40N2gzLjA0N1Y5LjM1NmMwLTMuMDA3IDEuNzkyLTQuNjY5IDQuNTMzLTQuNjY5IDEuMzEyIDAgMi42ODYuMjM1IDIuNjg2LjIzNXYyLjk1M0gxNS44M2MtMS40OTEgMC0xLjk1Ni45MjUtMS45NTYgMS44NzRWMTJoMy4zMjhsLS41MzIgMy40N2gtMi43OTZ2OC4zODVDMTkuNjEyIDIyLjk1NCAyNCAxNy45OSAyNCAxMnoiLz48L3N2Zz4=',
+  instagram: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJ1cmwoI2luc3RhZ3JhZGllbnQpIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9Imluc3RhZ3JhZGllbnQiIHgxPSIwJSIgeTE9IjEwMCUiIHgyPSIxMDAlIiB5Mj0iMCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0eWxlPSJzdG9wLWNvbG9yOiNGNTgzMjk7c3RvcC1vcGFjaXR5OjEiIC8+PHN0b3Agb2Zmc2V0PSI1MCUiIHN0eWxlPSJzdG9wLWNvbG9yOiNERDJBN0I7c3RvcC1vcGFjaXR5OjEiIC8+PHN0b3Agb2Zmc2V0PSIxMDAlIiBzdHlsZT0ic3RvcC1jb2xvcjojNTE1QkQ0O3N0b3Atb3BhY2l0eToxIiAvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPjxwYXRoIGQ9Ik0xMiAyLjE2M2MzLjIwNCAwIDMuNTg0LjAxMiA0Ljg1LjA3IDMuMjUyLjE0OCA0Ljc3MSAxLjY5MSA0LjkxOSA0LjkxOS4wNTggMS4yNjUuMDY5IDEuNjQ1LjA2OSA0Ljg0OXMtLjAxMiAzLjU4NC0uMDY5IDQuODQ5Yy0uMTQ5IDMuMjI1LTEuNjY0IDQuNzcxLTQuOTE5IDQuOTE5LTEuMjY2LjA1OC0xLjY0NC4wNy00Ljg1LjA3cy0zLjU4NC0uMDEyLTQuODQ5LS4wN2MtMy4yNi0uMTQ5LTQuNzcxLTEuNjk5LTQuOTE5LTQuOTJDMi4xNzUgMTUuNzQ3IDIuMTYzIDE1LjM2NyAyLjE2MyAxMnMuMDEyLTMuNTg0LjA3LTQuODQ5QzIuMzgxIDMuOTI0IDMuODk2IDIuMzggNy4xNTEgMi4yMzNjMS4yNjUtLjA1NyAxLjY0NS0uMDcgNC44NDktLjA3TTEyIDBDOC43NDEgMCA4LjMzMy4wMTQgNy4wNTMuMDcyIDIuNjk1LjI3Mi4yNzMgMi42OS4wNzMgNy4wNTIuMDE0IDguMzMzIDAgOC43NDEgMCAxMnMuMDE0IDMuNjY4LjA3MiA0Ljk0OGMuMiA0LjM1OCAyLjYxOCA2Ljc4IDYuOTggNi45OEMxMS42NjcgMjMuOTg2IDEyLjA3NSAyNCAxMiAyNHMzLjMzMy0uMDE0IDQuOTQ4LS4wNzJjNC4zNTQtLjIgNi43ODItMi42MTggNi45NzktNi45OC4wNTktMS4yOC4wNzMtMS42ODkuMDczLTQuOTQ4cy0uMDE0LTMuNjY4LS4wNzItNC45NDhjLS4xOTYtNC4zNTQtMi42MTctNi43OC02Ljk3OS02Ljk4QzE1LjY2OC4wMTQgMTUuMjU5IDAgMTIgMHptMCA1LjgzOGE2LjE2MiA2LjE2MiAwIDEgMCAwIDEyLjMyNCA2LjE2MiA2LjE2MiAwIDAgMCAwLTEyLjMyNHpNMTIgMTZhNCA0IDAgMSAxIDAtOCA0IDQgMCAwIDEgMCA4em02LjQwNi0xMS44NDVhMS40NCAxLjQ0IDAgMSAwIDAgMi44ODkgMS40NCAxLjQ0IDAgMCAwIDAtMi44ODl6Ii8+PC9zdmc+',
+  twitter: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSIjMUQ5QkYwIj48cGF0aCBkPSJNMjMuOTUzIDQuNTdhMTAgMTAgMCAwIDEtMi44MjUuNzc1IDQuOTU4IDQuOTU4IDAgMCAwIDIuMTYzLTIuNzIzYy0uOTUxLjU1NS0yLjAwNS45NTktMy4xMjcgMS4xODRhNC45MiA0LjkyIDAgMCAwLTguMzg0IDQuNDgyQzcuNjkgOC4wOTUgNC4wNjcgNi4xMyAxLjY0IDMuMTYyYTQuODIyIDQuODIyIDAgMCAwLS42NjYgMi40NzVjMCAxLjcxLjg3IDMuMjEzIDIuMTg4IDQuMDk2YTQuOTA0IDQuOTA0IDAgMCAxLTIuMjI4LS42MTZ2LjA2YTQuOTIzIDQuOTIzIDAgMCAwIDMuOTQ2IDQuODI3IDQuOTk2IDQuOTk2IDAgMCAxLTIuMjEyLjA4NSA0LjkzNiA0LjkzNiAwIDAgMCA0LjYwNCAzLjQxNyA5Ljg2NyA5Ljg2NyAwIDAgMS02LjEwMiAyLjEwNWMtLjM5IDAtLjc3OS0uMDIzLTEuMTctLjA2N2ExMy45OTUgMTMuOTk1IDAgMCAwIDcuNTU3IDIuMjA5YzkuMDUzIDAgMTMuOTk4LTcuNDk2IDEzLjk5OC0xMy45ODUgMC0uMjEgMC0uNDItLjAxNS0uNjNBOS45MzUgOS45MzUgMCAwIDAgMjQgNC41OXoiLz48L3N2Zz4=',
+  linkedin: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSIjMDA3N0I1Ij48cGF0aCBkPSJNMjAuNDQ3IDIwLjQ1MmgtMy41NTR2LTUuNTY5YzAtMS4zMjgtLjAyNy0zLjAzNy0xLjg1Mi0zLjAzNy0xLjg1MyAwLTIuMTM2IDEuNDQ1LTIuMTM2IDIuOTM5djUuNjY3SDkuMzUxVjloMy40MTR2MS41NjFoLjA0NmMuNDc3LS45IDEuNjM3LTEuODUgMy4zNy0xLjg1IDMuNjAxIDAgNC4yNjcgMi4zNyA0LjI2NyA1LjQ1NXY2LjI4NnpNNS4zMzcgNy40MzNjLTEuMTQ0IDAtMi4wNjMtLjkyNi0yLjA2My0yLjA2NSAwLTEuMTM4LjkyLTIuMDYzIDIuMDYzLTIuMDYzIDEuMTQgMCAyLjA2NC45MjUgMi4wNjQgMi4wNjMgMCAxLjEzOS0uOTI1IDIuMDY1LTIuMDY0IDIuMDY1em0xLjc4MiAxMy4wMTlIMy41NTVWOWgzLjU2NHYxMS40NTJ6TTIyLjIyNSAwSC4xNzFDLjA3NyAwIDAgLjA3NyAwIC4xNzJ2MjMuNjU2YzAgLjA5NS4wNzcuMTcyLjE3MS4xNzJoMjIuMDU0Yy4wOTUgMCAuMTc2LS4wNzcuMTc2LS4xNzJWLjE3MkMyMi40MDEuMDc3IDIyLjMxOSAwIDIyLjIyNSAweiIvPjwvc3ZnPg=='
+};
+
+/**
  * Signature Templates
  */
 
@@ -177,10 +187,10 @@ export function generateSignature(style: string | null, data: BrandingData): str
                 ${data.website ? `<p style="margin: 3px 0;">🌐 <a href="${data.website}" style="color: ${primaryColor}; text-decoration: none;">${data.website.replace(/^https?:\/\//, '')}</a></p>` : ''}
                 ${Object.keys(socialLinks).length > 0 ? `
                   <p style="margin: 10px 0 0 0;">
-                    ${socialLinks.facebook ? `<a href="${socialLinks.facebook}" style="margin-right: 10px; text-decoration: none; font-size: 18px;">📘</a>` : ''}
-                    ${socialLinks.instagram ? `<a href="${socialLinks.instagram}" style="margin-right: 10px; text-decoration: none; font-size: 18px;">📷</a>` : ''}
-                    ${socialLinks.twitter ? `<a href="${socialLinks.twitter}" style="margin-right: 10px; text-decoration: none; font-size: 18px;">🐦</a>` : ''}
-                    ${socialLinks.linkedin ? `<a href="${socialLinks.linkedin}" style="margin-right: 10px; text-decoration: none; font-size: 18px;">💼</a>` : ''}
+                    ${socialLinks.facebook ? `<a href="${socialLinks.facebook}" style="margin-right: 10px; text-decoration: none;"><img src="${SOCIAL_ICONS.facebook}" alt="Facebook" width="20" height="20" style="vertical-align: middle;" /></a>` : ''}
+                    ${socialLinks.instagram ? `<a href="${socialLinks.instagram}" style="margin-right: 10px; text-decoration: none;"><img src="${SOCIAL_ICONS.instagram}" alt="Instagram" width="20" height="20" style="vertical-align: middle;" /></a>` : ''}
+                    ${socialLinks.twitter ? `<a href="${socialLinks.twitter}" style="margin-right: 10px; text-decoration: none;"><img src="${SOCIAL_ICONS.twitter}" alt="Twitter" width="20" height="20" style="vertical-align: middle;" /></a>` : ''}
+                    ${socialLinks.linkedin ? `<a href="${socialLinks.linkedin}" style="margin-right: 10px; text-decoration: none;"><img src="${SOCIAL_ICONS.linkedin}" alt="LinkedIn" width="20" height="20" style="vertical-align: middle;" /></a>` : ''}
                   </p>
                 ` : ''}
               </td>
@@ -209,10 +219,10 @@ export function generateSignature(style: string | null, data: BrandingData): str
                 ${Object.keys(socialLinks).length > 0 ? `
                   <p style="margin: 10px 0 0 0;">
                     <strong>Connect:</strong> 
-                    ${socialLinks.facebook ? `<a href="${socialLinks.facebook}" style="margin-left: 8px; text-decoration: none; font-size: 18px;">📘</a>` : ''}
-                    ${socialLinks.instagram ? `<a href="${socialLinks.instagram}" style="margin-left: 8px; text-decoration: none; font-size: 18px;">📷</a>` : ''}
-                    ${socialLinks.twitter ? `<a href="${socialLinks.twitter}" style="margin-left: 8px; text-decoration: none; font-size: 18px;">🐦</a>` : ''}
-                    ${socialLinks.linkedin ? `<a href="${socialLinks.linkedin}" style="margin-left: 8px; text-decoration: none; font-size: 18px;">💼</a>` : ''}
+                    ${socialLinks.facebook ? `<a href="${socialLinks.facebook}" style="margin-left: 8px; text-decoration: none;"><img src="${SOCIAL_ICONS.facebook}" alt="Facebook" width="20" height="20" style="vertical-align: middle;" /></a>` : ''}
+                    ${socialLinks.instagram ? `<a href="${socialLinks.instagram}" style="margin-left: 8px; text-decoration: none;"><img src="${SOCIAL_ICONS.instagram}" alt="Instagram" width="20" height="20" style="vertical-align: middle;" /></a>` : ''}
+                    ${socialLinks.twitter ? `<a href="${socialLinks.twitter}" style="margin-left: 8px; text-decoration: none;"><img src="${SOCIAL_ICONS.twitter}" alt="Twitter" width="20" height="20" style="vertical-align: middle;" /></a>` : ''}
+                    ${socialLinks.linkedin ? `<a href="${socialLinks.linkedin}" style="margin-left: 8px; text-decoration: none;"><img src="${SOCIAL_ICONS.linkedin}" alt="LinkedIn" width="20" height="20" style="vertical-align: middle;" /></a>` : ''}
                   </p>
                 ` : ''}
               </td>
@@ -237,10 +247,10 @@ export function generateSignature(style: string | null, data: BrandingData): str
             </table>
             ${Object.keys(socialLinks).length > 0 ? `
               <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #e0e0e0;">
-                ${socialLinks.facebook ? `<a href="${socialLinks.facebook}" style="display: inline-block; margin-right: 12px; text-decoration: none; font-size: 20px;">📘</a>` : ''}
-                ${socialLinks.instagram ? `<a href="${socialLinks.instagram}" style="display: inline-block; margin-right: 12px; text-decoration: none; font-size: 20px;">📷</a>` : ''}
-                ${socialLinks.twitter ? `<a href="${socialLinks.twitter}" style="display: inline-block; margin-right: 12px; text-decoration: none; font-size: 20px;">🐦</a>` : ''}
-                ${socialLinks.linkedin ? `<a href="${socialLinks.linkedin}" style="display: inline-block; margin-right: 12px; text-decoration: none; font-size: 20px;">💼</a>` : ''}
+                ${socialLinks.facebook ? `<a href="${socialLinks.facebook}" style="display: inline-block; margin-right: 12px; text-decoration: none;"><img src="${SOCIAL_ICONS.facebook}" alt="Facebook" width="24" height="24" style="vertical-align: middle;" /></a>` : ''}
+                ${socialLinks.instagram ? `<a href="${socialLinks.instagram}" style="display: inline-block; margin-right: 12px; text-decoration: none;"><img src="${SOCIAL_ICONS.instagram}" alt="Instagram" width="24" height="24" style="vertical-align: middle;" /></a>` : ''}
+                ${socialLinks.twitter ? `<a href="${socialLinks.twitter}" style="display: inline-block; margin-right: 12px; text-decoration: none;"><img src="${SOCIAL_ICONS.twitter}" alt="Twitter" width="24" height="24" style="vertical-align: middle;" /></a>` : ''}
+                ${socialLinks.linkedin ? `<a href="${socialLinks.linkedin}" style="display: inline-block; margin-right: 12px; text-decoration: none;"><img src="${SOCIAL_ICONS.linkedin}" alt="LinkedIn" width="24" height="24" style="vertical-align: middle;" /></a>` : ''}
               </div>
             ` : ''}
           </div>
