@@ -519,21 +519,21 @@ export function AppSidebar() {
                                 asChild
                                 isActive={location === '/lead-hub'}
                                 data-testid="nav-lead-hub"
-                                className="bg-slate-800/30 text-white hover:bg-slate-700/50 data-[active=true]:bg-slate-700 data-[active=true]:text-white"
+                                className="bg-black/40 hover:bg-gray-900/60 data-[active=true]:bg-gray-900 border border-yellow-600/20"
                               >
                                 <Link href="/lead-hub">
-                                  <TrendingUp className="w-5 h-5 text-purple-400" />
-                                  <span className="text-sm">Lead Hub</span>
+                                  <TrendingUp className="w-5 h-5 text-yellow-500" />
+                                  <span className="text-sm bg-gradient-to-r from-yellow-600 to-yellow-400 bg-clip-text text-transparent font-medium">Lead Hub</span>
                                 </Link>
                               </SidebarMenuSubButton>
                             ) : (
                               <button
                                 onClick={() => setShowUpgradeModal(true)}
-                                className="w-full flex items-center gap-3 px-3 py-2 rounded-md transition-all opacity-60 cursor-not-allowed text-white/70 hover:bg-slate-700/30"
+                                className="w-full flex items-center gap-3 px-3 py-2 rounded-md transition-all opacity-60 cursor-not-allowed bg-black/40 border border-yellow-600/20"
                                 data-testid="nav-lead-hub-locked"
                               >
-                                <TrendingUp className="w-5 h-5 text-purple-400/50" />
-                                <span className="text-sm">Lead Hub</span>
+                                <TrendingUp className="w-5 h-5 text-yellow-500/50" />
+                                <span className="text-sm bg-gradient-to-r from-yellow-600 to-yellow-400 bg-clip-text text-transparent font-medium opacity-50">Lead Hub</span>
                                 <Lock className="w-3 h-3 ml-auto text-yellow-400" />
                               </button>
                             )}
@@ -545,11 +545,11 @@ export function AppSidebar() {
                               asChild
                               isActive={location === '/budget-estimator'}
                               data-testid="nav-budget-estimator"
-                              className="bg-slate-800/30 text-white hover:bg-slate-700/50 data-[active=true]:bg-slate-700 data-[active=true]:text-white"
+                              className="bg-black/40 hover:bg-gray-900/60 data-[active=true]:bg-gray-900 border border-yellow-600/20"
                             >
                               <Link href="/budget-estimator">
-                                <DollarSign className="w-5 h-5 text-green-400" />
-                                <span className="text-sm">Budget Estimator</span>
+                                <DollarSign className="w-5 h-5 text-yellow-500" />
+                                <span className="text-sm bg-gradient-to-r from-yellow-600 to-yellow-400 bg-clip-text text-transparent font-medium">Budget Estimator</span>
                               </Link>
                             </SidebarMenuSubButton>
                           </SidebarMenuSubItem>
@@ -560,11 +560,11 @@ export function AppSidebar() {
                               asChild
                               isActive={location === '/how-it-works'}
                               data-testid="nav-how-it-works"
-                              className="bg-slate-800/30 text-white hover:bg-slate-700/50 data-[active=true]:bg-slate-700 data-[active=true]:text-white"
+                              className="bg-black/40 hover:bg-gray-900/60 data-[active=true]:bg-gray-900 border border-yellow-600/20"
                             >
                               <Link href="/how-it-works">
-                                <Info className="w-5 h-5 text-blue-400" />
-                                <span className="text-sm">How It Works</span>
+                                <Info className="w-5 h-5 text-yellow-500" />
+                                <span className="text-sm bg-gradient-to-r from-yellow-600 to-yellow-400 bg-clip-text text-transparent font-medium">How It Works</span>
                               </Link>
                             </SidebarMenuSubButton>
                           </SidebarMenuSubItem>
@@ -574,7 +574,7 @@ export function AppSidebar() {
                             <SidebarMenuSubItem>
                               <button
                                 onClick={() => setShowUpgradeModal(true)}
-                                className="w-full text-center py-2 text-purple-400 hover:text-purple-300 transition-colors text-sm font-medium"
+                                className="w-full text-center py-2 transition-colors text-sm font-medium bg-gradient-to-r from-yellow-600 to-yellow-400 bg-clip-text text-transparent hover:opacity-80"
                                 data-testid="upgrade-cta"
                               >
                                 ✨ Upgrade for Lead Hub
