@@ -495,18 +495,21 @@ export function AppSidebar() {
                     onOpenChange={setGetLeadsOpen}
                   >
                     <SidebarMenuItem>
-                      <CollapsibleTrigger asChild>
-                        <SidebarMenuButton
-                          className="bg-gradient-to-r from-black via-gray-900 to-black hover:from-gray-900 hover:via-gray-800 hover:to-gray-900 border border-yellow-600/40"
-                          data-testid="nav-group-get-leads"
-                        >
-                          <Rocket className="w-5 h-5 text-yellow-500" />
-                          <span className="text-sm font-semibold text-yellow-500">
-                            Get Leads
-                          </span>
-                          <ChevronRight className={`ml-auto w-4 h-4 text-yellow-500 transition-transform ${getLeadsOpen ? 'rotate-90' : ''}`} />
-                        </SidebarMenuButton>
-                      </CollapsibleTrigger>
+                      {/* Gradient border wrapper */}
+                      <div className="rounded-md bg-gradient-to-r from-yellow-500 via-gray-300 to-yellow-500 p-[2px]">
+                        <CollapsibleTrigger asChild>
+                          <SidebarMenuButton
+                            className="bg-gradient-to-r from-black via-gray-900 to-black hover:from-gray-900 hover:via-gray-800 hover:to-gray-900 w-full"
+                            data-testid="nav-group-get-leads"
+                          >
+                            <Rocket className="w-5 h-5 text-yellow-400" />
+                            <span className="text-sm font-semibold bg-gradient-to-r from-yellow-500 via-gray-300 to-yellow-500 bg-clip-text text-transparent">
+                              Get Leads
+                            </span>
+                            <ChevronRight className={`ml-auto w-4 h-4 text-gray-300 transition-transform ${getLeadsOpen ? 'rotate-90' : ''}`} />
+                          </SidebarMenuButton>
+                        </CollapsibleTrigger>
+                      </div>
                       <CollapsibleContent>
                         <SidebarMenuSub>
                           {/* Lead Hub */}
