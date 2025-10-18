@@ -157,6 +157,9 @@ export function AppSidebar() {
     marketing: false,
     business: false,
   });
+  
+  // State for Get Leads collapsible section
+  const [getLeadsOpen, setGetLeadsOpen] = useState(false);
 
   // Auto-close mobile sidebar when navigating to different pages
   useEffect(() => {
@@ -486,79 +489,92 @@ export function AppSidebar() {
                     );
                   })}
 
-                  {/* Premium "Get Leads" Section */}
-                  <SidebarMenuItem className="mt-4 px-2">
-                    <div className="relative">
-                      {/* Border container with gradient */}
-                      <div className="relative rounded-lg p-[2px] bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500">
-                        {/* Inner container */}
-                        <div className="relative bg-slate-800 rounded-lg pt-4 pb-3 px-3">
-                          {/* Title that breaks the top border */}
-                          <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 rounded-md p-[2px] bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500">
-                            <div className="bg-slate-800 rounded-md px-4 py-1 flex items-center gap-2 whitespace-nowrap">
-                              <Rocket className="w-4 h-4 text-purple-400" />
-                              <span className="text-sm font-semibold bg-gradient-to-r from-purple-400 via-pink-400 to-orange-400 bg-clip-text text-transparent">
-                                Get Leads
-                              </span>
-                            </div>
-                          </div>
-                          
-                          <div className="mt-4">
-                            {/* Lead Hub */}
-                            {hasPremiumAccess ? (
-                              <Link href="/lead-hub" data-testid="nav-lead-hub">
-                                <button className={`w-full flex items-center gap-3 px-3 py-2 rounded-md transition-all hover:bg-slate-700/50 text-white ${location === '/lead-hub' ? 'bg-slate-700' : 'bg-black/20'} border border-gray-400`}>
-                                  <TrendingUp className="w-5 h-5 text-purple-400" />
-                                  <span className="text-sm font-medium">Lead Hub</span>
-                                </button>
-                              </Link>
-                            ) : (
-                              <button
-                                onClick={() => setShowUpgradeModal(true)}
-                                className="w-full flex items-center gap-3 px-3 py-2 rounded-md transition-all opacity-60 cursor-not-allowed text-white/70 bg-black/20 border border-gray-400"
-                                data-testid="nav-lead-hub-locked"
+                  {/* Premium "Get Leads" Section - Collapsible */}
+                  <Collapsible
+                    open={getLeadsOpen}
+                    onOpenChange={setGetLeadsOpen}
+                  >
+                    <SidebarMenuItem className="mt-4 px-2">
+                      <div className="relative">
+                        {/* Border container with gradient */}
+                        <div className="relative rounded-lg p-[2px] bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500">
+                          {/* Inner container */}
+                          <div className="relative bg-slate-800 rounded-lg pt-4 pb-3 px-3">
+                            {/* Title that breaks the top border - now clickable */}
+                            <CollapsibleTrigger asChild>
+                              <button 
+                                className="absolute -top-3 left-1/2 transform -translate-x-1/2 rounded-md p-[2px] bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 cursor-pointer hover:opacity-90 transition-opacity"
+                                data-testid="nav-group-get-leads"
                               >
-                                <TrendingUp className="w-5 h-5 text-purple-400/50" />
-                                <span className="text-sm font-medium">Lead Hub</span>
-                                <Lock className="w-3 h-3 ml-auto text-yellow-400" />
+                                <div className="bg-slate-800 rounded-md px-4 py-1 flex items-center gap-2 whitespace-nowrap">
+                                  <Rocket className="w-4 h-4 text-purple-400" />
+                                  <span className="text-sm font-semibold bg-gradient-to-r from-purple-400 via-pink-400 to-orange-400 bg-clip-text text-transparent">
+                                    Get Leads
+                                  </span>
+                                  <ChevronRight className={`w-4 h-4 text-purple-400 transition-transform ml-1 ${getLeadsOpen ? 'rotate-90' : ''}`} />
+                                </div>
                               </button>
-                            )}
+                            </CollapsibleTrigger>
                             
-                            {/* Budget Estimator */}
-                            <Link href="/budget-estimator" data-testid="nav-budget-estimator">
-                              <button className={`w-full flex items-center gap-3 px-3 py-2 rounded-md transition-all hover:bg-slate-700/50 text-white ${location === '/budget-estimator' ? 'bg-slate-700' : 'bg-black/20'} border border-gray-400 mt-2`}>
-                                <DollarSign className="w-5 h-5 text-green-400" />
-                                <span className="text-sm font-medium">Budget Estimator</span>
-                              </button>
-                            </Link>
-                            
-                            {/* How It Works */}
-                            <Link href="/how-it-works" data-testid="nav-how-it-works">
-                              <button className={`w-full flex items-center gap-3 px-3 py-2 rounded-md transition-all hover:bg-slate-700/50 text-white ${location === '/how-it-works' ? 'bg-slate-700' : 'bg-black/20'} border border-gray-400 mt-2`}>
-                                <Info className="w-5 h-5 text-blue-400" />
-                                <span className="text-sm font-medium">How It Works</span>
-                              </button>
-                            </Link>
+                            <CollapsibleContent>
+                              <div className="mt-4">
+                                {/* Lead Hub */}
+                                {hasPremiumAccess ? (
+                                  <Link href="/lead-hub" data-testid="nav-lead-hub">
+                                    <button className={`w-full flex items-center gap-3 px-3 py-2 rounded-md transition-all hover:bg-slate-700/50 text-white ${location === '/lead-hub' ? 'bg-slate-700' : 'bg-black/20'} border border-gray-400`}>
+                                      <TrendingUp className="w-5 h-5 text-purple-400" />
+                                      <span className="text-sm font-medium">Lead Hub</span>
+                                    </button>
+                                  </Link>
+                                ) : (
+                                  <button
+                                    onClick={() => setShowUpgradeModal(true)}
+                                    className="w-full flex items-center gap-3 px-3 py-2 rounded-md transition-all opacity-60 cursor-not-allowed text-white/70 bg-black/20 border border-gray-400"
+                                    data-testid="nav-lead-hub-locked"
+                                  >
+                                    <TrendingUp className="w-5 h-5 text-purple-400/50" />
+                                    <span className="text-sm font-medium">Lead Hub</span>
+                                    <Lock className="w-3 h-3 ml-auto text-yellow-400" />
+                                  </button>
+                                )}
+                                
+                                {/* Budget Estimator */}
+                                <Link href="/budget-estimator" data-testid="nav-budget-estimator">
+                                  <button className={`w-full flex items-center gap-3 px-3 py-2 rounded-md transition-all hover:bg-slate-700/50 text-white ${location === '/budget-estimator' ? 'bg-slate-700' : 'bg-black/20'} border border-gray-400 mt-2`}>
+                                    <DollarSign className="w-5 h-5 text-green-400" />
+                                    <span className="text-sm font-medium">Budget Estimator</span>
+                                  </button>
+                                </Link>
+                                
+                                {/* How It Works */}
+                                <Link href="/how-it-works" data-testid="nav-how-it-works">
+                                  <button className={`w-full flex items-center gap-3 px-3 py-2 rounded-md transition-all hover:bg-slate-700/50 text-white ${location === '/how-it-works' ? 'bg-slate-700' : 'bg-black/20'} border border-gray-400 mt-2`}>
+                                    <Info className="w-5 h-5 text-blue-400" />
+                                    <span className="text-sm font-medium">How It Works</span>
+                                  </button>
+                                </Link>
+                              </div>
+                              
+                              {/* Upgrade CTA */}
+                              {!hasPremiumAccess && (
+                                <div className="mt-3 pt-3 border-t border-slate-700">
+                                  <button
+                                    onClick={() => setShowUpgradeModal(true)}
+                                    className="w-full text-center py-2 text-white hover:text-white/90 transition-colors"
+                                    data-testid="upgrade-cta"
+                                  >
+                                    <p className="text-sm font-medium">
+                                      Upgrade to unlock Lead Hub
+                                    </p>
+                                  </button>
+                                </div>
+                              )}
+                            </CollapsibleContent>
                           </div>
-                          
-                          {/* Upgrade CTA */}
-                          {!hasPremiumAccess && (
-                            <div className="mt-3 pt-3 border-t border-slate-700">
-                              <button
-                                onClick={() => setShowUpgradeModal(true)}
-                                className="w-full text-center py-2 text-white hover:text-white/90 transition-colors"
-                                data-testid="upgrade-cta"
-                              >
-                                <p className="text-sm font-medium">
-                                  Upgrade to unlock Lead Hub
-                                </p>
-                              </button>
-                            </div>
-                          )}
                         </div>
                       </div>
-                    </div>
-                  </SidebarMenuItem>
+                    </SidebarMenuItem>
+                  </Collapsible>
                 </>
               )}
             </SidebarMenu>
