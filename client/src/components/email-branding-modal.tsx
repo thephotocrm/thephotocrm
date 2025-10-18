@@ -41,6 +41,9 @@ export function EmailBrandingModal({ open, onOpenChange, photographer, onSave }:
   const [headerStyle, setHeaderStyle] = useState<string>(photographer?.emailHeaderStyle || "none");
   const [signatureStyle, setSignatureStyle] = useState<string>(photographer?.emailSignatureStyle || "none");
   const [headshotUrl, setHeadshotUrl] = useState(photographer?.headshotUrl || "");
+  const [headshotFile, setHeadshotFile] = useState<File | null>(null);
+  const [headshotPreview, setHeadshotPreview] = useState<string>("");
+  const [isUploadingHeadshot, setIsUploadingHeadshot] = useState(false);
   const [website, setWebsite] = useState(photographer?.website || "");
   const [businessAddress, setBusinessAddress] = useState(photographer?.businessAddress || "");
   const [facebook, setFacebook] = useState("");
@@ -53,6 +56,7 @@ export function EmailBrandingModal({ open, onOpenChange, photographer, onSave }:
       setHeaderStyle(photographer.emailHeaderStyle || "none");
       setSignatureStyle(photographer.emailSignatureStyle || "none");
       setHeadshotUrl(photographer.headshotUrl || "");
+      setHeadshotPreview(photographer.headshotUrl || "");
       setWebsite(photographer.website || "");
       setBusinessAddress(photographer.businessAddress || "");
       const socialLinks = photographer.socialLinksJson || {};
@@ -63,7 +67,75 @@ export function EmailBrandingModal({ open, onOpenChange, photographer, onSave }:
     }
   }, [photographer]);
 
-  const handleSave = () => {
+  const handleHeadshotFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setHeadshotFile(file);
+      // Create preview URL
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setHeadshotPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleUploadHeadshot = async () => {
+    if (!headshotFile) return;
+    
+    setIsUploadingHeadshot(true);
+    try {
+      const formData = new FormData();
+      formData.append('headshot', headshotFile);
+      
+      const response = await fetch('/api/upload/headshot', {
+        method: 'POST',
+        body: formData,
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        throw new Error('Headshot upload failed');
+      }
+      
+      const data = await response.json();
+      setHeadshotUrl(data.headshotUrl);
+      setHeadshotFile(null);
+    } catch (error) {
+      console.error('Upload error:', error);
+    } finally {
+      setIsUploadingHeadshot(false);
+    }
+  };
+
+  const handleSave = async () => {
+    // Upload headshot if a file was selected
+    let finalHeadshotUrl = headshotUrl;
+    if (headshotFile) {
+      setIsUploadingHeadshot(true);
+      try {
+        const formData = new FormData();
+        formData.append('headshot', headshotFile);
+        
+        const response = await fetch('/api/upload/headshot', {
+          method: 'POST',
+          body: formData,
+          credentials: 'include'
+        });
+        
+        if (!response.ok) {
+          throw new Error('Headshot upload failed');
+        }
+        
+        const data = await response.json();
+        finalHeadshotUrl = data.headshotUrl;
+      } catch (error) {
+        console.error('Upload error:', error);
+      } finally {
+        setIsUploadingHeadshot(false);
+      }
+    }
+
     const socialLinksJson = {
       ...(facebook && { facebook }),
       ...(instagram && { instagram }),
@@ -74,7 +146,7 @@ export function EmailBrandingModal({ open, onOpenChange, photographer, onSave }:
     onSave({
       emailHeaderStyle: headerStyle === "none" ? null : headerStyle,
       emailSignatureStyle: signatureStyle === "none" ? null : signatureStyle,
-      headshotUrl: headshotUrl || "",
+      headshotUrl: finalHeadshotUrl || "",
       website: website || "",
       businessAddress: businessAddress || "",
       socialLinksJson: Object.keys(socialLinksJson).length > 0 ? socialLinksJson : {}
@@ -213,27 +285,35 @@ export function EmailBrandingModal({ open, onOpenChange, photographer, onSave }:
               <div className="flex items-center gap-4">
                 <div className="relative">
                   <img 
-                    src={headshotUrl || 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop&crop=faces'} 
+                    src={headshotPreview || headshotUrl || 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop&crop=faces'} 
                     alt="Headshot preview" 
                     className="w-24 h-24 rounded-full object-cover border-2 border-primary"
                   />
                 </div>
                 <div className="flex-1 space-y-2">
-                  <Label htmlFor="headshotUrl">Photo URL</Label>
+                  <Label>Upload Your Photo</Label>
                   <div className="flex gap-2">
                     <Input
-                      id="headshotUrl"
-                      type="url"
-                      value={headshotUrl}
-                      onChange={(e) => setHeadshotUrl(e.target.value)}
-                      placeholder="https://example.com/your-photo.jpg"
-                      data-testid="input-headshot-url"
+                      id="headshotFile"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleHeadshotFileChange}
+                      className="hidden"
+                      data-testid="input-headshot-file"
                     />
-                    <Button type="button" variant="outline" size="icon">
-                      <Upload className="w-4 h-4" />
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      className="flex-1"
+                      onClick={() => document.getElementById('headshotFile')?.click()}
+                      disabled={isUploadingHeadshot}
+                      data-testid="button-upload-headshot"
+                    >
+                      <Upload className="w-4 h-4 mr-2" />
+                      {headshotFile ? headshotFile.name : 'Choose Photo'}
                     </Button>
                   </div>
-                  <p className="text-xs text-muted-foreground">Enter a URL to your professional headshot photo</p>
+                  <p className="text-xs text-muted-foreground">Upload a professional headshot photo (JPG, PNG, max 5MB)</p>
                 </div>
               </div>
             </div>
