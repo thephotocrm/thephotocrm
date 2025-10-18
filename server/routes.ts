@@ -1913,6 +1913,11 @@ ${photographer?.businessName || 'Your Photography Team'}`;
   // Send email to selected recipients (HoneyBook-style with recipient selection)
   app.post("/api/projects/:id/send-email", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
+      console.log("=== SEND EMAIL ROUTE HIT ===");
+      console.log("Project ID:", req.params.id);
+      console.log("Request body:", req.body);
+      console.log("User:", req.user);
+      
       const { subject, body, recipients = [] } = req.body;
       
       if (!subject || !body) {
