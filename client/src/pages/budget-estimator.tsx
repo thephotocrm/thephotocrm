@@ -42,6 +42,9 @@ export default function BudgetEstimator() {
   const minLeads = Math.floor(currentBudget / 100);
   const maxLeads = Math.floor(currentBudget / 50);
 
+  // Estimate revenue (extremely conservative: $1000 per lead * 25% close rate)
+  const estimatedRevenue = estimatedLeads * 1000 * 0.25;
+
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
@@ -91,7 +94,7 @@ export default function BudgetEstimator() {
         </CardContent>
       </Card>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Pricing Breakdown */}
         <Card>
           <CardHeader>
@@ -194,6 +197,58 @@ export default function BudgetEstimator() {
               <p className="text-xs text-muted-foreground">
                 <strong className="text-amber-700 dark:text-amber-400">Note:</strong> Lead estimates are based on industry averages. Actual results vary by location, targeting, seasonality, and ad creative quality.
               </p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Estimated Revenue */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <DollarSign className="w-5 h-5 text-emerald-500" />
+              Estimated Revenue
+            </CardTitle>
+            <CardDescription>
+              Your potential earnings from these leads
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="text-center p-6 bg-gradient-to-br from-emerald-500/10 to-green-500/10 rounded-lg border border-emerald-500/20">
+              <div className="text-4xl font-bold text-emerald-600" data-testid="text-estimated-revenue">
+                ${estimatedRevenue.toLocaleString()}
+              </div>
+              <p className="text-sm text-muted-foreground mt-2">potential monthly revenue</p>
+            </div>
+
+            <div className="space-y-3 mt-6">
+              <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                <span className="text-sm font-medium">Average Package</span>
+                <span className="text-lg font-bold">$1,000</span>
+              </div>
+
+              <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                <span className="text-sm font-medium">Close Rate</span>
+                <span className="text-lg font-bold">25%</span>
+              </div>
+
+              <div className="flex items-center justify-between p-3 bg-emerald-500/10 rounded-lg border border-emerald-500/20">
+                <span className="text-sm font-medium">Closed Bookings</span>
+                <span className="text-lg font-bold text-emerald-600" data-testid="text-closed-bookings">
+                  ~{Math.round(estimatedLeads * 0.25)}
+                </span>
+              </div>
+            </div>
+
+            <div className="mt-6 p-4 bg-emerald-500/10 rounded-lg border border-emerald-500/20">
+              <div className="flex items-start gap-2">
+                <Info className="w-5 h-5 text-emerald-500 mt-0.5 flex-shrink-0" />
+                <div className="text-sm space-y-1">
+                  <p className="font-medium text-emerald-700 dark:text-emerald-300">Extremely Conservative Estimate</p>
+                  <p className="text-xs text-muted-foreground">
+                    This calculation assumes a 25% close rate and $1,000 average package, which are very conservative industry estimates. Many photographers achieve 40%+ close rates with higher package prices.
+                  </p>
+                </div>
+              </div>
             </div>
           </CardContent>
         </Card>

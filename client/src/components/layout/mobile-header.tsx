@@ -24,7 +24,7 @@ export function MobileHeader() {
       <Button
         onClick={toggleSidebar}
         data-testid="button-mobile-menu"
-        className="relative h-10 px-4 bg-white/10 hover:bg-white/20 border border-white/30 rounded-md text-white flex-shrink-0 gap-2"
+        className="relative h-10 px-4 bg-black hover:bg-gray-900 border border-white/30 rounded-md text-white flex-shrink-0 gap-2"
         variant="ghost"
       >
         <Menu className="w-4 h-4" />
