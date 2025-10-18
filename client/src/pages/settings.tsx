@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Settings as SettingsIcon, User, Palette, Mail, Clock, Shield, Calendar, CheckCircle, XCircle, ExternalLink, CreditCard, AlertCircle, Edit } from "lucide-react";
+import { Settings as SettingsIcon, User, Palette, Mail, Clock, Shield, Calendar, CheckCircle, XCircle, ExternalLink, CreditCard, AlertCircle, Edit, Upload } from "lucide-react";
 import { EmailBrandingModal } from "@/components/email-branding-modal";
 import {
   Select,
@@ -415,6 +415,9 @@ export default function Settings() {
   const [businessName, setBusinessName] = useState("");
   const [photographerName, setPhotographerName] = useState("");
   const [logoUrl, setLogoUrl] = useState("");
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string>("");
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
   const [brandPrimary, setBrandPrimary] = useState("#3b82f6");
   const [brandSecondary, setBrandSecondary] = useState("#64748b");
   const [emailFromName, setEmailFromName] = useState("");
@@ -443,6 +446,7 @@ export default function Settings() {
       setBusinessName(p.businessName || "");
       setPhotographerName(p.photographerName || "");
       setLogoUrl(p.logoUrl || "");
+      setLogoPreview(p.logoUrl || "");
       setBrandPrimary(p.brandPrimary || "#3b82f6");
       setBrandSecondary(p.brandSecondary || "#64748b");
       setEmailFromName(p.emailFromName || "");
@@ -485,11 +489,60 @@ export default function Settings() {
   }
 
   // Handler functions
-  const handleSaveProfile = () => {
+  const handleLogoFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setLogoFile(file);
+      // Create preview URL
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setLogoPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleSaveProfile = async () => {
+    // Upload logo file if one was selected
+    let finalLogoUrl = logoUrl;
+    if (logoFile) {
+      setIsUploadingLogo(true);
+      try {
+        const formData = new FormData();
+        formData.append('logo', logoFile);
+        
+        const response = await fetch('/api/upload/logo', {
+          method: 'POST',
+          body: formData,
+          credentials: 'include'
+        });
+        
+        if (!response.ok) {
+          throw new Error('Logo upload failed');
+        }
+        
+        const data = await response.json();
+        finalLogoUrl = data.logoUrl;
+        setLogoUrl(finalLogoUrl);
+        setLogoFile(null);
+      } catch (error) {
+        console.error('Upload error:', error);
+        toast({
+          title: "Upload Failed",
+          description: "Could not upload logo. Please try again.",
+          variant: "destructive"
+        });
+        setIsUploadingLogo(false);
+        return;
+      } finally {
+        setIsUploadingLogo(false);
+      }
+    }
+
     updatePhotographerMutation.mutate({
       businessName,
       photographerName: photographerName || undefined,
-      logoUrl: logoUrl || undefined,
+      logoUrl: finalLogoUrl || undefined,
       emailFromName: emailFromName || undefined,
       emailFromAddr: emailFromAddr || undefined,
       timezone,
@@ -705,23 +758,50 @@ export default function Settings() {
                     </Select>
                   </div>
                   
-                  <div className="space-y-2">
-                    <Label htmlFor="logoUrl">Logo URL</Label>
-                    <Input
-                      id="logoUrl"
-                      value={logoUrl}
-                      onChange={(e) => setLogoUrl(e.target.value)}
-                      placeholder="https://example.com/logo.png"
-                      data-testid="input-logo-url"
-                    />
+                  <div className="space-y-4">
+                    <div>
+                      <Label>Business Logo</Label>
+                      <p className="text-xs text-muted-foreground mb-3">
+                        Upload your business logo for email headers and branding
+                      </p>
+                    </div>
+                    {(logoPreview || logoUrl) && (
+                      <div className="flex items-center gap-4">
+                        <img 
+                          src={logoPreview || logoUrl} 
+                          alt="Logo preview" 
+                          className="h-20 w-auto max-w-xs object-contain border border-border rounded p-2"
+                        />
+                      </div>
+                    )}
+                    <div className="flex gap-2">
+                      <Input
+                        id="logoFile"
+                        type="file"
+                        accept="image/*"
+                        onChange={handleLogoFileChange}
+                        className="hidden"
+                        data-testid="input-logo-file"
+                      />
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        onClick={() => document.getElementById('logoFile')?.click()}
+                        disabled={isUploadingLogo}
+                        data-testid="button-upload-logo"
+                      >
+                        <Upload className="w-4 h-4 mr-2" />
+                        {logoFile ? logoFile.name : 'Choose Logo'}
+                      </Button>
+                    </div>
                   </div>
                   
                   <Button 
                     onClick={handleSaveProfile}
-                    disabled={updatePhotographerMutation.isPending}
+                    disabled={updatePhotographerMutation.isPending || isUploadingLogo}
                     data-testid="button-save-profile"
                   >
-                    {updatePhotographerMutation.isPending ? "Saving..." : "Save Profile"}
+                    {isUploadingLogo ? "Uploading..." : updatePhotographerMutation.isPending ? "Saving..." : "Save Profile"}
                   </Button>
                 </CardContent>
               </Card>
