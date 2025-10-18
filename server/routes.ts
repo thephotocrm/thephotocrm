@@ -6570,7 +6570,11 @@ ${photographer.businessName}`
     try {
       const photographerId = req.user!.photographerId!;
       const returnUrl = req.query.returnUrl as string | undefined;
-      const authResult = await googleCalendarService.getAuthUrl(photographerId, returnUrl);
+      
+      // Build dynamic redirect URI based on current request's host (dev or prod)
+      const redirectUri = `${req.protocol}://${req.get('host')}/api/auth/google-calendar/callback`;
+      
+      const authResult = await googleCalendarService.getAuthUrl(photographerId, returnUrl, redirectUri);
       
       if (!authResult) {
         return res.status(503).json({ 
@@ -6739,7 +6743,8 @@ ${photographer.businessName}`
         });
       }
 
-      const redirectUri = process.env.GOOGLE_DRIVE_REDIRECT_URI || `https://${req.get('host')}/api/auth/google-drive/callback`;
+      // Build dynamic redirect URI based on current request's host (dev or prod)
+      const redirectUri = `${req.protocol}://${req.get('host')}/api/auth/google-drive/callback`;
       
       const oauth2Client = new OAuth2Client(clientId, clientSecret, redirectUri);
 
@@ -6756,6 +6761,8 @@ ${photographer.businessName}`
         state
       });
 
+      console.log(`🔗 Google Drive OAuth initiated for photographer ${photographerId}`);
+      console.log(`🔗 Redirect URI: ${redirectUri}`);
       res.json({ authUrl });
     } catch (error) {
       console.error('Google Drive auth URL error:', error);

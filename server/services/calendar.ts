@@ -133,7 +133,7 @@ export class GoogleCalendarService {
   /**
    * Create a secure OAuth2 client for a specific photographer
    */
-  private createOAuth2Client(photographerId?: string): OAuth2Client | null {
+  private createOAuth2Client(photographerId?: string, redirectUri?: string): OAuth2Client | null {
     if (!this.clientId || !this.clientSecret) {
       return null;
     }
@@ -141,7 +141,7 @@ export class GoogleCalendarService {
     const oauth2Client = new google.auth.OAuth2(
       this.clientId,
       this.clientSecret,
-      GoogleCalendarService.REDIRECT_URI
+      redirectUri || GoogleCalendarService.REDIRECT_URI
     );
 
     // If photographer ID provided, load their credentials
@@ -180,9 +180,9 @@ export class GoogleCalendarService {
   /**
    * Generate secure OAuth authorization URL with HMAC-signed state parameter for CSRF protection
    */
-  async getAuthUrl(photographerId: string, returnUrl?: string): Promise<{ url: string; state: string } | null> {
+  async getAuthUrl(photographerId: string, returnUrl?: string, redirectUri?: string): Promise<{ url: string; state: string } | null> {
     try {
-      const oauth2Client = this.createOAuth2Client();
+      const oauth2Client = this.createOAuth2Client(undefined, redirectUri);
       if (!oauth2Client) {
         console.warn('Google Calendar not configured - cannot generate auth URL');
         return null;
@@ -213,7 +213,7 @@ export class GoogleCalendarService {
       });
 
       console.log(`Generated secure OAuth URL for photographer ${photographerId}`);
-      console.log(`🔗 Redirect URI configured: ${GoogleCalendarService.REDIRECT_URI}`);
+      console.log(`🔗 Redirect URI configured: ${redirectUri || GoogleCalendarService.REDIRECT_URI}`);
       console.log(`🔗 Return URL: ${returnUrl || '/settings'}`);
       return { url, state: signedState };
     } catch (error) {
