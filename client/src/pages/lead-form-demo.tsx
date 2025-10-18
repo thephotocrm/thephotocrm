@@ -2,21 +2,12 @@ import { useEffect } from "react";
 
 export default function LeadFormDemo() {
   useEffect(() => {
-    document.title = "Lead Form Demo - ThePhotoCRM";
+    document.title = "Contact Us - ThePhotoCRM";
   }, []);
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-3xl mx-auto">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Lead Form Demo
-          </h1>
-          <p className="text-gray-600">
-            Sample lead capture form showing SMS opt-in messaging for compliance review
-          </p>
-        </div>
-
         <div className="bg-white rounded-lg shadow-md p-8 max-w-xl mx-auto">
           <div className="text-center mb-6">
             <h2 className="text-2xl font-semibold text-blue-600 mb-2">
@@ -154,35 +145,6 @@ export default function LeadFormDemo() {
               Submit
             </button>
           </form>
-        </div>
-
-        {/* Compliance Notes */}
-        <div className="mt-8 bg-white rounded-lg shadow-md p-6 max-w-xl mx-auto">
-          <h3 className="text-lg font-semibold text-gray-900 mb-3">
-            SMS Compliance Information
-          </h3>
-          <div className="space-y-2 text-sm text-gray-600">
-            <p>
-              <strong>Business Name:</strong> ThePhotoCRM
-            </p>
-            <p>
-              <strong>Opt-In Method:</strong> Checkbox with clear consent language
-            </p>
-            <p>
-              <strong>Required Disclosures:</strong> All present
-            </p>
-            <ul className="list-disc pl-5 mt-2 space-y-1">
-              <li>Business name clearly stated</li>
-              <li>Message & data rates disclosure</li>
-              <li>Message frequency information</li>
-              <li>STOP to opt-out instructions</li>
-              <li>HELP for assistance</li>
-              <li>Privacy Policy and Terms link</li>
-            </ul>
-            <p className="mt-3 pt-3 border-t border-gray-200">
-              <strong>Note:</strong> This is a demonstration page created for Twilio compliance review purposes. The form shows the exact SMS opt-in messaging that appears on all lead capture forms throughout ThePhotoCRM platform.
-            </p>
-          </div>
         </div>
       </div>
     </div>
