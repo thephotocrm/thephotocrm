@@ -1815,7 +1815,19 @@ export default function ProjectDetail() {
               </div>
             )}
             <Button 
-              onClick={() => sendEmailMutation.mutate({ subject: messageSubject, body: messageBody, sendToParticipants })}
+              onClick={() => {
+                const recipients: string[] = [];
+                const mainContact = getContactInfo(project);
+                if (mainContact?.email) recipients.push(mainContact.email);
+                if (sendToParticipants && participants) {
+                  participants.forEach(p => {
+                    if (p.client.email && !recipients.includes(p.client.email)) {
+                      recipients.push(p.client.email);
+                    }
+                  });
+                }
+                sendEmailMutation.mutate({ subject: messageSubject, body: messageBody, recipients });
+              }}
               disabled={!messageSubject || !messageBody || sendEmailMutation.isPending}
               data-testid="button-send-email"
             >
