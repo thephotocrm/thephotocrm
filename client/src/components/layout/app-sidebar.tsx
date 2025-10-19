@@ -203,8 +203,6 @@ export function AppSidebar() {
   const allMobileItems = [
     ...coreNavigation,
     ...(showAdminNav ? adminNavigation : groupedNavigation.flatMap(g => g.items)),
-    { name: "Settings", href: "/settings", icon: Settings },
-    { name: "Tutorials", href: "/tutorials", icon: GraduationCap },
   ];
 
   // Premium items for mobile grid

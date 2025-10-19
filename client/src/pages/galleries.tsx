@@ -97,7 +97,7 @@ export default function Galleries() {
               />
             </div>
           </div>
-          <Link href="/settings" className="hidden md:block">
+          <Link href="/settings">
             <Button variant="outline" size="sm" data-testid="button-gallery-settings">
               <Settings className="w-4 h-4 mr-2" />
               Gallery Settings
