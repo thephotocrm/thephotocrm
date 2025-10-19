@@ -525,7 +525,8 @@ export default function ProjectDetail() {
       conversationHistory: Array<{ role: 'user' | 'assistant', content: string }>;
       existingContent?: string;
     }) => {
-      return await apiRequest("POST", `/api/projects/${id}/conversational-ai`, data);
+      const response = await apiRequest("POST", `/api/projects/${id}/conversational-ai`, data);
+      return await response.json();
     },
     onSuccess: (data: any) => {
       console.log("=== AI RESPONSE RECEIVED ===", data);
