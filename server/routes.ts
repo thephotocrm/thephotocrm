@@ -563,6 +563,118 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json({ message: "Logged out successfully" });
   });
 
+  // Portal Token Routes (Magic Links for Client Auto-Login)
+  app.post("/api/portal-tokens", authenticateToken, async (req, res) => {
+    try {
+      const { projectId, clientId } = req.body;
+      const photographerId = req.user!.photographerId;
+
+      if (!projectId || !clientId) {
+        return res.status(400).json({ message: "Project ID and Client ID are required" });
+      }
+
+      // Verify project belongs to photographer
+      const project = await storage.getProject(projectId);
+      if (!project || project.photographerId !== photographerId) {
+        return res.status(403).json({ message: "Unauthorized" });
+      }
+
+      // Generate secure random token
+      const token = crypto.randomBytes(32).toString('hex');
+      
+      // Token expires in 90 days
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + 90);
+
+      const portalToken = await storage.createPortalToken({
+        token,
+        projectId,
+        clientId,
+        photographerId,
+        expiresAt
+      });
+
+      res.json({ 
+        token: portalToken.token,
+        expiresAt: portalToken.expiresAt
+      });
+    } catch (error) {
+      console.error("Portal token generation error:", error);
+      res.status(500).json({ message: "Failed to generate portal token" });
+    }
+  });
+
+  // Public endpoint to validate portal token and auto-login client
+  app.get("/api/portal/:token", async (req, res) => {
+    try {
+      const { token } = req.params;
+
+      const portalToken = await storage.validatePortalToken(token);
+      if (!portalToken) {
+        return res.status(401).json({ message: "Invalid or expired token" });
+      }
+
+      // Update last used timestamp
+      await storage.updatePortalTokenLastUsed(portalToken.id);
+
+      // Get the client/contact
+      const contact = await storage.getContact(portalToken.clientId);
+      if (!contact) {
+        return res.status(404).json({ message: "Client not found" });
+      }
+
+      // Check if user exists for this contact
+      let user = await storage.getUserByEmail(contact.contact.email);
+      
+      // If no user exists, create one with a random password (they can reset it later)
+      if (!user) {
+        const randomPassword = crypto.randomBytes(16).toString('hex');
+        const hashedPassword = await bcrypt.hash(randomPassword, 10);
+        
+        user = await storage.createUser({
+          email: contact.contact.email,
+          password: hashedPassword,
+          role: "CLIENT",
+          photographerId: portalToken.photographerId
+        });
+      }
+
+      // Generate JWT token for the client
+      const jwtToken = jwt.sign(
+        { 
+          id: user.id, 
+          email: user.email, 
+          role: user.role,
+          photographerId: user.photographerId 
+        },
+        process.env.JWT_SECRET!,
+        { expiresIn: '7d' }
+      );
+
+      // Set HTTP-only cookie
+      res.cookie('token', jwtToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+      });
+
+      // Return user info and redirect to project
+      res.json({
+        user: {
+          id: user.id,
+          email: user.email,
+          role: user.role,
+          photographerId: user.photographerId
+        },
+        projectId: portalToken.projectId
+      });
+    } catch (error) {
+      console.error("Portal token validation error:", error);
+      res.status(500).json({ message: "Failed to validate portal token" });
+    }
+  });
+
   // Password Reset Flow
   app.post("/api/auth/request-password-reset", async (req, res) => {
     try {

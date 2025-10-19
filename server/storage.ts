@@ -4,7 +4,7 @@ import {
   packages, packageItems, addOns, questionnaireTemplates, questionnaireQuestions, projectQuestionnaires,
   availabilitySlots, bookings,
   photographerEarnings, photographerPayouts,
-  projectActivityLog, clientPortalTokens, conversationReads,
+  projectActivityLog, clientPortalTokens, portalTokens, conversationReads,
   dailyAvailabilityTemplates, dailyAvailabilityBreaks, dailyAvailabilityOverrides,
   dripCampaigns, dripCampaignEmails, dripCampaignSubscriptions, dripEmailDeliveries, staticCampaignSettings,
   shortLinks, adminActivityLog,
@@ -21,7 +21,7 @@ import {
   type QuestionnaireTemplate, type InsertQuestionnaireTemplate,
   type QuestionnaireQuestion, type InsertQuestionnaireQuestion,
   type ProjectQuestionnaire,
-  type SmsLog, type InsertSmsLog, type EmailHistory, type InsertEmailHistory, type ProjectActivityLog, type TimelineEvent, type ClientPortalToken, type InsertClientPortalToken,
+  type SmsLog, type InsertSmsLog, type EmailHistory, type InsertEmailHistory, type ProjectActivityLog, type TimelineEvent, type ClientPortalToken, type InsertClientPortalToken, type PortalToken, type InsertPortalToken,
   type ConversationRead, type InsertConversationRead,
   type DailyAvailabilityTemplate, type InsertDailyAvailabilityTemplate,
   type DailyAvailabilityBreak, type InsertDailyAvailabilityBreak,
@@ -91,6 +91,11 @@ export interface IStorage {
   getClientPortalTokensByClient(clientId: string, after?: Date): Promise<ClientPortalToken[]>;
   createClientPortalToken(token: InsertClientPortalToken): Promise<ClientPortalToken>;
   validateClientPortalToken(token: string): Promise<ClientPortalToken | undefined>;
+  
+  // Portal Tokens (Project-specific magic links)
+  createPortalToken(token: InsertPortalToken): Promise<PortalToken>;
+  validatePortalToken(tokenString: string): Promise<PortalToken | undefined>;
+  updatePortalTokenLastUsed(id: string): Promise<void>;
   
   // Stages
   getStagesByPhotographer(photographerId: string, projectType?: string): Promise<Stage[]>;
@@ -1281,6 +1286,27 @@ export class DatabaseStorage implements IStorage {
       ))
       .limit(1);
     return portalToken;
+  }
+
+  async createPortalToken(tokenData: InsertPortalToken): Promise<PortalToken> {
+    const [token] = await db.insert(portalTokens).values(tokenData).returning();
+    return token;
+  }
+
+  async validatePortalToken(tokenString: string): Promise<PortalToken | undefined> {
+    const [token] = await db.select().from(portalTokens)
+      .where(and(
+        eq(portalTokens.token, tokenString),
+        gte(portalTokens.expiresAt, new Date())
+      ))
+      .limit(1);
+    return token;
+  }
+
+  async updatePortalTokenLastUsed(id: string): Promise<void> {
+    await db.update(portalTokens)
+      .set({ lastUsedAt: new Date() })
+      .where(eq(portalTokens.id, id));
   }
 
   // Booking methods
