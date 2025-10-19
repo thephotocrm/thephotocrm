@@ -2007,6 +2007,11 @@ ${photographer?.businessName || 'Your Photography Team'}`;
     try {
       const { messageType, conversationHistory, existingContent } = req.body;
       
+      console.log("=== CONVERSATIONAL AI REQUEST ===");
+      console.log("Message Type:", messageType);
+      console.log("Conversation History:", JSON.stringify(conversationHistory, null, 2));
+      console.log("Existing Content:", existingContent);
+      
       if (!messageType || !['email', 'sms'].includes(messageType)) {
         return res.status(400).json({ message: "Valid messageType (email or sms) is required" });
       }
@@ -2030,6 +2035,8 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       const photographerName = photographer?.photographerName || photographer?.businessName || 'Photographer';
       const businessName = photographer?.businessName || 'Photography Studio';
       
+      console.log("Context:", { projectTitle: project.title, contactName, projectType: project.projectType, photographerName, businessName });
+      
       // Call conversational AI
       const { conversationalAI } = await import('./services/openai');
       const result = await conversationalAI(messageType, conversationHistory, {
@@ -2041,9 +2048,15 @@ ${photographer?.businessName || 'Your Photography Team'}`;
         existingContent
       });
       
+      console.log("=== CONVERSATIONAL AI RESPONSE ===");
+      console.log(JSON.stringify(result, null, 2));
+      
       res.json(result);
     } catch (error) {
-      console.error("Conversational AI error:", error);
+      console.error("=== CONVERSATIONAL AI ERROR ===");
+      console.error("Error:", error);
+      console.error("Error message:", (error as Error).message);
+      console.error("Error stack:", (error as Error).stack);
       res.status(500).json({ message: (error as Error).message || "Failed to process conversation" });
     }
   });

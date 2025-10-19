@@ -681,6 +681,11 @@ FOR QUESTIONS: {"type": "question", "message": "Your clarifying question(s)"}
 FOR READY: {"type": "ready", "content": {"body": "..."}, "message": "I've generated your text!"}`;
 
   try {
+    console.log("=== CALLING OPENAI API ===");
+    console.log("Model: gpt-5");
+    console.log("Message Type:", messageType);
+    console.log("Conversation History Length:", conversationHistory.length);
+    
     // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
     const response = await openai.chat.completions.create({
       model: "gpt-5",
@@ -692,10 +697,22 @@ FOR READY: {"type": "ready", "content": {"body": "..."}, "message": "I've genera
       max_completion_tokens: 1000,
     });
 
+    console.log("=== OPENAI RAW RESPONSE ===");
+    console.log("Response content:", response.choices[0].message.content);
+    
     const result = JSON.parse(response.choices[0].message.content || '{}');
+    
+    console.log("=== PARSED RESULT ===");
+    console.log("Type:", result.type);
+    console.log("Has message:", !!result.message);
+    console.log("Has content:", !!result.content);
+    
     return result;
   } catch (error) {
-    console.error('Error in conversational AI:', error);
+    console.error('=== ERROR IN CONVERSATIONAL AI ===');
+    console.error('Error:', error);
+    console.error('Error message:', (error as Error).message);
+    console.error('Error stack:', (error as Error).stack);
     throw new Error(`Failed to process conversation: ${(error as Error).message}`);
   }
 }
