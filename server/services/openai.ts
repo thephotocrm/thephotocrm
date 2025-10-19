@@ -682,13 +682,13 @@ FOR READY: {"type": "ready", "content": {"body": "..."}, "message": "I've genera
 
   try {
     console.log("=== CALLING OPENAI API ===");
-    console.log("Model: gpt-5");
+    console.log("Model: gpt-4o");
     console.log("Message Type:", messageType);
     console.log("Conversation History Length:", conversationHistory.length);
     
-    // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
+    // Using GPT-4o which is reliable and supports JSON mode
     const response = await openai.chat.completions.create({
-      model: "gpt-5",
+      model: "gpt-4o",
       messages: [
         { role: "system", content: systemPrompt },
         ...conversationHistory
@@ -698,14 +698,21 @@ FOR READY: {"type": "ready", "content": {"body": "..."}, "message": "I've genera
     });
 
     console.log("=== OPENAI RAW RESPONSE ===");
+    console.log("Full response:", JSON.stringify(response, null, 2));
     console.log("Response content:", response.choices[0].message.content);
     
-    const result = JSON.parse(response.choices[0].message.content || '{}');
+    if (!response.choices[0].message.content) {
+      console.error("OpenAI returned empty content!");
+      throw new Error("OpenAI returned empty response. Please check your API key and model access.");
+    }
+    
+    const result = JSON.parse(response.choices[0].message.content);
     
     console.log("=== PARSED RESULT ===");
     console.log("Type:", result.type);
     console.log("Has message:", !!result.message);
     console.log("Has content:", !!result.content);
+    console.log("Full result:", JSON.stringify(result, null, 2));
     
     return result;
   } catch (error) {
