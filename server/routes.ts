@@ -1939,7 +1939,8 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       
       // Get photographer info
       const photographer = await storage.getPhotographer(req.user!.photographerId!);
-      const photographerName = photographer?.businessName || 'Photographer';
+      const photographerName = photographer?.photographerName || photographer?.businessName || 'Photographer';
+      const businessName = photographer?.businessName || 'Photography Studio';
       
       // Generate email using OpenAI
       const { generateEmailFromPrompt } = await import('./services/openai');
@@ -1948,6 +1949,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
         contactName,
         projectType: project.projectType,
         photographerName,
+        businessName,
         existingEmailBody
       });
       
@@ -1979,7 +1981,8 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       
       // Get photographer info
       const photographer = await storage.getPhotographer(req.user!.photographerId!);
-      const photographerName = photographer?.businessName || 'Photographer';
+      const photographerName = photographer?.photographerName || photographer?.businessName || 'Photographer';
+      const businessName = photographer?.businessName || 'Photography Studio';
       
       // Generate SMS using OpenAI
       const { generateSMSFromPrompt } = await import('./services/openai');
@@ -1988,6 +1991,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
         contactName,
         projectType: project.projectType,
         photographerName,
+        businessName,
         existingSMSBody
       });
       

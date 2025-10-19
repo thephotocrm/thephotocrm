@@ -446,27 +446,31 @@ export async function generateEmailFromPrompt(
     contactName: string;
     projectType: string;
     photographerName: string;
+    businessName: string;
     existingEmailBody?: string;
   }
 ): Promise<{ subject: string; body: string }> {
-  const { projectTitle, contactName, projectType, photographerName, existingEmailBody } = context;
+  const { projectTitle, contactName, projectType, photographerName, businessName, existingEmailBody } = context;
 
-  const systemPrompt = `You are an expert email writer for ${photographerName}, a professional photographer. 
+  const systemPrompt = `You are an expert email writer for ${photographerName} at ${businessName}, a professional photography business. 
   
-Your task is to help compose professional, friendly, and personalized emails to clients about their ${projectType} photography projects.
+Your task is to help compose professional, friendly, and personalized emails to clients about their photography projects.
 
-Context:
+Current Project Context:
 - Project: ${projectTitle}
 - Client: ${contactName}
+- Project Type: ${projectType}
 - Photographer: ${photographerName}
+- Business: ${businessName}
 ${existingEmailBody ? `- Current email draft: ${existingEmailBody}` : ''}
 
 Guidelines:
-- Use a warm, professional tone
+- Use a warm, professional tone that reflects ${photographerName}'s personal style
+- Address the client by their first name (${contactName.split(' ')[0]}) when appropriate
 - Be concise and clear
-- Personalize where appropriate
 - Include proper email etiquette
-- Match the photographer's voice and style
+- Reference the specific project (${projectTitle}) when relevant
+- Sign off as ${photographerName}
 ${existingEmailBody ? '- If improving existing content, maintain the core message while making it better' : ''}
 
 Respond with JSON in this format:
@@ -510,28 +514,32 @@ export async function generateSMSFromPrompt(
     contactName: string;
     projectType: string;
     photographerName: string;
+    businessName: string;
     existingSMSBody?: string;
   }
 ): Promise<{ body: string }> {
-  const { projectTitle, contactName, projectType, photographerName, existingSMSBody } = context;
+  const { projectTitle, contactName, projectType, photographerName, businessName, existingSMSBody } = context;
 
-  const systemPrompt = `You are an expert SMS writer for ${photographerName}, a professional photographer.
+  const systemPrompt = `You are an expert SMS writer for ${photographerName} at ${businessName}, a professional photography business.
   
-Your task is to help compose professional, friendly, and concise SMS messages to clients about their ${projectType} photography projects.
+Your task is to help compose professional, friendly, and concise SMS messages to clients about their photography projects.
 
-Context:
+Current Project Context:
 - Project: ${projectTitle}
 - Client: ${contactName}
+- Project Type: ${projectType}
 - Photographer: ${photographerName}
+- Business: ${businessName}
 ${existingSMSBody ? `- Current SMS draft: ${existingSMSBody}` : ''}
 
 Guidelines:
-- Keep it SHORT (SMS should be 160-300 characters when possible)
-- Use a warm, professional tone
-- Be concise and clear
-- Include personalization where appropriate
-- Get straight to the point
+- Keep it SHORT (aim for 160-300 characters when possible)
+- Use ${photographerName}'s friendly, professional tone
+- Address the client by their first name (${contactName.split(' ')[0]})
+- Be concise and get straight to the point
 - Use casual but professional language
+- Reference the specific project (${projectTitle}) when relevant
+- Sign off as ${photographerName} or just your first name
 ${existingSMSBody ? '- If improving existing content, maintain the core message while making it better' : ''}
 
 Respond with JSON in this format:
