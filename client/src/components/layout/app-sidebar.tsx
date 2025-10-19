@@ -199,16 +199,13 @@ export function AppSidebar() {
     }
   };
 
-  // Flatten all items for mobile grid
-  const allMobileItems = [
-    ...coreNavigation,
-    ...(showAdminNav ? adminNavigation : groupedNavigation.flatMap(g => g.items)),
-  ];
-
-  // Premium items for mobile grid
-  const premiumItems = [
-    { name: "Lead Hub", href: "/lead-hub", icon: TrendingUp, iconColor: "text-purple-400", locked: !hasPremiumAccess },
-  ];
+  // Group items for mobile grid with categories
+  const mobileGroupedItems = showAdminNav 
+    ? [{ id: "admin", name: "Admin", items: adminNavigation }]
+    : [
+        { id: "work", name: "Work", items: coreNavigation },
+        ...groupedNavigation
+      ];
 
   return (
     <Sidebar collapsible="offcanvas">
@@ -225,63 +222,77 @@ export function AppSidebar() {
 
       <SidebarContent>
         {isMobile ? (
-          // Mobile Grid Layout
+          // Mobile Grid Layout with Grouped Sections
           <div className="p-4 overflow-y-auto">
-            {/* Main Navigation Grid */}
-            <div className="mb-6">
-              <h2 className="text-xs font-semibold text-white/70 uppercase tracking-wider mb-3 px-1">
-                {showAdminNav ? "Admin" : "Workspace"}
-              </h2>
-              <div className="grid grid-cols-4 gap-3">
-                {allMobileItems.map((item) => {
-                  const isActive = location === item.href;
-                  const Icon = item.icon;
-                  const showBadge = 'badge' in item && item.badge && item.badge > 0;
-                  
-                  return (
-                    <Link
-                      key={item.name}
-                      href={item.href}
-                      data-testid={`nav-${item.name.toLowerCase().replace(/\s+/g, '-')}`}
-                    >
-                      <div
-                        className={`
-                          relative aspect-square rounded-xl flex flex-col items-center justify-center p-3
-                          transition-all duration-200
-                          ${isActive 
-                            ? 'bg-white/20 shadow-lg scale-105' 
-                            : 'bg-white/10 hover:bg-white/15 hover:scale-105'
-                          }
-                        `}
+            {/* Grouped Navigation Sections */}
+            {mobileGroupedItems.map((group, groupIndex) => (
+              <div key={group.id}>
+                {/* Category Header */}
+                <h2 className="text-xs font-semibold text-white/70 uppercase tracking-wider mb-3 px-1">
+                  {group.name}
+                </h2>
+                
+                {/* Grid for this category */}
+                <div className="grid grid-cols-4 gap-3 mb-4">
+                  {group.items.map((item) => {
+                    const isActive = location === item.href;
+                    const Icon = item.icon;
+                    const showBadge = 'badge' in item && item.badge && item.badge > 0;
+                    
+                    return (
+                      <Link
+                        key={item.name}
+                        href={item.href}
+                        data-testid={`nav-${item.name.toLowerCase().replace(/\s+/g, '-')}`}
                       >
-                        <div className="relative">
-                          <Icon className="w-8 h-8 text-white mb-2" />
-                          {'badge' in item && item.badge > 0 && (
-                            <div 
-                              className="absolute -top-2 -right-2 h-[23px] w-[23px] rounded-full flex items-center justify-center text-xs font-bold bg-green-500 text-white"
-                              data-testid="inbox-unread-badge"
-                            >
-                              {item.badge}
-                            </div>
-                          )}
+                        <div
+                          className={`
+                            relative aspect-square rounded-xl flex flex-col items-center justify-center p-3
+                            transition-all duration-200
+                            ${isActive 
+                              ? 'bg-white/20 shadow-lg scale-105' 
+                              : 'bg-white/10 hover:bg-white/15 hover:scale-105'
+                            }
+                          `}
+                        >
+                          <div className="relative">
+                            <Icon className="w-8 h-8 text-white mb-2" />
+                            {'badge' in item && item.badge > 0 && (
+                              <div 
+                                className="absolute -top-2 -right-2 h-[23px] w-[23px] rounded-full flex items-center justify-center text-xs font-bold bg-green-500 text-white"
+                                data-testid="inbox-unread-badge"
+                              >
+                                {item.badge}
+                              </div>
+                            )}
+                          </div>
+                          <span className="text-[10px] font-medium text-white text-center leading-tight">
+                            {item.name}
+                          </span>
                         </div>
-                        <span className="text-[10px] font-medium text-white text-center leading-tight">
-                          {item.name}
-                        </span>
-                      </div>
-                    </Link>
-                  );
-                })}
+                      </Link>
+                    );
+                  })}
+                </div>
+                
+                {/* Divider between groups (except after last group) */}
+                {groupIndex < mobileGroupedItems.length - 1 && (
+                  <div className="h-px bg-white/20 my-4" />
+                )}
               </div>
-            </div>
+            ))}
 
             {/* Get Leads Section - Only for photographers */}
             {!showAdminNav && (
-              <div className="mb-6">
-                <h2 className="text-xs font-semibold text-white/70 uppercase tracking-wider mb-3 px-1 flex items-center gap-2">
-                  <Rocket className="w-4 h-4 text-yellow-400" />
-                  Get Leads
-                </h2>
+              <>
+                {/* Divider before Get Leads */}
+                <div className="h-px bg-white/20 my-4" />
+                
+                <div className="mb-6">
+                  <h2 className="text-xs font-semibold text-white/70 uppercase tracking-wider mb-3 px-1 flex items-center gap-2">
+                    <Rocket className="w-4 h-4 text-yellow-400" />
+                    Get Leads
+                  </h2>
                 <div className="grid grid-cols-4 gap-3">
                   <Link
                     href="/lead-hub"
@@ -347,6 +358,7 @@ export function AppSidebar() {
                   </Link>
                 </div>
               </div>
+              </>
             )}
           </div>
         ) : (
