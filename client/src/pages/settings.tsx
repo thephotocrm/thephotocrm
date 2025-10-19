@@ -27,6 +27,7 @@ export default function Settings() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("profile");
+  const [isBrandingModalOpen, setIsBrandingModalOpen] = useState(false);
 
   // Check for OAuth callback status in URL parameters
   useEffect(() => {
@@ -55,6 +56,18 @@ export default function Settings() {
       window.history.replaceState({}, '', '/settings');
     }
   }, [toast, queryClient]);
+
+  // Check for email_branding parameter to auto-open modal
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const openEmailBranding = params.get('email_branding');
+    
+    if (openEmailBranding === 'true') {
+      setIsBrandingModalOpen(true);
+      // Remove query params from URL
+      window.history.replaceState({}, '', '/settings');
+    }
+  }, []);
 
   // ALL HOOKS MUST BE CALLED BEFORE ANY CONDITIONAL LOGIC
   const { data: photographer } = useQuery({
@@ -435,9 +448,6 @@ export default function Settings() {
   const [instagram, setInstagram] = useState("");
   const [twitter, setTwitter] = useState("");
   const [linkedin, setLinkedin] = useState("");
-  
-  // Modal state
-  const [isBrandingModalOpen, setIsBrandingModalOpen] = useState(false);
 
   // Update state when photographer data loads
   useEffect(() => {

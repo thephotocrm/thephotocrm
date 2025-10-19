@@ -97,8 +97,8 @@ export default function Galleries() {
               />
             </div>
           </div>
-          <Link href="/settings">
-            <Button variant="outline" size="sm" className="w-full md:w-auto" data-testid="button-gallery-settings">
+          <Link href="/settings" className="hidden md:block">
+            <Button variant="outline" size="sm" data-testid="button-gallery-settings">
               <Settings className="w-4 h-4 mr-2" />
               Gallery Settings
             </Button>

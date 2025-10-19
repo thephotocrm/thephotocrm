@@ -124,7 +124,7 @@ export function AppSidebar() {
         { name: "Automations", href: "/automations", icon: Zap },
         { name: "Drip Campaigns", href: "/drip-campaigns", icon: Sparkles },
         { name: "Templates", href: "/templates", icon: MessageSquare },
-        { name: "Email Branding", href: "/settings", icon: Send },
+        { name: "Email Branding", href: "/settings?email_branding=true", icon: Send },
         { name: "Lead Forms", href: "/lead-forms", icon: FileText },
       ]
     },
