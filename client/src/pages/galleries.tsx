@@ -73,35 +73,37 @@ export default function Galleries() {
 
   return (
     <div className="h-full flex flex-col">
-      <header className="flex h-16 shrink-0 items-center gap-4 border-b px-4 bg-white dark:bg-gray-950">
-        <div className="flex items-center gap-2">
-          <Images className="w-6 h-6 text-purple-600" />
-          <h1 className="text-xl font-semibold">Client Galleries</h1>
-          {!isShootProofConnected && (
-            <Badge variant="secondary" className="ml-2">
-              Default
-            </Badge>
-          )}
-        </div>
-        <div className="flex-1 max-w-md">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              type="text"
-              placeholder="Search galleries..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9"
-              data-testid="input-gallery-search"
-            />
+      <header className="shrink-0 border-b px-4 py-4 bg-white dark:bg-gray-950">
+        <div className="flex flex-col md:flex-row md:items-center gap-4">
+          <div className="flex items-center gap-2">
+            <Images className="w-6 h-6 text-purple-600" />
+            <h1 className="text-xl font-semibold">Client Galleries</h1>
+            {!isShootProofConnected && (
+              <Badge variant="secondary" className="ml-2">
+                Default
+              </Badge>
+            )}
           </div>
+          <div className="flex-1 md:max-w-md">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                type="text"
+                placeholder="Search galleries..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9"
+                data-testid="input-gallery-search"
+              />
+            </div>
+          </div>
+          <Link href="/settings">
+            <Button variant="outline" size="sm" className="w-full md:w-auto" data-testid="button-gallery-settings">
+              <Settings className="w-4 h-4 mr-2" />
+              Gallery Settings
+            </Button>
+          </Link>
         </div>
-        <Link href="/settings">
-          <Button variant="outline" size="sm" data-testid="button-gallery-settings">
-            <Settings className="w-4 h-4 mr-2" />
-            Gallery Settings
-          </Button>
-        </Link>
       </header>
 
       <div className="flex-1 p-6 overflow-auto bg-gray-50 dark:bg-gray-900">

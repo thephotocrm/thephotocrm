@@ -97,20 +97,21 @@ export default function GalleryDetail() {
       {/* Header */}
       <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setLocation('/galleries')}
                 data-testid="button-back"
+                className="w-fit"
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Back
               </Button>
               <div>
-                <div className="flex items-center gap-2">
-                  <h1 className="text-2xl font-bold" data-testid="text-gallery-title">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h1 className="text-xl sm:text-2xl font-bold" data-testid="text-gallery-title">
                     {gallery.title}
                   </h1>
                   {!isShootProofConnected && (
@@ -119,7 +120,7 @@ export default function GalleryDetail() {
                     </Badge>
                   )}
                 </div>
-                <div className="flex items-center gap-4 mt-1 text-sm text-gray-600 dark:text-gray-400">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mt-2 text-sm text-gray-600 dark:text-gray-400">
                   <div className="flex items-center gap-1">
                     <User className="w-4 h-4" />
                     <span data-testid="text-client-name">
@@ -141,11 +142,11 @@ export default function GalleryDetail() {
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" data-testid="button-share">
+              <Button variant="outline" size="sm" className="flex-1 sm:flex-none" data-testid="button-share">
                 <Share2 className="w-4 h-4 mr-2" />
                 Share
               </Button>
-              <Button variant="outline" size="sm" data-testid="button-download-all">
+              <Button variant="outline" size="sm" className="flex-1 sm:flex-none" data-testid="button-download-all">
                 <Download className="w-4 h-4 mr-2" />
                 Download All
               </Button>
