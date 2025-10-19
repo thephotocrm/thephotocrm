@@ -169,19 +169,23 @@ export default function HowItWorks() {
             <div className="p-8 rounded-3xl bg-gradient-to-br from-purple-500/10 to-pink-500/10 border border-purple-500/20 hover:border-purple-500/30 transition-colors">
               <TrendingUp className="w-12 h-12 text-purple-500 mb-6" />
               <h3 className="text-2xl font-bold mb-4">Tiered Pricing</h3>
-              <p className="text-muted-foreground mb-4">Save more as you scale</p>
+              <p className="text-muted-foreground mb-4">More goes to ads as you scale</p>
               <div className="space-y-2">
                 <div className="flex justify-between items-center p-3 bg-background/50 rounded-lg">
                   <span className="text-sm">Under $2k/mo</span>
-                  <span className="font-bold text-purple-500">25%</span>
+                  <span className="font-bold text-purple-500">40% fee</span>
                 </div>
                 <div className="flex justify-between items-center p-3 bg-background/50 rounded-lg">
                   <span className="text-sm">$2k - $5k/mo</span>
-                  <span className="font-bold text-purple-500">20%</span>
+                  <span className="font-bold text-purple-500">30% fee</span>
                 </div>
                 <div className="flex justify-between items-center p-3 bg-background/50 rounded-lg">
-                  <span className="text-sm">Over $5k/mo</span>
-                  <span className="font-bold text-purple-500">15%</span>
+                  <span className="text-sm">$5k - $10k/mo</span>
+                  <span className="font-bold text-purple-500">20% fee</span>
+                </div>
+                <div className="flex justify-between items-center p-3 bg-background/50 rounded-lg">
+                  <span className="text-sm">$10k+/mo</span>
+                  <span className="font-bold text-purple-500">$1,500 cap</span>
                 </div>
               </div>
             </div>

@@ -11,36 +11,42 @@ export default function BudgetEstimator() {
 
   const currentBudget = budget[0];
 
-  // Calculate tiered pricing
-  const calculatePricing = (amount: number) => {
-    let markup = 0;
-    let markupRate = 0;
+  // Calculate tiered pricing - platform fee is taken FROM budget, not added on top
+  const calculatePricing = (totalBudget: number) => {
+    let platformFee = 0;
+    let feeRate = 0;
 
-    if (amount < 2000) {
-      markupRate = 0.25;
-      markup = amount * 0.25;
-    } else if (amount >= 2000 && amount < 5000) {
-      markupRate = 0.20;
-      markup = amount * 0.20;
+    if (totalBudget < 2000) {
+      feeRate = 0.40; // 40% for under $2k
+      platformFee = totalBudget * 0.40;
+    } else if (totalBudget >= 2000 && totalBudget < 5000) {
+      feeRate = 0.30; // 30% for $2k-$5k
+      platformFee = totalBudget * 0.30;
+    } else if (totalBudget >= 5000 && totalBudget < 10000) {
+      feeRate = 0.20; // 20% for $5k-$10k
+      platformFee = totalBudget * 0.20;
     } else {
-      markupRate = 0.15;
-      markup = amount * 0.15;
+      // $10k+: cap at $1,500
+      platformFee = 1500;
+      feeRate = platformFee / totalBudget;
     }
 
+    const actualAdSpend = totalBudget - platformFee;
+
     return {
-      adSpend: amount,
-      markup,
-      markupRate: markupRate * 100,
-      total: amount + markup,
+      totalBudget,
+      platformFee,
+      feeRate: feeRate * 100,
+      actualAdSpend,
     };
   };
 
   const pricing = calculatePricing(currentBudget);
 
-  // Estimate leads (rough calculation: $50-100 per lead for wedding photography)
-  const estimatedLeads = Math.floor(currentBudget / 75);
-  const minLeads = Math.floor(currentBudget / 100);
-  const maxLeads = Math.floor(currentBudget / 50);
+  // Estimate leads based on ACTUAL ad spend (rough calculation: $50-100 per lead for wedding photography)
+  const estimatedLeads = Math.floor(pricing.actualAdSpend / 75);
+  const minLeads = Math.floor(pricing.actualAdSpend / 100);
+  const maxLeads = Math.floor(pricing.actualAdSpend / 50);
 
   // Estimate revenue (extremely conservative: $1000 per lead * 25% close rate)
   const estimatedRevenue = estimatedLeads * 1000 * 0.25;
@@ -72,7 +78,7 @@ export default function BudgetEstimator() {
             <div className="text-5xl font-bold text-purple-600" data-testid="text-budget-amount">
               ${currentBudget.toLocaleString()}
             </div>
-            <p className="text-sm text-muted-foreground mt-2">per month</p>
+            <p className="text-sm text-muted-foreground mt-2">total monthly budget</p>
           </div>
 
           {/* Slider */}
@@ -105,25 +111,25 @@ export default function BudgetEstimator() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-3">
-              <div className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
-                <span className="text-sm font-medium">Ad Spend</span>
-                <span className="text-lg font-bold" data-testid="text-ad-spend">
-                  ${pricing.adSpend.toLocaleString()}
+              <div className="flex justify-between items-center p-3 bg-green-500/10 rounded-lg border border-green-500/20">
+                <span className="text-sm font-medium">Total Budget</span>
+                <span className="text-lg font-bold text-green-600" data-testid="text-total-budget">
+                  ${pricing.totalBudget.toLocaleString()}
                 </span>
               </div>
               
               <div className="flex justify-between items-center p-3 bg-purple-500/10 rounded-lg border border-purple-500/20">
-                <span className="text-sm font-medium">Platform Fee ({pricing.markupRate}%)</span>
+                <span className="text-sm font-medium">Platform Fee ({pricing.feeRate.toFixed(1)}%)</span>
                 <span className="text-lg font-bold text-purple-600" data-testid="text-platform-fee">
-                  ${pricing.markup.toLocaleString()}
+                  ${pricing.platformFee.toLocaleString()}
                 </span>
               </div>
 
               <div className="border-t pt-3">
                 <div className="flex justify-between items-center">
-                  <span className="text-base font-semibold">Total Monthly Cost</span>
-                  <span className="text-2xl font-bold text-green-600" data-testid="text-total-cost">
-                    ${pricing.total.toLocaleString()}
+                  <span className="text-base font-semibold">Actual Ad Spend</span>
+                  <span className="text-2xl font-bold text-blue-600" data-testid="text-ad-spend">
+                    ${pricing.actualAdSpend.toLocaleString()}
                   </span>
                 </div>
               </div>
@@ -136,12 +142,13 @@ export default function BudgetEstimator() {
                 <div className="space-y-2 text-sm">
                   <p className="font-medium text-blue-700 dark:text-blue-300">Tiered Pricing Benefits</p>
                   <div className="space-y-1 text-muted-foreground">
-                    <p>• Under $2k/month: 25% platform fee</p>
-                    <p>• $2k - $5k/month: 20% platform fee</p>
-                    <p>• Over $5k/month: 15% platform fee</p>
+                    <p>• Under $2k/month: 40% platform fee</p>
+                    <p>• $2k - $5k/month: 30% platform fee</p>
+                    <p>• $5k - $10k/month: 20% platform fee</p>
+                    <p>• $10k+/month: Capped at $1,500</p>
                   </div>
                   <p className="text-xs text-blue-600 dark:text-blue-400 mt-2">
-                    Save more as you scale your advertising!
+                    More of your budget goes to ads as you scale!
                   </p>
                 </div>
               </div>
@@ -177,7 +184,7 @@ export default function BudgetEstimator() {
                 <div>
                   <p className="text-sm font-medium">Cost Per Lead</p>
                   <p className="text-xs text-muted-foreground">
-                    ~${Math.round(currentBudget / estimatedLeads)} per lead
+                    ~${Math.round(pricing.actualAdSpend / estimatedLeads)} per lead
                   </p>
                 </div>
               </div>
