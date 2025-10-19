@@ -172,10 +172,23 @@ export function AppSidebar() {
   useEffect(() => {
     const activeGroup = getActiveGroup(location);
     if (activeGroup) {
-      setOpenSections(prev => ({
-        ...prev,
+      // Close all sections and open only the active group (accordion behavior)
+      setOpenSections({
+        delivery: false,
+        marketing: false,
+        business: false,
         [activeGroup]: true,
-      }));
+      });
+      // Close Get Leads section when auto-expanding a grouped section
+      setGetLeadsOpen(false);
+    } else if (location === '/lead-hub' || location === '/budget-estimator' || location === '/how-it-works') {
+      // Open Get Leads section and close all grouped sections
+      setGetLeadsOpen(true);
+      setOpenSections({
+        delivery: false,
+        marketing: false,
+        business: false,
+      });
     }
   }, [location]);
 
@@ -185,10 +198,23 @@ export function AppSidebar() {
   const showAdminNav = isAdmin && isAdminRoute && !user?.isImpersonating;
 
   const toggleSection = (sectionId: string) => {
-    setOpenSections(prev => ({
-      ...prev,
-      [sectionId]: !prev[sectionId]
-    }));
+    setOpenSections(prev => {
+      const isCurrentlyOpen = prev[sectionId];
+      // Close all sections and open only the clicked one (unless it's already open)
+      const newState = Object.keys(prev).reduce((acc, key) => {
+        acc[key] = false;
+        return acc;
+      }, {} as Record<string, boolean>);
+      
+      newState[sectionId] = !isCurrentlyOpen;
+      
+      // Close Get Leads section when opening any grouped section
+      if (!isCurrentlyOpen) {
+        setGetLeadsOpen(false);
+      }
+      
+      return newState;
+    });
   };
 
   const handleLogout = async () => {
@@ -479,7 +505,17 @@ export function AppSidebar() {
                   {/* Premium "Get Leads" Section - Collapsible */}
                   <Collapsible
                     open={getLeadsOpen}
-                    onOpenChange={setGetLeadsOpen}
+                    onOpenChange={(open) => {
+                      setGetLeadsOpen(open);
+                      // Close all other sections when opening Get Leads
+                      if (open) {
+                        setOpenSections({
+                          delivery: false,
+                          marketing: false,
+                          business: false,
+                        });
+                      }
+                    }}
                   >
                     <SidebarMenuItem>
                       {/* Gradient border wrapper */}
