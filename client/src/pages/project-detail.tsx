@@ -527,23 +527,40 @@ export default function ProjectDetail() {
     }) => {
       return await apiRequest("POST", `/api/projects/${id}/conversational-ai`, data);
     },
-    onSuccess: (data: {
-      type: 'question' | 'ready';
-      message?: string;
-      content?: { subject?: string; body: string };
-    }) => {
+    onSuccess: (data: any) => {
+      console.log("=== AI RESPONSE RECEIVED ===", data);
+      
+      if (!data || !data.type) {
+        console.error("Invalid AI response format:", data);
+        toast({
+          title: "AI Error",
+          description: "Received invalid response from AI. Please try again.",
+          variant: "destructive"
+        });
+        return;
+      }
+      
       if (data.type === 'question' && data.message) {
         // AI is asking a clarifying question - reset ready state
+        console.log("AI is asking a question:", data.message);
         setAiIsReady(false);
         setGeneratedContent(null);
         setConversationHistory(prev => [...prev, { role: 'assistant', content: data.message! }]);
         setAiPrompt("");
       } else if (data.type === 'ready' && data.content) {
         // AI has generated the content
+        console.log("AI has generated content:", data.content);
         setConversationHistory(prev => [...prev, { role: 'assistant', content: data.message || 'Here\'s your draft!' }]);
         setGeneratedContent(data.content);
         setAiIsReady(true);
         setAiPrompt("");
+      } else {
+        console.error("Unhandled AI response type or missing data:", data);
+        toast({
+          title: "AI Error",
+          description: "AI response was incomplete. Please try again.",
+          variant: "destructive"
+        });
       }
     },
     onError: (error: any) => {
