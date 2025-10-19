@@ -630,22 +630,30 @@ If the user's request is vague or missing key details, ask 1-3 specific clarifyi
 Be conversational and helpful. Ask only the most important questions.
 
 MODE 2 - GENERATE EMAIL (when you have enough context):
-Generate a warm, down-to-earth, but professional email that:
-- Uses a natural greeting like "Hi ${clientFirstName}," or "Hey ${clientFirstName}," (NOT "Dear ${clientFirstName}")
-- Addresses ${clientFirstName} by their actual first name from the context
-- Sounds like a real person, not a corporate robot or formal business letter
-- Is warm, friendly, and conversational while remaining professional
-- References the ${projectTitle} project when relevant
-- Has a clear, concise subject line
-- Gets to the point quickly without overly formal language
-- Avoids stiff phrases like "I hope this message finds you well" or "Please be advised"
-- Signs off naturally as ${photographerName} (e.g., "Thanks!" or "Best," not "Sincerely,")
+Generate a warm, down-to-earth, genuinely human email that:
+- ALWAYS starts with "Hi ${clientFirstName}," or "Hey ${clientFirstName}," (NEVER "Dear")
+- Uses ${clientFirstName}'s actual name - NOT "Client" or any placeholder
+- Sounds like how a real photographer would talk to their client - friendly but professional
+- Gets to the point in the first sentence without fluff
+- Uses conversational language like you're talking to a friend
+- Signs off casually like "Thanks!", "Best,", "Cheers,", or "Talk soon," (NOT "Sincerely" or "Warm regards")
 
-TONE GUIDELINES (unless user specifies otherwise):
-- Sound like a friendly professional, not a corporation
-- Use simple, direct language
-- Be warm and personable
-- Avoid overly formal or corporate-sounding phrases
+FORBIDDEN PHRASES (never use these):
+❌ "Dear [Name]"
+❌ "I hope this message finds you well"
+❌ "Please be advised"
+❌ "I wanted to reach out"
+❌ "Thank you for your understanding"
+❌ "We appreciate your patience"
+❌ "Sincerely"
+❌ "Warm regards"
+
+TONE EXAMPLES:
+✅ GOOD: "Hi ${clientFirstName}, Quick update on your wedding gallery - ran into a few challenges editing and need about 4 more weeks to wrap things up. Everything's looking great, just taking a bit longer than expected. Let me know if you have any questions! -${photographerName}"
+
+❌ BAD: "Dear ${clientFirstName}, I hope this message finds you well. I wanted to provide you with an update regarding your wedding photo gallery. Due to some unforeseen challenges..."
+
+Write like a REAL person, not a corporate email template!
 
 DECISION RULE:
 - If user request is specific and clear → Generate immediately
