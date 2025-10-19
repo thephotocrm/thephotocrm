@@ -101,54 +101,51 @@ export default function BudgetEstimator() {
       </Card>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Pricing Breakdown */}
+        {/* Estimated Revenue */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <DollarSign className="w-5 h-5 text-green-500" />
-              Pricing Breakdown
+              <DollarSign className="w-5 h-5 text-emerald-500" />
+              Estimated Revenue
             </CardTitle>
+            <CardDescription>
+              Your potential earnings from these leads
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="space-y-3">
-              <div className="flex justify-between items-center p-3 bg-green-500/10 rounded-lg border border-green-500/20">
-                <span className="text-sm font-medium">Total Budget</span>
-                <span className="text-lg font-bold text-green-600" data-testid="text-total-budget">
-                  ${pricing.totalBudget.toLocaleString()}
-                </span>
+            <div className="text-center p-6 bg-gradient-to-br from-emerald-500/10 to-green-500/10 rounded-lg border border-emerald-500/20">
+              <div className="text-4xl font-bold text-emerald-600" data-testid="text-estimated-revenue">
+                ${estimatedRevenue.toLocaleString()}
               </div>
-              
-              <div className="flex justify-between items-center p-3 bg-purple-500/10 rounded-lg border border-purple-500/20">
-                <span className="text-sm font-medium">Platform Fee ({pricing.feeRate.toFixed(1)}%)</span>
-                <span className="text-lg font-bold text-purple-600" data-testid="text-platform-fee">
-                  ${pricing.platformFee.toLocaleString()}
-                </span>
+              <p className="text-sm text-muted-foreground mt-2">potential monthly revenue</p>
+            </div>
+
+            <div className="space-y-3 mt-6">
+              <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                <span className="text-sm font-medium">Average Package</span>
+                <span className="text-lg font-bold">$1,500</span>
               </div>
 
-              <div className="border-t pt-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-base font-semibold">Actual Ad Spend</span>
-                  <span className="text-2xl font-bold text-blue-600" data-testid="text-ad-spend">
-                    ${pricing.actualAdSpend.toLocaleString()}
-                  </span>
-                </div>
+              <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                <span className="text-sm font-medium">Close Rate</span>
+                <span className="text-lg font-bold">35%</span>
+              </div>
+
+              <div className="flex items-center justify-between p-3 bg-emerald-500/10 rounded-lg border border-emerald-500/20">
+                <span className="text-sm font-medium">Closed Bookings</span>
+                <span className="text-lg font-bold text-emerald-600" data-testid="text-closed-bookings">
+                  ~{Math.round(estimatedLeads * 0.35)}
+                </span>
               </div>
             </div>
 
-            {/* Tiered Pricing Info */}
-            <div className="mt-6 p-4 bg-blue-500/10 rounded-lg border border-blue-500/20">
+            <div className="mt-6 p-4 bg-emerald-500/10 rounded-lg border border-emerald-500/20">
               <div className="flex items-start gap-2">
-                <Info className="w-5 h-5 text-blue-500 mt-0.5" />
-                <div className="space-y-2 text-sm">
-                  <p className="font-medium text-blue-700 dark:text-blue-300">Tiered Pricing Benefits</p>
-                  <div className="space-y-1 text-muted-foreground">
-                    <p>• Under $2k/month: 40% platform fee</p>
-                    <p>• $2k - $5k/month: 30% platform fee</p>
-                    <p>• $5k - $10k/month: 20% platform fee</p>
-                    <p>• $10k+/month: Capped at $1,500</p>
-                  </div>
-                  <p className="text-xs text-blue-600 dark:text-blue-400 mt-2">
-                    More of your budget goes to ads as you scale!
+                <Info className="w-5 h-5 text-emerald-500 mt-0.5 flex-shrink-0" />
+                <div className="text-sm space-y-1">
+                  <p className="font-medium text-emerald-700 dark:text-emerald-300">Conservative Estimate</p>
+                  <p className="text-xs text-muted-foreground">
+                    This calculation assumes a 35% close rate and $1,500 average package, which are conservative industry estimates. Many photographers achieve 50%+ close rates with higher package prices.
                   </p>
                 </div>
               </div>
@@ -208,54 +205,42 @@ export default function BudgetEstimator() {
           </CardContent>
         </Card>
 
-        {/* Estimated Revenue */}
-        <Card>
+        {/* Pricing Breakdown - Made smaller and less prominent */}
+        <Card className="opacity-90">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <DollarSign className="w-5 h-5 text-emerald-500" />
-              Estimated Revenue
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Calculator className="w-4 h-4 text-muted-foreground" />
+              <span className="text-muted-foreground">Budget Breakdown</span>
             </CardTitle>
-            <CardDescription>
-              Your potential earnings from these leads
-            </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="text-center p-6 bg-gradient-to-br from-emerald-500/10 to-green-500/10 rounded-lg border border-emerald-500/20">
-              <div className="text-4xl font-bold text-emerald-600" data-testid="text-estimated-revenue">
-                ${estimatedRevenue.toLocaleString()}
+          <CardContent className="space-y-3">
+            <div className="space-y-2 text-sm">
+              <div className="flex justify-between items-center p-2 bg-muted/30 rounded">
+                <span className="text-xs text-muted-foreground">Total Budget</span>
+                <span className="font-semibold" data-testid="text-total-budget">
+                  ${pricing.totalBudget.toLocaleString()}
+                </span>
               </div>
-              <p className="text-sm text-muted-foreground mt-2">potential monthly revenue</p>
-            </div>
-
-            <div className="space-y-3 mt-6">
-              <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-                <span className="text-sm font-medium">Average Package</span>
-                <span className="text-lg font-bold">$1,500</span>
-              </div>
-
-              <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-                <span className="text-sm font-medium">Close Rate</span>
-                <span className="text-lg font-bold">35%</span>
+              
+              <div className="flex justify-between items-center p-2 bg-muted/30 rounded">
+                <span className="text-xs text-muted-foreground">Platform Fee</span>
+                <span className="font-semibold" data-testid="text-platform-fee">
+                  ${pricing.platformFee.toLocaleString()}
+                </span>
               </div>
 
-              <div className="flex items-center justify-between p-3 bg-emerald-500/10 rounded-lg border border-emerald-500/20">
-                <span className="text-sm font-medium">Closed Bookings</span>
-                <span className="text-lg font-bold text-emerald-600" data-testid="text-closed-bookings">
-                  ~{Math.round(estimatedLeads * 0.35)}
+              <div className="flex justify-between items-center p-2 bg-blue-500/10 rounded border border-blue-500/20">
+                <span className="text-xs font-medium">Ad Spend</span>
+                <span className="font-bold text-blue-600" data-testid="text-ad-spend">
+                  ${pricing.actualAdSpend.toLocaleString()}
                 </span>
               </div>
             </div>
 
-            <div className="mt-6 p-4 bg-emerald-500/10 rounded-lg border border-emerald-500/20">
-              <div className="flex items-start gap-2">
-                <Info className="w-5 h-5 text-emerald-500 mt-0.5 flex-shrink-0" />
-                <div className="text-sm space-y-1">
-                  <p className="font-medium text-emerald-700 dark:text-emerald-300">Conservative Estimate</p>
-                  <p className="text-xs text-muted-foreground">
-                    This calculation assumes a 35% close rate and $1,500 average package, which are conservative industry estimates. Many photographers achieve 50%+ close rates with higher package prices.
-                  </p>
-                </div>
-              </div>
+            <div className="mt-4 p-3 bg-muted/20 rounded-lg border border-muted/40">
+              <p className="text-xs text-muted-foreground">
+                Fee scales down as you grow: 40% → 30% → 20%, capped at $1,500
+              </p>
             </div>
           </CardContent>
         </Card>
