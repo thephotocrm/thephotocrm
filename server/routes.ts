@@ -1934,8 +1934,8 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       }
       
       // Get project contact info
-      const contact = project.contactId ? await storage.getContact(project.contactId) : null;
-      const contactName = contact ? `${contact.firstName} ${contact.lastName}` : 'Client';
+      const contact = project.clientId ? await storage.getContact(project.clientId) : null;
+      const contactName = contact ? `${contact.firstName} ${contact.lastName}`.trim() : 'Client';
       
       // Get photographer info
       const photographer = await storage.getPhotographer(req.user!.photographerId!);
@@ -1976,8 +1976,8 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       }
       
       // Get project contact info
-      const contact = project.contactId ? await storage.getContact(project.contactId) : null;
-      const contactName = contact ? `${contact.firstName} ${contact.lastName}` : 'Client';
+      const contact = project.clientId ? await storage.getContact(project.clientId) : null;
+      const contactName = contact ? `${contact.firstName} ${contact.lastName}`.trim() : 'Client';
       
       // Get photographer info
       const photographer = await storage.getPhotographer(req.user!.photographerId!);
@@ -2027,8 +2027,8 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       }
       
       // Get project contact info
-      const contact = project.contactId ? await storage.getContact(project.contactId) : null;
-      const contactName = contact ? `${contact.firstName} ${contact.lastName}` : 'Client';
+      const contact = project.clientId ? await storage.getContact(project.clientId) : null;
+      const contactName = contact ? `${contact.firstName} ${contact.lastName}`.trim() : 'Client';
       
       // Get photographer info
       const photographer = await storage.getPhotographer(req.user!.photographerId!);
