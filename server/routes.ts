@@ -2268,13 +2268,50 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       const primaryEmail = recipients[0];
       const bccEmails = recipients.slice(1);
       
+      // Generate portal link if enabled and client exists
+      let emailBodyWithPortalLink = body;
+      let portalLink = '';
+      
+      if (project.includePortalLinks !== false && project.clientId) {
+        try {
+          // Generate secure token
+          const token = crypto.randomBytes(32).toString('hex');
+          
+          // Token expires in 90 days
+          const expiresAt = new Date();
+          expiresAt.setDate(expiresAt.getDate() + 90);
+
+          // Create portal token
+          await storage.createPortalToken({
+            token,
+            projectId: project.id,
+            clientId: project.clientId,
+            photographerId: project.photographerId,
+            expiresAt
+          });
+
+          // Get domain for link
+          const domain = process.env.REPLIT_DEV_DOMAIN 
+            ? `https://${process.env.REPLIT_DEV_DOMAIN}` 
+            : process.env.REPLIT_DOMAINS?.split(',')[0] || 'http://localhost:5000';
+          
+          portalLink = `${domain}/portal/${token}`;
+          
+          // Append magic link footer to email
+          emailBodyWithPortalLink = `${body}\n\n---\n\n🔗 Quick access to your project: ${portalLink}`;
+        } catch (error) {
+          console.error("Failed to generate portal link:", error);
+          // Continue sending email without portal link if generation fails
+        }
+      }
+      
       // Send email via Gmail (fallback to SendGrid)
       const { sendEmail } = await import('./services/email');
       const result = await sendEmail({
         to: primaryEmail,
         subject,
-        html: body.replace(/\n/g, '<br>'),
-        text: body,
+        html: emailBodyWithPortalLink.replace(/\n/g, '<br>'),
+        text: emailBodyWithPortalLink,
         bcc: bccEmails.length > 0 ? bccEmails : undefined,
         photographerId: req.user!.photographerId!,
         clientId: project.clientId,
