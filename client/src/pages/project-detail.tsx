@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Calendar, User, Mail, Phone, FileText, DollarSign, Clock, Copy, Eye, MoreVertical, Trash, Send, MessageSquare, Plus, X, Heart, Briefcase, Camera, ChevronDown, Menu, Link as LinkIcon, ExternalLink, Lock, Settings, Tag, Sparkles, Bold, Italic, Underline, AlignLeft, AlignCenter, AlignRight, List, ListOrdered, Paperclip, Image as ImageIcon, Video, Smile, Code, Undo, Redo, Strikethrough, Subscript, Superscript, Palette, Type, Mic, ArrowLeft, Reply, CheckCircle2 } from "lucide-react";
 import { Link } from "wouter";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import {
   Dialog,
@@ -324,6 +324,7 @@ export default function ProjectDetail() {
   const [showSmartFields, setShowSmartFields] = useState(false);
   const [manualGalleryUrl, setManualGalleryUrl] = useState("");
   const [isEditingGalleryUrl, setIsEditingGalleryUrl] = useState(false);
+  const [includePortalLinks, setIncludePortalLinks] = useState(true);
 
   const { data: project, isLoading} = useQuery<Project>({
     queryKey: ["/api/projects", id],
@@ -354,6 +355,13 @@ export default function ProjectDetail() {
     queryKey: ["/api/smart-files"],
     enabled: !!user && (attachSmartFileOpen || sendFileDialogOpen)
   });
+
+  // Initialize includePortalLinks from project data
+  useEffect(() => {
+    if (project) {
+      setIncludePortalLinks(project.includePortalLinks !== false); // Default to true if not set
+    }
+  }, [project]);
 
   const updateProjectMutation = useMutation({
     mutationFn: async (data: Partial<Project>) => {
@@ -2560,6 +2568,29 @@ export default function ProjectDetail() {
               Tell me what you want to say, and I'll ask questions if I need more details.
             </DialogDescription>
           </DialogHeader>
+
+          {/* Portal Links Toggle - Only for emails */}
+          {aiModalType === 'email' && (
+            <div className="flex items-center justify-between px-1 py-2 bg-blue-50 rounded-md border border-blue-200">
+              <div className="flex flex-col gap-1">
+                <Label htmlFor="portal-links-toggle" className="text-sm font-medium">
+                  Include portal links
+                </Label>
+                <p className="text-xs text-muted-foreground">
+                  Automatically add a magic link for clients to access their project
+                </p>
+              </div>
+              <Switch
+                id="portal-links-toggle"
+                checked={includePortalLinks}
+                onCheckedChange={(checked) => {
+                  setIncludePortalLinks(checked);
+                  updateProjectMutation.mutate({ includePortalLinks: checked });
+                }}
+                data-testid="switch-portal-links"
+              />
+            </div>
+          )}
           
           {/* Chat conversation area */}
           <div className="flex-1 overflow-y-auto space-y-3 py-4 px-1">
