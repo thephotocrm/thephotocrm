@@ -2002,6 +2002,52 @@ ${photographer?.businessName || 'Your Photography Team'}`;
     }
   });
 
+  // Conversational AI for email/SMS - can ask questions or generate content
+  app.post("/api/projects/:id/conversational-ai", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
+    try {
+      const { messageType, conversationHistory, existingContent } = req.body;
+      
+      if (!messageType || !['email', 'sms'].includes(messageType)) {
+        return res.status(400).json({ message: "Valid messageType (email or sms) is required" });
+      }
+      
+      if (!conversationHistory || !Array.isArray(conversationHistory)) {
+        return res.status(400).json({ message: "Conversation history is required" });
+      }
+      
+      // Verify project belongs to photographer
+      const project = await storage.getProject(req.params.id);
+      if (!project || project.photographerId !== req.user!.photographerId!) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+      
+      // Get project contact info
+      const contact = project.contactId ? await storage.getContact(project.contactId) : null;
+      const contactName = contact ? `${contact.firstName} ${contact.lastName}` : 'Client';
+      
+      // Get photographer info
+      const photographer = await storage.getPhotographer(req.user!.photographerId!);
+      const photographerName = photographer?.photographerName || photographer?.businessName || 'Photographer';
+      const businessName = photographer?.businessName || 'Photography Studio';
+      
+      // Call conversational AI
+      const { conversationalAI } = await import('./services/openai');
+      const result = await conversationalAI(messageType, conversationHistory, {
+        projectTitle: project.title,
+        contactName,
+        projectType: project.projectType,
+        photographerName,
+        businessName,
+        existingContent
+      });
+      
+      res.json(result);
+    } catch (error) {
+      console.error("Conversational AI error:", error);
+      res.status(500).json({ message: (error as Error).message || "Failed to process conversation" });
+    }
+  });
+
   // Send SMS to project contact
   app.post("/api/projects/:id/send-sms", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {

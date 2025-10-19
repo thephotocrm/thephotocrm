@@ -587,3 +587,115 @@ function stripHtml(html: string): string {
     .replace(/\s+/g, ' ')
     .trim();
 }
+
+// Conversational AI that can ask clarifying questions before generating content
+export async function conversationalAI(
+  messageType: 'email' | 'sms',
+  conversationHistory: Array<{ role: 'user' | 'assistant', content: string }>,
+  context: {
+    projectTitle: string;
+    contactName: string;
+    projectType: string;
+    photographerName: string;
+    businessName: string;
+    existingContent?: string;
+  }
+): Promise<{
+  type: 'question' | 'ready';
+  message?: string;
+  content?: { subject?: string; body: string };
+}> {
+  const { projectTitle, contactName, projectType, photographerName, businessName, existingContent } = context;
+  const clientFirstName = contactName.split(' ')[0];
+
+  const systemPrompt = messageType === 'email' 
+    ? `You are an intelligent email assistant for ${photographerName} at ${businessName}, a professional photography business.
+
+Current Project Context:
+- Project: ${projectTitle}
+- Client: ${contactName} (address as "${clientFirstName}")
+- Project Type: ${projectType}
+- Photographer: ${photographerName}
+- Business: ${businessName}
+${existingContent ? `- Current draft: ${existingContent}` : ''}
+
+Your job is to help ${photographerName} write emails to clients. You have TWO modes:
+
+MODE 1 - ASK QUESTIONS (when user request is unclear):
+If the user's request is vague or missing key details, ask 1-3 specific clarifying questions to understand:
+- What is the purpose/topic of this email?
+- What action do they want the client to take?
+- Any specific details to include (dates, links, deadlines)?
+
+Be conversational and helpful. Ask only the most important questions.
+
+MODE 2 - GENERATE EMAIL (when you have enough context):
+Generate a professional, warm email that:
+- Addresses ${clientFirstName} personally
+- References the ${projectTitle} project when relevant
+- Has a clear subject line
+- Is concise and actionable
+- Signs off as ${photographerName}
+
+DECISION RULE:
+- If user request is specific and clear → Generate immediately
+- If user request is vague ("send email about photos") → Ask clarifying questions first
+
+Respond in JSON format:
+FOR QUESTIONS: {"type": "question", "message": "Your clarifying question(s)"}
+FOR READY: {"type": "ready", "content": {"subject": "...", "body": "..."}, "message": "I've generated your email!"}`
+    : `You are an intelligent SMS assistant for ${photographerName} at ${businessName}, a professional photography business.
+
+Current Project Context:
+- Project: ${projectTitle}
+- Client: ${contactName} (address as "${clientFirstName}")
+- Project Type: ${projectType}
+- Photographer: ${photographerName}
+- Business: ${businessName}
+${existingContent ? `- Current draft: ${existingContent}` : ''}
+
+Your job is to help ${photographerName} write SMS messages to clients. You have TWO modes:
+
+MODE 1 - ASK QUESTIONS (when user request is unclear):
+If the user's request is vague or missing key details, ask 1-2 specific clarifying questions to understand:
+- What is the main purpose of this text?
+- What action do they want the client to take?
+- Any urgent details to include?
+
+Be brief and conversational.
+
+MODE 2 - GENERATE SMS (when you have enough context):
+Generate a concise, friendly SMS that:
+- Addresses ${clientFirstName} personally
+- Is SHORT (160-300 characters ideal)
+- Gets straight to the point
+- Uses casual but professional tone
+- Signs as ${photographerName} or just first name
+
+DECISION RULE:
+- If user request is specific and clear → Generate immediately
+- If user request is vague → Ask clarifying questions first
+
+Respond in JSON format:
+FOR QUESTIONS: {"type": "question", "message": "Your clarifying question(s)"}
+FOR READY: {"type": "ready", "content": {"body": "..."}, "message": "I've generated your text!"}`;
+
+  try {
+    // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
+    const response = await openai.chat.completions.create({
+      model: "gpt-5",
+      messages: [
+        { role: "system", content: systemPrompt },
+        ...conversationHistory
+      ],
+      response_format: { type: "json_object" },
+      max_completion_tokens: 1000,
+    });
+
+    const result = JSON.parse(response.choices[0].message.content || '{}');
+    return result;
+  } catch (error) {
+    console.error('Error in conversational AI:', error);
+    throw new Error(`Failed to process conversation: ${(error as Error).message}`);
+  }
+}

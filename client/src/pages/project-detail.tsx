@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Calendar, User, Mail, Phone, FileText, DollarSign, Clock, Copy, Eye, MoreVertical, Trash, Send, MessageSquare, Plus, X, Heart, Briefcase, Camera, ChevronDown, Menu, Link as LinkIcon, ExternalLink, Lock, Settings, Tag, Sparkles, Bold, Italic, Underline, AlignLeft, AlignCenter, AlignRight, List, ListOrdered, Paperclip, Image as ImageIcon, Video, Smile, Code, Undo, Redo, Strikethrough, Subscript, Superscript, Palette, Type, Mic, ArrowLeft, Reply } from "lucide-react";
+import { Calendar, User, Mail, Phone, FileText, DollarSign, Clock, Copy, Eye, MoreVertical, Trash, Send, MessageSquare, Plus, X, Heart, Briefcase, Camera, ChevronDown, Menu, Link as LinkIcon, ExternalLink, Lock, Settings, Tag, Sparkles, Bold, Italic, Underline, AlignLeft, AlignCenter, AlignRight, List, ListOrdered, Paperclip, Image as ImageIcon, Video, Smile, Code, Undo, Redo, Strikethrough, Subscript, Superscript, Palette, Type, Mic, ArrowLeft, Reply, CheckCircle2 } from "lucide-react";
 import { Link } from "wouter";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useState } from "react";
@@ -311,6 +311,9 @@ export default function ProjectDetail() {
   const [showAiModal, setShowAiModal] = useState(false);
   const [aiPrompt, setAiPrompt] = useState("");
   const [aiModalType, setAiModalType] = useState<"email" | "sms">("email");
+  const [conversationHistory, setConversationHistory] = useState<Array<{ role: 'user' | 'assistant', content: string }>>([]);
+  const [aiIsReady, setAiIsReady] = useState(false);
+  const [generatedContent, setGeneratedContent] = useState<{ subject?: string; body: string } | null>(null);
   const [smsDialogOpen, setSmsDialogOpen] = useState(false);
   const [smsBody, setSmsBody] = useState("");
   const [showFormattingToolbar, setShowFormattingToolbar] = useState(true);
@@ -515,6 +518,84 @@ export default function ProjectDetail() {
       });
     }
   });
+
+  const conversationalAIMutation = useMutation({
+    mutationFn: async (data: {
+      messageType: 'email' | 'sms';
+      conversationHistory: Array<{ role: 'user' | 'assistant', content: string }>;
+      existingContent?: string;
+    }) => {
+      return await apiRequest("POST", `/api/projects/${id}/conversational-ai`, data);
+    },
+    onSuccess: (data: {
+      type: 'question' | 'ready';
+      message?: string;
+      content?: { subject?: string; body: string };
+    }) => {
+      if (data.type === 'question' && data.message) {
+        // AI is asking a clarifying question - reset ready state
+        setAiIsReady(false);
+        setGeneratedContent(null);
+        setConversationHistory(prev => [...prev, { role: 'assistant', content: data.message! }]);
+        setAiPrompt("");
+      } else if (data.type === 'ready' && data.content) {
+        // AI has generated the content
+        setConversationHistory(prev => [...prev, { role: 'assistant', content: data.message || 'Here\'s your draft!' }]);
+        setGeneratedContent(data.content);
+        setAiIsReady(true);
+        setAiPrompt("");
+      }
+    },
+    onError: (error: any) => {
+      toast({
+        title: "AI Error",
+        description: error.message || "Failed to process your request",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const handleSendAIMessage = () => {
+    if (!aiPrompt.trim()) return;
+
+    // Reset ready state when sending new message
+    setAiIsReady(false);
+    setGeneratedContent(null);
+
+    // Add user message to conversation
+    const newHistory = [...conversationHistory, { role: 'user' as const, content: aiPrompt }];
+    setConversationHistory(newHistory);
+
+    // Call AI
+    conversationalAIMutation.mutate({
+      messageType: aiModalType,
+      conversationHistory: newHistory,
+      existingContent: aiModalType === 'email' ? messageBody || undefined : smsBody || undefined
+    });
+  };
+
+  const handleUseGeneratedContent = () => {
+    if (!generatedContent) return;
+
+    if (aiModalType === 'email') {
+      if (generatedContent.subject) setMessageSubject(generatedContent.subject);
+      setMessageBody(generatedContent.body);
+    } else {
+      setSmsBody(generatedContent.body);
+    }
+
+    // Reset AI modal
+    setShowAiModal(false);
+    setConversationHistory([]);
+    setAiIsReady(false);
+    setGeneratedContent(null);
+    setAiPrompt("");
+
+    toast({
+      title: "Draft ready",
+      description: `Your AI-generated ${aiModalType} draft has been added.`
+    });
+  };
 
   const sendSMSMutation = useMutation({
     mutationFn: async (data: { body: string; recipient: string }) => {
@@ -2440,74 +2521,157 @@ export default function ProjectDetail() {
         </DialogContent>
       </Dialog>
 
-      {/* AI Writer Modal (Email & SMS) */}
-      <Dialog open={showAiModal} onOpenChange={setShowAiModal}>
-        <DialogContent className="sm:max-w-[600px]" data-testid="dialog-ai-writer">
+      {/* AI Conversational Assistant (Email & SMS) */}
+      <Dialog 
+        open={showAiModal} 
+        onOpenChange={(open) => {
+          setShowAiModal(open);
+          if (!open) {
+            // Reset on close
+            setConversationHistory([]);
+            setAiIsReady(false);
+            setGeneratedContent(null);
+            setAiPrompt("");
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-[700px] h-[600px] flex flex-col" data-testid="dialog-ai-writer">
           <DialogHeader>
-            <DialogTitle>Edit with AI</DialogTitle>
+            <DialogTitle>AI Assistant - {aiModalType === 'email' ? 'Email' : 'SMS'} Draft</DialogTitle>
             <DialogDescription>
-              Use a prompt to edit the suggestion or write it from scratch. AI will match your tone, voice, and past communication details.
+              Tell me what you want to say, and I'll ask questions if I need more details.
             </DialogDescription>
           </DialogHeader>
           
-          <div className="space-y-4 py-4">
-            <div className="relative">
-              <Textarea
-                value={aiPrompt}
-                onChange={(e) => setAiPrompt(e.target.value)}
-                placeholder={aiModalType === "email" 
-                  ? "For example, remove the list of services and add pricing, or write a new message with your own details."
-                  : "For example, confirm the meeting time for tomorrow at 2pm, or ask if they received the proposal."
-                }
-                rows={6}
-                className="resize-none"
-                maxLength={500}
-                data-testid="textarea-ai-prompt"
-              />
-              <div className="absolute bottom-2 right-2 text-xs text-muted-foreground">
-                {aiPrompt.length}/500
+          {/* Chat conversation area */}
+          <div className="flex-1 overflow-y-auto space-y-3 py-4 px-1">
+            {conversationHistory.length === 0 ? (
+              <div className="flex items-center justify-center h-full text-center text-muted-foreground">
+                <div className="space-y-2">
+                  <Sparkles className="w-12 h-12 mx-auto text-blue-500" />
+                  <p className="text-sm">Start a conversation with AI</p>
+                  <p className="text-xs">Tell me what you want to communicate to your client</p>
+                </div>
               </div>
-            </div>
+            ) : (
+              conversationHistory.map((msg, idx) => (
+                <div
+                  key={idx}
+                  className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                  data-testid={`chat-message-${msg.role}-${idx}`}
+                >
+                  <div
+                    className={`max-w-[80%] rounded-lg px-4 py-2 ${
+                      msg.role === 'user'
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-gray-100 text-gray-900'
+                    }`}
+                  >
+                    <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                  </div>
+                </div>
+              ))
+            )}
             
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <div className="w-5 h-5 rounded-full border-2 border-muted-foreground flex items-center justify-center">
-                ?
+            {/* Show generated content preview if ready */}
+            {aiIsReady && generatedContent && (
+              <div className="border-2 border-green-500 rounded-lg p-4 bg-green-50" data-testid="generated-content-preview">
+                <div className="flex items-center gap-2 mb-2">
+                  <CheckCircle2 className="w-5 h-5 text-green-600" />
+                  <span className="font-semibold text-green-800">Draft Ready!</span>
+                </div>
+                {aiModalType === 'email' && generatedContent.subject && (
+                  <div className="mb-2">
+                    <span className="text-xs font-medium text-gray-600">Subject:</span>
+                    <p className="text-sm font-semibold">{generatedContent.subject}</p>
+                  </div>
+                )}
+                <div>
+                  <span className="text-xs font-medium text-gray-600">Message:</span>
+                  <p className="text-sm whitespace-pre-wrap">{generatedContent.body}</p>
+                </div>
               </div>
-              <span className="text-xs">Add a prompt to write a draft.</span>
-            </div>
+            )}
+            
+            {conversationalAIMutation.isPending && (
+              <div className="flex justify-start" data-testid="ai-typing-indicator">
+                <div className="bg-gray-100 rounded-lg px-4 py-2">
+                  <div className="flex items-center gap-2">
+                    <div className="flex space-x-1">
+                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                    </div>
+                    <span className="text-xs text-gray-500">AI is thinking...</span>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
-          <div className="flex justify-end gap-3">
-            <Button
-              variant="outline"
-              onClick={() => {
-                setShowAiModal(false);
-                setAiPrompt("");
-              }}
-              data-testid="button-cancel-ai"
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={() => {
-                if (aiModalType === "email") {
-                  generateEmailMutation.mutate({
-                    prompt: aiPrompt,
-                    existingEmailBody: messageBody || undefined
-                  });
-                } else {
-                  generateSMSMutation.mutate({
-                    prompt: aiPrompt,
-                    existingSMSBody: smsBody || undefined
-                  });
+          {/* Input area */}
+          <div className="border-t pt-4 space-y-3">
+            <div className="flex gap-2">
+              <Input
+                value={aiPrompt}
+                onChange={(e) => setAiPrompt(e.target.value)}
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSendAIMessage();
+                  }
+                }}
+                placeholder={
+                  conversationHistory.length === 0
+                    ? aiModalType === "email"
+                      ? "E.g., Tell them their gallery is ready to view"
+                      : "E.g., Confirm meeting tomorrow at 2pm"
+                    : "Type your response..."
                 }
-              }}
-              disabled={!aiPrompt.trim() || (aiModalType === "email" ? generateEmailMutation.isPending : generateSMSMutation.isPending)}
-              className="bg-black text-white hover:bg-black/90"
-              data-testid="button-write-draft"
-            >
-              {(aiModalType === "email" ? generateEmailMutation.isPending : generateSMSMutation.isPending) ? "GENERATING..." : "WRITE DRAFT"}
-            </Button>
+                disabled={conversationalAIMutation.isPending || aiIsReady}
+                className="flex-1"
+                maxLength={500}
+                data-testid="input-ai-chat"
+              />
+              <Button
+                onClick={handleSendAIMessage}
+                disabled={!aiPrompt.trim() || conversationalAIMutation.isPending || aiIsReady}
+                className="bg-blue-600 text-white hover:bg-blue-700"
+                data-testid="button-send-ai-message"
+              >
+                <Send className="w-4 h-4" />
+              </Button>
+            </div>
+            
+            <div className="flex justify-between items-center">
+              <span className="text-xs text-muted-foreground">
+                {aiPrompt.length}/500
+              </span>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setShowAiModal(false);
+                    setConversationHistory([]);
+                    setAiIsReady(false);
+                    setGeneratedContent(null);
+                    setAiPrompt("");
+                  }}
+                  data-testid="button-cancel-ai"
+                >
+                  Cancel
+                </Button>
+                {aiIsReady && (
+                  <Button
+                    onClick={handleUseGeneratedContent}
+                    className="bg-green-600 text-white hover:bg-green-700"
+                    data-testid="button-use-draft"
+                  >
+                    Use This Draft
+                  </Button>
+                )}
+              </div>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
