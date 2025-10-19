@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Calendar, User, Mail, Phone, FileText, DollarSign, Clock, Copy, Eye, MoreVertical, Trash, Send, MessageSquare, Plus, X, Heart, Briefcase, Camera, ChevronDown, Menu, Link as LinkIcon, ExternalLink, Lock, Settings, Tag, Sparkles, Bold, Italic, Underline, AlignLeft, AlignCenter, AlignRight, List, ListOrdered, Paperclip, Image as ImageIcon, Video, Smile, Code, Undo, Redo, Strikethrough, Subscript, Superscript, Palette, Type, Mic, ArrowLeft } from "lucide-react";
+import { Calendar, User, Mail, Phone, FileText, DollarSign, Clock, Copy, Eye, MoreVertical, Trash, Send, MessageSquare, Plus, X, Heart, Briefcase, Camera, ChevronDown, Menu, Link as LinkIcon, ExternalLink, Lock, Settings, Tag, Sparkles, Bold, Italic, Underline, AlignLeft, AlignCenter, AlignRight, List, ListOrdered, Paperclip, Image as ImageIcon, Video, Smile, Code, Undo, Redo, Strikethrough, Subscript, Superscript, Palette, Type, Mic, ArrowLeft, Reply } from "lucide-react";
 import { Link } from "wouter";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useState } from "react";
@@ -1200,60 +1200,194 @@ export default function ProjectDetail() {
                                 <p className="text-sm text-muted-foreground mt-1">{event.description}</p>
                               )}
                               
-                              {/* Display full email body for EMAIL_SENT activities */}
-                              {event.activityType === 'EMAIL_SENT' && event.metadata && (() => {
+                              {/* Display full email in HoneyBook-style card for EMAIL_SENT activities */}
+                              {event.activityType === 'EMAIL_SENT' && (() => {
                                 try {
-                                  const metadata = typeof event.metadata === 'string' ? JSON.parse(event.metadata) : event.metadata;
-                                  if (metadata.body) {
+                                  const metadata = event.metadata ? (typeof event.metadata === 'string' ? JSON.parse(event.metadata) : event.metadata) : null;
+                                  if (metadata && (metadata.body || metadata.subject)) {
+                                    // Render HoneyBook card with timestamp inside - no external timestamp needed
                                     return (
-                                      <div className="mt-3 p-3 bg-white border rounded-md">
-                                        <p className="text-xs font-medium text-muted-foreground mb-2">EMAIL CONTENT</p>
-                                        <div className="text-sm whitespace-pre-wrap">{metadata.body}</div>
+                                      <div className="mt-3 p-4 bg-white border rounded-lg relative">
+                                        {/* From/To Header */}
+                                        <div className="flex items-start justify-between mb-4">
+                                          <div className="flex-1">
+                                            <div className="flex items-center gap-2 text-sm">
+                                              <span className="font-semibold">From:</span>
+                                              <span>{metadata.from || 'You'}</span>
+                                            </div>
+                                            <div className="flex items-center gap-2 text-sm mt-1">
+                                              <span className="font-semibold">To:</span>
+                                              <span>{metadata.to || getContactInfo(project)?.email || 'Client'}</span>
+                                            </div>
+                                          </div>
+                                          <div className="flex items-center gap-3">
+                                            <button className="text-muted-foreground hover:text-foreground transition-colors">
+                                              <Reply className="w-4 h-4" />
+                                            </button>
+                                            <span className="text-sm text-muted-foreground whitespace-nowrap">
+                                              {formatDate(event.createdAt)}
+                                            </span>
+                                          </div>
+                                        </div>
+                                        
+                                        {/* Subject Line */}
+                                        {metadata.subject && (
+                                          <h3 className="font-semibold text-base mb-4">
+                                            {metadata.subject}
+                                          </h3>
+                                        )}
+                                        
+                                        {/* Email Body */}
+                                        {metadata.body && (
+                                          <div className="text-sm whitespace-pre-wrap leading-relaxed">
+                                            {metadata.body}
+                                          </div>
+                                        )}
+                                        
+                                        {/* Attachments Section */}
+                                        {metadata.attachments && metadata.attachments.length > 0 && (
+                                          <div className="mt-6 pt-4 border-t">
+                                            {metadata.attachments.map((attachment: any, idx: number) => (
+                                              <div key={idx} className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded">
+                                                <FileText className="w-5 h-5 text-muted-foreground" />
+                                                <span className="text-sm font-medium truncate">
+                                                  {attachment.name || attachment.filename || 'Attachment'}
+                                                </span>
+                                                <MoreVertical className="w-4 h-4 ml-auto text-muted-foreground" />
+                                              </div>
+                                            ))}
+                                          </div>
+                                        )}
+                                        
+                                        {/* Envelope Icon */}
+                                        <div className="absolute bottom-4 right-4">
+                                          <Mail className="w-5 h-5 text-muted-foreground" />
+                                        </div>
                                       </div>
+                                    );
+                                  } else {
+                                    // No valid metadata - show simple timestamp
+                                    return (
+                                      <p className="text-xs text-muted-foreground mt-2">
+                                        {formatDate(event.createdAt)}
+                                      </p>
                                     );
                                   }
                                 } catch (e) {
-                                  return null;
+                                  // Parsing failed - show simple timestamp
+                                  return (
+                                    <p className="text-xs text-muted-foreground mt-2">
+                                      {formatDate(event.createdAt)}
+                                    </p>
+                                  );
                                 }
                               })()}
-                              
-                              <p className="text-xs text-muted-foreground mt-2">
-                                {formatDate(event.createdAt)}
-                              </p>
                             </div>
                           )}
-                          {event.type === 'email' && (
-                            <div>
-                              <p className="font-medium text-sm">{event.title}</p>
-                              <p className="text-sm text-muted-foreground mt-1">{event.description}</p>
-                              
-                              {/* Display full email body if available in metadata */}
-                              {event.metadata && (() => {
-                                try {
-                                  const metadata = typeof event.metadata === 'string' ? JSON.parse(event.metadata) : event.metadata;
-                                  if (metadata.body) {
-                                    return (
-                                      <div className="mt-3 p-3 bg-white border rounded-md">
-                                        <p className="text-xs font-medium text-muted-foreground mb-2">EMAIL CONTENT</p>
-                                        <div className="text-sm whitespace-pre-wrap">{metadata.body}</div>
+                          {event.type === 'email' && (() => {
+                            let renderedCard = false;
+                            try {
+                              const metadata = event.metadata ? (typeof event.metadata === 'string' ? JSON.parse(event.metadata) : event.metadata) : null;
+                              if (metadata && (metadata.body || metadata.subject)) {
+                                renderedCard = true;
+                                return (
+                                  <div>
+                                    <div className="p-4 bg-white border rounded-lg relative">
+                                      {/* From/To Header */}
+                                      <div className="flex items-start justify-between mb-4">
+                                        <div className="flex-1">
+                                          <div className="flex items-center gap-2 text-sm">
+                                            <span className="font-semibold">From:</span>
+                                            <span>{metadata.from || 'You'}</span>
+                                          </div>
+                                          <div className="flex items-center gap-2 text-sm mt-1">
+                                            <span className="font-semibold">To:</span>
+                                            <span>{metadata.to || getContactInfo(project)?.email || 'Client'}</span>
+                                          </div>
+                                        </div>
+                                        <div className="flex items-center gap-3">
+                                          <button className="text-muted-foreground hover:text-foreground transition-colors">
+                                            <Reply className="w-4 h-4" />
+                                          </button>
+                                          <span className="text-sm text-muted-foreground whitespace-nowrap">
+                                            {event.sentAt ? formatDate(event.sentAt) : formatDate(event.createdAt)}
+                                          </span>
+                                        </div>
                                       </div>
-                                    );
-                                  }
-                                } catch (e) {
-                                  return null;
-                                }
-                              })()}
-                              
-                              <div className="flex items-center gap-3 mt-2">
-                                <Badge variant="secondary" className="text-xs">
-                                  {event.status}
-                                </Badge>
-                                <p className="text-xs text-muted-foreground">
-                                  {event.sentAt && formatDate(event.sentAt)}
-                                </p>
-                              </div>
-                            </div>
-                          )}
+                                      
+                                      {/* Subject Line */}
+                                      {(metadata.subject || event.title) && (
+                                        <h3 className="font-semibold text-base mb-4">
+                                          {metadata.subject || event.title}
+                                        </h3>
+                                      )}
+                                      
+                                      {/* Email Body */}
+                                      {metadata.body && (
+                                        <div className="text-sm whitespace-pre-wrap leading-relaxed">
+                                          {metadata.body}
+                                        </div>
+                                      )}
+                                      
+                                      {/* Attachments Section */}
+                                      {metadata.attachments && metadata.attachments.length > 0 && (
+                                        <div className="mt-6 pt-4 border-t">
+                                          {metadata.attachments.map((attachment: any, idx: number) => (
+                                            <div key={idx} className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded">
+                                              <FileText className="w-5 h-5 text-muted-foreground" />
+                                              <span className="text-sm font-medium truncate">
+                                                {attachment.name || attachment.filename || 'Attachment'}
+                                              </span>
+                                              <MoreVertical className="w-4 h-4 ml-auto text-muted-foreground" />
+                                            </div>
+                                          ))}
+                                        </div>
+                                      )}
+                                      
+                                      {/* Status Badge */}
+                                      {event.status && (
+                                        <div className="mt-4">
+                                          <Badge variant="secondary" className="text-xs">
+                                            {event.status}
+                                          </Badge>
+                                        </div>
+                                      )}
+                                      
+                                      {/* Envelope Icon */}
+                                      <div className="absolute bottom-4 right-4">
+                                        <Mail className="w-5 h-5 text-muted-foreground" />
+                                      </div>
+                                    </div>
+                                  </div>
+                                );
+                              }
+                            } catch (e) {
+                              // Parsing failed, show fallback
+                            }
+                            
+                            // Fallback if card wasn't rendered
+                            if (!renderedCard) {
+                              return (
+                                <div>
+                                  <p className="font-medium text-sm">{event.title}</p>
+                                  {event.description && (
+                                    <p className="text-sm text-muted-foreground mt-1">{event.description}</p>
+                                  )}
+                                  <div className="flex items-center gap-3 mt-2">
+                                    {event.status && (
+                                      <Badge variant="secondary" className="text-xs">
+                                        {event.status}
+                                      </Badge>
+                                    )}
+                                    <p className="text-xs text-muted-foreground">
+                                      {event.sentAt ? formatDate(event.sentAt) : formatDate(event.createdAt)}
+                                    </p>
+                                  </div>
+                                </div>
+                              );
+                            }
+                            return null;
+                          })()}
                           {event.type === 'sms' && (
                             <div>
                               <p className="text-sm">{event.body}</p>
