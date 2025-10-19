@@ -309,61 +309,43 @@ export default function SmartFiles() {
                 </Button>
               </div>
             ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Description</TableHead>
-                    <TableHead>Project Type</TableHead>
-                    <TableHead>Page Count</TableHead>
-                    <TableHead>Created Date</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
+              <>
+                {/* Mobile Card Layout */}
+                <div className="md:hidden space-y-3">
                   {smartFiles.map((smartFile) => (
-                    <TableRow key={smartFile.id} data-testid={`smart-file-row-${smartFile.id}`}>
-                      <TableCell className="font-medium">
-                        <span data-testid={`text-name-${smartFile.id}`}>{smartFile.name}</span>
-                      </TableCell>
-                      <TableCell className="max-w-xs truncate">
-                        {smartFile.description || <span className="text-muted-foreground">No description</span>}
-                      </TableCell>
-                      <TableCell>
-                        {smartFile.projectType || <span className="text-muted-foreground">Universal</span>}
-                      </TableCell>
-                      <TableCell>
-                        <span data-testid={`text-page-count-${smartFile.id}`}>
-                          {smartFile.pages?.length || 0}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        {smartFile.createdAt ? new Date(smartFile.createdAt).toLocaleDateString() : "N/A"}
-                      </TableCell>
-                      <TableCell>
-                        <span className={smartFile.status === "ACTIVE" ? "text-green-600" : "text-gray-500"} data-testid={`text-status-${smartFile.id}`}>
-                          {smartFile.status}
-                        </span>
-                      </TableCell>
-                      <TableCell>
+                    <div 
+                      key={smartFile.id} 
+                      className="border rounded-lg p-4 space-y-3"
+                      data-testid={`smart-file-card-mobile-${smartFile.id}`}
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <h3 className="font-medium" data-testid={`text-name-mobile-${smartFile.id}`}>
+                            {smartFile.name}
+                          </h3>
+                          {smartFile.description && (
+                            <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
+                              {smartFile.description}
+                            </p>
+                          )}
+                        </div>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="sm" data-testid={`button-actions-${smartFile.id}`}>
+                            <Button variant="ghost" size="sm" data-testid={`button-actions-mobile-${smartFile.id}`}>
                               <MoreVertical className="w-4 h-4" />
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem 
                               onClick={() => handleEdit(smartFile.id)}
-                              data-testid={`button-edit-${smartFile.id}`}
+                              data-testid={`button-edit-mobile-${smartFile.id}`}
                             >
                               <Edit className="w-4 h-4 mr-2" />
                               Edit
                             </DropdownMenuItem>
                             <DropdownMenuItem 
                               onClick={() => handleToggleArchive(smartFile)}
-                              data-testid={`button-archive-${smartFile.id}`}
+                              data-testid={`button-archive-mobile-${smartFile.id}`}
                             >
                               {smartFile.status === "ACTIVE" ? (
                                 <>
@@ -380,18 +362,132 @@ export default function SmartFiles() {
                             <DropdownMenuItem 
                               onClick={() => handleDelete(smartFile.id)}
                               className="text-destructive"
-                              data-testid={`button-delete-${smartFile.id}`}
+                              data-testid={`button-delete-mobile-${smartFile.id}`}
                             >
                               <Trash2 className="w-4 h-4 mr-2" />
                               Delete
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-3 text-sm">
+                        <div>
+                          <span className="text-muted-foreground">Type:</span>
+                          <span className="ml-1 font-medium">
+                            {smartFile.projectType || "Universal"}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Pages:</span>
+                          <span className="ml-1 font-medium" data-testid={`text-page-count-mobile-${smartFile.id}`}>
+                            {smartFile.pages?.length || 0}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Created:</span>
+                          <span className="ml-1 font-medium">
+                            {smartFile.createdAt ? new Date(smartFile.createdAt).toLocaleDateString() : "N/A"}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Status:</span>
+                          <span className={`ml-1 font-medium ${smartFile.status === "ACTIVE" ? "text-green-600" : "text-gray-500"}`} data-testid={`text-status-mobile-${smartFile.id}`}>
+                            {smartFile.status}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
                   ))}
-                </TableBody>
-              </Table>
+                </div>
+
+                {/* Desktop Table Layout */}
+                <div className="hidden md:block">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Name</TableHead>
+                        <TableHead>Description</TableHead>
+                        <TableHead>Project Type</TableHead>
+                        <TableHead>Page Count</TableHead>
+                        <TableHead>Created Date</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {smartFiles.map((smartFile) => (
+                        <TableRow key={smartFile.id} data-testid={`smart-file-row-${smartFile.id}`}>
+                          <TableCell className="font-medium">
+                            <span data-testid={`text-name-${smartFile.id}`}>{smartFile.name}</span>
+                          </TableCell>
+                          <TableCell className="max-w-xs truncate">
+                            {smartFile.description || <span className="text-muted-foreground">No description</span>}
+                          </TableCell>
+                          <TableCell>
+                            {smartFile.projectType || <span className="text-muted-foreground">Universal</span>}
+                          </TableCell>
+                          <TableCell>
+                            <span data-testid={`text-page-count-${smartFile.id}`}>
+                              {smartFile.pages?.length || 0}
+                            </span>
+                          </TableCell>
+                          <TableCell>
+                            {smartFile.createdAt ? new Date(smartFile.createdAt).toLocaleDateString() : "N/A"}
+                          </TableCell>
+                          <TableCell>
+                            <span className={smartFile.status === "ACTIVE" ? "text-green-600" : "text-gray-500"} data-testid={`text-status-${smartFile.id}`}>
+                              {smartFile.status}
+                            </span>
+                          </TableCell>
+                          <TableCell>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="sm" data-testid={`button-actions-${smartFile.id}`}>
+                                  <MoreVertical className="w-4 h-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem 
+                                  onClick={() => handleEdit(smartFile.id)}
+                                  data-testid={`button-edit-${smartFile.id}`}
+                                >
+                                  <Edit className="w-4 h-4 mr-2" />
+                                  Edit
+                                </DropdownMenuItem>
+                                <DropdownMenuItem 
+                                  onClick={() => handleToggleArchive(smartFile)}
+                                  data-testid={`button-archive-${smartFile.id}`}
+                                >
+                                  {smartFile.status === "ACTIVE" ? (
+                                    <>
+                                      <Archive className="w-4 h-4 mr-2" />
+                                      Archive
+                                    </>
+                                  ) : (
+                                    <>
+                                      <ArchiveRestore className="w-4 h-4 mr-2" />
+                                      Unarchive
+                                    </>
+                                  )}
+                                </DropdownMenuItem>
+                                <DropdownMenuItem 
+                                  onClick={() => handleDelete(smartFile.id)}
+                                  className="text-destructive"
+                                  data-testid={`button-delete-${smartFile.id}`}
+                                >
+                                  <Trash2 className="w-4 h-4 mr-2" />
+                                  Delete
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </>
             )}
           </CardContent>
         </Card>
