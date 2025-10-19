@@ -1,5 +1,5 @@
 import { 
-  photographers, users, contacts, projects, projectParticipants, stages, templates, automations, automationSteps, automationBusinessTriggers,
+  photographers, users, contacts, projects, projectParticipants, projectNotes, stages, templates, automations, automationSteps, automationBusinessTriggers,
   emailLogs, emailHistory, smsLogs, automationExecutions, photographerLinks, checklistTemplateItems, projectChecklistItems,
   packages, packageItems, addOns, questionnaireTemplates, questionnaireQuestions, projectQuestionnaires,
   availabilitySlots, bookings,
@@ -13,7 +13,7 @@ import {
   adCampaigns, adPaymentMethods, adPerformance, adBillingTransactions,
   type User, type InsertUser, type Photographer, type InsertPhotographer,
   type AdminActivityLog, type InsertAdminActivityLog,
-  type Contact, type InsertContact, type Project, type InsertProject, type ProjectParticipant, type InsertProjectParticipant, type ProjectWithClientAndStage, type ContactWithProjects, type Stage, type InsertStage,
+  type Contact, type InsertContact, type Project, type InsertProject, type ProjectNote, type InsertProjectNote, type ProjectParticipant, type InsertProjectParticipant, type ProjectWithClientAndStage, type ContactWithProjects, type Stage, type InsertStage,
   type Template, type InsertTemplate, type Automation, type InsertAutomation,
   type AutomationStep, type InsertAutomationStep, type AutomationBusinessTrigger, type InsertAutomationBusinessTrigger, type Package, type InsertPackage, type AddOn, type InsertAddOn,
   type PhotographerEarnings, type InsertPhotographerEarnings,
@@ -81,6 +81,11 @@ export interface IStorage {
   getParticipantProjects(clientId: string): Promise<(ProjectParticipant & { project: ProjectWithClientAndStage })[]>;
   addProjectParticipant(participant: InsertProjectParticipant): Promise<ProjectParticipant>;
   removeProjectParticipant(projectId: string, clientId: string): Promise<void>;
+  
+  // Project Notes
+  getProjectNotes(projectId: string): Promise<ProjectNote[]>;
+  createProjectNote(note: InsertProjectNote): Promise<ProjectNote>;
+  deleteProjectNote(noteId: string): Promise<void>;
   
   // Client Portal Tokens
   getClientPortalTokensByClient(clientId: string, after?: Date): Promise<ClientPortalToken[]>;
@@ -1947,6 +1952,23 @@ export class DatabaseStorage implements IStorage {
         eq(projectParticipants.projectId, projectId),
         eq(projectParticipants.clientId, clientId)
       ));
+  }
+
+  async getProjectNotes(projectId: string): Promise<ProjectNote[]> {
+    const notes = await db.select()
+      .from(projectNotes)
+      .where(eq(projectNotes.projectId, projectId))
+      .orderBy(desc(projectNotes.createdAt));
+    return notes;
+  }
+
+  async createProjectNote(note: InsertProjectNote): Promise<ProjectNote> {
+    const [created] = await db.insert(projectNotes).values(note).returning();
+    return created;
+  }
+
+  async deleteProjectNote(noteId: string): Promise<void> {
+    await db.delete(projectNotes).where(eq(projectNotes.id, noteId));
   }
 
   private async checkAndSubscribeToWeddingCampaign(project: Project): Promise<void> {

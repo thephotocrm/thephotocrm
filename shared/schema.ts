@@ -248,6 +248,17 @@ export const projects = pgTable("projects", {
   createdAt: timestamp("created_at").defaultNow()
 });
 
+export const projectNotes = pgTable("project_notes", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  projectId: varchar("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
+  photographerId: varchar("photographer_id").notNull().references(() => photographers.id),
+  noteText: text("note_text").notNull(),
+  createdAt: timestamp("created_at").defaultNow()
+}, (table) => ({
+  projectIdIdx: index("project_notes_project_id_idx").on(table.projectId),
+  createdAtIdx: index("project_notes_created_at_idx").on(table.createdAt)
+}));
+
 export const projectParticipants = pgTable("project_participants", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   projectId: varchar("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
@@ -1262,6 +1273,11 @@ export const insertProjectSchema = createInsertSchema(projects).omit({
   eventDate: z.string().optional().transform((val) => val ? new Date(val) : undefined)
 });
 
+export const insertProjectNoteSchema = createInsertSchema(projectNotes).omit({
+  id: true,
+  createdAt: true
+});
+
 export const insertProjectParticipantSchema = createInsertSchema(projectParticipants).omit({
   id: true,
   createdAt: true,
@@ -1456,6 +1472,8 @@ export type Contact = typeof contacts.$inferSelect;
 export type InsertContact = z.infer<typeof insertContactSchema>;
 export type Project = typeof projects.$inferSelect;
 export type InsertProject = z.infer<typeof insertProjectSchema>;
+export type ProjectNote = typeof projectNotes.$inferSelect;
+export type InsertProjectNote = z.infer<typeof insertProjectNoteSchema>;
 export type ProjectParticipant = typeof projectParticipants.$inferSelect;
 export type InsertProjectParticipant = z.infer<typeof insertProjectParticipantSchema>;
 export type Stage = typeof stages.$inferSelect;

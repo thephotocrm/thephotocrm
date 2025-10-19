@@ -2190,6 +2190,86 @@ ${photographer?.businessName || 'Your Photography Team'}`;
     }
   });
 
+  // Project Notes
+  app.get("/api/projects/:id/notes", authenticateToken, async (req, res) => {
+    try {
+      const project = await storage.getProject(req.params.id);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+      
+      // Only photographers can view notes (notes are private to photographer)
+      if (req.user!.photographerId !== project.photographerId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      const notes = await storage.getProjectNotes(req.params.id);
+      res.json(notes);
+    } catch (error) {
+      console.error("Get project notes error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.post("/api/projects/:id/notes", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      const { noteText } = req.body;
+      
+      if (!noteText || noteText.trim().length === 0) {
+        return res.status(400).json({ message: "Note text is required" });
+      }
+      
+      const project = await storage.getProject(req.params.id);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+      
+      // Verify photographer ownership
+      if (req.user!.photographerId !== project.photographerId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      const note = await storage.createProjectNote({
+        projectId: req.params.id,
+        photographerId: req.user!.photographerId!,
+        noteText: noteText.trim()
+      });
+      
+      res.status(201).json(note);
+    } catch (error) {
+      console.error("Create project note error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.delete("/api/projects/:id/notes/:noteId", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      const project = await storage.getProject(req.params.id);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+      
+      // Verify photographer ownership
+      if (req.user!.photographerId !== project.photographerId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      // Get the note to verify it belongs to this project
+      const notes = await storage.getProjectNotes(req.params.id);
+      const note = notes.find(n => n.id === req.params.noteId);
+      
+      if (!note) {
+        return res.status(404).json({ message: "Note not found or does not belong to this project" });
+      }
+      
+      await storage.deleteProjectNote(req.params.noteId);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Delete project note error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   // Templates
   app.get("/api/templates", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {

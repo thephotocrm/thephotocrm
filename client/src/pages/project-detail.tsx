@@ -159,6 +159,124 @@ function getContactInfo(project: Project | undefined) {
   } : null;
 }
 
+// ProjectNotes component
+function ProjectNotes({ projectId }: { projectId: string }) {
+  const { toast } = useToast();
+  const [noteText, setNoteText] = useState("");
+
+  const { data: notes, isLoading } = useQuery<Array<{
+    id: string;
+    noteText: string;
+    createdAt: string;
+  }>>({
+    queryKey: ["/api/projects", projectId, "notes"],
+  });
+
+  const createNoteMutation = useMutation({
+    mutationFn: async (text: string) => {
+      return await apiRequest("POST", `/api/projects/${projectId}/notes`, { noteText: text });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/projects", projectId, "notes"] });
+      setNoteText("");
+      toast({ title: "Note added successfully" });
+    },
+    onError: () => {
+      toast({ title: "Failed to add note", variant: "destructive" });
+    }
+  });
+
+  const deleteNoteMutation = useMutation({
+    mutationFn: async (noteId: string) => {
+      return await apiRequest("DELETE", `/api/projects/${projectId}/notes/${noteId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/projects", projectId, "notes"] });
+      toast({ title: "Note deleted successfully" });
+    },
+    onError: () => {
+      toast({ title: "Failed to delete note", variant: "destructive" });
+    }
+  });
+
+  return (
+    <div className="space-y-4">
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Add Note</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            <Textarea
+              placeholder="Type your note here..."
+              value={noteText}
+              onChange={(e) => setNoteText(e.target.value)}
+              className="min-h-[100px]"
+              data-testid="textarea-new-note"
+            />
+            <Button
+              onClick={() => {
+                if (noteText.trim()) {
+                  createNoteMutation.mutate(noteText);
+                }
+              }}
+              disabled={!noteText.trim() || createNoteMutation.isPending}
+              data-testid="button-add-note"
+            >
+              {createNoteMutation.isPending ? "Adding..." : "Add Note"}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {isLoading ? (
+        <div className="text-center py-8 text-muted-foreground">
+          <p>Loading notes...</p>
+        </div>
+      ) : notes && notes.length > 0 ? (
+        <div className="space-y-3">
+          {notes.map((note) => (
+            <Card key={note.id}>
+              <CardContent className="pt-4">
+                <div className="flex justify-between items-start gap-4">
+                  <div className="flex-1">
+                    <p className="text-sm whitespace-pre-wrap">{note.noteText}</p>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      {new Date(note.createdAt).toLocaleString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric',
+                        hour: 'numeric',
+                        minute: '2-digit',
+                        hour12: true
+                      })}
+                    </p>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => deleteNoteMutation.mutate(note.id)}
+                    disabled={deleteNoteMutation.isPending}
+                    data-testid={`button-delete-note-${note.id}`}
+                  >
+                    <Trash className="w-4 h-4 text-destructive" />
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      ) : (
+        <div className="text-center py-12 text-muted-foreground">
+          <FileText className="w-12 h-12 mx-auto mb-3 opacity-50" />
+          <p>No notes yet</p>
+          <p className="text-sm mt-1">Add your first note above</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function ProjectDetail() {
   const { id } = useParams();
   const { user } = useAuth();
@@ -582,7 +700,7 @@ export default function ProjectDetail() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 md:gap-4">
             <span className="text-xs md:text-sm text-muted-foreground hidden sm:inline">
-              Visible to you + {totalParticipants - 1} participant{totalParticipants - 1 !== 1 ? 's' : ''}
+              Visible to you + {totalParticipants} participant{totalParticipants !== 1 ? 's' : ''}
             </span>
             <div className="flex items-center -space-x-2">
               {/* Main Contact Avatar */}
@@ -1501,17 +1619,7 @@ export default function ProjectDetail() {
             </TabsContent>
 
             <TabsContent value="notes" className="m-0">
-              <div className="space-y-4">
-                {project.notes ? (
-                  <div className="p-4 bg-gray-50 rounded-lg">
-                    <p className="text-sm whitespace-pre-wrap">{project.notes}</p>
-                  </div>
-                ) : (
-                  <div className="text-center py-12 text-muted-foreground">
-                    <p>No notes yet</p>
-                  </div>
-                )}
-              </div>
+              <ProjectNotes projectId={id!} />
             </TabsContent>
 
             <TabsContent value="gallery" className="m-0">
