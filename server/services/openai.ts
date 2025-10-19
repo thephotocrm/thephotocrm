@@ -503,6 +503,69 @@ Respond with JSON in this format:
   }
 }
 
+export async function generateSMSFromPrompt(
+  prompt: string,
+  context: {
+    projectTitle: string;
+    contactName: string;
+    projectType: string;
+    photographerName: string;
+    existingSMSBody?: string;
+  }
+): Promise<{ body: string }> {
+  const { projectTitle, contactName, projectType, photographerName, existingSMSBody } = context;
+
+  const systemPrompt = `You are an expert SMS writer for ${photographerName}, a professional photographer.
+  
+Your task is to help compose professional, friendly, and concise SMS messages to clients about their ${projectType} photography projects.
+
+Context:
+- Project: ${projectTitle}
+- Client: ${contactName}
+- Photographer: ${photographerName}
+${existingSMSBody ? `- Current SMS draft: ${existingSMSBody}` : ''}
+
+Guidelines:
+- Keep it SHORT (SMS should be 160-300 characters when possible)
+- Use a warm, professional tone
+- Be concise and clear
+- Include personalization where appropriate
+- Get straight to the point
+- Use casual but professional language
+${existingSMSBody ? '- If improving existing content, maintain the core message while making it better' : ''}
+
+Respond with JSON in this format:
+{
+  "body": "SMS message content (keep it concise!)"
+}`;
+
+  const userPrompt = existingSMSBody 
+    ? `Based on the current SMS draft, ${prompt}` 
+    : `Create an SMS message that: ${prompt}`;
+
+  try {
+    // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
+    const response = await openai.chat.completions.create({
+      model: "gpt-5",
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt }
+      ],
+      response_format: { type: "json_object" },
+      max_completion_tokens: 500,
+    });
+
+    const result = JSON.parse(response.choices[0].message.content || '{}');
+    
+    return {
+      body: result.body || ''
+    };
+  } catch (error) {
+    console.error('Error generating SMS from prompt:', error);
+    throw new Error(`Failed to generate SMS: ${(error as Error).message}`);
+  }
+}
+
 // Helper function to strip HTML tags for text version
 function stripHtml(html: string): string {
   return html

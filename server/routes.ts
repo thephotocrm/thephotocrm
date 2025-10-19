@@ -1958,6 +1958,113 @@ ${photographer?.businessName || 'Your Photography Team'}`;
     }
   });
 
+  // Generate SMS content using AI
+  app.post("/api/projects/:id/generate-sms", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
+    try {
+      const { prompt, existingSMSBody } = req.body;
+      
+      if (!prompt) {
+        return res.status(400).json({ message: "Prompt is required" });
+      }
+      
+      // Verify project belongs to photographer
+      const project = await storage.getProject(req.params.id);
+      if (!project || project.photographerId !== req.user!.photographerId!) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+      
+      // Get project contact info
+      const contact = project.contactId ? await storage.getContact(project.contactId) : null;
+      const contactName = contact ? `${contact.firstName} ${contact.lastName}` : 'Client';
+      
+      // Get photographer info
+      const photographer = await storage.getPhotographer(req.user!.photographerId!);
+      const photographerName = photographer?.businessName || 'Photographer';
+      
+      // Generate SMS using OpenAI
+      const { generateSMSFromPrompt } = await import('./services/openai');
+      const result = await generateSMSFromPrompt(prompt, {
+        projectTitle: project.title,
+        contactName,
+        projectType: project.projectType,
+        photographerName,
+        existingSMSBody
+      });
+      
+      res.json(result);
+    } catch (error) {
+      console.error("Generate SMS error:", error);
+      res.status(500).json({ message: (error as Error).message || "Failed to generate SMS" });
+    }
+  });
+
+  // Send SMS to project contact
+  app.post("/api/projects/:id/send-sms", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
+    try {
+      const { body, recipient } = req.body;
+      
+      if (!body) {
+        return res.status(400).json({ message: "Message body is required" });
+      }
+
+      if (!recipient) {
+        return res.status(400).json({ message: "Recipient phone number is required" });
+      }
+      
+      // Verify project belongs to photographer
+      const project = await storage.getProject(req.params.id);
+      if (!project || project.photographerId !== req.user!.photographerId!) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+      
+      // Get photographer info
+      const photographer = await storage.getPhotographer(req.user!.photographerId!);
+      if (!photographer) {
+        return res.status(404).json({ message: "Photographer not found" });
+      }
+
+      // Send SMS via Twilio
+      const { sendSms } = await import('./services/sms');
+      const result = await sendSms({
+        to: recipient,
+        body,
+        photographerId: req.user!.photographerId!,
+        projectId: project.id
+      });
+      
+      if (!result.success) {
+        return res.status(500).json({ message: "Failed to send SMS", error: result.error });
+      }
+      
+      // Log to activity log
+      await storage.addProjectActivityLog({
+        projectId: req.params.id,
+        activityType: 'SMS_SENT',
+        action: 'SENT',
+        title: 'Manual SMS sent',
+        description: `SMS sent to ${recipient}`,
+        metadata: JSON.stringify({
+          recipient,
+          messageLength: body.length,
+          source: 'MANUAL'
+        }),
+        relatedId: result.messageId || null,
+        relatedType: 'SMS'
+      });
+      
+      res.json({ 
+        success: true, 
+        message: "SMS sent successfully",
+        recipient
+      });
+    } catch (error) {
+      console.error("=== SEND SMS ERROR ===");
+      console.error("Error details:", error);
+      console.error("Error message:", (error as Error).message);
+      res.status(500).json({ message: "Internal server error", error: (error as Error).message });
+    }
+  });
+
   // Send email to selected recipients (HoneyBook-style with recipient selection)
   app.post("/api/projects/:id/send-email", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {

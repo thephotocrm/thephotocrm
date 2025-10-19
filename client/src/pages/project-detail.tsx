@@ -310,6 +310,9 @@ export default function ProjectDetail() {
   const [selectedRecipients, setSelectedRecipients] = useState<string[]>([]);
   const [showAiModal, setShowAiModal] = useState(false);
   const [aiPrompt, setAiPrompt] = useState("");
+  const [aiModalType, setAiModalType] = useState<"email" | "sms">("email");
+  const [smsDialogOpen, setSmsDialogOpen] = useState(false);
+  const [smsBody, setSmsBody] = useState("");
   const [showFormattingToolbar, setShowFormattingToolbar] = useState(true);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [showLinkDialog, setShowLinkDialog] = useState(false);
@@ -485,6 +488,50 @@ export default function ProjectDetail() {
     onError: (error: any) => {
       toast({
         title: "Failed to generate draft",
+        description: error.message || "An error occurred",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const generateSMSMutation = useMutation({
+    mutationFn: async (data: { prompt: string; existingSMSBody?: string }) => {
+      return await apiRequest("POST", `/api/projects/${id}/generate-sms`, data);
+    },
+    onSuccess: (data: { body: string }) => {
+      setSmsBody(data.body);
+      setShowAiModal(false);
+      setAiPrompt("");
+      toast({
+        title: "Draft generated",
+        description: "Your AI-generated SMS draft is ready to review."
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to generate draft",
+        description: error.message || "An error occurred",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const sendSMSMutation = useMutation({
+    mutationFn: async (data: { body: string; recipient: string }) => {
+      return await apiRequest("POST", `/api/projects/${id}/send-sms`, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/projects", id, "history"] });
+      setSmsBody("");
+      setSmsDialogOpen(false);
+      toast({
+        title: "Message sent",
+        description: "Your SMS has been sent successfully."
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to send SMS",
         description: error.message || "An error occurred",
         variant: "destructive"
       });
@@ -774,7 +821,7 @@ export default function ProjectDetail() {
                   <Mail className="w-4 h-4 mr-2" />
                   Send Email
                 </DropdownMenuItem>
-                <DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setSmsDialogOpen(true)}>
                   <MessageSquare className="w-4 h-4 mr-2" />
                   Send SMS
                 </DropdownMenuItem>
@@ -2115,6 +2162,70 @@ export default function ProjectDetail() {
         </DialogContent>
       </Dialog>
 
+      {/* SMS Dialog */}
+      <Dialog open={smsDialogOpen} onOpenChange={setSmsDialogOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Send SMS</DialogTitle>
+            <DialogDescription>
+              Send an SMS message to {project?.contact?.firstName || project?.client?.firstName} {project?.contact?.lastName || project?.client?.lastName}.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <Label htmlFor="sms-body">Message</Label>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setAiModalType("sms");
+                    setShowAiModal(true);
+                  }}
+                  className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 h-7"
+                  data-testid="button-edit-sms-with-ai"
+                >
+                  <Sparkles className="w-3 h-3 mr-1" />
+                  Write with AI
+                </Button>
+              </div>
+              <Textarea
+                id="sms-body"
+                value={smsBody}
+                onChange={(e) => setSmsBody(e.target.value)}
+                placeholder="Type your message here..."
+                rows={6}
+                maxLength={1000}
+                data-testid="textarea-sms-body"
+              />
+              <div className="text-xs text-muted-foreground mt-1">
+                {smsBody.length}/1000 characters
+              </div>
+            </div>
+            <Button 
+              onClick={() => {
+                const mainContact = getContactInfo(project);
+                const recipient = mainContact?.phone || '';
+                if (!recipient) {
+                  toast({
+                    title: "No phone number",
+                    description: "The contact doesn't have a phone number.",
+                    variant: "destructive"
+                  });
+                  return;
+                }
+                sendSMSMutation.mutate({ body: smsBody, recipient });
+              }}
+              disabled={!smsBody || sendSMSMutation.isPending}
+              className="w-full"
+              data-testid="button-send-sms"
+            >
+              {sendSMSMutation.isPending ? "Sending..." : "Send SMS"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Schedule Meeting Dialog */}
       <Dialog open={scheduleDialogOpen} onOpenChange={setScheduleDialogOpen}>
         <DialogContent className="max-w-lg">
@@ -2314,9 +2425,9 @@ export default function ProjectDetail() {
         </DialogContent>
       </Dialog>
 
-      {/* AI Email Writer Modal */}
+      {/* AI Writer Modal (Email & SMS) */}
       <Dialog open={showAiModal} onOpenChange={setShowAiModal}>
-        <DialogContent className="sm:max-w-[600px]" data-testid="dialog-ai-email-writer">
+        <DialogContent className="sm:max-w-[600px]" data-testid="dialog-ai-writer">
           <DialogHeader>
             <DialogTitle>Edit with AI</DialogTitle>
             <DialogDescription>
@@ -2329,7 +2440,10 @@ export default function ProjectDetail() {
               <Textarea
                 value={aiPrompt}
                 onChange={(e) => setAiPrompt(e.target.value)}
-                placeholder="For example, remove the list of services and add pricing, or write a new message with your own details."
+                placeholder={aiModalType === "email" 
+                  ? "For example, remove the list of services and add pricing, or write a new message with your own details."
+                  : "For example, confirm the meeting time for tomorrow at 2pm, or ask if they received the proposal."
+                }
                 rows={6}
                 className="resize-none"
                 maxLength={500}
@@ -2361,16 +2475,23 @@ export default function ProjectDetail() {
             </Button>
             <Button
               onClick={() => {
-                generateEmailMutation.mutate({
-                  prompt: aiPrompt,
-                  existingEmailBody: messageBody || undefined
-                });
+                if (aiModalType === "email") {
+                  generateEmailMutation.mutate({
+                    prompt: aiPrompt,
+                    existingEmailBody: messageBody || undefined
+                  });
+                } else {
+                  generateSMSMutation.mutate({
+                    prompt: aiPrompt,
+                    existingSMSBody: smsBody || undefined
+                  });
+                }
               }}
-              disabled={!aiPrompt.trim() || generateEmailMutation.isPending}
+              disabled={!aiPrompt.trim() || (aiModalType === "email" ? generateEmailMutation.isPending : generateSMSMutation.isPending)}
               className="bg-black text-white hover:bg-black/90"
               data-testid="button-write-draft"
             >
-              {generateEmailMutation.isPending ? "GENERATING..." : "WRITE DRAFT"}
+              {(aiModalType === "email" ? generateEmailMutation.isPending : generateSMSMutation.isPending) ? "GENERATING..." : "WRITE DRAFT"}
             </Button>
           </div>
         </DialogContent>
