@@ -245,6 +245,8 @@ export const projects = pgTable("projects", {
   galleryReady: boolean("gallery_ready").default(false), // Whether photographer marked it ready to send
   galleryCreatedAt: timestamp("gallery_created_at"), // When auto-created
   gallerySharedAt: timestamp("gallery_shared_at"), // When marked ready and sent to client
+  // Client Portal
+  includePortalLinks: boolean("include_portal_links").default(true), // Include magic links in emails
   createdAt: timestamp("created_at").defaultNow()
 });
 
@@ -274,6 +276,21 @@ export const projectParticipants = pgTable("project_participants", {
   clientIdIdx: index("project_participants_client_id_idx").on(table.clientId),
   // Unique constraint: one participant can only be added once per project
   uniqueProjectClientIdx: unique("project_participants_project_client_unique").on(table.projectId, table.clientId)
+}));
+
+export const portalTokens = pgTable("portal_tokens", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  token: text("token").notNull().unique(), // Secure random token for magic link
+  projectId: varchar("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
+  clientId: varchar("client_id").notNull().references(() => contacts.id, { onDelete: "cascade" }),
+  photographerId: varchar("photographer_id").notNull().references(() => photographers.id),
+  expiresAt: timestamp("expires_at").notNull(), // Tokens expire after 90 days
+  lastUsedAt: timestamp("last_used_at"), // Track when the client last clicked the link
+  createdAt: timestamp("created_at").defaultNow()
+}, (table) => ({
+  tokenIdx: index("portal_tokens_token_idx").on(table.token),
+  projectIdIdx: index("portal_tokens_project_id_idx").on(table.projectId),
+  clientIdIdx: index("portal_tokens_client_id_idx").on(table.clientId)
 }));
 
 export const templates = pgTable("templates", {
@@ -1285,6 +1302,12 @@ export const insertProjectParticipantSchema = createInsertSchema(projectParticip
   inviteSentAt: true
 });
 
+export const insertPortalTokenSchema = createInsertSchema(portalTokens).omit({
+  id: true,
+  createdAt: true,
+  lastUsedAt: true
+});
+
 export const insertStageSchema = createInsertSchema(stages).omit({
   id: true
 });
@@ -1476,6 +1499,8 @@ export type ProjectNote = typeof projectNotes.$inferSelect;
 export type InsertProjectNote = z.infer<typeof insertProjectNoteSchema>;
 export type ProjectParticipant = typeof projectParticipants.$inferSelect;
 export type InsertProjectParticipant = z.infer<typeof insertProjectParticipantSchema>;
+export type PortalToken = typeof portalTokens.$inferSelect;
+export type InsertPortalToken = z.infer<typeof insertPortalTokenSchema>;
 export type Stage = typeof stages.$inferSelect;
 export type InsertStage = z.infer<typeof insertStageSchema>;
 export type Template = typeof templates.$inferSelect;
