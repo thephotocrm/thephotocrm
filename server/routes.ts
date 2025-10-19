@@ -27,6 +27,7 @@ import { startCronJobs } from "./jobs/cron";
 import { processAutomations } from "./services/automation";
 import path from "path";
 import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 import { nanoid } from "nanoid";
 import crypto from "crypto";
 import multer from "multer";
@@ -608,11 +609,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/portal/:token", async (req, res) => {
     try {
       const { token } = req.params;
+      console.log("🔑 Portal token validation request for token:", token.substring(0, 10) + "...");
 
       const portalToken = await storage.validatePortalToken(token);
       if (!portalToken) {
+        console.log("❌ Portal token validation failed: Invalid or expired token");
         return res.status(401).json({ message: "Invalid or expired token" });
       }
+
+      console.log("✅ Portal token validated successfully for project:", portalToken.projectId);
 
       // Update last used timestamp
       await storage.updatePortalTokenLastUsed(portalToken.id);
@@ -624,7 +629,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Check if user exists for this contact
-      let user = await storage.getUserByEmail(contact.contact.email);
+      let user = await storage.getUserByEmail(contact.email);
       
       // If no user exists, create one with a random password (they can reset it later)
       if (!user) {
@@ -632,8 +637,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const hashedPassword = await bcrypt.hash(randomPassword, 10);
         
         user = await storage.createUser({
-          email: contact.contact.email,
-          password: hashedPassword,
+          email: contact.email,
+          passwordHash: hashedPassword,
           role: "CLIENT",
           photographerId: portalToken.photographerId
         });
@@ -642,7 +647,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Generate JWT token for the client
       const jwtToken = jwt.sign(
         { 
-          id: user.id, 
+          userId: user.id, 
           email: user.email, 
           role: user.role,
           photographerId: user.photographerId 
@@ -659,6 +664,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
       });
 
+      console.log("🍪 Auth cookie set for user:", user.email);
+
       // Return user info and redirect to project
       res.json({
         user: {
@@ -669,6 +676,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         },
         projectId: portalToken.projectId
       });
+      
+      console.log("✅ Portal validation complete, redirecting to project:", portalToken.projectId);
     } catch (error) {
       console.error("Portal token validation error:", error);
       res.status(500).json({ message: "Failed to validate portal token" });
