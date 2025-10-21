@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
-import { DollarSign, TrendingUp, Users, Zap, Calculator, Info } from "lucide-react";
+import { DollarSign, TrendingUp, ArrowRight, Calculator, Info } from "lucide-react";
 import { useLocation } from "wouter";
 
 export default function BudgetEstimator() {
@@ -47,9 +47,12 @@ export default function BudgetEstimator() {
   const estimatedLeads = Math.floor(pricing.actualAdSpend / 75);
   const minLeads = Math.floor(pricing.actualAdSpend / 100);
   const maxLeads = Math.floor(pricing.actualAdSpend / 50);
-
-  // Estimate revenue (extremely conservative: $1500 per lead * 50% close rate)
-  const estimatedRevenue = estimatedLeads * 1500 * 0.50;
+  
+  // Close rate and package price
+  const closeRate = 0.50;
+  const avgPackagePrice = 1500;
+  const closedBookings = Math.round(estimatedLeads * closeRate);
+  const estimatedRevenue = closedBookings * avgPackagePrice;
 
   return (
     <div className="p-6 space-y-6">
@@ -57,7 +60,7 @@ export default function BudgetEstimator() {
       <div>
         <h1 className="text-3xl font-bold mb-2" data-testid="text-page-title">Budget Estimator</h1>
         <p className="text-muted-foreground">
-          Plan your advertising budget and estimate your lead volume
+          See how your advertising budget converts to revenue
         </p>
       </div>
 
@@ -66,19 +69,19 @@ export default function BudgetEstimator() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Calculator className="w-5 h-5 text-purple-500" />
-            Monthly Advertising Budget
+            Set Your Monthly Budget
           </CardTitle>
           <CardDescription>
-            Adjust the slider to see pricing breakdown and lead estimates
+            Adjust the slider to see your potential return
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-8">
+        <CardContent className="space-y-6">
           {/* Budget Amount Display */}
           <div className="text-center">
             <div className="text-5xl font-bold text-purple-600" data-testid="text-budget-amount">
               ${currentBudget.toLocaleString()}
             </div>
-            <p className="text-sm text-muted-foreground mt-2">total monthly budget</p>
+            <p className="text-sm text-muted-foreground mt-2">monthly advertising budget</p>
           </div>
 
           {/* Slider */}
@@ -100,151 +103,142 @@ export default function BudgetEstimator() {
         </CardContent>
       </Card>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Estimated Revenue */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <DollarSign className="w-5 h-5 text-emerald-500" />
-              Estimated Revenue
-            </CardTitle>
-            <CardDescription>
-              Your potential earnings from these leads
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="text-center p-6 bg-gradient-to-br from-emerald-500/10 to-green-500/10 rounded-lg border border-emerald-500/20">
-              <div className="text-4xl font-bold text-emerald-600" data-testid="text-estimated-revenue">
-                ${estimatedRevenue.toLocaleString()}
+      {/* Consolidated Revenue Calculator */}
+      <Card className="border-emerald-500/20">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <TrendingUp className="w-5 h-5 text-emerald-500" />
+            Your Potential Return
+          </CardTitle>
+          <CardDescription>
+            Here's how your budget translates to revenue
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {/* Sequential Flow */}
+          <div className="space-y-4">
+            {/* Step 1: Ad Spend */}
+            <div className="flex items-center gap-4">
+              <div className="flex-1 p-4 bg-blue-500/10 rounded-lg border border-blue-500/20">
+                <p className="text-xs text-muted-foreground mb-1">Ad Spend</p>
+                <p className="text-2xl font-bold text-blue-600" data-testid="text-ad-spend">
+                  ${pricing.actualAdSpend.toLocaleString()}
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">going to ads</p>
               </div>
-              <p className="text-sm text-muted-foreground mt-2">potential monthly revenue</p>
-            </div>
-
-            <div className="space-y-3 mt-6">
-              <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-                <span className="text-sm font-medium">Average Package</span>
-                <span className="text-lg font-bold">$1,500</span>
-              </div>
-
-              <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-                <span className="text-sm font-medium">Close Rate</span>
-                <span className="text-lg font-bold">50%</span>
-              </div>
-
-              <div className="flex items-center justify-between p-3 bg-emerald-500/10 rounded-lg border border-emerald-500/20">
-                <span className="text-sm font-medium">Closed Bookings</span>
-                <span className="text-lg font-bold text-emerald-600" data-testid="text-closed-bookings">
-                  ~{Math.round(estimatedLeads * 0.50)}
-                </span>
+              <ArrowRight className="w-6 h-6 text-muted-foreground flex-shrink-0" />
+              
+              {/* Step 2: Leads */}
+              <div className="flex-1 p-4 bg-purple-500/10 rounded-lg border border-purple-500/20">
+                <p className="text-xs text-muted-foreground mb-1">Leads Generated</p>
+                <p className="text-2xl font-bold text-purple-600" data-testid="text-estimated-leads">
+                  ~{estimatedLeads}
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">exclusive leads</p>
               </div>
             </div>
 
-            <div className="mt-6 p-4 bg-emerald-500/10 rounded-lg border border-emerald-500/20">
-              <div className="flex items-start gap-2">
-                <Info className="w-5 h-5 text-emerald-500 mt-0.5 flex-shrink-0" />
-                <div className="text-sm space-y-1">
-                  <p className="font-medium text-emerald-700 dark:text-emerald-300">Industry Average Estimate</p>
-                  <p className="text-xs text-muted-foreground">
-                    This calculation assumes a 50% close rate and $1,500 average package, which are industry average estimates. Many photographers achieve higher close rates with premium packages.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Lead Estimates */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Users className="w-5 h-5 text-blue-500" />
-              Estimated Lead Volume
-            </CardTitle>
-            <CardDescription>
-              Based on industry average cost per lead
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="text-center p-6 bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-lg border border-blue-500/20">
-              <div className="text-4xl font-bold text-blue-600" data-testid="text-estimated-leads">
-                ~{estimatedLeads}
-              </div>
-              <p className="text-sm text-muted-foreground mt-2">estimated leads per month</p>
-              <p className="text-xs text-muted-foreground mt-1">
-                Range: {minLeads} - {maxLeads} leads
-              </p>
-            </div>
-
-            <div className="space-y-3 mt-6">
-              <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
-                <TrendingUp className="w-5 h-5 text-green-500" />
-                <div>
-                  <p className="text-sm font-medium">Cost Per Lead</p>
-                  <p className="text-xs text-muted-foreground">
-                    ~${Math.round(pricing.actualAdSpend / estimatedLeads)} per lead
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
-                <Zap className="w-5 h-5 text-purple-500" />
-                <div>
-                  <p className="text-sm font-medium">100% Exclusive</p>
-                  <p className="text-xs text-muted-foreground">
-                    All leads belong to you alone
-                  </p>
-                </div>
+            {/* Arrow down */}
+            <div className="flex justify-center">
+              <div className="rotate-90">
+                <ArrowRight className="w-6 h-6 text-muted-foreground" />
               </div>
             </div>
 
-            <div className="mt-6 p-4 bg-amber-500/10 rounded-lg border border-amber-500/20">
-              <p className="text-xs text-muted-foreground">
-                <strong className="text-amber-700 dark:text-amber-400">Note:</strong> Lead estimates are based on industry averages. Actual results vary by location, targeting, seasonality, and ad creative quality.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Pricing Breakdown - Made smaller and less prominent */}
-        <Card className="opacity-90">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base">
-              <Calculator className="w-4 h-4 text-muted-foreground" />
-              <span className="text-muted-foreground">Budget Breakdown</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between items-center p-2 bg-muted/30 rounded">
-                <span className="text-xs text-muted-foreground">Total Budget</span>
-                <span className="font-semibold" data-testid="text-total-budget">
-                  ${pricing.totalBudget.toLocaleString()}
-                </span>
+            {/* Step 3: Close Rate */}
+            <div className="flex items-center gap-4">
+              <div className="flex-1 p-4 bg-amber-500/10 rounded-lg border border-amber-500/20">
+                <p className="text-xs text-muted-foreground mb-1">50% Close Rate</p>
+                <p className="text-2xl font-bold text-amber-600" data-testid="text-closed-bookings">
+                  {closedBookings}
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">bookings closed</p>
+              </div>
+              <div className="flex items-center gap-2 text-muted-foreground flex-shrink-0">
+                <span className="text-2xl">×</span>
               </div>
               
-              <div className="flex justify-between items-center p-2 bg-muted/30 rounded">
-                <span className="text-xs text-muted-foreground">Platform Fee</span>
-                <span className="font-semibold" data-testid="text-platform-fee">
-                  ${pricing.platformFee.toLocaleString()}
-                </span>
-              </div>
-
-              <div className="flex justify-between items-center p-2 bg-blue-500/10 rounded border border-blue-500/20">
-                <span className="text-xs font-medium">Ad Spend</span>
-                <span className="font-bold text-blue-600" data-testid="text-ad-spend">
-                  ${pricing.actualAdSpend.toLocaleString()}
-                </span>
+              {/* Step 4: Package Price */}
+              <div className="flex-1 p-4 bg-indigo-500/10 rounded-lg border border-indigo-500/20">
+                <p className="text-xs text-muted-foreground mb-1">Avg Package</p>
+                <p className="text-2xl font-bold text-indigo-600">
+                  ${avgPackagePrice.toLocaleString()}
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">per booking</p>
               </div>
             </div>
 
-            <div className="mt-4 p-3 bg-muted/20 rounded-lg border border-muted/40">
-              <p className="text-xs text-muted-foreground">
-                Fee scales down as you grow: 40% → 30% → 20%, capped at $1,500
-              </p>
+            {/* Arrow down */}
+            <div className="flex justify-center">
+              <div className="rotate-90">
+                <ArrowRight className="w-6 h-6 text-emerald-500" />
+              </div>
             </div>
-          </CardContent>
-        </Card>
-      </div>
+
+            {/* Final Result: Revenue */}
+            <div className="p-6 bg-gradient-to-br from-emerald-500/20 to-green-500/20 rounded-lg border-2 border-emerald-500/30">
+              <div className="text-center">
+                <p className="text-sm text-muted-foreground mb-2">Potential Monthly Revenue</p>
+                <p className="text-5xl font-bold text-emerald-600" data-testid="text-estimated-revenue">
+                  ${estimatedRevenue.toLocaleString()}
+                </p>
+                <p className="text-xs text-muted-foreground mt-3">
+                  That's a {Math.round((estimatedRevenue / currentBudget) * 10) / 10}x return on your investment
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Industry Average Note */}
+          <div className="p-4 bg-emerald-500/10 rounded-lg border border-emerald-500/20">
+            <div className="flex items-start gap-2">
+              <Info className="w-5 h-5 text-emerald-500 mt-0.5 flex-shrink-0" />
+              <div className="text-sm space-y-1">
+                <p className="font-medium text-emerald-700 dark:text-emerald-300">Based on Industry Averages</p>
+                <p className="text-xs text-muted-foreground">
+                  Calculations use 50% close rate and $1,500 average package. Cost per lead ranges from ${minLeads > 0 ? Math.round(pricing.actualAdSpend / maxLeads) : 0}-${minLeads > 0 ? Math.round(pricing.actualAdSpend / minLeads) : 0} depending on market and targeting.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Fee Breakdown - Fine Print */}
+          <div className="pt-4 border-t">
+            <details className="group">
+              <summary className="cursor-pointer text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2">
+                <span>Budget breakdown & platform fees</span>
+                <ArrowRight className="w-3 h-3 group-open:rotate-90 transition-transform" />
+              </summary>
+              <div className="mt-3 space-y-2 text-xs">
+                <div className="flex justify-between items-center p-2 bg-muted/30 rounded">
+                  <span className="text-muted-foreground">Total Budget</span>
+                  <span className="font-semibold" data-testid="text-total-budget">
+                    ${pricing.totalBudget.toLocaleString()}
+                  </span>
+                </div>
+                
+                <div className="flex justify-between items-center p-2 bg-muted/30 rounded">
+                  <span className="text-muted-foreground">Platform Fee ({pricing.feeRate.toFixed(1)}%)</span>
+                  <span className="font-semibold" data-testid="text-platform-fee">
+                    ${pricing.platformFee.toLocaleString()}
+                  </span>
+                </div>
+
+                <div className="flex justify-between items-center p-2 bg-blue-500/10 rounded border border-blue-500/20">
+                  <span className="font-medium">Actual Ad Spend</span>
+                  <span className="font-bold text-blue-600">
+                    ${pricing.actualAdSpend.toLocaleString()}
+                  </span>
+                </div>
+
+                <p className="text-[10px] text-muted-foreground pt-2 italic">
+                  Platform fee scales down as you grow: 40% under $2k → 30% at $2k-$5k → 20% at $5k-$10k → capped at $1,500 for $10k+
+                </p>
+              </div>
+            </details>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* CTA Section */}
       <Card className="border-green-500/20 bg-gradient-to-br from-green-500/5 to-emerald-500/5">
