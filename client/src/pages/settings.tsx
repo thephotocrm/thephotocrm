@@ -1386,6 +1386,71 @@ export default function Settings() {
                     </div>
                   </CardContent>
                 </Card>
+
+                {/* SMS Test Section */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      Test SMS Integration
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      <p className="text-sm text-muted-foreground">
+                        Send a test SMS to verify your Twilio integration is working correctly.
+                      </p>
+                      <div className="flex gap-4">
+                        <div className="flex-1">
+                          <Label htmlFor="test-phone">Phone Number</Label>
+                          <Input
+                            id="test-phone"
+                            placeholder="(972) 249-7048"
+                            defaultValue="9722497048"
+                            data-testid="input-test-phone"
+                          />
+                        </div>
+                        <div className="flex items-end">
+                          <Button
+                            onClick={async () => {
+                              const phoneInput = document.getElementById('test-phone') as HTMLInputElement;
+                              const phone = phoneInput?.value;
+                              
+                              if (!phone) {
+                                toast({
+                                  title: "Phone Number Required",
+                                  description: "Please enter a phone number",
+                                  variant: "destructive"
+                                });
+                                return;
+                              }
+
+                              try {
+                                const result = await apiRequest("POST", "/api/test-sms", {
+                                  phoneNumber: phone,
+                                  message: "🎉 Twilio is working! This is a test SMS from Lazy Photog."
+                                });
+
+                                toast({
+                                  title: "Test SMS Sent!",
+                                  description: `SMS sent successfully. Check your phone! SID: ${result.sid}`,
+                                });
+                              } catch (error: any) {
+                                toast({
+                                  title: "SMS Failed",
+                                  description: error.message || "Failed to send test SMS",
+                                  variant: "destructive"
+                                });
+                              }
+                            }}
+                            data-testid="button-send-test-sms"
+                          >
+                            Send Test SMS
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
             </TabsContent>
 

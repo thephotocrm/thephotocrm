@@ -9196,6 +9196,47 @@ ${photographer.businessName}
     }
   });
 
+  // Test SMS endpoint - send a test message to verify Twilio integration
+  app.post("/api/test-sms", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      const { phoneNumber, message } = req.body;
+
+      if (!phoneNumber) {
+        return res.status(400).json({ message: "Phone number is required" });
+      }
+
+      const testMessage = message || "🎉 Twilio is working! This is a test SMS from Lazy Photog.";
+
+      console.log('Sending test SMS to:', phoneNumber);
+
+      // Send SMS
+      const result = await sendSms({
+        to: phoneNumber,
+        body: testMessage
+      });
+
+      if (!result.success) {
+        return res.status(500).json({ 
+          message: "Failed to send test SMS",
+          error: result.error 
+        });
+      }
+
+      res.json({ 
+        success: true,
+        message: "Test SMS sent successfully! Check your phone.",
+        sid: result.sid 
+      });
+
+    } catch (error: any) {
+      console.error('Error sending test SMS:', error);
+      res.status(500).json({ 
+        message: "Failed to send test SMS",
+        error: error.message 
+      });
+    }
+  });
+
   // ==================== AD CAMPAIGNS ROUTES ====================
 
   // Get all ad campaigns for photographer
