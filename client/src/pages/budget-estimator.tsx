@@ -48,8 +48,8 @@ export default function BudgetEstimator() {
   const minLeads = Math.floor(pricing.actualAdSpend / 100);
   const maxLeads = Math.floor(pricing.actualAdSpend / 50);
 
-  // Estimate revenue (extremely conservative: $1500 per lead * 35% close rate)
-  const estimatedRevenue = estimatedLeads * 1500 * 0.35;
+  // Estimate revenue (extremely conservative: $1500 per lead * 50% close rate)
+  const estimatedRevenue = estimatedLeads * 1500 * 0.50;
 
   return (
     <div className="p-6 space-y-6">
@@ -128,13 +128,13 @@ export default function BudgetEstimator() {
 
               <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
                 <span className="text-sm font-medium">Close Rate</span>
-                <span className="text-lg font-bold">35%</span>
+                <span className="text-lg font-bold">50%</span>
               </div>
 
               <div className="flex items-center justify-between p-3 bg-emerald-500/10 rounded-lg border border-emerald-500/20">
                 <span className="text-sm font-medium">Closed Bookings</span>
                 <span className="text-lg font-bold text-emerald-600" data-testid="text-closed-bookings">
-                  ~{Math.round(estimatedLeads * 0.35)}
+                  ~{Math.round(estimatedLeads * 0.50)}
                 </span>
               </div>
             </div>
@@ -143,9 +143,9 @@ export default function BudgetEstimator() {
               <div className="flex items-start gap-2">
                 <Info className="w-5 h-5 text-emerald-500 mt-0.5 flex-shrink-0" />
                 <div className="text-sm space-y-1">
-                  <p className="font-medium text-emerald-700 dark:text-emerald-300">Conservative Estimate</p>
+                  <p className="font-medium text-emerald-700 dark:text-emerald-300">Industry Average Estimate</p>
                   <p className="text-xs text-muted-foreground">
-                    This calculation assumes a 35% close rate and $1,500 average package, which are conservative industry estimates. Many photographers achieve 50%+ close rates with higher package prices.
+                    This calculation assumes a 50% close rate and $1,500 average package, which are industry average estimates. Many photographers achieve higher close rates with premium packages.
                   </p>
                 </div>
               </div>
