@@ -107,20 +107,6 @@ export default function BudgetEstimator() {
             <ArrowDown className="w-6 h-6 text-muted-foreground" />
           </div>
 
-          {/* Ad Spend */}
-          <div className="p-4 bg-blue-500/10 rounded-lg border border-blue-500/20 text-center">
-            <p className="text-sm text-muted-foreground mb-2">Ad Spend</p>
-            <p className="text-3xl font-bold text-blue-600" data-testid="text-ad-spend">
-              ${pricing.actualAdSpend.toLocaleString()}
-            </p>
-            <p className="text-xs text-muted-foreground mt-1">going to advertising</p>
-          </div>
-
-          {/* Arrow */}
-          <div className="flex justify-center">
-            <ArrowDown className="w-6 h-6 text-muted-foreground" />
-          </div>
-
           {/* Leads Generated */}
           <div className="p-4 bg-purple-500/10 rounded-lg border border-purple-500/20 text-center">
             <p className="text-sm text-muted-foreground mb-2">Leads Generated</p>
@@ -187,40 +173,16 @@ export default function BudgetEstimator() {
             </div>
           </div>
 
-          {/* Fee Breakdown - Fine Print */}
+          {/* Ad Spend & Fee Breakdown - Fine Print */}
           <div className="pt-4 border-t">
-            <details className="group">
-              <summary className="cursor-pointer text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2">
-                <span>Budget breakdown & platform fees</span>
-                <ArrowDown className="w-3 h-3 group-open:rotate-0 -rotate-90 transition-transform" />
-              </summary>
-              <div className="mt-3 space-y-2 text-xs">
-                <div className="flex justify-between items-center p-2 bg-muted/30 rounded">
-                  <span className="text-muted-foreground">Total Budget</span>
-                  <span className="font-semibold" data-testid="text-total-budget">
-                    ${pricing.totalBudget.toLocaleString()}
-                  </span>
-                </div>
-                
-                <div className="flex justify-between items-center p-2 bg-muted/30 rounded">
-                  <span className="text-muted-foreground">Platform Fee ({pricing.feeRate.toFixed(1)}%)</span>
-                  <span className="font-semibold" data-testid="text-platform-fee">
-                    ${pricing.platformFee.toLocaleString()}
-                  </span>
-                </div>
-
-                <div className="flex justify-between items-center p-2 bg-blue-500/10 rounded border border-blue-500/20">
-                  <span className="font-medium">Actual Ad Spend</span>
-                  <span className="font-bold text-blue-600">
-                    ${pricing.actualAdSpend.toLocaleString()}
-                  </span>
-                </div>
-
-                <p className="text-[10px] text-muted-foreground pt-2 italic">
-                  Platform fee scales down as you grow: 40% under $2k → 30% at $2k-$5k → 20% at $5k-$10k → capped at $1,500 for $10k+
-                </p>
-              </div>
-            </details>
+            <p className="text-xs text-muted-foreground text-center mb-2">
+              Based on ${pricing.totalBudget.toLocaleString()} budget: ${pricing.platformFee.toLocaleString()} platform fee ({pricing.feeRate.toFixed(1)}%), <span className="font-semibold text-blue-600" data-testid="text-ad-spend">${pricing.actualAdSpend.toLocaleString()}</span> goes to ads
+            </p>
+            <p className="text-[10px] text-muted-foreground text-center italic">
+              Platform fee scales down as you grow: 40% under $2k → 30% at $2k-$5k → 20% at $5k-$10k → capped at $1,500 for $10k+
+            </p>
+            <span className="hidden" data-testid="text-total-budget">${pricing.totalBudget}</span>
+            <span className="hidden" data-testid="text-platform-fee">${pricing.platformFee}</span>
           </div>
         </CardContent>
       </Card>
