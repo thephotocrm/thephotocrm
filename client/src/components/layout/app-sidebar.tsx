@@ -357,7 +357,7 @@ export function AppSidebar() {
                     >
                       <DollarSign className="w-8 h-8 text-yellow-400 mb-2" />
                       <span className="text-[10px] font-medium text-white text-center leading-tight">
-                        Budget Estimator
+                        Revenue Estimator
                       </span>
                     </div>
                   </Link>
@@ -550,7 +550,7 @@ export function AppSidebar() {
                             </SidebarMenuSubButton>
                           </SidebarMenuSubItem>
                           
-                          {/* Budget Estimator */}
+                          {/* Revenue Estimator */}
                           <SidebarMenuSubItem>
                             <SidebarMenuSubButton
                               asChild
@@ -560,7 +560,7 @@ export function AppSidebar() {
                             >
                               <Link href="/budget-estimator">
                                 <DollarSign className="w-5 h-5 !text-yellow-500" />
-                                <span className="text-sm font-medium">Budget Estimator</span>
+                                <span className="text-sm font-medium">Revenue Estimator</span>
                               </Link>
                             </SidebarMenuSubButton>
                           </SidebarMenuSubItem>

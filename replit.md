@@ -14,7 +14,7 @@ Preferred communication style: Simple, everyday language.
     - **Work** (daily operations): Dashboard, Projects, Contacts, Inbox, Scheduling
     - **Client Delivery** (fulfillment phase): Galleries, Smart Files, Packages, Add-ons  
     - **Marketing** (engagement): Automations, Drip Campaigns, Templates, Email Branding, Lead Forms
-    - **Get Leads** (advertising platform with gold theme): Lead Hub, Budget Estimator, How It Works, Ad Platforms - styled with black backgrounds, gold borders, gold icons, and white text
+    - **Get Leads** (advertising platform with gold theme): Lead Hub, Revenue Estimator, How It Works, Ad Platforms - styled with black backgrounds, gold borders, gold icons, and white text
     - **Business Tools** (admin): Reports, Earnings, Tutorials, Settings
 *   **Project Detail Page:** HoneyBook-style design with a hero section, participant bar, action buttons, tabbed content area (Activity, Files, Tasks, Financials, Notes, Details), and a right sidebar ("About Project"). Includes a timeline/activity feed.
 *   **Frontend Technologies:** React with Vite, Wouter for routing, Shadcn/ui (Radix UI-based) for components, and Tailwind CSS for styling.
@@ -36,7 +36,7 @@ Preferred communication style: Simple, everyday language.
 *   **Super Admin Dashboard:** Manages photographers, subscriptions, account impersonation, and activity logging.
 *   **Premium Features System:** Implements `hasPremiumAccess` for subscription management. Note: "Get Leads" section is NOT behind a paywall - all photographers have access to advertising features.
 *   **Managed Advertising Platform:** White-label advertising service for Google Ads and Facebook campaigns, with tiered pricing where platform fee is taken FROM the photographer's budget (not added on top): 40% fee under $2k/month, 30% for $2k-$5k, 20% for $5k-$10k, capped at $1,500 for $10k+ budgets. Includes budget slider, lead estimates, and campaign status tracking. **Revenue Model:** Platform takes a percentage of the photographer's total budget, with more going to actual ad spend as they scale.
-*   **Lead Management System:** Three-part system including a Budget Estimator (with estimated revenue calculator showing potential earnings at $1,500/lead with 50% close rate, marked as industry average), Lead Hub dashboard, and an educational "How It Works" page.
+*   **Lead Management System:** Three-part system including a Revenue Estimator (with estimated revenue calculator showing potential earnings at $1,500/lead with 50% close rate, marked as industry average), Lead Hub dashboard, and an educational "How It Works" page.
 *   **Tutorials System:** Comprehensive video tutorial library with setup guides, feature deep-dives, and complete workflow explanations.
 *   **AI Chatbot for Client Support:** Intelligent chatbot assistant powered by OpenAI GPT-5 for client support, appearing as a responsive floating widget on authenticated and public pages. Provides accurate navigation guidance, context-aware responses, and conversation history.
 *   **AI Automation Builder:** Conversational chat interface using OpenAI GPT-4o-mini for natural language automation creation. Supports sequential building of multiple automations, time-based scheduling, and generates friendly names and descriptions. Integrates personalized placeholders and Smart File support.

@@ -143,7 +143,7 @@ export default function Tutorials() {
     },
     {
       id: "page-lead-hub",
-      title: "Budget Estimator & Lead Hub",
+      title: "Revenue Estimator & Lead Hub",
       description: "Plan advertising budget and track generated leads",
       duration: "8 min",
       icon: TrendingUp,

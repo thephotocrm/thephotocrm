@@ -56,14 +56,6 @@ export default function BudgetEstimator() {
 
   return (
     <div className="p-6 space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold mb-2" data-testid="text-page-title">Budget Estimator</h1>
-        <p className="text-muted-foreground">
-          See how your advertising budget converts to revenue
-        </p>
-      </div>
-
       {/* Single Consolidated Calculator Card */}
       <Card className="border-purple-500/20 bg-gradient-to-br from-purple-500/5 to-emerald-500/5 max-w-2xl mx-auto">
         <CardHeader>
