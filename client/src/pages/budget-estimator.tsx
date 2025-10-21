@@ -56,6 +56,13 @@ export default function BudgetEstimator() {
 
   return (
     <div className="p-6 space-y-6">
+      {/* Header */}
+      <div className="text-center max-w-2xl mx-auto">
+        <h1 className="text-2xl font-semibold text-foreground">
+          See what your photography ads could earn you.
+        </h1>
+      </div>
+
       {/* Single Consolidated Calculator Card */}
       <Card className="border-purple-500/20 bg-gradient-to-br from-purple-500/5 to-emerald-500/5 max-w-2xl mx-auto">
         <CardHeader>
@@ -101,17 +108,17 @@ export default function BudgetEstimator() {
 
           {/* Compact calculation steps */}
           <div className="space-y-3 px-4">
-            {/* Leads Generated */}
+            {/* Estimated Inquiries */}
             <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">Leads Generated</span>
+              <span className="text-muted-foreground">Estimated Inquiries</span>
               <span className="font-bold text-purple-600" data-testid="text-estimated-leads">
-                ~{estimatedLeads} leads
+                ~{estimatedLeads} inquiries
               </span>
             </div>
 
-            {/* Close 50% */}
+            {/* Typical Booking Rate */}
             <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">Close 50%</span>
+              <span className="text-muted-foreground">Typical Booking Rate (50%)</span>
               <span className="font-bold text-amber-600" data-testid="text-closed-bookings">
                 {closedBookings} bookings
               </span>
@@ -139,6 +146,9 @@ export default function BudgetEstimator() {
             </p>
             <p className="text-sm text-muted-foreground mt-4">
               That's a <span className="font-bold text-emerald-600">{Math.round((estimatedRevenue / currentBudget) * 10) / 10}x</span> return on investment
+            </p>
+            <p className="text-xs text-muted-foreground italic mt-3">
+              Results vary depending on market, ad creative, and follow-up speed.
             </p>
           </div>
 
@@ -172,11 +182,11 @@ export default function BudgetEstimator() {
       {/* CTA Section */}
       <Card className="border-green-500/20 bg-gradient-to-br from-green-500/5 to-emerald-500/5 max-w-2xl mx-auto">
         <CardContent className="p-6">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="flex flex-col items-center text-center gap-4">
             <div>
-              <h3 className="text-lg font-semibold mb-1">Ready to get started?</h3>
+              <h3 className="text-xl font-semibold mb-2">See what we could generate for your studio</h3>
               <p className="text-sm text-muted-foreground">
-                Set up your campaign budget in Lead Hub and start generating exclusive leads
+                Book a free strategy call to discuss your market and advertising goals
               </p>
             </div>
             <Button 
@@ -185,7 +195,7 @@ export default function BudgetEstimator() {
               className="bg-green-600 hover:bg-green-700"
               data-testid="button-go-to-lead-hub"
             >
-              Go to Lead Hub
+              Book a Free Strategy Call
               <TrendingUp className="w-4 h-4 ml-2" />
             </Button>
           </div>
