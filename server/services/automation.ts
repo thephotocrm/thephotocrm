@@ -170,8 +170,8 @@ async function processCommunicationAutomation(automation: any, photographerId: s
       contactId: projects.clientId,
       stageEnteredAt: projects.stageEnteredAt,
       eventDate: projects.eventDate,
-      smsOptIn: projects.smsOptIn,
-      emailOptIn: projects.emailOptIn,
+      smsOptIn: contacts.smsOptIn,
+      emailOptIn: contacts.emailOptIn,
       photographerId: projects.photographerId,
       // Contact details
       firstName: contacts.firstName,
@@ -576,6 +576,7 @@ async function processAutomationStep(contact: any, step: any, automation: any): 
     
   // Prepare variables for template rendering
   const variables = {
+    // CamelCase versions
     firstName: contact.firstName,
     lastName: contact.lastName,
     fullName: `${contact.firstName} ${contact.lastName}`,
@@ -584,8 +585,17 @@ async function processAutomationStep(contact: any, step: any, automation: any): 
     businessName: photographer?.businessName || 'Your Photographer',
     photographerName: photographer?.photographerName || photographer?.businessName || 'Your Photographer',
     eventDate: contact.eventDate ? new Date(contact.eventDate).toLocaleDateString() : 'Not set',
-    weddingDate: contact.eventDate ? new Date(contact.eventDate).toLocaleDateString() : 'Not set', // Backward compatibility
+    weddingDate: contact.eventDate ? new Date(contact.eventDate).toLocaleDateString() : 'Not set',
+    // Snake_case versions for template compatibility
+    first_name: contact.firstName,
+    last_name: contact.lastName,
+    full_name: `${contact.firstName} ${contact.lastName}`,
+    business_name: photographer?.businessName || 'Your Photographer',
+    photographer_name: photographer?.photographerName || photographer?.businessName || 'Your Photographer',
+    event_date: contact.eventDate ? new Date(contact.eventDate).toLocaleDateString() : 'Not set',
+    wedding_date: contact.eventDate ? new Date(contact.eventDate).toLocaleDateString() : 'Not set',
     scheduling_link: schedulingLink,
+    scheduler_link: schedulingLink, // Alternative spelling
     // Uppercase versions for AI-generated placeholders
     SCHEDULING_LINK: schedulingLink,
     PHOTOGRAPHER_NAME: photographer?.photographerName || photographer?.businessName || 'Your Photographer',
@@ -673,7 +683,7 @@ async function processAutomationStep(contact: any, step: any, automation: any): 
 
       // Log the email attempt
       await db.insert(emailLogs).values({
-        contactId: contact.contactId,
+        clientId: contact.contactId,
         projectId: contact.id,
         automationStepId: step.id,
         status: success ? 'sent' : 'failed',
@@ -722,7 +732,7 @@ async function processAutomationStep(contact: any, step: any, automation: any): 
 
     // Log the attempt
     await db.insert(emailLogs).values({
-      contactId: contact.contactId,
+      clientId: contact.contactId,
       projectId: contact.id,
       automationStepId: step.id,
       status: success ? 'sent' : 'failed',
@@ -746,7 +756,7 @@ async function processAutomationStep(contact: any, step: any, automation: any): 
 
     // Log the attempt
     await db.insert(smsLogs).values({
-      contactId: contact.contactId,
+      clientId: contact.contactId,
       projectId: contact.id,
       automationStepId: step.id,
       status: result.success ? 'sent' : 'failed',
@@ -953,8 +963,8 @@ async function processCountdownAutomation(automation: any, photographerId: strin
       eventDate: projects.eventDate,
       stageId: projects.stageId,
       stageEnteredAt: projects.stageEnteredAt,
-      smsOptIn: projects.smsOptIn,
-      emailOptIn: projects.emailOptIn,
+      smsOptIn: contacts.smsOptIn,
+      emailOptIn: contacts.emailOptIn,
       photographerId: projects.photographerId,
       // Contact details
       firstName: contacts.firstName,
@@ -1391,7 +1401,7 @@ async function subscribeNewProjectsToCampaign(campaign: any, photographerId: str
       contactId: projects.clientId,
       stageEnteredAt: projects.stageEnteredAt,
       eventDate: projects.eventDate,
-      emailOptIn: projects.emailOptIn,
+      emailOptIn: contacts.emailOptIn,
       // Contact details
       firstName: contacts.firstName,
       lastName: contacts.lastName,
@@ -1407,7 +1417,7 @@ async function subscribeNewProjectsToCampaign(campaign: any, photographerId: str
       eq(projects.photographerId, photographerId),
       eq(projects.stageId, campaign.targetStageId),
       eq(projects.status, 'ACTIVE'),
-      eq(projects.emailOptIn, true), // Must have email opt-in
+      eq(contacts.emailOptIn, true), // Must have email opt-in
       // Not already subscribed
       isNull(dripCampaignSubscriptions.id)
     ));

@@ -1790,12 +1790,37 @@ export class DatabaseStorage implements IStorage {
       finalStageId = defaultStage?.id || null;
     }
     
+    // Inherit contact's opt-in preferences if not explicitly provided
+    let finalSmsOptIn = insertProject.smsOptIn;
+    let finalEmailOptIn = insertProject.emailOptIn;
+    
+    if (finalSmsOptIn === undefined || finalEmailOptIn === undefined) {
+      const [contact] = await db.select({
+        smsOptIn: contacts.smsOptIn,
+        emailOptIn: contacts.emailOptIn
+      })
+        .from(contacts)
+        .where(eq(contacts.id, insertProject.clientId))
+        .limit(1);
+      
+      if (contact) {
+        if (finalSmsOptIn === undefined) {
+          finalSmsOptIn = contact.smsOptIn;
+        }
+        if (finalEmailOptIn === undefined) {
+          finalEmailOptIn = contact.emailOptIn;
+        }
+      }
+    }
+    
     // Set stageEnteredAt timestamp when assigning to any stage
     const projectData = {
       ...insertProject,
       stageId: finalStageId,
       stageEnteredAt: finalStageId ? new Date() : null,
-      hasEventDate: !!insertProject.eventDate
+      hasEventDate: !!insertProject.eventDate,
+      smsOptIn: finalSmsOptIn,
+      emailOptIn: finalEmailOptIn
     };
     
     const [project] = await db.insert(projects).values(projectData).returning();
