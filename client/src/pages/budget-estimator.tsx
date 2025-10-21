@@ -103,50 +103,40 @@ export default function BudgetEstimator() {
           </div>
 
           {/* Divider */}
-          <div className="flex justify-center">
-            <ArrowDown className="w-6 h-6 text-muted-foreground" />
+          <div className="flex justify-center py-2">
+            <ArrowDown className="w-5 h-5 text-muted-foreground" />
           </div>
 
-          {/* Leads Generated */}
-          <div className="p-4 bg-purple-500/10 rounded-lg border border-purple-500/20 text-center">
-            <p className="text-sm text-muted-foreground mb-2">Leads Generated</p>
-            <p className="text-3xl font-bold text-purple-600" data-testid="text-estimated-leads">
-              ~{estimatedLeads}
-            </p>
-            <p className="text-xs text-muted-foreground mt-1">exclusive wedding leads</p>
-          </div>
+          {/* Compact calculation steps */}
+          <div className="space-y-3 px-4">
+            {/* Leads Generated */}
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">Leads Generated</span>
+              <span className="font-bold text-purple-600" data-testid="text-estimated-leads">
+                ~{estimatedLeads} leads
+              </span>
+            </div>
 
-          {/* Arrow */}
-          <div className="flex justify-center">
-            <ArrowDown className="w-6 h-6 text-muted-foreground" />
-          </div>
+            {/* Close 50% */}
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">Close 50%</span>
+              <span className="font-bold text-amber-600" data-testid="text-closed-bookings">
+                {closedBookings} bookings
+              </span>
+            </div>
 
-          {/* Close 50% */}
-          <div className="p-4 bg-amber-500/10 rounded-lg border border-amber-500/20 text-center">
-            <p className="text-sm text-muted-foreground mb-2">Close 50% of Leads</p>
-            <p className="text-3xl font-bold text-amber-600" data-testid="text-closed-bookings">
-              {closedBookings} bookings
-            </p>
-            <p className="text-xs text-muted-foreground mt-1">at industry average close rate</p>
-          </div>
-
-          {/* Arrow */}
-          <div className="flex justify-center">
-            <ArrowDown className="w-6 h-6 text-muted-foreground" />
-          </div>
-
-          {/* Average Package Price */}
-          <div className="p-4 bg-indigo-500/10 rounded-lg border border-indigo-500/20 text-center">
-            <p className="text-sm text-muted-foreground mb-2">Average Package Price</p>
-            <p className="text-3xl font-bold text-indigo-600">
-              ${avgPackagePrice.toLocaleString()}
-            </p>
-            <p className="text-xs text-muted-foreground mt-1">per wedding booking</p>
+            {/* Average Package Price */}
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">Average Package</span>
+              <span className="font-bold text-indigo-600">
+                ${avgPackagePrice.toLocaleString()}
+              </span>
+            </div>
           </div>
 
           {/* Arrow */}
-          <div className="flex justify-center">
-            <ArrowDown className="w-6 h-6 text-emerald-500" />
+          <div className="flex justify-center py-2">
+            <ArrowDown className="w-5 h-5 text-emerald-500" />
           </div>
 
           {/* Final Revenue */}
