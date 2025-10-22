@@ -9,7 +9,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { MessageSquare, Mail, Send, MessageCircle, ArrowLeft, Plus, Search } from "lucide-react";
+import { MessageSquare, Mail, Send, MessageCircle, ArrowLeft, Plus, Search, Check, CheckCheck, XCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "wouter";
 
@@ -38,6 +38,7 @@ interface ThreadMessage {
   timestamp: Date;
   isInbound: boolean;
   subject?: string;
+  status?: string; // SMS delivery status: sent, delivered, failed
 }
 
 export default function Inbox() {
@@ -151,6 +152,19 @@ export default function Inbox() {
     if (diffHours < 24) return `${diffHours}h ago`;
     if (diffDays < 7) return `${diffDays}d ago`;
     return d.toLocaleDateString();
+  };
+
+  const getStatusIcon = (status?: string) => {
+    if (!status) return null;
+    
+    if (status === 'delivered') {
+      return <CheckCheck className="w-3 h-3" data-testid="icon-delivered" />;
+    } else if (status === 'sent' || status === 'queued' || status === 'sending') {
+      return <Check className="w-3 h-3" data-testid="icon-sent" />;
+    } else if (status === 'failed' || status === 'undelivered') {
+      return <XCircle className="w-3 h-3 text-red-500" data-testid="icon-failed" />;
+    }
+    return null;
   };
 
   const selectedConversation = conversations.find(c => c.contact.id === selectedContactId);
@@ -412,9 +426,14 @@ export default function Inbox() {
                               }`}
                             >
                               <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-                              <p className="text-xs mt-1 opacity-70">
-                                {formatTime(message.timestamp)}
-                              </p>
+                              <div className="flex items-center gap-1.5 text-xs mt-1 opacity-70">
+                                <span>{formatTime(message.timestamp)}</span>
+                                {!message.isInbound && message.status && (
+                                  <span className="inline-flex" data-testid={`status-${message.status}`}>
+                                    {getStatusIcon(message.status)}
+                                  </span>
+                                )}
+                              </div>
                             </div>
                           </div>
                         );

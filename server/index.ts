@@ -115,6 +115,41 @@ app.post("/webhooks/twilio/inbound", async (req, res) => {
   }
 });
 
+// Twilio Status Callback Handler for SMS delivery updates
+app.post("/webhooks/twilio/status", async (req, res) => {
+  console.log('✅ TWILIO STATUS WEBHOOK - Received at', new Date().toISOString());
+  console.log('Status callback body:', JSON.stringify(req.body, null, 2));
+  
+  try {
+    const { MessageSid: messageSid, MessageStatus: messageStatus } = req.body;
+    
+    if (!messageSid || !messageStatus) {
+      console.error('Invalid Twilio status callback payload:', req.body);
+      return res.status(400).send('<?xml version="1.0" encoding="UTF-8"?><Response></Response>');
+    }
+
+    // Map Twilio status to our status: sent, delivered, failed
+    let status = messageStatus;
+    if (messageStatus === 'undelivered' || messageStatus === 'failed') {
+      status = 'failed';
+    } else if (messageStatus === 'delivered') {
+      status = 'delivered';
+    } else if (messageStatus === 'sent' || messageStatus === 'queued' || messageStatus === 'sending') {
+      status = 'sent';
+    }
+
+    // Update the SMS log status
+    await storage.updateSmsLogStatus(messageSid, status);
+    
+    console.log(`Updated SMS ${messageSid} status to: ${status} (original: ${messageStatus})`);
+
+    return res.status(200).send('<?xml version="1.0" encoding="UTF-8"?><Response></Response>');
+  } catch (error: any) {
+    console.error('Twilio status webhook error:', error);
+    return res.status(500).send('<?xml version="1.0" encoding="UTF-8"?><Response></Response>');
+  }
+});
+
 // Logging middleware for API requests
 app.use((req, res, next) => {
   const start = Date.now();

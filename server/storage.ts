@@ -303,6 +303,7 @@ export interface IStorage {
   
   // SMS Logging
   createSmsLog(smsLog: InsertSmsLog): Promise<SmsLog>;
+  updateSmsLogStatus(providerId: string, status: string): Promise<void>;
   
   // Email History
   createEmailHistory(emailHistory: InsertEmailHistory): Promise<EmailHistory>;
@@ -2851,6 +2852,15 @@ export class DatabaseStorage implements IStorage {
     return created;
   }
 
+  async updateSmsLogStatus(providerId: string, status: string): Promise<void> {
+    await db.update(smsLogs)
+      .set({ 
+        status,
+        deliveredAt: status === 'delivered' ? new Date() : undefined
+      })
+      .where(eq(smsLogs.providerId, providerId));
+  }
+
   // Email History
   async createEmailHistory(emailHistoryData: InsertEmailHistory): Promise<EmailHistory> {
     const [created] = await db.insert(emailHistory).values(emailHistoryData).returning();
@@ -3162,7 +3172,8 @@ export class DatabaseStorage implements IStorage {
         content: sms.messageBody,
         direction: sms.direction,
         timestamp: sms.createdAt,
-        isInbound: sms.direction === 'INBOUND'
+        isInbound: sms.direction === 'INBOUND',
+        status: sms.status // Include delivery status
       })),
       ...emailEvents.map(email => ({
         type: 'EMAIL',

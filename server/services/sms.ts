@@ -137,11 +137,18 @@ export async function sendSms(params: SmsParams): Promise<{ success: boolean; si
     console.log('Sending SMS via Twilio to:', sanitizedPhone);
     console.log('From phone:', fromPhone);
 
+    // Build status callback URL for delivery tracking
+    const baseUrl = process.env.REPLIT_DEV_DOMAIN 
+      ? `https://${process.env.REPLIT_DEV_DOMAIN}`
+      : 'http://localhost:5000';
+    const statusCallbackUrl = `${baseUrl}/webhooks/twilio/status`;
+
     // Send SMS via Twilio
     const message = await client.messages.create({
       body: params.body,
       from: fromPhone,
-      to: sanitizedPhone
+      to: sanitizedPhone,
+      statusCallback: statusCallbackUrl
     });
 
     console.log('SMS sent successfully via Twilio, SID:', message.sid);
