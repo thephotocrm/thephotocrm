@@ -231,6 +231,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Start cron jobs
   startCronJobs();
 
+  // Short link redirect route
+  app.get("/s/:shortCode", async (req, res) => {
+    try {
+      const { shortCode } = req.params;
+      
+      // Look up the short link
+      const shortLink = await storage.getShortLink(shortCode);
+      
+      if (!shortLink) {
+        return res.status(404).send("Link not found");
+      }
+      
+      // Track the click
+      await storage.incrementShortLinkClicks(shortLink.id);
+      
+      // Redirect to the target URL
+      return res.redirect(302, shortLink.targetUrl);
+    } catch (error) {
+      console.error("Error processing short link:", error);
+      return res.status(500).send("Error processing link");
+    }
+  });
+
   // Public booking calendar route with server-side meta tag injection
   // Note: Uses /booking/* path instead of /public/* to avoid Vite static file handler conflict
   app.get("/booking/calendar/:publicToken", async (req, res, next) => {
