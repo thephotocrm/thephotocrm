@@ -64,6 +64,7 @@ export interface IStorage {
   getContactsByPhotographer(photographerId: string, projectType?: string): Promise<ContactWithProjects[]>;
   getContact(id: string): Promise<ContactWithProjects | undefined>;
   getContactByPhone(phone: string): Promise<Contact | undefined>;
+  getAllContactsByPhone(phone: string): Promise<Contact[]>;
   getContactByEmail(email: string, photographerId?: string): Promise<Contact | undefined>;
   createContact(contact: InsertContact): Promise<Contact>;
   updateContact(id: string, contact: Partial<Contact>): Promise<Contact>;
@@ -538,6 +539,13 @@ export class DatabaseStorage implements IStorage {
       .from(contacts)
       .where(eq(contacts.phone, phone));
     return contact || undefined;
+  }
+
+  async getAllContactsByPhone(phone: string): Promise<Contact[]> {
+    const contactList = await db.select()
+      .from(contacts)
+      .where(eq(contacts.phone, phone));
+    return contactList;
   }
 
   async getContactByEmail(email: string, photographerId?: string): Promise<Contact | undefined> {

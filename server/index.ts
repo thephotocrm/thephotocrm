@@ -21,6 +21,11 @@ app.get("/test-log", (req, res) => {
 console.log('🚀 Registering Twilio webhook handler');
 
 app.post("/webhooks/twilio/inbound", async (req, res) => {
+  // Write to file for debugging
+  const fs = require('fs');
+  const debugLog = `${new Date().toISOString()} - Webhook called from ${req.body.From}\n`;
+  fs.appendFileSync('/tmp/webhook-debug.log', debugLog);
+  
   log('✅ TWILIO WEBHOOK (POST) - Received at ' + new Date().toISOString());
   log('Request body: ' + JSON.stringify(req.body, null, 2));
   
@@ -37,23 +42,16 @@ app.post("/webhooks/twilio/inbound", async (req, res) => {
     const normalizedPhone = from.replace(/^\+1/, '').replace(/\D/g, '');
     log(`Normalized phone from ${from} to ${normalizedPhone}`);
 
-    const contact = await storage.getContactByPhone(normalizedPhone);
+    // Get ALL contacts with this phone number (multi-tenant support)
+    const contacts = await storage.getAllContactsByPhone(normalizedPhone);
     
-    if (!contact) {
-      log(`No contact found for phone number: ${from}`);
+    if (contacts.length === 0) {
+      log(`No contacts found for phone number: ${from}`);
       // Return TwiML response to acknowledge receipt
       return res.status(200).send('<?xml version="1.0" encoding="UTF-8"?><Response></Response>');
     }
 
-    const photographer = await storage.getPhotographer(contact.photographerId);
-    
-    if (!photographer) {
-      log(`No photographer found for contact: ${contact.id}`);
-      return res.status(200).send('<?xml version="1.0" encoding="UTF-8"?><Response></Response>');
-    }
-
-    const contactWithProjects = await storage.getContact(contact.id);
-    const latestProject = contactWithProjects?.projects?.[0];
+    log(`Found ${contacts.length} contact(s) with phone ${normalizedPhone}`);
 
     // Handle media attachments (MMS)
     const mediaCount = parseInt(numMedia || '0', 10);
@@ -61,60 +59,78 @@ app.post("/webhooks/twilio/inbound", async (req, res) => {
       ? `${text} [${mediaCount} attachment(s)]`
       : text;
 
-    await storage.createSmsLog({
-      clientId: contact.id,
-      projectId: latestProject?.id || null,
-      status: 'received',
-      direction: 'INBOUND',
-      fromPhone: from,
-      toPhone: to,
-      messageBody: messageBody,
-      isForwarded: false,
-      providerId: messageSid,
-      sentAt: new Date()
-    });
-
-    // Log SMS to project activity if contact has a project
-    if (latestProject) {
-      const messagePreview = messageBody.length > 100 ? messageBody.substring(0, 100) + '...' : messageBody;
-      await storage.addProjectActivityLog({
-        projectId: latestProject.id,
-        activityType: 'SMS_RECEIVED',
-        action: 'RECEIVED',
-        title: `SMS received from ${contact.firstName} ${contact.lastName}`,
-        description: messagePreview,
-        relatedId: messageSid,
-        relatedType: 'SMS_LOG'
-      });
-    }
-
-    // Forward message to photographer
-    if (photographer.phone) {
-      const projectContext = latestProject ? `${latestProject.projectType} Project` : 'Contact';
-      const contextMessage = `${contact.firstName} ${contact.lastName} (${projectContext}): ${messageBody}`;
+    // Process each contact (multi-tenant: same phone number can belong to multiple photographers)
+    for (const contact of contacts) {
+      log(`Processing contact ${contact.firstName} ${contact.lastName} for photographer ${contact.photographerId}`);
       
-      const forwardResult = await sendSms({
-        to: photographer.phone,
-        body: contextMessage
+      const photographer = await storage.getPhotographer(contact.photographerId);
+      
+      if (!photographer) {
+        log(`No photographer found for contact: ${contact.id}`);
+        continue;
+      }
+
+      const contactWithProjects = await storage.getContact(contact.id);
+      const latestProject = contactWithProjects?.projects?.[0];
+
+      // Create SMS log for this contact
+      await storage.createSmsLog({
+        clientId: contact.id,
+        projectId: latestProject?.id || null,
+        status: 'received',
+        direction: 'INBOUND',
+        fromPhone: from,
+        toPhone: to,
+        messageBody: messageBody,
+        isForwarded: false,
+        providerId: messageSid,
+        sentAt: new Date()
       });
 
-      if (forwardResult.success) {
-        await storage.createSmsLog({
-          clientId: contact.id,
-          projectId: latestProject?.id || null,
-          status: 'sent',
-          direction: 'OUTBOUND',
-          fromPhone: to,
-          toPhone: photographer.phone,
-          messageBody: contextMessage,
-          isForwarded: true,
-          providerId: forwardResult.sid,
-          sentAt: new Date()
+      log(`Created SMS log for contact ${contact.id}`);
+
+      // Log SMS to project activity if contact has a project
+      if (latestProject) {
+        const messagePreview = messageBody.length > 100 ? messageBody.substring(0, 100) + '...' : messageBody;
+        await storage.addProjectActivityLog({
+          projectId: latestProject.id,
+          activityType: 'SMS_RECEIVED',
+          action: 'RECEIVED',
+          title: `SMS received from ${contact.firstName} ${contact.lastName}`,
+          description: messagePreview,
+          relatedId: messageSid,
+          relatedType: 'SMS_LOG'
+        });
+      }
+
+      // Forward message to photographer
+      if (photographer.phone) {
+        const projectContext = latestProject ? `${latestProject.projectType} Project` : 'Contact';
+        const contextMessage = `${contact.firstName} ${contact.lastName} (${projectContext}): ${messageBody}`;
+        
+        const forwardResult = await sendSms({
+          to: photographer.phone,
+          body: contextMessage
         });
 
-        log(`Forwarded SMS to photographer: ${photographer.phone}`);
-      } else {
-        log('Failed to forward SMS to photographer: ' + forwardResult.error);
+        if (forwardResult.success) {
+          await storage.createSmsLog({
+            clientId: contact.id,
+            projectId: latestProject?.id || null,
+            status: 'sent',
+            direction: 'OUTBOUND',
+            fromPhone: to,
+            toPhone: photographer.phone,
+            messageBody: contextMessage,
+            isForwarded: true,
+            providerId: forwardResult.sid,
+            sentAt: new Date()
+          });
+
+          log(`Forwarded SMS to photographer: ${photographer.phone}`);
+        } else {
+          log('Failed to forward SMS to photographer: ' + forwardResult.error);
+        }
       }
     }
 
