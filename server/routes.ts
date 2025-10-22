@@ -9084,13 +9084,17 @@ ${photographer.businessName}
       const photographerId = req.user!.photographerId!;
       const { contactId } = req.params;
 
+      console.log(`📨 Fetching thread for contactId: ${contactId}, photographerId: ${photographerId}`);
+
       // Verify contact belongs to photographer
       const contact = await storage.getContact(contactId);
       if (!contact || contact.photographerId !== photographerId) {
+        console.log(`❌ Contact not found or doesn't belong to photographer`);
         return res.status(404).json({ message: "Contact not found" });
       }
 
       const thread = await storage.getInboxThread(contactId, photographerId);
+      console.log(`📬 Thread fetched: ${thread.length} messages found`);
       res.json(thread);
     } catch (error: any) {
       console.error('Error fetching inbox thread:', error);
