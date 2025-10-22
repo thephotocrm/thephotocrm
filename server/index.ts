@@ -10,26 +10,37 @@ const app = express();
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: false, limit: '50mb' }));
 
+// Test route to verify logging works
+app.get("/test-log", (req, res) => {
+  console.log('TEST ROUTE - console.log');
+  log('TEST ROUTE - log() function');
+  res.send('Test complete - check logs');
+});
+
 // Twilio Webhook Handler for incoming SMS/MMS
 console.log('🚀 Registering Twilio webhook handler');
 
 app.post("/webhooks/twilio/inbound", async (req, res) => {
-  console.log('✅ TWILIO WEBHOOK (POST) - Received at', new Date().toISOString());
-  console.log('Request body:', JSON.stringify(req.body, null, 2));
+  log('✅ TWILIO WEBHOOK (POST) - Received at ' + new Date().toISOString());
+  log('Request body: ' + JSON.stringify(req.body, null, 2));
   
   try {
     // Twilio sends data as application/x-www-form-urlencoded
     const { From: from, To: to, Body: text, NumMedia: numMedia, MessageSid: messageSid } = req.body;
     
     if (!from || !text) {
-      console.error('Invalid Twilio webhook payload:', req.body);
+      log('Invalid Twilio webhook payload: ' + JSON.stringify(req.body));
       return res.status(400).send('<?xml version="1.0" encoding="UTF-8"?><Response></Response>');
     }
 
-    const contact = await storage.getContactByPhone(from);
+    // Normalize phone number by removing +1 prefix and any non-digit characters
+    const normalizedPhone = from.replace(/^\+1/, '').replace(/\D/g, '');
+    log(`Normalized phone from ${from} to ${normalizedPhone}`);
+
+    const contact = await storage.getContactByPhone(normalizedPhone);
     
     if (!contact) {
-      console.log(`No contact found for phone number: ${from}`);
+      log(`No contact found for phone number: ${from}`);
       // Return TwiML response to acknowledge receipt
       return res.status(200).send('<?xml version="1.0" encoding="UTF-8"?><Response></Response>');
     }
@@ -37,7 +48,7 @@ app.post("/webhooks/twilio/inbound", async (req, res) => {
     const photographer = await storage.getPhotographer(contact.photographerId);
     
     if (!photographer) {
-      console.error(`No photographer found for contact: ${contact.id}`);
+      log(`No photographer found for contact: ${contact.id}`);
       return res.status(200).send('<?xml version="1.0" encoding="UTF-8"?><Response></Response>');
     }
 
@@ -101,30 +112,30 @@ app.post("/webhooks/twilio/inbound", async (req, res) => {
           sentAt: new Date()
         });
 
-        console.log(`Forwarded SMS to photographer: ${photographer.phone}`);
+        log(`Forwarded SMS to photographer: ${photographer.phone}`);
       } else {
-        console.error('Failed to forward SMS to photographer:', forwardResult.error);
+        log('Failed to forward SMS to photographer: ' + forwardResult.error);
       }
     }
 
     // Return TwiML response to acknowledge receipt
     return res.status(200).send('<?xml version="1.0" encoding="UTF-8"?><Response></Response>');
   } catch (error: any) {
-    console.error('Twilio webhook error:', error);
+    log('Twilio webhook error: ' + error);
     return res.status(500).send('<?xml version="1.0" encoding="UTF-8"?><Response></Response>');
   }
 });
 
 // Twilio Status Callback Handler for SMS delivery updates
 app.post("/webhooks/twilio/status", async (req, res) => {
-  console.log('✅ TWILIO STATUS WEBHOOK - Received at', new Date().toISOString());
-  console.log('Status callback body:', JSON.stringify(req.body, null, 2));
+  log('✅ TWILIO STATUS WEBHOOK - Received at ' + new Date().toISOString());
+  log('Status callback body: ' + JSON.stringify(req.body, null, 2));
   
   try {
     const { MessageSid: messageSid, MessageStatus: messageStatus } = req.body;
     
     if (!messageSid || !messageStatus) {
-      console.error('Invalid Twilio status callback payload:', req.body);
+      log('Invalid Twilio status callback payload: ' + JSON.stringify(req.body));
       return res.status(400).send('<?xml version="1.0" encoding="UTF-8"?><Response></Response>');
     }
 
@@ -141,11 +152,11 @@ app.post("/webhooks/twilio/status", async (req, res) => {
     // Update the SMS log status
     await storage.updateSmsLogStatus(messageSid, status);
     
-    console.log(`Updated SMS ${messageSid} status to: ${status} (original: ${messageStatus})`);
+    log(`Updated SMS ${messageSid} status to: ${status} (original: ${messageStatus})`);
 
     return res.status(200).send('<?xml version="1.0" encoding="UTF-8"?><Response></Response>');
   } catch (error: any) {
-    console.error('Twilio status webhook error:', error);
+    log('Twilio status webhook error: ' + error);
     return res.status(500).send('<?xml version="1.0" encoding="UTF-8"?><Response></Response>');
   }
 });
