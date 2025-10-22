@@ -3152,18 +3152,6 @@ export class DatabaseStorage implements IStorage {
       )
       .orderBy(asc(emailHistory.createdAt));
 
-    // Get all CRM messages for this contact
-    const crmMessages = await db
-      .select()
-      .from(messages)
-      .where(
-        and(
-          eq(messages.clientId, contactId),
-          eq(messages.photographerId, photographerId)
-        )
-      )
-      .orderBy(asc(messages.createdAt));
-
     // Combine and format all messages
     const thread = [
       ...smsMessages.map(sms => ({
@@ -3183,14 +3171,6 @@ export class DatabaseStorage implements IStorage {
         timestamp: email.createdAt || email.sentAt,
         isInbound: email.direction === 'INBOUND',
         subject: email.subject
-      })),
-      ...crmMessages.map(msg => ({
-        type: 'CRM',
-        id: msg.id,
-        content: null, // No content shown, just notification
-        direction: msg.sentByPhotographer ? 'OUTBOUND' : 'INBOUND',
-        timestamp: msg.createdAt,
-        isInbound: !msg.sentByPhotographer
       }))
     ];
 
