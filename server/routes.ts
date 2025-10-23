@@ -1595,12 +1595,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.delete("/api/contacts/:id", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
+      console.log('[DELETE CONTACT] Step 1: Verifying contact');
       // Verify contact belongs to this photographer
       const existingContact = await storage.getContact(req.params.id);
       if (!existingContact || existingContact.photographerId !== req.user!.photographerId!) {
         return res.status(404).json({ message: "Contact not found" });
       }
       
+      console.log('[DELETE CONTACT] Step 2: Getting contact projects');
       // Check if contact has any Smart Files or payments (financial activity)
       // First get all project IDs for this contact
       const contactProjects = await db.select({ id: projects.id })
@@ -1608,21 +1610,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .where(eq(projects.clientId, req.params.id));
       
       const projectIds = contactProjects.map(p => p.id);
+      console.log('[DELETE CONTACT] Found projects:', projectIds);
       
       let hasSmartFiles = false;
       let hasPayments = false;
       
       if (projectIds.length > 0) {
+        console.log('[DELETE CONTACT] Step 3: Checking Smart Files');
         hasSmartFiles = await db.select({ count: sql<number>`count(*)::int` })
           .from(projectSmartFiles)
           .where(inArray(projectSmartFiles.projectId, projectIds))
           .then(result => (result[0]?.count || 0) > 0);
         
+        console.log('[DELETE CONTACT] Step 4: Checking payments');
         hasPayments = await db.select({ count: sql<number>`count(*)::int` })
           .from(photographerEarnings)
           .where(inArray(photographerEarnings.projectId, projectIds))
           .then(result => (result[0]?.count || 0) > 0);
       }
+      
+      console.log('[DELETE CONTACT] Financial check - SmartFiles:', hasSmartFiles, 'Payments:', hasPayments);
       
       // Prevent deletion if there's financial activity
       if (hasSmartFiles || hasPayments) {
@@ -1634,6 +1641,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
+      console.log('[DELETE CONTACT] Step 5: Deleting contact via storage');
       // Safe to delete - no financial records
       await storage.deleteContact(req.params.id);
       
