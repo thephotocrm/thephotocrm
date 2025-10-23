@@ -271,36 +271,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
         }
 
-        // Forward message to photographer
-        if (photographer.phone) {
-          const projectContext = latestProject ? `${latestProject.projectType} Project` : 'Contact';
-          const contextMessage = `${contact.firstName} ${contact.lastName} (${projectContext}): ${messageBody}`;
-          
-          const { sendSms } = await import('./services/sms');
-          const forwardResult = await sendSms({
-            to: photographer.phone,
-            body: contextMessage
-          });
-
-          if (forwardResult.success) {
-            await storage.createSmsLog({
-              clientId: contact.id,
-              projectId: latestProject?.id || null,
-              status: 'sent',
-              direction: 'OUTBOUND',
-              fromPhone: to,
-              toPhone: photographer.phone,
-              messageBody: contextMessage,
-              isForwarded: true,
-              providerId: forwardResult.sid,
-              sentAt: new Date()
-            });
-
-            log(`Forwarded SMS to photographer: ${photographer.phone}`);
-          } else {
-            log('Failed to forward SMS to photographer: ' + forwardResult.error);
-          }
-        }
+        // Automatic forwarding disabled - messages only logged to inbox
+        // (Photographer can view messages in the Inbox page)
       }
 
       // Return TwiML response to acknowledge receipt
