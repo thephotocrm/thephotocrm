@@ -574,6 +574,19 @@ async function processAutomationStep(contact: any, step: any, automation: any): 
     }
   }
     
+  // Format event date properly - handle PostgreSQL date strings
+  const formatEventDate = (dateValue: any): string => {
+    if (!dateValue) return 'Not set';
+    try {
+      const date = new Date(dateValue);
+      if (isNaN(date.getTime())) return 'Not set';
+      return date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+    } catch (error) {
+      console.error('Error formatting event date:', error);
+      return 'Not set';
+    }
+  };
+
   // Prepare variables for template rendering
   const variables = {
     // CamelCase versions
@@ -584,16 +597,16 @@ async function processAutomationStep(contact: any, step: any, automation: any): 
     phone: contact.phone || '',
     businessName: photographer?.businessName || 'Your Photographer',
     photographerName: photographer?.photographerName || photographer?.businessName || 'Your Photographer',
-    eventDate: contact.eventDate ? new Date(contact.eventDate).toLocaleDateString() : 'Not set',
-    weddingDate: contact.eventDate ? new Date(contact.eventDate).toLocaleDateString() : 'Not set',
+    eventDate: formatEventDate(contact.eventDate),
+    weddingDate: formatEventDate(contact.eventDate),
     // Snake_case versions for template compatibility
     first_name: contact.firstName,
     last_name: contact.lastName,
     full_name: `${contact.firstName} ${contact.lastName}`,
     business_name: photographer?.businessName || 'Your Photographer',
     photographer_name: photographer?.photographerName || photographer?.businessName || 'Your Photographer',
-    event_date: contact.eventDate ? new Date(contact.eventDate).toLocaleDateString() : 'Not set',
-    wedding_date: contact.eventDate ? new Date(contact.eventDate).toLocaleDateString() : 'Not set',
+    event_date: formatEventDate(contact.eventDate),
+    wedding_date: formatEventDate(contact.eventDate),
     scheduling_link: schedulingLink,
     scheduler_link: schedulingLink, // Alternative spelling
     // Uppercase versions for AI-generated placeholders
@@ -1193,6 +1206,13 @@ async function sendCountdownMessage(project: any, automation: any, photographerI
     }
   }
     
+  // Format event date nicely for countdown automations
+  const formattedEventDate = eventDateInTz.toLocaleDateString('en-US', { 
+    month: 'long', 
+    day: 'numeric', 
+    year: 'numeric' 
+  });
+
   // Prepare variables for template rendering
   const variables = {
     firstName: project.firstName,
@@ -1202,8 +1222,8 @@ async function sendCountdownMessage(project: any, automation: any, photographerI
     phone: project.phone || '',
     businessName: photographer?.businessName || 'Your Photographer',
     photographerName: photographer?.photographerName || photographer?.businessName || 'Your Photographer',
-    eventDate: eventDateInTz.toLocaleDateString(),
-    weddingDate: eventDateInTz.toLocaleDateString(), // Backward compatibility
+    eventDate: formattedEventDate,
+    weddingDate: formattedEventDate, // Backward compatibility
     daysRemaining: daysRemaining.toString(),
     daysBefore: automation.daysBefore.toString(),
     scheduling_link: schedulingLink,
