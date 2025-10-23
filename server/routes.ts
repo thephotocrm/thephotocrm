@@ -1602,17 +1602,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Check if contact has any Smart Files or payments (financial activity)
-      const hasSmartFiles = await db.select({ count: sql<number>`count(*)::int` })
-        .from(projectSmartFiles)
-        .innerJoin(projects, eq(projectSmartFiles.projectId, projects.id))
-        .where(eq(projects.clientId, req.params.id))
-        .then(result => (result[0]?.count || 0) > 0);
+      // First get all project IDs for this contact
+      const contactProjects = await db.select({ id: projects.id })
+        .from(projects)
+        .where(eq(projects.clientId, req.params.id));
       
-      const hasPayments = await db.select({ count: sql<number>`count(*)::int` })
-        .from(photographerEarnings)
-        .innerJoin(projects, eq(photographerEarnings.projectId, projects.id))
-        .where(eq(projects.clientId, req.params.id))
-        .then(result => (result[0]?.count || 0) > 0);
+      const projectIds = contactProjects.map(p => p.id);
+      
+      let hasSmartFiles = false;
+      let hasPayments = false;
+      
+      if (projectIds.length > 0) {
+        hasSmartFiles = await db.select({ count: sql<number>`count(*)::int` })
+          .from(projectSmartFiles)
+          .where(inArray(projectSmartFiles.projectId, projectIds))
+          .then(result => (result[0]?.count || 0) > 0);
+        
+        hasPayments = await db.select({ count: sql<number>`count(*)::int` })
+          .from(photographerEarnings)
+          .where(inArray(photographerEarnings.projectId, projectIds))
+          .then(result => (result[0]?.count || 0) > 0);
+      }
       
       // Prevent deletion if there's financial activity
       if (hasSmartFiles || hasPayments) {
