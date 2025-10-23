@@ -1,0 +1,56 @@
+You’re returning 500 because req.body is undefined on your Twilio route. In your code you destructure From/To/Body before any urlencoded parser is applied, and there’s no global parser earlier than the route. Twilio posts application/x-www-form-urlencoded by default, so without urlencoded middleware, req.body is empty → destructuring throws → 500. 
+
+routes
+
+Fix (route-scoped)
+
+Add an urlencoded parser just for this endpoint:
+
+import bodyParser from "body-parser"; // or use express.urlencoded
+
+const twilioUrlencoded = bodyParser.urlencoded({ extended: false });
+
+app.post("/webhooks/twilio/inbound", twilioUrlencoded, async (req, res) => {
+  try {
+    const { From: from, To: to, Body: text, NumMedia: numMedia, MessageSid: messageSid } = req.body || {};
+    if (!from || !text) {
+      return res
+        .status(200)
+        .type("text/xml")
+        .send("<Response></Response>");
+    }
+    // ... your existing logic ...
+    return res.status(200).type("text/xml").send("<Response></Response>");
+  } catch (err) {
+    console.error("❌ TWILIO WEBHOOK ERROR:", err);
+    return res.status(200).type("text/xml").send("<Response></Response>");
+  }
+});
+
+Or, global fix (before any routes)
+
+If you prefer global parsing, register before the webhook routes:
+
+app.use(express.urlencoded({ extended: false })); // must come before /webhooks/twilio/inbound
+
+
+Keep your existing JSON parsing off this route (or add it after urlencoded). Twilio isn’t sending JSON unless you changed the content type.
+
+Optional hardening
+
+Add app.set("trust proxy", 1); (proxied hosts like Replit help with correct protocol if you later enable signature validation).
+
+Always reply fast with 200 + empty TwiML even on errors (prevents 11200 spam while you debug).
+
+Test locally:
+
+curl -X POST https://lens-leads-crm-austinpacholek2.replit.app/webhooks/twilio/inbound \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  --data "From=%2B12054332514&To=%2B18336996356&Body=Ello&MessageSid=SMtest"
+
+
+In Twilio → Monitor → Request Inspector, hit Replay request. You should now see HTTP 200.
+
+Once the urlencoded parser is in place, your current route logic should work as written and those 11200 warnings will disappear. 
+
+routes

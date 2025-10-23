@@ -1,4 +1,5 @@
 import type { Express } from "express";
+import express from "express";
 import { createServer, type Server } from "http";
 import { log } from "./vite";
 import cookieParser from 'cookie-parser';
@@ -177,18 +178,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Test route to verify webhooks are working
+  app.post("/webhooks/test", (req, res) => {
+    console.log('✅ TEST WEBHOOK - Request received!');
+    console.log('Test webhook body:', req.body);
+    res.status(200).send('Test webhook working!');
+  });
+
   // Twilio Webhook Handler for incoming SMS/MMS
+  // Global urlencoded middleware in server/index.ts handles body parsing
+  console.log('✅ REGISTERING Twilio inbound webhook route at /webhooks/twilio/inbound');
   app.post("/webhooks/twilio/inbound", async (req, res) => {
+    console.log('🎯 TWILIO WEBHOOK - Request received at ' + new Date().toISOString());
+    console.log('Request body:', req.body);
+    console.log('Request headers:', req.headers);
     log('🎯 TWILIO WEBHOOK - Received at ' + new Date().toISOString());
     log('Request body: ' + JSON.stringify(req.body, null, 2));
     
     try {
       // Twilio sends data as application/x-www-form-urlencoded
-      const { From: from, To: to, Body: text, NumMedia: numMedia, MessageSid: messageSid } = req.body;
+      // Defensive destructuring with fallback to prevent crashes
+      const { From: from, To: to, Body: text, NumMedia: numMedia, MessageSid: messageSid } = req.body || {};
       
       if (!from || !text) {
         log('Invalid Twilio webhook payload: ' + JSON.stringify(req.body));
-        return res.status(400).send('<?xml version="1.0" encoding="UTF-8"?><Response></Response>');
+        // Always return 200 with TwiML to prevent 11200 errors
+        return res.status(200).type('text/xml').send('<?xml version="1.0" encoding="UTF-8"?><Response></Response>');
       }
 
       // Normalize phone number by removing +1 prefix and any non-digit characters
@@ -289,12 +304,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Return TwiML response to acknowledge receipt
-      return res.status(200).send('<?xml version="1.0" encoding="UTF-8"?><Response></Response>');
+      return res.status(200).type('text/xml').send('<?xml version="1.0" encoding="UTF-8"?><Response></Response>');
     } catch (error: any) {
       console.error('❌ TWILIO WEBHOOK ERROR:', error);
       console.error('Error stack:', error.stack);
       console.error('Error message:', error.message);
-      return res.status(500).send('<?xml version="1.0" encoding="UTF-8"?><Response></Response>');
+      // Always return 200 with TwiML to prevent retry storms
+      return res.status(200).type('text/xml').send('<?xml version="1.0" encoding="UTF-8"?><Response></Response>');
     }
   });
 
@@ -304,11 +320,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     log('Status callback body: ' + JSON.stringify(req.body, null, 2));
     
     try {
-      const { MessageSid: messageSid, MessageStatus: messageStatus } = req.body;
+      // Defensive destructuring with fallback
+      const { MessageSid: messageSid, MessageStatus: messageStatus } = req.body || {};
       
       if (!messageSid || !messageStatus) {
         log('Invalid Twilio status callback payload: ' + JSON.stringify(req.body));
-        return res.status(400).send('<?xml version="1.0" encoding="UTF-8"?><Response></Response>');
+        // Always return 200 with TwiML to prevent 11200 errors
+        return res.status(200).type('text/xml').send('<?xml version="1.0" encoding="UTF-8"?><Response></Response>');
       }
 
       // Map Twilio status to our status: sent, delivered, failed
@@ -326,10 +344,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       log(`Updated SMS ${messageSid} status to: ${status} (original: ${messageStatus})`);
 
-      return res.status(200).send('<?xml version="1.0" encoding="UTF-8"?><Response></Response>');
+      return res.status(200).type('text/xml').send('<?xml version="1.0" encoding="UTF-8"?><Response></Response>');
     } catch (error: any) {
       log('Twilio status webhook error: ' + error);
-      return res.status(500).send('<?xml version="1.0" encoding="UTF-8"?><Response></Response>');
+      // Always return 200 with TwiML to prevent retry storms
+      return res.status(200).type('text/xml').send('<?xml version="1.0" encoding="UTF-8"?><Response></Response>');
     }
   });
 

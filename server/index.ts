@@ -4,6 +4,13 @@ import { setupVite, serveStatic, log } from "./vite";
 
 const app = express();
 
+// DEBUG: Log ALL incoming requests BEFORE any middleware
+app.use((req, res, next) => {
+  console.log(`📥 INCOMING REQUEST: ${req.method} ${req.path}`);
+  console.log('   Headers:', JSON.stringify(req.headers['content-type']));
+  next();
+});
+
 // CRITICAL: Add body parsers FIRST so webhook routes can access req.body
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: false, limit: '50mb' }));
@@ -22,7 +29,7 @@ app.use((req, res, next) => {
 
   res.on("finish", () => {
     const duration = Date.now() - start;
-    if (path.startsWith("/api")) {
+    if (path.startsWith("/api") || path.startsWith("/webhooks/")) {
       let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
       if (capturedJsonResponse) {
         logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
