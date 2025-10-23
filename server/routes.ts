@@ -1595,9 +1595,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.delete("/api/contacts/:id", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
-      console.log('[DELETE CONTACT] Step 1: Verifying contact');
+      console.log('[DELETE CONTACT] Step 1: About to call storage.getContact with ID:', req.params.id);
       // Verify contact belongs to this photographer
       const existingContact = await storage.getContact(req.params.id);
+      console.log('[DELETE CONTACT] Step 1.5: Got contact:', existingContact ? 'exists' : 'not found');
       if (!existingContact || existingContact.photographerId !== req.user!.photographerId!) {
         return res.status(404).json({ message: "Contact not found" });
       }
