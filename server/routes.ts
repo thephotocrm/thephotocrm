@@ -1605,13 +1605,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const hasSmartFiles = await db.select({ count: sql<number>`count(*)::int` })
         .from(projectSmartFiles)
         .innerJoin(projects, eq(projectSmartFiles.projectId, projects.id))
-        .where(eq(projects.contactId, req.params.id))
+        .where(eq(projects.clientId, req.params.id))
         .then(result => (result[0]?.count || 0) > 0);
       
       const hasPayments = await db.select({ count: sql<number>`count(*)::int` })
         .from(photographerEarnings)
         .innerJoin(projects, eq(photographerEarnings.projectId, projects.id))
-        .where(eq(projects.contactId, req.params.id))
+        .where(eq(projects.clientId, req.params.id))
         .then(result => (result[0]?.count || 0) > 0);
       
       // Prevent deletion if there's financial activity
