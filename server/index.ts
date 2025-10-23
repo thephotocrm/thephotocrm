@@ -21,13 +21,17 @@ app.get("/test-log", (req, res) => {
 console.log('🚀 Registering Twilio webhook handler');
 
 app.post("/webhooks/twilio/inbound", async (req, res) => {
-  // Write to file for debugging
-  const fs = require('fs');
-  const debugLog = `${new Date().toISOString()} - Webhook called from ${req.body.From}\n`;
-  fs.appendFileSync('/tmp/webhook-debug.log', debugLog);
-  
-  log('✅ TWILIO WEBHOOK (POST) - Received at ' + new Date().toISOString());
-  log('Request body: ' + JSON.stringify(req.body, null, 2));
+  try {
+    // Write to file for debugging
+    const fs = require('fs');
+    const debugLog = `${new Date().toISOString()} - Webhook called from ${req.body.From}\n`;
+    fs.appendFileSync('/tmp/webhook-debug.log', debugLog);
+    
+    console.log('✅ TWILIO WEBHOOK (POST) - Received at ' + new Date().toISOString());
+    console.log('Request body:', JSON.stringify(req.body, null, 2));
+  } catch (error: any) {
+    console.error('Error in webhook header logging:', error);
+  }
   
   try {
     // Twilio sends data as application/x-www-form-urlencoded
@@ -137,7 +141,9 @@ app.post("/webhooks/twilio/inbound", async (req, res) => {
     // Return TwiML response to acknowledge receipt
     return res.status(200).send('<?xml version="1.0" encoding="UTF-8"?><Response></Response>');
   } catch (error: any) {
-    log('Twilio webhook error: ' + error);
+    console.error('❌ TWILIO WEBHOOK ERROR:', error);
+    console.error('Error stack:', error.stack);
+    console.error('Error message:', error.message);
     return res.status(500).send('<?xml version="1.0" encoding="UTF-8"?><Response></Response>');
   }
 });
