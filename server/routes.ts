@@ -179,26 +179,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Twilio Webhook Handler for incoming SMS/MMS
   app.post("/webhooks/twilio/inbound", async (req, res) => {
-    console.log('🎯 WEBHOOK HANDLER ENTERED - FIRST LINE');
-    console.log('Request path:', req.path);
-    console.log('Request body:', req.body);
-    
-    // TEMPORARY: Just return OK to test if handler executes
-    res.status(200).send('OK');
-    console.log('✅ Returned OK response');
-    return;
-    
-    try {
-      // Write to file for debugging
-      const fs = require('fs');
-      const debugLog = `${new Date().toISOString()} - Webhook called from ${req.body.From}\n`;
-      fs.appendFileSync('/tmp/webhook-debug.log', debugLog);
-      
-      console.log('✅ TWILIO WEBHOOK (POST) - Received at ' + new Date().toISOString());
-      console.log('Request body:', JSON.stringify(req.body, null, 2));
-    } catch (error: any) {
-      console.error('Error in webhook header logging:', error);
-    }
+    log('🎯 TWILIO WEBHOOK - Received at ' + new Date().toISOString());
+    log('Request body: ' + JSON.stringify(req.body, null, 2));
     
     try {
       // Twilio sends data as application/x-www-form-urlencoded

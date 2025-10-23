@@ -1,0 +1,219 @@
+Twilio Platform	Message Created	17:36:23 CDT 2025-10-23	—
+Enqueued	17:36:23 CDT 2025-10-23	—
+TwiML Fetch Succeeded:	17:36:24 CDT 2025-10-23	0.30 sec
+Message Received	17:36:24 CDT 2025-10-23	0.30 sec
+Errors and Warnings
+Notification SID
+NO7264eaaf04274086937572edcfebebd9
+Warning
+11200 Twilio’s servers were unable to fetch a non-error response from the designated URL.
+ 
+Troubleshoot
+Description
+Twilio’s servers were unable to fetch a non-error response from the designated URL.
+Notification SID
+NOfc30a939f6d4de2c1310ec78350fa022
+Warning
+11200 Twilio’s servers were unable to fetch a non-error response from the designated URL.
+ 
+Troubleshoot
+Description
+Twilio’s servers were unable to fetch a non-error response from the designated URL.
+Warning
+11200 Twilio’s servers were unable to fetch a non-error response from the designated URL.
+ 
+Troubleshoot
+Description
+Twilio’s servers were unable to fetch a non-error response from the designated URL.
+Request Inspector
+URL
+
+https://lens-leads-crm-austinpacholek2.replit.app/webhooks/twilio/inbound
+
+Product
+
+Programmable SMS
+
+Timestamp
+
+2025-10-23 22:36:23
+
+HTTP status
+
+500
+
+Post
+
+Expand All
+
+Replay request
+
+Clear
+Request
+URL
+https://lens-leads-crm-austinpacholek2.replit.app/webhooks/twilio/inbound
+
+Parameters
+
+Show raw data
+ToCountry
+
+US
+
+ErrorUrl
+
+https://lens-leads-crm-austinpacholek2.replit.app/webhooks/twilio/inbound
+
+ToState
+
+SmsMessageSid
+
+SMbfd0b9ea0f5380cc00e418e2308d52ca
+
+ErrorCode
+
+11200
+
+NumMedia
+
+0
+
+ToCity
+
+FromZip
+
+35073
+
+SmsSid
+
+SMbfd0b9ea0f5380cc00e418e2308d52ca
+
+FromState
+
+AL
+
+SmsStatus
+
+received
+
+FromCity
+
+GRAYSVILLE
+
+Body
+
+Ello
+
+FromCountry
+
+US
+
+To
+
++18336996356
+
+ToZip
+
+NumSegments
+
+1
+
+MessageSid
+
+SMbfd0b9ea0f5380cc00e418e2308d52ca
+
+AccountSid
+
+ACe6dde90804714769e293d5d2596241cd
+
+From
+
++12054332514
+
+ApiVersion
+
+2010-04-01
+
+Message text
+
+Show raw data
+sourceComponent
+
+14100
+
+httpResponse
+
+500
+
+url
+
+https://lens-leads-crm-austinpacholek2.replit.app/webhooks/twilio/inbound
+
+ErrorCode
+
+11200
+
+LogLevel
+
+ERROR
+
+Msg
+
+Internal Server Error
+
+EmailNotification
+
+false
+
+Response
+Headers
+server
+
+envoy
+
+x-twilio-webhookinsights
+
+req_sent_at=1761258984038,resp_rcv_at=1761258984102
+
+x-envoy-upstream-service-time
+
+127
+
+content-length
+
+21
+
+x-twilio-webhookattempt
+
+1
+
+date
+
+Thu, 23 Oct 2025 22:36:24 GMT
+
+content-type
+
+text/plain; charset=utf-8
+
+via
+
+1.1 google
+
+alt-svc
+
+h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+
+strict-transport-security
+
+max-age=63072000; includeSubDomains
+
+x-twilio-webhookretriable
+
+false
+
+Body
+
+Show raw data
+
+Copy response body
+Internal Server Error
