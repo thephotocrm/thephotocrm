@@ -621,7 +621,7 @@ function StageChangeAutomationCard({ automation, onDelete }: { automation: any, 
             <span className="text-sm text-muted-foreground font-medium">Trigger:</span>
             <Badge variant="default" className="bg-purple-500 dark:bg-purple-600 text-white text-xs">
               <Target className="w-3 h-3 mr-1" />
-              {automation.businessTriggers?.[0]?.triggerType?.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, (l: string) => l.toUpperCase()) || 'Stage Entry'}
+              {automation.triggerType ? getTriggerLabel(automation.triggerType) : (automation.businessTriggers?.[0]?.triggerType?.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, (l: string) => l.toUpperCase()) || 'Stage Entry')}
             </Badge>
           </div>
           

@@ -5806,6 +5806,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
           name: "Move to Discovery Call Scheduled when appointment is booked",
           description: "Automatically moves contact to Discovery Call Scheduled stage when they book an appointment",
           automationType: "STAGE_CHANGE",
+          stageId: inquiryStage.id,
           triggerType: "APPOINTMENT_BOOKED",
           targetStageId: discoveryStage.id,
           projectType: "WEDDING",
