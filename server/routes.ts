@@ -5467,12 +5467,17 @@ ${photographer?.businessName || 'Your Photography Team'}`;
         return res.status(404).json({ message: "Photographer not found" });
       }
 
-      // Get the "New Inquiry" stage for Wedding projects
+      // Get the "New Inquiry" and "Discovery Call Scheduled" stages for Wedding projects
       const stages = await storage.getStagesByPhotographer(photographerId, "WEDDING");
       const inquiryStage = stages.find(s => s.name === "New Inquiry");
+      const discoveryStage = stages.find(s => s.name === "Discovery Call Scheduled");
       
       if (!inquiryStage) {
         return res.status(404).json({ message: "New Inquiry stage not found for Wedding projects" });
+      }
+      
+      if (!discoveryStage) {
+        return res.status(404).json({ message: "Discovery Call Scheduled stage not found for Wedding projects" });
       }
 
       // Check if this sequence already exists (idempotency check)
@@ -5794,6 +5799,19 @@ ${photographer?.businessName || 'Your Photography Team'}`;
         enabled: true
       });
         createdAutomations.push(t21DaysAutomation);
+
+        // STAGE MOVE: When Appointment Booked → Move to Discovery Call Scheduled
+        const appointmentBookedAutomation = await storage.createAutomation({
+          photographerId,
+          name: "Move to Discovery Call Scheduled when appointment is booked",
+          description: "Automatically moves contact to Discovery Call Scheduled stage when they book an appointment",
+          automationType: "STAGE_CHANGE",
+          triggerType: "APPOINTMENT_BOOKED",
+          targetStageId: discoveryStage.id,
+          projectType: "WEDDING",
+          enabled: true
+        });
+        createdAutomations.push(appointmentBookedAutomation);
 
         // Successfully created all automations
         res.status(201).json({
@@ -8653,9 +8671,49 @@ ${photographer.businessName}`
         return `${displayHour}:${minutes.toString().padStart(2, '0')} ${ampm}`;
       };
 
+      // Find or create contact by email
+      let contact = await storage.getContactByEmail(clientEmail.toLowerCase(), photographer.id);
+      
+      if (!contact) {
+        // Create new contact
+        contact = await storage.createContact({
+          photographerId: photographer.id,
+          firstName: clientName.split(' ')[0] || clientName,
+          lastName: clientName.split(' ').slice(1).join(' ') || '',
+          email: clientEmail.toLowerCase(),
+          phone: clientPhone || null,
+          source: 'BOOKING_CALENDAR'
+        });
+      }
+
+      // Find or create a project for this contact (default to WEDDING type)
+      let project;
+      const existingProjects = await storage.getProjectsByContact(contact.id);
+      
+      if (existingProjects && existingProjects.length > 0) {
+        // Use the most recent project
+        project = existingProjects[0];
+      } else {
+        // Create a new project in "New Inquiry" stage
+        const stages = await storage.getStagesByPhotographer(photographer.id, "WEDDING");
+        const inquiryStage = stages.find(s => s.name === "New Inquiry");
+        
+        if (inquiryStage) {
+          project = await storage.createProject({
+            photographerId: photographer.id,
+            clientId: contact.id,
+            name: `${clientName} - Wedding`,
+            projectType: "WEDDING",
+            stageId: inquiryStage.id,
+            eventDate: null
+          });
+        }
+      }
+
       // Create the booking
       const bookingData = {
         photographerId: photographer.id,
+        projectId: project?.id,
         title: `Consultation - ${formatTime12Hour(startTime)} to ${formatTime12Hour(endTime)}`,
         description: bookingNotes || `Booking consultation with ${clientName}`,
         startAt: startAt,
@@ -8669,6 +8727,18 @@ ${photographer.businessName}`
       };
 
       const booking = await storage.createBooking(bookingData);
+
+      // Trigger APPOINTMENT_BOOKED automations if project exists
+      if (project) {
+        try {
+          const automationService = await import('./services/automation');
+          await automationService.triggerStageChangeAutomations(project.id, 'APPOINTMENT_BOOKED');
+          console.log(`✅ Triggered APPOINTMENT_BOOKED automations for project ${project.id}`);
+        } catch (automationError) {
+          console.error('❌ Failed to trigger APPOINTMENT_BOOKED automations:', automationError);
+          // Don't fail the booking if automation trigger fails
+        }
+      }
 
       // Create calendar event if Google Calendar is connected
       try {

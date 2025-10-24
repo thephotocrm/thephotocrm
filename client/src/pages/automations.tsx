@@ -3700,7 +3700,7 @@ export default function Automations() {
                               await apiRequest("POST", "/api/automations/setup-wedding-inquiry-defaults");
                               toast({
                                 title: "Success!",
-                                description: "Wedding inquiry automation sequence has been set up successfully. 10 automations created.",
+                                description: "Wedding inquiry automation sequence has been set up successfully. 11 automations created.",
                               });
                               queryClient.invalidateQueries({ queryKey: ["/api/automations"] });
                             } catch (error: any) {
