@@ -21,6 +21,8 @@ import { Plus, Zap, Clock, Mail, Smartphone, Settings, Edit2, ArrowRight, Calend
 import { insertAutomationSchema, projectTypeEnum, automationTypeEnum, triggerTypeEnum, insertAutomationBusinessTriggerSchema } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { EmailTemplateBuilder, type ContentBlock } from "@/components/email-template-builder";
+import { EmailPreview } from "@/components/email-preview";
 
 // Create form schema based on insertAutomationSchema but without photographerId (auto-added by backend)
 const createAutomationFormSchema = insertAutomationSchema.omit({ photographerId: true });
@@ -1601,6 +1603,19 @@ export default function Automations() {
   const [editEnablePipeline, setEditEnablePipeline] = useState(false);
   const [editTimingMode, setEditTimingMode] = useState<'immediate' | 'delayed'>('immediate');
   
+  // Email builder states
+  const [emailBuilderMode, setEmailBuilderMode] = useState<'select' | 'build'>('select');
+  const [customEmailSubject, setCustomEmailSubject] = useState('');
+  const [customEmailBlocks, setCustomEmailBlocks] = useState<any[]>([]);
+  const [saveAsTemplate, setSaveAsTemplate] = useState(false);
+  const [newTemplateName, setNewTemplateName] = useState('');
+  const [includeHeroImage, setIncludeHeroImage] = useState(false);
+  const [heroImageUrl, setHeroImageUrl] = useState('');
+  const [includeHeader, setIncludeHeader] = useState(false);
+  const [headerStyle, setHeaderStyle] = useState('professional');
+  const [includeSignature, setIncludeSignature] = useState(true);
+  const [signatureStyle, setSignatureStyle] = useState('professional');
+  
   // Redirect to login if not authenticated
   useEffect(() => {
     if (!loading && !user) {
@@ -1615,6 +1630,18 @@ export default function Automations() {
       setEnableCommunication(true);
       setEnablePipeline(false);
       setTimingMode('immediate');
+      // Reset email builder states
+      setEmailBuilderMode('select');
+      setCustomEmailSubject('');
+      setCustomEmailBlocks([]);
+      setSaveAsTemplate(false);
+      setNewTemplateName('');
+      setIncludeHeroImage(false);
+      setHeroImageUrl('');
+      setIncludeHeader(false);
+      setHeaderStyle('professional');
+      setIncludeSignature(true);
+      setSignatureStyle('professional');
     }
   }, [createDialogOpen]);
 
@@ -2122,10 +2149,80 @@ export default function Automations() {
     }
   });
 
-  const handleCreateAutomation = (data: UnifiedFormData) => {
+  const handleCreateAutomation = async (data: UnifiedFormData) => {
     console.log('🚀 handleCreateAutomation called with data:', data);
     console.log('📋 Channel:', data.channel);
     console.log('📁 Smart File Template ID:', data.smartFileTemplateId);
+    
+    // If using custom email builder, create template first
+    if (data.channel === 'EMAIL' && emailBuilderMode === 'build') {
+      try {
+        // Validate custom email
+        if (!customEmailSubject.trim()) {
+          toast({
+            title: "Subject required",
+            description: "Please enter an email subject line",
+            variant: "destructive"
+          });
+          return;
+        }
+        
+        if (customEmailBlocks.length === 0) {
+          toast({
+            title: "Content required",
+            description: "Please add at least one content block to your email",
+            variant: "destructive"
+          });
+          return;
+        }
+        
+        // Validate template name if saving as template
+        if (saveAsTemplate && !newTemplateName.trim()) {
+          toast({
+            title: "Template name required",
+            description: "Please enter a name for your template",
+            variant: "destructive"
+          });
+          return;
+        }
+        
+        // Create template
+        const templateName = saveAsTemplate ? newTemplateName : `${data.name} - Email`;
+        const templateResponse = await apiRequest('POST', '/api/templates', {
+          name: templateName,
+          channel: 'EMAIL',
+          subject: customEmailSubject,
+          contentBlocks: customEmailBlocks,
+          includeHeroImage,
+          heroImageUrl: includeHeroImage ? heroImageUrl : undefined,
+          includeHeader,
+          headerStyle: includeHeader ? headerStyle : undefined,
+          includeSignature,
+          signatureStyle: includeSignature ? signatureStyle : undefined
+        });
+        
+        const newTemplate = await templateResponse.json();
+        
+        if (saveAsTemplate) {
+          toast({
+            title: "Template saved",
+            description: `"${newTemplateName}" has been saved to your templates`
+          });
+        }
+        
+        // Use the newly created template ID
+        data.templateId = newTemplate.id;
+        
+      } catch (error: any) {
+        toast({
+          title: "Failed to create template",
+          description: error.message || "An error occurred while creating the template",
+          variant: "destructive"
+        });
+        return;
+      }
+    }
+    
     createAutomationMutation.mutate(data);
   };
 
@@ -2413,7 +2510,7 @@ export default function Automations() {
       </header>
       {/* Create Automation Dialog */}
       <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-            <DialogContent className="w-[95vw] sm:max-w-2xl max-h-[92vh] p-0 flex flex-col overflow-hidden">
+            <DialogContent className={`w-[95vw] ${emailBuilderMode === 'build' && form.watch('channel') === 'EMAIL' ? 'max-w-7xl' : 'sm:max-w-2xl'} max-h-[92vh] p-0 flex flex-col overflow-hidden`}>
                 <DialogHeader className="sticky top-0 z-10 bg-background px-6 py-4 border-b">
                   <DialogTitle>Create new {activeProjectType.toLowerCase()} automation</DialogTitle>
                   <DialogDescription>
@@ -3014,37 +3111,138 @@ export default function Automations() {
                   )}
 
                   {form.watch('channel') === 'EMAIL' && (
-                    <FormField
-                      control={form.control}
-                      name="templateId"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Email Template</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value || ""}>
-                            <FormControl>
-                              <SelectTrigger data-testid="select-template">
-                                <SelectValue placeholder="Choose a message template" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {templates
-                                .filter((t: any) => t.channel === 'EMAIL')
-                                .map((template: any) => (
-                                  <SelectItem key={template.id} value={template.id}>
-                                    {template.name}
-                                  </SelectItem>
-                                ))}
-                              {templates.filter((t: any) => t.channel === 'EMAIL').length === 0 && (
-                                <SelectItem value="unavailable" disabled>
-                                  No email templates available - create templates first
-                                </SelectItem>
-                              )}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
+                    <div className="space-y-4">
+                      {/* Mode Toggle */}
+                      <div className="flex items-center gap-2">
+                        <Button
+                          type="button"
+                          variant={emailBuilderMode === 'select' ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => setEmailBuilderMode('select')}
+                          data-testid="button-mode-select"
+                        >
+                          📋 Select Template
+                        </Button>
+                        <Button
+                          type="button"
+                          variant={emailBuilderMode === 'build' ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => setEmailBuilderMode('build')}
+                          data-testid="button-mode-build"
+                        >
+                          ✨ Build Custom Email
+                        </Button>
+                      </div>
+                      
+                      {emailBuilderMode === 'select' ? (
+                        <FormField
+                          control={form.control}
+                          name="templateId"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Email Template</FormLabel>
+                              <Select onValueChange={field.onChange} value={field.value || ""}>
+                                <FormControl>
+                                  <SelectTrigger data-testid="select-template">
+                                    <SelectValue placeholder="Choose a message template" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {templates
+                                    .filter((t: any) => t.channel === 'EMAIL')
+                                    .map((template: any) => (
+                                      <SelectItem key={template.id} value={template.id}>
+                                        {template.name}
+                                      </SelectItem>
+                                    ))}
+                                  {templates.filter((t: any) => t.channel === 'EMAIL').length === 0 && (
+                                    <SelectItem value="unavailable" disabled>
+                                      No email templates available - create templates first
+                                    </SelectItem>
+                                  )}
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      ) : (
+                        <div className="space-y-4 border rounded-lg p-4 bg-muted/30">
+                          {/* Subject Line */}
+                          <div className="space-y-2">
+                            <Label htmlFor="custom-email-subject">Email Subject</Label>
+                            <Input
+                              id="custom-email-subject"
+                              value={customEmailSubject}
+                              onChange={(e) => setCustomEmailSubject(e.target.value)}
+                              placeholder="e.g., Welcome to our studio!"
+                              data-testid="input-custom-subject"
+                            />
+                          </div>
+                          
+                          {/* Email Builder (2-column layout) */}
+                          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                            <div>
+                              <Label className="mb-2 block">Email Content</Label>
+                              <EmailTemplateBuilder
+                                blocks={customEmailBlocks as ContentBlock[]}
+                                onBlocksChange={setCustomEmailBlocks}
+                                includeHeroImage={includeHeroImage}
+                                onIncludeHeroImageChange={setIncludeHeroImage}
+                                heroImageUrl={heroImageUrl}
+                                onHeroImageUrlChange={setHeroImageUrl}
+                                includeHeader={includeHeader}
+                                onIncludeHeaderChange={setIncludeHeader}
+                                headerStyle={headerStyle}
+                                onHeaderStyleChange={setHeaderStyle}
+                                includeSignature={includeSignature}
+                                onIncludeSignatureChange={setIncludeSignature}
+                                signatureStyle={signatureStyle}
+                                onSignatureStyleChange={setSignatureStyle}
+                              />
+                            </div>
+                            <div>
+                              <Label className="mb-2 block">Preview</Label>
+                              <EmailPreview
+                                subject={customEmailSubject}
+                                blocks={customEmailBlocks as ContentBlock[]}
+                                includeHeroImage={includeHeroImage}
+                                heroImageUrl={heroImageUrl}
+                                includeHeader={includeHeader}
+                                headerStyle={headerStyle}
+                                includeSignature={includeSignature}
+                                signatureStyle={signatureStyle}
+                              />
+                            </div>
+                          </div>
+                          
+                          {/* Save as Template Option */}
+                          <div className="flex items-center space-x-2 p-3 border rounded-lg bg-background">
+                            <Switch
+                              checked={saveAsTemplate}
+                              onCheckedChange={setSaveAsTemplate}
+                              data-testid="switch-save-as-template"
+                            />
+                            <Label className="flex-1 cursor-pointer" onClick={() => setSaveAsTemplate(!saveAsTemplate)}>
+                              Save as reusable template
+                            </Label>
+                          </div>
+                          
+                          {saveAsTemplate && (
+                            <div className="space-y-2">
+                              <Label htmlFor="template-name">Template Name</Label>
+                              <Input
+                                id="template-name"
+                                value={newTemplateName}
+                                onChange={(e) => setNewTemplateName(e.target.value)}
+                                placeholder="e.g., Welcome Email Template"
+                                data-testid="input-template-name"
+                              />
+                            </div>
+                          )}
+                        </div>
                       )}
-                    />
+                    </div>
                   )}
 
                   {form.watch('channel') === 'SMART_FILE' && (
