@@ -163,8 +163,8 @@ export default function Projects() {
   // Filter projects by stage and search
   const filteredProjects = projects?.filter((project: ProjectWithClientAndStage) => {
     const matchesStage = selectedStage === "ALL" || project.stageId === selectedStage;
-    const matchesSearch = project.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      `${project.client?.firstName} ${project.client?.lastName}`.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = (project.title || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      `${project.client?.firstName || ''} ${project.client?.lastName || ''}`.toLowerCase().includes(searchTerm.toLowerCase());
     
     return matchesStage && matchesSearch;
   }) || [];
