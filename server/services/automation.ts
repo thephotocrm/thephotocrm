@@ -3,7 +3,7 @@ import { sendEmail, renderTemplate } from './email';
 import { sendSms, renderSmsTemplate } from './sms';
 import { db } from '../db';
 import { contacts, automations, automationSteps, stages, templates, emailLogs, smsLogs, automationExecutions, photographers, projectSmartFiles, smartFiles, smartFilePages, projects, bookings, projectQuestionnaires, dripCampaigns, dripCampaignEmails, dripCampaignSubscriptions, dripEmailDeliveries, automationBusinessTriggers } from '@shared/schema';
-import { eq, and, gte, lte, isNull } from 'drizzle-orm';
+import { eq, and, or, gte, lte, isNull } from 'drizzle-orm';
 
 async function getParticipantEmailsForBCC(projectId: string): Promise<string[]> {
   try {
@@ -221,6 +221,7 @@ async function processStageChangeAutomation(automation: any, photographerId: str
   console.log(`Found ${businessTriggers.length} enabled business triggers for automation: ${businessTriggers.map(t => t.triggerType).join(', ')}`);
   
   // Get all active projects for this photographer and project type
+  // Include projects with NULL status (treat as ACTIVE) and explicitly ACTIVE status
   const activeProjects = await db
     .select({
       projects: projects,
@@ -231,7 +232,10 @@ async function processStageChangeAutomation(automation: any, photographerId: str
     .where(and(
       eq(projects.photographerId, photographerId),
       eq(projects.projectType, automation.projectType),
-      eq(projects.status, 'ACTIVE')
+      or(
+        eq(projects.status, 'ACTIVE'),
+        isNull(projects.status) // Include NULL status as ACTIVE
+      )
     ));
 
   console.log(`Found ${activeProjects.length} active projects to check for business triggers`);
