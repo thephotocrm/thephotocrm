@@ -90,9 +90,17 @@ export function SchedulingCalendar({
 
   return (
     <div className="space-y-6">
+      {/* Header */}
+      <div className="text-center space-y-2">
+        <h2 className="text-2xl font-bold">{heading}</h2>
+        {description && (
+          <p className="text-muted-foreground">{description}</p>
+        )}
+      </div>
+
       {/* Photographer Profile Header */}
       {photographerName && showPhotographerProfile && (
-        <div className="flex flex-col items-center gap-3 pb-6 border-b">
+        <div className="flex flex-col items-center gap-3">
           <p className="text-sm text-muted-foreground">Chatting with:</p>
           <Avatar className="w-24 h-24 border-2 border-primary shadow-lg">
             <AvatarImage 
@@ -113,14 +121,6 @@ export function SchedulingCalendar({
           </div>
         </div>
       )}
-
-      {/* Header */}
-      <div className="text-center space-y-2">
-        <h2 className="text-2xl font-bold">{heading}</h2>
-        {description && (
-          <p className="text-muted-foreground">{description}</p>
-        )}
-      </div>
 
       {/* Calendar and Time Selection - Two Column Layout */}
       <Card className="overflow-hidden">
@@ -170,7 +170,7 @@ export function SchedulingCalendar({
               </div>
 
               {/* Time Slots Grid - Always rendered, disabled when no date selected */}
-              <div className="flex-1 overflow-y-auto max-h-[500px] pr-2">
+              <div className="flex-1 overflow-y-auto max-h-[400px] pr-2">
                 <div className="grid grid-cols-2 gap-2">
                   {timeSlots.map((slot) => (
                     <Button
@@ -191,9 +191,9 @@ export function SchedulingCalendar({
                 </div>
               </div>
 
-              {/* Confirmation Section */}
-              {selectedDate && selectedTime && (
-                <div className="mt-6 pt-4 border-t space-y-3">
+              {/* Confirmation Section - Always Present */}
+              <div className="mt-6 pt-4 border-t space-y-3">
+                {selectedDate && selectedTime ? (
                   <div className="text-sm bg-primary/5 rounded-lg p-3">
                     <div className="font-medium text-primary mb-1">Selected appointment</div>
                     <div className="text-muted-foreground text-xs">
@@ -208,24 +208,28 @@ export function SchedulingCalendar({
                       Duration: {durationMinutes} minutes
                     </div>
                   </div>
-                  <Button 
-                    className="w-full" 
-                    size="lg"
-                    onClick={handleConfirmBooking}
-                    disabled={isLoading}
-                    data-testid="button-confirm-booking"
-                  >
-                    {isLoading ? (
-                      <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Confirming...
-                      </>
-                    ) : (
-                      'Confirm Booking'
-                    )}
-                  </Button>
-                </div>
-              )}
+                ) : (
+                  <div className="text-sm text-muted-foreground text-center py-3">
+                    Select a date and time to continue
+                  </div>
+                )}
+                <Button 
+                  className="w-full" 
+                  size="lg"
+                  onClick={handleConfirmBooking}
+                  disabled={!selectedDate || !selectedTime || isLoading}
+                  data-testid="button-confirm-booking"
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Confirming...
+                    </>
+                  ) : (
+                    'Confirm Booking'
+                  )}
+                </Button>
+              </div>
             </div>
           </div>
         </CardContent>
