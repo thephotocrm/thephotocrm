@@ -2,6 +2,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { ContentBlock } from "./email-template-builder";
+import { useQuery } from "@tanstack/react-query";
+import { generateEmailHeader, generateEmailSignature, type BrandingData } from "@shared/email-branding-shared";
 
 interface EmailPreviewProps {
   subject?: string;
@@ -26,6 +28,23 @@ export function EmailPreview({
   includeSignature,
   signatureStyle
 }: EmailPreviewProps) {
+  const { data: photographer } = useQuery({
+    queryKey: ['/api/photographer/me']
+  });
+
+  const brandingData: BrandingData = {
+    businessName: photographer?.businessName,
+    photographerName: photographer?.photographerName,
+    logoUrl: photographer?.logoUrl,
+    headshotUrl: photographer?.headshotUrl,
+    brandPrimary: photographer?.brandPrimary,
+    brandSecondary: photographer?.brandSecondary,
+    phone: photographer?.phone,
+    email: photographer?.email,
+    website: photographer?.website,
+    businessAddress: photographer?.businessAddress,
+    socialLinks: photographer?.socialLinks
+  };
   const renderBlock = (block: ContentBlock) => {
     switch (block.type) {
       case 'HEADING':
@@ -109,7 +128,7 @@ export function EmailPreview({
         )}
       </CardHeader>
       <CardContent className="p-6">
-        <div className="bg-white rounded-lg border max-w-2xl mx-auto" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+        <div className="bg-white rounded-lg border max-w-2xl mx-auto overflow-hidden" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
           {/* Hero Image */}
           {includeHeroImage && heroImageUrl && (
             <div className="w-full">
@@ -118,18 +137,8 @@ export function EmailPreview({
           )}
           
           {/* Header */}
-          {includeHeader && (
-            <div className="px-8 py-6 border-b bg-gradient-to-r from-blue-50 to-purple-50">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold">
-                  L
-                </div>
-                <div>
-                  <div className="font-bold text-lg">Your Business Name</div>
-                  <div className="text-sm text-gray-600">{headerStyle || 'professional'} style</div>
-                </div>
-              </div>
-            </div>
+          {includeHeader && headerStyle && (
+            <div dangerouslySetInnerHTML={{ __html: generateEmailHeader(headerStyle, brandingData) }} />
           )}
           
           {/* Content */}
@@ -149,21 +158,8 @@ export function EmailPreview({
           </div>
           
           {/* Signature */}
-          {includeSignature && (
-            <div className="px-8 py-6 border-t bg-gray-50">
-              <div className="text-sm text-gray-700">
-                <div className="font-semibold mb-2">Your Name</div>
-                <div className="text-gray-600">Photographer</div>
-                <div className="text-gray-600 mt-2">
-                  {signatureStyle || 'professional'} style signature
-                </div>
-                <div className="flex gap-3 mt-3">
-                  <span className="text-xs text-gray-500">📧 Email</span>
-                  <span className="text-xs text-gray-500">📞 Phone</span>
-                  <span className="text-xs text-gray-500">🌐 Website</span>
-                </div>
-              </div>
-            </div>
+          {includeSignature && signatureStyle && (
+            <div dangerouslySetInnerHTML={{ __html: generateEmailSignature(signatureStyle, brandingData) }} />
           )}
         </div>
       </CardContent>

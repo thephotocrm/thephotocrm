@@ -2846,7 +2846,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
         if (templateData.contentBlocks && Array.isArray(templateData.contentBlocks)) {
           // Fetch photographer branding data for email generation
           const photographer = await storage.getPhotographerById(req.user!.photographerId!);
-          const { generateHeader, generateSignature } = await import('./services/email-branding.js');
+          const { generateEmailHeader, generateEmailSignature } = await import('../shared/email-branding-shared.js');
           const { contentBlocksToHtml, contentBlocksToText } = await import('../shared/template-utils.js');
           
           // Prepare branding data
@@ -2878,13 +2878,13 @@ ${photographer?.businessName || 'Your Photography Team'}`;
           
           // Add header if enabled
           if (templateData.includeHeader && templateData.headerStyle) {
-            const headerHtml = generateHeader(templateData.headerStyle, brandingData);
+            const headerHtml = generateEmailHeader(templateData.headerStyle, brandingData);
             finalHtml = headerHtml + finalHtml;
           }
           
           // Add signature if enabled
           if (templateData.includeSignature && templateData.signatureStyle) {
-            const signatureHtml = generateSignature(templateData.signatureStyle, brandingData);
+            const signatureHtml = generateEmailSignature(templateData.signatureStyle, brandingData);
             finalHtml = finalHtml + signatureHtml;
           }
           
@@ -2936,7 +2936,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
         if (updates.contentBlocks && Array.isArray(updates.contentBlocks)) {
           // Fetch photographer branding data for email generation
           const photographer = await storage.getPhotographerById(req.user!.photographerId!);
-          const { generateHeader, generateSignature } = await import('./services/email-branding.js');
+          const { generateEmailHeader, generateEmailSignature } = await import('../shared/email-branding-shared.js');
           const { contentBlocksToHtml, contentBlocksToText } = await import('../shared/template-utils.js');
           
           // Prepare branding data
@@ -2976,13 +2976,13 @@ ${photographer?.businessName || 'Your Photography Team'}`;
           
           // Add header if enabled
           if (includeHeader && headerStyle) {
-            const headerHtml = generateHeader(headerStyle, brandingData);
+            const headerHtml = generateEmailHeader(headerStyle, brandingData);
             finalHtml = headerHtml + finalHtml;
           }
           
           // Add signature if enabled
           if (includeSignature && signatureStyle) {
-            const signatureHtml = generateSignature(signatureStyle, brandingData);
+            const signatureHtml = generateEmailSignature(signatureStyle, brandingData);
             finalHtml = finalHtml + signatureHtml;
           }
           
