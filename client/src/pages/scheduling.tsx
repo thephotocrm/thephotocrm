@@ -38,7 +38,7 @@ const dailyTemplateSchema = z.object({
 const breakTimeSchema = z.object({
   startTime: z.string().min(1, "Start time is required"),
   endTime: z.string().min(1, "End time is required"),
-  description: z.string().optional()
+  label: z.string().optional()
 }).refine((data) => {
   if (data.startTime && data.endTime) {
     return data.endTime > data.startTime;
@@ -84,7 +84,7 @@ type BreakTime = {
   templateId: string;
   startTime: string;
   endTime: string;
-  description?: string;
+  label?: string;
 };
 
 type DayOverride = {
@@ -187,7 +187,7 @@ export default function Scheduling() {
     defaultValues: {
       startTime: "12:00",
       endTime: "13:00",
-      description: ""
+      label: ""
     }
   });
 
@@ -283,7 +283,7 @@ export default function Scheduling() {
       return apiRequest("POST", `/api/availability/templates/${data.templateId}/breaks`, {
         startTime: data.startTime,
         endTime: data.endTime,
-        description: data.description
+        label: data.label
       });
     },
     onSuccess: () => {
@@ -313,7 +313,7 @@ export default function Scheduling() {
       return apiRequest("PUT", `/api/availability/breaks/${data.id}`, {
         startTime: data.startTime,
         endTime: data.endTime,
-        description: data.description
+        label: data.label
       });
     },
     onSuccess: () => {
@@ -511,7 +511,7 @@ export default function Scheduling() {
     breakForm.reset({
       startTime: breakTime.startTime,
       endTime: breakTime.endTime,
-      description: breakTime.description || ""
+      label: breakTime.label || ""
     });
     setShowBreakForm(true);
   };
@@ -531,7 +531,7 @@ export default function Scheduling() {
     breakForm.reset({
       startTime: "12:00",
       endTime: "13:00",
-      description: ""
+      label: ""
     });
     setShowBreakForm(true);
   };
@@ -1095,9 +1095,9 @@ export default function Scheduling() {
                           <div className="font-medium" data-testid={`break-time-${breakTime.id}`}>
                             {formatTime(breakTime.startTime)} - {formatTime(breakTime.endTime)}
                           </div>
-                          {breakTime.description && (
-                            <div className="text-sm text-muted-foreground" data-testid={`break-description-${breakTime.id}`}>
-                              {breakTime.description}
+                          {breakTime.label && (
+                            <div className="text-sm text-muted-foreground" data-testid={`break-label-${breakTime.id}`}>
+                              {breakTime.label}
                             </div>
                           )}
                         </div>
@@ -1167,14 +1167,14 @@ export default function Scheduling() {
 
                         <FormField
                           control={breakForm.control}
-                          name="description"
+                          name="label"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Description (Optional)</FormLabel>
+                              <FormLabel>Label (Optional)</FormLabel>
                               <FormControl>
                                 <Input 
                                   placeholder="e.g., Lunch break" 
-                                  data-testid="input-break-description" 
+                                  data-testid="input-break-label" 
                                   {...field} 
                                 />
                               </FormControl>
