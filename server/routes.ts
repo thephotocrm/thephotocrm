@@ -2844,9 +2844,65 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       // Auto-generate HTML from content blocks or text body for email templates
       if (templateData.channel === 'EMAIL') {
         if (templateData.contentBlocks && Array.isArray(templateData.contentBlocks)) {
-          // Generate HTML from content blocks
+          // Fetch photographer branding data for email generation
+          const photographer = await storage.getPhotographerById(req.user!.photographerId!);
+          const { generateHeader, generateSignature } = await import('./services/email-branding.js');
           const { contentBlocksToHtml, contentBlocksToText } = await import('../shared/template-utils.js');
-          templateData.htmlBody = contentBlocksToHtml(templateData.contentBlocks as any);
+          
+          // Prepare branding data
+          const brandingData = {
+            businessName: photographer?.businessName,
+            photographerName: photographer?.photographerName,
+            logoUrl: photographer?.logoUrl,
+            headshotUrl: photographer?.headshotUrl,
+            brandPrimary: photographer?.brandPrimary,
+            brandSecondary: photographer?.brandSecondary,
+            phone: photographer?.phone,
+            email: photographer?.email,
+            website: photographer?.website,
+            businessAddress: photographer?.businessAddress,
+            socialLinks: photographer?.socialLinks
+          };
+          
+          // Generate content blocks HTML
+          let bodyHtml = contentBlocksToHtml(templateData.contentBlocks as any);
+          
+          // Wrap with hero image, header, and signature if enabled
+          let finalHtml = bodyHtml;
+          
+          // Add hero image at the top if enabled
+          if (templateData.includeHeroImage && templateData.heroImageUrl) {
+            const heroHtml = `<div style="width: 100%; margin: 0; padding: 0;"><img src="${templateData.heroImageUrl}" alt="Hero" style="width: 100%; height: auto; display: block; margin: 0;" /></div>`;
+            finalHtml = heroHtml + finalHtml;
+          }
+          
+          // Add header if enabled
+          if (templateData.includeHeader && templateData.headerStyle) {
+            const headerHtml = generateHeader(templateData.headerStyle, brandingData);
+            finalHtml = headerHtml + finalHtml;
+          }
+          
+          // Add signature if enabled
+          if (templateData.includeSignature && templateData.signatureStyle) {
+            const signatureHtml = generateSignature(templateData.signatureStyle, brandingData);
+            finalHtml = finalHtml + signatureHtml;
+          }
+          
+          // Wrap everything in email container
+          templateData.htmlBody = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Email</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f9fafb;">
+  <div style="max-width: 600px; margin: 0 auto;">
+    ${finalHtml}
+  </div>
+</body>
+</html>`;
+          
           templateData.textBody = contentBlocksToText(templateData.contentBlocks as any);
         } else if (templateData.textBody) {
           // Fallback for legacy text-only templates
@@ -2878,9 +2934,73 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       const templateChannel = updates.channel || existingTemplate.channel;
       if (templateChannel === 'EMAIL') {
         if (updates.contentBlocks && Array.isArray(updates.contentBlocks)) {
-          // Generate HTML from content blocks
+          // Fetch photographer branding data for email generation
+          const photographer = await storage.getPhotographerById(req.user!.photographerId!);
+          const { generateHeader, generateSignature } = await import('./services/email-branding.js');
           const { contentBlocksToHtml, contentBlocksToText } = await import('../shared/template-utils.js');
-          updates.htmlBody = contentBlocksToHtml(updates.contentBlocks as any);
+          
+          // Prepare branding data
+          const brandingData = {
+            businessName: photographer?.businessName,
+            photographerName: photographer?.photographerName,
+            logoUrl: photographer?.logoUrl,
+            headshotUrl: photographer?.headshotUrl,
+            brandPrimary: photographer?.brandPrimary,
+            brandSecondary: photographer?.brandSecondary,
+            phone: photographer?.phone,
+            email: photographer?.email,
+            website: photographer?.website,
+            businessAddress: photographer?.businessAddress,
+            socialLinks: photographer?.socialLinks
+          };
+          
+          // Generate content blocks HTML
+          let bodyHtml = contentBlocksToHtml(updates.contentBlocks as any);
+          
+          // Wrap with hero image, header, and signature if enabled
+          let finalHtml = bodyHtml;
+          
+          // Get branding options (use updates if provided, otherwise fall back to existing template)
+          const includeHeroImage = updates.includeHeroImage !== undefined ? updates.includeHeroImage : existingTemplate.includeHeroImage;
+          const heroImageUrl = updates.heroImageUrl !== undefined ? updates.heroImageUrl : existingTemplate.heroImageUrl;
+          const includeHeader = updates.includeHeader !== undefined ? updates.includeHeader : existingTemplate.includeHeader;
+          const headerStyle = updates.headerStyle !== undefined ? updates.headerStyle : existingTemplate.headerStyle;
+          const includeSignature = updates.includeSignature !== undefined ? updates.includeSignature : existingTemplate.includeSignature;
+          const signatureStyle = updates.signatureStyle !== undefined ? updates.signatureStyle : existingTemplate.signatureStyle;
+          
+          // Add hero image at the top if enabled
+          if (includeHeroImage && heroImageUrl) {
+            const heroHtml = `<div style="width: 100%; margin: 0; padding: 0;"><img src="${heroImageUrl}" alt="Hero" style="width: 100%; height: auto; display: block; margin: 0;" /></div>`;
+            finalHtml = heroHtml + finalHtml;
+          }
+          
+          // Add header if enabled
+          if (includeHeader && headerStyle) {
+            const headerHtml = generateHeader(headerStyle, brandingData);
+            finalHtml = headerHtml + finalHtml;
+          }
+          
+          // Add signature if enabled
+          if (includeSignature && signatureStyle) {
+            const signatureHtml = generateSignature(signatureStyle, brandingData);
+            finalHtml = finalHtml + signatureHtml;
+          }
+          
+          // Wrap everything in email container
+          updates.htmlBody = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Email</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f9fafb;">
+  <div style="max-width: 600px; margin: 0 auto;">
+    ${finalHtml}
+  </div>
+</body>
+</html>`;
+          
           updates.textBody = contentBlocksToText(updates.contentBlocks as any);
         } else if (updates.textBody) {
           // Fallback for legacy text-only templates
