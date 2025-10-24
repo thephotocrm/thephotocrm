@@ -100,7 +100,7 @@ export function SchedulingCalendar({
 
       {/* Photographer Profile Header */}
       {photographerName && showPhotographerProfile && (
-        <div className="flex flex-col items-center gap-3">
+        <div className="flex flex-col items-center gap-3 pt-6 border-t">
           <p className="text-sm text-muted-foreground">Chatting with:</p>
           <Avatar className="w-24 h-24 border-2 border-primary shadow-lg">
             <AvatarImage 
