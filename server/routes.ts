@@ -8719,7 +8719,7 @@ ${photographer.businessName}`
         description: bookingNotes || `Booking consultation with ${clientName}`,
         startAt: startAt,
         endAt: endAt,
-        status: "PENDING",
+        status: "CONFIRMED", // Public bookings are auto-confirmed
         bookingType: "CONSULTATION",
         isFirstBooking: true, // Public bookings are typically first bookings
         clientName,
@@ -8733,8 +8733,8 @@ ${photographer.businessName}`
       if (project) {
         try {
           const automationService = await import('./services/automation');
-          await automationService.triggerStageChangeAutomations(project.id, 'APPOINTMENT_BOOKED');
-          console.log(`✅ Triggered APPOINTMENT_BOOKED automations for project ${project.id}`);
+          await automationService.processAutomations(photographer.id);
+          console.log(`✅ Triggered automations for photographer ${photographer.id} after appointment booking`);
         } catch (automationError) {
           console.error('❌ Failed to trigger APPOINTMENT_BOOKED automations:', automationError);
           // Don't fail the booking if automation trigger fails
