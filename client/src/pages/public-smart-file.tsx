@@ -2287,6 +2287,7 @@ export default function PublicSmartFile() {
                     isLoading={bookingMutation.isPending}
                     photographerName={data.photographer.businessName}
                     photographerPhoto={null}
+                    showPhotographerProfile={currentPage.content.showPhotographerProfile ?? true}
                     onBookingConfirm={(date, time) => {
                       setBookingDetails({ date, time });
                       bookingMutation.mutate({

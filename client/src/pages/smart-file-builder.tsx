@@ -1953,6 +1953,18 @@ function SchedulingPageEditor({
         </Label>
       </div>
 
+      <div className="flex items-center space-x-2">
+        <Switch
+          id="show-photographer-profile"
+          checked={localContent.showPhotographerProfile ?? true}
+          onCheckedChange={(checked) => handleUpdate({ showPhotographerProfile: checked })}
+          data-testid="switch-show-photographer-profile"
+        />
+        <Label htmlFor="show-photographer-profile">
+          Show your photo and name above calendar
+        </Label>
+      </div>
+
       <Card className="bg-muted/30 border-dashed">
         <CardContent className="pt-6">
           <div className="flex items-start gap-3">
@@ -3538,6 +3550,9 @@ export default function SmartFileBuilder() {
                           bufferBefore={currentPage.content.bufferBefore}
                           bufferAfter={currentPage.content.bufferAfter}
                           allowRescheduling={currentPage.content.allowRescheduling}
+                          photographerName={user?.businessName || user?.name}
+                          photographerPhoto={null}
+                          showPhotographerProfile={currentPage.content.showPhotographerProfile ?? true}
                           isPreview={true}
                         />
                       </div>

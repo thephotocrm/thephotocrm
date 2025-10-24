@@ -22,6 +22,7 @@ interface SchedulingCalendarProps {
   onBookingConfirm?: (date: Date, time: string) => void;
   photographerName?: string;
   photographerPhoto?: string | null;
+  showPhotographerProfile?: boolean;
 }
 
 export function SchedulingCalendar({
@@ -34,6 +35,7 @@ export function SchedulingCalendar({
   onBookingConfirm,
   photographerName,
   photographerPhoto,
+  showPhotographerProfile = true,
 }: SchedulingCalendarProps) {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [selectedTime, setSelectedTime] = useState<string | undefined>(undefined);
@@ -89,7 +91,7 @@ export function SchedulingCalendar({
   return (
     <div className="space-y-6">
       {/* Photographer Profile Header */}
-      {photographerName && (
+      {photographerName && showPhotographerProfile && (
         <div className="flex flex-col items-center gap-3 pb-6 border-b">
           <p className="text-sm text-muted-foreground">Chatting with:</p>
           <Avatar className="w-24 h-24 border-2 border-primary shadow-lg">
