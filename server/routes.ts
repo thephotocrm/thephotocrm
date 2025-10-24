@@ -681,6 +681,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
             projectType: "WEDDING" // Default project type for new photographers
           });
         }
+
+        // Create default scheduling availability: Monday-Friday 9am-5pm
+        const defaultScheduleTemplates = [
+          { dayOfWeek: 1, startTime: "09:00", endTime: "17:00", isEnabled: true }, // Monday
+          { dayOfWeek: 2, startTime: "09:00", endTime: "17:00", isEnabled: true }, // Tuesday
+          { dayOfWeek: 3, startTime: "09:00", endTime: "17:00", isEnabled: true }, // Wednesday
+          { dayOfWeek: 4, startTime: "09:00", endTime: "17:00", isEnabled: true }, // Thursday
+          { dayOfWeek: 5, startTime: "09:00", endTime: "17:00", isEnabled: true }, // Friday
+        ];
+
+        for (const template of defaultScheduleTemplates) {
+          await storage.createDailyTemplate({
+            ...template,
+            photographerId: photographer.id
+          });
+        }
       }
 
       // Create user
