@@ -16,7 +16,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
-import { Calendar as CalendarIcon, Clock, Settings, Trash2, Plus } from "lucide-react";
+import { Calendar as CalendarIcon, Clock, Settings, Trash2, Plus, Coffee } from "lucide-react";
 
 // Form schema for daily templates
 const dailyTemplateSchema = z.object({
@@ -24,6 +24,21 @@ const dailyTemplateSchema = z.object({
   startTime: z.string().min(1, "Start time is required"),
   endTime: z.string().min(1, "End time is required"),
   isEnabled: z.boolean().default(true)
+}).refine((data) => {
+  if (data.startTime && data.endTime) {
+    return data.endTime > data.startTime;
+  }
+  return true;
+}, {
+  message: "End time must be after start time",
+  path: ["endTime"]
+});
+
+// Form schema for break times
+const breakTimeSchema = z.object({
+  startTime: z.string().min(1, "Start time is required"),
+  endTime: z.string().min(1, "End time is required"),
+  description: z.string().optional()
 }).refine((data) => {
   if (data.startTime && data.endTime) {
     return data.endTime > data.startTime;
@@ -51,6 +66,7 @@ const overrideSchema = z.object({
 });
 
 type DailyTemplateFormData = z.infer<typeof dailyTemplateSchema>;
+type BreakTimeFormData = z.infer<typeof breakTimeSchema>;
 type OverrideFormData = z.infer<typeof overrideSchema>;
 
 // Type definitions for API data
@@ -61,6 +77,14 @@ type DailyTemplate = {
   endTime: string;
   isEnabled: boolean;
   photographerId: string;
+};
+
+type BreakTime = {
+  id: string;
+  templateId: string;
+  startTime: string;
+  endTime: string;
+  description?: string;
 };
 
 type DayOverride = {
@@ -93,6 +117,8 @@ export default function Scheduling() {
   const [showBookingDetailsModal, setShowBookingDetailsModal] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState<DailyTemplate | null>(null);
   const [selectedBooking, setSelectedBooking] = useState<any>(null);
+  const [showBreakForm, setShowBreakForm] = useState(false);
+  const [editingBreak, setEditingBreak] = useState<BreakTime | null>(null);
 
   // New API queries for template-based system
   const { data: dailyTemplates = [], isLoading: templatesLoading } = useQuery({
@@ -134,6 +160,17 @@ export default function Scheduling() {
     enabled: !!user
   }) as { data: { publicToken?: string; businessName?: string; timezone?: string } | undefined; isLoading: boolean };
 
+  // Get breaks for the current template being edited
+  const { data: templateBreaks = [], isLoading: breaksLoading } = useQuery({
+    queryKey: ["/api/availability/templates", editingTemplate?.id, "breaks"],
+    enabled: !!editingTemplate?.id,
+    queryFn: async () => {
+      if (!editingTemplate?.id) return [];
+      const response = await apiRequest("GET", `/api/availability/templates/${editingTemplate.id}/breaks`);
+      return await response.json();
+    }
+  }) as { data: BreakTime[]; isLoading: boolean };
+
   // Forms for the new template-based system
   const templateForm = useForm<DailyTemplateFormData>({
     resolver: zodResolver(dailyTemplateSchema),
@@ -142,6 +179,15 @@ export default function Scheduling() {
       startTime: "09:00",
       endTime: "17:00",
       isEnabled: true
+    }
+  });
+
+  const breakForm = useForm<BreakTimeFormData>({
+    resolver: zodResolver(breakTimeSchema),
+    defaultValues: {
+      startTime: "12:00",
+      endTime: "13:00",
+      description: ""
     }
   });
 
@@ -226,6 +272,91 @@ export default function Scheduling() {
       toast({
         title: "Error",
         description: error?.message || "Failed to delete template",
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Create break mutation
+  const createBreakMutation = useMutation({
+    mutationFn: async (data: BreakTimeFormData & { templateId: string }) => {
+      return apiRequest("POST", `/api/availability/templates/${data.templateId}/breaks`, {
+        startTime: data.startTime,
+        endTime: data.endTime,
+        description: data.description
+      });
+    },
+    onSuccess: () => {
+      if (editingTemplate?.id) {
+        queryClient.invalidateQueries({ queryKey: ["/api/availability/templates", editingTemplate.id, "breaks"] });
+      }
+      queryClient.invalidateQueries({ queryKey: ["/api/availability/slots"] });
+      setShowBreakForm(false);
+      breakForm.reset();
+      toast({
+        title: "Success",
+        description: "Break time added successfully"
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error?.message || "Failed to add break time",
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Update break mutation
+  const updateBreakMutation = useMutation({
+    mutationFn: async (data: BreakTimeFormData & { id: string }) => {
+      return apiRequest("PUT", `/api/availability/breaks/${data.id}`, {
+        startTime: data.startTime,
+        endTime: data.endTime,
+        description: data.description
+      });
+    },
+    onSuccess: () => {
+      if (editingTemplate?.id) {
+        queryClient.invalidateQueries({ queryKey: ["/api/availability/templates", editingTemplate.id, "breaks"] });
+      }
+      queryClient.invalidateQueries({ queryKey: ["/api/availability/slots"] });
+      setShowBreakForm(false);
+      setEditingBreak(null);
+      breakForm.reset();
+      toast({
+        title: "Success",
+        description: "Break time updated successfully"
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error?.message || "Failed to update break time",
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Delete break mutation
+  const deleteBreakMutation = useMutation({
+    mutationFn: async (id: string) => {
+      return apiRequest("DELETE", `/api/availability/breaks/${id}`);
+    },
+    onSuccess: () => {
+      if (editingTemplate?.id) {
+        queryClient.invalidateQueries({ queryKey: ["/api/availability/templates", editingTemplate.id, "breaks"] });
+      }
+      queryClient.invalidateQueries({ queryKey: ["/api/availability/slots"] });
+      toast({
+        title: "Success",
+        description: "Break time deleted successfully"
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error?.message || "Failed to delete break time",
         variant: "destructive"
       });
     }
@@ -372,6 +503,37 @@ export default function Scheduling() {
   // Handle override form submission
   const handleOverrideSubmit = (data: OverrideFormData) => {
     createOverrideMutation.mutate(data);
+  };
+
+  // Handle break editing
+  const handleEditBreak = (breakTime: BreakTime) => {
+    setEditingBreak(breakTime);
+    breakForm.reset({
+      startTime: breakTime.startTime,
+      endTime: breakTime.endTime,
+      description: breakTime.description || ""
+    });
+    setShowBreakForm(true);
+  };
+
+  // Handle break form submission
+  const handleBreakSubmit = (data: BreakTimeFormData) => {
+    if (editingBreak) {
+      updateBreakMutation.mutate({ ...data, id: editingBreak.id });
+    } else if (editingTemplate?.id) {
+      createBreakMutation.mutate({ ...data, templateId: editingTemplate.id });
+    }
+  };
+
+  // Handle new break
+  const handleNewBreak = () => {
+    setEditingBreak(null);
+    breakForm.reset({
+      startTime: "12:00",
+      endTime: "13:00",
+      description: ""
+    });
+    setShowBreakForm(true);
   };
 
   // Handle date selection
@@ -901,6 +1063,153 @@ export default function Scheduling() {
                 </div>
               </form>
             </Form>
+
+            {/* Break Times Section - Only show when editing an existing template */}
+            {editingTemplate && (
+              <div className="border-t mt-6 pt-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center space-x-2">
+                    <Coffee className="w-5 h-5 text-muted-foreground" />
+                    <h4 className="font-medium">Break Times</h4>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleNewBreak}
+                    data-testid="button-add-break"
+                  >
+                    <Plus className="w-4 h-4 mr-1" />
+                    Add Break
+                  </Button>
+                </div>
+
+                {/* Existing Breaks */}
+                {breaksLoading ? (
+                  <div className="text-sm text-muted-foreground">Loading breaks...</div>
+                ) : templateBreaks.length > 0 ? (
+                  <div className="space-y-2 mb-4">
+                    {templateBreaks.map((breakTime) => (
+                      <div key={breakTime.id} className="flex items-center justify-between p-3 border border-border rounded-lg hover:bg-muted/50" data-testid={`break-${breakTime.id}`}>
+                        <div>
+                          <div className="font-medium" data-testid={`break-time-${breakTime.id}`}>
+                            {formatTime(breakTime.startTime)} - {formatTime(breakTime.endTime)}
+                          </div>
+                          {breakTime.description && (
+                            <div className="text-sm text-muted-foreground" data-testid={`break-description-${breakTime.id}`}>
+                              {breakTime.description}
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex space-x-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleEditBreak(breakTime)}
+                            data-testid={`button-edit-break-${breakTime.id}`}
+                          >
+                            Edit
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => deleteBreakMutation.mutate(breakTime.id)}
+                            disabled={deleteBreakMutation.isPending}
+                            data-testid={`button-delete-break-${breakTime.id}`}
+                          >
+                            {deleteBreakMutation.isPending ? "..." : <Trash2 className="w-4 h-4" />}
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-sm text-muted-foreground bg-muted/50 p-4 rounded-lg mb-4">
+                    No breaks added yet. Click "Add Break" to add lunch breaks or other time blocks.
+                  </div>
+                )}
+
+                {/* Break Form - Only show when adding/editing a break */}
+                {showBreakForm && (
+                  <div className="border-t pt-4">
+                    <h5 className="font-medium mb-3">{editingBreak ? "Edit Break" : "Add Break"}</h5>
+                    <Form {...breakForm}>
+                      <form onSubmit={breakForm.handleSubmit(handleBreakSubmit)} className="space-y-4">
+                        <div className="grid grid-cols-2 gap-4">
+                          <FormField
+                            control={breakForm.control}
+                            name="startTime"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Start Time</FormLabel>
+                                <FormControl>
+                                  <Input type="time" data-testid="input-break-start-time" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          
+                          <FormField
+                            control={breakForm.control}
+                            name="endTime"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>End Time</FormLabel>
+                                <FormControl>
+                                  <Input type="time" data-testid="input-break-end-time" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+
+                        <FormField
+                          control={breakForm.control}
+                          name="description"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Description (Optional)</FormLabel>
+                              <FormControl>
+                                <Input 
+                                  placeholder="e.g., Lunch break" 
+                                  data-testid="input-break-description" 
+                                  {...field} 
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <div className="flex justify-end space-x-2">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => {
+                              setShowBreakForm(false);
+                              setEditingBreak(null);
+                              breakForm.reset();
+                            }}
+                            data-testid="button-cancel-break"
+                          >
+                            Cancel
+                          </Button>
+                          <Button
+                            type="submit"
+                            disabled={createBreakMutation.isPending || updateBreakMutation.isPending}
+                            data-testid="button-save-break"
+                          >
+                            {createBreakMutation.isPending || updateBreakMutation.isPending ? "Saving..." : (editingBreak ? "Update" : "Add")}
+                          </Button>
+                        </div>
+                      </form>
+                    </Form>
+                  </div>
+                )}
+              </div>
+            )}
             </div>
           </DialogContent>
         </Dialog>
