@@ -144,8 +144,11 @@ function BlockEditor({
                 <div className="space-y-2">
                   <Input
                     value={localContent?.text || ''}
-                    onChange={(e) => setLocalContent({ ...localContent, text: e.target.value })}
-                    onBlur={handleBlur}
+                    onChange={(e) => {
+                      const updated = { ...localContent, text: e.target.value };
+                      setLocalContent(updated);
+                      onUpdate(updated);
+                    }}
                     placeholder="Enter heading text..."
                     className="text-lg font-semibold"
                   />
@@ -185,8 +188,11 @@ function BlockEditor({
                   <Textarea
                     ref={textareaRef}
                     value={localContent?.text || ''}
-                    onChange={(e) => setLocalContent({ ...localContent, text: e.target.value })}
-                    onBlur={handleBlur}
+                    onChange={(e) => {
+                      const updated = { ...localContent, text: e.target.value };
+                      setLocalContent(updated);
+                      onUpdate(updated);
+                    }}
                     placeholder="Enter text content..."
                     rows={4}
                   />
@@ -222,8 +228,11 @@ function BlockEditor({
                       <Label className="text-xs">Button Text</Label>
                       <Input
                         value={localContent?.text || ''}
-                        onChange={(e) => setLocalContent({ ...localContent, text: e.target.value })}
-                        onBlur={handleBlur}
+                        onChange={(e) => {
+                          const updated = { ...localContent, text: e.target.value };
+                          setLocalContent(updated);
+                          onUpdate(updated);
+                        }}
                         placeholder="Click Here"
                       />
                     </div>
@@ -357,8 +366,11 @@ function BlockEditor({
                 <div className="space-y-2">
                   <Input
                     value={localContent?.url || ''}
-                    onChange={(e) => setLocalContent({ ...localContent, url: e.target.value })}
-                    onBlur={handleBlur}
+                    onChange={(e) => {
+                      const updated = { ...localContent, url: e.target.value };
+                      setLocalContent(updated);
+                      onUpdate(updated);
+                    }}
                     placeholder="Image URL"
                   />
                   {localContent?.url && (
@@ -373,8 +385,11 @@ function BlockEditor({
                   <Input
                     type="number"
                     value={localContent?.height || 20}
-                    onChange={(e) => setLocalContent({ ...localContent, height: parseInt(e.target.value) || 20 })}
-                    onBlur={handleBlur}
+                    onChange={(e) => {
+                      const updated = { ...localContent, height: parseInt(e.target.value) || 20 };
+                      setLocalContent(updated);
+                      onUpdate(updated);
+                    }}
                     className="w-24"
                   />
                 </div>
