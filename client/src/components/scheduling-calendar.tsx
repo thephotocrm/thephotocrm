@@ -7,6 +7,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Clock, Calendar as CalendarIcon, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
+import placeholderPhoto from "@assets/stock_images/professional_photogr_0f0fd30c.jpg";
 
 interface SchedulingCalendarProps {
   heading?: string;
@@ -89,11 +90,14 @@ export function SchedulingCalendar({
     <div className="space-y-6">
       {/* Photographer Profile Header */}
       {photographerName && (
-        <div className="flex flex-col items-center gap-4 pb-6 border-b">
-          <Avatar className="w-20 h-20 border-2 border-primary">
-            {photographerPhoto ? (
-              <AvatarImage src={photographerPhoto} alt={photographerName} />
-            ) : null}
+        <div className="flex flex-col items-center gap-3 pb-6 border-b">
+          <p className="text-sm text-muted-foreground">Chatting with:</p>
+          <Avatar className="w-24 h-24 border-2 border-primary shadow-lg">
+            <AvatarImage 
+              src={photographerPhoto || placeholderPhoto} 
+              alt={photographerName}
+              className="object-cover"
+            />
             <AvatarFallback className="text-2xl bg-primary text-primary-foreground">
               {photographerName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
             </AvatarFallback>
