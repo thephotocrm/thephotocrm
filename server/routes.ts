@@ -4605,6 +4605,18 @@ ${photographer?.businessName || 'Your Photography Team'}`;
         })
       });
 
+      // Trigger APPOINTMENT_BOOKED automations if project exists
+      if (project) {
+        try {
+          const automationService = await import('./services/automation');
+          await automationService.processAutomations(project.photographerId);
+          console.log(`✅ Triggered automations for photographer ${project.photographerId} after Smart File appointment booking`);
+        } catch (automationError) {
+          console.error('❌ Failed to trigger APPOINTMENT_BOOKED automations:', automationError);
+          // Don't fail the booking if automation trigger fails
+        }
+      }
+
       // Send confirmation email to client
       try {
         if (contact.email) {
