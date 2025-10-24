@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useRoute } from "wouter";
+import { useRoute, useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -73,6 +73,7 @@ type BookingFormData = z.infer<typeof bookingFormSchema>;
 
 export default function PublicBookingCalendar() {
   const [, params] = useRoute("/booking/calendar/:publicToken");
+  const [, navigate] = useLocation();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null);
@@ -148,26 +149,21 @@ export default function PublicBookingCalendar() {
       const response = await apiRequest("POST", `/api/public/booking/calendar/${params.publicToken}/book/${dateStr}/${selectedSlot.id}`, formData);
       return await response.json();
     },
-    onSuccess: (data) => {
-      setBookingSuccess(true);
-      bookingForm.reset();
-      setSelectedSlot(null);
-      
-      // Invalidate and refetch time slots to update availability
-      queryClient.invalidateQueries({
-        queryKey: [`/api/public/booking/calendar/${params?.publicToken}/slots`, selectedDate ? formatDateForAPI(selectedDate) : null]
+    onSuccess: (data, formData) => {
+      // Build query params for confirmation page
+      const queryParams = new URLSearchParams({
+        businessName: calendarData?.photographer.businessName || '',
+        name: formData.clientName,
+        email: formData.clientEmail,
+        phone: formData.clientPhone || '',
+        date: formatDateForAPI(selectedDate!),
+        startTime: selectedSlot?.startTime || '',
+        endTime: selectedSlot?.endTime || '',
+        notes: formData.bookingNotes || ''
       });
       
-      toast({
-        title: "Booking confirmed!",
-        description: "You'll receive a confirmation email shortly with all the details.",
-      });
-      
-      // Close modal after showing success for 2 seconds
-      setTimeout(() => {
-        setIsBookingModalOpen(false);
-        setBookingSuccess(false);
-      }, 2000);
+      // Redirect to confirmation page
+      navigate(`/booking/confirmation?${queryParams.toString()}`);
     },
     onError: (error: any) => {
       toast({
