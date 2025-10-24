@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/table";
 import { EmailTemplateBuilder, type ContentBlock } from "@/components/email-template-builder";
 import { EmailPreview } from "@/components/email-preview";
+import { Switch } from "@/components/ui/switch";
 
 interface Template {
   id: string;
@@ -37,6 +38,12 @@ interface Template {
   htmlBody?: string;
   textBody?: string;
   contentBlocks?: ContentBlock[];
+  includeHeroImage?: boolean;
+  heroImageUrl?: string;
+  includeHeader?: boolean;
+  headerStyle?: string;
+  includeSignature?: boolean;
+  signatureStyle?: string;
   createdAt: string;
 }
 
@@ -53,6 +60,14 @@ export default function TemplatesNew() {
   const [channel, setChannel] = useState("EMAIL");
   const [subject, setSubject] = useState("");
   const [contentBlocks, setContentBlocks] = useState<ContentBlock[]>([]);
+  
+  // Email branding options
+  const [includeHeroImage, setIncludeHeroImage] = useState(false);
+  const [heroImageUrl, setHeroImageUrl] = useState("");
+  const [includeHeader, setIncludeHeader] = useState(false);
+  const [headerStyle, setHeaderStyle] = useState("professional");
+  const [includeSignature, setIncludeSignature] = useState(true);
+  const [signatureStyle, setSignatureStyle] = useState("professional");
 
   const { data: templates, isLoading } = useQuery({
     queryKey: ["/api/templates"],
@@ -118,6 +133,12 @@ export default function TemplatesNew() {
     setChannel("EMAIL");
     setSubject("");
     setContentBlocks([]);
+    setIncludeHeroImage(false);
+    setHeroImageUrl("");
+    setIncludeHeader(false);
+    setHeaderStyle("professional");
+    setIncludeSignature(true);
+    setSignatureStyle("professional");
   };
 
   const handleEdit = (template: Template) => {
@@ -127,6 +148,12 @@ export default function TemplatesNew() {
     setChannel(template.channel);
     setSubject(template.subject || "");
     setContentBlocks(template.contentBlocks || []);
+    setIncludeHeroImage(template.includeHeroImage || false);
+    setHeroImageUrl(template.heroImageUrl || "");
+    setIncludeHeader(template.includeHeader || false);
+    setHeaderStyle(template.headerStyle || "professional");
+    setIncludeSignature(template.includeSignature !== false);
+    setSignatureStyle(template.signatureStyle || "professional");
     setShowBuilder(true);
   };
 
@@ -159,7 +186,13 @@ export default function TemplatesNew() {
       name,
       channel,
       subject: channel === "EMAIL" ? subject : undefined,
-      contentBlocks: channel === "EMAIL" ? contentBlocks : undefined
+      contentBlocks: channel === "EMAIL" ? contentBlocks : undefined,
+      includeHeroImage: channel === "EMAIL" ? includeHeroImage : undefined,
+      heroImageUrl: channel === "EMAIL" && includeHeroImage ? heroImageUrl : undefined,
+      includeHeader: channel === "EMAIL" ? includeHeader : undefined,
+      headerStyle: channel === "EMAIL" && includeHeader ? headerStyle : undefined,
+      includeSignature: channel === "EMAIL" ? includeSignature : undefined,
+      signatureStyle: channel === "EMAIL" && includeSignature ? signatureStyle : undefined
     });
   };
 
@@ -236,6 +269,99 @@ export default function TemplatesNew() {
 
               <Card>
                 <CardHeader>
+                  <CardTitle>Email Branding</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {/* Hero Image */}
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label htmlFor="hero-image">Hero Image</Label>
+                      <p className="text-xs text-muted-foreground">Add a large banner image at the top of your email</p>
+                    </div>
+                    <Switch
+                      id="hero-image"
+                      checked={includeHeroImage}
+                      onCheckedChange={setIncludeHeroImage}
+                      data-testid="switch-hero-image"
+                    />
+                  </div>
+                  {includeHeroImage && (
+                    <div className="space-y-2 pl-4 border-l-2 border-muted">
+                      <Label htmlFor="hero-url">Hero Image URL</Label>
+                      <Input
+                        id="hero-url"
+                        value={heroImageUrl}
+                        onChange={(e) => setHeroImageUrl(e.target.value)}
+                        placeholder="https://example.com/hero.jpg"
+                        data-testid="input-hero-url"
+                      />
+                    </div>
+                  )}
+
+                  {/* Header */}
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label htmlFor="header">Email Header</Label>
+                      <p className="text-xs text-muted-foreground">Include your logo and business name</p>
+                    </div>
+                    <Switch
+                      id="header"
+                      checked={includeHeader}
+                      onCheckedChange={setIncludeHeader}
+                      data-testid="switch-header"
+                    />
+                  </div>
+                  {includeHeader && (
+                    <div className="space-y-2 pl-4 border-l-2 border-muted">
+                      <Label htmlFor="header-style">Header Style</Label>
+                      <Select value={headerStyle} onValueChange={setHeaderStyle}>
+                        <SelectTrigger id="header-style" data-testid="select-header-style">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="minimal">Minimal</SelectItem>
+                          <SelectItem value="professional">Professional</SelectItem>
+                          <SelectItem value="bold">Bold</SelectItem>
+                          <SelectItem value="classic">Classic</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+
+                  {/* Signature */}
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label htmlFor="signature">Email Signature</Label>
+                      <p className="text-xs text-muted-foreground">Include your contact info and social links</p>
+                    </div>
+                    <Switch
+                      id="signature"
+                      checked={includeSignature}
+                      onCheckedChange={setIncludeSignature}
+                      data-testid="switch-signature"
+                    />
+                  </div>
+                  {includeSignature && (
+                    <div className="space-y-2 pl-4 border-l-2 border-muted">
+                      <Label htmlFor="signature-style">Signature Style</Label>
+                      <Select value={signatureStyle} onValueChange={setSignatureStyle}>
+                        <SelectTrigger id="signature-style" data-testid="select-signature-style">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="simple">Simple</SelectItem>
+                          <SelectItem value="professional">Professional</SelectItem>
+                          <SelectItem value="detailed">Detailed</SelectItem>
+                          <SelectItem value="branded">Branded</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
                   <CardTitle>Email Content</CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -252,6 +378,12 @@ export default function TemplatesNew() {
               <EmailPreview
                 subject={subject}
                 blocks={contentBlocks}
+                includeHeroImage={includeHeroImage}
+                heroImageUrl={heroImageUrl}
+                includeHeader={includeHeader}
+                headerStyle={headerStyle}
+                includeSignature={includeSignature}
+                signatureStyle={signatureStyle}
               />
             </div>
           </div>

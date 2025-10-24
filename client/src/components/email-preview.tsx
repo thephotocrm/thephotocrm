@@ -7,9 +7,25 @@ interface EmailPreviewProps {
   subject?: string;
   blocks: ContentBlock[];
   className?: string;
+  includeHeroImage?: boolean;
+  heroImageUrl?: string;
+  includeHeader?: boolean;
+  headerStyle?: string;
+  includeSignature?: boolean;
+  signatureStyle?: string;
 }
 
-export function EmailPreview({ subject, blocks, className }: EmailPreviewProps) {
+export function EmailPreview({ 
+  subject, 
+  blocks, 
+  className,
+  includeHeroImage,
+  heroImageUrl,
+  includeHeader,
+  headerStyle,
+  includeSignature,
+  signatureStyle
+}: EmailPreviewProps) {
   const renderBlock = (block: ContentBlock) => {
     switch (block.type) {
       case 'HEADING':
@@ -93,18 +109,61 @@ export function EmailPreview({ subject, blocks, className }: EmailPreviewProps) 
         )}
       </CardHeader>
       <CardContent className="p-6">
-        <div className="bg-white rounded-lg border p-8 max-w-2xl mx-auto" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
-          {blocks.length === 0 ? (
-            <div className="text-center text-muted-foreground py-12">
-              <p>No content blocks to preview</p>
-              <p className="text-sm mt-2">Add blocks to see them here</p>
+        <div className="bg-white rounded-lg border max-w-2xl mx-auto" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+          {/* Hero Image */}
+          {includeHeroImage && heroImageUrl && (
+            <div className="w-full">
+              <img src={heroImageUrl} alt="Hero" className="w-full h-auto" />
             </div>
-          ) : (
-            blocks.map((block) => (
-              <div key={block.id}>
-                {renderBlock(block)}
+          )}
+          
+          {/* Header */}
+          {includeHeader && (
+            <div className="px-8 py-6 border-b bg-gradient-to-r from-blue-50 to-purple-50">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold">
+                  L
+                </div>
+                <div>
+                  <div className="font-bold text-lg">Your Business Name</div>
+                  <div className="text-sm text-gray-600">{headerStyle || 'professional'} style</div>
+                </div>
               </div>
-            ))
+            </div>
+          )}
+          
+          {/* Content */}
+          <div className="p-8">
+            {blocks.length === 0 ? (
+              <div className="text-center text-muted-foreground py-12">
+                <p>No content blocks to preview</p>
+                <p className="text-sm mt-2">Add blocks to see them here</p>
+              </div>
+            ) : (
+              blocks.map((block) => (
+                <div key={block.id}>
+                  {renderBlock(block)}
+                </div>
+              ))
+            )}
+          </div>
+          
+          {/* Signature */}
+          {includeSignature && (
+            <div className="px-8 py-6 border-t bg-gray-50">
+              <div className="text-sm text-gray-700">
+                <div className="font-semibold mb-2">Your Name</div>
+                <div className="text-gray-600">Photographer</div>
+                <div className="text-gray-600 mt-2">
+                  {signatureStyle || 'professional'} style signature
+                </div>
+                <div className="flex gap-3 mt-3">
+                  <span className="text-xs text-gray-500">📧 Email</span>
+                  <span className="text-xs text-gray-500">📞 Phone</span>
+                  <span className="text-xs text-gray-500">🌐 Website</span>
+                </div>
+              </div>
+            </div>
           )}
         </div>
       </CardContent>

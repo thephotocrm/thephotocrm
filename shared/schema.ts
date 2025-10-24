@@ -302,6 +302,13 @@ export const templates = pgTable("templates", {
   htmlBody: text("html_body"),
   textBody: text("text_body"),
   contentBlocks: jsonb("content_blocks"), // Block-based email builder content
+  // Email branding options
+  includeHeroImage: boolean("include_hero_image").default(false),
+  heroImageUrl: text("hero_image_url"),
+  includeHeader: boolean("include_header").default(false),
+  headerStyle: text("header_style"), // minimal, professional, bold, classic
+  includeSignature: boolean("include_signature").default(true),
+  signatureStyle: text("signature_style"), // simple, professional, detailed, branded
   createdAt: timestamp("created_at").defaultNow()
 });
 
