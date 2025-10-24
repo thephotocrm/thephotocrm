@@ -584,7 +584,8 @@ function StageChangeAutomationCard({ automation, onDelete }: { automation: any, 
       'SMART_FILE_ACCEPTED': '📄 Smart File Accepted',
       'EVENT_DATE_REACHED': '📅 Event Date',
       'PROJECT_DELIVERED': '📦 Project Delivered',
-      'CLIENT_ONBOARDED': '🎯 Client Onboarded'
+      'CLIENT_ONBOARDED': '🎯 Client Onboarded',
+      'APPOINTMENT_BOOKED': '📅 Appointment Booked'
     };
     return triggers[triggerType as keyof typeof triggers] || triggerType;
   };
