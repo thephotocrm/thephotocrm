@@ -2285,6 +2285,8 @@ export default function PublicSmartFile() {
                     allowRescheduling={currentPage.content.allowRescheduling}
                     isPreview={false}
                     isLoading={bookingMutation.isPending}
+                    photographerName={data.photographer.businessName}
+                    photographerPhoto={null}
                     onBookingConfirm={(date, time) => {
                       setBookingDetails({ date, time });
                       bookingMutation.mutate({
