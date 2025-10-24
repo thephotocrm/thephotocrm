@@ -406,6 +406,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Note: Uses /booking/* path instead of /public/* to avoid Vite static file handler conflict
   app.get("/booking/calendar/:publicToken", async (req, res, next) => {
     console.log("🔍 BOOKING CALENDAR ROUTE HIT:", req.params.publicToken);
+    
+    // In development, skip server-side rendering and let Vite/React handle it
+    // Meta tags will be updated client-side using updateMetaTags() in the component
+    if (app.get("env") === "development") {
+      return next();
+    }
+    
     try {
       const { publicToken } = req.params;
       
