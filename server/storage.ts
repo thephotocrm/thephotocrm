@@ -660,6 +660,10 @@ export class DatabaseStorage implements IStorage {
       await tx.delete(clientPortalTokens)
         .where(eq(clientPortalTokens.clientId, id));
       
+      // Delete conversation read tracking
+      await tx.delete(conversationReads)
+        .where(eq(conversationReads.contactId, id));
+      
       // Finally delete the contact
       const deleteResult = await tx.delete(contacts)
         .where(eq(contacts.id, id));
