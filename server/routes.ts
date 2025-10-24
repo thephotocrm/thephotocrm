@@ -7059,6 +7059,21 @@ ${photographer.businessName}`
     }
   });
 
+  // Get all breaks for all photographer's templates (efficient single query)
+  app.get("/api/availability/breaks", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
+    try {
+      const photographerId = req.user!.photographerId!;
+      
+      // Get all breaks for this photographer's templates in one query
+      const allBreaks = await storage.getDailyAvailabilityBreaksByPhotographer(photographerId);
+      
+      res.json(allBreaks);
+    } catch (error) {
+      console.error('Get all breaks error:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   app.post("/api/availability/templates/:templateId/breaks", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       const template = await storage.getDailyAvailabilityTemplate(req.params.templateId);
@@ -8536,6 +8551,33 @@ ${photographer.businessName}`
         success: false,
         message: "Failed to fetch widget configuration" 
       });
+    }
+  });
+
+  // Public API - Get available slots by photographer ID (for Smart Files scheduling)
+  app.get("/api/public/availability/:photographerId/slots/:date", async (req, res) => {
+    try {
+      const { photographerId, date } = req.params;
+      
+      // Validate date format (YYYY-MM-DD)
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+        return res.status(400).json({ message: "Invalid date format. Expected YYYY-MM-DD" });
+      }
+
+      // Generate slots for the specific date using the slot generation service
+      const slots = await slotGenerationService.getSlotsForDate(photographerId, new Date(date));
+      
+      // Filter out slots that are in the past and only return available slots
+      const now = new Date();
+      const availableSlots = slots.filter(slot => {
+        const slotDateTime = new Date(`${slot.date}T${slot.startTime}`);
+        return slotDateTime > now && slot.isAvailable;
+      });
+
+      res.json(availableSlots);
+    } catch (error) {
+      console.error('Get public availability slots error:', error);
+      res.status(500).json({ message: "Failed to fetch available slots" });
     }
   });
 

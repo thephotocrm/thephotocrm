@@ -195,6 +195,7 @@ export interface IStorage {
   
   // Daily Availability Breaks
   getDailyAvailabilityBreaksByTemplate(templateId: string): Promise<DailyAvailabilityBreak[]>;
+  getDailyAvailabilityBreaksByPhotographer(photographerId: string): Promise<DailyAvailabilityBreak[]>;
   getDailyAvailabilityBreak(id: string): Promise<DailyAvailabilityBreak | undefined>;
   createDailyAvailabilityBreak(breakTime: InsertDailyAvailabilityBreak): Promise<DailyAvailabilityBreak>;
   updateDailyAvailabilityBreak(id: string, breakTime: Partial<DailyAvailabilityBreak>): Promise<DailyAvailabilityBreak>;
@@ -1462,6 +1463,22 @@ export class DatabaseStorage implements IStorage {
   async getDailyAvailabilityBreaksByTemplate(templateId: string): Promise<DailyAvailabilityBreak[]> {
     return await db.select().from(dailyAvailabilityBreaks)
       .where(eq(dailyAvailabilityBreaks.templateId, templateId))
+      .orderBy(asc(dailyAvailabilityBreaks.startTime));
+  }
+
+  async getDailyAvailabilityBreaksByPhotographer(photographerId: string): Promise<DailyAvailabilityBreak[]> {
+    // Join with templates to get all breaks for a photographer's templates
+    return await db.select({
+      id: dailyAvailabilityBreaks.id,
+      templateId: dailyAvailabilityBreaks.templateId,
+      startTime: dailyAvailabilityBreaks.startTime,
+      endTime: dailyAvailabilityBreaks.endTime,
+      label: dailyAvailabilityBreaks.label,
+      createdAt: dailyAvailabilityBreaks.createdAt
+    })
+      .from(dailyAvailabilityBreaks)
+      .innerJoin(dailyAvailabilityTemplates, eq(dailyAvailabilityBreaks.templateId, dailyAvailabilityTemplates.id))
+      .where(eq(dailyAvailabilityTemplates.photographerId, photographerId))
       .orderBy(asc(dailyAvailabilityBreaks.startTime));
   }
 

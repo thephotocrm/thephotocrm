@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -23,6 +25,7 @@ interface SchedulingCalendarProps {
   photographerName?: string;
   photographerPhoto?: string | null;
   showPhotographerProfile?: boolean;
+  photographerId?: string;
 }
 
 export function SchedulingCalendar({
@@ -36,10 +39,31 @@ export function SchedulingCalendar({
   photographerName,
   photographerPhoto,
   showPhotographerProfile = true,
+  photographerId,
 }: SchedulingCalendarProps) {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [selectedTime, setSelectedTime] = useState<string | undefined>(undefined);
   const { toast } = useToast();
+
+  // Format date in local timezone (not UTC) to avoid timezone shift bugs
+  const formatLocalDate = (date: Date): string => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  // Fetch availability slots for the selected date
+  const { data: availabilitySlots = [], isLoading: slotsLoading, error: slotsError } = useQuery({
+    queryKey: ["/api/availability/slots", selectedDate ? formatLocalDate(selectedDate) : null, photographerId],
+    enabled: !!selectedDate && !!photographerId,
+    queryFn: async () => {
+      if (!selectedDate || !photographerId) return [];
+      const dateStr = formatLocalDate(selectedDate);
+      const response = await apiRequest("GET", `/api/public/availability/${photographerId}/slots/${dateStr}`);
+      return await response.json();
+    }
+  });
 
   const handleConfirmBooking = () => {
     if (!selectedDate || !selectedTime) return;
@@ -57,6 +81,7 @@ export function SchedulingCalendar({
       onBookingConfirm(selectedDate, selectedTime);
     } else {
       // Fallback toast
+      const slot = timeSlots.find(s => s.value === selectedTime);
       toast({
         title: "Booking Confirmed!",
         description: `Your appointment is scheduled for ${selectedDate?.toLocaleDateString('en-US', { 
@@ -64,29 +89,25 @@ export function SchedulingCalendar({
           month: 'long', 
           day: 'numeric',
           year: 'numeric'
-        })} at ${timeSlots.find(s => s.value === selectedTime)?.display}`,
+        })} at ${slot?.display}`,
       });
     }
   };
 
-  // Generate sample time slots (9 AM - 5 PM)
-  const generateTimeSlots = () => {
-    const slots = [];
-    for (let hour = 9; hour < 17; hour++) {
-      for (let minute = 0; minute < 60; minute += 30) {
-        const timeStr = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
-        const displayTime = new Date(`2000-01-01T${timeStr}`).toLocaleTimeString('en-US', {
-          hour: 'numeric',
-          minute: '2-digit',
-          hour12: true
-        });
-        slots.push({ value: timeStr, display: displayTime });
-      }
-    }
-    return slots;
-  };
-
-  const timeSlots = generateTimeSlots();
+  // Convert API slots to the format expected by the UI
+  const timeSlots = (availabilitySlots as any[])
+    .filter((slot: any) => slot.isAvailable)
+    .map((slot: any) => {
+      const displayTime = new Date(`2000-01-01T${slot.startTime}`).toLocaleTimeString('en-US', {
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+      });
+      return {
+        value: slot.startTime,
+        display: displayTime
+      };
+    });
 
   return (
     <div className="space-y-6">
@@ -171,24 +192,36 @@ export function SchedulingCalendar({
 
               {/* Time Slots Grid - Always rendered, disabled when no date selected */}
               <div className="flex-1 overflow-y-auto max-h-[400px] pr-2">
-                <div className="grid grid-cols-2 gap-2">
-                  {timeSlots.map((slot) => (
-                    <Button
-                      key={slot.value}
-                      variant={selectedTime === slot.value ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setSelectedTime(slot.value)}
-                      disabled={!selectedDate}
-                      className={cn(
-                        "justify-center transition-all",
-                        !selectedDate && "opacity-50 cursor-not-allowed"
-                      )}
-                      data-testid={`time-slot-${slot.value}`}
-                    >
-                      {slot.display}
-                    </Button>
-                  ))}
-                </div>
+                {slotsLoading ? (
+                  <div className="flex flex-col items-center justify-center py-12 space-y-2">
+                    <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+                    <p className="text-sm text-muted-foreground">Loading available times...</p>
+                  </div>
+                ) : !selectedDate ? (
+                  <div className="text-center py-12 text-sm text-muted-foreground">
+                    Select a date to view available times
+                  </div>
+                ) : timeSlots.length === 0 ? (
+                  <div className="text-center py-12 space-y-2">
+                    <p className="text-sm text-muted-foreground">No available times for this date</p>
+                    <p className="text-xs text-muted-foreground">Please select another date</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 gap-2">
+                    {timeSlots.map((slot) => (
+                      <Button
+                        key={slot.value}
+                        variant={selectedTime === slot.value ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setSelectedTime(slot.value)}
+                        className="justify-center transition-all"
+                        data-testid={`time-slot-${slot.value}`}
+                      >
+                        {slot.display}
+                      </Button>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* Confirmation Section - Always Present */}

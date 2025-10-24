@@ -160,16 +160,16 @@ export default function Scheduling() {
     enabled: !!user
   }) as { data: { publicToken?: string; businessName?: string; timezone?: string } | undefined; isLoading: boolean };
 
+  // Get all breaks for this photographer's templates (efficient single query)
+  const { data: allBreaks = [] } = useQuery({
+    queryKey: ["/api/availability/breaks"],
+    enabled: !!user
+  }) as { data: BreakTime[] };
+
   // Get breaks for the current template being edited
-  const { data: templateBreaks = [], isLoading: breaksLoading } = useQuery({
-    queryKey: ["/api/availability/templates", editingTemplate?.id, "breaks"],
-    enabled: !!editingTemplate?.id,
-    queryFn: async () => {
-      if (!editingTemplate?.id) return [];
-      const response = await apiRequest("GET", `/api/availability/templates/${editingTemplate.id}/breaks`);
-      return await response.json();
-    }
-  }) as { data: BreakTime[]; isLoading: boolean };
+  const templateBreaks = editingTemplate?.id 
+    ? allBreaks.filter(b => b.templateId === editingTemplate.id)
+    : [];
 
   // Forms for the new template-based system
   const templateForm = useForm<DailyTemplateFormData>({
@@ -287,9 +287,7 @@ export default function Scheduling() {
       });
     },
     onSuccess: () => {
-      if (editingTemplate?.id) {
-        queryClient.invalidateQueries({ queryKey: ["/api/availability/templates", editingTemplate.id, "breaks"] });
-      }
+      queryClient.invalidateQueries({ queryKey: ["/api/availability/breaks"] });
       queryClient.invalidateQueries({ queryKey: ["/api/availability/slots"] });
       setShowBreakForm(false);
       breakForm.reset();
@@ -317,9 +315,7 @@ export default function Scheduling() {
       });
     },
     onSuccess: () => {
-      if (editingTemplate?.id) {
-        queryClient.invalidateQueries({ queryKey: ["/api/availability/templates", editingTemplate.id, "breaks"] });
-      }
+      queryClient.invalidateQueries({ queryKey: ["/api/availability/breaks"] });
       queryClient.invalidateQueries({ queryKey: ["/api/availability/slots"] });
       setShowBreakForm(false);
       setEditingBreak(null);
@@ -344,9 +340,7 @@ export default function Scheduling() {
       return apiRequest("DELETE", `/api/availability/breaks/${id}`);
     },
     onSuccess: () => {
-      if (editingTemplate?.id) {
-        queryClient.invalidateQueries({ queryKey: ["/api/availability/templates", editingTemplate.id, "breaks"] });
-      }
+      queryClient.invalidateQueries({ queryKey: ["/api/availability/breaks"] });
       queryClient.invalidateQueries({ queryKey: ["/api/availability/slots"] });
       toast({
         title: "Success",
@@ -916,25 +910,43 @@ export default function Scheduling() {
               <div className="mb-6">
                 <h4 className="font-medium mb-3">Existing Templates</h4>
                 <div className="space-y-2 max-h-48 overflow-y-auto">
-                  {dailyTemplates.map((template) => (
+                  {dailyTemplates.map((template) => {
+                    const templateBreaksForDisplay = allBreaks.filter(b => b.templateId === template.id);
+                    return (
                     <div key={template.id} className="flex items-center justify-between p-3 border border-border rounded-lg hover:bg-muted/50" data-testid={`modal-template-${template.id}`}>
                       <div className="flex items-center space-x-3">
                         <div className={`w-3 h-3 rounded-full ${
                           template.isEnabled ? "bg-primary" : "bg-muted-foreground"
                         }`}></div>
                         <div>
-                          <span className="font-medium" data-testid={`modal-template-day-${template.id}`}>
-                            {(() => {
-                              const dayName = convertNumberToDayName(template.dayOfWeek as number);
-                              return dayName.charAt(0) + dayName.slice(1).toLowerCase();
-                            })()}
-                          </span>
-                          <span className="text-sm text-muted-foreground ml-2" data-testid={`modal-template-time-${template.id}`}>
-                            {formatTime(template.startTime)} - {formatTime(template.endTime)}
-                            {!template.isEnabled && (
-                              <span className="ml-1 text-red-600">(Disabled)</span>
-                            )}
-                          </span>
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium" data-testid={`modal-template-day-${template.id}`}>
+                              {(() => {
+                                const dayName = convertNumberToDayName(template.dayOfWeek as number);
+                                return dayName.charAt(0) + dayName.slice(1).toLowerCase();
+                              })()}
+                            </span>
+                            <span className="text-sm text-muted-foreground" data-testid={`modal-template-time-${template.id}`}>
+                              {formatTime(template.startTime)} - {formatTime(template.endTime)}
+                              {!template.isEnabled && (
+                                <span className="ml-1 text-red-600">(Disabled)</span>
+                              )}
+                            </span>
+                          </div>
+                          {templateBreaksForDisplay.length > 0 && (
+                            <div className="flex items-center gap-1 mt-1">
+                              <Coffee className="w-3 h-3 text-amber-600" />
+                              <span className="text-xs text-muted-foreground" data-testid={`template-breaks-${template.id}`}>
+                                {templateBreaksForDisplay.map((b, i) => (
+                                  <span key={b.id}>
+                                    {i > 0 && ', '}
+                                    {formatTime(b.startTime)}-{formatTime(b.endTime)}
+                                    {b.label && ` (${b.label})`}
+                                  </span>
+                                ))}
+                              </span>
+                            </div>
+                          )}
                         </div>
                       </div>
                       <div className="flex space-x-2">
@@ -957,7 +969,8 @@ export default function Scheduling() {
                         </Button>
                       </div>
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             )}

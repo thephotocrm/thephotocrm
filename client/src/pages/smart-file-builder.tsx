@@ -3552,6 +3552,7 @@ export default function SmartFileBuilder() {
                           allowRescheduling={currentPage.content.allowRescheduling}
                           photographerName={user?.businessName || user?.name}
                           photographerPhoto={null}
+                          photographerId={user?.photographerId}
                           showPhotographerProfile={currentPage.content.showPhotographerProfile ?? true}
                           isPreview={true}
                         />
