@@ -2841,14 +2841,23 @@ ${photographer?.businessName || 'Your Photography Team'}`;
         photographerId: req.user!.photographerId!
       });
       
-      // Auto-generate HTML from text body for email templates
-      if (templateData.channel === 'EMAIL' && templateData.textBody) {
-        templateData.htmlBody = textToHtml(templateData.textBody);
+      // Auto-generate HTML from content blocks or text body for email templates
+      if (templateData.channel === 'EMAIL') {
+        if (templateData.contentBlocks && Array.isArray(templateData.contentBlocks)) {
+          // Generate HTML from content blocks
+          const { contentBlocksToHtml, contentBlocksToText } = await import('../shared/template-utils.js');
+          templateData.htmlBody = contentBlocksToHtml(templateData.contentBlocks as any);
+          templateData.textBody = contentBlocksToText(templateData.contentBlocks as any);
+        } else if (templateData.textBody) {
+          // Fallback for legacy text-only templates
+          templateData.htmlBody = textToHtml(templateData.textBody);
+        }
       }
       
       const template = await storage.createTemplate(templateData);
       res.status(201).json(template);
     } catch (error) {
+      console.error('Create template error:', error);
       res.status(500).json({ message: "Internal server error" });
     }
   });
@@ -2865,11 +2874,18 @@ ${photographer?.businessName || 'Your Photography Team'}`;
 
       const updates = insertTemplateSchema.partial().parse(req.body);
       
-      // Auto-generate HTML from text body for email templates
-      if (updates.channel === 'EMAIL' && updates.textBody) {
-        updates.htmlBody = textToHtml(updates.textBody);
-      } else if (existingTemplate.channel === 'EMAIL' && updates.textBody) {
-        updates.htmlBody = textToHtml(updates.textBody);
+      // Auto-generate HTML from content blocks or text body for email templates
+      const templateChannel = updates.channel || existingTemplate.channel;
+      if (templateChannel === 'EMAIL') {
+        if (updates.contentBlocks && Array.isArray(updates.contentBlocks)) {
+          // Generate HTML from content blocks
+          const { contentBlocksToHtml, contentBlocksToText } = await import('../shared/template-utils.js');
+          updates.htmlBody = contentBlocksToHtml(updates.contentBlocks as any);
+          updates.textBody = contentBlocksToText(updates.contentBlocks as any);
+        } else if (updates.textBody) {
+          // Fallback for legacy text-only templates
+          updates.htmlBody = textToHtml(updates.textBody);
+        }
       }
       
       const updatedTemplate = await storage.updateTemplate(req.params.id, updates);

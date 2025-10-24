@@ -311,32 +311,44 @@ function BlockEditor({
                   {localContent?.linkType === 'GALLERY' && (
                     <div className="space-y-1">
                       <Label className="text-xs">Select Gallery</Label>
-                      <Select
-                        value={localContent?.linkValue || ''}
-                        onValueChange={(value) => {
-                          const updated = { ...localContent, linkValue: value };
-                          setLocalContent(updated);
-                          onUpdate(updated);
-                        }}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Choose a Gallery" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {galleriesWithUrl.map((project: any) => (
-                            <SelectItem key={project.id} value={project.id}>
-                              {project.title} Gallery
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      {galleriesWithUrl.length > 0 ? (
+                        <Select
+                          value={localContent?.linkValue || ''}
+                          onValueChange={(value) => {
+                            const updated = { ...localContent, linkValue: value };
+                            setLocalContent(updated);
+                            onUpdate(updated);
+                          }}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Choose a Gallery" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {galleriesWithUrl.map((project: any) => (
+                              <SelectItem key={project.id} value={project.id}>
+                                {project.title} Gallery
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <div className="p-2 bg-amber-50 border border-amber-200 rounded text-xs text-amber-700">
+                          ⚠ No galleries available. Create galleries on the Galleries page first.
+                        </div>
+                      )}
                     </div>
                   )}
 
-                  {localContent?.linkType === 'CALENDAR' && photographerData?.publicToken && (
-                    <div className="p-2 bg-muted rounded text-xs text-muted-foreground">
-                      Will link to your public booking calendar
-                    </div>
+                  {localContent?.linkType === 'CALENDAR' && (
+                    photographerData?.publicToken ? (
+                      <div className="p-2 bg-green-50 border border-green-200 rounded text-xs text-green-700">
+                        ✓ Will link to your public booking calendar
+                      </div>
+                    ) : (
+                      <div className="p-2 bg-amber-50 border border-amber-200 rounded text-xs text-amber-700">
+                        ⚠ Set up your booking calendar in Settings → Scheduling to enable this link
+                      </div>
+                    )
                   )}
                 </div>
               )}
