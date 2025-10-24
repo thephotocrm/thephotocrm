@@ -433,18 +433,16 @@ export function AppSidebar() {
                           className="bg-slate-800/50 text-white hover:bg-slate-700/70 data-[active=true]:bg-slate-700 data-[active=true]:text-white"
                         >
                           <Link href={item.href} className="relative">
-                            <div className="relative inline-block">
-                              <Icon className="w-5 h-5" />
-                              {'badge' in item && item.badge > 0 && (
-                                <div 
-                                  className="absolute -top-2 -right-2 h-[23px] w-[23px] rounded-full flex items-center justify-center text-xs font-bold bg-green-500 text-white"
-                                  data-testid="inbox-unread-badge"
-                                >
-                                  {item.badge}
-                                </div>
-                              )}
-                            </div>
+                            <Icon className="w-5 h-5" />
                             <span className="text-sm">{item.name}</span>
+                            {'badge' in item && item.badge > 0 && (
+                              <div 
+                                className="ml-auto h-[23px] min-w-[23px] px-2 rounded-full flex items-center justify-center text-xs font-bold bg-green-500 text-white"
+                                data-testid="inbox-unread-badge"
+                              >
+                                {item.badge}
+                              </div>
+                            )}
                           </Link>
                         </SidebarMenuButton>
                       </SidebarMenuItem>

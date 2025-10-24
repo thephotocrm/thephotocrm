@@ -8689,11 +8689,11 @@ ${photographer.businessName}`
 
       // Find or create a project for this contact (default to WEDDING type)
       let project;
-      const participantProjects = await storage.getParticipantProjects(contact.id);
+      const existingProjects = await storage.getProjectsByClient(contact.id);
       
-      if (participantProjects && participantProjects.length > 0) {
+      if (existingProjects && existingProjects.length > 0) {
         // Use the most recent project
-        project = participantProjects[0].project;
+        project = existingProjects[0];
       } else {
         // Create a new project in "New Inquiry" stage
         const stages = await storage.getStagesByPhotographer(photographer.id, "WEDDING");
