@@ -3837,7 +3837,7 @@ export default function Automations() {
                                 const immediateAutomations = group.automations.filter((a: any) => {
                                   // Exclude trigger-based automations
                                   if (a.businessTriggers && a.businessTriggers.length > 0) return false;
-                                  if (a.automationType === 'STAGE_CHANGE') return true; // Stage change automations are immediate
+                                  if (a.automationType === 'STAGE_CHANGE') return false; // Stage change automations are trigger-based
                                   // For communication automations, check first step delay
                                   const firstStep = a.steps?.[0];
                                   return firstStep && firstStep.delayMinutes === 0;
@@ -3846,7 +3846,7 @@ export default function Automations() {
                                 const timeBasedAutomations = group.automations.filter((a: any) => {
                                   // Exclude trigger-based automations
                                   if (a.businessTriggers && a.businessTriggers.length > 0) return false;
-                                  if (a.automationType === 'STAGE_CHANGE') return false; // Stage change automations are immediate
+                                  if (a.automationType === 'STAGE_CHANGE') return false; // Stage change automations are trigger-based
                                   // For communication automations, check first step delay
                                   const firstStep = a.steps?.[0];
                                   return firstStep && firstStep.delayMinutes > 0;
@@ -3858,7 +3858,8 @@ export default function Automations() {
                                 });
                                 
                                 const triggerBasedAutomations = group.automations.filter((a: any) => {
-                                  // Automations with business triggers
+                                  // Stage change automations OR automations with business triggers
+                                  if (a.automationType === 'STAGE_CHANGE') return true;
                                   return a.businessTriggers && a.businessTriggers.length > 0;
                                 });
                                 
