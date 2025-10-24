@@ -2845,7 +2845,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       if (templateData.channel === 'EMAIL') {
         if (templateData.contentBlocks && Array.isArray(templateData.contentBlocks)) {
           // Fetch photographer branding data for email generation
-          const photographer = await storage.getPhotographerById(req.user!.photographerId!);
+          const photographer = await storage.getPhotographer(req.user!.photographerId!);
           const { generateEmailHeader, generateEmailSignature } = await import('../shared/email-branding-shared.js');
           const { contentBlocksToHtml, contentBlocksToText } = await import('../shared/template-utils.js');
           
@@ -2935,7 +2935,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       if (templateChannel === 'EMAIL') {
         if (updates.contentBlocks && Array.isArray(updates.contentBlocks)) {
           // Fetch photographer branding data for email generation
-          const photographer = await storage.getPhotographerById(req.user!.photographerId!);
+          const photographer = await storage.getPhotographer(req.user!.photographerId!);
           const { generateEmailHeader, generateEmailSignature } = await import('../shared/email-branding-shared.js');
           const { contentBlocksToHtml, contentBlocksToText } = await import('../shared/template-utils.js');
           
