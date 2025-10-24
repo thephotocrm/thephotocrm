@@ -23,7 +23,7 @@ import ContactDetail from "@/pages/contact-detail";
 import Projects from "@/pages/projects";
 import ProjectDetail from "@/pages/project-detail";
 import Inbox from "@/pages/inbox";
-import Templates from "@/pages/templates";
+import Templates from "@/pages/templates-new";
 import Automations from "@/pages/automations";
 import DripCampaigns from "@/pages/drip-campaigns";
 import Packages from "@/pages/packages";

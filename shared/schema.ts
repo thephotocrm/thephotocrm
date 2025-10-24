@@ -301,6 +301,7 @@ export const templates = pgTable("templates", {
   subject: text("subject"),
   htmlBody: text("html_body"),
   textBody: text("text_body"),
+  contentBlocks: jsonb("content_blocks"), // Block-based email builder content
   createdAt: timestamp("created_at").defaultNow()
 });
 
