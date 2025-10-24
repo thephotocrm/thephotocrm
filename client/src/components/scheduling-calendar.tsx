@@ -112,7 +112,7 @@ export function SchedulingCalendar({
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="text-center space-y-2">
+      <div className="text-center space-y-2 px-4">
         <h2 className="text-2xl font-bold">{heading}</h2>
         {description && (
           <p className="text-muted-foreground">{description}</p>
