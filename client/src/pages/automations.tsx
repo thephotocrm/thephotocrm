@@ -2510,7 +2510,7 @@ export default function Automations() {
       </header>
       {/* Create Automation Dialog */}
       <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-            <DialogContent className={`w-[95vw] ${emailBuilderMode === 'build' && form.watch('channel') === 'EMAIL' ? 'max-w-7xl' : 'sm:max-w-2xl'} max-h-[92vh] p-0 flex flex-col overflow-hidden`}>
+            <DialogContent className={`w-[95vw] ${emailBuilderMode === 'build' && form.watch('channel') === 'EMAIL' ? 'max-w-7xl' : 'sm:max-w-5xl'} max-h-[92vh] p-0 flex flex-col overflow-hidden`}>
                 <DialogHeader className="sticky top-0 z-10 bg-background px-6 py-4 border-b">
                   <DialogTitle>Create new {activeProjectType.toLowerCase()} automation</DialogTitle>
                   <DialogDescription>
@@ -2929,45 +2929,47 @@ export default function Automations() {
                       </div>
                     </div>
                     
-                    <div className="ml-11 space-y-4">
+                    <div className="ml-11">
                     
-                    {/* Communication Actions Toggle */}
-                    <div className="flex items-center space-x-2 p-3 border rounded-lg">
-                      <Switch
-                        checked={enableCommunication}
-                        onCheckedChange={setEnableCommunication}
-                        data-testid="switch-enable-communication"
-                      />
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-2">
-                          <Mail className="h-4 w-4" />
-                          <Label className="font-medium">Send Messages</Label>
+                    {/* Action Toggles - Side by Side */}
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+                      {/* Communication Actions Toggle */}
+                      <div className="flex items-center space-x-2 p-3 border rounded-lg">
+                        <Switch
+                          checked={enableCommunication}
+                          onCheckedChange={setEnableCommunication}
+                          data-testid="switch-enable-communication"
+                        />
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-2">
+                            <Mail className="h-4 w-4" />
+                            <Label className="font-medium">Send Messages</Label>
+                          </div>
+                          <p className="text-xs text-muted-foreground">Send emails, texts, or assign forms to clients</p>
                         </div>
-                        <p className="text-xs text-muted-foreground">Send emails, texts, or assign forms to clients</p>
                       </div>
-                    </div>
 
-                    {/* Pipeline Actions Toggle */}
-                    <div className="flex items-center space-x-2 p-3 border rounded-lg">
-                      <Switch
-                        checked={enablePipeline}
-                        onCheckedChange={setEnablePipeline}
-                        data-testid="switch-enable-pipeline"
-                      />
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-2">
-                          <ArrowRight className="h-4 w-4" />
-                          <Label className="font-medium">Move Projects</Label>
+                      {/* Pipeline Actions Toggle */}
+                      <div className="flex items-center space-x-2 p-3 border rounded-lg">
+                        <Switch
+                          checked={enablePipeline}
+                          onCheckedChange={setEnablePipeline}
+                          data-testid="switch-enable-pipeline"
+                        />
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-2">
+                            <ArrowRight className="h-4 w-4" />
+                            <Label className="font-medium">Move Projects</Label>
+                          </div>
+                          <p className="text-xs text-muted-foreground">
+                            {enablePipeline 
+                              ? "Move projects to the next stage automatically" 
+                              : "Automatically move projects through your pipeline"
+                            }
+                          </p>
                         </div>
-                        <p className="text-xs text-muted-foreground">
-                          {enablePipeline 
-                            ? "Move projects to the next stage automatically" 
-                            : "Automatically move projects through your pipeline"
-                          }
-                        </p>
                       </div>
                     </div>
-                  </div>
 
                   {/* Current Limitations Info */}
                   {enablePipeline && form.watch('triggerMode') === 'STAGE' ? (
@@ -3454,6 +3456,7 @@ export default function Automations() {
                       />
                     </div>
                   )}
+                  </div>
                     </div>
                   </div>
                   </div>
