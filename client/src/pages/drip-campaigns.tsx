@@ -884,13 +884,7 @@ export default function DripCampaigns() {
               </div>
 
               {/* Build Email Container */}
-              <div className="bg-slate-300 dark:bg-slate-800/60 rounded-lg p-4 border border-slate-500 dark:border-slate-600">
-                <div className="relative mb-4">
-                  <Separator />
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-background px-2">
-                    <span className="text-xs text-muted-foreground">Email Content</span>
-                  </div>
-                </div>
+              <div className="bg-blue-200 dark:bg-slate-800/60 rounded-lg p-4 border border-blue-400 dark:border-slate-600">
 
               <Tabs value={previewTab} onValueChange={(v) => setPreviewTab(v as 'builder' | 'preview')}>
                 <TabsList className="grid w-full grid-cols-2">
@@ -1063,13 +1057,7 @@ export default function DripCampaigns() {
                   </div>
 
                   {/* Build Email Container */}
-                  <div className="bg-slate-300 dark:bg-slate-800/60 rounded-lg p-4 border border-slate-500 dark:border-slate-600">
-                    <div className="relative mb-4">
-                      <Separator />
-                      <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-background px-2">
-                        <span className="text-xs text-muted-foreground">Email Content</span>
-                      </div>
-                    </div>
+                  <div className="bg-blue-200 dark:bg-slate-800/60 rounded-lg p-4 border border-blue-400 dark:border-slate-600">
 
                     {/* Builder */}
                     <div>
