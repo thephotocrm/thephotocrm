@@ -4,7 +4,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
@@ -80,6 +80,9 @@ export default function DripCampaigns() {
   const [editHeaderStyle, setEditHeaderStyle] = useState('professional');
   const [editIncludeSignature, setEditIncludeSignature] = useState(false);
   const [editSignatureStyle, setEditSignatureStyle] = useState('professional');
+  
+  // Compact edit dialog states
+  const [timingDialogOpen, setTimingDialogOpen] = useState(false);
   
   // Email toggle states for direct static template display
   const [emailToggles, setEmailToggles] = useState<Record<string, boolean>>({});
@@ -686,76 +689,109 @@ export default function DripCampaigns() {
       {/* Edit Email Dialog */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
         <DialogContent className="w-full max-w-[100vw] md:max-w-[95vw] h-[95vh] flex flex-col p-4 md:p-6">
-          <DialogHeader className="flex-shrink-0">
-            <DialogTitle className="flex items-center gap-2">
-              <Edit className="h-5 w-5" />
-              Edit Email
-            </DialogTitle>
-            <DialogDescription>
-              Customize this email with the visual builder, set timing, and preview changes
-            </DialogDescription>
-          </DialogHeader>
-
           {/* Builder/Preview Side-by-Side Layout (Desktop) / Tabs (Mobile) */}
-          <div className="flex-1 min-h-0 mt-4">
+          <div className="flex-1 min-h-0">
             {/* Mobile Tabs */}
             <div className="lg:hidden">
-              <div className="space-y-4 mb-4">
+              <div className="space-y-3 mb-4">
+                {/* Header */}
+                <div className="pb-2 border-b">
+                  <h2 className="text-lg font-semibold flex items-center gap-2">
+                    <Edit className="h-5 w-5" />
+                    Edit Email
+                  </h2>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Customize this email with the visual builder, set timing, and preview changes
+                  </p>
+                </div>
+
                 <div>
-                  <Label htmlFor="edit-subject">Email Subject</Label>
+                  <Label htmlFor="edit-subject" className="text-sm">Email Subject</Label>
                   <Input
                     id="edit-subject"
                     value={editEmailSubject}
                     onChange={(e) => setEditEmailSubject(e.target.value)}
                     placeholder="Enter email subject"
+                    className="mt-1"
                     data-testid="input-edit-subject"
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="edit-days">Days After Start</Label>
-                    <Input
-                      id="edit-days"
-                      type="number"
-                      min="0"
-                      value={editDaysAfterStart}
-                      onChange={(e) => setEditDaysAfterStart(parseInt(e.target.value) || 0)}
-                      placeholder="0"
-                      data-testid="input-edit-days"
-                    />
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Days after start
-                    </p>
-                  </div>
+                {/* Compact Timing Display */}
+                <div>
+                  <Label className="text-sm">Timing</Label>
+                  <div className="flex gap-2 mt-1">
+                    <div className="flex-1 px-3 py-2 border rounded-md bg-background text-sm">
+                      Day {editDaysAfterStart}{editSendAtHour !== null ? ` at ${editSendAtHour === 0 ? '12' : editSendAtHour > 12 ? editSendAtHour - 12 : editSendAtHour}:00 ${editSendAtHour >= 12 ? 'PM' : 'AM'}` : ''}
+                    </div>
+                    <Dialog open={timingDialogOpen} onOpenChange={setTimingDialogOpen}>
+                      <DialogTrigger asChild>
+                        <Button type="button" variant="outline" size="sm" data-testid="button-edit-timing">
+                          <Edit className="w-4 h-4" />
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-md">
+                        <DialogHeader>
+                          <DialogTitle>Edit Timing</DialogTitle>
+                        </DialogHeader>
+                        <div className="space-y-4 mt-4">
+                          <div>
+                            <Label htmlFor="timing-days">Days After Start</Label>
+                            <Input
+                              id="timing-days"
+                              type="number"
+                              min="0"
+                              value={editDaysAfterStart}
+                              onChange={(e) => setEditDaysAfterStart(parseInt(e.target.value) || 0)}
+                              placeholder="0"
+                              data-testid="input-timing-days"
+                            />
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Days after start
+                            </p>
+                          </div>
 
-                  <div>
-                    <Label htmlFor="edit-hour">Send At Time</Label>
-                    <Select
-                      value={editSendAtHour !== null ? editSendAtHour.toString() : "none"}
-                      onValueChange={(value) => setEditSendAtHour(value === "none" ? null : parseInt(value))}
-                    >
-                      <SelectTrigger data-testid="select-edit-hour">
-                        <SelectValue placeholder="Any time" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="none">Any time</SelectItem>
-                        <SelectItem value="7">7:00 AM</SelectItem>
-                        <SelectItem value="8">8:00 AM</SelectItem>
-                        <SelectItem value="9">9:00 AM</SelectItem>
-                        <SelectItem value="10">10:00 AM</SelectItem>
-                        <SelectItem value="11">11:00 AM</SelectItem>
-                        <SelectItem value="12">12:00 PM</SelectItem>
-                        <SelectItem value="13">1:00 PM</SelectItem>
-                        <SelectItem value="14">2:00 PM</SelectItem>
-                        <SelectItem value="15">3:00 PM</SelectItem>
-                        <SelectItem value="16">4:00 PM</SelectItem>
-                        <SelectItem value="17">5:00 PM</SelectItem>
-                        <SelectItem value="18">6:00 PM</SelectItem>
-                        <SelectItem value="19">7:00 PM</SelectItem>
-                        <SelectItem value="20">8:00 PM</SelectItem>
-                      </SelectContent>
-                    </Select>
+                          <div>
+                            <Label htmlFor="timing-hour">Send At Time</Label>
+                            <Select
+                              value={editSendAtHour !== null ? editSendAtHour.toString() : "none"}
+                              onValueChange={(value) => setEditSendAtHour(value === "none" ? null : parseInt(value))}
+                            >
+                              <SelectTrigger data-testid="select-timing-hour">
+                                <SelectValue placeholder="Any time" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="none">Any time</SelectItem>
+                                <SelectItem value="7">7:00 AM</SelectItem>
+                                <SelectItem value="8">8:00 AM</SelectItem>
+                                <SelectItem value="9">9:00 AM</SelectItem>
+                                <SelectItem value="10">10:00 AM</SelectItem>
+                                <SelectItem value="11">11:00 AM</SelectItem>
+                                <SelectItem value="12">12:00 PM</SelectItem>
+                                <SelectItem value="13">1:00 PM</SelectItem>
+                                <SelectItem value="14">2:00 PM</SelectItem>
+                                <SelectItem value="15">3:00 PM</SelectItem>
+                                <SelectItem value="16">4:00 PM</SelectItem>
+                                <SelectItem value="17">5:00 PM</SelectItem>
+                                <SelectItem value="18">6:00 PM</SelectItem>
+                                <SelectItem value="19">7:00 PM</SelectItem>
+                                <SelectItem value="20">8:00 PM</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          <div className="flex justify-end">
+                            <Button 
+                              type="button" 
+                              onClick={() => setTimingDialogOpen(false)}
+                              data-testid="button-timing-done"
+                            >
+                              Done
+                            </Button>
+                          </div>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
                   </div>
                 </div>
               </div>
@@ -837,63 +873,47 @@ export default function DripCampaigns() {
             <div className="hidden lg:grid lg:grid-cols-2 lg:gap-6 h-full">
               {/* Left: Settings + Builder */}
               <div className="overflow-auto pr-2">
-                <div className="space-y-4">
-                  {/* Email Settings */}
+                <div className="space-y-3">
+                  {/* Header */}
+                  <div className="pb-2 border-b">
+                    <h2 className="text-lg font-semibold flex items-center gap-2">
+                      <Edit className="h-5 w-5" />
+                      Edit Email
+                    </h2>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Customize this email with the visual builder, set timing, and preview changes
+                    </p>
+                  </div>
+
+                  {/* Email Subject */}
                   <div>
-                    <Label htmlFor="edit-subject-desktop">Email Subject</Label>
+                    <Label htmlFor="edit-subject-desktop" className="text-sm">Email Subject</Label>
                     <Input
                       id="edit-subject-desktop"
                       value={editEmailSubject}
                       onChange={(e) => setEditEmailSubject(e.target.value)}
                       placeholder="Enter email subject"
+                      className="mt-1"
                       data-testid="input-edit-subject-desktop"
                     />
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="edit-days-desktop">Days After Start</Label>
-                      <Input
-                        id="edit-days-desktop"
-                        type="number"
-                        min="0"
-                        value={editDaysAfterStart}
-                        onChange={(e) => setEditDaysAfterStart(parseInt(e.target.value) || 0)}
-                        placeholder="0"
-                        data-testid="input-edit-days-desktop"
-                      />
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Days after start
-                      </p>
-                    </div>
-
-                    <div>
-                      <Label htmlFor="edit-hour-desktop">Send At Time</Label>
-                      <Select
-                        value={editSendAtHour !== null ? editSendAtHour.toString() : "none"}
-                        onValueChange={(value) => setEditSendAtHour(value === "none" ? null : parseInt(value))}
+                  {/* Compact Timing Display */}
+                  <div>
+                    <Label className="text-sm">Timing</Label>
+                    <div className="flex gap-2 mt-1">
+                      <div className="flex-1 px-3 py-2 border rounded-md bg-background text-sm">
+                        Day {editDaysAfterStart}{editSendAtHour !== null ? ` at ${editSendAtHour === 0 ? '12' : editSendAtHour > 12 ? editSendAtHour - 12 : editSendAtHour}:00 ${editSendAtHour >= 12 ? 'PM' : 'AM'}` : ''}
+                      </div>
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => setTimingDialogOpen(true)}
+                        data-testid="button-edit-timing-desktop"
                       >
-                        <SelectTrigger data-testid="select-edit-hour-desktop">
-                          <SelectValue placeholder="Any time" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="none">Any time</SelectItem>
-                          <SelectItem value="7">7:00 AM</SelectItem>
-                          <SelectItem value="8">8:00 AM</SelectItem>
-                          <SelectItem value="9">9:00 AM</SelectItem>
-                          <SelectItem value="10">10:00 AM</SelectItem>
-                          <SelectItem value="11">11:00 AM</SelectItem>
-                          <SelectItem value="12">12:00 PM</SelectItem>
-                          <SelectItem value="13">1:00 PM</SelectItem>
-                          <SelectItem value="14">2:00 PM</SelectItem>
-                          <SelectItem value="15">3:00 PM</SelectItem>
-                          <SelectItem value="16">4:00 PM</SelectItem>
-                          <SelectItem value="17">5:00 PM</SelectItem>
-                          <SelectItem value="18">6:00 PM</SelectItem>
-                          <SelectItem value="19">7:00 PM</SelectItem>
-                          <SelectItem value="20">8:00 PM</SelectItem>
-                        </SelectContent>
-                      </Select>
+                        <Edit className="w-4 h-4" />
+                      </Button>
                     </div>
                   </div>
 
