@@ -15,6 +15,7 @@ interface EmailPreviewProps {
   headerStyle?: string;
   includeSignature?: boolean;
   signatureStyle?: string;
+  hideCardWrapper?: boolean;
 }
 
 export function EmailPreview({ 
@@ -26,7 +27,8 @@ export function EmailPreview({
   includeHeader,
   headerStyle,
   includeSignature,
-  signatureStyle
+  signatureStyle,
+  hideCardWrapper = false
 }: EmailPreviewProps) {
   const { data: photographer } = useQuery({
     queryKey: ['/api/photographers/me']
@@ -117,6 +119,47 @@ export function EmailPreview({
     }
   };
 
+  const emailContent = (
+    <div className="bg-white rounded-lg border max-w-2xl mx-auto overflow-hidden" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+      {/* Hero Image */}
+      {includeHeroImage && heroImageUrl && (
+        <div className="w-full">
+          <img src={heroImageUrl} alt="Hero" className="w-full h-auto" />
+        </div>
+      )}
+      
+      {/* Header */}
+      {includeHeader && headerStyle && (
+        <div dangerouslySetInnerHTML={{ __html: generateEmailHeader(headerStyle, brandingData) }} />
+      )}
+      
+      {/* Content */}
+      <div className="p-8">
+        {blocks.length === 0 ? (
+          <div className="text-center text-muted-foreground py-12">
+            <p>No content blocks to preview</p>
+            <p className="text-sm mt-2">Add blocks to see them here</p>
+          </div>
+        ) : (
+          blocks.map((block) => (
+            <div key={block.id}>
+              {renderBlock(block)}
+            </div>
+          ))
+        )}
+      </div>
+      
+      {/* Signature */}
+      {includeSignature && signatureStyle && (
+        <div dangerouslySetInnerHTML={{ __html: generateEmailSignature(signatureStyle, brandingData) }} />
+      )}
+    </div>
+  );
+
+  if (hideCardWrapper) {
+    return emailContent;
+  }
+
   return (
     <Card className={cn("overflow-hidden", className)}>
       <CardHeader className="bg-muted/50 border-b">
@@ -128,40 +171,7 @@ export function EmailPreview({
         )}
       </CardHeader>
       <CardContent className="p-6">
-        <div className="bg-white rounded-lg border max-w-2xl mx-auto overflow-hidden" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
-          {/* Hero Image */}
-          {includeHeroImage && heroImageUrl && (
-            <div className="w-full">
-              <img src={heroImageUrl} alt="Hero" className="w-full h-auto" />
-            </div>
-          )}
-          
-          {/* Header */}
-          {includeHeader && headerStyle && (
-            <div dangerouslySetInnerHTML={{ __html: generateEmailHeader(headerStyle, brandingData) }} />
-          )}
-          
-          {/* Content */}
-          <div className="p-8">
-            {blocks.length === 0 ? (
-              <div className="text-center text-muted-foreground py-12">
-                <p>No content blocks to preview</p>
-                <p className="text-sm mt-2">Add blocks to see them here</p>
-              </div>
-            ) : (
-              blocks.map((block) => (
-                <div key={block.id}>
-                  {renderBlock(block)}
-                </div>
-              ))
-            )}
-          </div>
-          
-          {/* Signature */}
-          {includeSignature && signatureStyle && (
-            <div dangerouslySetInnerHTML={{ __html: generateEmailSignature(signatureStyle, brandingData) }} />
-          )}
-        </div>
+        {emailContent}
       </CardContent>
     </Card>
   );

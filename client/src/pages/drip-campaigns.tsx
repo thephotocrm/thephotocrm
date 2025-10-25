@@ -594,6 +594,7 @@ export default function DripCampaigns() {
                             headerStyle={selectedEmailForPreview.headerStyle || 'professional'}
                             includeSignature={selectedEmailForPreview.includeSignature || false}
                             signatureStyle={selectedEmailForPreview.signatureStyle || 'professional'}
+                            hideCardWrapper={true}
                           />
                         );
                       }
