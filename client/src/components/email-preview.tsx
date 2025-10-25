@@ -29,7 +29,7 @@ export function EmailPreview({
   signatureStyle
 }: EmailPreviewProps) {
   const { data: photographer } = useQuery({
-    queryKey: ['/api/photographer/me']
+    queryKey: ['/api/photographers/me']
   });
 
   const brandingData: BrandingData = {
