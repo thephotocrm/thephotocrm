@@ -758,132 +758,142 @@ export default function DripCampaigns() {
                   />
                 </div>
 
-                {/* Settings Container */}
-                <div className="border rounded-lg p-3 bg-muted/30 space-y-3">
-                  {/* Compact Timing Display */}
-                  <div>
-                    <Label className="text-sm">Timing</Label>
-                  <div className="flex gap-2 mt-1">
-                    <div className="flex-1 px-3 py-2 border rounded-md bg-background text-sm">
-                      Day {editDaysAfterStart}{editSendAtHour !== null ? ` at ${editSendAtHour === 0 ? '12' : editSendAtHour > 12 ? editSendAtHour - 12 : editSendAtHour}:00 ${editSendAtHour >= 12 ? 'PM' : 'AM'}` : ''}
+                {/* Settings Cards */}
+                <div className="space-y-3">
+                  {/* Timing Card */}
+                  <div className="border rounded-lg p-3 bg-card">
+                    <Label className="text-xs text-muted-foreground">Timing</Label>
+                    <div className="flex items-center justify-between mt-2">
+                      <div className="text-sm font-medium">
+                        Day {editDaysAfterStart}{editSendAtHour !== null ? ` at ${editSendAtHour === 0 ? '12' : editSendAtHour > 12 ? editSendAtHour - 12 : editSendAtHour}:00 ${editSendAtHour >= 12 ? 'PM' : 'AM'}` : ''}
+                      </div>
+                      <Dialog open={timingDialogOpen} onOpenChange={setTimingDialogOpen}>
+                        <DialogTrigger asChild>
+                          <Button type="button" variant="ghost" size="sm" data-testid="button-edit-timing" className="h-8 w-8 p-0">
+                            <Edit className="w-3.5 h-3.5" />
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-md">
+                          <DialogHeader>
+                            <DialogTitle>Edit Timing</DialogTitle>
+                          </DialogHeader>
+                          <div className="space-y-4 mt-4">
+                            <div>
+                              <Label htmlFor="timing-days">Days After Start</Label>
+                              <Input
+                                id="timing-days"
+                                type="number"
+                                min="0"
+                                value={editDaysAfterStart}
+                                onChange={(e) => setEditDaysAfterStart(parseInt(e.target.value) || 0)}
+                                placeholder="0"
+                                data-testid="input-timing-days"
+                              />
+                              <p className="text-xs text-muted-foreground mt-1">
+                                Days after start
+                              </p>
+                            </div>
+
+                            <div>
+                              <Label htmlFor="timing-hour">Send At Time</Label>
+                              <Select
+                                value={editSendAtHour !== null ? editSendAtHour.toString() : "none"}
+                                onValueChange={(value) => setEditSendAtHour(value === "none" ? null : parseInt(value))}
+                              >
+                                <SelectTrigger data-testid="select-timing-hour">
+                                  <SelectValue placeholder="Any time" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="none">Any time</SelectItem>
+                                  <SelectItem value="7">7:00 AM</SelectItem>
+                                  <SelectItem value="8">8:00 AM</SelectItem>
+                                  <SelectItem value="9">9:00 AM</SelectItem>
+                                  <SelectItem value="10">10:00 AM</SelectItem>
+                                  <SelectItem value="11">11:00 AM</SelectItem>
+                                  <SelectItem value="12">12:00 PM</SelectItem>
+                                  <SelectItem value="13">1:00 PM</SelectItem>
+                                  <SelectItem value="14">2:00 PM</SelectItem>
+                                  <SelectItem value="15">3:00 PM</SelectItem>
+                                  <SelectItem value="16">4:00 PM</SelectItem>
+                                  <SelectItem value="17">5:00 PM</SelectItem>
+                                  <SelectItem value="18">6:00 PM</SelectItem>
+                                  <SelectItem value="19">7:00 PM</SelectItem>
+                                  <SelectItem value="20">8:00 PM</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+
+                            <div className="flex justify-end">
+                              <Button 
+                                type="button" 
+                                onClick={() => setTimingDialogOpen(false)}
+                                data-testid="button-timing-done"
+                              >
+                                Done
+                              </Button>
+                            </div>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
                     </div>
-                    <Dialog open={timingDialogOpen} onOpenChange={setTimingDialogOpen}>
-                      <DialogTrigger asChild>
-                        <Button type="button" variant="outline" size="sm" data-testid="button-edit-timing">
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent className="max-w-md">
-                        <DialogHeader>
-                          <DialogTitle>Edit Timing</DialogTitle>
-                        </DialogHeader>
-                        <div className="space-y-4 mt-4">
-                          <div>
-                            <Label htmlFor="timing-days">Days After Start</Label>
-                            <Input
-                              id="timing-days"
-                              type="number"
-                              min="0"
-                              value={editDaysAfterStart}
-                              onChange={(e) => setEditDaysAfterStart(parseInt(e.target.value) || 0)}
-                              placeholder="0"
-                              data-testid="input-timing-days"
-                            />
-                            <p className="text-xs text-muted-foreground mt-1">
-                              Days after start
-                            </p>
-                          </div>
+                  </div>
 
-                          <div>
-                            <Label htmlFor="timing-hour">Send At Time</Label>
-                            <Select
-                              value={editSendAtHour !== null ? editSendAtHour.toString() : "none"}
-                              onValueChange={(value) => setEditSendAtHour(value === "none" ? null : parseInt(value))}
-                            >
-                              <SelectTrigger data-testid="select-timing-hour">
-                                <SelectValue placeholder="Any time" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="none">Any time</SelectItem>
-                                <SelectItem value="7">7:00 AM</SelectItem>
-                                <SelectItem value="8">8:00 AM</SelectItem>
-                                <SelectItem value="9">9:00 AM</SelectItem>
-                                <SelectItem value="10">10:00 AM</SelectItem>
-                                <SelectItem value="11">11:00 AM</SelectItem>
-                                <SelectItem value="12">12:00 PM</SelectItem>
-                                <SelectItem value="13">1:00 PM</SelectItem>
-                                <SelectItem value="14">2:00 PM</SelectItem>
-                                <SelectItem value="15">3:00 PM</SelectItem>
-                                <SelectItem value="16">4:00 PM</SelectItem>
-                                <SelectItem value="17">5:00 PM</SelectItem>
-                                <SelectItem value="18">6:00 PM</SelectItem>
-                                <SelectItem value="19">7:00 PM</SelectItem>
-                                <SelectItem value="20">8:00 PM</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
+                  {/* Header Card */}
+                  <div className="border rounded-lg p-3 bg-card">
+                    <Label className="text-xs text-muted-foreground">Header</Label>
+                    <div className="flex items-center justify-between mt-2">
+                      <div className="text-sm font-medium">
+                        {editIncludeHeader ? `${editHeaderStyle.charAt(0).toUpperCase() + editHeaderStyle.slice(1)}` : 'None'}
+                      </div>
+                      <Button 
+                        type="button" 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => setHeaderModalOpen(true)}
+                        data-testid="button-edit-header-mobile"
+                        className="h-8 w-8 p-0"
+                      >
+                        <Edit className="w-3.5 h-3.5" />
+                      </Button>
+                    </div>
+                  </div>
 
-                          <div className="flex justify-end">
-                            <Button 
-                              type="button" 
-                              onClick={() => setTimingDialogOpen(false)}
-                              data-testid="button-timing-done"
-                            >
-                              Done
-                            </Button>
-                          </div>
-                        </div>
-                      </DialogContent>
-                    </Dialog>
+                  {/* Signature Card */}
+                  <div className="border rounded-lg p-3 bg-card">
+                    <Label className="text-xs text-muted-foreground">Signature</Label>
+                    <div className="flex items-center justify-between mt-2">
+                      <div className="text-sm font-medium">
+                        {editIncludeSignature ? `${editSignatureStyle.charAt(0).toUpperCase() + editSignatureStyle.slice(1)}` : 'None'}
+                      </div>
+                      <Button 
+                        type="button" 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => setSignatureModalOpen(true)}
+                        data-testid="button-edit-signature-mobile"
+                        className="h-8 w-8 p-0"
+                      >
+                        <Edit className="w-3.5 h-3.5" />
+                      </Button>
+                    </div>
                   </div>
                 </div>
 
-                {/* Compact Header Display */}
-                <div>
-                  <Label className="text-sm">Header</Label>
-                  <div className="flex gap-2 mt-1">
-                    <div className="flex-1 px-3 py-2 border rounded-md bg-background text-sm">
-                      {editIncludeHeader ? `${editHeaderStyle.charAt(0).toUpperCase() + editHeaderStyle.slice(1)}` : 'None'}
-                    </div>
-                    <Button 
-                      type="button" 
-                      variant="outline" 
-                      size="sm" 
-                      onClick={() => setHeaderModalOpen(true)}
-                      data-testid="button-edit-header-mobile"
-                    >
-                      <Edit className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-
-                {/* Compact Signature Display */}
-                <div>
-                  <Label className="text-sm">Signature</Label>
-                  <div className="flex gap-2 mt-1">
-                    <div className="flex-1 px-3 py-2 border rounded-md bg-background text-sm">
-                      {editIncludeSignature ? `${editSignatureStyle.charAt(0).toUpperCase() + editSignatureStyle.slice(1)}` : 'None'}
-                    </div>
-                    <Button 
-                      type="button" 
-                      variant="outline" 
-                      size="sm" 
-                      onClick={() => setSignatureModalOpen(true)}
-                      data-testid="button-edit-signature-mobile"
-                    >
-                      <Edit className="w-4 h-4" />
-                    </Button>
+                <div className="relative">
+                  <Separator />
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-background px-2">
+                    <span className="text-xs text-muted-foreground">Email Content</span>
                   </div>
                 </div>
               </div>
-            </div>
-                  <Tabs value={previewTab} onValueChange={(v) => setPreviewTab(v as 'builder' | 'preview')}>
-                    <TabsList className="grid w-full grid-cols-2">
-                      <TabsTrigger value="builder" data-testid="tab-builder">Build Email</TabsTrigger>
-                      <TabsTrigger value="preview" data-testid="tab-preview">Preview</TabsTrigger>
-                    </TabsList>
 
-                    <TabsContent value="builder" className="mt-4">
+              <Tabs value={previewTab} onValueChange={(v) => setPreviewTab(v as 'builder' | 'preview')}>
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="builder" data-testid="tab-builder">Build Email</TabsTrigger>
+                  <TabsTrigger value="preview" data-testid="tab-preview">Preview</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="builder" className="mt-4">
                       {editEmailBlocks.length === 0 && emailBeingEdited?.htmlBody && (
                         <div className="mb-4 p-4 bg-muted rounded-lg border">
                           <div className="flex items-start gap-2">
@@ -980,67 +990,75 @@ export default function DripCampaigns() {
                     />
                   </div>
 
-                  {/* Settings Container */}
-                  <div className="border rounded-lg p-3 bg-muted/30 space-y-3">
-                    {/* Compact Timing Display */}
-                    <div>
-                      <Label className="text-sm">Timing</Label>
-                      <div className="flex gap-2 mt-1">
-                        <div className="flex-1 px-3 py-2 border rounded-md bg-background text-sm">
+                  {/* Settings Cards */}
+                  <div className="grid grid-cols-3 gap-3">
+                    {/* Timing Card */}
+                    <div className="border rounded-lg p-3 bg-card">
+                      <Label className="text-xs text-muted-foreground">Timing</Label>
+                      <div className="flex items-center justify-between mt-2">
+                        <div className="text-sm font-medium">
                           Day {editDaysAfterStart}{editSendAtHour !== null ? ` at ${editSendAtHour === 0 ? '12' : editSendAtHour > 12 ? editSendAtHour - 12 : editSendAtHour}:00 ${editSendAtHour >= 12 ? 'PM' : 'AM'}` : ''}
                         </div>
                         <Button 
                           type="button" 
-                          variant="outline" 
+                          variant="ghost" 
                           size="sm" 
                           onClick={() => setTimingDialogOpen(true)}
                           data-testid="button-edit-timing-desktop"
+                          className="h-8 w-8 p-0"
                         >
-                          <Edit className="w-4 h-4" />
+                          <Edit className="w-3.5 h-3.5" />
                         </Button>
                       </div>
                     </div>
 
-                    {/* Compact Header Display */}
-                    <div>
-                      <Label className="text-sm">Header</Label>
-                      <div className="flex gap-2 mt-1">
-                        <div className="flex-1 px-3 py-2 border rounded-md bg-background text-sm">
+                    {/* Header Card */}
+                    <div className="border rounded-lg p-3 bg-card">
+                      <Label className="text-xs text-muted-foreground">Header</Label>
+                      <div className="flex items-center justify-between mt-2">
+                        <div className="text-sm font-medium">
                           {editIncludeHeader ? `${editHeaderStyle.charAt(0).toUpperCase() + editHeaderStyle.slice(1)}` : 'None'}
                         </div>
                         <Button 
                           type="button" 
-                          variant="outline" 
+                          variant="ghost" 
                           size="sm" 
                           onClick={() => setHeaderModalOpen(true)}
                           data-testid="button-edit-header-desktop"
+                          className="h-8 w-8 p-0"
                         >
-                          <Edit className="w-4 h-4" />
+                          <Edit className="w-3.5 h-3.5" />
                         </Button>
                       </div>
                     </div>
 
-                    {/* Compact Signature Display */}
-                    <div>
-                      <Label className="text-sm">Signature</Label>
-                      <div className="flex gap-2 mt-1">
-                        <div className="flex-1 px-3 py-2 border rounded-md bg-background text-sm">
+                    {/* Signature Card */}
+                    <div className="border rounded-lg p-3 bg-card">
+                      <Label className="text-xs text-muted-foreground">Signature</Label>
+                      <div className="flex items-center justify-between mt-2">
+                        <div className="text-sm font-medium">
                           {editIncludeSignature ? `${editSignatureStyle.charAt(0).toUpperCase() + editSignatureStyle.slice(1)}` : 'None'}
                         </div>
                         <Button 
                           type="button" 
-                          variant="outline" 
+                          variant="ghost" 
                           size="sm" 
                           onClick={() => setSignatureModalOpen(true)}
                           data-testid="button-edit-signature-desktop"
+                          className="h-8 w-8 p-0"
                         >
-                          <Edit className="w-4 h-4" />
+                          <Edit className="w-3.5 h-3.5" />
                         </Button>
                       </div>
                     </div>
                   </div>
 
-                  <Separator />
+                  <div className="relative">
+                    <Separator />
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-background px-2">
+                      <span className="text-xs text-muted-foreground">Email Content</span>
+                    </div>
+                  </div>
 
                   {/* Builder */}
                   <div>
