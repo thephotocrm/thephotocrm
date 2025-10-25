@@ -21,8 +21,8 @@ Preferred communication style: Simple, everyday language.
 
 **Technical Implementations:**
 *   **Multi-Tenant Architecture:** Ensures strict data isolation for each photographer.
-*   **Static Email Marketing Platform:** Drip campaign system with pre-written templates, 3-phase timing, and support for various project types and visual themes.
-*   **Automation System:** Event-driven engine using `node-cron` for scheduled tasks, supporting stage-based triggers, dynamic content, and multi-channel delivery (email, SMS, Smart Files). Includes internal URL shortening with click tracking.
+*   **Static Email Marketing Platform:** Drip campaign system with pre-written templates, 3-phase timing, and support for various project types and visual themes. **Visual Email Builder:** Integrated block-based email editor for drip campaigns with drag-to-reorder blocks (Heading, Text, Button, Image, Spacer), real-time preview, time-of-day scheduling (0-23 hours), and safe draft creation from templates. Supports editing static templates via auto-draft conversion, preserving all builder metadata (`emailBlocks`, `useEmailBuilder`, `sendAtHour`). Draft campaigns remain in DRAFT status until explicitly activated, preventing accidental email sends.
+*   **Automation System:** Event-driven engine using `node-cron` for scheduled tasks, supporting stage-based triggers, dynamic content, and multi-channel delivery (email, SMS, Smart Files). Includes internal URL shortening with click tracking. Scheduling logic respects `sendAtHour` field for precise email timing with while-loop prevention of premature sends.
 *   **Two-Way SMS Communication:** Integrates Twilio for sending and receiving SMS/MMS, including a two-way relay and message logging.
 *   **SMS Inbox Page:** Centralized messaging interface with conversation tracking and real-time unread count badges.
 *   **Payment Processing & Stripe Connect:** Requires Stripe Connect Express accounts, supporting configurable platform fees and webhook integration.
