@@ -884,7 +884,7 @@ export default function DripCampaigns() {
               </div>
 
               {/* Build Email Container */}
-              <div className="bg-purple-100 dark:bg-purple-950/60 rounded-lg p-4 border border-purple-300 dark:border-purple-700">
+              <div className="bg-green-100 dark:bg-green-950/60 rounded-lg p-4 border border-green-300 dark:border-green-700">
                 <div className="relative mb-4">
                   <Separator />
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-background px-2">
@@ -1063,7 +1063,7 @@ export default function DripCampaigns() {
                   </div>
 
                   {/* Build Email Container */}
-                  <div className="bg-purple-100 dark:bg-purple-950/60 rounded-lg p-4 border border-purple-300 dark:border-purple-700">
+                  <div className="bg-green-100 dark:bg-green-950/60 rounded-lg p-4 border border-green-300 dark:border-green-700">
                     <div className="relative mb-4">
                       <Separator />
                       <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-background px-2">
