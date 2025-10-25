@@ -6070,6 +6070,50 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       if (existingDraft) {
         // Fetch and include emails with the existing draft
         const emails = await storage.getDripCampaignEmails(existingDraft.id);
+        
+        // DEFENSIVE: If draft exists but has no emails, we need to recreate them
+        if (emails.length === 0) {
+          console.log(`Draft campaign ${existingDraft.id} has no emails, recreating them...`);
+          
+          // Get photographer and static campaign template
+          const photographer = await storage.getPhotographer(req.user!.photographerId!);
+          if (!photographer) {
+            return res.status(404).json({ message: "Photographer not found" });
+          }
+          
+          const staticCampaignService = await import('./services/staticCampaigns');
+          const staticCampaign = staticCampaignService.getStaticCampaignByType(photographer, projectType || "WEDDING");
+          
+          if (!staticCampaign) {
+            return res.status(400).json({ message: `No static campaign template available for project type: ${projectType}` });
+          }
+          
+          // Create all emails from the template
+          const newEmails = [];
+          for (let i = 0; i < staticCampaign.emails.length; i++) {
+            const templateEmail = staticCampaign.emails[i];
+            const emailData = {
+              campaignId: existingDraft.id,
+              sequenceIndex: i,
+              subject: templateEmail.subject,
+              htmlBody: templateEmail.htmlBody,
+              textBody: templateEmail.textBody,
+              daysAfterStart: templateEmail.daysAfterStart,
+              weeksAfterStart: templateEmail.weeksAfterStart,
+              sendAtHour: (templateEmail as any).sendAtHour ?? null,
+              emailBlocks: (templateEmail as any).emailBlocks ?? null,
+              useEmailBuilder: (templateEmail as any).useEmailBuilder ?? false
+            };
+            const createdEmail = await storage.createDripCampaignEmail(emailData);
+            newEmails.push(createdEmail);
+          }
+          
+          return res.json({
+            ...existingDraft,
+            emails: newEmails
+          });
+        }
+        
         return res.json({
           ...existingDraft,
           emails
