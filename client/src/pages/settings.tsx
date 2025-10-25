@@ -410,6 +410,7 @@ export default function Settings() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/photographer"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/photographers/me"] });
       toast({
         title: "Settings updated",
         description: "Your settings have been saved successfully.",
