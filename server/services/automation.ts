@@ -1458,7 +1458,18 @@ async function subscribeNewProjectsToCampaign(campaign: any, photographerId: str
     // Subscribe project to campaign
     const now = new Date();
     const firstEmailWeeks = 0; // Start immediately
-    const nextEmailAt = new Date(now.getTime() + (firstEmailWeeks * 7 * 24 * 60 * 60 * 1000));
+    let nextEmailAt = new Date(now.getTime() + (firstEmailWeeks * 7 * 24 * 60 * 60 * 1000));
+    
+    // Get the first email to check for sendAtHour
+    const firstEmail = campaign.emails?.[0];
+    if (firstEmail?.sendAtHour !== null && firstEmail?.sendAtHour !== undefined) {
+      // Set the time to the specified hour
+      nextEmailAt.setHours(firstEmail.sendAtHour, 0, 0, 0);
+      // If that time has already passed today, schedule for tomorrow
+      if (nextEmailAt <= now) {
+        nextEmailAt = new Date(nextEmailAt.getTime() + (24 * 60 * 60 * 1000));
+      }
+    }
 
     await db.insert(dripCampaignSubscriptions).values({
       campaignId: campaign.id,
@@ -1705,7 +1716,19 @@ async function processSubscriptionEmail(subscription: any, campaign: any, projec
 
       // Update subscription for next email
       const nextEmailIndex = subscription.nextEmailIndex + 1;
-      const nextEmailAt = new Date(now.getTime() + (campaign.emailFrequencyWeeks * 7 * 24 * 60 * 60 * 1000));
+      const minScheduleTime = new Date(now.getTime() + (campaign.emailFrequencyWeeks * 7 * 24 * 60 * 60 * 1000));
+      let nextEmailAt = new Date(minScheduleTime);
+      
+      // Get the next email to check for sendAtHour
+      const nextEmail = campaign.emails?.[nextEmailIndex];
+      if (nextEmail?.sendAtHour !== null && nextEmail?.sendAtHour !== undefined) {
+        // Set the time to the specified hour
+        nextEmailAt.setHours(nextEmail.sendAtHour, 0, 0, 0);
+        // If adjusted time is before minimum schedule time, bump forward by 24h
+        while (nextEmailAt < minScheduleTime) {
+          nextEmailAt = new Date(nextEmailAt.getTime() + (24 * 60 * 60 * 1000));
+        }
+      }
 
       await db
         .update(dripCampaignSubscriptions)

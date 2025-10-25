@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
@@ -25,11 +26,14 @@ import {
   Play,
   Pause,
   Eye,
-  MoreHorizontal
+  MoreHorizontal,
+  Save
 } from "lucide-react";
 import { projectTypeEnum, type DripCampaignEmail as SchemaDripCampaignEmail } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { EmailTemplateBuilder, type ContentBlock } from "@/components/email-template-builder";
+import { EmailPreview } from "@/components/email-preview";
 
 // Types
 type DripCampaign = {
@@ -63,6 +67,15 @@ export default function DripCampaigns() {
   const [selectedEmailForPreview, setSelectedEmailForPreview] = useState<any>(null);
   const [previewDialogOpen, setPreviewDialogOpen] = useState(false);
   
+  // Email edit modal state
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [emailBeingEdited, setEmailBeingEdited] = useState<any>(null);
+  const [editEmailSubject, setEditEmailSubject] = useState("");
+  const [editEmailBlocks, setEditEmailBlocks] = useState<ContentBlock[]>([]);
+  const [editDaysAfterStart, setEditDaysAfterStart] = useState(0);
+  const [editSendAtHour, setEditSendAtHour] = useState<number | null>(null);
+  const [previewTab, setPreviewTab] = useState<'builder' | 'preview'>('builder');
+  
   // Email toggle states for direct static template display
   const [emailToggles, setEmailToggles] = useState<Record<string, boolean>>({});
   const [campaignEnabled, setCampaignEnabled] = useState<Record<string, boolean>>({});
@@ -88,6 +101,40 @@ export default function DripCampaigns() {
     },
     onError: (error: any) => {
       toast({ title: "Failed to save settings", description: error.message, variant: "destructive" });
+    }
+  });
+
+  // Mutation for updating email content
+  const updateEmailMutation = useMutation({
+    mutationFn: async (data: {
+      campaignId: string;
+      emailId: string;
+      subject: string;
+      htmlBody: string;
+      textBody: string;
+      emailBlocks: string;
+      sendAtHour: number | null;
+      daysAfterStart: number;
+      useEmailBuilder: boolean;
+    }) => {
+      const res = await apiRequest("PATCH", `/api/drip-campaigns/${data.campaignId}/emails/${data.emailId}`, {
+        subject: data.subject,
+        htmlBody: data.htmlBody,
+        textBody: data.textBody,
+        emailBlocks: data.emailBlocks,
+        sendAtHour: data.sendAtHour,
+        daysAfterStart: data.daysAfterStart,
+        useEmailBuilder: data.useEmailBuilder
+      });
+      return await res.json();
+    },
+    onSuccess: () => {
+      toast({ title: "Email updated successfully" });
+      queryClient.invalidateQueries({ queryKey: ["/api/drip-campaigns/static-templates"] });
+      setEditDialogOpen(false);
+    },
+    onError: (error: any) => {
+      toast({ title: "Failed to update email", description: error.message, variant: "destructive" });
     }
   });
 
@@ -147,6 +194,49 @@ export default function DripCampaigns() {
 
 
 
+
+  // Handler for opening edit dialog
+  const handleEditEmail = (email: any) => {
+    setEmailBeingEdited(email);
+    setEditEmailSubject(email.subject);
+    setEditDaysAfterStart(email.daysAfterStart || 0);
+    setEditSendAtHour(email.sendAtHour ?? null);
+    
+    // Parse existing blocks if they exist
+    if (email.emailBlocks) {
+      try {
+        setEditEmailBlocks(JSON.parse(email.emailBlocks));
+      } catch (error) {
+        console.error('Failed to parse email blocks:', error);
+        setEditEmailBlocks([]);
+      }
+    } else {
+      setEditEmailBlocks([]);
+    }
+    
+    setPreviewTab('builder');
+    setEditDialogOpen(true);
+  };
+
+  // Handler for saving edited email
+  const handleSaveEmail = async () => {
+    if (!emailBeingEdited || !staticCampaign) return;
+
+    // Generate HTML and text from blocks using EmailPreview component temporarily
+    const emailBlocks = editEmailBlocks;
+    
+    updateEmailMutation.mutate({
+      campaignId: staticCampaign.id,
+      emailId: emailBeingEdited.id,
+      subject: editEmailSubject,
+      htmlBody: emailBeingEdited.htmlBody, // Keep existing for now, will be regenerated from blocks
+      textBody: emailBeingEdited.textBody,
+      emailBlocks: JSON.stringify(emailBlocks),
+      sendAtHour: editSendAtHour,
+      daysAfterStart: editDaysAfterStart,
+      useEmailBuilder: emailBlocks.length > 0
+    });
+  };
 
   const getStatusBadge = (status: string) => {
     const variants = {
@@ -352,8 +442,8 @@ export default function DripCampaigns() {
                               </div>
                             </div>
                             
-                            {/* Preview Button */}
-                            <div className="flex">
+                            {/* Action Buttons */}
+                            <div className="flex gap-2">
                               <Button
                                 size="sm"
                                 variant="outline"
@@ -361,11 +451,21 @@ export default function DripCampaigns() {
                                   setSelectedEmailForPreview(email);
                                   setPreviewDialogOpen(true);
                                 }}
-                                className="w-full sm:w-auto"
+                                className="flex-1 sm:flex-none"
                                 data-testid={`button-preview-email-${index}`}
                               >
                                 <Eye className="h-4 w-4 mr-1" />
                                 Preview
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="default"
+                                onClick={() => handleEditEmail(email)}
+                                className="flex-1 sm:flex-none"
+                                data-testid={`button-edit-email-${index}`}
+                              >
+                                <Edit className="h-4 w-4 mr-1" />
+                                Edit
                               </Button>
                             </div>
                           </div>
@@ -448,6 +548,134 @@ export default function DripCampaigns() {
           </DialogContent>
         </Dialog>
       )}
+
+      {/* Edit Email Dialog */}
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent className="w-full max-w-[100vw] md:max-w-7xl max-h-[90vh] p-4 md:p-6">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Edit className="h-5 w-5" />
+              Edit Email
+            </DialogTitle>
+            <DialogDescription>
+              Customize this email with the visual builder, set timing, and preview changes
+            </DialogDescription>
+          </DialogHeader>
+
+          <ScrollArea className="h-[calc(90vh-180px)] pr-4">
+            <div className="space-y-6">
+              {/* Email Settings */}
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="edit-subject">Email Subject</Label>
+                  <Input
+                    id="edit-subject"
+                    value={editEmailSubject}
+                    onChange={(e) => setEditEmailSubject(e.target.value)}
+                    placeholder="Enter email subject"
+                    data-testid="input-edit-subject"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="edit-days">Days After Start</Label>
+                    <Input
+                      id="edit-days"
+                      type="number"
+                      min="0"
+                      value={editDaysAfterStart}
+                      onChange={(e) => setEditDaysAfterStart(parseInt(e.target.value) || 0)}
+                      placeholder="0"
+                      data-testid="input-edit-days"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      How many days after campaign signup to send this email
+                    </p>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="edit-hour">Send At Time (Optional)</Label>
+                    <Select
+                      value={editSendAtHour?.toString() || ""}
+                      onValueChange={(value) => setEditSendAtHour(value ? parseInt(value) : null)}
+                    >
+                      <SelectTrigger data-testid="select-edit-hour">
+                        <SelectValue placeholder="Any time" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">Any time</SelectItem>
+                        <SelectItem value="7">7:00 AM</SelectItem>
+                        <SelectItem value="8">8:00 AM</SelectItem>
+                        <SelectItem value="9">9:00 AM</SelectItem>
+                        <SelectItem value="10">10:00 AM</SelectItem>
+                        <SelectItem value="11">11:00 AM</SelectItem>
+                        <SelectItem value="12">12:00 PM</SelectItem>
+                        <SelectItem value="13">1:00 PM</SelectItem>
+                        <SelectItem value="14">2:00 PM</SelectItem>
+                        <SelectItem value="15">3:00 PM</SelectItem>
+                        <SelectItem value="16">4:00 PM</SelectItem>
+                        <SelectItem value="17">5:00 PM</SelectItem>
+                        <SelectItem value="18">6:00 PM</SelectItem>
+                        <SelectItem value="19">7:00 PM</SelectItem>
+                        <SelectItem value="20">8:00 PM</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Target time of day to send (e.g., 7:00 PM)
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Builder/Preview Tabs */}
+              <Tabs value={previewTab} onValueChange={(v) => setPreviewTab(v as 'builder' | 'preview')}>
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="builder" data-testid="tab-builder">Build Email</TabsTrigger>
+                  <TabsTrigger value="preview" data-testid="tab-preview">Preview</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="builder" className="mt-4">
+                  <EmailTemplateBuilder
+                    blocks={editEmailBlocks}
+                    onBlocksChange={setEditEmailBlocks}
+                  />
+                </TabsContent>
+
+                <TabsContent value="preview" className="mt-4">
+                  <EmailPreview
+                    subject={editEmailSubject}
+                    blocks={editEmailBlocks}
+                    photographerId={user?.photographerId || ''}
+                  />
+                </TabsContent>
+              </Tabs>
+            </div>
+          </ScrollArea>
+
+          {/* Footer Actions */}
+          <div className="flex justify-end gap-2 pt-4 border-t">
+            <Button
+              variant="outline"
+              onClick={() => setEditDialogOpen(false)}
+              disabled={updateEmailMutation.isPending}
+              data-testid="button-cancel-edit"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSaveEmail}
+              disabled={updateEmailMutation.isPending || !editEmailSubject}
+              data-testid="button-save-edit"
+            >
+              <Save className="h-4 w-4 mr-2" />
+              {updateEmailMutation.isPending ? 'Saving...' : 'Save Email'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
