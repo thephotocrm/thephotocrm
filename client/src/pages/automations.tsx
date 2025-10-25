@@ -1767,7 +1767,9 @@ export default function Automations() {
       delayHours: 0,
       delayDays: 0,
       questionnaireTemplateId: "",
-      targetStageId: ""
+      targetStageId: "",
+      smsMessageType: "template",
+      customSmsContent: ""
     }
   });
 
@@ -1798,7 +1800,9 @@ export default function Automations() {
       delayHours: 0,
       delayDays: 0,
       questionnaireTemplateId: "",
-      targetStageId: ""
+      targetStageId: "",
+      smsMessageType: "template",
+      customSmsContent: ""
     }
   });
 
