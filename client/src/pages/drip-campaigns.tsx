@@ -34,6 +34,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { EmailTemplateBuilder, type ContentBlock } from "@/components/email-template-builder";
 import { EmailPreview } from "@/components/email-preview";
+import { generateEmailHeader, generateEmailSignature } from "@shared/email-branding-shared";
 
 // Types
 type DripCampaign = {
@@ -624,6 +625,45 @@ export default function DripCampaigns() {
                             signatureStyle={selectedEmailForPreview.signatureStyle || 'professional'}
                             hideCardWrapper={true}
                           />
+                        );
+                      }
+                      
+                      // For static HTML emails, wrap with branding if enabled
+                      const hasBranding = selectedEmailForPreview.includeHeader || selectedEmailForPreview.includeSignature;
+                      
+                      if (hasBranding) {
+                        const photographer = queryClient.getQueryData(['/api/photographers/me']) as any;
+                        const brandingData = {
+                          businessName: photographer?.businessName,
+                          photographerName: photographer?.photographerName,
+                          logoUrl: photographer?.logoUrl,
+                          headshotUrl: photographer?.headshotUrl,
+                          brandPrimary: photographer?.brandPrimary,
+                          brandSecondary: photographer?.brandSecondary,
+                          phone: photographer?.phone,
+                          email: photographer?.email,
+                          website: photographer?.website,
+                          businessAddress: photographer?.businessAddress,
+                          socialLinks: photographer?.socialLinks
+                        };
+                        
+                        return (
+                          <div className="bg-white rounded-lg border max-w-2xl mx-auto overflow-hidden" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+                            {selectedEmailForPreview.includeHeader && (
+                              <div dangerouslySetInnerHTML={{ 
+                                __html: generateEmailHeader(selectedEmailForPreview.headerStyle || 'professional', brandingData)
+                              }} />
+                            )}
+                            <div 
+                              dangerouslySetInnerHTML={{ __html: selectedEmailForPreview.htmlBody || '' }}
+                              className="prose prose-sm max-w-none text-sm p-8"
+                            />
+                            {selectedEmailForPreview.includeSignature && (
+                              <div dangerouslySetInnerHTML={{ 
+                                __html: generateEmailSignature(selectedEmailForPreview.signatureStyle || 'professional', brandingData)
+                              }} />
+                            )}
+                          </div>
                         );
                       }
                       
