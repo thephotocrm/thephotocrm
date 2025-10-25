@@ -696,10 +696,11 @@ export default function DripCampaigns() {
             </DialogDescription>
           </DialogHeader>
 
-          <ScrollArea className="h-[calc(90vh-180px)] pr-4">
-            <div className="space-y-6">
-              {/* Email Settings */}
-              <div className="space-y-4">
+          {/* Builder/Preview Side-by-Side Layout (Desktop) / Tabs (Mobile) */}
+          <div className="h-[calc(95vh-140px)]">
+            {/* Mobile Tabs */}
+            <div className="lg:hidden">
+              <div className="space-y-4 mb-4">
                 <div>
                   <Label htmlFor="edit-subject">Email Subject</Label>
                   <Input
@@ -711,7 +712,7 @@ export default function DripCampaigns() {
                   />
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="edit-days">Days After Start</Label>
                     <Input
@@ -724,12 +725,12 @@ export default function DripCampaigns() {
                       data-testid="input-edit-days"
                     />
                     <p className="text-xs text-muted-foreground mt-1">
-                      How many days after campaign signup to send this email
+                      Days after start
                     </p>
                   </div>
 
                   <div>
-                    <Label htmlFor="edit-hour">Send At Time (Optional)</Label>
+                    <Label htmlFor="edit-hour">Send At Time</Label>
                     <Select
                       value={editSendAtHour !== null ? editSendAtHour.toString() : "none"}
                       onValueChange={(value) => setEditSendAtHour(value === "none" ? null : parseInt(value))}
@@ -755,19 +756,9 @@ export default function DripCampaigns() {
                         <SelectItem value="20">8:00 PM</SelectItem>
                       </SelectContent>
                     </Select>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Target time of day to send (e.g., 7:00 PM)
-                    </p>
                   </div>
                 </div>
               </div>
-
-              <Separator />
-
-              {/* Builder/Preview Side-by-Side Layout (Desktop) / Tabs (Mobile) */}
-              <div className="mt-4">
-                {/* Mobile Tabs */}
-                <div className="lg:hidden">
                   <Tabs value={previewTab} onValueChange={(v) => setPreviewTab(v as 'builder' | 'preview')}>
                     <TabsList className="grid w-full grid-cols-2">
                       <TabsTrigger value="builder" data-testid="tab-builder">Build Email</TabsTrigger>
@@ -842,9 +833,73 @@ export default function DripCampaigns() {
                   </Tabs>
                 </div>
 
-                {/* Desktop Side-by-Side */}
-                <div className="hidden lg:grid lg:grid-cols-2 lg:gap-6">
-                  {/* Left: Builder */}
+            {/* Desktop Side-by-Side */}
+            <div className="hidden lg:grid lg:grid-cols-2 lg:gap-6 h-full">
+              {/* Left: Settings + Builder */}
+              <ScrollArea className="h-full pr-4">
+                <div className="space-y-4">
+                  {/* Email Settings */}
+                  <div>
+                    <Label htmlFor="edit-subject-desktop">Email Subject</Label>
+                    <Input
+                      id="edit-subject-desktop"
+                      value={editEmailSubject}
+                      onChange={(e) => setEditEmailSubject(e.target.value)}
+                      placeholder="Enter email subject"
+                      data-testid="input-edit-subject-desktop"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="edit-days-desktop">Days After Start</Label>
+                      <Input
+                        id="edit-days-desktop"
+                        type="number"
+                        min="0"
+                        value={editDaysAfterStart}
+                        onChange={(e) => setEditDaysAfterStart(parseInt(e.target.value) || 0)}
+                        placeholder="0"
+                        data-testid="input-edit-days-desktop"
+                      />
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Days after start
+                      </p>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="edit-hour-desktop">Send At Time</Label>
+                      <Select
+                        value={editSendAtHour !== null ? editSendAtHour.toString() : "none"}
+                        onValueChange={(value) => setEditSendAtHour(value === "none" ? null : parseInt(value))}
+                      >
+                        <SelectTrigger data-testid="select-edit-hour-desktop">
+                          <SelectValue placeholder="Any time" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">Any time</SelectItem>
+                          <SelectItem value="7">7:00 AM</SelectItem>
+                          <SelectItem value="8">8:00 AM</SelectItem>
+                          <SelectItem value="9">9:00 AM</SelectItem>
+                          <SelectItem value="10">10:00 AM</SelectItem>
+                          <SelectItem value="11">11:00 AM</SelectItem>
+                          <SelectItem value="12">12:00 PM</SelectItem>
+                          <SelectItem value="13">1:00 PM</SelectItem>
+                          <SelectItem value="14">2:00 PM</SelectItem>
+                          <SelectItem value="15">3:00 PM</SelectItem>
+                          <SelectItem value="16">4:00 PM</SelectItem>
+                          <SelectItem value="17">5:00 PM</SelectItem>
+                          <SelectItem value="18">6:00 PM</SelectItem>
+                          <SelectItem value="19">7:00 PM</SelectItem>
+                          <SelectItem value="20">8:00 PM</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  {/* Builder */}
                   <div>
                     <h3 className="text-sm font-medium mb-3">Build Email</h3>
                     {editEmailBlocks.length === 0 && emailBeingEdited?.htmlBody && (
@@ -875,10 +930,13 @@ export default function DripCampaigns() {
                       }}
                     />
                   </div>
+                </div>
+              </ScrollArea>
 
-                  {/* Right: Preview */}
-                  <div>
-                    <h3 className="text-sm font-medium mb-3">Live Preview</h3>
+              {/* Right: Preview (Full Height) */}
+              <div className="flex flex-col h-full">
+                <h3 className="text-sm font-medium mb-3">Live Preview</h3>
+                <ScrollArea className="flex-1 border rounded-lg"  >
                     {editEmailBlocks.length > 0 ? (
                       <EmailPreview
                         subject={editEmailSubject}
@@ -912,11 +970,10 @@ export default function DripCampaigns() {
                         signatureStyle={editSignatureStyle}
                       />
                     )}
-                  </div>
-                </div>
+                </ScrollArea>
               </div>
             </div>
-          </ScrollArea>
+          </div>
 
           {/* Footer Actions */}
           <div className="flex justify-end gap-2 pt-4 border-t">
