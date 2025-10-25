@@ -3678,48 +3678,13 @@ export default function Automations() {
                       {createAutomationMutation.isPending 
                         ? "Creating..." 
                         : (() => {
-                            // At least one automation type must be enabled
-                            if (!enableCommunication && !enablePipeline) {
-                              return "Enable at least one action";
-                            }
-                            
-                            // Validate unified trigger settings
-                            const triggerMode = form.watch('triggerMode');
-                            if (triggerMode === 'STAGE') {
-                              if (!form.watch('triggerStageId')) {
-                                return "Select trigger stage";
-                              }
-                            } else if (triggerMode === 'BUSINESS') {
-                              if (!form.watch('triggerEvent')) {
-                                return "Select business event";
-                              }
-                            }
-                            
-                            // Validate communication fields if enabled
-                            if (enableCommunication) {
-                              const channel = form.watch('channel');
-                              const hasTemplate = form.watch('templateId') && form.watch('templateId') !== 'unavailable';
-                              const hasSmartFile = form.watch('smartFileTemplateId') && form.watch('smartFileTemplateId') !== 'unavailable';
-                              const hasQuestionnaire = form.watch('questionnaireTemplateId') && form.watch('questionnaireTemplateId') !== 'unavailable' && form.watch('questionnaireTemplateId') !== 'none';
-                              
-                              if (channel === 'SMART_FILE' && !hasSmartFile) {
-                                return "Select Smart File template";
-                              }
-                              if (channel !== 'SMART_FILE' && !hasTemplate && !hasQuestionnaire) {
-                                return "Select template or questionnaire";
-                              }
-                            }
-                            
-                            // Validate pipeline fields if enabled
-                            if (enablePipeline) {
-                              if (!form.watch('targetStageId')) {
-                                return "Select target stage";
-                              }
-                            }
-                            
                             const actions = [];
                             if (enableCommunication) actions.push("Communication");
                             if (enablePipeline) actions.push("Pipeline");
+                            
+                            if (actions.length === 0) {
+                              return "Create Automation";
+                            }
                             
                             const suffix = actions.length !== 1 ? "s" : "";
                             return `Create ${actions.join(" + ")} Automation${suffix}`;
