@@ -2,6 +2,27 @@
 import type { Photographer } from '@shared/schema';
 import { convertHtmlToBlocks } from '../utils/htmlToBlocks';
 
+// Helper function to create simple, clean email blocks
+function createSimpleEmailBlocks(title: string, content: string, tips?: string[], ctaText?: string, ctaUrl?: string) {
+  const blocks: any[] = [
+    { type: 'HEADING', content: { text: title, level: 'h2' } },
+    { type: 'SPACER', content: { height: 20 } },
+    { type: 'TEXT', content: { text: content } }
+  ];
+  
+  if (tips && tips.length > 0) {
+    blocks.push({ type: 'SPACER', content: { height: 15 } });
+    blocks.push({ type: 'TEXT', content: { text: tips.join('\n') } });
+  }
+  
+  if (ctaText && ctaUrl) {
+    blocks.push({ type: 'SPACER', content: { height: 20 } });
+    blocks.push({ type: 'BUTTON', content: { text: ctaText, url: ctaUrl } });
+  }
+  
+  return blocks;
+}
+
 // Type definitions for static email campaigns
 export interface StaticEmailTemplate {
   sequenceIndex: number;
@@ -726,96 +747,33 @@ const COMMERCIAL_EMAIL_TEMPLATES = {
 
 // Commercial campaign content
 export function generateCommercialEmailContent(photographer: Photographer): StaticCampaignTemplate {
-  const emailContents = [
-    {
-      content: `<p>Thank you for reaching out about your commercial photography needs! We're thrilled about the opportunity to help elevate your brand through powerful, professional imagery.</p>
-      
-      <p>We'll be sharing insights and tips to help you maximize the impact of your commercial photography investment. From planning your shoot to getting the most out of your images, we've got you covered.</p>
-      
-      <p>As commercial photographers, we understand that your images need to work hard for your business. Whether it's marketing materials, website content, or advertising campaigns, great photography drives results.</p>
-      
-      <p>Let's create something that makes your brand stand out! 🚀</p>`,
-      includeBookingCTA: false
-    },
-    {
-      content: `<p>Planning a successful commercial shoot requires strategic thinking and attention to detail. Let's ensure your photography investment delivers maximum value for your business.</p>
-      
-      <p><strong>Commercial Photography Planning:</strong></p>
-      <ul>
-        <li>Define your brand's visual identity and message</li>
-        <li>Consider how images will be used across platforms</li>
-        <li>Plan for various formats and orientations</li>
-        <li>Think about your target audience and brand values</li>
-      </ul>
-      
-      <p>⚠️ <strong>Pro Tip:</strong> Invest in versatile images that can work across multiple marketing channels!</p>
-      
-      <p>Great commercial photography is an investment that pays dividends in brand recognition and customer engagement.</p>`,
-      includeBookingCTA: false
-    },
-    {
-      content: `<p>Your brand's visual identity is more than just pretty pictures - it's a strategic business tool that communicates your values and builds customer trust.</p>
-      
-      <p><strong>Visual Identity Elements:</strong></p>
-      <ul>
-        <li>Consistent color palettes and styling</li>
-        <li>Brand personality reflected in imagery</li>
-        <li>Professional quality that builds credibility</li>
-        <li>Authentic representation of your business values</li>
-      </ul>
-      
-      <p><strong>Business Tip:</strong> Your visual identity should be instantly recognizable across all touchpoints!</p>`,
-      includeBookingCTA: false
-    },
-    {
-      content: `<p>Smart businesses know that commercial photography is an investment, not an expense. Here's how to maximize your return and get the most value from every image.</p>
-      
-      <p><strong>ROI Maximization Strategies:</strong></p>
-      <ul>
-        <li>Plan shoots to create multiple asset types</li>
-        <li>Think long-term and seasonal usage</li>
-        <li>Create lifestyle and product variations</li>
-        <li>Plan for different marketing campaigns</li>
-      </ul>
-      
-      <p><strong>Pro Tip:</strong> One well-planned shoot can provide content for months of marketing!</p>`,
-      includeBookingCTA: false
-    },
-    {
-      content: `<p>In today's multi-platform world, your commercial photography needs to work seamlessly across websites, social media, print materials, and advertising campaigns.</p>
-      
-      <p><strong>Platform Considerations:</strong></p>
-      <ul>
-        <li>Square crops for Instagram and Facebook</li>
-        <li>Horizontal formats for website headers</li>
-        <li>Vertical orientations for Pinterest and Stories</li>
-        <li>High-resolution files for print materials</li>
-      </ul>
-      
-      <p><strong>Success Strategy:</strong> Plan your shoot with every platform in mind for maximum versatility!</p>`,
-      includeBookingCTA: false
-    }
+  const emailBlocksArray = [
+    createSimpleEmailBlocks('Welcome to Professional Brand Photography! 🚀', 
+      "Thank you for reaching out about your commercial photography needs! We're thrilled to help elevate your brand through powerful, professional imagery that drives results.", 
+      undefined, 'Discuss Your Project', `mailto:${photographer.emailFromAddr || 'hello@business.com'}`),
+    createSimpleEmailBlocks('Planning Your Commercial Photography Strategy', 
+      'Strategic planning ensures your photography investment delivers maximum value for your business.', 
+      ['• Define your brand\'s visual identity and message', '• Plan for various formats and orientations', '• Think about your target audience', '💡 Invest in versatile images that work across channels']),
+    createSimpleEmailBlocks('Building Your Brand\'s Visual Identity', 
+      'Your visual identity is a strategic business tool that communicates your values and builds customer trust.', 
+      ['• Consistent color palettes and styling', '• Professional quality builds credibility', '• Authentic representation of your values']),
+    createSimpleEmailBlocks('Maximizing ROI from Your Photography', 
+      'Smart businesses know commercial photography is an investment. Here\'s how to maximize your return:', 
+      ['• Plan shoots for multiple asset types', '• Think long-term and seasonal usage', '💡 One well-planned shoot can provide months of content']),
+    createSimpleEmailBlocks('Creating Versatile Content for Multiple Platforms', 
+      'Your photography needs to work seamlessly across all platforms:', 
+      ['• Square crops for Instagram and Facebook', '• Horizontal formats for website headers', '• Vertical orientations for Stories', '• High-resolution files for print'])
   ];
 
   return {
     projectType: 'COMMERCIAL' as const,
-    emails: COMMERCIAL_EMAIL_TEMPLATES.emails.map((email, index) => {
-      const htmlBody = generateEmailHTML(
-        photographer,
-        email.subject,
-        emailContents[index]?.content || '',
-        emailContents[index]?.includeBookingCTA || false,
-        index
-      );
-      const blocks = convertHtmlToBlocks(htmlBody);
-      return {
-        ...email,
-        htmlBody,
-        emailBlocks: JSON.stringify(blocks),
-        useEmailBuilder: blocks.length > 0,
-        sendAtHour: 10
-      };
-    })
+    emails: COMMERCIAL_EMAIL_TEMPLATES.emails.map((email, index) => ({
+      ...email,
+      htmlBody: generateEmailHTML(photographer, email.subject, '<p>Beautiful commercial content</p>', false, index),
+      emailBlocks: JSON.stringify(emailBlocksArray[index] || []),
+      useEmailBuilder: true,
+      sendAtHour: 10
+    }))
   };
 }
 
@@ -867,96 +825,33 @@ const ENGAGEMENT_EMAIL_TEMPLATES = {
 
 // Engagement campaign content
 export function generateEngagementEmailContent(photographer: Photographer): StaticCampaignTemplate {
-  const emailContents = [
-    {
-      content: `<p>Congratulations on your engagement! This is such a special time in your relationship, and we're honored that you're considering us to capture this exciting chapter of your love story.</p>
-      
-      <p>We'll be sharing tips and inspiration to help you prepare for an amazing engagement session that truly reflects your unique relationship. From location ideas to outfit coordination, we want to ensure your photos are everything you've dreamed of.</p>
-      
-      <p>As engagement photographers, we love capturing the joy, excitement, and genuine connection between couples. These photos will become treasured memories of this beautiful time in your lives.</p>
-      
-      <p>Here's to celebrating your love and the journey ahead! 💕</p>`,
-      includeBookingCTA: false
-    },
-    {
-      content: `<p>Your engagement session is a wonderful opportunity to celebrate your relationship and create beautiful images that reflect who you are as a couple.</p>
-      
-      <p><strong>Engagement Session Planning:</strong></p>
-      <ul>
-        <li>Choose locations that are meaningful to your relationship</li>
-        <li>Coordinate outfits that complement each other</li>
-        <li>Plan for your most flattering times of day</li>
-        <li>Think about props that tell your story</li>
-      </ul>
-      
-      <p>⚠️ <strong>Pro Tip:</strong> The best engagement photos happen when you're relaxed and just enjoying each other's company!</p>
-      
-      <p>Remember, this session is all about celebrating your love and having fun together.</p>`,
-      includeBookingCTA: false
-    },
-    {
-      content: `<p>The location of your engagement session can add incredible depth and meaning to your photos. Let's explore ideas that will make your images truly special.</p>
-      
-      <p><strong>Meaningful Location Ideas:</strong></p>
-      <ul>
-        <li>Where you first met or had your first date</li>
-        <li>The spot where you got engaged</li>
-        <li>Your favorite place to spend time together</li>
-        <li>Locations that reflect your shared interests</li>
-      </ul>
-      
-      <p><strong>Love Tip:</strong> Choose places that hold special memories - your emotions will shine through naturally!</p>`,
-      includeBookingCTA: false
-    },
-    {
-      content: `<p>Looking great together in photos starts with thoughtful outfit coordination. Here's how to achieve that perfect harmonious look without being too matchy-matchy.</p>
-      
-      <p><strong>Couple Styling Guidelines:</strong></p>
-      <ul>
-        <li>Choose a color palette that complements both of you</li>
-        <li>Vary textures and patterns for visual interest</li>
-        <li>Consider the location and season in your choices</li>
-        <li>Avoid logos, busy patterns, or neon colors</li>
-      </ul>
-      
-      <p><strong>Pro Tip:</strong> Coordinate, don't match - think complementary rather than identical!</p>`,
-      includeBookingCTA: false
-    },
-    {
-      content: `<p>The secret to beautiful engagement photos isn't perfect poses - it's genuine connection and relaxed interaction between you and your partner.</p>
-      
-      <p><strong>Creating Natural Moments:</strong></p>
-      <ul>
-        <li>Plan activities you both enjoy during the session</li>
-        <li>Bring music that makes you both happy</li>
-        <li>Focus on each other, not the camera</li>
-        <li>Don't be afraid to laugh and be yourselves</li>
-      </ul>
-      
-      <p><strong>Remember:</strong> Authentic emotions create the most beautiful and timeless images!</p>`,
-      includeBookingCTA: false
-    }
+  const emailBlocksArray = [
+    createSimpleEmailBlocks('Congratulations on Your Engagement! 💕', 
+      "This is such a special time! We're honored to capture this exciting chapter of your love story.", 
+      undefined, 'Book Session', `mailto:${photographer.emailFromAddr || 'hello@business.com'}`),
+    createSimpleEmailBlocks('Planning Your Perfect Session', 
+      'Create beautiful images that reflect who you are as a couple:', 
+      ['• Choose meaningful locations', '• Coordinate complementary outfits', '• Plan for golden hour lighting', '💡 Relax and enjoy each other!']),
+    createSimpleEmailBlocks('Choosing Meaningful Locations', 
+      'The right location adds depth and meaning to your photos:', 
+      ['• Where you first met', '• The spot where you got engaged', '• Your favorite place together', '💕 Choose places with special memories']),
+    createSimpleEmailBlocks('Outfit Coordination Tips', 
+      'Achieve a harmonious look:', 
+      ['• Choose complementary colors', '• Vary textures and patterns', '• Consider location and season', '💡 Coordinate, don\'t match!']),
+    createSimpleEmailBlocks('Making Your Session Fun', 
+      'The best photos come from genuine connection:', 
+      ['• Plan activities you enjoy', '• Focus on each other', '• Be yourselves and have fun', '💕 Authentic emotions create timeless images'])
   ];
 
   return {
     projectType: 'ENGAGEMENT' as const,
-    emails: ENGAGEMENT_EMAIL_TEMPLATES.emails.map((email, index) => {
-      const htmlBody = generateEmailHTML(
-        photographer,
-        email.subject,
-        emailContents[index]?.content || '',
-        emailContents[index]?.includeBookingCTA || false,
-        index
-      );
-      const blocks = convertHtmlToBlocks(htmlBody);
-      return {
-        ...email,
-        htmlBody,
-        emailBlocks: JSON.stringify(blocks),
-        useEmailBuilder: blocks.length > 0,
-        sendAtHour: 10
-      };
-    })
+    emails: ENGAGEMENT_EMAIL_TEMPLATES.emails.map((email, index) => ({
+      ...email,
+      htmlBody: generateEmailHTML(photographer, email.subject, '<p>Beautiful engagement content</p>', false, index),
+      emailBlocks: JSON.stringify(emailBlocksArray[index] || []),
+      useEmailBuilder: true,
+      sendAtHour: 10
+    }))
   };
 }
 
@@ -1008,96 +903,33 @@ const MATERNITY_EMAIL_TEMPLATES = {
 
 // Maternity campaign content
 export function generateMaternityEmailContent(photographer: Photographer): StaticCampaignTemplate {
-  const emailContents = [
-    {
-      content: `<p>Congratulations on your pregnancy! This is such an incredible and transformative time in your life, and we're thrilled to help you document this beautiful journey.</p>
-      
-      <p>We'll be sharing guidance and tips to help you prepare for a maternity session that celebrates this amazing chapter. From timing your session to choosing the perfect outfits, we want to ensure your photos capture the magic of this moment.</p>
-      
-      <p>As maternity photographers, we understand the profound beauty of pregnancy and the importance of preserving these precious memories. Your growing family deserves to be celebrated!</p>
-      
-      <p>Here's to capturing the incredible journey of bringing new life into the world! 🤱</p>`,
-      includeBookingCTA: false
-    },
-    {
-      content: `<p>Your maternity session is a celebration of the miracle happening within you and the anticipation of meeting your little one.</p>
-      
-      <p><strong>Maternity Session Planning:</strong></p>
-      <ul>
-        <li>Schedule between 28-36 weeks for the best belly shape</li>
-        <li>Choose flowing, fitted dresses that show your beautiful bump</li>
-        <li>Consider including your partner and other children</li>
-        <li>Think about meaningful props like ultrasound photos or baby shoes</li>
-      </ul>
-      
-      <p>⚠️ <strong>Pro Tip:</strong> Comfort is key - wear shoes you can easily walk in and bring layers for temperature changes!</p>
-      
-      <p>This is a time to embrace and celebrate the incredible changes your body is experiencing.</p>`,
-      includeBookingCTA: false
-    },
-    {
-      content: `<p>Timing is crucial for stunning maternity photos. Here's everything you need to know about scheduling your session for the most beautiful results.</p>
-      
-      <p><strong>Optimal Timing Guidelines:</strong></p>
-      <ul>
-        <li>28-32 weeks: Perfect bump size, still comfortable to move</li>
-        <li>33-36 weeks: Maximum bump, may require more frequent breaks</li>
-        <li>Multiple sessions: Early pregnancy and full term comparison</li>
-        <li>Consider your energy levels and mobility</li>
-      </ul>
-      
-      <p><strong>Pro Tip:</strong> Book your session early, but schedule it for your optimal window!</p>`,
-      includeBookingCTA: false
-    },
-    {
-      content: `<p>What you wear for your maternity session can make all the difference in how radiant and beautiful you feel in your photos.</p>
-      
-      <p><strong>Maternity Fashion Tips:</strong></p>
-      <ul>
-        <li>Fitted dresses that show your beautiful bump</li>
-        <li>Flowing fabrics like chiffon or jersey</li>
-        <li>Solid colors or simple patterns</li>
-        <li>Consider bringing multiple outfit options</li>
-      </ul>
-      
-      <p><strong>Comfort Reminder:</strong> Choose pieces that make you feel confident and beautiful - this will show in every photo!</p>`,
-      includeBookingCTA: false
-    },
-    {
-      content: `<p>Including your partner and children in your maternity photos creates beautiful family memories and shows the love surrounding your growing baby.</p>
-      
-      <p><strong>Family Involvement Ideas:</strong></p>
-      <ul>
-        <li>Partner touching or kissing your bump</li>
-        <li>Siblings giving baby sibling kisses</li>
-        <li>Family hands forming heart around bump</li>
-        <li>Everyone holding ultrasound photos together</li>
-      </ul>
-      
-      <p><strong>Family Tip:</strong> These moments capture the love and anticipation your whole family feels for your new arrival!</p>`,
-      includeBookingCTA: false
-    }
+  const emailBlocksArray = [
+    createSimpleEmailBlocks('Congratulations on Your Pregnancy! 🤱', 
+      "This is an incredible time! We're thrilled to help you document this beautiful journey.", 
+      undefined, 'Book Session', `mailto:${photographer.emailFromAddr || 'hello@business.com'}`),
+    createSimpleEmailBlocks('Planning Your Maternity Session', 
+      'Celebrate the miracle happening within you:', 
+      ['• Schedule between 28-36 weeks', '• Choose flowing, fitted dresses', '• Include partner and children', '💡 Comfort is key - bring layers!']),
+    createSimpleEmailBlocks('Perfect Timing for Your Photos', 
+      'When to schedule for the most beautiful results:', 
+      ['• 28-32 weeks: Perfect bump size', '• 33-36 weeks: Maximum bump', '• Consider your energy levels', '💡 Book early, schedule for optimal window']),
+    createSimpleEmailBlocks('Maternity Fashion Tips', 
+      'What you wear makes all the difference:', 
+      ['• Fitted dresses that show your bump', '• Flowing fabrics like chiffon', '• Solid colors or simple patterns', '💡 Choose pieces that make you feel confident']),
+    createSimpleEmailBlocks('Including Your Family', 
+      'Create beautiful family memories:', 
+      ['• Partner touching or kissing your bump', '• Siblings giving kisses', '• Family hands forming heart', '💕 These moments capture the love surrounding your baby'])
   ];
 
   return {
     projectType: 'MATERNITY' as const,
-    emails: MATERNITY_EMAIL_TEMPLATES.emails.map((email, index) => {
-      const htmlBody = generateEmailHTML(
-        photographer,
-        email.subject,
-        emailContents[index]?.content || '',
-        emailContents[index]?.includeBookingCTA || false,
-        index
-      );
-      const blocks = convertHtmlToBlocks(htmlBody);
-      return {
-        ...email,
-        htmlBody,
-        emailBlocks: JSON.stringify(blocks),
-        useEmailBuilder: blocks.length > 0,
-        sendAtHour: 10
-      };
-    })
+    emails: MATERNITY_EMAIL_TEMPLATES.emails.map((email, index) => ({
+      ...email,
+      htmlBody: generateEmailHTML(photographer, email.subject, '<p>Beautiful maternity content</p>', false, index),
+      emailBlocks: JSON.stringify(emailBlocksArray[index] || []),
+      useEmailBuilder: true,
+      sendAtHour: 10
+    }))
   };
 }
 
@@ -1149,96 +981,33 @@ const FAMILY_EMAIL_TEMPLATES = {
 
 // Family campaign content
 export function generateFamilyEmailContent(photographer: Photographer): StaticCampaignTemplate {
-  const emailContents = [
-    {
-      content: `<p>Thank you for choosing us to capture your family's precious moments! We're excited about the opportunity to create beautiful memories that you'll treasure for generations to come.</p>
-      
-      <p>We'll be sharing helpful tips and ideas to ensure your family session is fun, relaxed, and results in photos that truly reflect your family's personality and love for each other.</p>
-      
-      <p>As family photographers, we know that the best family photos happen when everyone is comfortable and having fun. We specialize in capturing those genuine smiles, spontaneous laughs, and loving connections that make your family unique.</p>
-      
-      <p>Looking forward to spending time with your beautiful family! 👨‍👩‍👧‍👦</p>`,
-      includeBookingCTA: false
-    },
-    {
-      content: `<p>Family photos are an investment in preserving the relationships and memories that matter most. Let's make sure your session captures the authentic love and joy your family shares.</p>
-      
-      <p><strong>Family Session Planning:</strong></p>
-      <ul>
-        <li>Choose outfits that coordinate but don't match exactly</li>
-        <li>Plan the session around your children's best times of day</li>
-        <li>Bring snacks and small rewards for little ones</li>
-        <li>Think about locations that are meaningful to your family</li>
-      </ul>
-      
-      <p>⚠️ <strong>Pro Tip:</strong> Let your children be themselves - some of the best family photos capture kids being kids!</p>
-      
-      <p>Remember, the goal is to have fun together and let your family's personality shine through.</p>`,
-      includeBookingCTA: false
-    },
-    {
-      content: `<p>Coordinating family outfits doesn't have to be stressful! Here's how to achieve a cohesive look that lets everyone's personality shine through.</p>
-      
-      <p><strong>Family Coordination Tips:</strong></p>
-      <ul>
-        <li>Choose a color palette with 2-3 main colors</li>
-        <li>Mix textures and patterns for visual interest</li>
-        <li>Avoid everyone wearing the exact same thing</li>
-        <li>Consider the location and season in your choices</li>
-      </ul>
-      
-      <p><strong>Style Tip:</strong> Think coordination, not matching - you want to look like a family, not a uniform!</p>`,
-      includeBookingCTA: false
-    },
-    {
-      content: `<p>Photographing children can be magical when you know the right approaches. Here are our tried-and-true methods for capturing natural, joyful expressions.</p>
-      
-      <p><strong>Child Photography Secrets:</strong></p>
-      <ul>
-        <li>Schedule during their best time of day (not nap time!)</li>
-        <li>Bring favorite snacks and small toys</li>
-        <li>Let them run and play naturally</li>
-        <li>Use games and prompts to get genuine smiles</li>
-      </ul>
-      
-      <p><strong>Parent Tip:</strong> The more relaxed and fun you are, the more your children will enjoy the experience too!</p>`,
-      includeBookingCTA: false
-    },
-    {
-      content: `<p>Your family photography session should be more than just taking pictures - it should be a celebration of your family's love and connection.</p>
-      
-      <p><strong>Creating Lasting Memories:</strong></p>
-      <ul>
-        <li>Focus on connection and interaction between family members</li>
-        <li>Embrace candid moments and genuine emotions</li>
-        <li>Include activities that represent your family's interests</li>
-        <li>Remember that imperfection can be beautifully authentic</li>
-      </ul>
-      
-      <p><strong>Family Philosophy:</strong> The best family photos tell the story of who you are together!</p>`,
-      includeBookingCTA: false
-    }
+  const emailBlocksArray = [
+    createSimpleEmailBlocks('Welcome to Your Family Photography Experience! 👨‍👩‍👧‍👦', 
+      "We're excited to capture your family's precious moments and create memories you'll treasure for generations!", 
+      undefined, 'Book Session', `mailto:${photographer.emailFromAddr || 'hello@business.com'}`),
+    createSimpleEmailBlocks('Planning a Fun Family Session', 
+      'Make your session fun and relaxed for everyone:', 
+      ['• Coordinate outfits (don\'t match exactly)', '• Plan around children\'s best times', '• Bring snacks and small rewards', '💡 Let kids be kids!']),
+    createSimpleEmailBlocks('Family Outfit Coordination', 
+      'Achieve a cohesive look that lets personalities shine:', 
+      ['• Choose 2-3 main colors', '• Mix textures and patterns', '• Avoid matching outfits', '💡 Think coordination, not uniformity']),
+    createSimpleEmailBlocks('Tips for Great Photos with Children', 
+      'Capture natural, joyful expressions:', 
+      ['• Schedule during their best time', '• Bring favorite snacks and toys', '• Let them run and play naturally', '💡 Use games for genuine smiles']),
+    createSimpleEmailBlocks('Creating Lasting Memories', 
+      'Your session should celebrate your family\'s love:', 
+      ['• Focus on connection and interaction', '• Embrace candid moments', '• Include family activities', '💕 The best photos tell your story together'])
   ];
 
   return {
     projectType: 'FAMILY' as const,
-    emails: FAMILY_EMAIL_TEMPLATES.emails.map((email, index) => {
-      const htmlBody = generateEmailHTML(
-        photographer,
-        email.subject,
-        emailContents[index]?.content || '',
-        emailContents[index]?.includeBookingCTA || false,
-        index
-      );
-      const blocks = convertHtmlToBlocks(htmlBody);
-      return {
-        ...email,
-        htmlBody,
-        emailBlocks: JSON.stringify(blocks),
-        useEmailBuilder: blocks.length > 0,
-        sendAtHour: 10
-      };
-    })
+    emails: FAMILY_EMAIL_TEMPLATES.emails.map((email, index) => ({
+      ...email,
+      htmlBody: generateEmailHTML(photographer, email.subject, '<p>Beautiful family content</p>', false, index),
+      emailBlocks: JSON.stringify(emailBlocksArray[index] || []),
+      useEmailBuilder: true,
+      sendAtHour: 10
+    }))
   };
 }
 
