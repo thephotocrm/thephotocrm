@@ -75,6 +75,11 @@ export default function DripCampaigns() {
   const [editDaysAfterStart, setEditDaysAfterStart] = useState(0);
   const [editSendAtHour, setEditSendAtHour] = useState<number | null>(null);
   const [previewTab, setPreviewTab] = useState<'builder' | 'preview'>('builder');
+  // Email branding state
+  const [editIncludeHeader, setEditIncludeHeader] = useState(false);
+  const [editHeaderStyle, setEditHeaderStyle] = useState('professional');
+  const [editIncludeSignature, setEditIncludeSignature] = useState(false);
+  const [editSignatureStyle, setEditSignatureStyle] = useState('professional');
   
   // Email toggle states for direct static template display
   const [emailToggles, setEmailToggles] = useState<Record<string, boolean>>({});
@@ -116,6 +121,10 @@ export default function DripCampaigns() {
       sendAtHour: number | null;
       daysAfterStart: number;
       useEmailBuilder: boolean;
+      includeHeader: boolean;
+      headerStyle: string;
+      includeSignature: boolean;
+      signatureStyle: string;
     }) => {
       const res = await apiRequest("PATCH", `/api/drip-campaigns/${data.campaignId}/emails/${data.emailId}`, {
         subject: data.subject,
@@ -124,7 +133,11 @@ export default function DripCampaigns() {
         emailBlocks: data.emailBlocks,
         sendAtHour: data.sendAtHour,
         daysAfterStart: data.daysAfterStart,
-        useEmailBuilder: data.useEmailBuilder
+        useEmailBuilder: data.useEmailBuilder,
+        includeHeader: data.includeHeader,
+        headerStyle: data.headerStyle,
+        includeSignature: data.includeSignature,
+        signatureStyle: data.signatureStyle
       });
       return await res.json();
     },
@@ -214,6 +227,12 @@ export default function DripCampaigns() {
       setEditEmailBlocks([]);
     }
     
+    // Load branding preferences
+    setEditIncludeHeader(email.includeHeader || false);
+    setEditHeaderStyle(email.headerStyle || 'professional');
+    setEditIncludeSignature(email.includeSignature || false);
+    setEditSignatureStyle(email.signatureStyle || 'professional');
+    
     setPreviewTab('builder');
     setEditDialogOpen(true);
   };
@@ -271,7 +290,11 @@ export default function DripCampaigns() {
         emailBlocks: JSON.stringify(emailBlocks),
         sendAtHour: editSendAtHour,
         daysAfterStart: editDaysAfterStart,
-        useEmailBuilder: emailBlocks.length > 0
+        useEmailBuilder: emailBlocks.length > 0,
+        includeHeader: editIncludeHeader,
+        headerStyle: editHeaderStyle,
+        includeSignature: editIncludeSignature,
+        signatureStyle: editSignatureStyle
       });
     } catch (error) {
       console.error('Error saving email:', error);
@@ -695,6 +718,16 @@ export default function DripCampaigns() {
                   <EmailTemplateBuilder
                     blocks={editEmailBlocks}
                     onBlocksChange={setEditEmailBlocks}
+                    includeHeader={editIncludeHeader}
+                    headerStyle={editHeaderStyle}
+                    includeSignature={editIncludeSignature}
+                    signatureStyle={editSignatureStyle}
+                    onBrandingChange={(branding) => {
+                      setEditIncludeHeader(branding.includeHeader);
+                      setEditHeaderStyle(branding.headerStyle);
+                      setEditIncludeSignature(branding.includeSignature);
+                      setEditSignatureStyle(branding.signatureStyle);
+                    }}
                   />
                 </TabsContent>
 
@@ -703,7 +736,10 @@ export default function DripCampaigns() {
                     <EmailPreview
                       subject={editEmailSubject}
                       blocks={editEmailBlocks}
-                      photographerId={user?.photographerId || ''}
+                      includeHeader={editIncludeHeader}
+                      headerStyle={editHeaderStyle}
+                      includeSignature={editIncludeSignature}
+                      signatureStyle={editSignatureStyle}
                     />
                   ) : emailBeingEdited?.htmlBody ? (
                     <div className="space-y-4">
@@ -723,7 +759,10 @@ export default function DripCampaigns() {
                     <EmailPreview
                       subject={editEmailSubject}
                       blocks={editEmailBlocks}
-                      photographerId={user?.photographerId || ''}
+                      includeHeader={editIncludeHeader}
+                      headerStyle={editHeaderStyle}
+                      includeSignature={editIncludeSignature}
+                      signatureStyle={editSignatureStyle}
                     />
                   )}</TabsContent>
               </Tabs>
