@@ -16,16 +16,29 @@ export function convertHtmlToBlocks(htmlBody: string): EmailBlock[] {
   if (!htmlBody) return blocks;
 
   // Extract the main content section from the email template
-  const contentMatch = htmlBody.match(/<div class="content-section"[^>]*>(.*?)<\/div>\s*<\/div>\s*<\/div>\s*<\/body>/s);
-  if (!contentMatch) return blocks;
+  // Look for the content-section div and extract everything until its closing tag
+  const contentMatch = htmlBody.match(/<div class="content-section"[^>]*>(.*?)<\/div>\s*(?:<div|<\/div|<\/body)/s);
+  if (!contentMatch) {
+    // Fallback: try to find content between content-section tags without strict ending
+    const fallbackMatch = htmlBody.match(/<div class="content-section"[^>]*>([\s\S]*?)(?=<div style="background: #f8f9fa|<\/body>)/);
+    if (!fallbackMatch) return blocks;
+    
+    let content = fallbackMatch[1].trim();
+    content = content.replace(/<p[^>]*>Dear {{firstName}},<\/p>/g, '');
+    parseContentToBlocks(content, blocks);
+    return blocks;
+  }
   
   let content = contentMatch[1];
   
   // Remove the "Dear {{firstName}}," greeting - that's added automatically
   content = content.replace(/<p[^>]*>Dear {{firstName}},<\/p>/g, '');
   
-  // Remove the email wrapper div
-  content = content.replace(/<div[^>]*>(.*?)<\/div>\s*$/s, '$1').trim();
+  // Remove the inner email wrapper div if present
+  const innerDivMatch = content.match(/<div[^>]*>(.*?)<\/div>\s*$/s);
+  if (innerDivMatch) {
+    content = innerDivMatch[1].trim();
+  }
   
   // Parse the content into blocks
   parseContentToBlocks(content, blocks);
