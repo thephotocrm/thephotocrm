@@ -2520,43 +2520,45 @@ export default function Automations() {
                 
                 <Form {...form}>
                   <form onSubmit={form.handleSubmit(handleCreateAutomation)} className="flex flex-col min-h-0 flex-1">
-                    <div className="flex-1 min-h-0 overflow-y-auto px-6 py-4 space-y-8">
+                    <div className="flex-1 min-h-0 overflow-y-auto px-6 py-4">
                   
-                  {/* Step 1: Basic Information */}
-                  <div className="space-y-4">
-                    <div className="flex items-center space-x-3">
-                      <div className="flex items-center justify-center w-8 h-8 bg-primary text-primary-foreground rounded-full text-sm font-semibold">
-                        1
+                  {/* Steps 1-2 on Desktop */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                    {/* Step 1: Basic Information */}
+                    <div className="space-y-4">
+                      <div className="flex items-center space-x-3">
+                        <div className="flex items-center justify-center w-8 h-8 bg-primary text-primary-foreground rounded-full text-sm font-semibold">
+                          1
+                        </div>
+                        <div>
+                          <h3 className="text-lg font-semibold">Basic Information</h3>
+                          <p className="text-sm text-muted-foreground">Give your automation a descriptive name</p>
+                        </div>
                       </div>
-                      <div>
-                        <h3 className="text-lg font-semibold">Basic Information</h3>
-                        <p className="text-sm text-muted-foreground">Give your automation a descriptive name</p>
+                      
+                      <div className="ml-11 p-4 border rounded-lg bg-card">
+                        <FormField
+                          control={form.control}
+                          name="name"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Automation Name</FormLabel>
+                              <FormControl>
+                                <Input 
+                                  placeholder="e.g., Welcome Email, Follow-up SMS"
+                                  data-testid="input-automation-name"
+                                  {...field} 
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
                       </div>
                     </div>
-                    
-                    <div className="ml-11 p-4 border rounded-lg bg-card">
-                      <FormField
-                        control={form.control}
-                        name="name"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Automation Name</FormLabel>
-                            <FormControl>
-                              <Input 
-                                placeholder="e.g., Welcome Email, Follow-up SMS"
-                                data-testid="input-automation-name"
-                                {...field} 
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                  </div>
 
-                  {/* Step 2: When (Trigger) */}
-                  <div className="space-y-4">
+                    {/* Step 2: When (Trigger) */}
+                    <div className="space-y-4">
                     <div className="flex items-center space-x-3">
                       <div className="flex items-center justify-center w-8 h-8 bg-primary text-primary-foreground rounded-full text-sm font-semibold">
                         2
@@ -2867,8 +2869,11 @@ export default function Automations() {
                       </div>
                     )}
                     </div>
+                    </div>
                   </div>
 
+                  {/* Steps 3-4 on Desktop */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
                   {/* Step 3: Conditions (Optional) - Only for non-countdown automations */}
                   {form.watch('triggerMode') !== 'TIME' && (
                   <div className="space-y-4">
@@ -3450,6 +3455,7 @@ export default function Automations() {
                     </div>
                   )}
                     </div>
+                  </div>
                   </div>
 
                   {/* Footer with Submit Buttons */}
