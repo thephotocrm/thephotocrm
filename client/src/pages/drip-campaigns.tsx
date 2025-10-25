@@ -589,7 +589,6 @@ export default function DripCampaigns() {
                       if (blocks.length > 0) {
                         return (
                           <EmailPreview
-                            subject={selectedEmailForPreview.subject}
                             blocks={blocks}
                             includeHeader={selectedEmailForPreview.includeHeader || false}
                             headerStyle={selectedEmailForPreview.headerStyle || 'professional'}
