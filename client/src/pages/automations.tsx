@@ -2510,7 +2510,7 @@ export default function Automations() {
       </header>
       {/* Create Automation Dialog */}
       <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-            <DialogContent className={`w-[95vw] ${emailBuilderMode === 'build' && form.watch('channel') === 'EMAIL' ? 'max-w-7xl' : 'sm:max-w-5xl'} max-h-[92vh] p-0 flex flex-col overflow-hidden`}>
+            <DialogContent className={`w-[95vw] ${emailBuilderMode === 'build' && form.watch('channel') === 'EMAIL' ? 'max-w-7xl' : 'sm:max-w-2xl'} max-h-[92vh] p-0 flex flex-col overflow-hidden`}>
                 <DialogHeader className="sticky top-0 z-10 bg-background px-6 py-4 border-b">
                   <DialogTitle>Create new {activeProjectType.toLowerCase()} automation</DialogTitle>
                   <DialogDescription>
@@ -2520,12 +2520,10 @@ export default function Automations() {
                 
                 <Form {...form}>
                   <form onSubmit={form.handleSubmit(handleCreateAutomation)} className="flex flex-col min-h-0 flex-1">
-                    <div className="flex-1 min-h-0 overflow-y-auto px-6 py-4">
+                    <div className="flex-1 min-h-0 overflow-y-auto px-6 py-4 space-y-8">
                   
-                  {/* Steps 1-2 on Desktop */}
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-                    {/* Step 1: Basic Information */}
-                    <div className="space-y-4">
+                  {/* Step 1: Basic Information */}
+                  <div className="space-y-4">
                       <div className="flex items-center space-x-3">
                         <div className="flex items-center justify-center w-8 h-8 bg-primary text-primary-foreground rounded-full text-sm font-semibold">
                           1
@@ -2556,9 +2554,10 @@ export default function Automations() {
                         />
                       </div>
                     </div>
+                  </div>
 
-                    {/* Step 2: When (Trigger) */}
-                    <div className="space-y-4">
+                  {/* Step 2: When (Trigger) */}
+                  <div className="space-y-4">
                     <div className="flex items-center space-x-3">
                       <div className="flex items-center justify-center w-8 h-8 bg-primary text-primary-foreground rounded-full text-sm font-semibold">
                         2
@@ -2869,11 +2868,8 @@ export default function Automations() {
                       </div>
                     )}
                     </div>
-                    </div>
                   </div>
 
-                  {/* Steps 3-4 on Desktop */}
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
                   {/* Step 3: Conditions (Optional) - Only for non-countdown automations */}
                   {form.watch('triggerMode') !== 'TIME' && (
                   <div className="space-y-4">
@@ -2929,47 +2925,45 @@ export default function Automations() {
                       </div>
                     </div>
                     
-                    <div className="ml-11">
+                    <div className="ml-11 space-y-4">
                     
-                    {/* Action Toggles - Side by Side */}
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
-                      {/* Communication Actions Toggle */}
-                      <div className="flex items-center space-x-2 p-3 border rounded-lg">
-                        <Switch
-                          checked={enableCommunication}
-                          onCheckedChange={setEnableCommunication}
-                          data-testid="switch-enable-communication"
-                        />
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-2">
-                            <Mail className="h-4 w-4" />
-                            <Label className="font-medium">Send Messages</Label>
-                          </div>
-                          <p className="text-xs text-muted-foreground">Send emails, texts, or assign forms to clients</p>
+                    {/* Communication Actions Toggle */}
+                    <div className="flex items-center space-x-2 p-3 border rounded-lg">
+                      <Switch
+                        checked={enableCommunication}
+                        onCheckedChange={setEnableCommunication}
+                        data-testid="switch-enable-communication"
+                      />
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-2">
+                          <Mail className="h-4 w-4" />
+                          <Label className="font-medium">Send Messages</Label>
                         </div>
-                      </div>
-
-                      {/* Pipeline Actions Toggle */}
-                      <div className="flex items-center space-x-2 p-3 border rounded-lg">
-                        <Switch
-                          checked={enablePipeline}
-                          onCheckedChange={setEnablePipeline}
-                          data-testid="switch-enable-pipeline"
-                        />
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-2">
-                            <ArrowRight className="h-4 w-4" />
-                            <Label className="font-medium">Move Projects</Label>
-                          </div>
-                          <p className="text-xs text-muted-foreground">
-                            {enablePipeline 
-                              ? "Move projects to the next stage automatically" 
-                              : "Automatically move projects through your pipeline"
-                            }
-                          </p>
-                        </div>
+                        <p className="text-xs text-muted-foreground">Send emails, texts, or assign forms to clients</p>
                       </div>
                     </div>
+
+                    {/* Pipeline Actions Toggle */}
+                    <div className="flex items-center space-x-2 p-3 border rounded-lg">
+                      <Switch
+                        checked={enablePipeline}
+                        onCheckedChange={setEnablePipeline}
+                        data-testid="switch-enable-pipeline"
+                      />
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-2">
+                          <ArrowRight className="h-4 w-4" />
+                          <Label className="font-medium">Move Projects</Label>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          {enablePipeline 
+                            ? "Move projects to the next stage automatically" 
+                            : "Automatically move projects through your pipeline"
+                          }
+                        </p>
+                      </div>
+                    </div>
+                  </div>
 
                   {/* Current Limitations Info */}
                   {enablePipeline && form.watch('triggerMode') === 'STAGE' ? (
@@ -3456,7 +3450,6 @@ export default function Automations() {
                       />
                     </div>
                   )}
-                  </div>
                     </div>
                   </div>
                   </div>
