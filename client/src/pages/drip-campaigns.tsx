@@ -834,10 +834,9 @@ export default function DripCampaigns() {
                 </div>
 
             {/* Desktop Side-by-Side */}
-            <div className="hidden lg:grid lg:grid-cols-2 lg:gap-6 h-full overflow-hidden">
+            <div className="hidden lg:grid lg:grid-cols-2 lg:gap-6 h-full">
               {/* Left: Settings + Builder */}
-              <div className="h-full overflow-hidden">
-                <ScrollArea className="h-full pr-4">
+              <div className="overflow-auto pr-2">
                 <div className="space-y-4">
                   {/* Email Settings */}
                   <div>
@@ -932,13 +931,11 @@ export default function DripCampaigns() {
                     />
                   </div>
                 </div>
-                </ScrollArea>
               </div>
 
               {/* Right: Preview (Full Height) */}
-              <div className="flex flex-col h-full">
-                <h3 className="text-sm font-medium mb-3">Live Preview</h3>
-                <ScrollArea className="flex-1 border rounded-lg"  >
+              <div className="overflow-auto border rounded-lg">
+                <div className="p-4">
                     {editEmailBlocks.length > 0 ? (
                       <EmailPreview
                         subject={editEmailSubject}
@@ -972,7 +969,7 @@ export default function DripCampaigns() {
                         signatureStyle={editSignatureStyle}
                       />
                     )}
-                </ScrollArea>
+                </div>
               </div>
             </div>
           </div>
