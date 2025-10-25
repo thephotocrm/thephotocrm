@@ -515,6 +515,10 @@ export const dripCampaignEmails = pgTable("drip_campaign_emails", {
   textBody: text("text_body"),
   weeksAfterStart: integer("weeks_after_start").notNull(), // When to send relative to campaign start (legacy)
   daysAfterStart: integer("days_after_start"), // Alternative timing in days for static campaigns
+  sendAtHour: integer("send_at_hour"), // Target hour of day to send (0-23, e.g., 19 for 7pm)
+  // Visual email builder
+  emailBlocks: text("email_blocks"), // JSON string storing email builder blocks
+  useEmailBuilder: boolean("use_email_builder").default(false), // Whether this email uses the visual builder
   // Individual email approval system
   approvalStatus: text("approval_status").notNull().default("PENDING"), // PENDING, APPROVED, REJECTED
   approvedAt: timestamp("approved_at"),
