@@ -679,6 +679,19 @@ export default function DripCampaigns() {
                 </TabsList>
 
                 <TabsContent value="builder" className="mt-4">
+                  {editEmailBlocks.length === 0 && emailBeingEdited?.htmlBody && (
+                    <div className="mb-4 p-4 bg-muted rounded-lg border">
+                      <div className="flex items-start gap-2">
+                        <Mail className="h-5 w-5 text-muted-foreground mt-0.5" />
+                        <div>
+                          <p className="font-medium text-sm">Static Template Detected</p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            This email uses the original HTML format. View it in the Preview tab or start building a new version below using the visual builder.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                   <EmailTemplateBuilder
                     blocks={editEmailBlocks}
                     onBlocksChange={setEditEmailBlocks}
@@ -686,12 +699,33 @@ export default function DripCampaigns() {
                 </TabsContent>
 
                 <TabsContent value="preview" className="mt-4">
-                  <EmailPreview
-                    subject={editEmailSubject}
-                    blocks={editEmailBlocks}
-                    photographerId={user?.photographerId || ''}
-                  />
-                </TabsContent>
+                  {editEmailBlocks.length > 0 ? (
+                    <EmailPreview
+                      subject={editEmailSubject}
+                      blocks={editEmailBlocks}
+                      photographerId={user?.photographerId || ''}
+                    />
+                  ) : emailBeingEdited?.htmlBody ? (
+                    <div className="space-y-4">
+                      <div className="p-3 bg-muted rounded border">
+                        <p className="text-xs text-muted-foreground">
+                          <strong>Original Template Preview:</strong> This is the static HTML version. Add blocks in the Build Email tab to create a new visual version.
+                        </p>
+                      </div>
+                      <div className="border rounded-lg p-4 bg-white">
+                        <div 
+                          dangerouslySetInnerHTML={{ __html: emailBeingEdited.htmlBody || '' }}
+                          className="prose prose-sm max-w-none"
+                        />
+                      </div>
+                    </div>
+                  ) : (
+                    <EmailPreview
+                      subject={editEmailSubject}
+                      blocks={editEmailBlocks}
+                      photographerId={user?.photographerId || ''}
+                    />
+                  )}</TabsContent>
               </Tabs>
             </div>
           </ScrollArea>
