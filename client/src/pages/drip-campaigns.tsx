@@ -764,78 +764,157 @@ export default function DripCampaigns() {
 
               <Separator />
 
-              {/* Builder/Preview Tabs */}
-              <Tabs value={previewTab} onValueChange={(v) => setPreviewTab(v as 'builder' | 'preview')}>
-                <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="builder" data-testid="tab-builder">Build Email</TabsTrigger>
-                  <TabsTrigger value="preview" data-testid="tab-preview">Preview</TabsTrigger>
-                </TabsList>
+              {/* Builder/Preview Side-by-Side Layout (Desktop) / Tabs (Mobile) */}
+              <div className="mt-4">
+                {/* Mobile Tabs */}
+                <div className="lg:hidden">
+                  <Tabs value={previewTab} onValueChange={(v) => setPreviewTab(v as 'builder' | 'preview')}>
+                    <TabsList className="grid w-full grid-cols-2">
+                      <TabsTrigger value="builder" data-testid="tab-builder">Build Email</TabsTrigger>
+                      <TabsTrigger value="preview" data-testid="tab-preview">Preview</TabsTrigger>
+                    </TabsList>
 
-                <TabsContent value="builder" className="mt-4">
-                  {editEmailBlocks.length === 0 && emailBeingEdited?.htmlBody && (
-                    <div className="mb-4 p-4 bg-muted rounded-lg border">
-                      <div className="flex items-start gap-2">
-                        <Mail className="h-5 w-5 text-muted-foreground mt-0.5" />
-                        <div>
-                          <p className="font-medium text-sm">Static Template Detected</p>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            This email uses the original HTML format. View it in the Preview tab or start building a new version below using the visual builder.
-                          </p>
+                    <TabsContent value="builder" className="mt-4">
+                      {editEmailBlocks.length === 0 && emailBeingEdited?.htmlBody && (
+                        <div className="mb-4 p-4 bg-muted rounded-lg border">
+                          <div className="flex items-start gap-2">
+                            <Mail className="h-5 w-5 text-muted-foreground mt-0.5" />
+                            <div>
+                              <p className="font-medium text-sm">Static Template Detected</p>
+                              <p className="text-xs text-muted-foreground mt-1">
+                                This email uses the original HTML format. View it in the Preview tab or start building a new version below using the visual builder.
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      <EmailTemplateBuilder
+                        blocks={editEmailBlocks}
+                        onBlocksChange={setEditEmailBlocks}
+                        includeHeader={editIncludeHeader}
+                        headerStyle={editHeaderStyle}
+                        includeSignature={editIncludeSignature}
+                        signatureStyle={editSignatureStyle}
+                        onBrandingChange={(branding) => {
+                          setEditIncludeHeader(branding.includeHeader);
+                          setEditHeaderStyle(branding.headerStyle);
+                          setEditIncludeSignature(branding.includeSignature);
+                          setEditSignatureStyle(branding.signatureStyle);
+                        }}
+                      />
+                    </TabsContent>
+
+                    <TabsContent value="preview" className="mt-4">
+                      {editEmailBlocks.length > 0 ? (
+                        <EmailPreview
+                          subject={editEmailSubject}
+                          blocks={editEmailBlocks}
+                          includeHeader={editIncludeHeader}
+                          headerStyle={editHeaderStyle}
+                          includeSignature={editIncludeSignature}
+                          signatureStyle={editSignatureStyle}
+                        />
+                      ) : emailBeingEdited?.htmlBody ? (
+                        <div className="space-y-4">
+                          <div className="p-3 bg-muted rounded border">
+                            <p className="text-xs text-muted-foreground">
+                              <strong>Original Template Preview:</strong> This is the static HTML version. Add blocks in the Build Email tab to create a new visual version.
+                            </p>
+                          </div>
+                          <div className="border rounded-lg p-4 bg-white">
+                            <div 
+                              dangerouslySetInnerHTML={{ __html: emailBeingEdited.htmlBody || '' }}
+                              className="prose prose-sm max-w-none"
+                            />
+                          </div>
+                        </div>
+                      ) : (
+                        <EmailPreview
+                          subject={editEmailSubject}
+                          blocks={editEmailBlocks}
+                          includeHeader={editIncludeHeader}
+                          headerStyle={editHeaderStyle}
+                          includeSignature={editIncludeSignature}
+                          signatureStyle={editSignatureStyle}
+                        />
+                      )}
+                    </TabsContent>
+                  </Tabs>
+                </div>
+
+                {/* Desktop Side-by-Side */}
+                <div className="hidden lg:grid lg:grid-cols-2 lg:gap-6">
+                  {/* Left: Builder */}
+                  <div>
+                    <h3 className="text-sm font-medium mb-3">Build Email</h3>
+                    {editEmailBlocks.length === 0 && emailBeingEdited?.htmlBody && (
+                      <div className="mb-4 p-4 bg-muted rounded-lg border">
+                        <div className="flex items-start gap-2">
+                          <Mail className="h-5 w-5 text-muted-foreground mt-0.5" />
+                          <div>
+                            <p className="font-medium text-sm">Static Template Detected</p>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              This email uses the original HTML format. Start building a new version below using the visual builder.
+                            </p>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  )}
-                  <EmailTemplateBuilder
-                    blocks={editEmailBlocks}
-                    onBlocksChange={setEditEmailBlocks}
-                    includeHeader={editIncludeHeader}
-                    headerStyle={editHeaderStyle}
-                    includeSignature={editIncludeSignature}
-                    signatureStyle={editSignatureStyle}
-                    onBrandingChange={(branding) => {
-                      setEditIncludeHeader(branding.includeHeader);
-                      setEditHeaderStyle(branding.headerStyle);
-                      setEditIncludeSignature(branding.includeSignature);
-                      setEditSignatureStyle(branding.signatureStyle);
-                    }}
-                  />
-                </TabsContent>
+                    )}
+                    <EmailTemplateBuilder
+                      blocks={editEmailBlocks}
+                      onBlocksChange={setEditEmailBlocks}
+                      includeHeader={editIncludeHeader}
+                      headerStyle={editHeaderStyle}
+                      includeSignature={editIncludeSignature}
+                      signatureStyle={editSignatureStyle}
+                      onBrandingChange={(branding) => {
+                        setEditIncludeHeader(branding.includeHeader);
+                        setEditHeaderStyle(branding.headerStyle);
+                        setEditIncludeSignature(branding.includeSignature);
+                        setEditSignatureStyle(branding.signatureStyle);
+                      }}
+                    />
+                  </div>
 
-                <TabsContent value="preview" className="mt-4">
-                  {editEmailBlocks.length > 0 ? (
-                    <EmailPreview
-                      subject={editEmailSubject}
-                      blocks={editEmailBlocks}
-                      includeHeader={editIncludeHeader}
-                      headerStyle={editHeaderStyle}
-                      includeSignature={editIncludeSignature}
-                      signatureStyle={editSignatureStyle}
-                    />
-                  ) : emailBeingEdited?.htmlBody ? (
-                    <div className="space-y-4">
-                      <div className="p-3 bg-muted rounded border">
-                        <p className="text-xs text-muted-foreground">
-                          <strong>Original Template Preview:</strong> This is the static HTML version. Add blocks in the Build Email tab to create a new visual version.
-                        </p>
+                  {/* Right: Preview */}
+                  <div>
+                    <h3 className="text-sm font-medium mb-3">Live Preview</h3>
+                    {editEmailBlocks.length > 0 ? (
+                      <EmailPreview
+                        subject={editEmailSubject}
+                        blocks={editEmailBlocks}
+                        includeHeader={editIncludeHeader}
+                        headerStyle={editHeaderStyle}
+                        includeSignature={editIncludeSignature}
+                        signatureStyle={editSignatureStyle}
+                      />
+                    ) : emailBeingEdited?.htmlBody ? (
+                      <div className="space-y-4">
+                        <div className="p-3 bg-muted rounded border">
+                          <p className="text-xs text-muted-foreground">
+                            <strong>Original Template Preview:</strong> This is the static HTML version. Add blocks in the left panel to create a new visual version.
+                          </p>
+                        </div>
+                        <div className="border rounded-lg p-4 bg-white">
+                          <div 
+                            dangerouslySetInnerHTML={{ __html: emailBeingEdited.htmlBody || '' }}
+                            className="prose prose-sm max-w-none"
+                          />
+                        </div>
                       </div>
-                      <div className="border rounded-lg p-4 bg-white">
-                        <div 
-                          dangerouslySetInnerHTML={{ __html: emailBeingEdited.htmlBody || '' }}
-                          className="prose prose-sm max-w-none"
-                        />
-                      </div>
-                    </div>
-                  ) : (
-                    <EmailPreview
-                      subject={editEmailSubject}
-                      blocks={editEmailBlocks}
-                      includeHeader={editIncludeHeader}
-                      headerStyle={editHeaderStyle}
-                      includeSignature={editIncludeSignature}
-                      signatureStyle={editSignatureStyle}
-                    />
-                  )}</TabsContent>
-              </Tabs>
+                    ) : (
+                      <EmailPreview
+                        subject={editEmailSubject}
+                        blocks={editEmailBlocks}
+                        includeHeader={editIncludeHeader}
+                        headerStyle={editHeaderStyle}
+                        includeSignature={editIncludeSignature}
+                        signatureStyle={editSignatureStyle}
+                      />
+                    )}
+                  </div>
+                </div>
+              </div>
             </div>
           </ScrollArea>
 
