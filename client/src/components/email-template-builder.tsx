@@ -13,6 +13,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -27,10 +34,12 @@ import {
   MousePointerClick,
   Trash2,
   Plus,
-  ChevronDown
+  ChevronDown,
+  Edit
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
+import { generateEmailHeader, generateEmailSignature } from "@shared/email-branding-shared";
 
 export type ContentBlock = {
   id: string;
@@ -381,17 +390,29 @@ function BlockEditor({
 
               {block.type === 'SPACER' && (
                 <div className="flex items-center gap-2">
-                  <Label className="text-xs">Height (px)</Label>
-                  <Input
-                    type="number"
-                    value={localContent?.height || 20}
-                    onChange={(e) => {
-                      const updated = { ...localContent, height: parseInt(e.target.value) || 20 };
+                  <Label className="text-xs">Spacer Size</Label>
+                  <Select
+                    value={localContent?.size || 'medium'}
+                    onValueChange={(value) => {
+                      const heightMap = { small: 20, medium: 40, large: 60 };
+                      const updated = { 
+                        ...localContent, 
+                        size: value,
+                        height: heightMap[value as keyof typeof heightMap] || 40
+                      };
                       setLocalContent(updated);
                       onUpdate(updated);
                     }}
-                    className="w-24"
-                  />
+                  >
+                    <SelectTrigger className="w-32">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="small">Small</SelectItem>
+                      <SelectItem value="medium">Medium</SelectItem>
+                      <SelectItem value="large">Large</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               )}
             </div>
@@ -436,11 +457,38 @@ export function EmailTemplateBuilder({
   signatureStyle = 'professional',
   onBrandingChange
 }: EmailTemplateBuilderProps) {
+  const [headerModalOpen, setHeaderModalOpen] = useState(false);
+  const [signatureModalOpen, setSignatureModalOpen] = useState(false);
+
+  const { data: photographer } = useQuery({
+    queryKey: ['/api/photographers/me']
+  });
+
+  const brandingData = photographer ? {
+    businessName: photographer.businessName,
+    photographerName: photographer.photographerName,
+    logoUrl: photographer.logoUrl,
+    headshotUrl: photographer.headshotUrl,
+    brandPrimary: photographer.brandPrimary,
+    brandSecondary: photographer.brandSecondary,
+    phone: photographer.phone,
+    email: photographer.email,
+    website: photographer.website,
+    businessAddress: photographer.businessAddress,
+    socialLinks: photographer.socialLinks
+  } : {
+    businessName: 'Your Business Name',
+    photographerName: 'Your Name',
+    phone: '(555) 123-4567',
+    email: 'hello@yourbusiness.com',
+    website: 'www.yourbusiness.com'
+  };
+
   const addBlock = (type: ContentBlock['type']) => {
     const newBlock: ContentBlock = {
       id: `block-${Date.now()}-${Math.random()}`,
       type,
-      content: type === 'SPACER' ? { height: 20 } : type === 'BUTTON' ? { text: '', linkType: 'CUSTOM', linkValue: '', variant: 'default' } : { text: '' }
+      content: type === 'SPACER' ? { size: 'medium', height: 40 } : type === 'BUTTON' ? { text: '', linkType: 'CUSTOM', linkValue: '', variant: 'default' } : { text: '' }
     };
     onBlocksChange([...blocks, newBlock]);
   };
@@ -452,6 +500,20 @@ export function EmailTemplateBuilder({
   const deleteBlock = (id: string) => {
     onBlocksChange(blocks.filter(b => b.id !== id));
   };
+
+  const headerStyles = [
+    { value: 'minimal', label: 'Minimal', description: 'Clean and simple centered header' },
+    { value: 'professional', label: 'Professional', description: 'Centered with bottom border' },
+    { value: 'bold', label: 'Bold', description: 'Eye-catching gradient background' },
+    { value: 'classic', label: 'Classic', description: 'Traditional layout with text' }
+  ];
+
+  const signatureStyles = [
+    { value: 'simple', label: 'Simple', description: 'Clean text-based signature' },
+    { value: 'professional', label: 'Professional', description: 'Includes headshot and social icons' },
+    { value: 'detailed', label: 'Detailed', description: 'Full contact card with all details' },
+    { value: 'branded', label: 'Branded', description: 'Brand-focused with color accents' }
+  ];
 
   return (
     <div className="space-y-4">
@@ -465,60 +527,124 @@ export function EmailTemplateBuilder({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Header Controls */}
               <div className="space-y-2">
-                <Label htmlFor="header-style" className="text-sm font-medium">
-                  Email Header
-                </Label>
-                <Select
-                  value={includeHeader ? headerStyle : 'none'}
-                  onValueChange={(value) => {
-                    onBrandingChange({
-                      includeHeader: value !== 'none',
-                      headerStyle: value !== 'none' ? value : headerStyle,
-                      includeSignature,
-                      signatureStyle
-                    });
-                  }}
-                >
-                  <SelectTrigger id="header-style" data-testid="select-header-style">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">None</SelectItem>
-                    <SelectItem value="minimal">Minimal</SelectItem>
-                    <SelectItem value="professional">Professional</SelectItem>
-                    <SelectItem value="bold">Bold</SelectItem>
-                    <SelectItem value="classic">Classic</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Label className="text-sm font-medium">Email Header</Label>
+                <div className="flex gap-2">
+                  <div className="flex-1 px-3 py-2 border rounded-md bg-background text-sm">
+                    {includeHeader ? headerStyles.find(s => s.value === headerStyle)?.label : 'None'}
+                  </div>
+                  <Dialog open={headerModalOpen} onOpenChange={setHeaderModalOpen}>
+                    <DialogTrigger asChild>
+                      <Button type="button" variant="outline" size="sm" data-testid="button-edit-header">
+                        <Edit className="w-4 h-4" />
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+                      <DialogHeader>
+                        <DialogTitle>Select Email Header Style</DialogTitle>
+                      </DialogHeader>
+                      <div className="space-y-4 mt-4">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            onBrandingChange({ includeHeader: false, headerStyle, includeSignature, signatureStyle });
+                            setHeaderModalOpen(false);
+                          }}
+                          className={cn(
+                            "w-full p-4 border-2 rounded-lg text-left hover:border-primary transition-colors",
+                            !includeHeader && "border-primary bg-primary/5"
+                          )}
+                          data-testid="option-header-none"
+                        >
+                          <div className="font-medium mb-1">None</div>
+                          <div className="text-sm text-muted-foreground">No header in emails</div>
+                        </button>
+                        {headerStyles.map((style) => (
+                          <button
+                            key={style.value}
+                            type="button"
+                            onClick={() => {
+                              onBrandingChange({ includeHeader: true, headerStyle: style.value, includeSignature, signatureStyle });
+                              setHeaderModalOpen(false);
+                            }}
+                            className={cn(
+                              "w-full p-4 border-2 rounded-lg text-left hover:border-primary transition-colors",
+                              includeHeader && headerStyle === style.value && "border-primary bg-primary/5"
+                            )}
+                            data-testid={`option-header-${style.value}`}
+                          >
+                            <div className="font-medium mb-1">{style.label}</div>
+                            <div className="text-sm text-muted-foreground mb-3">{style.description}</div>
+                            <div 
+                              className="border rounded overflow-hidden bg-white"
+                              dangerouslySetInnerHTML={{ __html: generateEmailHeader(style.value, brandingData) }}
+                            />
+                          </button>
+                        ))}
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                </div>
               </div>
 
               {/* Signature Controls */}
               <div className="space-y-2">
-                <Label htmlFor="signature-style" className="text-sm font-medium">
-                  Email Signature
-                </Label>
-                <Select
-                  value={includeSignature ? signatureStyle : 'none'}
-                  onValueChange={(value) => {
-                    onBrandingChange({
-                      includeHeader,
-                      headerStyle,
-                      includeSignature: value !== 'none',
-                      signatureStyle: value !== 'none' ? value : signatureStyle
-                    });
-                  }}
-                >
-                  <SelectTrigger id="signature-style" data-testid="select-signature-style">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">None</SelectItem>
-                    <SelectItem value="simple">Simple</SelectItem>
-                    <SelectItem value="professional">Professional</SelectItem>
-                    <SelectItem value="detailed">Detailed</SelectItem>
-                    <SelectItem value="branded">Branded</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Label className="text-sm font-medium">Email Signature</Label>
+                <div className="flex gap-2">
+                  <div className="flex-1 px-3 py-2 border rounded-md bg-background text-sm">
+                    {includeSignature ? signatureStyles.find(s => s.value === signatureStyle)?.label : 'None'}
+                  </div>
+                  <Dialog open={signatureModalOpen} onOpenChange={setSignatureModalOpen}>
+                    <DialogTrigger asChild>
+                      <Button type="button" variant="outline" size="sm" data-testid="button-edit-signature">
+                        <Edit className="w-4 h-4" />
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+                      <DialogHeader>
+                        <DialogTitle>Select Email Signature Style</DialogTitle>
+                      </DialogHeader>
+                      <div className="space-y-4 mt-4">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            onBrandingChange({ includeHeader, headerStyle, includeSignature: false, signatureStyle });
+                            setSignatureModalOpen(false);
+                          }}
+                          className={cn(
+                            "w-full p-4 border-2 rounded-lg text-left hover:border-primary transition-colors",
+                            !includeSignature && "border-primary bg-primary/5"
+                          )}
+                          data-testid="option-signature-none"
+                        >
+                          <div className="font-medium mb-1">None</div>
+                          <div className="text-sm text-muted-foreground">No signature in emails</div>
+                        </button>
+                        {signatureStyles.map((style) => (
+                          <button
+                            key={style.value}
+                            type="button"
+                            onClick={() => {
+                              onBrandingChange({ includeHeader, headerStyle, includeSignature: true, signatureStyle: style.value });
+                              setSignatureModalOpen(false);
+                            }}
+                            className={cn(
+                              "w-full p-4 border-2 rounded-lg text-left hover:border-primary transition-colors",
+                              includeSignature && signatureStyle === style.value && "border-primary bg-primary/5"
+                            )}
+                            data-testid={`option-signature-${style.value}`}
+                          >
+                            <div className="font-medium mb-1">{style.label}</div>
+                            <div className="text-sm text-muted-foreground mb-3">{style.description}</div>
+                            <div 
+                              className="border rounded overflow-hidden bg-white"
+                              dangerouslySetInnerHTML={{ __html: generateEmailSignature(style.value, brandingData) }}
+                            />
+                          </button>
+                        ))}
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                </div>
               </div>
             </div>
           </CardContent>
