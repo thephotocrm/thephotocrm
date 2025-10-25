@@ -1616,6 +1616,10 @@ export default function Automations() {
   const [includeSignature, setIncludeSignature] = useState(true);
   const [signatureStyle, setSignatureStyle] = useState('professional');
   
+  // Wizard state for step-by-step automation creation
+  const [wizardStep, setWizardStep] = useState(1);
+  const totalSteps = 5;
+  
   // Redirect to login if not authenticated
   useEffect(() => {
     if (!loading && !user) {
@@ -1626,6 +1630,8 @@ export default function Automations() {
   // Reset modal state when dialog opens
   useEffect(() => {
     if (createDialogOpen) {
+      // Reset wizard step to beginning
+      setWizardStep(1);
       // Reset toggle states to default
       setEnableCommunication(true);
       setEnablePipeline(false);
@@ -2483,6 +2489,62 @@ export default function Automations() {
     setEditDialogOpen(true);
   };
 
+  // Wizard navigation functions
+  const canProceedToStep2 = () => {
+    return !!form.watch('name');
+  };
+
+  const canProceedToStep3 = () => {
+    const triggerMode = form.watch('triggerMode');
+    if (triggerMode === 'STAGE') {
+      return !!form.watch('triggerStageId');
+    } else if (triggerMode === 'BUSINESS') {
+      return !!form.watch('triggerEvent');
+    } else if (triggerMode === 'TIME') {
+      return !!form.watch('daysBefore') && !!form.watch('eventType') && form.watch('eventType') !== 'placeholder';
+    }
+    return false;
+  };
+
+  const canProceedToStep4 = () => {
+    // At least one action type must be enabled
+    return enableCommunication || enablePipeline;
+  };
+
+  const canProceedToStep5 = () => {
+    // Validate content based on what's enabled
+    if (enableCommunication) {
+      const channel = form.watch('channel');
+      if (channel === 'SMART_FILE') {
+        return !!form.watch('smartFileTemplateId') && form.watch('smartFileTemplateId') !== 'unavailable';
+      } else if (channel === 'SMS') {
+        const hasTemplate = form.watch('templateId') && form.watch('templateId') !== 'unavailable';
+        const hasCustom = form.watch('smsMessageType') === 'custom' && !!form.watch('customSmsContent');
+        return hasTemplate || hasCustom;
+      } else if (channel === 'EMAIL') {
+        const hasTemplate = form.watch('templateId') && form.watch('templateId') !== 'unavailable';
+        const hasCustom = emailBuilderMode === 'build' && customEmailBlocks.length > 0;
+        return hasTemplate || hasCustom;
+      }
+    }
+    if (enablePipeline) {
+      return !!form.watch('targetStageId');
+    }
+    return false;
+  };
+
+  const handleNextStep = () => {
+    if (wizardStep < totalSteps) {
+      setWizardStep(wizardStep + 1);
+    }
+  };
+
+  const handlePrevStep = () => {
+    if (wizardStep > 1) {
+      setWizardStep(wizardStep - 1);
+    }
+  };
+
   // Show loading spinner
   if (loading) {
     return (
@@ -2516,6 +2578,25 @@ export default function Automations() {
                   <DialogDescription>
                     Save time by automating routine tasks for your clients
                   </DialogDescription>
+                  {/* Progress Indicator */}
+                  <div className="mt-4">
+                    <div className="flex items-center justify-between text-sm text-muted-foreground mb-2">
+                      <span>Step {wizardStep} of {totalSteps}</span>
+                      <span className="text-xs">
+                        {wizardStep === 1 && "Basic Information"}
+                        {wizardStep === 2 && "Trigger"}
+                        {wizardStep === 3 && "Action Type"}
+                        {wizardStep === 4 && "Content"}
+                        {wizardStep === 5 && "Review & Activate"}
+                      </span>
+                    </div>
+                    <div className="w-full bg-muted rounded-full h-2">
+                      <div 
+                        className="bg-primary h-2 rounded-full transition-all duration-300"
+                        style={{ width: `${(wizardStep / totalSteps) * 100}%` }}
+                      />
+                    </div>
+                  </div>
                 </DialogHeader>
                 
                 <Form {...form}>
@@ -2523,6 +2604,7 @@ export default function Automations() {
                     <div className="flex-1 min-h-0 overflow-y-auto px-6 py-4 space-y-8">
                   
                   {/* Step 1: Basic Information */}
+                  {wizardStep === 1 && (
                   <div className="space-y-4">
                     <div className="flex items-center space-x-3">
                       <div className="flex items-center justify-center w-8 h-8 bg-primary text-primary-foreground rounded-full text-sm font-semibold">
@@ -2554,8 +2636,10 @@ export default function Automations() {
                       />
                     </div>
                   </div>
+                  )}
 
                   {/* Step 2: When (Trigger) */}
+                  {wizardStep === 2 && (
                   <div className="space-y-4">
                     <div className="flex items-center space-x-3">
                       <div className="flex items-center justify-center w-8 h-8 bg-primary text-primary-foreground rounded-full text-sm font-semibold">
@@ -2868,49 +2952,54 @@ export default function Automations() {
                     )}
                     </div>
                   </div>
+                  )}
 
-                  {/* Step 3: Conditions (Optional) - Only for non-countdown automations */}
-                  {form.watch('triggerMode') !== 'TIME' && (
+                  {/* Step 3: Action Type */}
+                  {wizardStep === 3 && (
                   <div className="space-y-4">
                     <div className="flex items-center space-x-3">
                       <div className="flex items-center justify-center w-8 h-8 bg-primary text-primary-foreground rounded-full text-sm font-semibold">
                         3
                       </div>
                       <div>
-                        <h3 className="text-lg font-semibold">Who should this affect? (Optional)</h3>
-                        <p className="text-sm text-muted-foreground">Filter which clients this automation applies to</p>
+                        <h3 className="text-lg font-semibold">What should happen?</h3>
+                        <p className="text-sm text-muted-foreground">Choose what actions this automation should take</p>
                       </div>
                     </div>
                     
-                    <div className="ml-11 p-4 border rounded-lg bg-blue-50/50 dark:bg-blue-950/20">
-                      <FormField
-                        control={form.control}
-                        name="eventDateCondition"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Wedding Date Requirement</FormLabel>
-                            <Select onValueChange={field.onChange} value={field.value || "NO_CONDITION"}>
-                              <FormControl>
-                                <SelectTrigger data-testid="select-event-date-condition">
-                                  <SelectValue placeholder="No condition (run for all clients)" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                <SelectItem value="NO_CONDITION">No condition (run for all clients)</SelectItem>
-                                <SelectItem value="HAS_EVENT_DATE">Only if client has wedding date</SelectItem>
-                                <SelectItem value="NO_EVENT_DATE">Only if client does NOT have wedding date</SelectItem>
-                              </SelectContent>
-                            </Select>
-                            <FormDescription>
-                              Leave blank to run for all clients, or filter by whether they have a wedding date set
-                            </FormDescription>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+                    <div className="ml-11 space-y-4 p-4 border rounded-lg bg-green-50/50 dark:bg-green-950/20">
+                      <div className="space-y-3">
+                        <div className="flex items-center space-x-2">
+                          <Switch
+                            checked={enableCommunication}
+                            onCheckedChange={setEnableCommunication}
+                            data-testid="switch-enable-communication"
+                          />
+                          <Label className="flex items-center space-x-2 cursor-pointer" onClick={() => setEnableCommunication(!enableCommunication)}>
+                            <Mail className="h-4 w-4" />
+                            <span className="font-medium">Send a message (Email/SMS/Smart File)</span>
+                          </Label>
+                        </div>
+                        
+                        <div className="flex items-center space-x-2">
+                          <Switch
+                            checked={enablePipeline}
+                            onCheckedChange={setEnablePipeline}
+                            data-testid="switch-enable-pipeline"
+                          />
+                          <Label className="flex items-center space-x-2 cursor-pointer" onClick={() => setEnablePipeline(!enablePipeline)}>
+                            <ArrowRight className="h-4 w-4" />
+                            <span className="font-medium">Move client to a different stage</span>
+                          </Label>
+                        </div>
+                      </div>
                     </div>
                   </div>
                   )}
+
+                  {/* Step 4: Content - Only show when on Step 4 */}
+                  {wizardStep === 4 && (
+                  <div className="space-y-4">
 
                   {/* Step 4: What Actions */}
                   <div className="space-y-4">
@@ -3451,25 +3540,88 @@ export default function Automations() {
                   )}
                     </div>
                   </div>
+                  )}
 
-                  {/* Footer with Submit Buttons */}
-                  <div className="sticky bottom-0 bg-background px-6 py-4 border-t flex justify-end space-x-2">
-                    <Button
-                      type="button" 
-                      variant="outline"
-                      onClick={() => setCreateDialogOpen(false)}
-                      data-testid="button-cancel-automation"
-                    >
-                      Cancel
-                    </Button>
-                    <Button 
-                      type="submit" 
-                      onClick={() => {
-                        console.log('🔘 Button clicked!');
-                        console.log('📝 Form errors:', form.formState.errors);
-                        console.log('📊 Form values:', form.getValues());
-                      }}
-                      disabled={
+                  {/* Step 5: Review & Activate */}
+                  {wizardStep === 5 && (
+                  <div className="space-y-4">
+                    <div className="flex items-center space-x-3">
+                      <div className="flex items-center justify-center w-8 h-8 bg-primary text-primary-foreground rounded-full text-sm font-semibold">
+                        5
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-semibold">Review & Activate</h3>
+                        <p className="text-sm text-muted-foreground">Review your automation before activating</p>
+                      </div>
+                    </div>
+                    
+                    <div className="ml-11 space-y-4 p-4 border rounded-lg bg-card">
+                      <div className="space-y-3">
+                        <div className="flex items-start justify-between py-2 border-b">
+                          <span className="text-sm font-medium text-muted-foreground">Name</span>
+                          <span className="text-sm font-semibold">{form.watch('name') || '(Not set)'}</span>
+                        </div>
+                        <div className="flex items-start justify-between py-2 border-b">
+                          <span className="text-sm font-medium text-muted-foreground">Trigger</span>
+                          <span className="text-sm">{
+                            form.watch('triggerMode') === 'STAGE' ? `Stage: ${stages?.find(s => s.id === form.watch('triggerStageId'))?.name || '(Select stage)'}` :
+                            form.watch('triggerMode') === 'BUSINESS' ? `Business Event: ${form.watch('triggerEvent')?.replace(/_/g, ' ') || '(Select event)'}` :
+                            `Time-based: ${form.watch('daysBefore')} days`
+                          }</span>
+                        </div>
+                        <div className="flex items-start justify-between py-2 border-b">
+                          <span className="text-sm font-medium text-muted-foreground">Actions</span>
+                          <div className="text-sm text-right">
+                            {enableCommunication && <div>✓ Send {form.watch('channel')}</div>}
+                            {enablePipeline && <div>✓ Move to stage</div>}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  )}
+
+                  {/* Wizard Navigation Footer */}
+                  <div className="sticky bottom-0 bg-background px-6 py-4 border-t flex justify-between">
+                    <div>
+                      {wizardStep > 1 && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={handlePrevStep}
+                          data-testid="button-wizard-back"
+                        >
+                          Back
+                        </Button>
+                      )}
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        type="button" 
+                        variant="outline"
+                        onClick={() => setCreateDialogOpen(false)}
+                        data-testid="button-cancel-automation"
+                      >
+                        Cancel
+                      </Button>
+                      {wizardStep < totalSteps ? (
+                        <Button
+                          type="button"
+                          onClick={handleNextStep}
+                          disabled={
+                            (wizardStep === 1 && !canProceedToStep2()) ||
+                            (wizardStep === 2 && !canProceedToStep3()) ||
+                            (wizardStep === 3 && !canProceedToStep4()) ||
+                            (wizardStep === 4 && !canProceedToStep5())
+                          }
+                          data-testid="button-wizard-next"
+                        >
+                          Next
+                        </Button>
+                      ) : (
+                        <Button 
+                          type="submit" 
+                          disabled={
                         createAutomationMutation.isPending ||
                         (() => {
                           // At least one automation type must be enabled
@@ -3567,7 +3719,13 @@ export default function Automations() {
                             return `Create ${actions.join(" + ")} Automation${actions.length > 1 ? "s" : ""}`;
                           })()
                       }
+                      data-testid="button-submit-automation"
+                    >
+                      {createAutomationMutation.isPending ? "Creating..." : "Create Automation"}
                     </Button>
+                      )}
+                    </div>
+                  </div>
                   </div>
                   </form>
                 </Form>
