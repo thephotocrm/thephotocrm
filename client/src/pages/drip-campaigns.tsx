@@ -685,7 +685,7 @@ export default function DripCampaigns() {
 
       {/* Edit Email Dialog */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent className="w-full max-w-[100vw] md:max-w-7xl max-h-[90vh] p-4 md:p-6">
+        <DialogContent className="w-full max-w-[100vw] md:max-w-[95vw] max-h-[95vh] p-4 md:p-6">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Edit className="h-5 w-5" />
