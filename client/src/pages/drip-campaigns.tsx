@@ -746,20 +746,22 @@ export default function DripCampaigns() {
                   </p>
                 </div>
 
-                <div>
-                  <Label htmlFor="edit-subject" className="text-sm">Email Subject</Label>
-                  <Input
-                    id="edit-subject"
-                    value={editEmailSubject}
-                    onChange={(e) => setEditEmailSubject(e.target.value)}
-                    placeholder="Enter email subject"
-                    className="mt-1"
-                    data-testid="input-edit-subject"
-                  />
-                </div>
+                {/* Settings Container */}
+                <div className="bg-slate-50/50 dark:bg-slate-900/20 rounded-lg p-4 space-y-3">
+                  <div>
+                    <Label htmlFor="edit-subject" className="text-sm">Email Subject</Label>
+                    <Input
+                      id="edit-subject"
+                      value={editEmailSubject}
+                      onChange={(e) => setEditEmailSubject(e.target.value)}
+                      placeholder="Enter email subject"
+                      className="mt-1"
+                      data-testid="input-edit-subject"
+                    />
+                  </div>
 
-                {/* Settings Cards */}
-                <div className="space-y-3">
+                  {/* Settings Cards */}
+                  <div className="space-y-3">
                   {/* Timing Card */}
                   <div className="border rounded-lg p-3 bg-card">
                     <Label className="text-xs text-muted-foreground">Timing</Label>
@@ -878,14 +880,17 @@ export default function DripCampaigns() {
                     </div>
                   </div>
                 </div>
+                </div>
+              </div>
 
-                <div className="relative">
+              {/* Build Email Container */}
+              <div className="bg-slate-50/50 dark:bg-slate-900/20 rounded-lg p-4">
+                <div className="relative mb-4">
                   <Separator />
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-background px-2">
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-slate-50/50 dark:bg-slate-900/20 px-2">
                     <span className="text-xs text-muted-foreground">Email Content</span>
                   </div>
                 </div>
-              </div>
 
               <Tabs value={previewTab} onValueChange={(v) => setPreviewTab(v as 'builder' | 'preview')}>
                 <TabsList className="grid w-full grid-cols-2">
@@ -959,7 +964,8 @@ export default function DripCampaigns() {
                       )}
                     </TabsContent>
                   </Tabs>
-                </div>
+              </div>
+            </div>
 
             {/* Desktop Side-by-Side */}
             <div className="hidden lg:grid lg:grid-cols-2 lg:gap-6 h-full">
@@ -977,21 +983,23 @@ export default function DripCampaigns() {
                     </p>
                   </div>
 
-                  {/* Email Subject */}
-                  <div>
-                    <Label htmlFor="edit-subject-desktop" className="text-sm">Email Subject</Label>
-                    <Input
-                      id="edit-subject-desktop"
-                      value={editEmailSubject}
-                      onChange={(e) => setEditEmailSubject(e.target.value)}
-                      placeholder="Enter email subject"
-                      className="mt-1"
-                      data-testid="input-edit-subject-desktop"
-                    />
-                  </div>
+                  {/* Settings Container */}
+                  <div className="bg-slate-50/50 dark:bg-slate-900/20 rounded-lg p-4 space-y-3">
+                    {/* Email Subject */}
+                    <div>
+                      <Label htmlFor="edit-subject-desktop" className="text-sm">Email Subject</Label>
+                      <Input
+                        id="edit-subject-desktop"
+                        value={editEmailSubject}
+                        onChange={(e) => setEditEmailSubject(e.target.value)}
+                        placeholder="Enter email subject"
+                        className="mt-1"
+                        data-testid="input-edit-subject-desktop"
+                      />
+                    </div>
 
-                  {/* Settings Cards */}
-                  <div className="grid grid-cols-3 gap-3">
+                    {/* Settings Cards */}
+                    <div className="grid grid-cols-3 gap-3">
                     {/* Timing Card */}
                     <div className="border rounded-lg p-3 bg-card">
                       <Label className="text-xs text-muted-foreground">Timing</Label>
@@ -1051,17 +1059,20 @@ export default function DripCampaigns() {
                         </Button>
                       </div>
                     </div>
-                  </div>
-
-                  <div className="relative">
-                    <Separator />
-                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-background px-2">
-                      <span className="text-xs text-muted-foreground">Email Content</span>
                     </div>
                   </div>
 
-                  {/* Builder */}
-                  <div>
+                  {/* Build Email Container */}
+                  <div className="bg-slate-50/50 dark:bg-slate-900/20 rounded-lg p-4">
+                    <div className="relative mb-4">
+                      <Separator />
+                      <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-slate-50/50 dark:bg-slate-900/20 px-2">
+                        <span className="text-xs text-muted-foreground">Email Content</span>
+                      </div>
+                    </div>
+
+                    {/* Builder */}
+                    <div>
                     <h3 className="text-sm font-medium mb-3">Build Email</h3>
                     {editEmailBlocks.length === 0 && emailBeingEdited?.htmlBody && (
                       <div className="mb-4 p-4 bg-muted rounded-lg border">
@@ -1084,6 +1095,7 @@ export default function DripCampaigns() {
                       includeSignature={editIncludeSignature}
                       signatureStyle={editSignatureStyle}
                     />
+                    </div>
                   </div>
                 </div>
               </div>
