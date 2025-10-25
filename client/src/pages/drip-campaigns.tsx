@@ -596,10 +596,38 @@ export default function DripCampaigns() {
                 <ScrollArea className="h-[calc(100%-60px)] border rounded-lg">
                   <div className="p-3 md:p-4">
                     {selectedEmailPreview === 'html' ? (
-                      <div 
-                        dangerouslySetInnerHTML={{ __html: selectedEmailForPreview.htmlBody || '' }}
-                        className="prose prose-sm max-w-none text-sm"
-                      />
+                      (() => {
+                        // Try to parse email blocks if they exist
+                        let blocks: ContentBlock[] = [];
+                        if (selectedEmailForPreview.emailBlocks) {
+                          try {
+                            blocks = JSON.parse(selectedEmailForPreview.emailBlocks);
+                          } catch (error) {
+                            console.error('Failed to parse email blocks:', error);
+                          }
+                        }
+                        
+                        // Use EmailPreview if blocks exist, otherwise fall back to htmlBody
+                        if (blocks.length > 0) {
+                          return (
+                            <EmailPreview
+                              subject={selectedEmailForPreview.subject}
+                              blocks={blocks}
+                              includeHeader={selectedEmailForPreview.includeHeader || false}
+                              headerStyle={selectedEmailForPreview.headerStyle || 'professional'}
+                              includeSignature={selectedEmailForPreview.includeSignature || false}
+                              signatureStyle={selectedEmailForPreview.signatureStyle || 'professional'}
+                            />
+                          );
+                        }
+                        
+                        return (
+                          <div 
+                            dangerouslySetInnerHTML={{ __html: selectedEmailForPreview.htmlBody || '' }}
+                            className="prose prose-sm max-w-none text-sm"
+                          />
+                        );
+                      })()
                     ) : (
                       <div className="whitespace-pre-wrap font-mono text-xs sm:text-sm break-words">
                         {selectedEmailForPreview.textBody || selectedEmailForPreview.subject}
