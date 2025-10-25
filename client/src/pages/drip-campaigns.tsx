@@ -747,7 +747,7 @@ export default function DripCampaigns() {
                 </div>
 
                 {/* Settings Container */}
-                <div className="bg-slate-50/50 dark:bg-slate-900/20 rounded-lg p-4 space-y-3">
+                <div className="bg-muted/30 rounded-lg p-4 space-y-3 border">
                   <div>
                     <Label htmlFor="edit-subject" className="text-sm">Email Subject</Label>
                     <Input
@@ -884,10 +884,10 @@ export default function DripCampaigns() {
               </div>
 
               {/* Build Email Container */}
-              <div className="bg-slate-50/50 dark:bg-slate-900/20 rounded-lg p-4">
+              <div className="bg-muted/30 rounded-lg p-4 border">
                 <div className="relative mb-4">
                   <Separator />
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-slate-50/50 dark:bg-slate-900/20 px-2">
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-background px-2">
                     <span className="text-xs text-muted-foreground">Email Content</span>
                   </div>
                 </div>
@@ -984,7 +984,7 @@ export default function DripCampaigns() {
                   </div>
 
                   {/* Settings Container */}
-                  <div className="bg-slate-50/50 dark:bg-slate-900/20 rounded-lg p-4 space-y-3">
+                  <div className="bg-muted/30 rounded-lg p-4 space-y-3 border">
                     {/* Email Subject */}
                     <div>
                       <Label htmlFor="edit-subject-desktop" className="text-sm">Email Subject</Label>
@@ -1063,10 +1063,10 @@ export default function DripCampaigns() {
                   </div>
 
                   {/* Build Email Container */}
-                  <div className="bg-slate-50/50 dark:bg-slate-900/20 rounded-lg p-4">
+                  <div className="bg-muted/30 rounded-lg p-4 border">
                     <div className="relative mb-4">
                       <Separator />
-                      <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-slate-50/50 dark:bg-slate-900/20 px-2">
+                      <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-background px-2">
                         <span className="text-xs text-muted-foreground">Email Content</span>
                       </div>
                     </div>
