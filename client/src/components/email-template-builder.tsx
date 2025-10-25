@@ -294,9 +294,14 @@ function BlockEditor({
                       <Label className="text-xs">URL</Label>
                       <Input
                         value={localContent?.linkValue || ''}
-                        onChange={(e) => setLocalContent({ ...localContent, linkValue: e.target.value })}
+                        onChange={(e) => {
+                          const updated = { ...localContent, linkValue: e.target.value };
+                          setLocalContent(updated);
+                          onUpdate(updated);
+                        }}
                         onBlur={handleBlur}
                         placeholder="https://example.com"
+                        data-testid={`input-custom-url-${block.id}`}
                       />
                     </div>
                   )}
