@@ -451,69 +451,104 @@ const WEDDING_EMAIL_TEMPLATES = {
 
 // Function to generate complete email content for wedding campaign
 export function generateWeddingEmailContent(photographer: Photographer): StaticCampaignTemplate {
-  // Rich content for wedding emails with proper formatting
-  const emailContents = [
-    {
-      content: `<p>Congratulations on your engagement! This is such an exciting time, and we're absolutely thrilled to be part of your wedding planning journey.</p>
-      
-      <p>We'll be sending you carefully curated tips, inspiration, and guidance to help you plan the wedding of your dreams. From setting your vision to walking down the aisle, we've got you covered every step of the way.</p>
-      
-      <p>As professional wedding photographers, we've had the privilege of capturing hundreds of love stories, and we've learned what makes weddings truly magical. We're excited to share that wisdom with you!</p>
-      
-      <p>Here's to the beginning of your beautiful journey toward "I do!" 🥂</p>`,
-      includeBookingCTA: false
-    },
-    {
-      content: `<p>Now that you're engaged, it's time to start dreaming about your perfect wedding day! But before diving into the details, let's establish a strong foundation for your planning process.</p>
-      
-      <p><strong>Setting Your Wedding Vision:</strong></p>
-      <ul>
-        <li>Browse magazines and Pinterest for inspiration</li>
-        <li>Discuss your must-haves vs. nice-to-haves with your partner</li>
-        <li>Consider your guest count and budget early on</li>
-        <li>Think about the overall feeling you want to create</li>
-      </ul>
-      
-      <p>⚠️ <strong>Pro Tip:</strong> Create a shared Pinterest board with your partner to collect ideas and ensure you're both aligned on the vision!</p>
-      
-      <p>Remember, this is YOUR day - let your personalities shine through every decision you make.</p>`,
-      includeBookingCTA: false
-    }
+  // Create clean, beautiful email blocks for each wedding email
+  const emailBlocksArray = [
+    // Email 0: Welcome
+    [
+      { type: 'HEADING', content: { text: 'Congratulations on Your Engagement! 💍', level: 'h2' } },
+      { type: 'SPACER', content: { height: 20 } },
+      { type: 'TEXT', content: { text: "This is such an exciting time, and we're absolutely thrilled to be part of your wedding planning journey." } },
+      { type: 'SPACER', content: { height: 15 } },
+      { type: 'TEXT', content: { text: "We'll be sending you carefully curated tips, inspiration, and guidance to help you plan the wedding of your dreams. From setting your vision to walking down the aisle, we've got you covered every step of the way." } },
+      { type: 'SPACER', content: { height: 15 } },
+      { type: 'TEXT', content: { text: "As professional wedding photographers, we've had the privilege of capturing hundreds of love stories, and we've learned what makes weddings truly magical. We're excited to share that wisdom with you!" } },
+      { type: 'SPACER', content: { height: 20 } },
+      { type: 'BUTTON', content: { text: 'Start a Conversation', url: `mailto:${photographer.emailFromAddr || 'hello@business.com'}` } }
+    ],
+    // Email 1: Setting Vision
+    [
+      { type: 'HEADING', content: { text: 'Setting Your Wedding Vision', level: 'h2' } },
+      { type: 'SPACER', content: { height: 20 } },
+      { type: 'TEXT', content: { text: "Now that you're engaged, it's time to start dreaming about your perfect wedding day! Let's establish a strong foundation for your planning process." } },
+      { type: 'SPACER', content: { height: 15 } },
+      { type: 'HEADING', content: { text: 'Key Steps:', level: 'h3' } },
+      { type: 'TEXT', content: { text: '• Browse magazines and Pinterest for inspiration\n• Discuss your must-haves vs. nice-to-haves with your partner\n• Consider your guest count and budget early on\n• Think about the overall feeling you want to create' } },
+      { type: 'SPACER', content: { height: 15 } },
+      { type: 'TEXT', content: { text: "💡 Pro Tip: Create a shared Pinterest board with your partner to collect ideas and ensure you're both aligned on the vision!" } },
+      { type: 'SPACER', content: { height: 15 } },
+      { type: 'TEXT', content: { text: "Remember, this is YOUR day - let your personalities shine through every decision you make." } }
+    ],
+    // Email 2: Budget Planning
+    [
+      { type: 'HEADING', content: { text: 'Wedding Budget Planning Made Simple', level: 'h2' } },
+      { type: 'SPACER', content: { height: 20 } },
+      { type: 'TEXT', content: { text: 'Creating a realistic budget is one of the most important steps in wedding planning. Here are practical strategies to help you manage your wedding finances effectively.' } },
+      { type: 'SPACER', content: { height: 15 } },
+      { type: 'TEXT', content: { text: '• Prioritize your must-haves (venue, photographer, catering)\n• Allocate 10-15% of your budget for photography\n• Build in a 10% buffer for unexpected costs\n• Track all expenses in a spreadsheet or app' } },
+      { type: 'SPACER', content: { height: 15 } },
+      { type: 'TEXT', content: { text: 'Remember: Every detail should reflect your unique love story. Take time to enjoy this planning process!' } }
+    ]
   ];
-  
-  // Generate additional emails using textBody content
-  for (let i = 2; i < WEDDING_EMAIL_TEMPLATES.emails.length; i++) {
-    const email = WEDDING_EMAIL_TEMPLATES.emails[i];
-    emailContents.push({
-      content: `<p>${email.textBody}</p>
-      
-      <p>As you continue planning your special day, remember that every detail should reflect your unique love story. We're here to help capture those precious moments that make your wedding uniquely yours.</p>
-      
-      <p><strong>Planning Tip:</strong> Take time to enjoy this process - these planning moments are part of your love story too!</p>`,
-      includeBookingCTA: false
-    });
+
+  // Generate additional simple email blocks
+  const additionalEmailTopics = [
+    { title: 'Choosing Your Perfect Venue', tip: 'Visit venues at the same time of day as your wedding to see lighting' },
+    { title: 'Building Your Dream Team', tip: 'Interview at least 3 vendors in each category before deciding' },
+    { title: 'Photography Styles Explained', tip: 'Look at full wedding galleries, not just highlight reels' },
+    { title: 'Planning Your Engagement Session', tip: 'Choose a location that\'s meaningful to your relationship' },
+    { title: 'Wedding Dress Shopping', tip: 'Bring only 2-3 trusted opinions to avoid overwhelm' },
+    { title: "Groom's Attire Guide", tip: 'Order suits 3-4 months before the wedding for alterations' },
+    { title: 'Menu & Catering Insights', tip: 'Schedule your tasting when you\'re hungry for honest feedback' },
+    { title: 'Music & Entertainment', tip: 'Create a "do not play" list along with your requests' },
+    { title: 'Flowers & Decor Ideas', tip: 'Choose seasonal flowers to save money and ensure freshness' },
+    { title: 'Guest List Management', tip: 'Be consistent with your invitation criteria to avoid hurt feelings' },
+    { title: 'Invitations & Stationery', tip: 'Order 10-15 extra invitations for keepsakes' },
+    { title: 'Wedding Registry Essentials', tip: 'Include items at various price points for all budgets' }
+  ];
+
+  for (const topic of additionalEmailTopics) {
+    emailBlocksArray.push([
+      { type: 'HEADING', content: { text: topic.title, level: 'h2' } },
+      { type: 'SPACER', content: { height: 20 } },
+      { type: 'TEXT', content: { text: 'As you continue planning your special day, remember that every detail should reflect your unique love story.' } },
+      { type: 'SPACER', content: { height: 15 } },
+      { type: 'TEXT', content: { text: `💡 Planning Tip: ${topic.tip}` } },
+      { type: 'SPACER', content: { height: 20 } },
+      { type: 'BUTTON', content: { text: 'Get in Touch', url: `mailto:${photographer.emailFromAddr || 'hello@business.com'}` } }
+    ]);
+  }
+
+  // Fill remaining emails with generic helpful content
+  while (emailBlocksArray.length < WEDDING_EMAIL_TEMPLATES.emails.length) {
+    const emailIndex = emailBlocksArray.length;
+    const email = WEDDING_EMAIL_TEMPLATES.emails[emailIndex];
+    emailBlocksArray.push([
+      { type: 'HEADING', content: { text: email.subject.replace(/^(Your |Wedding |Planning )/g, ''), level: 'h2' } },
+      { type: 'SPACER', content: { height: 20 } },
+      { type: 'TEXT', content: { text: email.textBody } },
+      { type: 'SPACER', content: { height: 15 } },
+      { type: 'TEXT', content: { text: "We're here to help capture those precious moments that make your wedding uniquely yours." } }
+    ]);
   }
 
   return {
     projectType: 'WEDDING' as const,
     emails: WEDDING_EMAIL_TEMPLATES.emails.map((email, index) => {
+      // Still generate HTML for backward compatibility
       const htmlBody = generateEmailHTML(
         photographer,
         email.subject,
-        emailContents[index]?.content || '',
-        emailContents[index]?.includeBookingCTA || false,
+        '<p>Beautiful email content</p>',
+        false,
         index
       );
-      
-      // Convert HTML to visual builder blocks
-      const blocks = convertHtmlToBlocks(htmlBody);
       
       return {
         ...email,
         htmlBody,
-        emailBlocks: JSON.stringify(blocks),
-        useEmailBuilder: blocks.length > 0,
-        sendAtHour: 10 // Default to 10 AM
+        emailBlocks: JSON.stringify(emailBlocksArray[index] || []),
+        useEmailBuilder: true,
+        sendAtHour: 10
       };
     })
   };
@@ -567,75 +602,58 @@ const PORTRAIT_EMAIL_TEMPLATES = {
 
 // Portrait campaign content
 export function generatePortraitEmailContent(photographer: Photographer): StaticCampaignTemplate {
-  const emailContents = [
-    {
-      content: `<p>Thank you for considering us for your portrait session! We're excited about the opportunity to capture your unique personality and style through beautiful, timeless photography.</p>
-      
-      <p>We'll be sharing valuable tips and insights to help you prepare for an amazing portrait experience. From outfit selection to posing guidance, we want to ensure you feel confident and look your absolute best.</p>
-      
-      <p>As professional portrait photographers, we understand that every person has their own unique beauty and story to tell. Our goal is to capture the real you in a way that feels authentic and stunning.</p>
-      
-      <p>Looking forward to creating something beautiful together! 📸</p>`,
-      includeBookingCTA: false
-    },
-    {
-      content: `<p>Getting ready for your portrait session is exciting! Let's make sure you're fully prepared to create stunning images that you'll treasure forever.</p>
-      
-      <p><strong>Portrait Preparation Essentials:</strong></p>
-      <ul>
-        <li>Choose outfits that reflect your personal style</li>
-        <li>Consider bringing multiple outfit options</li>
-        <li>Think about meaningful props or accessories</li>
-        <li>Plan your hair and makeup for a polished look</li>
-      </ul>
-      
-      <p>⚠️ <strong>Pro Tip:</strong> Solid colors and classic styles photograph beautifully and won't date your images!</p>
-      
-      <p>Remember, the best portraits happen when you feel comfortable and confident in your own skin.</p>`,
-      includeBookingCTA: false
-    },
-    {
-      content: `<p>Your outfit choices can make or break your portrait session. Let's ensure you select looks that photograph beautifully and reflect your personal style.</p>
-      
-      <p><strong>Portrait Outfit Guidelines:</strong></p>
-      <ul>
-        <li>Solid colors work better than busy patterns</li>
-        <li>Avoid logos or text on clothing</li>
-        <li>Choose flattering necklines and fits</li>
-        <li>Consider the session location and weather</li>
-      </ul>
-      
-      <p><strong>Pro Tip:</strong> Bring layers and accessories to create variety in your portraits!</p>`,
-      includeBookingCTA: false
-    },
-    {
-      content: `<p>Looking natural and confident in photos is easier than you think! Here are our top posing tips to help you shine during your portrait session.</p>
-      
-      <p><strong>Natural Posing Secrets:</strong></p>
-      <ul>
-        <li>Relax your shoulders and breathe deeply</li>
-        <li>Think of something that makes you smile genuinely</li>
-        <li>Shift your weight to your back foot</li>
-        <li>Keep your chin slightly forward and down</li>
-      </ul>
-      
-      <p><strong>Remember:</strong> The best portraits capture authentic emotions and genuine expressions!</p>`,
-      includeBookingCTA: false
-    },
-    {
-      content: `<p>The right location can elevate your portraits from good to extraordinary. Let's explore some ideas that will complement your style and personality.</p>
-      
-      <p><strong>Location Considerations:</strong></p>
-      <ul>
-        <li>Indoor studios for controlled lighting</li>
-        <li>Natural outdoor settings for organic beauty</li>
-        <li>Urban environments for modern, edgy feels</li>
-        <li>Meaningful places that tell your story</li>
-      </ul>
-      
-      <p><strong>Pro Tip:</strong> The best location is one where you feel comfortable and confident!</p>`,
-      includeBookingCTA: false
-    }
+  const emailBlocksArray = [
+    // Email 0: Welcome
+    [
+      { type: 'HEADING', content: { text: 'Welcome to Your Portrait Journey! 📸', level: 'h2' } },
+      { type: 'SPACER', content: { height: 20 } },
+      { type: 'TEXT', content: { text: "Thank you for considering us for your portrait session! We're excited about the opportunity to capture your unique personality and style through beautiful, timeless photography." } },
+      { type: 'SPACER', content: { height: 15 } },
+      { type: 'TEXT', content: { text: "We'll be sharing valuable tips and insights to help you prepare for an amazing portrait experience. From outfit selection to posing guidance, we want to ensure you feel confident and look your absolute best." } },
+      { type: 'SPACER', content: { height: 20 } },
+      { type: 'BUTTON', content: { text: 'Book Your Session', url: `mailto:${photographer.emailFromAddr || 'hello@business.com'}` } }
+    ],
+    // Email 1: Preparation
+    [
+      { type: 'HEADING', content: { text: 'Preparing for Your Portrait Session', level: 'h2' } },
+      { type: 'SPACER', content: { height: 20 } },
+      { type: 'TEXT', content: { text: "Let's make sure you're fully prepared to create stunning images that you'll treasure forever!" } },
+      { type: 'SPACER', content: { height: 15 } },
+      { type: 'HEADING', content: { text: 'Preparation Essentials:', level: 'h3' } },
+      { type: 'TEXT', content: { text: '• Choose outfits that reflect your personal style\n• Consider bringing multiple outfit options\n• Think about meaningful props or accessories\n• Plan your hair and makeup for a polished look' } },
+      { type: 'SPACER', content: { height: 15 } },
+      { type: 'TEXT', content: { text: '💡 Pro Tip: Solid colors and classic styles photograph beautifully and won\'t date your images!' } }
+    ],
+    // Email 2: Outfit Selection
+    [
+      { type: 'HEADING', content: { text: 'Choosing the Perfect Outfits', level: 'h2' } },
+      { type: 'SPACER', content: { height: 20 } },
+      { type: 'TEXT', content: { text: 'Your outfit choices can make or break your portrait session. Here\'s how to select looks that photograph beautifully:' } },
+      { type: 'SPACER', content: { height: 15 } },
+      { type: 'TEXT', content: { text: '• Solid colors work better than busy patterns\n• Avoid logos or text on clothing\n• Choose flattering necklines and fits\n• Consider the session location and weather' } },
+      { type: 'SPACER', content: { height: 15 } },
+      { type: 'TEXT', content: { text: '💡 Bring layers and accessories to create variety in your portraits!' } }
+    ],
+    // Email 3: Posing Tips
+    [
+      { type: 'HEADING', content: { text: 'Natural Posing Tips', level: 'h2' } },
+      { type: 'SPACER', content: { height: 20 } },
+      { type: 'TEXT', content: { text: 'Looking natural and confident in photos is easier than you think! Here are our top posing tips:' } },
+      { type: 'SPACER', content: { height: 15 } },
+      { type: 'TEXT', content: { text: '• Relax your shoulders and breathe deeply\n• Think of something that makes you smile genuinely\n• Shift your weight to your back foot\n• Keep your chin slightly forward and down' } },
+      { type: 'SPACER', content: { height: 15 } },
+      { type: 'TEXT', content: { text: 'Remember: The best portraits capture authentic emotions and genuine expressions!' } }
+    ],
+    // Email 4: Location Ideas
+    [
+      { type: 'HEADING', content: { text: 'Perfect Location Ideas', level: 'h2' } },
+      { type: 'SPACER', content: { height: 20 } },
+      { type: 'TEXT', content: { text: 'The right location can elevate your portraits from good to extraordinary:' } },
+      { type: 'SPACER', content: { height: 15 } },
+      { type: 'TEXT', content: { text: '• Indoor studios for controlled lighting\n• Natural outdoor settings for organic beauty\n• Urban environments for modern, edgy feels\n• Meaningful places that tell your story' } },
+      { type: 'SPACER', content: { height: 15 } },
+      { type: 'TEXT', content: { text: '💡 The best location is one where you feel comfortable and confident!' } }
+    ]
   ];
 
   return {
@@ -644,18 +662,16 @@ export function generatePortraitEmailContent(photographer: Photographer): Static
       const htmlBody = generateEmailHTML(
         photographer,
         email.subject,
-        emailContents[index]?.content || '',
-        emailContents[index]?.includeBookingCTA || false,
+        '<p>Beautiful portrait content</p>',
+        false,
         index
       );
-      
-      const blocks = convertHtmlToBlocks(htmlBody);
       
       return {
         ...email,
         htmlBody,
-        emailBlocks: JSON.stringify(blocks),
-        useEmailBuilder: blocks.length > 0,
+        emailBlocks: JSON.stringify(emailBlocksArray[index] || []),
+        useEmailBuilder: true,
         sendAtHour: 10
       };
     })
