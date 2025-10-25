@@ -3189,21 +3189,19 @@ export default function Automations() {
                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                               <div>
                                 <EmailTemplateBuilder
-                                blocks={customEmailBlocks as ContentBlock[]}
-                                onBlocksChange={setCustomEmailBlocks}
-                                includeHeroImage={includeHeroImage}
-                                onIncludeHeroImageChange={setIncludeHeroImage}
-                                heroImageUrl={heroImageUrl}
-                                onHeroImageUrlChange={setHeroImageUrl}
-                                includeHeader={includeHeader}
-                                onIncludeHeaderChange={setIncludeHeader}
-                                headerStyle={headerStyle}
-                                onHeaderStyleChange={setHeaderStyle}
-                                includeSignature={includeSignature}
-                                onIncludeSignatureChange={setIncludeSignature}
-                                signatureStyle={signatureStyle}
-                                onSignatureStyleChange={setSignatureStyle}
-                              />
+                                  blocks={customEmailBlocks as ContentBlock[]}
+                                  onBlocksChange={setCustomEmailBlocks}
+                                  includeHeader={includeHeader}
+                                  headerStyle={headerStyle}
+                                  includeSignature={includeSignature}
+                                  signatureStyle={signatureStyle}
+                                  onBrandingChange={(branding) => {
+                                    setIncludeHeader(branding.includeHeader);
+                                    setHeaderStyle(branding.headerStyle);
+                                    setIncludeSignature(branding.includeSignature);
+                                    setSignatureStyle(branding.signatureStyle);
+                                  }}
+                                />
                               </div>
                               <div>
                                 <Label className="mb-2 block">Preview</Label>
