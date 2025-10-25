@@ -2524,35 +2524,34 @@ export default function Automations() {
                   
                   {/* Step 1: Basic Information */}
                   <div className="space-y-4">
-                      <div className="flex items-center space-x-3">
-                        <div className="flex items-center justify-center w-8 h-8 bg-primary text-primary-foreground rounded-full text-sm font-semibold">
-                          1
-                        </div>
-                        <div>
-                          <h3 className="text-lg font-semibold">Basic Information</h3>
-                          <p className="text-sm text-muted-foreground">Give your automation a descriptive name</p>
-                        </div>
+                    <div className="flex items-center space-x-3">
+                      <div className="flex items-center justify-center w-8 h-8 bg-primary text-primary-foreground rounded-full text-sm font-semibold">
+                        1
                       </div>
-                      
-                      <div className="ml-11 p-4 border rounded-lg bg-card">
-                        <FormField
-                          control={form.control}
-                          name="name"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Automation Name</FormLabel>
-                              <FormControl>
-                                <Input 
-                                  placeholder="e.g., Welcome Email, Follow-up SMS"
-                                  data-testid="input-automation-name"
-                                  {...field} 
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
+                      <div>
+                        <h3 className="text-lg font-semibold">Basic Information</h3>
+                        <p className="text-sm text-muted-foreground">Give your automation a descriptive name</p>
                       </div>
+                    </div>
+                    
+                    <div className="ml-11 p-4 border rounded-lg bg-card">
+                      <FormField
+                        control={form.control}
+                        name="name"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Automation Name</FormLabel>
+                            <FormControl>
+                              <Input 
+                                placeholder="e.g., Welcome Email, Follow-up SMS"
+                                data-testid="input-automation-name"
+                                {...field} 
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
                     </div>
                   </div>
 
@@ -3451,7 +3450,6 @@ export default function Automations() {
                     </div>
                   )}
                     </div>
-                  </div>
                   </div>
 
                   {/* Footer with Submit Buttons */}
