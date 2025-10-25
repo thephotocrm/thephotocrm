@@ -6098,9 +6098,9 @@ ${photographer?.businessName || 'Your Photography Team'}`;
               subject: templateEmail.subject,
               htmlBody: templateEmail.htmlBody,
               textBody: templateEmail.textBody,
-              daysAfterStart: templateEmail.daysAfterStart,
-              weeksAfterStart: templateEmail.weeksAfterStart,
-              sendAtHour: (templateEmail as any).sendAtHour ?? null,
+              daysAfterStart: templateEmail.daysAfterStart ? Math.floor(templateEmail.daysAfterStart) : null,
+              weeksAfterStart: Math.floor(templateEmail.weeksAfterStart),
+              sendAtHour: (templateEmail as any).sendAtHour ? Math.floor((templateEmail as any).sendAtHour) : null,
               emailBlocks: (templateEmail as any).emailBlocks ?? null,
               useEmailBuilder: (templateEmail as any).useEmailBuilder ?? false
             };
@@ -6168,10 +6168,10 @@ ${photographer?.businessName || 'Your Photography Team'}`;
           subject: templateEmail.subject,
           htmlBody: templateEmail.htmlBody,
           textBody: templateEmail.textBody,
-          daysAfterStart: templateEmail.daysAfterStart,
-          weeksAfterStart: templateEmail.weeksAfterStart,
+          daysAfterStart: templateEmail.daysAfterStart ? Math.floor(templateEmail.daysAfterStart) : null,
+          weeksAfterStart: Math.floor(templateEmail.weeksAfterStart),
           // Copy builder-specific fields if they exist
-          sendAtHour: (templateEmail as any).sendAtHour ?? null,
+          sendAtHour: (templateEmail as any).sendAtHour ? Math.floor((templateEmail as any).sendAtHour) : null,
           emailBlocks: (templateEmail as any).emailBlocks ?? null,
           useEmailBuilder: (templateEmail as any).useEmailBuilder ?? false
         };
