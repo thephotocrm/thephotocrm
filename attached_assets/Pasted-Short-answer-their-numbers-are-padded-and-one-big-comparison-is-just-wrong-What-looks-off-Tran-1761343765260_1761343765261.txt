@@ -1,0 +1,39 @@
+Short answer: their numbers are padded and one big comparison is just wrong.
+
+What looks off
+	•	Transcription cost
+Your usage assumption ≈ 6 mtgs/wk × 37.5 min × 4 wks = ~900 min/photographer/month → ~90,000 min for 100 photogs.
+Current ASR rates:
+	•	Deepgram Nova: $0.0043–$0.0077/min → $387–$693/month for 100 photogs.  ￼
+	•	AssemblyAI: $0.016/min → **$1,440/month**.  ￼
+Their $900–$1,800 line only fits if you pick a pricier vendor across the board.
+	•	AI summary cost
+With GPT-4o mini pricing ($0.15/M input tokens, $0.60/M output), even long transcripts typically land in the single-digit dollars per 1000 meetings. Their $50–$100 looks high unless they’re using a much bigger model.  ￼
+	•	Recall.ai comparison
+Pay-as-you-go is ~$0.70 per bot-hour (or lower on commit), not $6k–$18k/mo flat. For 1,500 bot-hours (90k min), Recall would be **$1,050/mo** before ASR. Their savings claim is upside-down.  ￼
+
+Architecture notes (where their plan is fragile)
+	•	Playwright “headless Meet” bots work, but break on UI changes/captchas and are a gray area for reliability/compliance. Prefer platform-blessed paths:
+	•	Zoom: Meeting SDK bot with proper recording permissions + webhooks.  ￼
+	•	Google Meet: Options include pulling Meet recordings/transcripts via Google APIs or using a meeting-bot provider (Recall.ai) for real-time streams; headless caption scraping is possible but brittle.  ￼
+
+A cleaner, cheaper MVP
+	1.	Calendar watcher (Google/Outlook) → detect meeting links and auto-enable recording (Zoom) or join via Recall bot (Meet/Teams gaps).  ￼
+	2.	Audio → ASR with Deepgram streaming/batch. Budget: $400–$700/mo at your scale.  ￼
+	3.	Summarizer (GPT-4o mini) with a compact prompt for: key points, preferences, budget mentions, next steps. Budget: low single-digits to tens of dollars unless you upsize models.  ￼
+	4.	Push to CRM (project timeline + contact).
+	5.	Consent & compliance: show an in-meeting notice and store consent + recording toggle per client.
+
+Ballpark monthly totals (your 100-photog scenario)
+	•	Best-value stack: Recall bot ($1,050) + Deepgram ($387–$693) + GPT-4o mini ($5–$25) → ~$1,450–$1,770/mo.  ￼
+	•	ASR-only path (no Recall; rely on Zoom Cloud Recording): just $400–$700 for ASR + a few bucks for summaries (plus any Zoom cloud-recording fees you already pay).  ￼
+
+My recommendation for you
+
+Given your audience (photographers) and need for reliability over hacks:
+	•	Zoom first (official recording + webhooks) for highest stability;
+	•	Use Recall.ai only where Meet/Teams support is required;
+	•	Pick Deepgram Nova for cost/latency;
+	•	Start with GPT-4o mini summaries and only step up models if quality demands it.  ￼
+
+If you want, I’ll map this to a sprint plan (schemas, webhooks, prompts, and a cost monitor) and you can ship a V1 without the headless-Meet fragility.
