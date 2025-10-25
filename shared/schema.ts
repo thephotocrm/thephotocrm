@@ -519,6 +519,11 @@ export const dripCampaignEmails = pgTable("drip_campaign_emails", {
   // Visual email builder
   emailBlocks: text("email_blocks"), // JSON string storing email builder blocks
   useEmailBuilder: boolean("use_email_builder").default(false), // Whether this email uses the visual builder
+  // Email branding
+  includeHeader: boolean("include_header").default(false), // Whether to include email header
+  headerStyle: text("header_style"), // Header style: minimal, professional, bold, classic
+  includeSignature: boolean("include_signature").default(false), // Whether to include email signature
+  signatureStyle: text("signature_style"), // Signature style: simple, professional, detailed, branded
   // Individual email approval system
   approvalStatus: text("approval_status").notNull().default("PENDING"), // PENDING, APPROVED, REJECTED
   approvedAt: timestamp("approved_at"),
