@@ -6058,6 +6058,92 @@ ${photographer?.businessName || 'Your Photography Team'}`;
     }
   });
 
+  // Create a DRAFT copy of a static template in the database (for editing purposes)
+  app.post("/api/drip-campaigns/create-draft-from-template", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
+    try {
+      const { targetStageId, projectType } = req.body;
+
+      // Check if a draft already exists for this photographer + project type
+      const existingCampaigns = await storage.getDripCampaignsByPhotographer(req.user!.photographerId!, projectType);
+      const existingDraft = existingCampaigns.find((c: any) => c.isStaticTemplate && c.projectType === projectType);
+      
+      if (existingDraft) {
+        // Return the existing draft instead of creating a duplicate
+        return res.json(existingDraft);
+      }
+
+      // Get photographer details
+      const photographer = await storage.getPhotographer(req.user!.photographerId!);
+      if (!photographer) {
+        return res.status(404).json({ message: "Photographer not found" });
+      }
+
+      // Get stage details
+      const stages = await storage.getStagesByPhotographer(req.user!.photographerId!, projectType);
+      const stage = stages.find(s => s.id === targetStageId);
+      if (!stage) {
+        return res.status(404).json({ message: "Stage not found" });
+      }
+
+      // Get static campaign template
+      const staticCampaignService = await import('./services/staticCampaigns');
+      const staticCampaign = staticCampaignService.getStaticCampaignByType(photographer, projectType || "WEDDING");
+      
+      if (!staticCampaign) {
+        return res.status(400).json({ message: `No static campaign template available for project type: ${projectType}` });
+      }
+
+      // Create the campaign in the database with DRAFT status
+      const campaignData = {
+        photographerId: req.user!.photographerId!,
+        projectType: projectType || "WEDDING",
+        name: `${projectType || "WEDDING"} Email Campaign`,
+        targetStageId,
+        status: "DRAFT" as const,
+        maxDurationMonths: 8,
+        emailFrequencyDays: 9,
+        emailFrequencyWeeks: 1,
+        isStaticTemplate: true,
+        staticTemplateType: projectType || "WEDDING",
+        generatedByAi: false
+      };
+
+      const campaign = await storage.createDripCampaign(campaignData);
+
+      // Create all emails from the template
+      const emails = [];
+      for (let i = 0; i < staticCampaign.emails.length; i++) {
+        const templateEmail = staticCampaign.emails[i];
+        const emailData = {
+          campaignId: campaign.id,
+          sequenceIndex: i,
+          subject: templateEmail.subject,
+          htmlBody: templateEmail.htmlBody,
+          textBody: templateEmail.textBody,
+          daysAfterStart: templateEmail.daysAfterStart,
+          weeksAfterStart: templateEmail.weeksAfterStart,
+          // Copy builder-specific fields if they exist
+          sendAtHour: (templateEmail as any).sendAtHour ?? null,
+          emailBlocks: (templateEmail as any).emailBlocks ?? null,
+          useEmailBuilder: (templateEmail as any).useEmailBuilder ?? false
+        };
+        const createdEmail = await storage.createDripCampaignEmail(emailData);
+        emails.push(createdEmail);
+      }
+
+      // Return the campaign with emails
+      const fullCampaign = {
+        ...campaign,
+        emails
+      };
+
+      res.json(fullCampaign);
+    } catch (error) {
+      console.error('Create draft from template error:', error);
+      res.status(500).json({ message: "Failed to create draft campaign", error: error.message });
+    }
+  });
+
   app.post("/api/drip-campaigns/activate", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       const { targetStageId, projectType } = req.body;

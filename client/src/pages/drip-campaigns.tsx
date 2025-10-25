@@ -220,22 +220,63 @@ export default function DripCampaigns() {
 
   // Handler for saving edited email
   const handleSaveEmail = async () => {
-    if (!emailBeingEdited || !staticCampaign) return;
+    if (!emailBeingEdited || !staticCampaign || !user?.photographerId) return;
 
-    // Generate HTML and text from blocks using EmailPreview component temporarily
-    const emailBlocks = editEmailBlocks;
-    
-    updateEmailMutation.mutate({
-      campaignId: staticCampaign.id,
-      emailId: emailBeingEdited.id,
-      subject: editEmailSubject,
-      htmlBody: emailBeingEdited.htmlBody, // Keep existing for now, will be regenerated from blocks
-      textBody: emailBeingEdited.textBody,
-      emailBlocks: JSON.stringify(emailBlocks),
-      sendAtHour: editSendAtHour,
-      daysAfterStart: editDaysAfterStart,
-      useEmailBuilder: emailBlocks.length > 0
-    });
+    try {
+      // First, check if this campaign has a draft in the database
+      const campaignsRes = await apiRequest("GET", `/api/drip-campaigns?projectType=${staticCampaign.projectType}`);
+      const existingCampaigns = await campaignsRes.json();
+      
+      let draftCampaign = existingCampaigns.find(
+        (c: any) => c.projectType === staticCampaign.projectType && c.isStaticTemplate
+      );
+
+      // If no draft exists, create one from the template
+      if (!draftCampaign) {
+        // Get the first stage as target
+        const stagesRes = await apiRequest("GET", `/api/stages?projectType=${staticCampaign.projectType}`);
+        const stages = await stagesRes.json();
+        const firstStage = stages[0];
+
+        if (!firstStage) {
+          toast({ title: "Error", description: "No stages found. Please create a stage first.", variant: "destructive" });
+          return;
+        }
+
+        // Create draft from template - this creates database records but doesn't activate
+        const draftRes = await apiRequest("POST", "/api/drip-campaigns/create-draft-from-template", {
+          projectType: staticCampaign.projectType,
+          targetStageId: firstStage.id
+        });
+        draftCampaign = await draftRes.json();
+      }
+
+      // Now find the corresponding email in the draft campaign
+      const emailIndex = staticCampaign.emails?.findIndex((e: any) => e.sequenceIndex === emailBeingEdited.sequenceIndex);
+      const draftEmail = draftCampaign.emails?.[emailIndex];
+
+      if (!draftEmail) {
+        toast({ title: "Error", description: "Email not found in draft campaign", variant: "destructive" });
+        return;
+      }
+
+      // Now we can update the email with proper IDs
+      const emailBlocks = editEmailBlocks;
+      updateEmailMutation.mutate({
+        campaignId: draftCampaign.id,
+        emailId: draftEmail.id,
+        subject: editEmailSubject,
+        htmlBody: emailBeingEdited.htmlBody,
+        textBody: emailBeingEdited.textBody,
+        emailBlocks: JSON.stringify(emailBlocks),
+        sendAtHour: editSendAtHour,
+        daysAfterStart: editDaysAfterStart,
+        useEmailBuilder: emailBlocks.length > 0
+      });
+    } catch (error) {
+      console.error('Error saving email:', error);
+      toast({ title: "Error", description: "Failed to save email. Please try again.", variant: "destructive" });
+    }
   };
 
   const getStatusBadge = (status: string) => {
@@ -597,14 +638,14 @@ export default function DripCampaigns() {
                   <div>
                     <Label htmlFor="edit-hour">Send At Time (Optional)</Label>
                     <Select
-                      value={editSendAtHour?.toString() || ""}
-                      onValueChange={(value) => setEditSendAtHour(value ? parseInt(value) : null)}
+                      value={editSendAtHour !== null ? editSendAtHour.toString() : "none"}
+                      onValueChange={(value) => setEditSendAtHour(value === "none" ? null : parseInt(value))}
                     >
                       <SelectTrigger data-testid="select-edit-hour">
                         <SelectValue placeholder="Any time" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Any time</SelectItem>
+                        <SelectItem value="none">Any time</SelectItem>
                         <SelectItem value="7">7:00 AM</SelectItem>
                         <SelectItem value="8">8:00 AM</SelectItem>
                         <SelectItem value="9">9:00 AM</SelectItem>
