@@ -6071,46 +6071,55 @@ ${photographer?.businessName || 'Your Photography Team'}`;
         // Fetch and include emails with the existing draft
         const emails = await storage.getDripCampaignEmails(existingDraft.id);
         
-        // DEFENSIVE: If draft exists but has no emails, we need to recreate them
-        if (emails.length === 0) {
-          console.log(`Draft campaign ${existingDraft.id} has no emails, recreating them...`);
+        // Get photographer and static campaign template
+        const photographer = await storage.getPhotographer(req.user!.photographerId!);
+        if (!photographer) {
+          return res.status(404).json({ message: "Photographer not found" });
+        }
+        
+        const staticCampaignService = await import('./services/staticCampaigns');
+        const staticCampaign = staticCampaignService.getStaticCampaignByType(photographer, projectType || "WEDDING");
+        
+        if (!staticCampaign) {
+          return res.status(400).json({ message: `No static campaign template available for project type: ${projectType}` });
+        }
+        
+        // DEFENSIVE: If draft exists but has missing emails, create them
+        if (emails.length < staticCampaign.emails.length) {
+          console.log(`Draft campaign ${existingDraft.id} has ${emails.length}/${staticCampaign.emails.length} emails, creating missing emails...`);
           
-          // Get photographer and static campaign template
-          const photographer = await storage.getPhotographer(req.user!.photographerId!);
-          if (!photographer) {
-            return res.status(404).json({ message: "Photographer not found" });
-          }
+          const allEmails = [];
           
-          const staticCampaignService = await import('./services/staticCampaigns');
-          const staticCampaign = staticCampaignService.getStaticCampaignByType(photographer, projectType || "WEDDING");
-          
-          if (!staticCampaign) {
-            return res.status(400).json({ message: `No static campaign template available for project type: ${projectType}` });
-          }
-          
-          // Create all emails from the template
-          const newEmails = [];
+          // For each email in the template, either use existing or create new
           for (let i = 0; i < staticCampaign.emails.length; i++) {
-            const templateEmail = staticCampaign.emails[i];
-            const emailData = {
-              campaignId: existingDraft.id,
-              sequenceIndex: i,
-              subject: templateEmail.subject,
-              htmlBody: templateEmail.htmlBody,
-              textBody: templateEmail.textBody,
-              daysAfterStart: templateEmail.daysAfterStart ? Math.floor(templateEmail.daysAfterStart) : null,
-              weeksAfterStart: Math.floor(templateEmail.weeksAfterStart),
-              sendAtHour: (templateEmail as any).sendAtHour ? Math.floor((templateEmail as any).sendAtHour) : null,
-              emailBlocks: (templateEmail as any).emailBlocks ?? null,
-              useEmailBuilder: (templateEmail as any).useEmailBuilder ?? false
-            };
-            const createdEmail = await storage.createDripCampaignEmail(emailData);
-            newEmails.push(createdEmail);
+            const existingEmail = emails.find((e: any) => e.sequenceIndex === i);
+            
+            if (existingEmail) {
+              // Email already exists in draft, keep it
+              allEmails.push(existingEmail);
+            } else {
+              // Email is missing, create it from template
+              const templateEmail = staticCampaign.emails[i];
+              const emailData = {
+                campaignId: existingDraft.id,
+                sequenceIndex: i,
+                subject: templateEmail.subject,
+                htmlBody: templateEmail.htmlBody,
+                textBody: templateEmail.textBody,
+                daysAfterStart: templateEmail.daysAfterStart ? Math.floor(templateEmail.daysAfterStart) : null,
+                weeksAfterStart: Math.floor(templateEmail.weeksAfterStart),
+                sendAtHour: (templateEmail as any).sendAtHour ? Math.floor((templateEmail as any).sendAtHour) : null,
+                emailBlocks: (templateEmail as any).emailBlocks ?? null,
+                useEmailBuilder: (templateEmail as any).useEmailBuilder ?? false
+              };
+              const createdEmail = await storage.createDripCampaignEmail(emailData);
+              allEmails.push(createdEmail);
+            }
           }
           
           return res.json({
             ...existingDraft,
-            emails: newEmails
+            emails: allEmails
           });
         }
         
