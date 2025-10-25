@@ -62,7 +62,6 @@ type DripCampaignEmail = SchemaDripCampaignEmail & {
 export default function DripCampaigns() {
   const { user, loading: authLoading } = useAuth();
   const { toast } = useToast();
-  const [selectedEmailPreview, setSelectedEmailPreview] = useState<'text' | 'html'>('html');
   const [selectedProjectType, setSelectedProjectType] = useState<string>("WEDDING");
   const [selectedEmailForPreview, setSelectedEmailForPreview] = useState<any>(null);
   const [previewDialogOpen, setPreviewDialogOpen] = useState(false);
@@ -573,66 +572,40 @@ export default function DripCampaigns() {
             <div className="space-y-4 h-[calc(90vh-120px)] md:h-[calc(80vh-120px)]">
               {/* Email Content Display */}
               <div className="h-full">
-                <div className="flex gap-2 sm:gap-4 mb-4">
-                  <Button
-                    size="sm"
-                    variant={selectedEmailPreview === 'html' ? 'default' : 'outline'}
-                    onClick={() => setSelectedEmailPreview('html')}
-                    data-testid="button-preview-html"
-                    className="flex-1 sm:flex-none text-xs sm:text-sm"
-                  >
-                    HTML Preview
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant={selectedEmailPreview === 'text' ? 'default' : 'outline'}
-                    onClick={() => setSelectedEmailPreview('text')}
-                    data-testid="button-preview-text"
-                    className="flex-1 sm:flex-none text-xs sm:text-sm"
-                  >
-                    Text Version
-                  </Button>
-                </div>
-                <ScrollArea className="h-[calc(100%-60px)] border rounded-lg">
+                <ScrollArea className="h-full border rounded-lg">
                   <div className="p-3 md:p-4">
-                    {selectedEmailPreview === 'html' ? (
-                      (() => {
-                        // Try to parse email blocks if they exist
-                        let blocks: ContentBlock[] = [];
-                        if (selectedEmailForPreview.emailBlocks) {
-                          try {
-                            blocks = JSON.parse(selectedEmailForPreview.emailBlocks);
-                          } catch (error) {
-                            console.error('Failed to parse email blocks:', error);
-                          }
+                    {(() => {
+                      // Try to parse email blocks if they exist
+                      let blocks: ContentBlock[] = [];
+                      if (selectedEmailForPreview.emailBlocks) {
+                        try {
+                          blocks = JSON.parse(selectedEmailForPreview.emailBlocks);
+                        } catch (error) {
+                          console.error('Failed to parse email blocks:', error);
                         }
-                        
-                        // Use EmailPreview if blocks exist, otherwise fall back to htmlBody
-                        if (blocks.length > 0) {
-                          return (
-                            <EmailPreview
-                              subject={selectedEmailForPreview.subject}
-                              blocks={blocks}
-                              includeHeader={selectedEmailForPreview.includeHeader || false}
-                              headerStyle={selectedEmailForPreview.headerStyle || 'professional'}
-                              includeSignature={selectedEmailForPreview.includeSignature || false}
-                              signatureStyle={selectedEmailForPreview.signatureStyle || 'professional'}
-                            />
-                          );
-                        }
-                        
+                      }
+                      
+                      // Use EmailPreview if blocks exist, otherwise fall back to htmlBody
+                      if (blocks.length > 0) {
                         return (
-                          <div 
-                            dangerouslySetInnerHTML={{ __html: selectedEmailForPreview.htmlBody || '' }}
-                            className="prose prose-sm max-w-none text-sm"
+                          <EmailPreview
+                            subject={selectedEmailForPreview.subject}
+                            blocks={blocks}
+                            includeHeader={selectedEmailForPreview.includeHeader || false}
+                            headerStyle={selectedEmailForPreview.headerStyle || 'professional'}
+                            includeSignature={selectedEmailForPreview.includeSignature || false}
+                            signatureStyle={selectedEmailForPreview.signatureStyle || 'professional'}
                           />
                         );
-                      })()
-                    ) : (
-                      <div className="whitespace-pre-wrap font-mono text-xs sm:text-sm break-words">
-                        {selectedEmailForPreview.textBody || selectedEmailForPreview.subject}
-                      </div>
-                    )}
+                      }
+                      
+                      return (
+                        <div 
+                          dangerouslySetInnerHTML={{ __html: selectedEmailForPreview.htmlBody || '' }}
+                          className="prose prose-sm max-w-none text-sm"
+                        />
+                      );
+                    })()}
                   </div>
                 </ScrollArea>
               </div>
