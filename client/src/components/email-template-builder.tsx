@@ -524,12 +524,8 @@ export function EmailTemplateBuilder({
     <div className="space-y-4">
       {/* Email Branding Controls */}
       {onBrandingChange && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm">Email Branding</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {/* Header Controls */}
               <div className="space-y-2">
                 <Label className="text-sm font-medium">Email Header</Label>
@@ -652,8 +648,7 @@ export function EmailTemplateBuilder({
                 </div>
               </div>
             </div>
-          </CardContent>
-        </Card>
+        </div>
       )}
 
       <div className="flex flex-wrap gap-2">
