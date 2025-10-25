@@ -6312,6 +6312,47 @@ ${photographer?.businessName || 'Your Photography Team'}`;
     }
   });
 
+  // Update email content (with visual builder support)
+  app.patch("/api/drip-campaigns/:campaignId/emails/:emailId", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
+    try {
+      const { campaignId, emailId } = req.params;
+      const { subject, htmlBody, textBody, emailBlocks, sendAtHour, daysAfterStart, useEmailBuilder } = req.body;
+      
+      // Verify campaign ownership
+      const campaign = await storage.getDripCampaign(campaignId);
+      if (!campaign || campaign.photographerId !== req.user!.photographerId!) {
+        return res.status(404).json({ message: "Campaign not found" });
+      }
+
+      // Verify email belongs to this campaign
+      const emails = await storage.getDripCampaignEmails(campaignId);
+      const targetEmail = emails.find(email => email.id === emailId);
+      if (!targetEmail) {
+        return res.status(404).json({ message: "Email not found in this campaign" });
+      }
+
+      // Update the email content
+      const updated = await storage.updateEmailContent(
+        emailId,
+        {
+          subject,
+          htmlBody,
+          textBody,
+          emailBlocks,
+          sendAtHour,
+          daysAfterStart,
+          useEmailBuilder
+        },
+        req.user!.userId
+      );
+      
+      res.json(updated);
+    } catch (error) {
+      console.error("Update email error:", error);
+      res.status(500).json({ message: "Failed to update email" });
+    }
+  });
+
   // Static Campaign Settings routes
   app.get("/api/static-campaign-settings/:projectType", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {

@@ -274,7 +274,15 @@ export interface IStorage {
   // Individual Email Approval Methods
   approveEmail(emailId: string, approvedBy: string): Promise<DripCampaignEmail>;
   rejectEmail(emailId: string, rejectedBy: string, reason: string): Promise<DripCampaignEmail>;
-  updateEmailContent(emailId: string, content: { subject?: string; htmlBody?: string; textBody?: string }, editedBy: string): Promise<DripCampaignEmail>;
+  updateEmailContent(emailId: string, content: { 
+    subject?: string; 
+    htmlBody?: string; 
+    textBody?: string;
+    emailBlocks?: string;
+    sendAtHour?: number;
+    daysAfterStart?: number;
+    useEmailBuilder?: boolean;
+  }, editedBy: string): Promise<DripCampaignEmail>;
   bulkUpdateEmailSequence(emailUpdates: Array<{ id: string; sequenceIndex: number; weeksAfterStart: number }>): Promise<void>;
 
   // Campaign Versioning Methods
@@ -2518,7 +2526,19 @@ export class DatabaseStorage implements IStorage {
     return updated;
   }
 
-  async updateEmailContent(emailId: string, content: { subject?: string; htmlBody?: string; textBody?: string }, editedBy: string): Promise<DripCampaignEmail> {
+  async updateEmailContent(
+    emailId: string, 
+    content: { 
+      subject?: string; 
+      htmlBody?: string; 
+      textBody?: string; 
+      emailBlocks?: string;
+      sendAtHour?: number;
+      daysAfterStart?: number;
+      useEmailBuilder?: boolean;
+    }, 
+    editedBy: string
+  ): Promise<DripCampaignEmail> {
     // First get the current content to save as original if not already saved
     const [currentEmail] = await db.select()
       .from(dripCampaignEmails)
