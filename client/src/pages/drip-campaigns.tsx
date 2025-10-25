@@ -144,6 +144,7 @@ export default function DripCampaigns() {
     onSuccess: () => {
       toast({ title: "Email updated successfully" });
       queryClient.invalidateQueries({ queryKey: ["/api/drip-campaigns/static-templates"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/drip-campaigns"] });
       setEditDialogOpen(false);
     },
     onError: (error: any) => {
