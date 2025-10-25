@@ -1,5 +1,6 @@
 // Static Email Campaign System with Consistent Layouts
 import type { Photographer } from '@shared/schema';
+import { convertHtmlToBlocks } from '../utils/htmlToBlocks';
 
 // Type definitions for static email campaigns
 export interface StaticEmailTemplate {
@@ -9,6 +10,9 @@ export interface StaticEmailTemplate {
   daysAfterStart: number; // Research-optimized timing in days
   htmlBody: string;
   textBody: string;
+  emailBlocks?: string; // JSON string of visual builder blocks
+  useEmailBuilder?: boolean;
+  sendAtHour?: number | null;
 }
 
 export interface StaticCampaignTemplate {
@@ -492,16 +496,26 @@ export function generateWeddingEmailContent(photographer: Photographer): StaticC
 
   return {
     projectType: 'WEDDING' as const,
-    emails: WEDDING_EMAIL_TEMPLATES.emails.map((email, index) => ({
-      ...email,
-      htmlBody: generateEmailHTML(
+    emails: WEDDING_EMAIL_TEMPLATES.emails.map((email, index) => {
+      const htmlBody = generateEmailHTML(
         photographer,
         email.subject,
         emailContents[index]?.content || '',
         emailContents[index]?.includeBookingCTA || false,
         index
-      )
-    }))
+      );
+      
+      // Convert HTML to visual builder blocks
+      const blocks = convertHtmlToBlocks(htmlBody);
+      
+      return {
+        ...email,
+        htmlBody,
+        emailBlocks: JSON.stringify(blocks),
+        useEmailBuilder: blocks.length > 0,
+        sendAtHour: 10 // Default to 10 AM
+      };
+    })
   };
 }
 
@@ -626,16 +640,25 @@ export function generatePortraitEmailContent(photographer: Photographer): Static
 
   return {
     projectType: 'PORTRAIT' as const,
-    emails: PORTRAIT_EMAIL_TEMPLATES.emails.map((email, index) => ({
-      ...email,
-      htmlBody: generateEmailHTML(
+    emails: PORTRAIT_EMAIL_TEMPLATES.emails.map((email, index) => {
+      const htmlBody = generateEmailHTML(
         photographer,
         email.subject,
         emailContents[index]?.content || '',
         emailContents[index]?.includeBookingCTA || false,
         index
-      )
-    }))
+      );
+      
+      const blocks = convertHtmlToBlocks(htmlBody);
+      
+      return {
+        ...email,
+        htmlBody,
+        emailBlocks: JSON.stringify(blocks),
+        useEmailBuilder: blocks.length > 0,
+        sendAtHour: 10
+      };
+    })
   };
 }
 
@@ -760,16 +783,23 @@ export function generateCommercialEmailContent(photographer: Photographer): Stat
 
   return {
     projectType: 'COMMERCIAL' as const,
-    emails: COMMERCIAL_EMAIL_TEMPLATES.emails.map((email, index) => ({
-      ...email,
-      htmlBody: generateEmailHTML(
+    emails: COMMERCIAL_EMAIL_TEMPLATES.emails.map((email, index) => {
+      const htmlBody = generateEmailHTML(
         photographer,
         email.subject,
         emailContents[index]?.content || '',
         emailContents[index]?.includeBookingCTA || false,
         index
-      )
-    }))
+      );
+      const blocks = convertHtmlToBlocks(htmlBody);
+      return {
+        ...email,
+        htmlBody,
+        emailBlocks: JSON.stringify(blocks),
+        useEmailBuilder: blocks.length > 0,
+        sendAtHour: 10
+      };
+    })
   };
 }
 
@@ -894,16 +924,23 @@ export function generateEngagementEmailContent(photographer: Photographer): Stat
 
   return {
     projectType: 'ENGAGEMENT' as const,
-    emails: ENGAGEMENT_EMAIL_TEMPLATES.emails.map((email, index) => ({
-      ...email,
-      htmlBody: generateEmailHTML(
+    emails: ENGAGEMENT_EMAIL_TEMPLATES.emails.map((email, index) => {
+      const htmlBody = generateEmailHTML(
         photographer,
         email.subject,
         emailContents[index]?.content || '',
         emailContents[index]?.includeBookingCTA || false,
         index
-      )
-    }))
+      );
+      const blocks = convertHtmlToBlocks(htmlBody);
+      return {
+        ...email,
+        htmlBody,
+        emailBlocks: JSON.stringify(blocks),
+        useEmailBuilder: blocks.length > 0,
+        sendAtHour: 10
+      };
+    })
   };
 }
 
@@ -1028,16 +1065,23 @@ export function generateMaternityEmailContent(photographer: Photographer): Stati
 
   return {
     projectType: 'MATERNITY' as const,
-    emails: MATERNITY_EMAIL_TEMPLATES.emails.map((email, index) => ({
-      ...email,
-      htmlBody: generateEmailHTML(
+    emails: MATERNITY_EMAIL_TEMPLATES.emails.map((email, index) => {
+      const htmlBody = generateEmailHTML(
         photographer,
         email.subject,
         emailContents[index]?.content || '',
         emailContents[index]?.includeBookingCTA || false,
         index
-      )
-    }))
+      );
+      const blocks = convertHtmlToBlocks(htmlBody);
+      return {
+        ...email,
+        htmlBody,
+        emailBlocks: JSON.stringify(blocks),
+        useEmailBuilder: blocks.length > 0,
+        sendAtHour: 10
+      };
+    })
   };
 }
 
@@ -1162,16 +1206,23 @@ export function generateFamilyEmailContent(photographer: Photographer): StaticCa
 
   return {
     projectType: 'FAMILY' as const,
-    emails: FAMILY_EMAIL_TEMPLATES.emails.map((email, index) => ({
-      ...email,
-      htmlBody: generateEmailHTML(
+    emails: FAMILY_EMAIL_TEMPLATES.emails.map((email, index) => {
+      const htmlBody = generateEmailHTML(
         photographer,
         email.subject,
         emailContents[index]?.content || '',
         emailContents[index]?.includeBookingCTA || false,
         index
-      )
-    }))
+      );
+      const blocks = convertHtmlToBlocks(htmlBody);
+      return {
+        ...email,
+        htmlBody,
+        emailBlocks: JSON.stringify(blocks),
+        useEmailBuilder: blocks.length > 0,
+        sendAtHour: 10
+      };
+    })
   };
 }
 
