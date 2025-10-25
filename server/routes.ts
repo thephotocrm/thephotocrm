@@ -6068,8 +6068,12 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       const existingDraft = existingCampaigns.find((c: any) => c.isStaticTemplate && c.projectType === projectType);
       
       if (existingDraft) {
-        // Return the existing draft instead of creating a duplicate
-        return res.json(existingDraft);
+        // Fetch and include emails with the existing draft
+        const emails = await storage.getDripCampaignEmails(existingDraft.id);
+        return res.json({
+          ...existingDraft,
+          emails
+        });
       }
 
       // Get photographer details
