@@ -3584,16 +3584,19 @@ export default function Automations() {
                   {/* Wizard Navigation Footer */}
                   <div className="sticky bottom-0 bg-background px-6 py-4 border-t flex justify-between">
                     <div>
-                      {wizardStep > 1 && (
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={handlePrevStep}
-                          data-testid="button-wizard-back"
-                        >
-                          Back
-                        </Button>
-                      )}
+                      {(() => {
+                        const showBackButton = wizardStep !== 1;
+                        return showBackButton && (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={handlePrevStep}
+                            data-testid="button-wizard-back"
+                          >
+                            Back
+                          </Button>
+                        );
+                      })()}
                     </div>
                     <div className="flex gap-2">
                       <Button
@@ -3604,7 +3607,9 @@ export default function Automations() {
                       >
                         Cancel
                       </Button>
-                      {wizardStep < totalSteps ? (
+                      {(() => {
+                        const isNotLastStep = wizardStep !== totalSteps;
+                        return isNotLastStep ? (
                         <Button
                           type="button"
                           onClick={handleNextStep}
@@ -3716,14 +3721,16 @@ export default function Automations() {
                             if (enableCommunication) actions.push("Communication");
                             if (enablePipeline) actions.push("Pipeline");
                             
-                            return `Create ${actions.join(" + ")} Automation${actions.length > 1 ? "s" : ""}`;
+                            const suffix = actions.length !== 1 ? "s" : "";
+                            return `Create ${actions.join(" + ")} Automation${suffix}`;
                           })()
                       }
                       data-testid="button-submit-automation"
                     >
                       {createAutomationMutation.isPending ? "Creating..." : "Create Automation"}
                     </Button>
-                      )}
+                        );
+                      })()}
                     </div>
                   </div>
                   </div>
