@@ -289,10 +289,19 @@ export default function DripCampaigns() {
       });
       const draftCampaign = await draftRes.json();
 
+      console.log("=== DEBUG EMAIL SAVE ===");
+      console.log("Looking for email with sequenceIndex:", emailBeingEdited.sequenceIndex);
+      console.log("Draft campaign emails:", draftCampaign.emails);
+      console.log("Draft campaign emails count:", draftCampaign.emails?.length);
+      console.log("Email sequence indexes:", draftCampaign.emails?.map((e: any) => e.sequenceIndex));
+
       // Find the corresponding email in the draft campaign BY SEQUENCE INDEX
       const draftEmail = draftCampaign.emails?.find((e: any) => e.sequenceIndex === emailBeingEdited.sequenceIndex);
 
+      console.log("Found draft email:", draftEmail);
+
       if (!draftEmail) {
+        console.error("EMAIL NOT FOUND! emailBeingEdited:", emailBeingEdited);
         toast({ title: "Error", description: "Email not found in draft campaign", variant: "destructive" });
         return;
       }
