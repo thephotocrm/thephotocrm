@@ -272,37 +272,25 @@ export default function DripCampaigns() {
     if (!emailBeingEdited || !staticCampaign || !user?.photographerId) return;
 
     try {
-      // First, check if this campaign has a draft in the database
-      const campaignsRes = await apiRequest("GET", `/api/drip-campaigns?projectType=${staticCampaign.projectType}`);
-      const existingCampaigns = await campaignsRes.json();
-      
-      let draftCampaign = existingCampaigns.find(
-        (c: any) => c.projectType === staticCampaign.projectType && c.isStaticTemplate
-      );
+      // Get the first stage as target
+      const stagesRes = await apiRequest("GET", `/api/stages?projectType=${staticCampaign.projectType}`);
+      const stages = await stagesRes.json();
+      const firstStage = stages[0];
 
-      // If no draft exists, create one from the template
-      if (!draftCampaign) {
-        // Get the first stage as target
-        const stagesRes = await apiRequest("GET", `/api/stages?projectType=${staticCampaign.projectType}`);
-        const stages = await stagesRes.json();
-        const firstStage = stages[0];
-
-        if (!firstStage) {
-          toast({ title: "Error", description: "No stages found. Please create a stage first.", variant: "destructive" });
-          return;
-        }
-
-        // Create draft from template - this creates database records but doesn't activate
-        const draftRes = await apiRequest("POST", "/api/drip-campaigns/create-draft-from-template", {
-          projectType: staticCampaign.projectType,
-          targetStageId: firstStage.id
-        });
-        draftCampaign = await draftRes.json();
+      if (!firstStage) {
+        toast({ title: "Error", description: "No stages found. Please create a stage first.", variant: "destructive" });
+        return;
       }
 
-      // Now find the corresponding email in the draft campaign
-      const emailIndex = staticCampaign.emails?.findIndex((e: any) => e.sequenceIndex === emailBeingEdited.sequenceIndex);
-      const draftEmail = draftCampaign.emails?.[emailIndex];
+      // Always call create-draft-from-template - it will create missing emails if needed
+      const draftRes = await apiRequest("POST", "/api/drip-campaigns/create-draft-from-template", {
+        projectType: staticCampaign.projectType,
+        targetStageId: firstStage.id
+      });
+      const draftCampaign = await draftRes.json();
+
+      // Find the corresponding email in the draft campaign BY SEQUENCE INDEX
+      const draftEmail = draftCampaign.emails?.find((e: any) => e.sequenceIndex === emailBeingEdited.sequenceIndex);
 
       if (!draftEmail) {
         toast({ title: "Error", description: "Email not found in draft campaign", variant: "destructive" });
