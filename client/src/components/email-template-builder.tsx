@@ -1,10 +1,11 @@
 import { useState, useRef, useEffect } from "react";
 import { Reorder, useDragControls } from "framer-motion";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import {
   Select,
   SelectContent,
@@ -415,9 +416,27 @@ function BlockEditor({
 interface EmailTemplateBuilderProps {
   blocks: ContentBlock[];
   onBlocksChange: (blocks: ContentBlock[]) => void;
+  includeHeader?: boolean;
+  headerStyle?: string;
+  includeSignature?: boolean;
+  signatureStyle?: string;
+  onBrandingChange?: (branding: {
+    includeHeader: boolean;
+    headerStyle: string;
+    includeSignature: boolean;
+    signatureStyle: string;
+  }) => void;
 }
 
-export function EmailTemplateBuilder({ blocks, onBlocksChange }: EmailTemplateBuilderProps) {
+export function EmailTemplateBuilder({ 
+  blocks, 
+  onBlocksChange,
+  includeHeader = false,
+  headerStyle = 'professional',
+  includeSignature = false,
+  signatureStyle = 'professional',
+  onBrandingChange
+}: EmailTemplateBuilderProps) {
   const addBlock = (type: ContentBlock['type']) => {
     const newBlock: ContentBlock = {
       id: `block-${Date.now()}-${Math.random()}`,
@@ -437,6 +456,118 @@ export function EmailTemplateBuilder({ blocks, onBlocksChange }: EmailTemplateBu
 
   return (
     <div className="space-y-4">
+      {/* Email Branding Controls */}
+      {onBrandingChange && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm">Email Branding</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Header Controls */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="include-header" className="text-sm font-medium">
+                    Include Header
+                  </Label>
+                  <Switch
+                    id="include-header"
+                    checked={includeHeader}
+                    onCheckedChange={(checked) => {
+                      onBrandingChange({
+                        includeHeader: checked,
+                        headerStyle,
+                        includeSignature,
+                        signatureStyle
+                      });
+                    }}
+                    data-testid="switch-include-header"
+                  />
+                </div>
+                {includeHeader && (
+                  <div className="space-y-2">
+                    <Label htmlFor="header-style" className="text-xs text-muted-foreground">
+                      Header Style
+                    </Label>
+                    <Select
+                      value={headerStyle}
+                      onValueChange={(value) => {
+                        onBrandingChange({
+                          includeHeader,
+                          headerStyle: value,
+                          includeSignature,
+                          signatureStyle
+                        });
+                      }}
+                    >
+                      <SelectTrigger id="header-style" data-testid="select-header-style">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="minimal">Minimal</SelectItem>
+                        <SelectItem value="professional">Professional</SelectItem>
+                        <SelectItem value="bold">Bold</SelectItem>
+                        <SelectItem value="classic">Classic</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+              </div>
+
+              {/* Signature Controls */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="include-signature" className="text-sm font-medium">
+                    Include Signature
+                  </Label>
+                  <Switch
+                    id="include-signature"
+                    checked={includeSignature}
+                    onCheckedChange={(checked) => {
+                      onBrandingChange({
+                        includeHeader,
+                        headerStyle,
+                        includeSignature: checked,
+                        signatureStyle
+                      });
+                    }}
+                    data-testid="switch-include-signature"
+                  />
+                </div>
+                {includeSignature && (
+                  <div className="space-y-2">
+                    <Label htmlFor="signature-style" className="text-xs text-muted-foreground">
+                      Signature Style
+                    </Label>
+                    <Select
+                      value={signatureStyle}
+                      onValueChange={(value) => {
+                        onBrandingChange({
+                          includeHeader,
+                          headerStyle,
+                          includeSignature,
+                          signatureStyle: value
+                        });
+                      }}
+                    >
+                      <SelectTrigger id="signature-style" data-testid="select-signature-style">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="simple">Simple</SelectItem>
+                        <SelectItem value="professional">Professional</SelectItem>
+                        <SelectItem value="detailed">Detailed</SelectItem>
+                        <SelectItem value="branded">Branded</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       <div className="flex flex-wrap gap-2">
         {Object.entries(BLOCK_TYPES).map(([type, config]) => {
           const Icon = config.icon;
