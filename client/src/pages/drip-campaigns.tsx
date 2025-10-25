@@ -747,7 +747,7 @@ export default function DripCampaigns() {
                 </div>
 
                 {/* Settings Container */}
-                <div className="bg-blue-50 dark:bg-blue-950/40 rounded-lg p-4 space-y-3 border border-blue-200 dark:border-blue-800/50">
+                <div className="bg-blue-100 dark:bg-blue-950/60 rounded-lg p-4 space-y-3 border border-blue-300 dark:border-blue-700">
                   <div>
                     <Label htmlFor="edit-subject" className="text-sm">Email Subject</Label>
                     <Input
@@ -884,7 +884,7 @@ export default function DripCampaigns() {
               </div>
 
               {/* Build Email Container */}
-              <div className="bg-purple-50 dark:bg-purple-950/40 rounded-lg p-4 border border-purple-200 dark:border-purple-800/50">
+              <div className="bg-purple-100 dark:bg-purple-950/60 rounded-lg p-4 border border-purple-300 dark:border-purple-700">
                 <div className="relative mb-4">
                   <Separator />
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-background px-2">
@@ -984,7 +984,7 @@ export default function DripCampaigns() {
                   </div>
 
                   {/* Settings Container */}
-                  <div className="bg-blue-50 dark:bg-blue-950/40 rounded-lg p-4 space-y-3 border border-blue-200 dark:border-blue-800/50">
+                  <div className="bg-blue-100 dark:bg-blue-950/60 rounded-lg p-4 space-y-3 border border-blue-300 dark:border-blue-700">
                     {/* Email Subject */}
                     <div>
                       <Label htmlFor="edit-subject-desktop" className="text-sm">Email Subject</Label>
@@ -1063,7 +1063,7 @@ export default function DripCampaigns() {
                   </div>
 
                   {/* Build Email Container */}
-                  <div className="bg-purple-50 dark:bg-purple-950/40 rounded-lg p-4 border border-purple-200 dark:border-purple-800/50">
+                  <div className="bg-purple-100 dark:bg-purple-950/60 rounded-lg p-4 border border-purple-300 dark:border-purple-700">
                     <div className="relative mb-4">
                       <Separator />
                       <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-background px-2">
