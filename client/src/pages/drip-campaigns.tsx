@@ -83,6 +83,8 @@ export default function DripCampaigns() {
   
   // Compact edit dialog states
   const [timingDialogOpen, setTimingDialogOpen] = useState(false);
+  const [headerModalOpen, setHeaderModalOpen] = useState(false);
+  const [signatureModalOpen, setSignatureModalOpen] = useState(false);
   
   // Email toggle states for direct static template display
   const [emailToggles, setEmailToggles] = useState<Record<string, boolean>>({});
@@ -215,6 +217,45 @@ export default function DripCampaigns() {
     },
     enabled: !!user?.photographerId
   });
+
+  // Query for photographer data (for branding preview)
+  const { data: photographerData } = useQuery({
+    queryKey: ["/api/auth/me"],
+    enabled: editDialogOpen
+  });
+
+  // Branding style definitions
+  const headerStyles = [
+    { value: 'minimal', label: 'Minimal', description: 'Clean and simple centered header' },
+    { value: 'professional', label: 'Professional', description: 'Centered with bottom border' },
+    { value: 'bold', label: 'Bold', description: 'Eye-catching gradient background' },
+    { value: 'classic', label: 'Classic', description: 'Traditional layout with text' }
+  ];
+
+  const signatureStyles = [
+    { value: 'simple', label: 'Simple', description: 'Clean text-based signature' },
+    { value: 'professional', label: 'Professional', description: 'Includes headshot and social icons' },
+    { value: 'detailed', label: 'Detailed', description: 'Full contact card with all details' },
+    { value: 'branded', label: 'Branded', description: 'Brand-focused with color accents' }
+  ];
+
+  const brandingData = photographerData ? {
+    photographerName: photographerData.photographerName || '',
+    businessName: photographerData.businessName || '',
+    email: photographerData.email || '',
+    phone: photographerData.phone || '',
+    website: photographerData.website || '',
+    address: photographerData.address || '',
+    city: photographerData.city || '',
+    state: photographerData.state || '',
+    zip: photographerData.zip || '',
+    logoUrl: photographerData.logoUrl || '',
+    headshotUrl: photographerData.headshotUrl || '',
+    facebook: photographerData.facebook || '',
+    instagram: photographerData.instagram || '',
+    twitter: photographerData.twitter || '',
+    linkedin: photographerData.linkedin || ''
+  } : null;
 
   // Merge draft emails with static template (draft takes precedence for branding)
   const mergedEmails = useMemo(() => {
@@ -717,9 +758,11 @@ export default function DripCampaigns() {
                   />
                 </div>
 
-                {/* Compact Timing Display */}
-                <div>
-                  <Label className="text-sm">Timing</Label>
+                {/* Settings Container */}
+                <div className="border rounded-lg p-3 bg-muted/30 space-y-3">
+                  {/* Compact Timing Display */}
+                  <div>
+                    <Label className="text-sm">Timing</Label>
                   <div className="flex gap-2 mt-1">
                     <div className="flex-1 px-3 py-2 border rounded-md bg-background text-sm">
                       Day {editDaysAfterStart}{editSendAtHour !== null ? ` at ${editSendAtHour === 0 ? '12' : editSendAtHour > 12 ? editSendAtHour - 12 : editSendAtHour}:00 ${editSendAtHour >= 12 ? 'PM' : 'AM'}` : ''}
@@ -794,7 +837,46 @@ export default function DripCampaigns() {
                     </Dialog>
                   </div>
                 </div>
+
+                {/* Compact Header Display */}
+                <div>
+                  <Label className="text-sm">Header</Label>
+                  <div className="flex gap-2 mt-1">
+                    <div className="flex-1 px-3 py-2 border rounded-md bg-background text-sm">
+                      {editIncludeHeader ? `${editHeaderStyle.charAt(0).toUpperCase() + editHeaderStyle.slice(1)}` : 'None'}
+                    </div>
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => setHeaderModalOpen(true)}
+                      data-testid="button-edit-header-mobile"
+                    >
+                      <Edit className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Compact Signature Display */}
+                <div>
+                  <Label className="text-sm">Signature</Label>
+                  <div className="flex gap-2 mt-1">
+                    <div className="flex-1 px-3 py-2 border rounded-md bg-background text-sm">
+                      {editIncludeSignature ? `${editSignatureStyle.charAt(0).toUpperCase() + editSignatureStyle.slice(1)}` : 'None'}
+                    </div>
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => setSignatureModalOpen(true)}
+                      data-testid="button-edit-signature-mobile"
+                    >
+                      <Edit className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
               </div>
+            </div>
                   <Tabs value={previewTab} onValueChange={(v) => setPreviewTab(v as 'builder' | 'preview')}>
                     <TabsList className="grid w-full grid-cols-2">
                       <TabsTrigger value="builder" data-testid="tab-builder">Build Email</TabsTrigger>
@@ -898,22 +980,63 @@ export default function DripCampaigns() {
                     />
                   </div>
 
-                  {/* Compact Timing Display */}
-                  <div>
-                    <Label className="text-sm">Timing</Label>
-                    <div className="flex gap-2 mt-1">
-                      <div className="flex-1 px-3 py-2 border rounded-md bg-background text-sm">
-                        Day {editDaysAfterStart}{editSendAtHour !== null ? ` at ${editSendAtHour === 0 ? '12' : editSendAtHour > 12 ? editSendAtHour - 12 : editSendAtHour}:00 ${editSendAtHour >= 12 ? 'PM' : 'AM'}` : ''}
+                  {/* Settings Container */}
+                  <div className="border rounded-lg p-3 bg-muted/30 space-y-3">
+                    {/* Compact Timing Display */}
+                    <div>
+                      <Label className="text-sm">Timing</Label>
+                      <div className="flex gap-2 mt-1">
+                        <div className="flex-1 px-3 py-2 border rounded-md bg-background text-sm">
+                          Day {editDaysAfterStart}{editSendAtHour !== null ? ` at ${editSendAtHour === 0 ? '12' : editSendAtHour > 12 ? editSendAtHour - 12 : editSendAtHour}:00 ${editSendAtHour >= 12 ? 'PM' : 'AM'}` : ''}
+                        </div>
+                        <Button 
+                          type="button" 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => setTimingDialogOpen(true)}
+                          data-testid="button-edit-timing-desktop"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </Button>
                       </div>
-                      <Button 
-                        type="button" 
-                        variant="outline" 
-                        size="sm" 
-                        onClick={() => setTimingDialogOpen(true)}
-                        data-testid="button-edit-timing-desktop"
-                      >
-                        <Edit className="w-4 h-4" />
-                      </Button>
+                    </div>
+
+                    {/* Compact Header Display */}
+                    <div>
+                      <Label className="text-sm">Header</Label>
+                      <div className="flex gap-2 mt-1">
+                        <div className="flex-1 px-3 py-2 border rounded-md bg-background text-sm">
+                          {editIncludeHeader ? `${editHeaderStyle.charAt(0).toUpperCase() + editHeaderStyle.slice(1)}` : 'None'}
+                        </div>
+                        <Button 
+                          type="button" 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => setHeaderModalOpen(true)}
+                          data-testid="button-edit-header-desktop"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+
+                    {/* Compact Signature Display */}
+                    <div>
+                      <Label className="text-sm">Signature</Label>
+                      <div className="flex gap-2 mt-1">
+                        <div className="flex-1 px-3 py-2 border rounded-md bg-background text-sm">
+                          {editIncludeSignature ? `${editSignatureStyle.charAt(0).toUpperCase() + editSignatureStyle.slice(1)}` : 'None'}
+                        </div>
+                        <Button 
+                          type="button" 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => setSignatureModalOpen(true)}
+                          data-testid="button-edit-signature-desktop"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </Button>
+                      </div>
                     </div>
                   </div>
 
@@ -942,12 +1065,6 @@ export default function DripCampaigns() {
                       headerStyle={editHeaderStyle}
                       includeSignature={editIncludeSignature}
                       signatureStyle={editSignatureStyle}
-                      onBrandingChange={(branding) => {
-                        setEditIncludeHeader(branding.includeHeader);
-                        setEditHeaderStyle(branding.headerStyle);
-                        setEditIncludeSignature(branding.includeSignature);
-                        setEditSignatureStyle(branding.signatureStyle);
-                      }}
                     />
                   </div>
                 </div>
@@ -993,6 +1110,95 @@ export default function DripCampaigns() {
               </div>
             </div>
           </div>
+
+          {/* Branding Edit Dialogs */}
+          <Dialog open={headerModalOpen} onOpenChange={setHeaderModalOpen}>
+            <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Select Email Header Style</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4 mt-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditIncludeHeader(false);
+                    setHeaderModalOpen(false);
+                  }}
+                  className={`w-full p-4 border-2 rounded-lg text-left hover:border-primary transition-colors ${!editIncludeHeader ? 'border-primary bg-primary/5' : ''}`}
+                  data-testid="option-header-none"
+                >
+                  <div className="font-medium mb-1">None</div>
+                  <div className="text-sm text-muted-foreground">No header in emails</div>
+                </button>
+                {headerStyles.map((style) => (
+                  <button
+                    key={style.value}
+                    type="button"
+                    onClick={() => {
+                      setEditIncludeHeader(true);
+                      setEditHeaderStyle(style.value);
+                      setHeaderModalOpen(false);
+                    }}
+                    className={`w-full p-4 border-2 rounded-lg text-left hover:border-primary transition-colors ${editIncludeHeader && editHeaderStyle === style.value ? 'border-primary bg-primary/5' : ''}`}
+                    data-testid={`option-header-${style.value}`}
+                  >
+                    <div className="font-medium mb-1">{style.label}</div>
+                    <div className="text-sm text-muted-foreground mb-3">{style.description}</div>
+                    {brandingData && (
+                      <div 
+                        className="border rounded overflow-hidden bg-white"
+                        dangerouslySetInnerHTML={{ __html: generateEmailHeader(style.value, brandingData) }}
+                      />
+                    )}
+                  </button>
+                ))}
+              </div>
+            </DialogContent>
+          </Dialog>
+
+          <Dialog open={signatureModalOpen} onOpenChange={setSignatureModalOpen}>
+            <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Select Email Signature Style</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4 mt-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditIncludeSignature(false);
+                    setSignatureModalOpen(false);
+                  }}
+                  className={`w-full p-4 border-2 rounded-lg text-left hover:border-primary transition-colors ${!editIncludeSignature ? 'border-primary bg-primary/5' : ''}`}
+                  data-testid="option-signature-none"
+                >
+                  <div className="font-medium mb-1">None</div>
+                  <div className="text-sm text-muted-foreground">No signature in emails</div>
+                </button>
+                {signatureStyles.map((style) => (
+                  <button
+                    key={style.value}
+                    type="button"
+                    onClick={() => {
+                      setEditIncludeSignature(true);
+                      setEditSignatureStyle(style.value);
+                      setSignatureModalOpen(false);
+                    }}
+                    className={`w-full p-4 border-2 rounded-lg text-left hover:border-primary transition-colors ${editIncludeSignature && editSignatureStyle === style.value ? 'border-primary bg-primary/5' : ''}`}
+                    data-testid={`option-signature-${style.value}`}
+                  >
+                    <div className="font-medium mb-1">{style.label}</div>
+                    <div className="text-sm text-muted-foreground mb-3">{style.description}</div>
+                    {brandingData && (
+                      <div 
+                        className="border rounded overflow-hidden bg-white"
+                        dangerouslySetInnerHTML={{ __html: generateEmailSignature(style.value, brandingData) }}
+                      />
+                    )}
+                  </button>
+                ))}
+              </div>
+            </DialogContent>
+          </Dialog>
 
           {/* Footer Actions */}
           <div className="flex-shrink-0 flex justify-end gap-2 pt-4 border-t mt-4">
