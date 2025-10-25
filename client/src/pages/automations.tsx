@@ -3167,24 +3167,28 @@ export default function Automations() {
                           )}
                         />
                       ) : (
-                        <div className="space-y-4 border rounded-lg p-4 bg-muted/30">
-                          {/* Subject Line */}
-                          <div className="space-y-2">
-                            <Label htmlFor="custom-email-subject">Email Subject</Label>
-                            <Input
-                              id="custom-email-subject"
-                              value={customEmailSubject}
-                              onChange={(e) => setCustomEmailSubject(e.target.value)}
-                              placeholder="e.g., Welcome to our studio!"
-                              data-testid="input-custom-subject"
-                            />
+                        <div className="space-y-4">
+                          {/* Settings Container */}
+                          <div className="bg-slate-200 dark:bg-slate-800/60 rounded-lg p-4 space-y-3 border border-slate-400 dark:border-slate-500">
+                            <div className="space-y-2">
+                              <Label htmlFor="custom-email-subject">Email Subject</Label>
+                              <Input
+                                id="custom-email-subject"
+                                value={customEmailSubject}
+                                onChange={(e) => setCustomEmailSubject(e.target.value)}
+                                placeholder="e.g., Welcome to our studio!"
+                                className="bg-background"
+                                data-testid="input-custom-subject"
+                              />
+                            </div>
                           </div>
                           
-                          {/* Email Builder (2-column layout) */}
-                          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                            <div>
-                              <Label className="mb-2 block">Email Content</Label>
-                              <EmailTemplateBuilder
+                          {/* Build Email Container */}
+                          <div className="bg-blue-200 dark:bg-slate-800/60 rounded-lg p-4 border border-blue-400 dark:border-slate-600">
+                            {/* Email Builder (2-column layout) */}
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                              <div>
+                                <EmailTemplateBuilder
                                 blocks={customEmailBlocks as ContentBlock[]}
                                 onBlocksChange={setCustomEmailBlocks}
                                 includeHeroImage={includeHeroImage}
@@ -3200,19 +3204,20 @@ export default function Automations() {
                                 signatureStyle={signatureStyle}
                                 onSignatureStyleChange={setSignatureStyle}
                               />
-                            </div>
-                            <div>
-                              <Label className="mb-2 block">Preview</Label>
-                              <EmailPreview
-                                subject={customEmailSubject}
-                                blocks={customEmailBlocks as ContentBlock[]}
-                                includeHeroImage={includeHeroImage}
-                                heroImageUrl={heroImageUrl}
-                                includeHeader={includeHeader}
-                                headerStyle={headerStyle}
-                                includeSignature={includeSignature}
-                                signatureStyle={signatureStyle}
-                              />
+                              </div>
+                              <div>
+                                <Label className="mb-2 block">Preview</Label>
+                                <EmailPreview
+                                  subject={customEmailSubject}
+                                  blocks={customEmailBlocks as ContentBlock[]}
+                                  includeHeroImage={includeHeroImage}
+                                  heroImageUrl={heroImageUrl}
+                                  includeHeader={includeHeader}
+                                  headerStyle={headerStyle}
+                                  includeSignature={includeSignature}
+                                  signatureStyle={signatureStyle}
+                                />
+                              </div>
                             </div>
                           </div>
                           
