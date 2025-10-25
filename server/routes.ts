@@ -6110,7 +6110,11 @@ ${photographer?.businessName || 'Your Photography Team'}`;
                 weeksAfterStart: Math.floor(templateEmail.weeksAfterStart),
                 sendAtHour: (templateEmail as any).sendAtHour ? Math.floor((templateEmail as any).sendAtHour) : null,
                 emailBlocks: (templateEmail as any).emailBlocks ?? null,
-                useEmailBuilder: (templateEmail as any).useEmailBuilder ?? false
+                useEmailBuilder: (templateEmail as any).useEmailBuilder ?? false,
+                includeHeader: (templateEmail as any).includeHeader ?? false,
+                headerStyle: (templateEmail as any).headerStyle ?? null,
+                includeSignature: (templateEmail as any).includeSignature ?? false,
+                signatureStyle: (templateEmail as any).signatureStyle ?? null
               };
               const createdEmail = await storage.createDripCampaignEmail(emailData);
               allEmails.push(createdEmail);
@@ -6182,7 +6186,11 @@ ${photographer?.businessName || 'Your Photography Team'}`;
           // Copy builder-specific fields if they exist
           sendAtHour: (templateEmail as any).sendAtHour ? Math.floor((templateEmail as any).sendAtHour) : null,
           emailBlocks: (templateEmail as any).emailBlocks ?? null,
-          useEmailBuilder: (templateEmail as any).useEmailBuilder ?? false
+          useEmailBuilder: (templateEmail as any).useEmailBuilder ?? false,
+          includeHeader: (templateEmail as any).includeHeader ?? false,
+          headerStyle: (templateEmail as any).headerStyle ?? null,
+          includeSignature: (templateEmail as any).includeSignature ?? false,
+          signatureStyle: (templateEmail as any).signatureStyle ?? null
         };
         const createdEmail = await storage.createDripCampaignEmail(emailData);
         emails.push(createdEmail);
