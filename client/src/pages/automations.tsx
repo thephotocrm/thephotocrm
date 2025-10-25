@@ -3576,6 +3576,44 @@ export default function Automations() {
                             {enablePipeline && <div>✓ Move to stage</div>}
                           </div>
                         </div>
+                        
+                        {/* Message Preview */}
+                        {enableCommunication && form.watch('templateId') && form.watch('templateId') !== 'unavailable' && (() => {
+                          const template = templates?.find((t: any) => t.id === form.watch('templateId'));
+                          if (!template) return null;
+                          
+                          return (
+                            <div className="py-2 border-b">
+                              <span className="text-sm font-medium text-muted-foreground mb-2 block">
+                                {form.watch('channel') === 'EMAIL' ? 'Email Content' : 'SMS Message'}
+                              </span>
+                              <div className="mt-2 p-3 bg-muted/50 rounded text-sm space-y-2">
+                                {template.subject && form.watch('channel') === 'EMAIL' && (
+                                  <div>
+                                    <span className="font-medium">Subject: </span>
+                                    <span className="text-muted-foreground">{template.subject}</span>
+                                  </div>
+                                )}
+                                <div>
+                                  <span className="font-medium">Message: </span>
+                                  <div className="text-muted-foreground mt-1 whitespace-pre-wrap line-clamp-4">
+                                    {template.body || '(No content)'}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })()}
+                        
+                        {/* Timing */}
+                        {enableCommunication && (
+                          <div className="flex items-start justify-between py-2">
+                            <span className="text-sm font-medium text-muted-foreground">Timing</span>
+                            <span className="text-sm text-right">
+                              {form.watch('delayDays') || 0} days, {form.watch('delayHours') || 0} hours
+                            </span>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -3626,55 +3664,9 @@ export default function Automations() {
                       ) : (
                         <Button 
                           type="submit" 
-                          disabled={
-                        createAutomationMutation.isPending ||
-                        (() => {
-                          // At least one automation type must be enabled
-                          if (!enableCommunication && !enablePipeline) {
-                            return true;
-                          }
-                          
-                          // Validate unified trigger settings
-                          const triggerMode = form.watch('triggerMode');
-                          if (triggerMode === 'STAGE') {
-                            if (!form.watch('triggerStageId')) {
-                              return true;
-                            }
-                          } else if (triggerMode === 'BUSINESS') {
-                            if (!form.watch('triggerEvent')) {
-                              return true;
-                            }
-                          }
-                          
-                          // Validate communication fields if enabled
-                          if (enableCommunication) {
-                            const channel = form.watch('channel');
-                            const hasTemplate = form.watch('templateId') && form.watch('templateId') !== 'unavailable';
-                            const hasSmartFile = form.watch('smartFileTemplateId') && form.watch('smartFileTemplateId') !== 'unavailable';
-                            const hasQuestionnaire = form.watch('questionnaireTemplateId') && form.watch('questionnaireTemplateId') !== 'unavailable' && form.watch('questionnaireTemplateId') !== 'none';
-                            
-                            // For SMART_FILE, only smartFileTemplateId is required
-                            if (channel === 'SMART_FILE' && !hasSmartFile) {
-                              return true;
-                            }
-                            // For EMAIL/SMS, template or questionnaire is required
-                            if (channel !== 'SMART_FILE' && !hasTemplate && !hasQuestionnaire) {
-                              return true;
-                            }
-                          }
-                          
-                          // Validate pipeline fields if enabled
-                          if (enablePipeline) {
-                            if (!form.watch('targetStageId')) {
-                              return true;
-                            }
-                          }
-                          
-                          return false;
-                        })()
-                      }
-                      data-testid="button-submit-automation"
-                    >
+                          disabled={createAutomationMutation.isPending}
+                          data-testid="button-submit-automation"
+                        >
                       {createAutomationMutation.isPending 
                         ? "Creating..." 
                         : (() => {
