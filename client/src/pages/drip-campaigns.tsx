@@ -685,8 +685,8 @@ export default function DripCampaigns() {
 
       {/* Edit Email Dialog */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent className="w-full max-w-[100vw] md:max-w-[95vw] max-h-[95vh] p-4 md:p-6">
-          <DialogHeader>
+        <DialogContent className="w-full max-w-[100vw] md:max-w-[95vw] h-[95vh] flex flex-col p-4 md:p-6">
+          <DialogHeader className="flex-shrink-0">
             <DialogTitle className="flex items-center gap-2">
               <Edit className="h-5 w-5" />
               Edit Email
@@ -697,7 +697,7 @@ export default function DripCampaigns() {
           </DialogHeader>
 
           {/* Builder/Preview Side-by-Side Layout (Desktop) / Tabs (Mobile) */}
-          <div className="h-[calc(95vh-140px)]">
+          <div className="flex-1 min-h-0 mt-4">
             {/* Mobile Tabs */}
             <div className="lg:hidden">
               <div className="space-y-4 mb-4">
@@ -834,9 +834,10 @@ export default function DripCampaigns() {
                 </div>
 
             {/* Desktop Side-by-Side */}
-            <div className="hidden lg:grid lg:grid-cols-2 lg:gap-6 h-full">
+            <div className="hidden lg:grid lg:grid-cols-2 lg:gap-6 h-full overflow-hidden">
               {/* Left: Settings + Builder */}
-              <ScrollArea className="h-full pr-4">
+              <div className="h-full overflow-hidden">
+                <ScrollArea className="h-full pr-4">
                 <div className="space-y-4">
                   {/* Email Settings */}
                   <div>
@@ -931,7 +932,8 @@ export default function DripCampaigns() {
                     />
                   </div>
                 </div>
-              </ScrollArea>
+                </ScrollArea>
+              </div>
 
               {/* Right: Preview (Full Height) */}
               <div className="flex flex-col h-full">
@@ -976,7 +978,7 @@ export default function DripCampaigns() {
           </div>
 
           {/* Footer Actions */}
-          <div className="flex justify-end gap-2 pt-4 border-t">
+          <div className="flex-shrink-0 flex justify-end gap-2 pt-4 border-t mt-4">
             <Button
               variant="outline"
               onClick={() => setEditDialogOpen(false)}
