@@ -3725,9 +3725,6 @@ export default function Automations() {
                             return `Create ${actions.join(" + ")} Automation${suffix}`;
                           })()
                       }
-                      data-testid="button-submit-automation"
-                    >
-                      {createAutomationMutation.isPending ? "Creating..." : "Create Automation"}
                     </Button>
                         );
                       })()}
