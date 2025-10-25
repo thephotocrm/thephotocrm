@@ -6402,7 +6402,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
   app.patch("/api/drip-campaigns/:campaignId/emails/:emailId", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       const { campaignId, emailId } = req.params;
-      const { subject, htmlBody, textBody, emailBlocks, sendAtHour, daysAfterStart, useEmailBuilder } = req.body;
+      const { subject, htmlBody, textBody, emailBlocks, sendAtHour, daysAfterStart, useEmailBuilder, includeHeader, headerStyle, includeSignature, signatureStyle } = req.body;
       
       // Verify campaign ownership
       const campaign = await storage.getDripCampaign(campaignId);
@@ -6427,7 +6427,11 @@ ${photographer?.businessName || 'Your Photography Team'}`;
           emailBlocks,
           sendAtHour,
           daysAfterStart,
-          useEmailBuilder
+          useEmailBuilder,
+          includeHeader,
+          headerStyle,
+          includeSignature,
+          signatureStyle
         },
         req.user!.userId
       );

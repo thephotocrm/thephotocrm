@@ -282,6 +282,10 @@ export interface IStorage {
     sendAtHour?: number;
     daysAfterStart?: number;
     useEmailBuilder?: boolean;
+    includeHeader?: boolean;
+    headerStyle?: string;
+    includeSignature?: boolean;
+    signatureStyle?: string;
   }, editedBy: string): Promise<DripCampaignEmail>;
   bulkUpdateEmailSequence(emailUpdates: Array<{ id: string; sequenceIndex: number; weeksAfterStart: number }>): Promise<void>;
 
@@ -2536,6 +2540,10 @@ export class DatabaseStorage implements IStorage {
       sendAtHour?: number;
       daysAfterStart?: number;
       useEmailBuilder?: boolean;
+      includeHeader?: boolean;
+      headerStyle?: string;
+      includeSignature?: boolean;
+      signatureStyle?: string;
     }, 
     editedBy: string
   ): Promise<DripCampaignEmail> {
