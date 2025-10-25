@@ -747,7 +747,7 @@ export default function DripCampaigns() {
                 </div>
 
                 {/* Settings Container */}
-                <div className="bg-blue-200 dark:bg-blue-900/60 rounded-lg p-4 space-y-3 border border-blue-400 dark:border-blue-600">
+                <div className="bg-blue-400 dark:bg-blue-900/60 rounded-lg p-4 space-y-3 border border-blue-600 dark:border-blue-500">
                   <div>
                     <Label htmlFor="edit-subject" className="text-sm">Email Subject</Label>
                     <Input
@@ -884,7 +884,7 @@ export default function DripCampaigns() {
               </div>
 
               {/* Build Email Container */}
-              <div className="bg-green-300 dark:bg-green-900/60 rounded-lg p-4 border border-green-500 dark:border-green-600">
+              <div className="bg-green-500 dark:bg-green-900/60 rounded-lg p-4 border border-green-700 dark:border-green-500">
                 <div className="relative mb-4">
                   <Separator />
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-background px-2">
@@ -984,7 +984,7 @@ export default function DripCampaigns() {
                   </div>
 
                   {/* Settings Container */}
-                  <div className="bg-blue-200 dark:bg-blue-900/60 rounded-lg p-4 space-y-3 border border-blue-400 dark:border-blue-600">
+                  <div className="bg-blue-400 dark:bg-blue-900/60 rounded-lg p-4 space-y-3 border border-blue-600 dark:border-blue-500">
                     {/* Email Subject */}
                     <div>
                       <Label htmlFor="edit-subject-desktop" className="text-sm">Email Subject</Label>
@@ -1063,7 +1063,7 @@ export default function DripCampaigns() {
                   </div>
 
                   {/* Build Email Container */}
-                  <div className="bg-green-300 dark:bg-green-900/60 rounded-lg p-4 border border-green-500 dark:border-green-600">
+                  <div className="bg-green-500 dark:bg-green-900/60 rounded-lg p-4 border border-green-700 dark:border-green-500">
                     <div className="relative mb-4">
                       <Separator />
                       <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-background px-2">
