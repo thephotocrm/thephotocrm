@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -192,6 +192,15 @@ export default function DripCampaigns() {
     enabled: !!user?.photographerId
   });
 
+  // Query for draft campaigns (has saved branding)
+  const { data: draftCampaigns = [] } = useQuery<any[]>({
+    queryKey: ["/api/drip-campaigns", selectedProjectType],
+    queryFn: async () => {
+      const res = await apiRequest("GET", `/api/drip-campaigns?projectType=${selectedProjectType}`);
+      return await res.json();
+    },
+    enabled: !!user?.photographerId
+  });
 
   const { data: subscriptions = [] } = useQuery<any[]>({
     queryKey: ["/api/drip-subscriptions"],
@@ -201,6 +210,28 @@ export default function DripCampaigns() {
     },
     enabled: !!user?.photographerId
   });
+
+  // Merge draft emails with static template (draft takes precedence for branding)
+  const mergedEmails = useMemo(() => {
+    if (!staticCampaign?.emails) return [];
+    
+    const draftCampaign = draftCampaigns?.find((c: any) => c.projectType === selectedProjectType && c.isStaticTemplate);
+    if (!draftCampaign?.emails) return staticCampaign.emails;
+    
+    // Map static emails and overlay draft data if it exists
+    return staticCampaign.emails.map((staticEmail: any) => {
+      const draftEmail = draftCampaign.emails.find((d: any) => d.sequenceIndex === staticEmail.sequenceIndex);
+      if (draftEmail) {
+        // Use draft email data (has saved branding)
+        return {
+          ...staticEmail,
+          ...draftEmail,
+          id: draftEmail.id // Make sure we have the draft email ID
+        };
+      }
+      return staticEmail;
+    });
+  }, [staticCampaign, draftCampaigns, selectedProjectType]);
 
 
 
@@ -467,7 +498,7 @@ export default function DripCampaigns() {
               <div className="space-y-3">
                 <h3 className="text-lg font-medium">Email Sequence</h3>
                 <div className="grid gap-3">
-                  {staticCampaign.emails.map((email: any, index: number) => {
+                  {mergedEmails.map((email: any, index: number) => {
                     const emailKey = `${selectedProjectType}-${index}`;
                     const isEnabled = emailToggles[emailKey] ?? true;
                     
