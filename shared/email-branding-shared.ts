@@ -107,7 +107,7 @@ export function generateEmailHeader(style: string | null | undefined, data: Bran
           ${logoUrl 
             ? `<img src="${logoUrl}" alt="${data.businessName || 'Logo'}" style="max-width: 150px; height: auto; filter: brightness(0) invert(1);" />` 
             : data.businessName 
-              ? `<h1 style="margin: 0; color: white; font-size: 28px; font-weight: 700; text-shadow: 0 2px 4px rgba(0,0,0,0.2);">${data.businessName}</h1>` 
+              ? `<h1 style="margin: 0; color: #ffffff !important; -webkit-text-fill-color: #ffffff !important; font-size: 28px; font-weight: 700; text-shadow: 0 2px 4px rgba(0,0,0,0.2);">${data.businessName}</h1>` 
               : ''
           }
         </div>

@@ -1725,7 +1725,7 @@ async function processSubscriptionEmail(subscription: any, campaign: any, projec
     * { color-scheme: light only !important; }
   </style>
 </head>
-<body style="margin: 0 !important; padding: 20px !important; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important; background-color: #ffffff !important;">
+<body style="margin: 0 !important; padding: 8px !important; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important; background-color: #ffffff !important;">
   ${headerHtml}
   ${rawBlocksHtml}
   ${signatureHtml}

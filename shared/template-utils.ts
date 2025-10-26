@@ -66,11 +66,11 @@ export function contentBlocksToHtml(blocks: ContentBlock[], context?: {
   const htmlBlocks = blocks.map(block => {
     switch (block.type) {
       case 'HEADING':
-        return `<h2 style="font-size: 24px; font-weight: bold; color: #1a1a1a; margin: 0 0 16px 0;">${escapeHtml(block.content?.text || 'Heading')}</h2>`;
+        return `<h2 style="font-size: 24px; font-weight: bold; color: #1a1a1a; margin: 0 0 16px 0; padding: 0 12px;">${escapeHtml(block.content?.text || 'Heading')}</h2>`;
       
       case 'TEXT':
         const textLines = (block.content?.text || 'Text content').split('\n');
-        return `<p style="font-size: 16px; line-height: 1.6; color: #4a4a4a; margin: 0 0 16px 0; white-space: pre-wrap;">${textLines.map(escapeHtml).join('<br>')}</p>`;
+        return `<p style="font-size: 16px; line-height: 1.6; color: #4a4a4a; margin: 0 0 16px 0; padding: 0 12px; white-space: pre-wrap;">${textLines.map(escapeHtml).join('<br>')}</p>`;
       
       case 'BUTTON':
         const variant = block.content?.variant || 'default';
@@ -99,7 +99,7 @@ export function contentBlocksToHtml(blocks: ContentBlock[], context?: {
           href = context?.photographerToken ? `${baseUrl}/booking/${context.photographerToken}` : '{{calendar_link}}';
         }
         
-        return `<div style="margin: 0 0 16px 0;">
+        return `<div style="margin: 0 0 16px 0; padding: 0 12px;">
           <a href="${href}" style="display: inline-block; padding: 12px 24px; ${buttonStyles} border-radius: 6px; font-weight: 600; text-decoration: none; text-align: center;">
             ${escapeHtml(block.content?.text || 'Button Text')}
           </a>
