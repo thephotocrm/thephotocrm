@@ -415,7 +415,7 @@ export default function Inbox() {
 
       <div className="flex-1 flex overflow-hidden justify-center relative">
         {/* Subtle Camera-themed SVG Background Pattern */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-[0.08] dark:opacity-[0.06]">
+        <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-20 dark:opacity-[0.15]">
           <svg className="absolute inset-0 w-full h-full" xmlns="http://www.w3.org/2000/svg">
             <defs>
               {/* Camera Pattern */}
@@ -527,7 +527,7 @@ export default function Inbox() {
           </Dialog>
 
           {/* Two Column Layout - Connected Design */}
-          <div className="flex-1 flex overflow-hidden bg-card border rounded-2xl max-h-[759px] shadow-[0_8px_30px_rgb(0,0,0,0.12),0_2px_8px_rgb(0,0,0,0.08)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.4),0_2px_8px_rgb(0,0,0,0.3)]">
+          <div className="flex-1 flex overflow-hidden bg-card border rounded-2xl max-h-[759px] shadow-[0_20px_60px_rgb(0,0,0,0.15),0_8px_25px_rgb(0,0,0,0.1),0_2px_8px_rgb(0,0,0,0.08)] dark:shadow-[0_20px_60px_rgb(0,0,0,0.5),0_8px_25px_rgb(0,0,0,0.4),0_2px_8px_rgb(0,0,0,0.3)]">
             {/* Left Sidebar */}
             <div className="hidden md:flex w-16 bg-gradient-to-b from-indigo-600 to-indigo-700 flex-col items-center py-4 gap-4 rounded-l-2xl">
               <Button
