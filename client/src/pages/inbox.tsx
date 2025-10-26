@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -108,6 +108,15 @@ export default function Inbox() {
     }
   });
 
+  // Auto-select the most recent conversation
+  useEffect(() => {
+    if (conversations.length > 0 && !selectedContactId) {
+      const mostRecentContact = conversations[0].contact.id;
+      setSelectedContactId(mostRecentContact);
+      markAsReadMutation.mutate(mostRecentContact);
+    }
+  }, [conversations.length]);
+
   const handleConversationClick = (contactId: string) => {
     setSelectedContactId(contactId);
     setIsMobileThreadView(true);
@@ -125,7 +134,6 @@ export default function Inbox() {
 
   const handleBackToList = () => {
     setIsMobileThreadView(false);
-    setSelectedContactId(null);
   };
 
   const handleStartNewConversation = (contactId: string) => {
@@ -447,7 +455,7 @@ export default function Inbox() {
                       </AvatarFallback>
                     </Avatar>
                     
-                    <div className="flex-1 min-w-0">
+                    <div className="flex-1 min-w-0 pr-2">
                       <div className="flex items-center justify-between mb-1">
                         <h3 className={`truncate ${conversation.unreadCount > 0 ? 'font-bold' : 'font-semibold'}`} data-testid={`contact-name-${conversation.contact.id}`}>
                           {conversation.contact.firstName} {conversation.contact.lastName}
@@ -457,12 +465,12 @@ export default function Inbox() {
                         </span>
                       </div>
                       
-                      <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2">
                         <p className={`text-sm truncate flex-1 ${conversation.unreadCount > 0 ? 'text-foreground font-medium' : 'text-muted-foreground'}`} data-testid={`last-message-${conversation.contact.id}`}>
                           {conversation.lastMessage || 'No messages'}
                         </p>
                         {conversation.unreadCount > 0 && (
-                          <Badge variant="default" className="ml-2 min-w-[24px] h-5 flex items-center justify-center shrink-0" data-testid={`unread-badge-${conversation.contact.id}`}>
+                          <Badge variant="default" className="min-w-[24px] h-5 flex items-center justify-center shrink-0" data-testid={`unread-badge-${conversation.contact.id}`}>
                             {conversation.unreadCount}
                           </Badge>
                         )}
