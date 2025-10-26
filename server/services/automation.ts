@@ -1696,13 +1696,20 @@ async function processSubscriptionEmail(subscription: any, campaign: any, projec
         photographerToken: photographer?.publicToken
       });
       
-      // Extract just the body content from the full HTML
-      const bodyMatch = contentHtml.match(/<body[^>]*>([\s\S]*)<\/body>/);
-      const innerContent = bodyMatch ? bodyMatch[1] : contentHtml;
+      // Extract just the content blocks by removing the HTML wrapper
+      // contentBlocksToHtml returns: <html><body><div class="container">BLOCKS</div></body></html>
+      // We want just the BLOCKS part
+      let justContent = '';
+      const bodyContentMatch = contentHtml.match(/<div style="background-color: #ffffff[^>]*>([\s\S]*?)<\/div>\s*<\/div>\s*<\/body>/);
+      if (bodyContentMatch) {
+        justContent = bodyContentMatch[1];
+      } else {
+        // Fallback: try to get everything inside the body tag
+        const bodyMatch = contentHtml.match(/<body[^>]*>([\s\S]*)<\/body>/);
+        justContent = bodyMatch ? bodyMatch[1] : contentHtml;
+      }
       
-      // Remove the outer container div to get just the content
-      const contentMatch = innerContent.match(/<div[^>]*>([\s\S]*)<\/div>\s*$/);
-      const justContent = contentMatch ? contentMatch[1] : innerContent;
+      console.log('📧 Email builder content extracted, length:', justContent.length);
       
       // Generate header and signature HTML
       const headerHtml = emailToSend.includeHeader && emailToSend.headerStyle
