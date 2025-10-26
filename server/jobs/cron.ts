@@ -3,8 +3,8 @@ import { processAutomations, processPaymentReminders } from '../services/automat
 import { storage } from '../storage';
 
 export function startCronJobs() {
-  // Run every 5 minutes to reduce log spam
-  cron.schedule('*/5 * * * *', async () => {
+  // Run every 1 minute for testing
+  cron.schedule('* * * * *', async () => {
     try {
       // Temporarily disabled during client/project separation migration
       // Only log when there's actual work to do
