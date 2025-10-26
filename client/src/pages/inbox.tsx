@@ -196,6 +196,30 @@ export default function Inbox() {
     return (first + last).toUpperCase() || '?';
   };
 
+  // Generate a consistent color for each contact based on their ID
+  const getAvatarColor = (contactId: string) => {
+    const colors = [
+      'bg-red-500',
+      'bg-blue-500',
+      'bg-green-500',
+      'bg-yellow-500',
+      'bg-purple-500',
+      'bg-pink-500',
+      'bg-indigo-500',
+      'bg-orange-500',
+      'bg-teal-500',
+      'bg-cyan-500',
+    ];
+    
+    // Simple hash function to get consistent color for same ID
+    let hash = 0;
+    for (let i = 0; i < contactId.length; i++) {
+      hash = contactId.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const index = Math.abs(hash) % colors.length;
+    return colors[index];
+  };
+
   const formatTime = (date: Date | string) => {
     const d = new Date(date);
     const now = new Date();
@@ -402,7 +426,7 @@ export default function Inbox() {
                         >
                           <div className="flex items-center gap-3">
                             <Avatar>
-                              <AvatarFallback>
+                              <AvatarFallback className={`text-white ${getAvatarColor(contact.id)}`}>
                                 {getInitials(contact.firstName, contact.lastName)}
                               </AvatarFallback>
                             </Avatar>
@@ -570,7 +594,7 @@ export default function Inbox() {
                             >
                               <div className="flex items-center gap-3">
                                 <Avatar>
-                                  <AvatarFallback>
+                                  <AvatarFallback className={`text-white ${getAvatarColor(contact.id)}`}>
                                     {getInitials(contact.firstName, contact.lastName)}
                                   </AvatarFallback>
                                 </Avatar>
@@ -603,7 +627,7 @@ export default function Inbox() {
                 >
                   <div className="flex items-start gap-3">
                     <Avatar className={`rounded-xl ${conversation.unreadCount > 0 ? 'ring-2 ring-primary' : ''}`}>
-                      <AvatarFallback className={`rounded-xl ${conversation.unreadCount > 0 ? 'font-bold' : ''}`}>
+                      <AvatarFallback className={`rounded-xl text-white ${getAvatarColor(conversation.contact.id)} ${conversation.unreadCount > 0 ? 'font-bold' : ''}`}>
                         {getInitials(conversation.contact.firstName, conversation.contact.lastName)}
                       </AvatarFallback>
                     </Avatar>
@@ -670,7 +694,7 @@ export default function Inbox() {
                 </Button>
                 
                 <Avatar className="rounded-xl h-8 w-8">
-                  <AvatarFallback className="rounded-xl text-xs">
+                  <AvatarFallback className={`rounded-xl text-xs text-white ${selectedConversation ? getAvatarColor(selectedConversation.contact.id) : 'bg-gray-500'}`}>
                     {getInitials(selectedConversation?.contact.firstName, selectedConversation?.contact.lastName)}
                   </AvatarFallback>
                 </Avatar>
@@ -917,7 +941,7 @@ export default function Inbox() {
                     data-testid={`contact-card-${contact.id}`}
                   >
                     <Avatar className="rounded-xl">
-                      <AvatarFallback className="rounded-xl">
+                      <AvatarFallback className={`rounded-xl text-white ${getAvatarColor(contact.id)}`}>
                         {getInitials(contact.firstName, contact.lastName)}
                       </AvatarFallback>
                     </Avatar>
