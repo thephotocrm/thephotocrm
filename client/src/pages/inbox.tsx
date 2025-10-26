@@ -632,7 +632,7 @@ export default function Inbox() {
                   data-testid={`conversation-${conversation.contact.id}`}
                 >
                   <div className="flex items-start gap-3">
-                    <Avatar className={`rounded-xl ${conversation.unreadCount > 0 ? 'ring-2 ring-primary' : ''}`}>
+                    <Avatar className="rounded-xl">
                       <AvatarFallback className={`rounded-xl text-white ${getAvatarColor(conversation.contact.id)} ${conversation.unreadCount > 0 ? 'font-bold' : ''}`}>
                         {getInitials(conversation.contact.firstName, conversation.contact.lastName)}
                       </AvatarFallback>
@@ -654,16 +654,9 @@ export default function Inbox() {
                         <p className={`text-sm truncate flex-1 min-w-0 ${conversation.unreadCount > 0 ? 'text-foreground font-medium' : 'text-muted-foreground'}`} data-testid={`last-message-${conversation.contact.id}`}>
                           {conversation.lastMessage || 'No messages'}
                         </p>
-                        <div className="flex flex-col items-end gap-1 shrink-0">
-                          <span className={`text-xs whitespace-nowrap ${conversation.unreadCount > 0 ? 'text-primary font-semibold' : 'text-muted-foreground'}`}>
-                            {formatTime(conversation.lastMessageAt)}
-                          </span>
-                          {conversation.unreadCount > 0 && (
-                            <Badge variant="default" className="text-[10px] h-4 px-1.5" data-testid={`time-badge-${conversation.contact.id}`}>
-                              {formatMessageTime(conversation.lastMessageAt)}
-                            </Badge>
-                          )}
-                        </div>
+                        <span className={`text-xs whitespace-nowrap ${conversation.unreadCount > 0 ? 'text-primary font-semibold' : 'text-muted-foreground'}`}>
+                          {formatTime(conversation.lastMessageAt)}
+                        </span>
                       </div>
                     </div>
                   </div>
