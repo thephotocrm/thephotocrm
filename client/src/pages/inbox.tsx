@@ -620,7 +620,7 @@ export default function Inbox() {
                         )}
                       </div>
                       
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 min-w-0">
                         <p className={`text-sm truncate flex-1 min-w-0 ${conversation.unreadCount > 0 ? 'text-foreground font-medium' : 'text-muted-foreground'}`} data-testid={`last-message-${conversation.contact.id}`}>
                           {conversation.lastMessage || 'No messages'}
                         </p>
