@@ -526,7 +526,7 @@ export default function Inbox() {
                     </div>
                   </div>
                   
-                  <ScrollArea className="flex-1 min-h-0">
+                  <div className="flex-1 min-h-0 overflow-y-auto">
                 {conversationsLoading ? (
                   <div className="p-4 text-center text-muted-foreground">Loading conversations...</div>
                 ) : filteredConversations.length === 0 ? (
@@ -633,7 +633,7 @@ export default function Inbox() {
                 </div>
                   ))
                 )}
-              </ScrollArea>
+              </div>
             </div>
 
             {/* Message Thread */}
