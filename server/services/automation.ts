@@ -1732,9 +1732,11 @@ async function processSubscriptionEmail(subscription: any, campaign: any, projec
   </style>
 </head>
 <body style="margin: 0 !important; padding: 0 !important; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important; background-color: #ffffff !important;">
-  ${headerHtml}
-  ${rawBlocksHtml}
-  ${signatureHtml}
+  <div style="max-width: 600px; margin: 0 auto;">
+    ${headerHtml}
+    ${rawBlocksHtml}
+    ${signatureHtml}
+  </div>
 </body>
 </html>`;
       
