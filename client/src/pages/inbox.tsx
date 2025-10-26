@@ -44,11 +44,15 @@ interface ThreadMessage {
   imageUrl?: string | null; // MMS image URL
 }
 
+type InboxView = 'inbox' | 'contacts' | 'phone' | 'settings';
+
 export default function Inbox() {
+  const [currentView, setCurrentView] = useState<InboxView>('inbox');
   const [selectedContactId, setSelectedContactId] = useState<string | null>(null);
   const [newMessage, setNewMessage] = useState("");
   const [isMobileThreadView, setIsMobileThreadView] = useState(false);
   const [isNewMessageDialogOpen, setIsNewMessageDialogOpen] = useState(false);
+  const [isComingSoonDialogOpen, setIsComingSoonDialogOpen] = useState(false);
   const [contactSearch, setContactSearch] = useState("");
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -61,10 +65,10 @@ export default function Inbox() {
     refetchInterval: 10000 // Poll every 10 seconds for new messages
   });
 
-  // Fetch all contacts for new message dialog
-  const { data: allContacts = [] } = useQuery<Contact[]>({
+  // Fetch all contacts for new message dialog and contacts view
+  const { data: allContacts = [], isLoading: contactsLoading } = useQuery<Contact[]>({
     queryKey: ['/api/contacts'],
-    enabled: isNewMessageDialogOpen
+    enabled: isNewMessageDialogOpen || currentView === 'contacts'
   });
 
   // Fetch thread for selected contact
@@ -177,6 +181,12 @@ export default function Inbox() {
     setIsMobileThreadView(true);
     setIsNewMessageDialogOpen(false);
     setContactSearch("");
+  };
+
+  const handleContactToInbox = (contactId: string) => {
+    setSelectedContactId(contactId);
+    setCurrentView('inbox');
+    setIsMobileThreadView(true);
   };
 
   const getInitials = (firstName?: string, lastName?: string) => {
@@ -405,6 +415,23 @@ export default function Inbox() {
             </Dialog>
           </div>
 
+          {/* Coming Soon Dialog */}
+          <Dialog open={isComingSoonDialogOpen} onOpenChange={setIsComingSoonDialogOpen}>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Coming Soon</DialogTitle>
+              </DialogHeader>
+              <div className="py-6 text-center">
+                <p className="text-muted-foreground">This feature is coming soon!</p>
+              </div>
+              <div className="flex justify-end">
+                <Button onClick={() => setIsComingSoonDialogOpen(false)} data-testid="button-close-coming-soon">
+                  Close
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+
           {/* Two Column Layout - Connected Design */}
           <div className="flex-1 flex overflow-hidden bg-card border rounded-2xl shadow-sm max-h-[759px]">
             {/* Left Sidebar */}
@@ -412,29 +439,34 @@ export default function Inbox() {
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-10 w-10 text-white hover:bg-white/20"
-                onClick={() => setIsNewMessageDialogOpen(true)}
-                data-testid="sidebar-compose"
+                className={`h-10 w-10 transition-colors ${
+                  currentView === 'inbox' ? 'bg-white text-indigo-600 hover:bg-white' : 'text-white hover:bg-white/20'
+                }`}
+                onClick={() => setCurrentView('inbox')}
+                data-testid="sidebar-inbox"
               >
-                <MessageSquarePlus className="w-6 h-6" />
+                <MessageSquare className="w-6 h-6" />
               </Button>
               
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-10 w-10 text-white hover:bg-white/20"
-                asChild
+                className={`h-10 w-10 transition-colors ${
+                  currentView === 'contacts' ? 'bg-white text-indigo-600 hover:bg-white' : 'text-white hover:bg-white/20'
+                }`}
+                onClick={() => setCurrentView('contacts')}
                 data-testid="sidebar-contacts"
               >
-                <Link href="/contacts">
-                  <Users className="w-6 h-6" />
-                </Link>
+                <Users className="w-6 h-6" />
               </Button>
               
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-10 w-10 text-white hover:bg-white/20"
+                className={`h-10 w-10 transition-colors ${
+                  currentView === 'phone' ? 'bg-white text-indigo-600 hover:bg-white' : 'text-white hover:bg-white/20'
+                }`}
+                onClick={() => setIsComingSoonDialogOpen(true)}
                 data-testid="sidebar-phone"
               >
                 <Phone className="w-6 h-6" />
@@ -445,13 +477,13 @@ export default function Inbox() {
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-10 w-10 text-white hover:bg-white/20"
-                asChild
+                className={`h-10 w-10 transition-colors ${
+                  currentView === 'settings' ? 'bg-white text-indigo-600 hover:bg-white' : 'text-white hover:bg-white/20'
+                }`}
+                onClick={() => setCurrentView('settings')}
                 data-testid="sidebar-settings"
               >
-                <Link href="/settings">
-                  <Settings className="w-6 h-6" />
-                </Link>
+                <Settings className="w-6 h-6" />
               </Button>
               
               <Button
@@ -465,12 +497,15 @@ export default function Inbox() {
               </Button>
             </div>
             
-            {/* Conversation List */}
-            <div className={`w-full md:w-96 border-r flex flex-col ${isMobileThreadView ? 'hidden md:flex' : 'flex'}`}>
-              <ScrollArea className="flex-1 min-h-0">
-            {conversationsLoading ? (
-              <div className="p-4 text-center text-muted-foreground">Loading conversations...</div>
-            ) : conversations.length === 0 ? (
+            {/* INBOX VIEW - Conversation List and Message Thread */}
+            {currentView === 'inbox' && (
+              <>
+                {/* Conversation List */}
+                <div className={`w-full md:w-96 border-r flex flex-col ${isMobileThreadView ? 'hidden md:flex' : 'flex'}`}>
+                  <ScrollArea className="flex-1 min-h-0">
+                {conversationsLoading ? (
+                  <div className="p-4 text-center text-muted-foreground">Loading conversations...</div>
+                ) : conversations.length === 0 ? (
               <div className="p-8 text-center">
                 <MessageSquare className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
                 <p className="text-muted-foreground mb-4">No SMS conversations yet</p>
@@ -572,13 +607,13 @@ export default function Inbox() {
                     </div>
                   </div>
                 </div>
-              ))
-            )}
-          </ScrollArea>
-        </div>
+                  ))
+                )}
+              </ScrollArea>
+            </div>
 
-        {/* Message Thread */}
-        <div className={`flex-1 flex flex-col ${!isMobileThreadView ? 'hidden md:flex' : 'flex'}`}>
+            {/* Message Thread */}
+            <div className={`flex-1 flex flex-col ${!isMobileThreadView ? 'hidden md:flex' : 'flex'}`}>
           {!selectedContactId ? (
             <div className="flex-1 flex items-center justify-center text-muted-foreground bg-gradient-to-br from-background to-muted/20">
               <div className="text-center p-8">
@@ -822,8 +857,97 @@ export default function Inbox() {
             </>
           )}
         </div>
+      </>
+    )}
+
+    {/* CONTACTS VIEW */}
+    {currentView === 'contacts' && (
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {contactsLoading ? (
+          <div className="flex-1 flex items-center justify-center">
+            <p className="text-muted-foreground">Loading contacts...</p>
+          </div>
+        ) : allContacts.length === 0 ? (
+          <div className="flex-1 flex items-center justify-center">
+            <div className="text-center p-8">
+              <Users className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+              <p className="text-muted-foreground">No contacts yet</p>
+            </div>
+          </div>
+        ) : (
+          <ScrollArea className="flex-1">
+            <div className="p-4">
+              <h2 className="text-lg font-semibold mb-4" data-testid="text-recent-contacts">Recent Contacts</h2>
+              <div className="space-y-2">
+                {allContacts.map((contact) => (
+                  <div
+                    key={contact.id}
+                    className="flex items-center gap-3 p-3 rounded-xl border bg-card hover:bg-accent transition-colors"
+                    data-testid={`contact-card-${contact.id}`}
+                  >
+                    <Avatar className="rounded-xl">
+                      <AvatarFallback className="rounded-xl">
+                        {getInitials(contact.firstName, contact.lastName)}
+                      </AvatarFallback>
+                    </Avatar>
+                    
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium truncate" data-testid={`contact-name-${contact.id}`}>
+                        {contact.firstName} {contact.lastName}
+                      </p>
+                      {contact.phone && (
+                        <p className="text-sm text-muted-foreground truncate" data-testid={`contact-phone-${contact.id}`}>
+                          {contact.phone}
+                        </p>
+                      )}
+                      {!contact.phone && contact.email && (
+                        <p className="text-sm text-muted-foreground truncate" data-testid={`contact-email-${contact.id}`}>
+                          {contact.email}
+                        </p>
+                      )}
+                    </div>
+                    
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="shrink-0"
+                      onClick={() => handleContactToInbox(contact.id)}
+                      data-testid={`button-add-contact-${contact.id}`}
+                    >
+                      <Plus className="w-5 h-5" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </ScrollArea>
+        )}
       </div>
-    </div>
+    )}
+
+    {/* PHONE VIEW - Coming Soon */}
+    {currentView === 'phone' && (
+      <div className="flex-1 flex items-center justify-center">
+        <div className="text-center p-8">
+          <Phone className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
+          <p className="text-lg font-medium mb-1" data-testid="text-coming-soon-phone">Coming Soon</p>
+          <p className="text-sm text-muted-foreground">Phone features will be available soon</p>
+        </div>
+      </div>
+    )}
+
+    {/* SETTINGS VIEW - Coming Soon */}
+    {currentView === 'settings' && (
+      <div className="flex-1 flex items-center justify-center">
+        <div className="text-center p-8">
+          <Settings className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
+          <p className="text-lg font-medium mb-1" data-testid="text-coming-soon-settings">Coming Soon</p>
+          <p className="text-sm text-muted-foreground">Settings will be available soon</p>
+        </div>
+      </div>
+    )}
+  </div>
+</div>
   </div>
 </div>
   );
