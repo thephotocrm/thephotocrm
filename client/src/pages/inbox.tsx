@@ -413,25 +413,38 @@ export default function Inbox() {
         </div>
       </header>
 
-      <div className="flex-1 flex overflow-hidden justify-center relative bg-gradient-to-br from-purple-50/50 via-pink-50/30 to-indigo-50/50 dark:from-purple-950/20 dark:via-pink-950/10 dark:to-indigo-950/20">
-        {/* Decorative Background Elements */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          {/* Large Gradient Orb - Top Left */}
-          <div className="absolute -top-32 -left-32 w-[500px] h-[500px] bg-gradient-to-br from-purple-400/40 via-indigo-400/30 to-transparent rounded-full blur-3xl"></div>
-          
-          {/* Large Gradient Orb - Top Right */}
-          <div className="absolute -top-20 -right-40 w-[450px] h-[450px] bg-gradient-to-bl from-pink-400/35 via-purple-400/25 to-transparent rounded-full blur-3xl"></div>
-          
-          {/* Medium Gradient Orb - Bottom */}
-          <div className="absolute -bottom-40 left-1/3 w-[400px] h-[400px] bg-gradient-to-tr from-indigo-400/30 via-blue-400/20 to-transparent rounded-full blur-3xl"></div>
-          
-          {/* Accent Orb - Right Side */}
-          <div className="absolute top-1/2 -right-20 w-[300px] h-[300px] bg-gradient-to-l from-violet-400/25 to-transparent rounded-full blur-2xl"></div>
-          
-          {/* Floating Circles */}
-          <div className="absolute top-1/4 left-1/4 w-6 h-6 bg-purple-400/30 rounded-full blur-sm"></div>
-          <div className="absolute bottom-1/3 right-1/3 w-8 h-8 bg-indigo-400/25 rounded-full blur-sm"></div>
-          <div className="absolute top-1/2 left-1/2 w-5 h-5 bg-pink-400/20 rounded-full blur-sm"></div>
+      <div className="flex-1 flex overflow-hidden justify-center relative">
+        {/* Subtle Camera-themed SVG Background Pattern */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-[0.04] dark:opacity-[0.03]">
+          <svg className="absolute inset-0 w-full h-full" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              {/* Camera Pattern */}
+              <pattern id="camera-pattern" width="200" height="200" patternUnits="userSpaceOnUse">
+                {/* Simple Camera Icon */}
+                <g transform="translate(40, 40)">
+                  <rect x="10" y="15" width="40" height="30" rx="3" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-indigo-400" />
+                  <circle cx="30" cy="30" r="8" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-indigo-400" />
+                  <rect x="20" y="10" width="8" height="5" rx="1" fill="currentColor" className="text-indigo-400" />
+                </g>
+                
+                {/* Aperture Icon */}
+                <g transform="translate(140, 120)">
+                  <circle cx="0" cy="0" r="12" fill="none" stroke="currentColor" strokeWidth="1" className="text-purple-400" />
+                  <path d="M -8,-8 L 0,0 M 8,-8 L 0,0 M 8,8 L 0,0 M -8,8 L 0,0 M 0,-8 L 0,0 M 0,8 L 0,0" stroke="currentColor" strokeWidth="1" className="text-purple-400" />
+                </g>
+                
+                {/* Film Strip Element */}
+                <g transform="translate(160, 40)">
+                  <rect x="0" y="0" width="4" height="24" fill="currentColor" className="text-pink-400" />
+                  <rect x="0" y="2" width="4" height="3" fill="none" />
+                  <rect x="0" y="8" width="4" height="3" fill="none" />
+                  <rect x="0" y="14" width="4" height="3" fill="none" />
+                  <rect x="0" y="20" width="4" height="3" fill="none" />
+                </g>
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#camera-pattern)" />
+          </svg>
         </div>
 
         <div className="flex-1 flex flex-col overflow-hidden max-w-[1140px] w-full px-6 pt-6 pb-8 gap-4 relative z-10">
