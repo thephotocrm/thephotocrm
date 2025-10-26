@@ -306,7 +306,7 @@ export default function Contacts() {
           </div>
         </header>
 
-        <div className="p-3 sm:p-6">
+        <div className="max-w-[1140px] mx-auto w-full p-3 sm:p-6">
           {/* Search */}
           <div className="mb-6">
             <div className="flex flex-wrap items-center gap-2">

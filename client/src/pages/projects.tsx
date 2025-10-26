@@ -345,7 +345,7 @@ export default function Projects() {
       </header>
 
       <div className="flex-1 overflow-y-auto min-w-0">
-        <div className="p-4 md:p-6 space-y-4 min-w-0">
+        <div className="max-w-[1140px] mx-auto w-full p-4 md:p-6 space-y-4 min-w-0">
           {/* Project Type Filter */}
           <div className="flex items-center gap-2 text-sm">
             <span className="text-muted-foreground">View:</span>
