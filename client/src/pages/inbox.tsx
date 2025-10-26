@@ -182,9 +182,10 @@ export default function Inbox() {
 
   return (
     <div className="h-[calc(100vh-4rem)] flex flex-col">
-      <div className="flex-1 flex overflow-hidden">
-        {/* Conversation List */}
-        <div className={`w-full md:w-96 border-r bg-background ${isMobileThreadView ? 'hidden md:block' : 'block'}`}>
+      <div className="flex-1 flex overflow-hidden justify-center">
+        <div className="flex-1 flex overflow-hidden max-w-[1140px] w-full">
+          {/* Conversation List */}
+          <div className={`w-full md:w-96 border-r bg-background ${isMobileThreadView ? 'hidden md:block' : 'block'}`}>
           <div className="p-4 border-b flex items-center justify-between">
             <div>
               <h2 className="text-2xl font-bold" data-testid="text-inbox-title">Inbox</h2>
@@ -500,6 +501,7 @@ export default function Inbox() {
               </div>
             </>
           )}
+        </div>
         </div>
       </div>
     </div>
