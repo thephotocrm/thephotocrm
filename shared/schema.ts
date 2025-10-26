@@ -403,6 +403,7 @@ export const smsLogs = pgTable("sms_logs", {
   fromPhone: text("from_phone"), // Source phone number
   toPhone: text("to_phone"), // Destination phone number  
   messageBody: text("message_body"), // SMS content for tracking
+  imageUrl: text("image_url"), // MMS image attachment URL
   isForwarded: boolean("is_forwarded").default(false), // Whether this was forwarded to photographer
   relatedSmsId: varchar("related_sms_id").references(() => smsLogs.id), // Link replies to original messages
   createdAt: timestamp("created_at").defaultNow()
