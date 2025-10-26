@@ -2048,6 +2048,57 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       }
 
       const project = await storage.createProject(projectData);
+      
+      // Auto-subscribe to active drip campaigns matching this project type
+      try {
+        const campaigns = await storage.getDripCampaignsByPhotographer(req.user!.photographerId!);
+        const activeCampaigns = campaigns.filter(c => 
+          c.status === 'ACTIVE' && 
+          c.projectType === projectData.projectType
+        );
+        
+        for (const campaign of activeCampaigns) {
+          console.log(`📧 Auto-subscribing project ${project.id} to drip campaign: ${campaign.name}`);
+          
+          // Calculate when to send the first email
+          const now = new Date();
+          const firstEmail = await storage.getDripCampaignEmailsByCampaign(campaign.id);
+          
+          if (firstEmail.length > 0) {
+            // Get first email from the sorted list
+            const sortedEmails = firstEmail.sort((a, b) => a.sequenceIndex - b.sequenceIndex);
+            const nextEmail = sortedEmails[0];
+            
+            // Calculate next email time based on campaign frequency
+            let nextEmailAt = new Date(now);
+            if (campaign.emailFrequencyDays) {
+              nextEmailAt.setDate(nextEmailAt.getDate() + campaign.emailFrequencyDays);
+            } else if (campaign.emailFrequencyWeeks) {
+              nextEmailAt.setDate(nextEmailAt.getDate() + (campaign.emailFrequencyWeeks * 7));
+            }
+            
+            // If the email has a specific sendAtHour, set it
+            if (nextEmail.sendAtHour !== null && nextEmail.sendAtHour !== undefined) {
+              nextEmailAt.setHours(nextEmail.sendAtHour, 0, 0, 0);
+            }
+            
+            await storage.createDripCampaignSubscription({
+              campaignId: campaign.id,
+              projectId: project.id,
+              clientId: project.clientId,
+              nextEmailIndex: 0,
+              nextEmailAt,
+              status: 'ACTIVE'
+            });
+            
+            console.log(`✅ Created drip subscription for campaign: ${campaign.name}, first email scheduled for ${nextEmailAt.toISOString()}`);
+          }
+        }
+      } catch (subscriptionError) {
+        console.error('Failed to auto-subscribe to drip campaigns:', subscriptionError);
+        // Don't fail the project creation if subscription fails
+      }
+      
       res.status(201).json(project);
     } catch (error: any) {
       if (error.name === 'ZodError') {
