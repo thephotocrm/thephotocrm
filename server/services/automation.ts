@@ -1663,19 +1663,76 @@ async function processSubscriptionEmail(subscription: any, campaign: any, projec
   const subject = renderTemplate(emailToSend.subject, variables);
   let htmlBody: string;
   
-  // If using email builder, convert email blocks to HTML
+  // Prepare branding data for both builder and non-builder emails
+  const brandingData = {
+    businessName: photographer?.businessName,
+    photographerName: photographer?.photographerName,
+    logoUrl: photographer?.logoUrl,
+    headshotUrl: photographer?.headshotUrl,
+    brandPrimary: photographer?.brandPrimaryColor,
+    brandSecondary: photographer?.brandSecondaryColor,
+    phone: photographer?.phone,
+    email: photographer?.emailFromAddr || photographer?.email,
+    website: photographer?.website,
+    businessAddress: photographer?.businessAddress,
+    socialLinks: photographer?.socialLinks
+  };
+  
+  // If using email builder, convert email blocks to HTML and add header/signature
   if (emailToSend.useEmailBuilder && emailToSend.emailBlocks) {
     const { contentBlocksToHtml } = await import('../../shared/template-utils.js');
+    const { generateEmailHeader, generateEmailSignature } = await import('../../shared/email-branding-shared.js');
+    
     try {
       const blocks = typeof emailToSend.emailBlocks === 'string' 
         ? JSON.parse(emailToSend.emailBlocks) 
         : emailToSend.emailBlocks;
-      htmlBody = contentBlocksToHtml(blocks, {
+      
+      // Generate content blocks HTML (this returns a full HTML document)
+      const contentHtml = contentBlocksToHtml(blocks, {
         baseUrl: process.env.REPLIT_DEV_DOMAIN 
           ? `https://${process.env.REPLIT_DEV_DOMAIN}`
           : 'https://thephotocrm.com',
         photographerToken: photographer?.publicToken
       });
+      
+      // Extract just the body content from the full HTML
+      const bodyMatch = contentHtml.match(/<body[^>]*>([\s\S]*)<\/body>/);
+      const innerContent = bodyMatch ? bodyMatch[1] : contentHtml;
+      
+      // Remove the outer container div to get just the content
+      const contentMatch = innerContent.match(/<div[^>]*>([\s\S]*)<\/div>\s*$/);
+      const justContent = contentMatch ? contentMatch[1] : innerContent;
+      
+      // Generate header and signature HTML
+      const headerHtml = emailToSend.includeHeader && emailToSend.headerStyle
+        ? generateEmailHeader(emailToSend.headerStyle, brandingData)
+        : '';
+      
+      const signatureHtml = emailToSend.includeSignature && emailToSend.signatureStyle
+        ? generateEmailSignature(emailToSend.signatureStyle, brandingData)
+        : '';
+      
+      // Combine header + content + signature in a proper email structure
+      htmlBody = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Email</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f9fafb;">
+  <div style="max-width: 600px; margin: 0 auto; padding: 32px 16px;">
+    <div style="background-color: #ffffff; padding: 32px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+      ${headerHtml}
+      ${justContent}
+      ${signatureHtml}
+    </div>
+  </div>
+</body>
+</html>`;
+      
     } catch (error) {
       console.error('Error parsing email blocks:', error);
       htmlBody = renderTemplate(emailToSend.htmlBody, variables);
@@ -1683,35 +1740,20 @@ async function processSubscriptionEmail(subscription: any, campaign: any, projec
   } else {
     // Use the raw HTML body for non-builder emails
     htmlBody = renderTemplate(emailToSend.htmlBody, variables);
+    
+    // Apply email branding wrapper for non-builder emails
+    if (emailToSend.includeHeader || emailToSend.includeSignature) {
+      const { wrapEmailContent } = await import('./email-branding.js');
+      htmlBody = wrapEmailContent(
+        htmlBody,
+        emailToSend.includeHeader ? emailToSend.headerStyle : null,
+        emailToSend.includeSignature ? emailToSend.signatureStyle : null,
+        brandingData
+      );
+    }
   }
   
   const textBody = renderTemplate(emailToSend.textBody || '', variables);
-
-  // Apply email branding (headers and signatures) ONLY if NOT using email builder
-  // Email builder content already has its own header/signature blocks built-in
-  if (!emailToSend.useEmailBuilder && (emailToSend.includeHeader || emailToSend.includeSignature)) {
-    const { wrapEmailContent } = await import('./email-branding.js');
-    const brandingData = {
-      businessName: photographer?.businessName,
-      photographerName: photographer?.photographerName,
-      logoUrl: photographer?.logoUrl,
-      headshotUrl: photographer?.headshotUrl,
-      brandPrimary: photographer?.brandPrimaryColor,
-      brandSecondary: photographer?.brandSecondaryColor,
-      phone: photographer?.phone,
-      email: photographer?.emailFromAddr || photographer?.email,
-      website: photographer?.website,
-      businessAddress: photographer?.businessAddress,
-      socialLinks: photographer?.socialLinks
-    };
-    
-    htmlBody = wrapEmailContent(
-      htmlBody,
-      emailToSend.includeHeader ? emailToSend.headerStyle : null,
-      emailToSend.includeSignature ? emailToSend.signatureStyle : null,
-      brandingData
-    );
-  }
 
   // Create delivery record first
   const deliveryRecord = await db.insert(dripEmailDeliveries).values({
