@@ -1699,13 +1699,12 @@ async function processSubscriptionEmail(subscription: any, campaign: any, projec
       
       console.log('📧 Email builder content (no wrapper), length:', rawBlocksHtml.length);
       
-      // Generate header and signature HTML
-      // Fall back to photographer's global settings if individual email doesn't specify
-      const shouldIncludeHeader = emailToSend.includeHeader || (!emailToSend.includeHeader && photographer?.emailHeaderStyle);
-      const headerStyleToUse = emailToSend.headerStyle || photographer?.emailHeaderStyle;
+      // Email builder: Use ONLY its own header/signature settings (NO fallback to photographer settings)
+      const shouldIncludeHeader = emailToSend.includeHeader === true;
+      const headerStyleToUse = emailToSend.headerStyle;
       
-      const shouldIncludeSignature = emailToSend.includeSignature || (!emailToSend.includeSignature && photographer?.emailSignatureStyle);
-      const signatureStyleToUse = emailToSend.signatureStyle || photographer?.emailSignatureStyle;
+      const shouldIncludeSignature = emailToSend.includeSignature === true;
+      const signatureStyleToUse = emailToSend.signatureStyle;
       
       const headerHtml = shouldIncludeHeader && headerStyleToUse
         ? generateEmailHeader(headerStyleToUse, brandingData)
