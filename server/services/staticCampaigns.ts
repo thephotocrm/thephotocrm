@@ -271,7 +271,7 @@ function generateConsistentTemplate(
 }
 
 // Static Email Templates with Research-Backed Timing
-// ⚠️ TESTING MODE: 5-minute intervals (normally days/weeks apart)
+// ⚠️ TESTING MODE: 1-minute intervals (normally days/weeks apart)
 const WEDDING_EMAIL_TEMPLATES = {
   projectType: 'WEDDING' as const,
   emails: [
@@ -287,7 +287,7 @@ const WEDDING_EMAIL_TEMPLATES = {
       sequenceIndex: 1,
       subject: "Setting Your Wedding Vision",
       weeksAfterStart: 0,
-      daysAfterStart: 0.003472, // 5 minutes
+      daysAfterStart: 0.000694, // 1 minute
       htmlBody: "",
       textBody: "Define your unique style and create a cohesive vision for your perfect day."
     },
@@ -295,7 +295,7 @@ const WEDDING_EMAIL_TEMPLATES = {
       sequenceIndex: 2,
       subject: "Your Wedding Budget: Planning Made Simple",
       weeksAfterStart: 1,
-      daysAfterStart: 0.006944, // 10 minutes
+      daysAfterStart: 0.001389, // 2 minutes
       htmlBody: "",
       textBody: "Learn practical strategies for creating and managing your wedding budget effectively."
     },
@@ -303,7 +303,7 @@ const WEDDING_EMAIL_TEMPLATES = {
       sequenceIndex: 3,
       subject: "Choosing Your Perfect Wedding Venue",
       weeksAfterStart: 2,
-      daysAfterStart: 0.010417, // 15 minutes
+      daysAfterStart: 0.002083, // 3 minutes
       htmlBody: "",
       textBody: "Essential tips for finding and booking the ideal venue for your celebration."
     },
@@ -311,7 +311,7 @@ const WEDDING_EMAIL_TEMPLATES = {
       sequenceIndex: 4,
       subject: "Building Your Dream Wedding Team",
       weeksAfterStart: 3,
-      daysAfterStart: 0.013889, // 20 minutes
+      daysAfterStart: 0.002778, // 4 minutes
       htmlBody: "",
       textBody: "How to research, interview, and select the perfect vendors for your wedding day."
     },
@@ -319,7 +319,7 @@ const WEDDING_EMAIL_TEMPLATES = {
       sequenceIndex: 5,
       subject: "Wedding Photography Styles Explained",
       weeksAfterStart: 4,
-      daysAfterStart: 0.017361, // 25 minutes
+      daysAfterStart: 0.003472, // 5 minutes
       htmlBody: "",
       textBody: "Understanding different photography styles to choose what's perfect for you."
     },
@@ -327,7 +327,7 @@ const WEDDING_EMAIL_TEMPLATES = {
       sequenceIndex: 6,
       subject: "Planning Your Engagement Session",
       weeksAfterStart: 5,
-      daysAfterStart: 0.020833, // 30 minutes
+      daysAfterStart: 0.004167, // 6 minutes
       htmlBody: "",
       textBody: "Make the most of your engagement session with these expert preparation tips."
     },
@@ -335,7 +335,7 @@ const WEDDING_EMAIL_TEMPLATES = {
       sequenceIndex: 7,
       subject: "Wedding Dress Shopping Success",
       weeksAfterStart: 6,
-      daysAfterStart: 0.024306, // 35 minutes
+      daysAfterStart: 0.004861, // 7 minutes
       htmlBody: "",
       textBody: "Navigate dress shopping like a pro with our insider guide to finding 'the one'."
     },
@@ -343,7 +343,7 @@ const WEDDING_EMAIL_TEMPLATES = {
       sequenceIndex: 8,
       subject: "Groom's Guide to Wedding Attire",
       weeksAfterStart: 7,
-      daysAfterStart: 0.027778, // 40 minutes
+      daysAfterStart: 0.005556, // 8 minutes
       htmlBody: "",
       textBody: "Everything the groom needs to know about looking sharp on the wedding day."
     },
@@ -351,7 +351,7 @@ const WEDDING_EMAIL_TEMPLATES = {
       sequenceIndex: 9,
       subject: "Wedding Menu & Catering Insights",
       weeksAfterStart: 8,
-      daysAfterStart: 0.031250, // 45 minutes
+      daysAfterStart: 0.006250, // 9 minutes
       htmlBody: "",
       textBody: "Create a memorable dining experience that your guests will rave about."
     },
@@ -359,7 +359,7 @@ const WEDDING_EMAIL_TEMPLATES = {
       sequenceIndex: 10,
       subject: "Music & Entertainment Planning",
       weeksAfterStart: 9,
-      daysAfterStart: 0.034722, // 50 minutes
+      daysAfterStart: 0.006944, // 10 minutes
       htmlBody: "",
       textBody: "Set the perfect mood with music and entertainment that reflects your style."
     },
@@ -367,7 +367,7 @@ const WEDDING_EMAIL_TEMPLATES = {
       sequenceIndex: 11,
       subject: "Wedding Flowers & Decor Ideas",
       weeksAfterStart: 10,
-      daysAfterStart: 0.038194, // 55 minutes
+      daysAfterStart: 0.007639, // 11 minutes
       htmlBody: "",
       textBody: "Transform your venue with beautiful florals and decor that tell your story."
     },
@@ -375,7 +375,7 @@ const WEDDING_EMAIL_TEMPLATES = {
       sequenceIndex: 12,
       subject: "Guest List Management Made Easy",
       weeksAfterStart: 11,
-      daysAfterStart: 0.041667, // 60 minutes (1 hour)
+      daysAfterStart: 0.008333, // 12 minutes
       htmlBody: "",
       textBody: "Navigate the guest list challenge with tact and practical organization tips."
     },
@@ -383,7 +383,7 @@ const WEDDING_EMAIL_TEMPLATES = {
       sequenceIndex: 13,
       subject: "Wedding Invitations & Stationery",
       weeksAfterStart: 12,
-      daysAfterStart: 0.045139, // 65 minutes
+      daysAfterStart: 0.009028, // 13 minutes
       htmlBody: "",
       textBody: "Create beautiful invitations that set the tone for your celebration."
     },
@@ -391,7 +391,7 @@ const WEDDING_EMAIL_TEMPLATES = {
       sequenceIndex: 14,
       subject: "Wedding Registry Essentials",
       weeksAfterStart: 13,
-      daysAfterStart: 0.048611, // 70 minutes
+      daysAfterStart: 0.009722, // 14 minutes
       htmlBody: "",
       textBody: "Build a thoughtful registry that helps you start your married life together."
     },
@@ -399,7 +399,7 @@ const WEDDING_EMAIL_TEMPLATES = {
       sequenceIndex: 15,
       subject: "Honeymoon Planning Perfection",
       weeksAfterStart: 15,
-      daysAfterStart: 0.052083, // 75 minutes
+      daysAfterStart: 0.010417, // 15 minutes
       htmlBody: "",
       textBody: "Plan the romantic getaway that marks the perfect start to married life."
     },
@@ -407,7 +407,7 @@ const WEDDING_EMAIL_TEMPLATES = {
       sequenceIndex: 16,
       subject: "Wedding Day Timeline Success",
       weeksAfterStart: 17,
-      daysAfterStart: 0.055556, // 80 minutes
+      daysAfterStart: 0.011111, // 16 minutes
       htmlBody: "",
       textBody: "Create a realistic timeline that ensures your day flows smoothly and stress-free."
     },
@@ -415,7 +415,7 @@ const WEDDING_EMAIL_TEMPLATES = {
       sequenceIndex: 17,
       subject: "Handling Wedding Day Stress",
       weeksAfterStart: 19,
-      daysAfterStart: 0.059028, // 85 minutes
+      daysAfterStart: 0.011806, // 17 minutes
       htmlBody: "",
       textBody: "Stay calm and centered on your wedding day with these proven stress-busting strategies."
     },
@@ -423,7 +423,7 @@ const WEDDING_EMAIL_TEMPLATES = {
       sequenceIndex: 18,
       subject: "Final Wedding Week Checklist",
       weeksAfterStart: 21,
-      daysAfterStart: 0.062500, // 90 minutes
+      daysAfterStart: 0.012500, // 18 minutes
       htmlBody: "",
       textBody: "Everything you need to do in the final week to ensure a flawless celebration."
     },
@@ -431,7 +431,7 @@ const WEDDING_EMAIL_TEMPLATES = {
       sequenceIndex: 19,
       subject: "Wedding Vendor Communication Tips",
       weeksAfterStart: 23,
-      daysAfterStart: 0.065972, // 95 minutes
+      daysAfterStart: 0.013194, // 19 minutes
       htmlBody: "",
       textBody: "Build strong relationships with your vendors for the best possible wedding day experience."
     },
@@ -439,7 +439,7 @@ const WEDDING_EMAIL_TEMPLATES = {
       sequenceIndex: 20,
       subject: "Rehearsal Dinner Planning",
       weeksAfterStart: 25,
-      daysAfterStart: 0.069444, // 100 minutes
+      daysAfterStart: 0.013889, // 20 minutes
       htmlBody: "",
       textBody: "Plan the perfect rehearsal dinner to kick off your wedding celebration."
     },
@@ -447,7 +447,7 @@ const WEDDING_EMAIL_TEMPLATES = {
       sequenceIndex: 21,
       subject: "Wedding Morning Preparation",
       weeksAfterStart: 27,
-      daysAfterStart: 0.072917, // 105 minutes
+      daysAfterStart: 0.014583, // 21 minutes
       htmlBody: "",
       textBody: "Start your wedding day perfectly with our morning preparation guide."
     },
@@ -455,7 +455,7 @@ const WEDDING_EMAIL_TEMPLATES = {
       sequenceIndex: 22,
       subject: "Making the Most of Your Wedding Day",
       weeksAfterStart: 29,
-      daysAfterStart: 0.076389, // 110 minutes
+      daysAfterStart: 0.015278, // 22 minutes
       htmlBody: "",
       textBody: "Savor every moment of your wedding day with these mindfulness tips."
     },
@@ -463,7 +463,7 @@ const WEDDING_EMAIL_TEMPLATES = {
       sequenceIndex: 23,
       subject: "After the Wedding: Next Steps",
       weeksAfterStart: 31,
-      daysAfterStart: 0.079861, // 115 minutes
+      daysAfterStart: 0.015972, // 23 minutes
       htmlBody: "",
       textBody: "Navigate post-wedding tasks and begin your happily ever after journey."
     }
@@ -590,7 +590,7 @@ const PORTRAIT_EMAIL_TEMPLATES = {
       sequenceIndex: 1,
       subject: "Preparing for Your Portrait Session",
       weeksAfterStart: 0,
-      daysAfterStart: 3,
+      daysAfterStart: 0.000694, // 1 minute
       htmlBody: "",
       textBody: "Let's ensure you're fully prepared for a stunning portrait session with our expert preparation tips."
     },
@@ -598,7 +598,7 @@ const PORTRAIT_EMAIL_TEMPLATES = {
       sequenceIndex: 2,
       subject: "Choosing the Perfect Outfits",
       weeksAfterStart: 1,
-      daysAfterStart: 7,
+      daysAfterStart: 0.001389, // 2 minutes
       htmlBody: "",
       textBody: "Your outfit choices can make or break your portraits. Here's how to select the perfect looks."
     },
@@ -606,7 +606,7 @@ const PORTRAIT_EMAIL_TEMPLATES = {
       sequenceIndex: 3,
       subject: "Posing Tips for Natural-Looking Portraits",
       weeksAfterStart: 2,
-      daysAfterStart: 14,
+      daysAfterStart: 0.002083, // 3 minutes
       htmlBody: "",
       textBody: "Learn the secrets to looking relaxed and confident in front of the camera."
     },
@@ -614,7 +614,7 @@ const PORTRAIT_EMAIL_TEMPLATES = {
       sequenceIndex: 4,
       subject: "Location Ideas for Your Session",
       weeksAfterStart: 3,
-      daysAfterStart: 21,
+      daysAfterStart: 0.002778, // 4 minutes
       htmlBody: "",
       textBody: "Discover the perfect locations that will complement your portrait style and personality."
     }
@@ -714,7 +714,7 @@ const COMMERCIAL_EMAIL_TEMPLATES = {
       sequenceIndex: 1,
       subject: "Planning Your Commercial Photography Strategy",
       weeksAfterStart: 0,
-      daysAfterStart: 3,
+      daysAfterStart: 0.000694, // 1 minute
       htmlBody: "",
       textBody: "Strategic planning is key to successful commercial photography that delivers real business results."
     },
@@ -722,7 +722,7 @@ const COMMERCIAL_EMAIL_TEMPLATES = {
       sequenceIndex: 2,
       subject: "Building Your Brand's Visual Identity",
       weeksAfterStart: 1,
-      daysAfterStart: 7,
+      daysAfterStart: 0.001389, // 2 minutes
       htmlBody: "",
       textBody: "Your visual identity should be consistent, memorable, and perfectly aligned with your brand values."
     },
@@ -730,7 +730,7 @@ const COMMERCIAL_EMAIL_TEMPLATES = {
       sequenceIndex: 3,
       subject: "Maximizing ROI from Your Photography Investment",
       weeksAfterStart: 2,
-      daysAfterStart: 14,
+      daysAfterStart: 0.002083, // 3 minutes
       htmlBody: "",
       textBody: "Learn how to get the most value from your commercial photography across all marketing channels."
     },
@@ -738,7 +738,7 @@ const COMMERCIAL_EMAIL_TEMPLATES = {
       sequenceIndex: 4,
       subject: "Creating Versatile Content for Multiple Platforms",
       weeksAfterStart: 3,
-      daysAfterStart: 21,
+      daysAfterStart: 0.002778, // 4 minutes
       htmlBody: "",
       textBody: "Smart commercial photography planning ensures your images work across websites, social media, and print."
     }
@@ -792,7 +792,7 @@ const ENGAGEMENT_EMAIL_TEMPLATES = {
       sequenceIndex: 1,
       subject: "Planning Your Perfect Engagement Session",
       weeksAfterStart: 0,
-      daysAfterStart: 3,
+      daysAfterStart: 0.000694, // 1 minute
       htmlBody: "",
       textBody: "Let's plan an engagement session that perfectly reflects your unique relationship and love story."
     },
@@ -800,7 +800,7 @@ const ENGAGEMENT_EMAIL_TEMPLATES = {
       sequenceIndex: 2,
       subject: "Choosing Meaningful Locations for Your Photos",
       weeksAfterStart: 1,
-      daysAfterStart: 7,
+      daysAfterStart: 0.001389, // 2 minutes
       htmlBody: "",
       textBody: "The right location adds depth and meaning to your engagement photos. Here's how to choose perfectly."
     },
@@ -808,7 +808,7 @@ const ENGAGEMENT_EMAIL_TEMPLATES = {
       sequenceIndex: 3,
       subject: "Outfit Coordination Tips for Couples",
       weeksAfterStart: 2,
-      daysAfterStart: 14,
+      daysAfterStart: 0.002083, // 3 minutes
       htmlBody: "",
       textBody: "Learn how to coordinate your outfits for engagement photos that look harmonious and stylish."
     },
@@ -816,7 +816,7 @@ const ENGAGEMENT_EMAIL_TEMPLATES = {
       sequenceIndex: 4,
       subject: "Making Your Engagement Session Fun and Relaxed",
       weeksAfterStart: 3,
-      daysAfterStart: 21,
+      daysAfterStart: 0.002778, // 4 minutes
       htmlBody: "",
       textBody: "The best engagement photos happen when you're relaxed and enjoying each other's company."
     }
@@ -870,7 +870,7 @@ const MATERNITY_EMAIL_TEMPLATES = {
       sequenceIndex: 1,
       subject: "Planning Your Maternity Photography Session",
       weeksAfterStart: 0,
-      daysAfterStart: 3,
+      daysAfterStart: 0.000694, // 1 minute
       htmlBody: "",
       textBody: "Let's plan a maternity session that celebrates this amazing chapter and the miracle of new life."
     },
@@ -878,7 +878,7 @@ const MATERNITY_EMAIL_TEMPLATES = {
       sequenceIndex: 2,
       subject: "Perfect Timing for Your Maternity Photos",
       weeksAfterStart: 1,
-      daysAfterStart: 7,
+      daysAfterStart: 0.001389, // 2 minutes
       htmlBody: "",
       textBody: "Timing is everything for maternity photos. Here's when to schedule for the most beautiful results."
     },
@@ -886,7 +886,7 @@ const MATERNITY_EMAIL_TEMPLATES = {
       sequenceIndex: 3,
       subject: "Maternity Fashion: What to Wear for Your Session",
       weeksAfterStart: 2,
-      daysAfterStart: 14,
+      daysAfterStart: 0.002083, // 3 minutes
       htmlBody: "",
       textBody: "Choose outfits that celebrate your beautiful bump and make you feel confident and radiant."
     },
@@ -894,7 +894,7 @@ const MATERNITY_EMAIL_TEMPLATES = {
       sequenceIndex: 4,
       subject: "Involving Family in Your Maternity Photos",
       weeksAfterStart: 3,
-      daysAfterStart: 21,
+      daysAfterStart: 0.002778, // 4 minutes
       htmlBody: "",
       textBody: "Including your partner and children creates beautiful family memories during this special time."
     }
@@ -948,7 +948,7 @@ const FAMILY_EMAIL_TEMPLATES = {
       sequenceIndex: 1,
       subject: "Planning a Fun and Relaxed Family Session",
       weeksAfterStart: 0,
-      daysAfterStart: 3,
+      daysAfterStart: 0.000694, // 1 minute
       htmlBody: "",
       textBody: "Let's ensure your family session is enjoyable for everyone and results in authentic, beautiful photos."
     },
@@ -956,7 +956,7 @@ const FAMILY_EMAIL_TEMPLATES = {
       sequenceIndex: 2,
       subject: "Family Outfit Coordination Made Easy",
       weeksAfterStart: 1,
-      daysAfterStart: 7,
+      daysAfterStart: 0.001389, // 2 minutes
       htmlBody: "",
       textBody: "Coordinate your family's outfits for photos that look harmonious without being too matchy-matchy."
     },
@@ -964,7 +964,7 @@ const FAMILY_EMAIL_TEMPLATES = {
       sequenceIndex: 3,
       subject: "Tips for Great Photos with Children",
       weeksAfterStart: 2,
-      daysAfterStart: 14,
+      daysAfterStart: 0.002083, // 3 minutes
       htmlBody: "",
       textBody: "Discover the secrets to capturing natural, joyful expressions from children during family sessions."
     },
@@ -972,7 +972,7 @@ const FAMILY_EMAIL_TEMPLATES = {
       sequenceIndex: 4,
       subject: "Making Family Photos a Treasured Experience",
       weeksAfterStart: 3,
-      daysAfterStart: 21,
+      daysAfterStart: 0.002778, // 4 minutes
       htmlBody: "",
       textBody: "Transform your family photo session into a fun experience that creates lasting memories."
     }
