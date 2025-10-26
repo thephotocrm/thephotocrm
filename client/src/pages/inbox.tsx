@@ -597,7 +597,7 @@ export default function Inbox() {
                   key={conversation.contact.id}
                   onClick={() => handleConversationClick(conversation.contact.id)}
                   className={`p-4 border-b cursor-pointer transition-all duration-200 hover:bg-accent/50 max-w-full ${
-                    selectedContactId === conversation.contact.id ? 'bg-accent' : ''
+                    selectedContactId === conversation.contact.id ? 'bg-blue-50' : ''
                   } ${conversation.unreadCount > 0 ? 'bg-accent/20' : ''}`}
                   data-testid={`conversation-${conversation.contact.id}`}
                 >
@@ -624,9 +624,16 @@ export default function Inbox() {
                         <p className={`text-sm truncate flex-1 min-w-0 ${conversation.unreadCount > 0 ? 'text-foreground font-medium' : 'text-muted-foreground'}`} data-testid={`last-message-${conversation.contact.id}`}>
                           {conversation.lastMessage || 'No messages'}
                         </p>
-                        <span className={`text-xs whitespace-nowrap shrink-0 ${conversation.unreadCount > 0 ? 'text-primary font-semibold' : 'text-muted-foreground'}`}>
-                          {formatTime(conversation.lastMessageAt)}
-                        </span>
+                        <div className="flex flex-col items-end gap-1 shrink-0">
+                          <span className={`text-xs whitespace-nowrap ${conversation.unreadCount > 0 ? 'text-primary font-semibold' : 'text-muted-foreground'}`}>
+                            {formatTime(conversation.lastMessageAt)}
+                          </span>
+                          {conversation.unreadCount > 0 && (
+                            <Badge variant="default" className="text-[10px] h-4 px-1.5" data-testid={`time-badge-${conversation.contact.id}`}>
+                              {formatMessageTime(conversation.lastMessageAt)}
+                            </Badge>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
