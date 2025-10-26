@@ -55,6 +55,7 @@ export function contentBlocksToHtml(blocks: ContentBlock[], context?: {
   galleryUrl?: string;
   photographerToken?: string;
   baseUrl?: string;
+  includeWrapper?: boolean; // If false, returns just the raw block markup without grey container
 }): string {
   if (!blocks || blocks.length === 0) {
     return '';
@@ -120,6 +121,11 @@ export function contentBlocksToHtml(blocks: ContentBlock[], context?: {
         return '';
     }
   }).join('\n');
+
+  // If includeWrapper is false, return just the raw block markup
+  if (context?.includeWrapper === false) {
+    return htmlBlocks;
+  }
 
   // Wrap in email container with proper styling
   return `<!DOCTYPE html>

@@ -1688,28 +1688,16 @@ async function processSubscriptionEmail(subscription: any, campaign: any, projec
         ? JSON.parse(emailToSend.emailBlocks) 
         : emailToSend.emailBlocks;
       
-      // Generate content blocks HTML (this returns a full HTML document)
-      const contentHtml = contentBlocksToHtml(blocks, {
+      // Generate content blocks HTML WITHOUT wrapper (raw block markup only)
+      const rawBlocksHtml = contentBlocksToHtml(blocks, {
         baseUrl: process.env.REPLIT_DEV_DOMAIN 
           ? `https://${process.env.REPLIT_DEV_DOMAIN}`
           : 'https://thephotocrm.com',
-        photographerToken: photographer?.publicToken
+        photographerToken: photographer?.publicToken,
+        includeWrapper: false // No grey container, just the clean block markup
       });
       
-      // Extract just the content blocks by removing the HTML wrapper
-      // contentBlocksToHtml returns: <html><body><div class="container">BLOCKS</div></body></html>
-      // We want just the BLOCKS part
-      let justContent = '';
-      const bodyContentMatch = contentHtml.match(/<div style="background-color: #ffffff[^>]*>([\s\S]*?)<\/div>\s*<\/div>\s*<\/body>/);
-      if (bodyContentMatch) {
-        justContent = bodyContentMatch[1];
-      } else {
-        // Fallback: try to get everything inside the body tag
-        const bodyMatch = contentHtml.match(/<body[^>]*>([\s\S]*)<\/body>/);
-        justContent = bodyMatch ? bodyMatch[1] : contentHtml;
-      }
-      
-      console.log('📧 Email builder content extracted, length:', justContent.length);
+      console.log('📧 Email builder content (no wrapper), length:', rawBlocksHtml.length);
       
       // Generate header and signature HTML
       const headerHtml = emailToSend.includeHeader && emailToSend.headerStyle
@@ -1739,7 +1727,7 @@ async function processSubscriptionEmail(subscription: any, campaign: any, projec
 </head>
 <body style="margin: 0 !important; padding: 20px !important; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important; background-color: #ffffff !important;">
   ${headerHtml}
-  ${justContent}
+  ${rawBlocksHtml}
   ${signatureHtml}
 </body>
 </html>`;
