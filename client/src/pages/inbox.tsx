@@ -223,16 +223,22 @@ export default function Inbox() {
   const formatTime = (date: Date | string) => {
     const d = new Date(date);
     const now = new Date();
-    const diffMs = now.getTime() - d.getTime();
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMs / 3600000);
-    const diffDays = Math.floor(diffMs / 86400000);
-
-    if (diffMins < 1) return 'Just now';
-    if (diffMins < 60) return `${diffMins}m ago`;
-    if (diffHours < 24) return `${diffHours}h ago`;
-    if (diffDays < 7) return `${diffDays}d ago`;
-    return d.toLocaleDateString();
+    const diffHours = Math.floor((now.getTime() - d.getTime()) / 3600000);
+    
+    // If today, show time
+    if (isToday(d)) {
+      return format(d, 'h:mm a');
+    }
+    // If yesterday, show "Yesterday"
+    if (isYesterday(d)) {
+      return 'Yesterday';
+    }
+    // If this week, show day name
+    if (isThisWeek(d)) {
+      return format(d, 'EEE');
+    }
+    // Otherwise show date
+    return format(d, 'M/d/yy');
   };
 
   // Format full timestamp for messages
@@ -770,7 +776,7 @@ export default function Inbox() {
                                       )}
                                       <p className="text-sm whitespace-pre-wrap">{message.content}</p>
                                       {isLastInGroup && (
-                                        <div className="flex items-center gap-1.5 text-xs mt-1 opacity-0 group-hover:opacity-70 transition-opacity">
+                                        <div className="flex items-center gap-1.5 text-xs mt-1 opacity-70">
                                           <span>{formatMessageTime(message.timestamp)}</span>
                                           {!message.isInbound && message.status && (
                                             <span className="inline-flex" data-testid={`status-${message.status}`}>
