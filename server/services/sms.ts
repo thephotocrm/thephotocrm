@@ -96,6 +96,7 @@ function sanitizePhoneNumber(phoneNumber: string): string {
 interface SmsParams {
   to: string;
   body: string;
+  mediaUrl?: string; // Optional image URL for MMS
 }
 
 export async function sendSms(params: SmsParams): Promise<{ success: boolean; sid?: string; error?: string }> {
@@ -136,6 +137,9 @@ export async function sendSms(params: SmsParams): Promise<{ success: boolean; si
 
     console.log('Sending SMS via Twilio to:', sanitizedPhone);
     console.log('From phone:', fromPhone);
+    if (params.mediaUrl) {
+      console.log('Including MMS image:', params.mediaUrl);
+    }
 
     // Build status callback URL for delivery tracking
     const baseUrl = process.env.REPLIT_DEV_DOMAIN 
@@ -143,15 +147,23 @@ export async function sendSms(params: SmsParams): Promise<{ success: boolean; si
       : 'http://localhost:5000';
     const statusCallbackUrl = `${baseUrl}/webhooks/twilio/status`;
 
-    // Send SMS via Twilio
-    const message = await client.messages.create({
+    // Build message payload
+    const messagePayload: any = {
       body: params.body,
       from: fromPhone,
       to: sanitizedPhone,
       statusCallback: statusCallbackUrl
-    });
+    };
 
-    console.log('SMS sent successfully via Twilio, SID:', message.sid);
+    // Add media URL if provided (for MMS)
+    if (params.mediaUrl) {
+      messagePayload.mediaUrl = [params.mediaUrl];
+    }
+
+    // Send SMS/MMS via Twilio
+    const message = await client.messages.create(messagePayload);
+
+    console.log('Message sent successfully via Twilio, SID:', message.sid);
     return { success: true, sid: message.sid };
   } catch (error: any) {
     console.error('Twilio SMS error:', error);

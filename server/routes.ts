@@ -223,9 +223,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Handle media attachments (MMS)
       const mediaCount = parseInt(numMedia || '0', 10);
-      const messageBody = mediaCount > 0 
-        ? `${text} [${mediaCount} attachment(s)]`
-        : text;
+      let mediaUrl: string | null = null;
+      
+      // Extract first media URL if present
+      if (mediaCount > 0 && req.body.MediaUrl0) {
+        mediaUrl = req.body.MediaUrl0;
+        log(`MMS received with media: ${mediaUrl}`);
+      }
+      
+      const messageBody = text || '';
 
       // Process each contact (multi-tenant: same phone number can belong to multiple photographers)
       for (const contact of contacts) {
@@ -250,6 +256,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           fromPhone: from,
           toPhone: to,
           messageBody: messageBody,
+          imageUrl: mediaUrl,
           isForwarded: false,
           providerId: messageSid,
           sentAt: new Date()
@@ -9756,7 +9763,7 @@ ${photographer.businessName}
   app.post("/api/inbox/send-sms", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       const photographerId = req.user!.photographerId!;
-      const { contactId, message } = req.body;
+      const { contactId, message, imageUrl } = req.body;
 
       if (!contactId || !message) {
         return res.status(400).json({ message: "Contact ID and message are required" });
@@ -9772,10 +9779,11 @@ ${photographer.businessName}
         return res.status(400).json({ message: "Contact has no phone number" });
       }
 
-      // Send SMS
+      // Send SMS/MMS
       const result = await sendSms({
         to: contact.phone,
-        body: message
+        body: message,
+        mediaUrl: imageUrl || undefined
       });
 
       if (!result.success) {
@@ -9794,7 +9802,8 @@ ${photographer.businessName}
         direction: 'OUTBOUND',
         fromPhone: process.env.SIMPLETEXTING_PHONE_NUMBER || '',
         toPhone: contact.phone,
-        messageBody: message
+        messageBody: message,
+        imageUrl: imageUrl || null
       });
 
       // Log SMS to project activity if contact has a project
