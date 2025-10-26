@@ -416,7 +416,7 @@ export default function Inbox() {
                 onClick={() => setIsNewMessageDialogOpen(true)}
                 data-testid="sidebar-compose"
               >
-                <MessageSquarePlus className="w-5 h-5" />
+                <MessageSquarePlus className="w-6 h-6" />
               </Button>
               
               <Button
@@ -427,7 +427,7 @@ export default function Inbox() {
                 data-testid="sidebar-contacts"
               >
                 <Link href="/contacts">
-                  <Users className="w-5 h-5" />
+                  <Users className="w-6 h-6" />
                 </Link>
               </Button>
               
@@ -437,7 +437,7 @@ export default function Inbox() {
                 className="h-10 w-10 text-white hover:bg-white/20"
                 data-testid="sidebar-phone"
               >
-                <Phone className="w-5 h-5" />
+                <Phone className="w-6 h-6" />
               </Button>
               
               <div className="flex-1" />
@@ -450,7 +450,7 @@ export default function Inbox() {
                 data-testid="sidebar-settings"
               >
                 <Link href="/settings">
-                  <Settings className="w-5 h-5" />
+                  <Settings className="w-6 h-6" />
                 </Link>
               </Button>
               
@@ -461,7 +461,7 @@ export default function Inbox() {
                 onClick={() => setIsNewMessageDialogOpen(true)}
                 data-testid="sidebar-add"
               >
-                <Plus className="w-5 h-5" />
+                <Plus className="w-6 h-6" />
               </Button>
             </div>
             
@@ -538,7 +538,7 @@ export default function Inbox() {
                   key={conversation.contact.id}
                   onClick={() => handleConversationClick(conversation.contact.id)}
                   className={`p-4 border-b cursor-pointer transition-all duration-200 hover:bg-accent/50 ${
-                    selectedContactId === conversation.contact.id ? 'bg-accent border-l-4 border-l-primary' : 'border-l-4 border-l-transparent'
+                    selectedContactId === conversation.contact.id ? 'bg-accent' : ''
                   } ${conversation.unreadCount > 0 ? 'bg-accent/20' : ''}`}
                   data-testid={`conversation-${conversation.contact.id}`}
                 >
