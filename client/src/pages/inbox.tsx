@@ -786,8 +786,9 @@ export default function Inbox() {
                         handleSendMessage();
                       }
                     }}
-                    className="flex-1 border-0 resize-none min-h-[36px] max-h-[120px] bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 px-0 py-2 text-sm"
+                    className="flex-1 border-0 resize-none min-h-[36px] max-h-[120px] bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 px-0 py-0 text-sm leading-9"
                     data-testid="textarea-message"
+                    rows={1}
                   />
                   
                   <Button
