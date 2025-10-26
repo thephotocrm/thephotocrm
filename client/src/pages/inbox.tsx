@@ -54,6 +54,7 @@ export default function Inbox() {
   const [isNewMessageDialogOpen, setIsNewMessageDialogOpen] = useState(false);
   const [isComingSoonDialogOpen, setIsComingSoonDialogOpen] = useState(false);
   const [contactSearch, setContactSearch] = useState("");
+  const [conversationSearch, setConversationSearch] = useState("");
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const { toast } = useToast();
@@ -343,6 +344,14 @@ export default function Inbox() {
       return fullName.includes(searchLower) || phone.includes(searchLower) || email.includes(searchLower);
     });
 
+  // Filter conversations based on search
+  const filteredConversations = conversations.filter(conversation => {
+    const searchLower = conversationSearch.toLowerCase();
+    const fullName = `${conversation.contact.firstName} ${conversation.contact.lastName}`.toLowerCase();
+    const message = conversation.lastMessage.toLowerCase();
+    return fullName.includes(searchLower) || message.includes(searchLower);
+  });
+
   return (
     <div className="h-full flex flex-col">
       {/* Header */}
@@ -502,13 +511,28 @@ export default function Inbox() {
               <>
                 {/* Conversation List */}
                 <div className={`w-full md:w-96 border-r flex flex-col ${isMobileThreadView ? 'hidden md:flex' : 'flex'}`}>
+                  {/* Inbox Header */}
+                  <div className="p-4 border-b shrink-0">
+                    <h2 className="text-xl font-semibold mb-3 text-indigo-600" data-testid="text-inbox-title">Inbox</h2>
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <Input
+                        placeholder="Search"
+                        value={conversationSearch}
+                        onChange={(e) => setConversationSearch(e.target.value)}
+                        className="pl-9"
+                        data-testid="input-conversation-search"
+                      />
+                    </div>
+                  </div>
+                  
                   <ScrollArea className="flex-1 min-h-0">
                 {conversationsLoading ? (
                   <div className="p-4 text-center text-muted-foreground">Loading conversations...</div>
-                ) : conversations.length === 0 ? (
+                ) : filteredConversations.length === 0 ? (
               <div className="p-8 text-center">
                 <MessageSquare className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-                <p className="text-muted-foreground mb-4">No SMS conversations yet</p>
+                <p className="text-muted-foreground mb-4">{conversationSearch ? 'No conversations found' : 'No SMS conversations yet'}</p>
                 <Dialog open={isNewMessageDialogOpen} onOpenChange={setIsNewMessageDialogOpen}>
                   <DialogTrigger asChild>
                     <Button variant="outline" data-testid="button-start-conversation">
@@ -568,7 +592,7 @@ export default function Inbox() {
                 </Dialog>
               </div>
             ) : (
-              conversations.map((conversation) => (
+              filteredConversations.map((conversation) => (
                 <div
                   key={conversation.contact.id}
                   onClick={() => handleConversationClick(conversation.contact.id)}
