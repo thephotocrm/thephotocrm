@@ -1661,8 +1661,33 @@ async function processSubscriptionEmail(subscription: any, campaign: any, projec
 
   // Render email content
   const subject = renderTemplate(emailToSend.subject, variables);
-  const htmlBody = renderTemplate(emailToSend.htmlBody, variables);
+  let htmlBody = renderTemplate(emailToSend.htmlBody, variables);
   const textBody = renderTemplate(emailToSend.textBody || '', variables);
+
+  // Apply email branding (headers and signatures) if configured
+  if (emailToSend.includeHeader || emailToSend.includeSignature) {
+    const { wrapEmailContent } = await import('./email-branding.js');
+    const brandingData = {
+      businessName: photographer?.businessName,
+      photographerName: photographer?.photographerName,
+      logoUrl: photographer?.logoUrl,
+      headshotUrl: photographer?.headshotUrl,
+      brandPrimary: photographer?.brandPrimaryColor,
+      brandSecondary: photographer?.brandSecondaryColor,
+      phone: photographer?.phone,
+      email: photographer?.emailFromAddr || photographer?.email,
+      website: photographer?.website,
+      businessAddress: photographer?.businessAddress,
+      socialLinks: photographer?.socialLinks
+    };
+    
+    htmlBody = wrapEmailContent(
+      htmlBody,
+      emailToSend.includeHeader ? emailToSend.headerStyle : null,
+      emailToSend.includeSignature ? emailToSend.signatureStyle : null,
+      brandingData
+    );
+  }
 
   // Create delivery record first
   const deliveryRecord = await db.insert(dripEmailDeliveries).values({
