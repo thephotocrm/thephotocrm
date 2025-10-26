@@ -293,14 +293,15 @@ export default function Inbox() {
     <div className="h-full flex flex-col">
       {/* Header */}
       <header className="border-b border-border px-4 md:px-6 py-6 shrink-0">
-        <div className="max-w-[1140px] mx-auto w-full flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3 min-w-0 flex-1">
-            <div className="min-w-0">
-              <h1 className="text-3xl md:text-4xl font-semibold">Inbox</h1>
-            </div>
-          </div>
-          
-          <div className="shrink-0">
+        <div className="max-w-[1140px] mx-auto w-full">
+          <h1 className="text-3xl md:text-4xl font-semibold">Inbox</h1>
+        </div>
+      </header>
+
+      <div className="flex-1 flex overflow-hidden justify-center">
+        <div className="flex-1 flex flex-col overflow-hidden max-w-[1140px] w-full px-6 pt-6 pb-6 gap-4">
+          {/* Action Bar */}
+          <div className="shrink-0 flex items-center justify-end">
             <Dialog open={isNewMessageDialogOpen} onOpenChange={setIsNewMessageDialogOpen}>
               <DialogTrigger asChild>
                 <Button data-testid="button-new-message">
@@ -359,15 +360,12 @@ export default function Inbox() {
               </DialogContent>
             </Dialog>
           </div>
-        </div>
-      </header>
 
-      <div className="flex-1 flex overflow-hidden justify-center">
-        <div className="flex-1 flex overflow-hidden max-w-[1140px] w-full p-6 gap-4">
-          {/* Conversation List */}
-          <div className={`w-full md:w-96 border bg-card flex flex-col rounded-lg shadow-sm ${isMobileThreadView ? 'hidden md:block' : 'block'}`}>
-
-          <ScrollArea className="flex-1 min-h-0">
+          {/* Two Column Layout */}
+          <div className="flex-1 flex overflow-hidden gap-4">
+            {/* Conversation List */}
+            <div className={`w-full md:w-96 border bg-card flex flex-col rounded-lg shadow-sm ${isMobileThreadView ? 'hidden md:block' : 'block'}`}>
+              <ScrollArea className="flex-1 min-h-0">
             {conversationsLoading ? (
               <div className="p-4 text-center text-muted-foreground">Loading conversations...</div>
             ) : conversations.length === 0 ? (
@@ -654,8 +652,9 @@ export default function Inbox() {
             </>
           )}
         </div>
-        </div>
       </div>
     </div>
+  </div>
+</div>
   );
 }
