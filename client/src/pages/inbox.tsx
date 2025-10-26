@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import { MessageSquare, Mail, Send, MessageCircle, ArrowLeft, Plus, Search, Check, CheckCheck, XCircle } from "lucide-react";
+import { MessageSquare, Mail, Send, MessageCircle, ArrowLeft, Plus, Search, Check, CheckCheck, XCircle, Smile, Image as ImageIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "wouter";
 import { format, isToday, isYesterday, isThisWeek, isThisYear } from "date-fns";
@@ -41,6 +41,7 @@ interface ThreadMessage {
   isInbound: boolean;
   subject?: string;
   status?: string; // SMS delivery status: sent, delivered, failed
+  imageUrl?: string | null; // MMS image URL
 }
 
 export default function Inbox() {
@@ -49,6 +50,8 @@ export default function Inbox() {
   const [isMobileThreadView, setIsMobileThreadView] = useState(false);
   const [isNewMessageDialogOpen, setIsNewMessageDialogOpen] = useState(false);
   const [contactSearch, setContactSearch] = useState("");
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -71,13 +74,18 @@ export default function Inbox() {
     refetchInterval: 5000 // Poll every 5 seconds when viewing a thread
   });
 
+  // Common emojis for quick access
+  const commonEmojis = ['😊', '😂', '❤️', '👍', '🎉', '🙏', '✨', '🔥', '💯', '👏', '😍', '🤔', '😎', '💪', '🙌'];
+
   // Send SMS mutation
   const sendSmsMutation = useMutation({
-    mutationFn: async ({ contactId, message }: { contactId: string; message: string }) => {
-      return apiRequest('POST', '/api/inbox/send-sms', { contactId, message });
+    mutationFn: async ({ contactId, message, imageUrl }: { contactId: string; message: string; imageUrl?: string }) => {
+      return apiRequest('POST', '/api/inbox/send-sms', { contactId, message, imageUrl });
     },
     onSuccess: () => {
       setNewMessage("");
+      setSelectedImage(null);
+      setShowEmojiPicker(false);
       // Force immediate refetch instead of just invalidating
       queryClient.refetchQueries({ queryKey: ['/api/inbox/conversations'] });
       queryClient.refetchQueries({ queryKey: ['/api/inbox/thread', selectedContactId] });
@@ -128,8 +136,36 @@ export default function Inbox() {
 
     sendSmsMutation.mutate({
       contactId: selectedContactId,
-      message: newMessage.trim()
+      message: newMessage.trim(),
+      imageUrl: selectedImage || undefined
     });
+  };
+
+  const handleEmojiSelect = (emoji: string) => {
+    setNewMessage(prev => prev + emoji);
+    setShowEmojiPicker(false);
+  };
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Check file size (5MB limit for MMS)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        variant: "destructive",
+        title: "File too large",
+        description: "Image must be under 5MB for MMS"
+      });
+      return;
+    }
+
+    // Create temporary URL for preview
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setSelectedImage(e.target?.result as string);
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleBackToList = () => {
@@ -577,6 +613,14 @@ export default function Inbox() {
                                           : message.isInbound ? 'rounded-r-2xl rounded-l-md' : 'rounded-l-2xl rounded-r-md'
                                       }`}
                                     >
+                                      {message.imageUrl && (
+                                        <img 
+                                          src={message.imageUrl} 
+                                          alt="MMS" 
+                                          className="max-w-full rounded-xl mb-2"
+                                          data-testid={`mms-image-${message.id}`}
+                                        />
+                                      )}
                                       <p className="text-sm whitespace-pre-wrap">{message.content}</p>
                                       {isLastInGroup && (
                                         <div className="flex items-center gap-1.5 text-xs mt-1 opacity-0 group-hover:opacity-70 transition-opacity">
@@ -629,7 +673,51 @@ export default function Inbox() {
 
               {/* Message Composer */}
               <div className="p-4 border-t bg-background/95 backdrop-blur shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
+                {selectedImage && (
+                  <div className="mb-3 relative inline-block">
+                    <img src={selectedImage} alt="Preview" className="max-h-32 rounded-xl border" />
+                    <Button
+                      size="icon"
+                      variant="destructive"
+                      className="absolute -top-2 -right-2 h-6 w-6 rounded-full"
+                      onClick={() => setSelectedImage(null)}
+                    >
+                      <XCircle className="w-4 h-4" />
+                    </Button>
+                  </div>
+                )}
+                
                 <div className="flex gap-2">
+                  <div className="flex flex-col gap-2">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                      data-testid="button-emoji"
+                    >
+                      <Smile className="w-5 h-5" />
+                    </Button>
+                    <label htmlFor="image-upload">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        asChild
+                        data-testid="button-image"
+                      >
+                        <div>
+                          <ImageIcon className="w-5 h-5" />
+                        </div>
+                      </Button>
+                    </label>
+                    <input
+                      id="image-upload"
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleImageUpload}
+                    />
+                  </div>
+                  
                   <Textarea
                     placeholder="Type your message..."
                     value={newMessage}
@@ -640,18 +728,37 @@ export default function Inbox() {
                         handleSendMessage();
                       }
                     }}
-                    className="min-h-[60px] resize-none"
+                    className="min-h-[60px] resize-none rounded-xl"
                     data-testid="textarea-message"
                   />
                   <Button
                     onClick={handleSendMessage}
                     disabled={!newMessage.trim() || sendSmsMutation.isPending}
                     size="lg"
+                    className="rounded-xl"
                     data-testid="button-send-sms"
                   >
                     <Send className="w-4 h-4" />
                   </Button>
                 </div>
+                
+                {showEmojiPicker && (
+                  <div className="mt-2 p-3 bg-muted rounded-xl border">
+                    <div className="grid grid-cols-10 gap-2">
+                      {commonEmojis.map((emoji) => (
+                        <button
+                          key={emoji}
+                          onClick={() => handleEmojiSelect(emoji)}
+                          className="text-2xl hover:scale-125 transition-transform cursor-pointer"
+                          data-testid={`emoji-${emoji}`}
+                        >
+                          {emoji}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
                 <div className="flex justify-between items-center mt-2 text-xs text-muted-foreground">
                   <span>{newMessage.length} / 160 characters</span>
                   <span className="hidden sm:inline">Press Enter to send</span>
