@@ -534,39 +534,38 @@ export default function Inbox() {
           ) : (
             <>
               {/* Thread Header */}
-              <div className="p-4 border-b flex items-center gap-3">
+              <div className="px-4 py-2 border-b flex items-center gap-2">
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="md:hidden"
+                  className="md:hidden h-8 w-8"
                   onClick={handleBackToList}
                   data-testid="button-back-to-list"
                 >
-                  <ArrowLeft className="w-5 h-5" />
+                  <ArrowLeft className="w-4 h-4" />
                 </Button>
                 
-                <Avatar className="rounded-xl">
-                  <AvatarFallback className="rounded-xl">
+                <Avatar className="rounded-xl h-8 w-8">
+                  <AvatarFallback className="rounded-xl text-xs">
                     {getInitials(selectedConversation?.contact.firstName, selectedConversation?.contact.lastName)}
                   </AvatarFallback>
                 </Avatar>
                 
                 <div className="flex-1">
-                  <h3 className="font-semibold" data-testid="thread-contact-name">
+                  <h3 className="text-sm font-semibold" data-testid="thread-contact-name">
                     {selectedConversation?.contact.firstName} {selectedConversation?.contact.lastName}
                   </h3>
-                  <p className="text-sm text-muted-foreground">{selectedConversation?.contact.phone}</p>
                 </div>
                 
                 <Link href={`/contacts/${selectedContactId}`}>
-                  <Button variant="outline" size="sm" data-testid="button-view-contact">
+                  <Button variant="outline" size="sm" className="text-xs h-7" data-testid="button-view-contact">
                     View Contact
                   </Button>
                 </Link>
               </div>
 
               {/* Messages */}
-              <ScrollArea className="flex-1 p-4 bg-blue-50/30 dark:bg-blue-950/20">
+              <ScrollArea className="flex-1 p-4 bg-blue-50/50 dark:bg-blue-950/30">
                 {threadLoading ? (
                   <div className="text-center text-muted-foreground">Loading messages...</div>
                 ) : thread.length === 0 ? (
@@ -672,9 +671,9 @@ export default function Inbox() {
               </ScrollArea>
 
               {/* Message Composer */}
-              <div className="p-4 border-t bg-background/95 backdrop-blur shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
+              <div className="p-3 bg-blue-50/50 dark:bg-blue-950/30">
                 {selectedImage && (
-                  <div className="mb-3 relative inline-block">
+                  <div className="mb-2 mx-3 relative inline-block">
                     <img src={selectedImage} alt="Preview" className="max-h-32 rounded-xl border" />
                     <Button
                       size="icon"
@@ -687,36 +686,37 @@ export default function Inbox() {
                   </div>
                 )}
                 
-                <div className="flex gap-2">
-                  <div className="flex flex-col gap-2">
+                <div className="flex items-center gap-2 bg-background rounded-3xl px-3 py-2 mx-3 mb-3 shadow-sm border">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 shrink-0"
+                    onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                    data-testid="button-emoji"
+                  >
+                    <Smile className="w-5 h-5 text-muted-foreground" />
+                  </Button>
+                  
+                  <label htmlFor="image-upload">
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                      data-testid="button-emoji"
+                      className="h-8 w-8 shrink-0"
+                      asChild
+                      data-testid="button-image"
                     >
-                      <Smile className="w-5 h-5" />
+                      <div>
+                        <ImageIcon className="w-5 h-5 text-muted-foreground" />
+                      </div>
                     </Button>
-                    <label htmlFor="image-upload">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        asChild
-                        data-testid="button-image"
-                      >
-                        <div>
-                          <ImageIcon className="w-5 h-5" />
-                        </div>
-                      </Button>
-                    </label>
-                    <input
-                      id="image-upload"
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={handleImageUpload}
-                    />
-                  </div>
+                  </label>
+                  <input
+                    id="image-upload"
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleImageUpload}
+                  />
                   
                   <Textarea
                     placeholder="Type your message..."
@@ -728,14 +728,15 @@ export default function Inbox() {
                         handleSendMessage();
                       }
                     }}
-                    className="min-h-[60px] resize-none rounded-xl"
+                    className="flex-1 border-0 resize-none min-h-[36px] max-h-[120px] bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 p-0 text-sm"
                     data-testid="textarea-message"
                   />
+                  
                   <Button
                     onClick={handleSendMessage}
                     disabled={!newMessage.trim() || sendSmsMutation.isPending}
-                    size="lg"
-                    className="rounded-xl"
+                    size="icon"
+                    className="h-8 w-8 rounded-full shrink-0"
                     data-testid="button-send-sms"
                   >
                     <Send className="w-4 h-4" />
@@ -743,7 +744,7 @@ export default function Inbox() {
                 </div>
                 
                 {showEmojiPicker && (
-                  <div className="mt-2 p-3 bg-muted rounded-xl border">
+                  <div className="mx-3 mb-2 p-3 bg-background rounded-xl border">
                     <div className="grid grid-cols-10 gap-2">
                       {commonEmojis.map((emoji) => (
                         <button
@@ -758,11 +759,6 @@ export default function Inbox() {
                     </div>
                   </div>
                 )}
-                
-                <div className="flex justify-between items-center mt-2 text-xs text-muted-foreground">
-                  <span>{newMessage.length} / 160 characters</span>
-                  <span className="hidden sm:inline">Press Enter to send</span>
-                </div>
               </div>
             </>
           )}
