@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,9 +9,11 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
 import { MessageSquare, Mail, Send, MessageCircle, ArrowLeft, Plus, Search, Check, CheckCheck, XCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "wouter";
+import { format, isToday, isYesterday, isThisWeek, isThisYear } from "date-fns";
 
 interface Contact {
   id: string;
@@ -154,6 +156,113 @@ export default function Inbox() {
     return d.toLocaleDateString();
   };
 
+  // Format full timestamp for messages
+  const formatMessageTime = (date: Date | string) => {
+    const d = new Date(date);
+    return format(d, 'h:mm a');
+  };
+
+  // Get date label for grouping
+  const getDateLabel = (date: Date | string) => {
+    const d = new Date(date);
+    
+    if (isToday(d)) return 'Today';
+    if (isYesterday(d)) return 'Yesterday';
+    if (isThisWeek(d)) return format(d, 'EEEE');
+    if (isThisYear(d)) return format(d, 'MMMM d');
+    return format(d, 'MMMM d, yyyy');
+  };
+
+  // Group messages by date with sender grouping
+  const groupedMessages = useMemo(() => {
+    if (!thread.length) return [];
+
+    const groups: Array<{
+      date: string;
+      messages: Array<{
+        groupId: string;
+        messages: ThreadMessage[];
+        isInbound: boolean;
+      }>;
+    }> = [];
+
+    let currentDate = '';
+    let currentMessageGroup: ThreadMessage[] = [];
+    let currentIsInbound: boolean | null = null;
+
+    thread.forEach((message, index) => {
+      const messageDate = getDateLabel(message.timestamp);
+      
+      // New date group
+      if (messageDate !== currentDate) {
+        // Save previous message group
+        if (currentMessageGroup.length > 0 && currentIsInbound !== null) {
+          const lastGroup = groups[groups.length - 1];
+          if (lastGroup) {
+            lastGroup.messages.push({
+              groupId: `group-${groups.length}-${lastGroup.messages.length}`,
+              messages: currentMessageGroup,
+              isInbound: currentIsInbound
+            });
+          }
+        }
+
+        // Start new date group
+        currentDate = messageDate;
+        groups.push({ date: messageDate, messages: [] });
+        currentMessageGroup = [message];
+        currentIsInbound = message.isInbound;
+      }
+      // Same sender, group together (within 2 minutes)
+      else if (
+        currentIsInbound === message.isInbound &&
+        currentMessageGroup.length > 0
+      ) {
+        const lastMessage = currentMessageGroup[currentMessageGroup.length - 1];
+        const timeDiff = new Date(message.timestamp).getTime() - new Date(lastMessage.timestamp).getTime();
+        const twoMinutes = 2 * 60 * 1000;
+
+        if (timeDiff < twoMinutes && message.type === 'SMS') {
+          currentMessageGroup.push(message);
+        } else {
+          // Save current group and start new one
+          groups[groups.length - 1].messages.push({
+            groupId: `group-${groups.length}-${groups[groups.length - 1].messages.length}`,
+            messages: currentMessageGroup,
+            isInbound: currentIsInbound!
+          });
+          currentMessageGroup = [message];
+          currentIsInbound = message.isInbound;
+        }
+      }
+      // Different sender
+      else {
+        // Save current group
+        if (currentMessageGroup.length > 0 && currentIsInbound !== null) {
+          groups[groups.length - 1].messages.push({
+            groupId: `group-${groups.length}-${groups[groups.length - 1].messages.length}`,
+            messages: currentMessageGroup,
+            isInbound: currentIsInbound
+          });
+        }
+        // Start new group
+        currentMessageGroup = [message];
+        currentIsInbound = message.isInbound;
+      }
+
+      // Last message
+      if (index === thread.length - 1 && currentMessageGroup.length > 0 && currentIsInbound !== null) {
+        groups[groups.length - 1].messages.push({
+          groupId: `group-${groups.length}-${groups[groups.length - 1].messages.length}`,
+          messages: currentMessageGroup,
+          isInbound: currentIsInbound
+        });
+      }
+    });
+
+    return groups;
+  }, [thread]);
+
   const getStatusIcon = (status?: string) => {
     if (!status) return null;
     
@@ -254,9 +363,9 @@ export default function Inbox() {
       </header>
 
       <div className="flex-1 flex overflow-hidden justify-center">
-        <div className="flex-1 flex overflow-hidden max-w-[1140px] w-full p-6">
+        <div className="flex-1 flex overflow-hidden max-w-[1140px] w-full p-6 gap-4">
           {/* Conversation List */}
-          <div className={`w-full md:w-96 border-r bg-card flex flex-col rounded-l-lg ${isMobileThreadView ? 'hidden md:block' : 'block'}`}>
+          <div className={`w-full md:w-96 border bg-card flex flex-col rounded-lg shadow-sm ${isMobileThreadView ? 'hidden md:block' : 'block'}`}>
 
           <ScrollArea className="flex-1 min-h-0">
             {conversationsLoading ? (
@@ -328,34 +437,34 @@ export default function Inbox() {
                 <div
                   key={conversation.contact.id}
                   onClick={() => handleConversationClick(conversation.contact.id)}
-                  className={`p-4 border-b cursor-pointer transition-colors hover:bg-accent ${
-                    selectedContactId === conversation.contact.id ? 'bg-accent' : ''
-                  }`}
+                  className={`p-4 border-b cursor-pointer transition-all duration-200 hover:bg-accent/50 ${
+                    selectedContactId === conversation.contact.id ? 'bg-accent border-l-4 border-l-primary' : 'border-l-4 border-l-transparent'
+                  } ${conversation.unreadCount > 0 ? 'bg-accent/20' : ''}`}
                   data-testid={`conversation-${conversation.contact.id}`}
                 >
                   <div className="flex items-start gap-3">
-                    <Avatar>
-                      <AvatarFallback>
+                    <Avatar className={conversation.unreadCount > 0 ? 'ring-2 ring-primary' : ''}>
+                      <AvatarFallback className={conversation.unreadCount > 0 ? 'font-bold' : ''}>
                         {getInitials(conversation.contact.firstName, conversation.contact.lastName)}
                       </AvatarFallback>
                     </Avatar>
                     
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between mb-1">
-                        <h3 className="font-semibold truncate" data-testid={`contact-name-${conversation.contact.id}`}>
+                        <h3 className={`truncate ${conversation.unreadCount > 0 ? 'font-bold' : 'font-semibold'}`} data-testid={`contact-name-${conversation.contact.id}`}>
                           {conversation.contact.firstName} {conversation.contact.lastName}
                         </h3>
-                        <span className="text-xs text-muted-foreground whitespace-nowrap ml-2">
+                        <span className={`text-xs whitespace-nowrap ml-2 ${conversation.unreadCount > 0 ? 'text-primary font-semibold' : 'text-muted-foreground'}`}>
                           {formatTime(conversation.lastMessageAt)}
                         </span>
                       </div>
                       
-                      <div className="flex items-center justify-between">
-                        <p className="text-sm text-muted-foreground truncate flex-1" data-testid={`last-message-${conversation.contact.id}`}>
+                      <div className="flex items-center justify-between gap-2">
+                        <p className={`text-sm truncate flex-1 ${conversation.unreadCount > 0 ? 'text-foreground font-medium' : 'text-muted-foreground'}`} data-testid={`last-message-${conversation.contact.id}`}>
                           {conversation.lastMessage || 'No messages'}
                         </p>
                         {conversation.unreadCount > 0 && (
-                          <Badge variant="default" className="ml-2" data-testid={`unread-badge-${conversation.contact.id}`}>
+                          <Badge variant="default" className="ml-2 min-w-[24px] h-5 flex items-center justify-center shrink-0" data-testid={`unread-badge-${conversation.contact.id}`}>
                             {conversation.unreadCount}
                           </Badge>
                         )}
@@ -369,12 +478,15 @@ export default function Inbox() {
         </div>
 
         {/* Message Thread */}
-        <div className={`flex-1 flex flex-col bg-card rounded-r-lg ${!isMobileThreadView ? 'hidden md:flex' : 'flex'}`}>
+        <div className={`flex-1 flex flex-col bg-card rounded-lg shadow-sm border ${!isMobileThreadView ? 'hidden md:flex' : 'flex'}`}>
           {!selectedContactId ? (
-            <div className="flex-1 flex items-center justify-center text-muted-foreground">
-              <div className="text-center">
-                <MessageSquare className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                <p>Select a conversation to view messages</p>
+            <div className="flex-1 flex items-center justify-center text-muted-foreground bg-gradient-to-br from-background to-muted/20">
+              <div className="text-center p-8">
+                <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
+                  <MessageSquare className="w-10 h-10 text-primary/40" />
+                </div>
+                <p className="text-lg font-medium mb-1">No conversation selected</p>
+                <p className="text-sm text-muted-foreground">Choose a conversation to start messaging</p>
               </div>
             </div>
           ) : (
@@ -418,68 +530,99 @@ export default function Inbox() {
                 ) : thread.length === 0 ? (
                   <div className="text-center text-muted-foreground py-8">No messages yet</div>
                 ) : (
-                  <div className="space-y-4">
-                    {thread.map((message) => {
-                      if (message.type === 'SMS') {
-                        return (
-                          <div
-                            key={message.id}
-                            className={`flex ${message.isInbound ? 'justify-start' : 'justify-end'}`}
-                            data-testid={`sms-message-${message.id}`}
-                          >
-                            <div
-                              className={`max-w-sm rounded-lg px-4 py-2 ${
-                                message.isInbound
-                                  ? 'bg-muted'
-                                  : 'bg-primary text-primary-foreground'
-                              }`}
-                            >
-                              <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-                              <div className="flex items-center gap-1.5 text-xs mt-1 opacity-70">
-                                <span>{formatTime(message.timestamp)}</span>
-                                {!message.isInbound && message.status && (
-                                  <span className="inline-flex" data-testid={`status-${message.status}`}>
-                                    {getStatusIcon(message.status)}
-                                  </span>
-                                )}
-                              </div>
-                            </div>
+                  <div className="space-y-6">
+                    {groupedMessages.map((dateGroup) => (
+                      <div key={dateGroup.date} className="space-y-4">
+                        {/* Date Divider */}
+                        <div className="flex items-center gap-3 py-2">
+                          <Separator className="flex-1" />
+                          <span className="text-xs font-medium text-muted-foreground bg-background px-2 py-1 rounded-full">
+                            {dateGroup.date}
+                          </span>
+                          <Separator className="flex-1" />
+                        </div>
+
+                        {/* Message Groups */}
+                        {dateGroup.messages.map((group) => (
+                          <div key={group.groupId} className="space-y-1">
+                            {group.messages.map((message, index) => {
+                              if (message.type === 'SMS') {
+                                const isFirstInGroup = index === 0;
+                                const isLastInGroup = index === group.messages.length - 1;
+                                
+                                return (
+                                  <div
+                                    key={message.id}
+                                    className={`flex group ${message.isInbound ? 'justify-start' : 'justify-end'}`}
+                                    data-testid={`sms-message-${message.id}`}
+                                  >
+                                    <div
+                                      className={`max-w-sm px-4 py-2 ${
+                                        message.isInbound
+                                          ? 'bg-muted'
+                                          : 'bg-primary text-primary-foreground'
+                                      } ${
+                                        isFirstInGroup && isLastInGroup
+                                          ? 'rounded-lg'
+                                          : isFirstInGroup
+                                          ? message.isInbound ? 'rounded-t-lg rounded-br-lg rounded-bl-md' : 'rounded-t-lg rounded-bl-lg rounded-br-md'
+                                          : isLastInGroup
+                                          ? message.isInbound ? 'rounded-b-lg rounded-tr-lg rounded-tl-md' : 'rounded-b-lg rounded-tl-lg rounded-tr-md'
+                                          : message.isInbound ? 'rounded-r-lg rounded-l-md' : 'rounded-l-lg rounded-r-md'
+                                      }`}
+                                    >
+                                      <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                                      {isLastInGroup && (
+                                        <div className="flex items-center gap-1.5 text-xs mt-1 opacity-0 group-hover:opacity-70 transition-opacity">
+                                          <span>{formatMessageTime(message.timestamp)}</span>
+                                          {!message.isInbound && message.status && (
+                                            <span className="inline-flex" data-testid={`status-${message.status}`}>
+                                              {getStatusIcon(message.status)}
+                                            </span>
+                                          )}
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                );
+                              } else if (message.type === 'EMAIL') {
+                                return (
+                                  <div
+                                    key={message.id}
+                                    className="flex justify-center my-4"
+                                    data-testid={`email-notification-${message.id}`}
+                                  >
+                                    <div className="bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg px-4 py-2 flex items-center gap-2 max-w-md">
+                                      <Mail className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                                      <div className="flex-1 min-w-0">
+                                        <p className="text-sm text-blue-900 dark:text-blue-100">
+                                          {message.isInbound ? 'Contact sent email' : 'You sent email'}
+                                        </p>
+                                        <p className="text-xs text-blue-600 dark:text-blue-400">
+                                          {formatTime(message.timestamp)}
+                                        </p>
+                                      </div>
+                                      <Link href={`/contacts/${selectedContactId}`}>
+                                        <Button variant="ghost" size="sm" className="text-blue-600 dark:text-blue-400" data-testid="button-view-email">
+                                          View
+                                        </Button>
+                                      </Link>
+                                    </div>
+                                  </div>
+                                );
+                              }
+                              return null;
+                            })}
                           </div>
-                        );
-                      } else if (message.type === 'EMAIL') {
-                        return (
-                          <div
-                            key={message.id}
-                            className="flex justify-center my-4"
-                            data-testid={`email-notification-${message.id}`}
-                          >
-                            <div className="bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg px-4 py-2 flex items-center gap-2 max-w-md">
-                              <Mail className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                              <div className="flex-1 min-w-0">
-                                <p className="text-sm text-blue-900 dark:text-blue-100">
-                                  {message.isInbound ? 'Contact sent email' : 'You sent email'}
-                                </p>
-                                <p className="text-xs text-blue-600 dark:text-blue-400">
-                                  {formatTime(message.timestamp)}
-                                </p>
-                              </div>
-                              <Link href={`/contacts/${selectedContactId}`}>
-                                <Button variant="ghost" size="sm" className="text-blue-600 dark:text-blue-400" data-testid="button-view-email">
-                                  View
-                                </Button>
-                              </Link>
-                            </div>
-                          </div>
-                        );
-                      }
-                      return null;
-                    })}
+                        ))}
+                      </div>
+                    ))}
                   </div>
                 )}
               </ScrollArea>
 
               {/* Message Composer */}
-              <div className="p-4 border-t">
+              <div className="p-4 border-t bg-background/95 backdrop-blur shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
                 <div className="flex gap-2">
                   <Textarea
                     placeholder="Type your message..."
@@ -491,12 +634,13 @@ export default function Inbox() {
                         handleSendMessage();
                       }
                     }}
-                    className="min-h-[60px]"
+                    className="min-h-[60px] resize-none"
                     data-testid="textarea-message"
                   />
                   <Button
                     onClick={handleSendMessage}
                     disabled={!newMessage.trim() || sendSmsMutation.isPending}
+                    size="lg"
                     data-testid="button-send-sms"
                   >
                     <Send className="w-4 h-4" />
@@ -504,7 +648,7 @@ export default function Inbox() {
                 </div>
                 <div className="flex justify-between items-center mt-2 text-xs text-muted-foreground">
                   <span>{newMessage.length} / 160 characters</span>
-                  <span>Press Enter to send</span>
+                  <span className="hidden sm:inline">Press Enter to send</span>
                 </div>
               </div>
             </>
