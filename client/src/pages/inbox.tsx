@@ -417,21 +417,21 @@ export default function Inbox() {
         {/* Decorative Background Elements */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           {/* Large Gradient Orb - Top Left */}
-          <div className="absolute -top-32 -left-32 w-[500px] h-[500px] bg-gradient-to-br from-purple-400/40 via-indigo-400/30 to-transparent rounded-full blur-3xl animate-pulse" style={{ animationDuration: '4s' }}></div>
+          <div className="absolute -top-32 -left-32 w-[500px] h-[500px] bg-gradient-to-br from-purple-400/40 via-indigo-400/30 to-transparent rounded-full blur-3xl"></div>
           
           {/* Large Gradient Orb - Top Right */}
-          <div className="absolute -top-20 -right-40 w-[450px] h-[450px] bg-gradient-to-bl from-pink-400/35 via-purple-400/25 to-transparent rounded-full blur-3xl animate-pulse" style={{ animationDuration: '5s', animationDelay: '1s' }}></div>
+          <div className="absolute -top-20 -right-40 w-[450px] h-[450px] bg-gradient-to-bl from-pink-400/35 via-purple-400/25 to-transparent rounded-full blur-3xl"></div>
           
           {/* Medium Gradient Orb - Bottom */}
-          <div className="absolute -bottom-40 left-1/3 w-[400px] h-[400px] bg-gradient-to-tr from-indigo-400/30 via-blue-400/20 to-transparent rounded-full blur-3xl animate-pulse" style={{ animationDuration: '6s', animationDelay: '2s' }}></div>
+          <div className="absolute -bottom-40 left-1/3 w-[400px] h-[400px] bg-gradient-to-tr from-indigo-400/30 via-blue-400/20 to-transparent rounded-full blur-3xl"></div>
           
           {/* Accent Orb - Right Side */}
-          <div className="absolute top-1/2 -right-20 w-[300px] h-[300px] bg-gradient-to-l from-violet-400/25 to-transparent rounded-full blur-2xl animate-pulse" style={{ animationDuration: '7s', animationDelay: '0.5s' }}></div>
+          <div className="absolute top-1/2 -right-20 w-[300px] h-[300px] bg-gradient-to-l from-violet-400/25 to-transparent rounded-full blur-2xl"></div>
           
           {/* Floating Circles */}
-          <div className="absolute top-1/4 left-1/4 w-6 h-6 bg-purple-400/30 rounded-full animate-bounce blur-sm" style={{ animationDuration: '3s' }}></div>
-          <div className="absolute bottom-1/3 right-1/3 w-8 h-8 bg-indigo-400/25 rounded-full animate-bounce blur-sm" style={{ animationDuration: '4s', animationDelay: '1.5s' }}></div>
-          <div className="absolute top-1/2 left-1/2 w-5 h-5 bg-pink-400/20 rounded-full animate-bounce blur-sm" style={{ animationDuration: '5s', animationDelay: '2.5s' }}></div>
+          <div className="absolute top-1/4 left-1/4 w-6 h-6 bg-purple-400/30 rounded-full blur-sm"></div>
+          <div className="absolute bottom-1/3 right-1/3 w-8 h-8 bg-indigo-400/25 rounded-full blur-sm"></div>
+          <div className="absolute top-1/2 left-1/2 w-5 h-5 bg-pink-400/20 rounded-full blur-sm"></div>
         </div>
 
         <div className="flex-1 flex flex-col overflow-hidden max-w-[1140px] w-full px-6 pt-6 pb-8 gap-4 relative z-10">
