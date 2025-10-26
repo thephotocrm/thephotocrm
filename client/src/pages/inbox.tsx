@@ -181,21 +181,22 @@ export default function Inbox() {
     });
 
   return (
-    <div className="h-[calc(100vh-4rem)] flex flex-col">
-      <div className="flex-1 flex overflow-hidden justify-center py-6">
-        <div className="flex-1 flex overflow-hidden max-w-[1140px] w-full">
-          {/* Conversation List */}
-          <div className={`w-full md:w-96 border-r bg-background flex flex-col ${isMobileThreadView ? 'hidden md:block' : 'block'}`}>
-          <div className="p-4 border-b flex items-center justify-between shrink-0">
-            <div>
-              <h2 className="text-2xl font-bold" data-testid="text-inbox-title">Inbox</h2>
-              <p className="text-sm text-muted-foreground">SMS Conversations</p>
+    <div className="h-full flex flex-col">
+      {/* Header */}
+      <header className="border-b border-border px-4 md:px-6 py-6 shrink-0">
+        <div className="max-w-[1140px] mx-auto w-full flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-3 min-w-0 flex-1">
+            <div className="min-w-0">
+              <h1 className="text-3xl md:text-4xl font-semibold">Inbox</h1>
             </div>
+          </div>
+          
+          <div className="shrink-0">
             <Dialog open={isNewMessageDialogOpen} onOpenChange={setIsNewMessageDialogOpen}>
               <DialogTrigger asChild>
-                <Button size="sm" data-testid="button-new-message">
-                  <Plus className="w-4 h-4 mr-1" />
-                  New
+                <Button data-testid="button-new-message">
+                  <Plus className="w-4 h-4 mr-2" />
+                  New Message
                 </Button>
               </DialogTrigger>
               <DialogContent className="sm:max-w-md">
@@ -249,6 +250,13 @@ export default function Inbox() {
               </DialogContent>
             </Dialog>
           </div>
+        </div>
+      </header>
+
+      <div className="flex-1 flex overflow-hidden justify-center">
+        <div className="flex-1 flex overflow-hidden max-w-[1140px] w-full p-6">
+          {/* Conversation List */}
+          <div className={`w-full md:w-96 border-r bg-card flex flex-col rounded-l-lg ${isMobileThreadView ? 'hidden md:block' : 'block'}`}>
 
           <ScrollArea className="flex-1 min-h-0">
             {conversationsLoading ? (
@@ -361,7 +369,7 @@ export default function Inbox() {
         </div>
 
         {/* Message Thread */}
-        <div className={`flex-1 flex flex-col ${!isMobileThreadView ? 'hidden md:flex' : 'flex'}`}>
+        <div className={`flex-1 flex flex-col bg-card rounded-r-lg ${!isMobileThreadView ? 'hidden md:flex' : 'flex'}`}>
           {!selectedContactId ? (
             <div className="flex-1 flex items-center justify-center text-muted-foreground">
               <div className="text-center">
