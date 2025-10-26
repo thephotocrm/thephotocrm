@@ -169,8 +169,9 @@ async function sendViaGmail(params: EmailParams): Promise<EmailResult> {
       .limit(1);
 
     // Apply email branding if HTML content exists and branding is configured
+    // SKIP for drip campaigns - they have their own independent branding
     let finalHtml = params.html;
-    if (photographer && finalHtml) {
+    if (photographer && finalHtml && params.source !== 'DRIP_CAMPAIGN') {
       const brandingData: BrandingData = {
         businessName: photographer.businessName || undefined,
         photographerName: photographer.photographerName || undefined,
@@ -185,7 +186,7 @@ async function sendViaGmail(params: EmailParams): Promise<EmailResult> {
         socialLinks: (photographer.socialLinksJson as any) || undefined
       };
 
-      // Wrap email content with header and signature
+      // Wrap email content with header and signature (for manual emails only)
       finalHtml = wrapEmailContent(
         finalHtml,
         photographer.emailHeaderStyle,
@@ -278,8 +279,9 @@ async function sendViaSendGrid(params: EmailParams): Promise<EmailResult> {
     }
 
     // Apply email branding if photographerId is provided and HTML content exists
+    // SKIP for drip campaigns - they have their own independent branding
     let finalHtml = params.html;
-    if (params.photographerId && finalHtml) {
+    if (params.photographerId && finalHtml && params.source !== 'DRIP_CAMPAIGN') {
       // Get photographer's branding settings
       const [photographer] = await db.select()
         .from(photographers)
@@ -301,7 +303,7 @@ async function sendViaSendGrid(params: EmailParams): Promise<EmailResult> {
           socialLinks: (photographer.socialLinksJson as any) || undefined
         };
 
-        // Wrap email content with header and signature
+        // Wrap email content with header and signature (for manual emails only)
         finalHtml = wrapEmailContent(
           finalHtml,
           photographer.emailHeaderStyle,
