@@ -369,10 +369,10 @@ export default function Inbox() {
             </Dialog>
           </div>
 
-          {/* Two Column Layout */}
-          <div className="flex-1 flex overflow-hidden gap-4">
+          {/* Two Column Layout - Connected Design */}
+          <div className="flex-1 flex overflow-hidden bg-card border rounded-2xl shadow-sm">
             {/* Conversation List */}
-            <div className={`w-full md:w-96 border bg-card flex flex-col rounded-lg shadow-sm ${isMobileThreadView ? 'hidden md:block' : 'block'}`}>
+            <div className={`w-full md:w-96 border-r flex flex-col ${isMobileThreadView ? 'hidden md:flex' : 'flex'}`}>
               <ScrollArea className="flex-1 min-h-0">
             {conversationsLoading ? (
               <div className="p-4 text-center text-muted-foreground">Loading conversations...</div>
@@ -449,8 +449,8 @@ export default function Inbox() {
                   data-testid={`conversation-${conversation.contact.id}`}
                 >
                   <div className="flex items-start gap-3">
-                    <Avatar className={conversation.unreadCount > 0 ? 'ring-2 ring-primary' : ''}>
-                      <AvatarFallback className={conversation.unreadCount > 0 ? 'font-bold' : ''}>
+                    <Avatar className={`rounded-xl ${conversation.unreadCount > 0 ? 'ring-2 ring-primary' : ''}`}>
+                      <AvatarFallback className={`rounded-xl ${conversation.unreadCount > 0 ? 'font-bold' : ''}`}>
                         {getInitials(conversation.contact.firstName, conversation.contact.lastName)}
                       </AvatarFallback>
                     </Avatar>
@@ -484,7 +484,7 @@ export default function Inbox() {
         </div>
 
         {/* Message Thread */}
-        <div className={`flex-1 flex flex-col bg-card rounded-lg shadow-sm border ${!isMobileThreadView ? 'hidden md:flex' : 'flex'}`}>
+        <div className={`flex-1 flex flex-col ${!isMobileThreadView ? 'hidden md:flex' : 'flex'}`}>
           {!selectedContactId ? (
             <div className="flex-1 flex items-center justify-center text-muted-foreground bg-gradient-to-br from-background to-muted/20">
               <div className="text-center p-8">
@@ -509,8 +509,8 @@ export default function Inbox() {
                   <ArrowLeft className="w-5 h-5" />
                 </Button>
                 
-                <Avatar>
-                  <AvatarFallback>
+                <Avatar className="rounded-xl">
+                  <AvatarFallback className="rounded-xl">
                     {getInitials(selectedConversation?.contact.firstName, selectedConversation?.contact.lastName)}
                   </AvatarFallback>
                 </Avatar>
@@ -569,12 +569,12 @@ export default function Inbox() {
                                           : 'bg-primary text-primary-foreground'
                                       } ${
                                         isFirstInGroup && isLastInGroup
-                                          ? 'rounded-lg'
+                                          ? 'rounded-2xl'
                                           : isFirstInGroup
-                                          ? message.isInbound ? 'rounded-t-lg rounded-br-lg rounded-bl-md' : 'rounded-t-lg rounded-bl-lg rounded-br-md'
+                                          ? message.isInbound ? 'rounded-t-2xl rounded-br-2xl rounded-bl-md' : 'rounded-t-2xl rounded-bl-2xl rounded-br-md'
                                           : isLastInGroup
-                                          ? message.isInbound ? 'rounded-b-lg rounded-tr-lg rounded-tl-md' : 'rounded-b-lg rounded-tl-lg rounded-tr-md'
-                                          : message.isInbound ? 'rounded-r-lg rounded-l-md' : 'rounded-l-lg rounded-r-md'
+                                          ? message.isInbound ? 'rounded-b-2xl rounded-tr-2xl rounded-tl-md' : 'rounded-b-2xl rounded-tl-2xl rounded-tr-md'
+                                          : message.isInbound ? 'rounded-r-2xl rounded-l-md' : 'rounded-l-2xl rounded-r-md'
                                       }`}
                                     >
                                       <p className="text-sm whitespace-pre-wrap">{message.content}</p>
