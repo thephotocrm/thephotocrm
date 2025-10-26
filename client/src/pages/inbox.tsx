@@ -343,7 +343,7 @@ export default function Inbox() {
       </header>
 
       <div className="flex-1 flex overflow-hidden justify-center">
-        <div className="flex-1 flex flex-col overflow-hidden max-w-[1140px] w-full px-6 pt-6 pb-6 gap-4">
+        <div className="flex-1 flex flex-col overflow-hidden max-w-[1140px] w-full px-6 pt-6 pb-8 gap-4">
           {/* Action Bar */}
           <div className="shrink-0 flex items-center justify-end">
             <Dialog open={isNewMessageDialogOpen} onOpenChange={setIsNewMessageDialogOpen}>
@@ -565,7 +565,7 @@ export default function Inbox() {
               </div>
 
               {/* Messages */}
-              <ScrollArea className="flex-1 p-4 bg-blue-50/50 dark:bg-blue-950/30">
+              <ScrollArea className="flex-1 p-4 bg-blue-50/70 dark:bg-blue-950/40">
                 {threadLoading ? (
                   <div className="text-center text-muted-foreground">Loading messages...</div>
                 ) : thread.length === 0 ? (
@@ -671,7 +671,7 @@ export default function Inbox() {
               </ScrollArea>
 
               {/* Message Composer */}
-              <div className="p-3 bg-blue-50/50 dark:bg-blue-950/30">
+              <div className="p-3 bg-blue-50/70 dark:bg-blue-950/40">
                 {selectedImage && (
                   <div className="mb-2 mx-3 relative inline-block">
                     <img src={selectedImage} alt="Preview" className="max-h-32 rounded-xl border" />
