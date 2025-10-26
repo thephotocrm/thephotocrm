@@ -408,7 +408,7 @@ export default function Inbox() {
           {/* Two Column Layout - Connected Design */}
           <div className="flex-1 flex overflow-hidden bg-card border rounded-2xl shadow-sm">
             {/* Conversation List */}
-            <div className={`w-full md:w-96 border-r flex flex-col ${isMobileThreadView ? 'hidden md:flex' : 'flex'}`}>
+            <div className={`w-full md:w-96 border-r border-l-4 border-l-blue-500 flex flex-col ${isMobileThreadView ? 'hidden md:flex' : 'flex'}`}>
               <ScrollArea className="flex-1 min-h-0">
             {conversationsLoading ? (
               <div className="p-4 text-center text-muted-foreground">Loading conversations...</div>
@@ -491,25 +491,25 @@ export default function Inbox() {
                       </AvatarFallback>
                     </Avatar>
                     
-                    <div className="flex-1 min-w-0 pr-2">
-                      <div className="flex items-center justify-between mb-1">
-                        <h3 className={`truncate ${conversation.unreadCount > 0 ? 'font-bold' : 'font-semibold'}`} data-testid={`contact-name-${conversation.contact.id}`}>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between gap-3 mb-1">
+                        <h3 className={`truncate flex-1 ${conversation.unreadCount > 0 ? 'font-bold' : 'font-semibold'}`} data-testid={`contact-name-${conversation.contact.id}`}>
                           {conversation.contact.firstName} {conversation.contact.lastName}
                         </h3>
-                        <span className={`text-xs whitespace-nowrap ml-2 ${conversation.unreadCount > 0 ? 'text-primary font-semibold' : 'text-muted-foreground'}`}>
-                          {formatTime(conversation.lastMessageAt)}
-                        </span>
-                      </div>
-                      
-                      <div className="flex items-center gap-2">
-                        <p className={`text-sm truncate flex-1 ${conversation.unreadCount > 0 ? 'text-foreground font-medium' : 'text-muted-foreground'}`} data-testid={`last-message-${conversation.contact.id}`}>
-                          {conversation.lastMessage || 'No messages'}
-                        </p>
                         {conversation.unreadCount > 0 && (
                           <Badge variant="default" className="min-w-[24px] h-5 flex items-center justify-center shrink-0" data-testid={`unread-badge-${conversation.contact.id}`}>
                             {conversation.unreadCount}
                           </Badge>
                         )}
+                      </div>
+                      
+                      <div className="flex items-center justify-between gap-2">
+                        <p className={`text-sm truncate flex-1 ${conversation.unreadCount > 0 ? 'text-foreground font-medium' : 'text-muted-foreground'}`} data-testid={`last-message-${conversation.contact.id}`}>
+                          {conversation.lastMessage || 'No messages'}
+                        </p>
+                        <span className={`text-xs whitespace-nowrap ${conversation.unreadCount > 0 ? 'text-primary font-semibold' : 'text-muted-foreground'}`}>
+                          {formatTime(conversation.lastMessageAt)}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -566,7 +566,7 @@ export default function Inbox() {
               </div>
 
               {/* Messages */}
-              <ScrollArea className="flex-1 p-4">
+              <ScrollArea className="flex-1 p-4 bg-blue-50/30 dark:bg-blue-950/20">
                 {threadLoading ? (
                   <div className="text-center text-muted-foreground">Loading messages...</div>
                 ) : thread.length === 0 ? (
