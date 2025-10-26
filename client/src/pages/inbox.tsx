@@ -406,7 +406,7 @@ export default function Inbox() {
           </div>
 
           {/* Two Column Layout - Connected Design */}
-          <div className="flex-1 flex overflow-hidden bg-card border rounded-2xl shadow-sm max-h-[600px]">
+          <div className="flex-1 flex overflow-hidden bg-card border rounded-2xl shadow-sm max-h-[759px]">
             {/* Conversation List */}
             <div className={`w-full md:w-96 border-r border-l-4 border-l-blue-500 flex flex-col ${isMobileThreadView ? 'hidden md:flex' : 'flex'}`}>
               <ScrollArea className="flex-1 min-h-0">
