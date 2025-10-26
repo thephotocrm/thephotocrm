@@ -164,17 +164,14 @@ export default function Dashboard() {
   return (
     <div className="h-full flex flex-col">
       {/* Header */}
-      <header className="bg-card border-b border-border px-4 md:px-6 py-4 shrink-0">
-        <div className="flex items-center gap-3">
+      <header className="border-b border-border px-4 md:px-6 py-6 shrink-0">
+        <div className="max-w-[1140px] mx-auto w-full flex items-center gap-3">
           <SidebarTrigger 
             data-testid="button-menu-toggle" 
             className="hidden md:inline-flex shrink-0" 
           />
           <div>
-            <h1 className="text-xl md:text-2xl font-semibold">Dashboard</h1>
-            <p className="text-sm text-muted-foreground hidden sm:block">
-              Welcome back, {user?.businessName || 'Photographer'}
-            </p>
+            <h1 className="text-3xl md:text-4xl font-semibold">Dashboard</h1>
           </div>
         </div>
       </header>

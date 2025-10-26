@@ -165,16 +165,15 @@ export default function Contacts() {
   return (
     <div>
         {/* Header */}
-        <header className="bg-card border-b border-border px-4 md:px-6 py-4 relative">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <header className="border-b border-border px-4 md:px-6 py-6 relative">
+          <div className="max-w-[1140px] mx-auto w-full flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-3 min-w-0 flex-1">
               <SidebarTrigger 
                 data-testid="button-menu-toggle" 
                 className="hidden md:inline-flex shrink-0" 
               />
               <div className="min-w-0">
-                <h1 className="text-xl md:text-2xl font-semibold truncate">Contacts</h1>
-                <p className="text-sm md:text-base text-muted-foreground hidden sm:block">Manage your photography contacts</p>
+                <h1 className="text-3xl md:text-4xl font-semibold truncate">Contacts</h1>
               </div>
             </div>
             
