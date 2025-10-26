@@ -413,7 +413,7 @@ export default function Inbox() {
         </div>
       </header>
 
-      <div className="flex-1 flex overflow-hidden justify-center relative">
+      <div className="flex-1 flex justify-center relative overflow-y-auto">
         {/* Subtle Camera-themed SVG Background Pattern */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-20 dark:opacity-[0.15]">
           <svg className="absolute inset-0 w-full h-full" xmlns="http://www.w3.org/2000/svg">
