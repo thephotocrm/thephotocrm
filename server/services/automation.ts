@@ -1664,8 +1664,9 @@ async function processSubscriptionEmail(subscription: any, campaign: any, projec
   let htmlBody = renderTemplate(emailToSend.htmlBody, variables);
   const textBody = renderTemplate(emailToSend.textBody || '', variables);
 
-  // Apply email branding (headers and signatures) if configured
-  if (emailToSend.includeHeader || emailToSend.includeSignature) {
+  // Apply email branding (headers and signatures) ONLY if NOT using email builder
+  // Email builder content already has its own header/signature blocks built-in
+  if (!emailToSend.useEmailBuilder && (emailToSend.includeHeader || emailToSend.includeSignature)) {
     const { wrapEmailContent } = await import('./email-branding.js');
     const brandingData = {
       businessName: photographer?.businessName,
