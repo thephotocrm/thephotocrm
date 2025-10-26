@@ -1721,22 +1721,26 @@ async function processSubscriptionEmail(subscription: any, campaign: any, projec
         : '';
       
       // Combine header + content + signature in a proper email structure
+      // Gmail dark mode protection: use color-scheme meta tag and explicit colors with !important
       htmlBody = `
 <!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light only">
+  <meta name="supported-color-schemes" content="light only">
   <title>Email</title>
+  <style>
+    /* Force light mode colors - Gmail dark mode protection */
+    body { background-color: #ffffff !important; }
+    * { color-scheme: light only !important; }
+  </style>
 </head>
-<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f9fafb;">
-  <div style="max-width: 600px; margin: 0 auto; padding: 32px 16px;">
-    <div style="background-color: #ffffff; padding: 32px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-      ${headerHtml}
-      ${justContent}
-      ${signatureHtml}
-    </div>
-  </div>
+<body style="margin: 0 !important; padding: 20px !important; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important; background-color: #ffffff !important;">
+  ${headerHtml}
+  ${justContent}
+  ${signatureHtml}
 </body>
 </html>`;
       
