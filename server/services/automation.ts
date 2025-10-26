@@ -1700,12 +1700,19 @@ async function processSubscriptionEmail(subscription: any, campaign: any, projec
       console.log('📧 Email builder content (no wrapper), length:', rawBlocksHtml.length);
       
       // Generate header and signature HTML
-      const headerHtml = emailToSend.includeHeader && emailToSend.headerStyle
-        ? generateEmailHeader(emailToSend.headerStyle, brandingData)
+      // Fall back to photographer's global settings if individual email doesn't specify
+      const shouldIncludeHeader = emailToSend.includeHeader || (!emailToSend.includeHeader && photographer?.emailHeaderStyle);
+      const headerStyleToUse = emailToSend.headerStyle || photographer?.emailHeaderStyle;
+      
+      const shouldIncludeSignature = emailToSend.includeSignature || (!emailToSend.includeSignature && photographer?.emailSignatureStyle);
+      const signatureStyleToUse = emailToSend.signatureStyle || photographer?.emailSignatureStyle;
+      
+      const headerHtml = shouldIncludeHeader && headerStyleToUse
+        ? generateEmailHeader(headerStyleToUse, brandingData)
         : '';
       
-      const signatureHtml = emailToSend.includeSignature && emailToSend.signatureStyle
-        ? generateEmailSignature(emailToSend.signatureStyle, brandingData)
+      const signatureHtml = shouldIncludeSignature && signatureStyleToUse
+        ? generateEmailSignature(signatureStyleToUse, brandingData)
         : '';
       
       // Combine header + content + signature in a proper email structure
@@ -1741,12 +1748,19 @@ async function processSubscriptionEmail(subscription: any, campaign: any, projec
     htmlBody = renderTemplate(emailToSend.htmlBody, variables);
     
     // Apply email branding wrapper for non-builder emails
-    if (emailToSend.includeHeader || emailToSend.includeSignature) {
+    // Fall back to photographer's global settings if individual email doesn't specify
+    const shouldIncludeHeader = emailToSend.includeHeader || (!emailToSend.includeHeader && photographer?.emailHeaderStyle);
+    const headerStyleToUse = emailToSend.headerStyle || photographer?.emailHeaderStyle;
+    
+    const shouldIncludeSignature = emailToSend.includeSignature || (!emailToSend.includeSignature && photographer?.emailSignatureStyle);
+    const signatureStyleToUse = emailToSend.signatureStyle || photographer?.emailSignatureStyle;
+    
+    if (shouldIncludeHeader || shouldIncludeSignature) {
       const { wrapEmailContent } = await import('./email-branding.js');
       htmlBody = wrapEmailContent(
         htmlBody,
-        emailToSend.includeHeader ? emailToSend.headerStyle : null,
-        emailToSend.includeSignature ? emailToSend.signatureStyle : null,
+        shouldIncludeHeader ? headerStyleToUse : null,
+        shouldIncludeSignature ? signatureStyleToUse : null,
         brandingData
       );
     }
