@@ -413,8 +413,32 @@ export default function Inbox() {
         </div>
       </header>
 
-      <div className="flex-1 flex overflow-hidden justify-center">
-        <div className="flex-1 flex flex-col overflow-hidden max-w-[1140px] w-full px-6 pt-6 pb-8 gap-4">
+      <div className="flex-1 flex overflow-hidden justify-center relative">
+        {/* Decorative Background Elements */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          {/* Gradient Orb - Top Left */}
+          <div className="absolute -top-20 -left-20 w-96 h-96 bg-gradient-to-br from-purple-300/30 via-indigo-300/20 to-transparent rounded-full blur-3xl animate-pulse" style={{ animationDuration: '4s' }}></div>
+          
+          {/* Gradient Orb - Top Right */}
+          <div className="absolute top-10 -right-32 w-80 h-80 bg-gradient-to-bl from-pink-300/25 via-purple-300/15 to-transparent rounded-full blur-3xl animate-pulse" style={{ animationDuration: '5s', animationDelay: '1s' }}></div>
+          
+          {/* Gradient Orb - Bottom Left */}
+          <div className="absolute -bottom-32 left-1/4 w-72 h-72 bg-gradient-to-tr from-indigo-300/20 via-blue-300/15 to-transparent rounded-full blur-3xl animate-pulse" style={{ animationDuration: '6s', animationDelay: '2s' }}></div>
+          
+          {/* Floating Circle - Small */}
+          <div className="absolute top-1/4 left-1/3 w-4 h-4 bg-purple-400/20 rounded-full animate-bounce" style={{ animationDuration: '3s' }}></div>
+          
+          {/* Floating Circle - Medium */}
+          <div className="absolute bottom-1/3 right-1/4 w-6 h-6 bg-indigo-400/15 rounded-full animate-bounce" style={{ animationDuration: '4s', animationDelay: '1.5s' }}></div>
+          
+          {/* Floating Rounded Rectangle */}
+          <div className="absolute top-1/2 right-1/3 w-8 h-6 bg-pink-400/10 rounded-lg animate-pulse" style={{ animationDuration: '5s', animationDelay: '0.5s' }}></div>
+          
+          {/* Subtle Ring */}
+          <div className="absolute bottom-1/4 left-1/2 w-32 h-32 border-2 border-purple-300/10 rounded-full blur-sm animate-pulse" style={{ animationDuration: '7s' }}></div>
+        </div>
+
+        <div className="flex-1 flex flex-col overflow-hidden max-w-[1140px] w-full px-6 pt-6 pb-8 gap-4 relative z-10">
           {/* Action Bar */}
           <div className="shrink-0 flex items-center justify-end">
             <Dialog open={isNewMessageDialogOpen} onOpenChange={setIsNewMessageDialogOpen}>
