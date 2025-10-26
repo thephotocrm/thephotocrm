@@ -182,11 +182,11 @@ export default function Inbox() {
 
   return (
     <div className="h-[calc(100vh-4rem)] flex flex-col">
-      <div className="flex-1 flex overflow-hidden justify-center">
+      <div className="flex-1 flex overflow-hidden justify-center py-6">
         <div className="flex-1 flex overflow-hidden max-w-[1140px] w-full">
           {/* Conversation List */}
-          <div className={`w-full md:w-96 border-r bg-background ${isMobileThreadView ? 'hidden md:block' : 'block'}`}>
-          <div className="p-4 border-b flex items-center justify-between">
+          <div className={`w-full md:w-96 border-r bg-background flex flex-col ${isMobileThreadView ? 'hidden md:block' : 'block'}`}>
+          <div className="p-4 border-b flex items-center justify-between shrink-0">
             <div>
               <h2 className="text-2xl font-bold" data-testid="text-inbox-title">Inbox</h2>
               <p className="text-sm text-muted-foreground">SMS Conversations</p>
@@ -250,7 +250,7 @@ export default function Inbox() {
             </Dialog>
           </div>
 
-          <ScrollArea className="h-[calc(100vh-12rem)]">
+          <ScrollArea className="flex-1 min-h-0">
             {conversationsLoading ? (
               <div className="p-4 text-center text-muted-foreground">Loading conversations...</div>
             ) : conversations.length === 0 ? (
