@@ -247,6 +247,9 @@ export const projects = pgTable("projects", {
   gallerySharedAt: timestamp("gallery_shared_at"), // When marked ready and sent to client
   // Client Portal
   includePortalLinks: boolean("include_portal_links").default(true), // Include magic links in emails
+  // Automation Controls
+  enableAutomations: boolean("enable_automations").default(true), // Enable stage/business trigger automations
+  enableDripCampaigns: boolean("enable_drip_campaigns").default(true), // Enable drip campaign subscriptions
   createdAt: timestamp("created_at").defaultNow()
 });
 

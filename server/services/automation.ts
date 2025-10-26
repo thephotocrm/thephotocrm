@@ -163,7 +163,7 @@ async function processCommunicationAutomation(automation: any, photographerId: s
     ))
     .orderBy(automationSteps.stepIndex);
 
-  // Get projects in this stage
+  // Get projects in this stage with automations enabled
   const projectsInStage = await db
     .select({
       id: projects.id,
@@ -183,7 +183,8 @@ async function processCommunicationAutomation(automation: any, photographerId: s
     .innerJoin(contacts, eq(projects.clientId, contacts.id))
     .where(and(
       eq(projects.photographerId, photographerId),
-      eq(projects.stageId, automation.stageId!)
+      eq(projects.stageId, automation.stageId!),
+      eq(projects.enableAutomations, true) // Only process projects with automations enabled
     ));
     
   console.log(`Communication automation "${automation.name}" (${automation.id}) - found ${projectsInStage.length} projects in stage`);
@@ -220,7 +221,7 @@ async function processStageChangeAutomation(automation: any, photographerId: str
 
   console.log(`Found ${businessTriggers.length} enabled business triggers for automation: ${businessTriggers.map(t => t.triggerType).join(', ')}`);
   
-  // Get all active projects for this photographer and project type
+  // Get all active projects for this photographer and project type with automations enabled
   // Include projects with NULL status (treat as ACTIVE) and explicitly ACTIVE status
   const activeProjects = await db
     .select({
@@ -232,6 +233,7 @@ async function processStageChangeAutomation(automation: any, photographerId: str
     .where(and(
       eq(projects.photographerId, photographerId),
       eq(projects.projectType, automation.projectType),
+      eq(projects.enableAutomations, true), // Only process projects with automations enabled
       or(
         eq(projects.status, 'ACTIVE'),
         isNull(projects.status) // Include NULL status as ACTIVE
@@ -963,7 +965,8 @@ async function processCountdownAutomation(automation: any, photographerId: strin
   let whereConditions = [
     eq(projects.photographerId, photographerId),
     eq(projects.projectType, automation.projectType),
-    eq(projects.status, 'ACTIVE')
+    eq(projects.status, 'ACTIVE'),
+    eq(projects.enableAutomations, true) // Only process projects with automations enabled
   ];
 
   // Add stage condition if specified (for conditional event countdown automations)
@@ -1418,7 +1421,7 @@ async function processNurtureCampaign(campaign: any, photographerId: string): Pr
 }
 
 async function subscribeNewProjectsToCampaign(campaign: any, photographerId: string): Promise<void> {
-  // Find projects in the target stage that aren't already subscribed and have email opt-in
+  // Find projects in the target stage that aren't already subscribed and have email opt-in and drip campaigns enabled
   const eligibleProjects = await db
     .select({
       id: projects.id,
@@ -1441,6 +1444,7 @@ async function subscribeNewProjectsToCampaign(campaign: any, photographerId: str
       eq(projects.photographerId, photographerId),
       eq(projects.stageId, campaign.targetStageId),
       eq(projects.status, 'ACTIVE'),
+      eq(projects.enableDripCampaigns, true), // Must have drip campaigns enabled
       eq(contacts.emailOptIn, true), // Must have email opt-in
       // Not already subscribed
       isNull(dripCampaignSubscriptions.id)
@@ -1488,7 +1492,7 @@ async function subscribeNewProjectsToCampaign(campaign: any, photographerId: str
 async function processExistingSubscriptions(campaign: any, photographerId: string): Promise<void> {
   const now = new Date();
   
-  // Find active subscriptions that are ready for their next email
+  // Find active subscriptions that are ready for their next email (only for projects with drip campaigns enabled)
   const readySubscriptions = await db
     .select({
       subscription: dripCampaignSubscriptions,
@@ -1502,7 +1506,8 @@ async function processExistingSubscriptions(campaign: any, photographerId: strin
       eq(dripCampaignSubscriptions.campaignId, campaign.id),
       eq(dripCampaignSubscriptions.status, 'ACTIVE'),
       lte(dripCampaignSubscriptions.nextEmailAt, now), // Ready to send
-      eq(projects.status, 'ACTIVE') // Project still active
+      eq(projects.status, 'ACTIVE'), // Project still active
+      eq(projects.enableDripCampaigns, true) // Project has drip campaigns enabled
     ));
 
   console.log(`Found ${readySubscriptions.length} subscriptions ready for next email in campaign ${campaign.name}`);

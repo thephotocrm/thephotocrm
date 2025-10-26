@@ -2033,7 +2033,9 @@ ${photographer?.businessName || 'Your Photography Team'}`;
         leadSource: z.enum(['WEBSITE_WIDGET', 'REFERRAL', 'SOCIAL_MEDIA', 'ADVERTISING', 'REPEAT_CLIENT', 'OTHER']).optional(),
         smsOptIn: z.boolean().default(false),
         emailOptIn: z.boolean().default(true),
-        notes: z.string().optional()
+        notes: z.string().optional(),
+        enableAutomations: z.boolean().default(true),
+        enableDripCampaigns: z.boolean().default(true)
       });
 
       const projectData = insertProjectSchema.parse({

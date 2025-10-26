@@ -26,6 +26,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -72,6 +73,8 @@ export default function Projects() {
   const [eventDate, setEventDate] = useState("");
   const [noDateYet, setNoDateYet] = useState(false);
   const [notes, setNotes] = useState("");
+  const [enableAutomations, setEnableAutomations] = useState(true);
+  const [enableDripCampaigns, setEnableDripCampaigns] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedStage, setSelectedStage] = useState<string>("ALL");
   const [activeProjectType, setActiveProjectType] = useState<string>("WEDDING");
@@ -137,6 +140,8 @@ export default function Projects() {
     setEventDate("");
     setNoDateYet(false);
     setNotes("");
+    setEnableAutomations(true);
+    setEnableDripCampaigns(true);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -156,7 +161,9 @@ export default function Projects() {
       projectType,
       clientId,
       eventDate: eventDate ? new Date(eventDate) : undefined,
-      notes: notes || undefined
+      notes: notes || undefined,
+      enableAutomations,
+      enableDripCampaigns
     });
   };
 
@@ -318,6 +325,42 @@ export default function Projects() {
                       rows={3}
                       data-testid="textarea-project-notes"
                     />
+                  </div>
+
+                  <div className="space-y-3 pt-2 border-t">
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label htmlFor="enableAutomations" className="text-sm font-medium">
+                          Enable Automations
+                        </Label>
+                        <p className="text-xs text-muted-foreground">
+                          Run stage-based and business trigger automations
+                        </p>
+                      </div>
+                      <Switch
+                        id="enableAutomations"
+                        checked={enableAutomations}
+                        onCheckedChange={setEnableAutomations}
+                        data-testid="switch-enable-automations"
+                      />
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label htmlFor="enableDripCampaigns" className="text-sm font-medium">
+                          Enable Drip Campaigns
+                        </Label>
+                        <p className="text-xs text-muted-foreground">
+                          Subscribe to email drip sequences
+                        </p>
+                      </div>
+                      <Switch
+                        id="enableDripCampaigns"
+                        checked={enableDripCampaigns}
+                        onCheckedChange={setEnableDripCampaigns}
+                        data-testid="switch-enable-drip-campaigns"
+                      />
+                    </div>
                   </div>
                   
                   <div className="flex justify-end space-x-2">

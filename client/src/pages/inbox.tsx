@@ -406,14 +406,14 @@ export default function Inbox() {
 
   return (
     <div className="h-full flex flex-col">
-      {/* Header */}
-      <header className="border-b border-border px-4 md:px-6 py-6 shrink-0">
+      {/* Desktop Header - hidden on mobile */}
+      <header className="hidden md:block border-b border-border px-4 md:px-6 py-6 shrink-0">
         <div className="max-w-[1140px] mx-auto w-full">
           <h1 className="text-3xl md:text-4xl font-semibold">Inbox</h1>
         </div>
       </header>
 
-      <div className="flex-1 flex justify-center relative overflow-y-auto">
+      <div className="flex-1 flex justify-center relative overflow-y-auto md:overflow-visible">
         {/* Subtle Camera-themed SVG Background Pattern */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-20 dark:opacity-[0.15]">
           <svg className="absolute inset-0 w-full h-full" xmlns="http://www.w3.org/2000/svg">
@@ -443,7 +443,7 @@ export default function Inbox() {
           </svg>
         </div>
 
-        <div className="flex-1 flex flex-col overflow-hidden max-w-[1140px] w-full px-8 pt-6 pb-8 gap-4 relative z-10">
+        <div className="flex-1 flex flex-col overflow-hidden w-full max-w-none md:max-w-[1140px] px-0 md:px-8 pt-0 md:pt-6 pb-0 md:pb-8 gap-0 md:gap-4 relative z-10">
           {/* Action Bar */}
           <div className="shrink-0 flex items-center justify-end">
             <Dialog open={isNewMessageDialogOpen} onOpenChange={setIsNewMessageDialogOpen}>
