@@ -1389,14 +1389,14 @@ export async function processPaymentReminders(photographerId: string): Promise<v
 async function processNurtureAutomation(automation: any, photographerId: string): Promise<void> {
   console.log(`Processing nurture automation: ${automation.name}`);
   
-  // Find approved drip campaigns for this photographer and project type
+  // Find ACTIVE drip campaigns for this photographer and project type
   const activeCampaigns = await db
     .select()
     .from(dripCampaigns)
     .where(and(
       eq(dripCampaigns.photographerId, photographerId),
       eq(dripCampaigns.projectType, automation.projectType || 'WEDDING'),
-      eq(dripCampaigns.status, 'APPROVED'),
+      eq(dripCampaigns.status, 'ACTIVE'),
       eq(dripCampaigns.enabled, true)
     ));
 
