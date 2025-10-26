@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import { MessageSquare, Mail, Send, MessageCircle, ArrowLeft, Plus, Search, Check, CheckCheck, XCircle, Smile, Image as ImageIcon } from "lucide-react";
+import { MessageSquare, Mail, Send, MessageCircle, ArrowLeft, Plus, Search, Check, CheckCheck, XCircle, Smile, Image as ImageIcon, MessageSquarePlus, Users, Phone, Settings } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "wouter";
 import { format, isToday, isYesterday, isThisWeek, isThisYear } from "date-fns";
@@ -407,8 +407,65 @@ export default function Inbox() {
 
           {/* Two Column Layout - Connected Design */}
           <div className="flex-1 flex overflow-hidden bg-card border rounded-2xl shadow-sm max-h-[759px]">
+            {/* Left Sidebar */}
+            <div className="hidden md:flex w-16 bg-gradient-to-b from-indigo-600 to-indigo-700 flex-col items-center py-4 gap-4 rounded-l-2xl">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-10 w-10 text-white hover:bg-white/20"
+                onClick={() => setIsNewMessageDialogOpen(true)}
+                data-testid="sidebar-compose"
+              >
+                <MessageSquarePlus className="w-5 h-5" />
+              </Button>
+              
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-10 w-10 text-white hover:bg-white/20"
+                asChild
+                data-testid="sidebar-contacts"
+              >
+                <Link href="/contacts">
+                  <Users className="w-5 h-5" />
+                </Link>
+              </Button>
+              
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-10 w-10 text-white hover:bg-white/20"
+                data-testid="sidebar-phone"
+              >
+                <Phone className="w-5 h-5" />
+              </Button>
+              
+              <div className="flex-1" />
+              
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-10 w-10 text-white hover:bg-white/20"
+                asChild
+                data-testid="sidebar-settings"
+              >
+                <Link href="/settings">
+                  <Settings className="w-5 h-5" />
+                </Link>
+              </Button>
+              
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-10 w-10 text-white hover:bg-white/20"
+                data-testid="sidebar-add"
+              >
+                <Plus className="w-5 h-5" />
+              </Button>
+            </div>
+            
             {/* Conversation List */}
-            <div className={`w-full md:w-96 border-r border-l-4 border-l-blue-500 flex flex-col ${isMobileThreadView ? 'hidden md:flex' : 'flex'}`}>
+            <div className={`w-full md:w-96 border-r flex flex-col ${isMobileThreadView ? 'hidden md:flex' : 'flex'}`}>
               <ScrollArea className="flex-1 min-h-0">
             {conversationsLoading ? (
               <div className="p-4 text-center text-muted-foreground">Loading conversations...</div>
