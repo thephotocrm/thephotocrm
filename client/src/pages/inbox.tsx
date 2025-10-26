@@ -510,7 +510,7 @@ export default function Inbox() {
             {currentView === 'inbox' && (
               <>
                 {/* Conversation List */}
-                <div className={`w-full md:w-96 border-r flex flex-col ${isMobileThreadView ? 'hidden md:flex' : 'flex'}`}>
+                <div className={`w-full md:w-96 border-r flex flex-col overflow-hidden ${isMobileThreadView ? 'hidden md:flex' : 'flex'}`}>
                   {/* Inbox Header */}
                   <div className="p-4 border-b shrink-0">
                     <h2 className="text-xl font-semibold mb-3 text-indigo-600" data-testid="text-inbox-title">Inbox</h2>
@@ -596,7 +596,7 @@ export default function Inbox() {
                 <div
                   key={conversation.contact.id}
                   onClick={() => handleConversationClick(conversation.contact.id)}
-                  className={`p-4 border-b cursor-pointer transition-all duration-200 hover:bg-accent/50 ${
+                  className={`p-4 border-b cursor-pointer transition-all duration-200 hover:bg-accent/50 max-w-full ${
                     selectedContactId === conversation.contact.id ? 'bg-accent' : ''
                   } ${conversation.unreadCount > 0 ? 'bg-accent/20' : ''}`}
                   data-testid={`conversation-${conversation.contact.id}`}
