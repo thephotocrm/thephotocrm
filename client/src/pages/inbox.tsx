@@ -427,19 +427,15 @@ export default function Inbox() {
                   <rect x="20" y="10" width="8" height="5" rx="1" fill="currentColor" className="text-indigo-400" />
                 </g>
                 
-                {/* Aperture Icon */}
+                {/* Ring Icon */}
                 <g transform="translate(140, 120)">
-                  <circle cx="0" cy="0" r="12" fill="none" stroke="currentColor" strokeWidth="1" className="text-purple-400" />
-                  <path d="M -8,-8 L 0,0 M 8,-8 L 0,0 M 8,8 L 0,0 M -8,8 L 0,0 M 0,-8 L 0,0 M 0,8 L 0,0" stroke="currentColor" strokeWidth="1" className="text-purple-400" />
+                  <circle cx="0" cy="0" r="10" fill="none" stroke="currentColor" strokeWidth="2" className="text-purple-400" />
+                  <circle cx="0" cy="0" r="14" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-purple-400" />
                 </g>
                 
-                {/* Film Strip Element */}
+                {/* Heart Icon */}
                 <g transform="translate(160, 40)">
-                  <rect x="0" y="0" width="4" height="24" fill="currentColor" className="text-pink-400" />
-                  <rect x="0" y="2" width="4" height="3" fill="none" />
-                  <rect x="0" y="8" width="4" height="3" fill="none" />
-                  <rect x="0" y="14" width="4" height="3" fill="none" />
-                  <rect x="0" y="20" width="4" height="3" fill="none" />
+                  <path d="M 12,21 C 12,21 3,14 3,9 C 3,6 5,4 7.5,4 C 9,4 10.5,5 12,6.5 C 13.5,5 15,4 16.5,4 C 19,4 21,6 21,9 C 21,14 12,21 12,21 Z" fill="currentColor" className="text-pink-400" transform="scale(0.7) translate(-12, -12)" />
                 </g>
               </pattern>
             </defs>
