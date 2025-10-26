@@ -443,7 +443,7 @@ export default function Inbox() {
           </svg>
         </div>
 
-        <div className="flex-1 flex flex-col overflow-hidden max-w-[1140px] w-full px-6 pt-6 pb-8 gap-4 relative z-10">
+        <div className="flex-1 flex flex-col overflow-hidden max-w-[1140px] w-full px-8 pt-6 pb-8 gap-4 relative z-10">
           {/* Action Bar */}
           <div className="shrink-0 flex items-center justify-end">
             <Dialog open={isNewMessageDialogOpen} onOpenChange={setIsNewMessageDialogOpen}>
