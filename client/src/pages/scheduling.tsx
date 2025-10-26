@@ -613,7 +613,7 @@ export default function Scheduling() {
         </header>
 
         {/* Main Content - Calendar First */}
-        <div className="container mx-auto p-4 md:p-6 space-y-6">
+        <div className="max-w-[1140px] mx-auto p-4 md:p-6 space-y-6">
 
           {/* Calendar and Time Slot Selection */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

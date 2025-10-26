@@ -336,7 +336,7 @@ export default function Packages() {
           </div>
         </header>
 
-        <div className="p-6 space-y-6">
+        <div className="max-w-[1140px] mx-auto p-6 space-y-6">
           {/* Stats Cards */}
           <div className="hidden md:grid md:grid-cols-3 gap-6">
             <Card>

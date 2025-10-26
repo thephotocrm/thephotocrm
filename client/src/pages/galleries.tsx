@@ -107,114 +107,116 @@ export default function Galleries() {
       </header>
 
       <div className="flex-1 p-6 overflow-auto bg-gray-50 dark:bg-gray-900">
-        {projectsWithGalleries.length === 0 ? (
-          <Card className="max-w-md mx-auto mt-12">
-            <CardContent className="py-12">
-              <div className="text-center">
-                <Images className="w-12 h-12 mx-auto text-muted-foreground mb-3" />
-                <h3 className="text-lg font-semibold mb-2">
-                  {isShootProofConnected ? 'No Galleries Yet' : 'Connect ShootProof to Get Started'}
-                </h3>
-                <p className="text-sm text-muted-foreground mb-4">
-                  {isShootProofConnected 
-                    ? 'Your ShootProof galleries will appear here once created'
-                    : 'Connect your ShootProof account to sync your professional galleries with client print ordering'}
-                </p>
-                <Link href="/settings">
-                  <Button variant="outline">
-                    <Settings className="w-4 h-4 mr-2" />
-                    {isShootProofConnected ? 'Gallery Settings' : 'Connect ShootProof'}
-                  </Button>
-                </Link>
-              </div>
-            </CardContent>
-          </Card>
-        ) : filteredGalleries.length === 0 ? (
-          <div className="text-center py-12">
-            <Search className="w-12 h-12 mx-auto text-muted-foreground mb-3" />
-            <h3 className="text-lg font-semibold mb-2">No galleries found</h3>
-            <p className="text-sm text-muted-foreground">
-              Try adjusting your search query
-            </p>
-          </div>
-        ) : (
-          <div>
-            <div className="mb-4 text-sm text-muted-foreground">
-              {filteredGalleries.length} {filteredGalleries.length === 1 ? 'gallery' : 'galleries'} found
+        <div className="max-w-[1140px] mx-auto">
+          {projectsWithGalleries.length === 0 ? (
+            <Card className="max-w-md mx-auto mt-12">
+              <CardContent className="py-12">
+                <div className="text-center">
+                  <Images className="w-12 h-12 mx-auto text-muted-foreground mb-3" />
+                  <h3 className="text-lg font-semibold mb-2">
+                    {isShootProofConnected ? 'No Galleries Yet' : 'Connect ShootProof to Get Started'}
+                  </h3>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    {isShootProofConnected 
+                      ? 'Your ShootProof galleries will appear here once created'
+                      : 'Connect your ShootProof account to sync your professional galleries with client print ordering'}
+                  </p>
+                  <Link href="/settings">
+                    <Button variant="outline">
+                      <Settings className="w-4 h-4 mr-2" />
+                      {isShootProofConnected ? 'Gallery Settings' : 'Connect ShootProof'}
+                    </Button>
+                  </Link>
+                </div>
+              </CardContent>
+            </Card>
+          ) : filteredGalleries.length === 0 ? (
+            <div className="text-center py-12">
+              <Search className="w-12 h-12 mx-auto text-muted-foreground mb-3" />
+              <h3 className="text-lg font-semibold mb-2">No galleries found</h3>
+              <p className="text-sm text-muted-foreground">
+                Try adjusting your search query
+              </p>
             </div>
-            
-            {/* Masonry/Mosaic Grid Layout */}
-            <div className="columns-1 md:columns-2 lg:columns-3 xl:columns-4 gap-4 space-y-4">
-              {filteredGalleries.map((project: any) => (
-                <Card 
-                  key={project.id} 
-                  className="break-inside-avoid hover:shadow-xl transition-all duration-300 group cursor-pointer mb-4"
-                  onClick={() => setLocation(`/galleries/${project.id}`)}
-                  data-testid={`gallery-tile-${project.id}`}
-                >
-                  <div className="relative overflow-hidden">
-                    {/* Varying height based on tile size */}
-                    {project.imageUrl ? (
-                      <div 
-                        className={`relative bg-gray-200 dark:bg-gray-800 ${
+          ) : (
+            <div>
+              <div className="mb-4 text-sm text-muted-foreground">
+                {filteredGalleries.length} {filteredGalleries.length === 1 ? 'gallery' : 'galleries'} found
+              </div>
+              
+              {/* Masonry/Mosaic Grid Layout */}
+              <div className="columns-1 md:columns-2 lg:columns-3 xl:columns-4 gap-4 space-y-4">
+                {filteredGalleries.map((project: any) => (
+                  <Card 
+                    key={project.id} 
+                    className="break-inside-avoid hover:shadow-xl transition-all duration-300 group cursor-pointer mb-4"
+                    onClick={() => setLocation(`/galleries/${project.id}`)}
+                    data-testid={`gallery-tile-${project.id}`}
+                  >
+                    <div className="relative overflow-hidden">
+                      {/* Varying height based on tile size */}
+                      {project.imageUrl ? (
+                        <div 
+                          className={`relative bg-gray-200 dark:bg-gray-800 ${
+                            project.height === 'tall' ? 'h-80' : 
+                            project.height === 'short' ? 'h-48' : 
+                            'h-64'
+                          }`}
+                        >
+                          <img 
+                            src={project.imageUrl} 
+                            alt={project.title}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      ) : (
+                        <div className={`bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900 dark:to-pink-900 flex items-center justify-center ${
                           project.height === 'tall' ? 'h-80' : 
                           project.height === 'short' ? 'h-48' : 
                           'h-64'
-                        }`}
-                      >
-                        <img 
-                          src={project.imageUrl} 
-                          alt={project.title}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                    ) : (
-                      <div className={`bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900 dark:to-pink-900 flex items-center justify-center ${
-                        project.height === 'tall' ? 'h-80' : 
-                        project.height === 'short' ? 'h-48' : 
-                        'h-64'
-                      }`}>
-                        <Images className="w-12 h-12 text-purple-400 opacity-50" />
-                      </div>
-                    )}
-                    {!isShootProofConnected && (
-                      <div className="absolute top-2 right-2">
-                        <Badge variant="secondary" className="text-xs bg-white/90 dark:bg-gray-800/90">
-                          Demo
-                        </Badge>
-                      </div>
-                    )}
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100">
-                      <ExternalLink className="w-8 h-8 text-white" />
-                    </div>
-                  </div>
-                  <CardContent className="p-4">
-                    <h3 className="font-semibold text-lg mb-1 group-hover:text-purple-600 transition-colors">
-                      {project.title}
-                    </h3>
-                    <p className="text-sm text-muted-foreground mb-3">
-                      {project.client?.firstName} {project.client?.lastName}
-                    </p>
-                    
-                    <div className="flex items-center justify-between">
-                      {project.galleryCreatedAt && (
-                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                          <Calendar className="w-3 h-3" />
-                          {new Date(project.galleryCreatedAt).toLocaleDateString()}
+                        }`}>
+                          <Images className="w-12 h-12 text-purple-400 opacity-50" />
                         </div>
                       )}
-                      {project.galleryReady && (
-                        <Badge variant="secondary" className="text-xs">
-                          Shared
-                        </Badge>
+                      {!isShootProofConnected && (
+                        <div className="absolute top-2 right-2">
+                          <Badge variant="secondary" className="text-xs bg-white/90 dark:bg-gray-800/90">
+                            Demo
+                          </Badge>
+                        </div>
                       )}
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100">
+                        <ExternalLink className="w-8 h-8 text-white" />
+                      </div>
                     </div>
-                  </CardContent>
-                </Card>
-              ))}
+                    <CardContent className="p-4">
+                      <h3 className="font-semibold text-lg mb-1 group-hover:text-purple-600 transition-colors">
+                        {project.title}
+                      </h3>
+                      <p className="text-sm text-muted-foreground mb-3">
+                        {project.client?.firstName} {project.client?.lastName}
+                      </p>
+                      
+                      <div className="flex items-center justify-between">
+                        {project.galleryCreatedAt && (
+                          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                            <Calendar className="w-3 h-3" />
+                            {new Date(project.galleryCreatedAt).toLocaleDateString()}
+                          </div>
+                        )}
+                        {project.galleryReady && (
+                          <Badge variant="secondary" className="text-xs">
+                            Shared
+                          </Badge>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );
