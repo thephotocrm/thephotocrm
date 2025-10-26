@@ -66,10 +66,10 @@ export default function Inbox() {
     refetchInterval: 10000 // Poll every 10 seconds for new messages
   });
 
-  // Fetch all contacts for new message dialog and contacts view
+  // Fetch all contacts for new message dialog, contacts view, and when a contact is selected
   const { data: allContacts = [], isLoading: contactsLoading } = useQuery<Contact[]>({
     queryKey: ['/api/contacts'],
-    enabled: isNewMessageDialogOpen || currentView === 'contacts'
+    enabled: isNewMessageDialogOpen || currentView === 'contacts' || !!selectedContactId
   });
 
   // Fetch thread for selected contact
@@ -363,6 +363,28 @@ export default function Inbox() {
 
   const selectedConversation = conversations.find(c => c.contact.id === selectedContactId);
 
+  // Create display conversations list that includes selected contact even if they have no messages
+  const displayConversations = useMemo(() => {
+    // If there's a selected contact that's not in conversations, add them
+    if (selectedContactId && !conversations.find(c => c.contact.id === selectedContactId)) {
+      // Find the contact in allContacts
+      const selectedContact = allContacts.find(c => c.id === selectedContactId);
+      if (selectedContact) {
+        // Add as a conversation with no messages
+        return [
+          {
+            contact: selectedContact,
+            lastMessage: '',
+            lastMessageAt: new Date(),
+            unreadCount: 0
+          } as Conversation,
+          ...conversations
+        ];
+      }
+    }
+    return conversations;
+  }, [conversations, selectedContactId, allContacts]);
+
   // Filter contacts based on search - only show contacts with phone numbers for SMS
   const filteredContacts = allContacts
     .filter(contact => contact.phone) // Only contacts with phone numbers
@@ -375,7 +397,7 @@ export default function Inbox() {
     });
 
   // Filter conversations based on search
-  const filteredConversations = conversations.filter(conversation => {
+  const filteredConversations = displayConversations.filter(conversation => {
     const searchLower = conversationSearch.toLowerCase();
     const fullName = `${conversation.contact.firstName} ${conversation.contact.lastName}`.toLowerCase();
     const message = conversation.lastMessage.toLowerCase();
@@ -652,11 +674,13 @@ export default function Inbox() {
                       
                       <div className="flex items-center gap-2 min-w-0">
                         <p className={`text-sm truncate flex-1 min-w-0 ${conversation.unreadCount > 0 ? 'text-foreground font-medium' : 'text-muted-foreground'}`} data-testid={`last-message-${conversation.contact.id}`}>
-                          {conversation.lastMessage || 'No messages'}
+                          {conversation.lastMessage || 'No messages yet'}
                         </p>
-                        <span className={`text-xs whitespace-nowrap ${conversation.unreadCount > 0 ? 'text-primary font-semibold' : 'text-muted-foreground'}`}>
-                          {formatTime(conversation.lastMessageAt)}
-                        </span>
+                        {conversation.lastMessage && (
+                          <span className={`text-xs whitespace-nowrap ${conversation.unreadCount > 0 ? 'text-primary font-semibold' : 'text-muted-foreground'}`}>
+                            {formatTime(conversation.lastMessageAt)}
+                          </span>
+                        )}
                       </div>
                     </div>
                   </div>
