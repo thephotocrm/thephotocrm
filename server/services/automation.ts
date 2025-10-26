@@ -1738,6 +1738,8 @@ async function processSubscriptionEmail(subscription: any, campaign: any, projec
 </body>
 </html>`;
       
+      console.log('📧 Final HTML lengths - Header:', headerHtml.length, 'Blocks:', rawBlocksHtml.length, 'Signature:', signatureHtml.length, 'Total:', htmlBody.length);
+      
     } catch (error) {
       console.error('Error parsing email blocks:', error);
       htmlBody = renderTemplate(emailToSend.htmlBody, variables);
