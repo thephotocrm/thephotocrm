@@ -1661,7 +1661,30 @@ async function processSubscriptionEmail(subscription: any, campaign: any, projec
 
   // Render email content
   const subject = renderTemplate(emailToSend.subject, variables);
-  let htmlBody = renderTemplate(emailToSend.htmlBody, variables);
+  let htmlBody: string;
+  
+  // If using email builder, convert email blocks to HTML
+  if (emailToSend.useEmailBuilder && emailToSend.emailBlocks) {
+    const { contentBlocksToHtml } = await import('../../shared/template-utils.js');
+    try {
+      const blocks = typeof emailToSend.emailBlocks === 'string' 
+        ? JSON.parse(emailToSend.emailBlocks) 
+        : emailToSend.emailBlocks;
+      htmlBody = contentBlocksToHtml(blocks, {
+        baseUrl: process.env.REPLIT_DEV_DOMAIN 
+          ? `https://${process.env.REPLIT_DEV_DOMAIN}`
+          : 'https://thephotocrm.com',
+        photographerToken: photographer?.publicToken
+      });
+    } catch (error) {
+      console.error('Error parsing email blocks:', error);
+      htmlBody = renderTemplate(emailToSend.htmlBody, variables);
+    }
+  } else {
+    // Use the raw HTML body for non-builder emails
+    htmlBody = renderTemplate(emailToSend.htmlBody, variables);
+  }
+  
   const textBody = renderTemplate(emailToSend.textBody || '', variables);
 
   // Apply email branding (headers and signatures) ONLY if NOT using email builder
