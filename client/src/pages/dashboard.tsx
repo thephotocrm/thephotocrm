@@ -180,7 +180,7 @@ export default function Dashboard() {
       </header>
 
       <div className="flex-1 overflow-auto">
-        <div className="p-4 md:p-6 space-y-6">
+        <div className="max-w-[1140px] mx-auto w-full p-4 md:p-6 space-y-6">
           {/* Top Stats Cards */}
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             {statCards.map((stat, index) => (
