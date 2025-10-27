@@ -1679,7 +1679,11 @@ export default function Automations() {
     delayDays: z.coerce.number().min(0).default(0),
     questionnaireTemplateId: z.string().optional(),
     // Pipeline automation fields (simplified - only target stage)
-    targetStageId: z.string().optional()
+    targetStageId: z.string().optional(),
+    // Email builder state fields (synced from React state for validation)
+    emailBuilderMode: z.enum(['select', 'build']).default('select').optional(),
+    customEmailSubject: z.string().optional(),
+    customEmailBlocks: z.any().optional() // Array of blocks
   }).refine(
     (data) => {
       // At least one automation type must be enabled
@@ -1706,6 +1710,9 @@ export default function Automations() {
         const hasQuestionnaire = data.questionnaireTemplateId && data.questionnaireTemplateId.length > 0 && data.questionnaireTemplateId !== "none" && data.questionnaireTemplateId !== "unavailable";
         const hasSmartFile = data.smartFileTemplateId && data.smartFileTemplateId.length > 0 && data.smartFileTemplateId !== "unavailable" && data.smartFileTemplateId !== "none";
         const hasCustomSms = data.customSmsContent && data.customSmsContent.length > 0;
+        const hasCustomEmailBuilder = data.emailBuilderMode === 'build' && 
+                                     data.customEmailSubject && data.customEmailSubject.trim().length > 0 &&
+                                     data.customEmailBlocks && Array.isArray(data.customEmailBlocks) && data.customEmailBlocks.length > 0;
         
         // For SMART_FILE channel, only smartFileTemplateId is required
         if (data.channel === 'SMART_FILE') {
@@ -1717,9 +1724,12 @@ export default function Automations() {
           if (!hasTemplate && !hasCustomSms && !hasQuestionnaire) {
             return false;
           }
+        } else if (data.channel === 'EMAIL') {
+          // For EMAIL, require template, questionnaire, OR custom email builder
+          if (!hasTemplate && !hasQuestionnaire && !hasCustomEmailBuilder) {
+            return false;
+          }
         }
-        // For EMAIL: validation happens in handleCreateAutomation where we have access to emailBuilderMode state
-        // We can't validate custom email builder here because emailBuilderMode/customEmailBlocks are state, not form data
       }
       // If pipeline is enabled, require target stage
       if (data.enablePipeline) {
@@ -1766,7 +1776,11 @@ export default function Automations() {
       questionnaireTemplateId: "",
       targetStageId: "",
       smsMessageType: "template",
-      customSmsContent: ""
+      customSmsContent: "",
+      // Email builder fields
+      emailBuilderMode: "select",
+      customEmailSubject: "",
+      customEmailBlocks: []
     }
   });
 
@@ -1838,6 +1852,13 @@ export default function Automations() {
     });
     return () => subscription.unsubscribe();
   }, [form, timingMode]);
+
+  // Sync email builder state into form for validation
+  useEffect(() => {
+    form.setValue('emailBuilderMode', emailBuilderMode);
+    form.setValue('customEmailSubject', customEmailSubject);
+    form.setValue('customEmailBlocks', customEmailBlocks);
+  }, [emailBuilderMode, customEmailSubject, customEmailBlocks, form]);
 
   // Populate edit form when editing automation changes
   useEffect(() => {
@@ -2543,7 +2564,10 @@ export default function Automations() {
         return hasTemplate || hasCustom;
       } else if (channel === 'EMAIL') {
         const hasTemplate = form.watch('templateId') && form.watch('templateId') !== 'unavailable';
-        const hasCustom = emailBuilderMode === 'build' && customEmailBlocks.length > 0 && customEmailSubject.trim().length > 0;
+        const builderMode = form.watch('emailBuilderMode');
+        const blocks = form.watch('customEmailBlocks');
+        const subject = form.watch('customEmailSubject');
+        const hasCustom = builderMode === 'build' && blocks && Array.isArray(blocks) && blocks.length > 0 && subject && subject.trim().length > 0;
         return hasTemplate || hasCustom;
       }
     }
