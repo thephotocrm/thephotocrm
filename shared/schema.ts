@@ -1358,8 +1358,18 @@ export const insertAutomationSchema = createInsertSchema(automations).omit({
 export const validateAutomationSchema = insertAutomationSchema.refine(
   (data) => {
     if (data.automationType === 'COMMUNICATION') {
-      // Communication automations require stageId and either channel (for messaging) or questionnaireTemplateId (for questionnaire assignment)
-      return data.stageId !== undefined && (data.channel !== undefined || data.questionnaireTemplateId !== undefined);
+      // Communication automations require stageId and either:
+      // 1. channel (for messaging - EMAIL/SMS with templateId OR custom email blocks)
+      // 2. questionnaireTemplateId (for questionnaire assignment)
+      const hasChannel = data.channel !== undefined;
+      const hasQuestionnaire = data.questionnaireTemplateId !== undefined;
+      
+      // If using custom email builder, validate email blocks are present
+      if (hasChannel && data.useEmailBuilder) {
+        return data.stageId !== undefined && data.emailBlocks !== undefined && data.emailSubject !== undefined;
+      }
+      
+      return data.stageId !== undefined && (hasChannel || hasQuestionnaire);
     }
     if (data.automationType === 'STAGE_CHANGE') {
       // Pipeline automations require triggerType and targetStageId

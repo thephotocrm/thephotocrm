@@ -2014,8 +2014,22 @@ export default function Automations() {
             channel: data.channel,
             templateId: data.templateId && data.templateId !== "unavailable" ? data.templateId : null,
             questionnaireTemplateId: data.questionnaireTemplateId && data.questionnaireTemplateId !== "unavailable" && data.questionnaireTemplateId !== "none" ? data.questionnaireTemplateId : null,
-            eventDateCondition: data.eventDateCondition || null
+            eventDateCondition: data.eventDateCondition || null,
+            smartFileTemplateId: (data as any).smartFileTemplateId && (data as any).smartFileTemplateId !== "unavailable" && (data as any).smartFileTemplateId !== "none" ? (data as any).smartFileTemplateId : null
           };
+          
+          // Include custom email builder data if present
+          if ((data as any).useEmailBuilder) {
+            commAutomationData.useEmailBuilder = true;
+            commAutomationData.emailSubject = (data as any).emailSubject;
+            commAutomationData.emailBlocks = (data as any).emailBlocks;
+            commAutomationData.includeHeroImage = (data as any).includeHeroImage;
+            commAutomationData.heroImageUrl = (data as any).heroImageUrl;
+            commAutomationData.includeHeader = (data as any).includeHeader;
+            commAutomationData.headerStyle = (data as any).headerStyle;
+            commAutomationData.includeSignature = (data as any).includeSignature;
+            commAutomationData.signatureStyle = (data as any).signatureStyle;
+          }
           
           // Add stageCondition for business event triggers
           if (data.triggerMode === 'BUSINESS' && data.stageCondition && data.stageCondition !== 'all') {
