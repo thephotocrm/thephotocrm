@@ -404,7 +404,7 @@ export default function Inbox() {
           </svg>
         </div>
 
-        <div className="flex-1 flex flex-col overflow-hidden w-full max-w-none md:max-w-[1140px] px-0 md:px-8 pt-0 md:pt-6 pb-0 md:pb-8 gap-0 md:gap-4 relative z-10">
+        <div className="flex-1 flex flex-col md:overflow-hidden w-full max-w-none md:max-w-[1140px] px-0 md:px-8 pt-0 md:pt-6 pb-0 md:pb-8 gap-0 md:gap-4 relative z-10">
           {/* Action Bar - Desktop Only */}
           <div className="shrink-0 hidden md:flex items-center justify-end">
             <Dialog open={isNewMessageDialogOpen} onOpenChange={setIsNewMessageDialogOpen}>
@@ -467,7 +467,7 @@ export default function Inbox() {
           </div>
 
           {/* Two Column Layout - Connected Design */}
-          <div className="flex-1 flex flex-col md:flex-row overflow-hidden bg-card border rounded-2xl max-h-[759px] shadow-[0_20px_60px_rgb(0,0,0,0.15),0_8px_25px_rgb(0,0,0,0.1),0_2px_8px_rgb(0,0,0,0.08)] dark:shadow-[0_20px_60px_rgb(0,0,0,0.5),0_8px_25px_rgb(0,0,0,0.4),0_2px_8px_rgb(0,0,0,0.3)]">
+          <div className="flex-1 flex flex-col md:flex-row md:overflow-hidden bg-card border rounded-2xl md:max-h-[759px] shadow-[0_20px_60px_rgb(0,0,0,0.15),0_8px_25px_rgb(0,0,0,0.1),0_2px_8px_rgb(0,0,0,0.08)] dark:shadow-[0_20px_60px_rgb(0,0,0,0.5),0_8px_25px_rgb(0,0,0,0.4),0_2px_8px_rgb(0,0,0,0.3)]">
             {/* Conversation List */}
             <div className={`w-full md:w-96 md:h-full border-r flex flex-col overflow-hidden relative ${isMobileThreadView ? 'hidden md:flex' : 'flex'}`}>
               {/* Inbox Header */}
@@ -618,7 +618,7 @@ export default function Inbox() {
             </div>
 
             {/* Message Thread */}
-            <div className={`flex-1 flex flex-col overflow-hidden ${!isMobileThreadView ? 'hidden md:flex' : 'flex'}`}>
+            <div className={`flex-1 flex flex-col md:overflow-hidden ${!isMobileThreadView ? 'hidden md:flex' : 'flex'}`}>
           {!selectedContactId ? (
             <div className="flex-1 flex items-center justify-center text-muted-foreground bg-gradient-to-br from-background to-muted/20">
               <div className="text-center p-8">
@@ -663,7 +663,7 @@ export default function Inbox() {
               </div>
 
               {/* Messages */}
-              <ScrollArea className="flex-1 p-4 bg-blue-50/70 dark:bg-blue-950/40">
+              <ScrollArea className="flex-1 p-4 bg-blue-50/70 dark:bg-blue-950/40" style={{ paddingBottom: 'calc(80px + env(safe-area-inset-bottom, 0px))' }}>
                 {threadLoading ? (
                   <div className="text-center text-muted-foreground">Loading messages...</div>
                 ) : thread.length === 0 ? (
@@ -769,7 +769,7 @@ export default function Inbox() {
               </ScrollArea>
 
               {/* Message Composer */}
-              <div className="shrink-0 p-3 bg-blue-50/70 dark:bg-blue-950/40">
+              <div className="shrink-0 bg-blue-50/70 dark:bg-blue-950/40 sticky bottom-0 md:static p-3 md:p-3" style={{ paddingBottom: 'calc(12px + env(safe-area-inset-bottom, 0px))' }}>
                 {selectedImage && (
                   <div className="mb-2 mx-3 relative inline-block">
                     <img src={selectedImage} alt="Preview" className="max-h-32 rounded-xl border" />
