@@ -1706,6 +1706,7 @@ export default function Automations() {
         const hasQuestionnaire = data.questionnaireTemplateId && data.questionnaireTemplateId.length > 0 && data.questionnaireTemplateId !== "none" && data.questionnaireTemplateId !== "unavailable";
         const hasSmartFile = data.smartFileTemplateId && data.smartFileTemplateId.length > 0 && data.smartFileTemplateId !== "unavailable";
         const hasCustomSms = data.customSmsContent && data.customSmsContent.length > 0;
+        const hasCustomEmailBuilder = emailBuilderMode === 'build' && customEmailBlocks.length > 0 && customEmailSubject.trim().length > 0;
         
         // For SMART_FILE channel, only smartFileTemplateId is required
         if (data.channel === 'SMART_FILE') {
@@ -1718,8 +1719,8 @@ export default function Automations() {
             return false;
           }
         } else {
-          // For EMAIL, require template or questionnaire
-          if (!hasTemplate && !hasQuestionnaire) {
+          // For EMAIL, require template, questionnaire, or custom email builder
+          if (!hasTemplate && !hasQuestionnaire && !hasCustomEmailBuilder) {
             return false;
           }
         }
