@@ -34,7 +34,6 @@ import { SignaturePad } from "@/components/signature-pad";
 import { ContractRenderer } from "@/components/contract-renderer";
 import { parseContractVariables } from "@shared/contractVariables";
 import { SchedulingCalendar } from "@/components/scheduling-calendar";
-import { ChatbotWidget } from "@/components/chatbot-widget";
 
 type ImageContent = {
   url: string;
@@ -2436,11 +2435,6 @@ export default function PublicSmartFile() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      
-      <ChatbotWidget 
-        context="smart-file" 
-        photographerName={data.photographer.businessName}
-      />
     </div>
   );
 }
