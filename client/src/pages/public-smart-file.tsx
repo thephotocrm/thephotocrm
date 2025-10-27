@@ -193,6 +193,11 @@ export default function PublicSmartFile() {
     }
   }, [data, freshPackages, freshAddOns, currentPageIndex]);
 
+  // Scroll to top when page index changes
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [currentPageIndex]);
+
   // Helper function to merge fresh package and add-on data with page snapshots
   const getMergedPages = () => {
     if (!data || !freshPackages || !freshAddOns) return data?.smartFile.pages || [];
