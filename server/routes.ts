@@ -8176,10 +8176,6 @@ ${photographer.businessName}`
         return res.status(404).json({ message: "Project not found" });
       }
 
-      if (!project.galleryUrl) {
-        return res.status(400).json({ message: "No gallery URL set for this project" });
-      }
-
       await storage.updateProject(projectId, {
         isPublicGallery: isPublic
       });
@@ -9813,11 +9809,11 @@ ${photographer.businessName}
         return res.status(404).json({ message: "Photographer not found" });
       }
 
-      // Get all projects with galleries that are marked as public
+      // Get all projects with galleries that are marked as public (demo or real)
       const projects = await storage.getProjectsByPhotographer(photographer.id);
       
       const publicGalleries = projects
-        .filter((project: any) => project.galleryUrl && project.isPublicGallery)
+        .filter((project: any) => project.isPublicGallery)
         .map((project: any) => ({
           id: project.id,
           title: project.title,

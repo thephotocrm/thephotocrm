@@ -130,16 +130,9 @@ export default function PublicGalleries() {
               
               {/* Masonry/Mosaic Grid Layout */}
               <div className="columns-1 md:columns-2 lg:columns-3 xl:columns-4 gap-4 space-y-4">
-                {filteredGalleries.map((gallery) => (
-                  <a
-                    key={gallery.id}
-                    href={gallery.galleryUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="block break-inside-avoid mb-4"
-                    data-testid={`gallery-card-${gallery.id}`}
-                  >
-                    <Card className="hover:shadow-xl transition-all duration-300 group cursor-pointer">
+                {filteredGalleries.map((gallery) => {
+                  const GalleryCard = (
+                    <Card className={`hover:shadow-xl transition-all duration-300 group ${gallery.galleryUrl ? 'cursor-pointer' : ''}`}>
                       <div className="relative overflow-hidden">
                         {/* Varying height based on tile size */}
                         <div 
@@ -151,13 +144,15 @@ export default function PublicGalleries() {
                         >
                           <Images className="w-12 h-12 text-purple-400 opacity-50" />
                         </div>
-                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100">
-                          <ExternalLink className="w-8 h-8 text-white" />
-                        </div>
+                        {gallery.galleryUrl && (
+                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100">
+                            <ExternalLink className="w-8 h-8 text-white" />
+                          </div>
+                        )}
                       </div>
                       <CardContent className="p-4">
                         <h3 
-                          className="font-semibold text-lg mb-1 group-hover:text-purple-600 transition-colors" 
+                          className={`font-semibold text-lg mb-1 transition-colors ${gallery.galleryUrl ? 'group-hover:text-purple-600' : ''}`}
                           data-testid={`gallery-title-${gallery.id}`}
                         >
                           {gallery.title}
@@ -184,8 +179,29 @@ export default function PublicGalleries() {
                         </div>
                       </CardContent>
                     </Card>
-                  </a>
-                ))}
+                  );
+
+                  return gallery.galleryUrl ? (
+                    <a
+                      key={gallery.id}
+                      href={gallery.galleryUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block break-inside-avoid mb-4"
+                      data-testid={`gallery-card-${gallery.id}`}
+                    >
+                      {GalleryCard}
+                    </a>
+                  ) : (
+                    <div
+                      key={gallery.id}
+                      className="block break-inside-avoid mb-4"
+                      data-testid={`gallery-card-${gallery.id}`}
+                    >
+                      {GalleryCard}
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}
