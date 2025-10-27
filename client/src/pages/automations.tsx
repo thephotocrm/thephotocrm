@@ -3745,12 +3745,15 @@ export default function Automations() {
                         </Button>
                       ) : (
                         <Button 
-                          type="submit" 
+                          type="button"
                           disabled={createAutomationMutation.isPending}
-                          onClick={() => {
-                            console.log('🔍 Submit button clicked');
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            console.log('🔍 Create button explicitly clicked');
                             console.log('Form errors:', form.formState.errors);
                             console.log('Form values:', form.getValues());
+                            form.handleSubmit(handleCreateAutomation)(e);
                           }}
                           data-testid="button-submit-automation"
                         >
