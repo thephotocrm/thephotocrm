@@ -659,6 +659,7 @@ export default function Inbox() {
               </div>
             </div>
           ) : (
+              <>
               {/* Thread Header */}
               <div className="px-4 py-2 border-b flex items-center gap-2">
                 <Button
@@ -887,10 +888,12 @@ export default function Inbox() {
                   </div>
                 )}
               </div>
-            </div>
+            </>
+          )}
           </div>
         </div>
       </div>
     </div>
+  </div>
   );
 }
