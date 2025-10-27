@@ -35,17 +35,7 @@ import {
 } from "@/components/ui/table";
 
 import { type ContactWithProjects } from "@shared/schema";
-
-// Helper function for consistent client card styling - using blue theme
-const getClientColor = () => {
-  return 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-900';
-};
-
-const getInitials = (firstName: string, lastName: string) => {
-  const firstInitial = firstName?.charAt(0) || '';
-  const lastInitial = lastName?.charAt(0) || '';
-  return firstInitial && lastInitial ? `${firstInitial}${lastInitial}`.toUpperCase() : firstInitial.toUpperCase() || '?';
-};
+import { getAvatarColor, getInitials } from "@/lib/avatar-utils";
 
 export default function Contacts() {
   const { user, loading } = useAuth();
@@ -435,7 +425,7 @@ export default function Contacts() {
                       {/* Contact Header with Avatar */}
                       <div className="flex items-start justify-between">
                         <div className="flex items-center space-x-3">
-                          <div className={`w-10 h-10 rounded-full border flex items-center justify-center text-sm font-semibold ${getClientColor()}`}>
+                          <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold text-white ${getAvatarColor(client.id)}`}>
                             {getInitials(client.firstName, client.lastName)}
                           </div>
                           <div>
