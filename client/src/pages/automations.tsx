@@ -3692,6 +3692,11 @@ export default function Automations() {
                         <Button 
                           type="submit" 
                           disabled={createAutomationMutation.isPending}
+                          onClick={() => {
+                            console.log('🔍 Submit button clicked');
+                            console.log('Form errors:', form.formState.errors);
+                            console.log('Form values:', form.getValues());
+                          }}
                           data-testid="button-submit-automation"
                         >
                       {createAutomationMutation.isPending 
