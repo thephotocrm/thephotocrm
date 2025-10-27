@@ -153,6 +153,12 @@ export async function processAutomations(photographerId: string): Promise<void> 
 }
 
 async function processCommunicationAutomation(automation: any, photographerId: string): Promise<void> {
+  // Check if this is a custom email builder automation
+  if (automation.useEmailBuilder && automation.emailBlocks) {
+    await processEmailBuilderAutomation(automation, photographerId);
+    return;
+  }
+
   // Get automation steps for communication (email/SMS)
   const steps = await db
     .select()
@@ -198,6 +204,233 @@ async function processCommunicationAutomation(automation: any, photographerId: s
     // Process questionnaire assignment if configured
     if (automation.questionnaireTemplateId) {
       await processQuestionnaireAssignment(project, automation, photographerId);
+    }
+  }
+}
+
+async function processEmailBuilderAutomation(automation: any, photographerId: string): Promise<void> {
+  console.log(`📧 Processing email builder automation: ${automation.name}`);
+  
+  // Get projects in this stage with automations enabled
+  const projectsInStage = await db
+    .select({
+      id: projects.id,
+      contactId: projects.clientId,
+      stageEnteredAt: projects.stageEnteredAt,
+      eventDate: projects.eventDate,
+      smsOptIn: contacts.smsOptIn,
+      emailOptIn: contacts.emailOptIn,
+      photographerId: projects.photographerId,
+      // Contact details
+      firstName: contacts.firstName,
+      lastName: contacts.lastName,
+      email: contacts.email,
+      phone: contacts.phone
+    })
+    .from(projects)
+    .innerJoin(contacts, eq(projects.clientId, contacts.id))
+    .where(and(
+      eq(projects.photographerId, photographerId),
+      eq(projects.stageId, automation.stageId!),
+      eq(projects.enableAutomations, true) // Only process projects with automations enabled
+    ));
+    
+  console.log(`Email builder automation "${automation.name}" (${automation.id}) - found ${projectsInStage.length} projects in stage`);
+
+  for (const project of projectsInStage) {
+    try {
+      console.log(`Processing email builder step for contact ${project.firstName} ${project.lastName} (${project.email})`);
+      
+      // Check email opt-in
+      if (!project.emailOptIn) {
+        console.log(`📧 Email opt-in missing for ${project.firstName} ${project.lastName}, skipping (no reservation)`);
+        continue;
+      }
+      
+      // Check email address exists
+      if (!project.email) {
+        console.log(`📧 No email address for ${project.firstName} ${project.lastName}, skipping (no reservation)`);
+        continue;
+      }
+      
+      // Check stage entry date
+      if (!project.stageEnteredAt) {
+        console.log(`❌ No stageEnteredAt date for contact ${project.firstName} ${project.lastName}, skipping`);
+        continue;
+      }
+      
+      // Calculate timing (immediate = 0 delay)
+      const stageEnteredAt = new Date(project.stageEnteredAt);
+      const delayMinutes = 0; // Immediate for now, can be extended later
+      const shouldSendAt = new Date(stageEnteredAt.getTime() + (delayMinutes * 60 * 1000));
+      const now = new Date();
+      
+      // Check if it's time to send
+      if (now < shouldSendAt) {
+        console.log(`⏰ Too early to send for ${project.firstName} ${project.lastName}. Should send at: ${shouldSendAt}, now: ${now}`);
+        continue;
+      }
+      
+      // Reserve execution atomically
+      const reservation = await reserveAutomationExecution(
+        project.id,
+        automation.id,
+        'COMMUNICATION',
+        'EMAIL'
+      );
+      
+      if (!reservation.canExecute) {
+        console.log(`🔒 Automation already reserved/executed for ${project.firstName} ${project.lastName}, prevented duplicate (bulletproof reservation)`);
+        continue;
+      }
+      
+      // Get photographer info for branding and variables
+      const [photographer] = await db
+        .select()
+        .from(photographers)
+        .where(eq(photographers.id, project.photographerId));
+      
+      if (!photographer) {
+        console.log(`❌ Photographer not found for ${project.photographerId}`);
+        await updateExecutionStatus(reservation.executionId!, 'FAILED');
+        continue;
+      }
+      
+      // Parse email blocks
+      let emailBlocks: any[];
+      try {
+        emailBlocks = typeof automation.emailBlocks === 'string' 
+          ? JSON.parse(automation.emailBlocks) 
+          : automation.emailBlocks;
+      } catch (error) {
+        console.error(`❌ Failed to parse emailBlocks for automation ${automation.name}:`, error);
+        await updateExecutionStatus(reservation.executionId!, 'FAILED');
+        continue;
+      }
+      
+      // Check for Smart File links in buttons and create Smart File if needed
+      const baseUrl = process.env.REPLIT_DEV_DOMAIN 
+        ? `https://${process.env.REPLIT_DEV_DOMAIN}`
+        : 'https://thephotocrm.com';
+      
+      let smartFileToken: string | undefined;
+      
+      // Check if any button has a SMART_FILE link type
+      for (const block of emailBlocks) {
+        if (block.type === 'BUTTON' && block.content?.linkType === 'SMART_FILE' && block.content?.linkValue) {
+          // Create a project Smart File from the template
+          const smartFileTemplateId = block.content.linkValue;
+          
+          // Check if Smart File already exists for this project
+          const existingProjectSmartFile = await db
+            .select()
+            .from(projectSmartFiles)
+            .where(and(
+              eq(projectSmartFiles.projectId, project.id),
+              eq(projectSmartFiles.smartFileTemplateId, smartFileTemplateId)
+            ))
+            .limit(1);
+          
+          if (existingProjectSmartFile.length > 0) {
+            smartFileToken = existingProjectSmartFile[0].token;
+            console.log(`📄 Using existing Smart File token: ${smartFileToken}`);
+          } else {
+            // Create new project Smart File
+            const token = `sf_${Math.random().toString(36).substring(2, 15)}`;
+            await db.insert(projectSmartFiles).values({
+              projectId: project.id,
+              smartFileTemplateId,
+              token,
+              status: 'PENDING'
+            });
+            smartFileToken = token;
+            console.log(`📄 Created new Smart File with token: ${smartFileToken}`);
+          }
+          
+          break; // Only need one Smart File per automation
+        }
+      }
+      
+      // Import utilities
+      const { contentBlocksToHtml, renderTemplate: renderTemplateFn } = await import('@shared/template-utils');
+      const { wrapEmailContent } = await import('./email-branding');
+      
+      // Build HTML from blocks with Smart File context
+      const blocksHtml = contentBlocksToHtml(emailBlocks as any[], {
+        smartFileToken,
+        baseUrl,
+        includeWrapper: false // Don't include wrapper, branding will add it
+      });
+      
+      // Prepare variables for template rendering
+      const formatEventDate = (dateValue: any): string => {
+        if (!dateValue) return 'Not set';
+        try {
+          const date = new Date(dateValue);
+          if (isNaN(date.getTime())) return 'Not set';
+          return date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+        } catch (error) {
+          return 'Not set';
+        }
+      };
+      
+      const variables = {
+        firstName: project.firstName,
+        lastName: project.lastName,
+        fullName: `${project.firstName} ${project.lastName}`,
+        email: project.email || '',
+        phone: project.phone || '',
+        businessName: photographer?.businessName || 'Your Photographer',
+        photographerName: photographer?.photographerName || photographer?.businessName || 'Your Photographer',
+        eventDate: formatEventDate(project.eventDate),
+        weddingDate: formatEventDate(project.eventDate),
+        first_name: project.firstName,
+        last_name: project.lastName,
+        full_name: `${project.firstName} ${project.lastName}`,
+        business_name: photographer?.businessName || 'Your Photographer',
+        photographer_name: photographer?.photographerName || photographer?.businessName || 'Your Photographer',
+        event_date: formatEventDate(project.eventDate),
+        wedding_date: formatEventDate(project.eventDate),
+        smart_file_link: smartFileToken ? `${baseUrl}/smart-file/${smartFileToken}` : ''
+      };
+      
+      // Render variables in HTML
+      let renderedHtml = renderTemplateFn(blocksHtml, variables);
+      
+      // Render subject line
+      const subject = automation.emailSubject || 'New Message';
+      const renderedSubject = renderTemplateFn(subject, variables);
+      
+      // Apply email branding (header/signature)
+      const brandedHtml = await wrapEmailContent(
+        renderedHtml,
+        photographer.id,
+        {
+          includeHeader: automation.includeHeader || false,
+          headerStyle: automation.headerStyle || 'minimal',
+          includeSignature: automation.includeSignature !== false, // Default true
+          signatureStyle: automation.signatureStyle || 'professional'
+        }
+      );
+      
+      // Send email
+      try {
+        await sendEmail(
+          project.email,
+          renderedSubject,
+          brandedHtml,
+          photographer.id,
+          'AUTOMATION'
+        );
+        
+        console.log(`✅ Email sent successfully to ${project.firstName} ${project.lastName}`);
+        await updateExecutionStatus(reservation.executionId!, 'SUCCESS');
+      } catch (error) {
+        console.error(`❌ Failed to send email to ${project.firstName} ${project.lastName}:`, error);
+        await updateExecutionStatus(reservation.executionId!, 'FAILED');
+      }
+    } catch (error) {
+      console.error(`❌ Error processing email builder for ${project.firstName} ${project.lastName}:`, error);
     }
   }
 }
