@@ -4747,21 +4747,21 @@ ${photographer?.businessName || 'Your Photography Team'}`;
         endAt,
         status: 'CONFIRMED',
         bookingType: project.projectType || 'CONSULTATION',
-        clientEmail: contact.email || undefined,
-        clientPhone: contact.phone || undefined,
-        clientName: `${contact.firstName} ${contact.lastName}`
+        clientEmail: client.email || undefined,
+        clientPhone: client.phone || undefined,
+        clientName: `${client.firstName} ${client.lastName}`
       });
 
       // Create Google Calendar event (if photographer has Google Calendar connected)
       try {
         const { createBookingCalendarEvent } = await import('./services/calendar');
         const calendarResult = await createBookingCalendarEvent(project.photographerId, {
-          title: `${projectSmartFile.smartFileName} - ${contact.firstName} ${contact.lastName}`,
-          description: `Client: ${contact.firstName} ${contact.lastName}\nProject: ${project.title}\nSmart File: ${projectSmartFile.smartFileName}`,
+          title: `${projectSmartFile.smartFileName} - ${client.firstName} ${client.lastName}`,
+          description: `Client: ${client.firstName} ${client.lastName}\nProject: ${project.title}\nSmart File: ${projectSmartFile.smartFileName}`,
           startTime: bookingDate,
           endTime: endAt,
-          clientEmail: contact.email,
-          clientName: `${contact.firstName} ${contact.lastName}`
+          clientEmail: client.email,
+          clientName: `${client.firstName} ${client.lastName}`
         });
 
         if (calendarResult.success && calendarResult.eventId && calendarResult.meetLink) {
@@ -4815,7 +4815,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
 
       // Send confirmation email to client
       try {
-        if (contact.email) {
+        if (client.email) {
           const { sendEmail } = await import('./services/email');
           const photographer = await storage.getPhotographer(project.photographerId);
           
@@ -4838,7 +4838,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
           const emailHtml = `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
               <h2 style="color: #2563eb;">Appointment Confirmed!</h2>
-              <p>Hi ${contact.firstName},</p>
+              <p>Hi ${client.firstName},</p>
               <p>Your appointment has been successfully scheduled.</p>
               <div style="background-color: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
                 <h3 style="margin-top: 0; color: #1f2937;">Appointment Details</h3>
@@ -4861,11 +4861,11 @@ ${photographer?.businessName || 'Your Photography Team'}`;
           `;
 
           await sendEmail({
-            to: contact.email,
+            to: client.email,
             subject: `Appointment Confirmed - ${formattedDate}`,
             html: emailHtml,
             photographerId: project.photographerId,
-            clientId: contact.id,
+            clientId: client.id,
             projectId: project.id,
             source: 'MANUAL'
           });
