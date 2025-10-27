@@ -3376,7 +3376,7 @@ export default function Automations() {
                             </FormControl>
                             <SelectContent>
                               {form.watch('channel') === 'EMAIL' && (
-                                <SelectItem value="">No Smart File</SelectItem>
+                                <SelectItem value="none">No Smart File</SelectItem>
                               )}
                               {smartFiles?.map((smartFile: any) => (
                                 <SelectItem key={smartFile.id} value={smartFile.id}>
