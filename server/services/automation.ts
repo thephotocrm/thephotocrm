@@ -321,13 +321,18 @@ async function processEmailBuilderAutomation(automation: any, photographerId: st
           // Create a project Smart File from the template
           const smartFileTemplateId = block.content.linkValue;
           
+          if (!smartFileTemplateId) {
+            console.error(`❌ Smart File linkValue is null or undefined in button block`);
+            continue;
+          }
+          
           // Check if Smart File already exists for this project
           const existingProjectSmartFile = await db
             .select()
             .from(projectSmartFiles)
             .where(and(
               eq(projectSmartFiles.projectId, project.id),
-              eq(projectSmartFiles.smartFileTemplateId, smartFileTemplateId)
+              eq(projectSmartFiles.smartFileId, smartFileTemplateId)
             ))
             .limit(1);
           
@@ -335,13 +340,37 @@ async function processEmailBuilderAutomation(automation: any, photographerId: st
             smartFileToken = existingProjectSmartFile[0].token;
             console.log(`📄 Using existing Smart File token: ${smartFileToken}`);
           } else {
-            // Create new project Smart File
+            // Fetch smart file template to get its name and pages
+            const [smartFileTemplate] = await db
+              .select()
+              .from(smartFiles)
+              .where(eq(smartFiles.id, smartFileTemplateId))
+              .limit(1);
+            
+            if (!smartFileTemplate) {
+              console.error(`❌ Smart File template not found: ${smartFileTemplateId}`);
+              continue;
+            }
+            
+            // Get pages for this smart file
+            const pages = await db
+              .select()
+              .from(smartFilePages)
+              .where(eq(smartFilePages.smartFileId, smartFileTemplateId))
+              .orderBy(smartFilePages.pageOrder);
+            
+            // Create new project Smart File with all required fields
             const token = `sf_${Math.random().toString(36).substring(2, 15)}`;
-            await db.insert(projectSmartFiles).values({
+            await storage.createProjectSmartFile({
               projectId: project.id,
-              smartFileTemplateId,
+              smartFileId: smartFileTemplateId,
+              photographerId: project.photographerId,
+              clientId: project.contactId,
+              smartFileName: smartFileTemplate.name,
+              pagesSnapshot: pages,
               token,
-              status: 'PENDING'
+              status: 'SENT',
+              sentAt: new Date()
             });
             smartFileToken = token;
             console.log(`📄 Created new Smart File with token: ${smartFileToken}`);
@@ -401,16 +430,27 @@ async function processEmailBuilderAutomation(automation: any, photographerId: st
       const subject = automation.emailSubject || 'New Message';
       const renderedSubject = renderTemplateFn(subject, variables);
       
+      // Prepare branding data
+      const brandingData = {
+        businessName: photographer.businessName || undefined,
+        photographerName: photographer.photographerName || undefined,
+        logoUrl: photographer.logoUrl || undefined,
+        headshotUrl: photographer.headshotUrl || undefined,
+        brandPrimary: photographer.brandPrimary || undefined,
+        brandSecondary: photographer.brandSecondary || undefined,
+        phone: photographer.phone || undefined,
+        email: photographer.email || undefined,
+        website: photographer.website || undefined,
+        businessAddress: photographer.businessAddress || undefined,
+        socialLinks: (photographer.socialLinksJson as any) || undefined
+      };
+      
       // Apply email branding (header/signature)
-      const brandedHtml = await wrapEmailContent(
+      const brandedHtml = wrapEmailContent(
         renderedHtml,
-        photographer.id,
-        {
-          includeHeader: automation.includeHeader || false,
-          headerStyle: automation.headerStyle || 'minimal',
-          includeSignature: automation.includeSignature !== false, // Default true
-          signatureStyle: automation.signatureStyle || 'professional'
-        }
+        automation.includeHeader ? (automation.headerStyle || 'minimal') : null,
+        automation.includeSignature !== false ? (automation.signatureStyle || 'professional') : null,
+        brandingData
       );
       
       // Send email
