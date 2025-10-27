@@ -769,7 +769,7 @@ export default function Inbox() {
               </ScrollArea>
 
               {/* Message Composer */}
-              <div className="shrink-0 p-3 bg-blue-50/70 dark:bg-blue-950/40">
+              <div className="shrink-0 p-3 bg-blue-50/70 dark:bg-blue-950/40" style={{ paddingBottom: 'calc(0.75rem + env(safe-area-inset-bottom, 0px))' }}>
                 {selectedImage && (
                   <div className="mb-2 mx-3 relative inline-block">
                     <img src={selectedImage} alt="Preview" className="max-h-32 rounded-xl border" />
