@@ -337,6 +337,7 @@ export const automations = pgTable("automations", {
   eventType: text("event_type"), // event_date, session_date, delivery_date, etc. - which project date field to use
   stageCondition: varchar("stage_condition").references(() => stages.id), // Optional stage filter for countdown automations
   templateId: varchar("template_id").references(() => templates.id), // Template for countdown automations
+  smartFileTemplateId: varchar("smart_file_template_id").references(() => smartFiles.id), // Smart File template to include in email or send directly
   // Questionnaire assignment fields (for communication automations)
   questionnaireTemplateId: varchar("questionnaire_template_id").references(() => questionnaireTemplates.id),
   // Custom email builder fields (alternative to templateId)

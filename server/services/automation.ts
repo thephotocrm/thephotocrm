@@ -713,9 +713,76 @@ async function processAutomationStep(contact: any, step: any, automation: any): 
       await updateExecutionStatus(reservation.executionId!, success ? 'SUCCESS' : 'FAILED');
 
     } else if (actionType === 'EMAIL' && template && contact.email) {
-    const subject = renderTemplate(template.subject || '', variables);
-    const htmlBody = renderTemplate(template.htmlBody || '', variables);
-    const textBody = renderTemplate(template.textBody || '', variables);
+    // Check if automation includes a Smart File template
+    let smartFileLink = '';
+    if (automation.smartFileTemplateId) {
+      console.log(`📄 Automation includes Smart File template: ${automation.smartFileTemplateId}`);
+      
+      // Fetch the Smart File template
+      const [sfTemplate] = await db
+        .select()
+        .from(smartFiles)
+        .where(and(
+          eq(smartFiles.id, automation.smartFileTemplateId),
+          eq(smartFiles.photographerId, contact.photographerId)
+        ));
+      
+      if (sfTemplate) {
+        console.log(`📄 Creating Smart File "${sfTemplate.name}" for email automation...`);
+        
+        // Generate unique token for the Smart File
+        const generateToken = () => {
+          const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+          let token = '';
+          for (let i = 0; i < 32; i++) {
+            token += chars.charAt(Math.floor(Math.random() * chars.length));
+          }
+          return token;
+        };
+
+        const token = generateToken();
+        const baseUrl = process.env.REPLIT_DEV_DOMAIN 
+          ? `https://${process.env.REPLIT_DEV_DOMAIN}`
+          : 'https://thephotocrm.com';
+        
+        // Fetch template pages for snapshot
+        const templatePages = await db
+          .select()
+          .from(smartFilePages)
+          .where(eq(smartFilePages.smartFileId, sfTemplate.id))
+          .orderBy(smartFilePages.pageOrder);
+        
+        // Create project Smart File
+        const projectSmartFile = await storage.createProjectSmartFile({
+          projectId: contact.id,
+          smartFileId: sfTemplate.id,
+          photographerId: contact.photographerId,
+          contactId: contact.contactId,
+          smartFileName: sfTemplate.name,
+          pagesSnapshot: templatePages,
+          token,
+          status: 'DRAFT',
+          depositPercent: sfTemplate.defaultDepositPercent || 50
+        });
+
+        smartFileLink = `${baseUrl}/smart-file/${token}`;
+        console.log(`📄 Smart File created with link: ${smartFileLink}`);
+      } else {
+        console.log(`⚠️ Smart File template not found: ${automation.smartFileTemplateId}`);
+      }
+    }
+    
+    // Add Smart File link to variables if available
+    const emailVariables = {
+      ...variables,
+      smart_file_link: smartFileLink,
+      smartFileLink: smartFileLink,
+      SMART_FILE_LINK: smartFileLink
+    };
+    
+    const subject = renderTemplate(template.subject || '', emailVariables);
+    const htmlBody = renderTemplate(template.htmlBody || '', emailVariables);
+    const textBody = renderTemplate(template.textBody || '', emailVariables);
 
     console.log(`📧 Sending email to ${contact.firstName} ${contact.lastName} (${contact.email})...`);
     

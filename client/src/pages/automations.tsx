@@ -2234,6 +2234,11 @@ export default function Automations() {
       }
     }
     
+    // Normalize smartFileTemplateId: convert empty string to null/undefined
+    if (data.smartFileTemplateId === '' || data.smartFileTemplateId === 'none') {
+      (data as any).smartFileTemplateId = undefined;
+    }
+    
     createAutomationMutation.mutate(data);
   };
 
@@ -3342,20 +3347,37 @@ export default function Automations() {
                     </div>
                   )}
 
-                  {form.watch('channel') === 'SMART_FILE' && (
+                  {(form.watch('channel') === 'SMART_FILE' || form.watch('channel') === 'EMAIL') && (
                     <FormField
                       control={form.control}
                       name="smartFileTemplateId"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Smart File Template</FormLabel>
+                          <FormLabel>
+                            {form.watch('channel') === 'SMART_FILE' 
+                              ? 'Smart File Template' 
+                              : 'Include Smart File Link (Optional)'
+                            }
+                          </FormLabel>
+                          {form.watch('channel') === 'EMAIL' && (
+                            <p className="text-sm text-muted-foreground mb-2">
+                              Optionally include a link to a Smart File in your email. The Smart File will be created and the link will be available as <code className="bg-muted px-1 rounded">&#123;&#123;smart_file_link&#125;&#125;</code> in your email template.
+                            </p>
+                          )}
                           <Select onValueChange={field.onChange} value={field.value || undefined}>
                             <FormControl>
                               <SelectTrigger data-testid="select-smartfile-template">
-                                <SelectValue placeholder="Choose a Smart File template" />
+                                <SelectValue placeholder={
+                                  form.watch('channel') === 'SMART_FILE'
+                                    ? "Choose a Smart File template"
+                                    : "Choose a Smart File template (optional)"
+                                } />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
+                              {form.watch('channel') === 'EMAIL' && (
+                                <SelectItem value="">No Smart File</SelectItem>
+                              )}
                               {smartFiles?.map((smartFile: any) => (
                                 <SelectItem key={smartFile.id} value={smartFile.id}>
                                   📄 {smartFile.name}
