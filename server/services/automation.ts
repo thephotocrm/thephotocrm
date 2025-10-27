@@ -455,13 +455,19 @@ async function processEmailBuilderAutomation(automation: any, photographerId: st
       
       // Send email
       try {
-        await sendEmail(
-          project.email,
-          renderedSubject,
-          brandedHtml,
-          photographer.id,
-          'AUTOMATION'
-        );
+        const emailResult = await sendEmail({
+          to: project.email,
+          subject: renderedSubject,
+          html: brandedHtml,
+          photographerId: photographer.id,
+          clientId: project.contactId,
+          projectId: project.id,
+          source: 'AUTOMATION'
+        });
+        
+        if (!emailResult.success) {
+          throw new Error(emailResult.error || 'Email send failed');
+        }
         
         console.log(`✅ Email sent successfully to ${project.firstName} ${project.lastName}`);
         await updateExecutionStatus(reservation.executionId!, 'SUCCESS');
