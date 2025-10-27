@@ -169,9 +169,9 @@ async function sendViaGmail(params: EmailParams): Promise<EmailResult> {
       .limit(1);
 
     // Apply email branding if HTML content exists and branding is configured
-    // SKIP for drip campaigns - they have their own independent branding
+    // SKIP for drip campaigns and automations - they have their own independent branding
     let finalHtml = params.html;
-    if (photographer && finalHtml && params.source !== 'DRIP_CAMPAIGN') {
+    if (photographer && finalHtml && params.source !== 'DRIP_CAMPAIGN' && params.source !== 'AUTOMATION') {
       const brandingData: BrandingData = {
         businessName: photographer.businessName || undefined,
         photographerName: photographer.photographerName || undefined,
@@ -279,9 +279,9 @@ async function sendViaSendGrid(params: EmailParams): Promise<EmailResult> {
     }
 
     // Apply email branding if photographerId is provided and HTML content exists
-    // SKIP for drip campaigns - they have their own independent branding
+    // SKIP for drip campaigns and automations - they have their own independent branding
     let finalHtml = params.html;
-    if (params.photographerId && finalHtml && params.source !== 'DRIP_CAMPAIGN') {
+    if (params.photographerId && finalHtml && params.source !== 'DRIP_CAMPAIGN' && params.source !== 'AUTOMATION') {
       // Get photographer's branding settings
       const [photographer] = await db.select()
         .from(photographers)
