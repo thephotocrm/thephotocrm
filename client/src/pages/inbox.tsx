@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import { MessageSquare, Mail, Send, MessageCircle, ArrowLeft, Plus, Search, Check, CheckCheck, XCircle, Smile, Image as ImageIcon, MessageSquarePlus, Users, Phone, Settings } from "lucide-react";
+import { MessageSquare, Mail, Send, MessageCircle, ArrowLeft, Plus, Search, Check, CheckCheck, XCircle, Smile, Image as ImageIcon, MessageSquarePlus, Settings } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "wouter";
 import { format, isToday, isYesterday, isThisWeek, isThisYear } from "date-fns";
@@ -44,15 +44,11 @@ interface ThreadMessage {
   imageUrl?: string | null; // MMS image URL
 }
 
-type InboxView = 'inbox' | 'contacts' | 'phone' | 'settings';
-
 export default function Inbox() {
-  const [currentView, setCurrentView] = useState<InboxView>('inbox');
   const [selectedContactId, setSelectedContactId] = useState<string | null>(null);
   const [newMessage, setNewMessage] = useState("");
   const [isMobileThreadView, setIsMobileThreadView] = useState(false);
   const [isNewMessageDialogOpen, setIsNewMessageDialogOpen] = useState(false);
-  const [isComingSoonDialogOpen, setIsComingSoonDialogOpen] = useState(false);
   const [contactSearch, setContactSearch] = useState("");
   const [conversationSearch, setConversationSearch] = useState("");
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -66,10 +62,10 @@ export default function Inbox() {
     refetchInterval: 10000 // Poll every 10 seconds for new messages
   });
 
-  // Fetch all contacts for new message dialog, contacts view, and when a contact is selected
+  // Fetch all contacts for new message dialog and when a contact is selected
   const { data: allContacts = [], isLoading: contactsLoading } = useQuery<Contact[]>({
     queryKey: ['/api/contacts'],
-    enabled: isNewMessageDialogOpen || currentView === 'contacts' || !!selectedContactId
+    enabled: isNewMessageDialogOpen || !!selectedContactId
   });
 
   // Fetch thread for selected contact
@@ -182,12 +178,6 @@ export default function Inbox() {
     setIsMobileThreadView(true);
     setIsNewMessageDialogOpen(false);
     setContactSearch("");
-  };
-
-  const handleContactToInbox = (contactId: string) => {
-    setSelectedContactId(contactId);
-    setCurrentView('inbox');
-    setIsMobileThreadView(true);
   };
 
   const getInitials = (firstName?: string, lastName?: string) => {
@@ -505,137 +495,23 @@ export default function Inbox() {
             </Dialog>
           </div>
 
-          {/* Coming Soon Dialog */}
-          <Dialog open={isComingSoonDialogOpen} onOpenChange={setIsComingSoonDialogOpen}>
-            <DialogContent className="sm:max-w-md">
-              <DialogHeader>
-                <DialogTitle>Coming Soon</DialogTitle>
-              </DialogHeader>
-              <div className="py-6 text-center">
-                <p className="text-muted-foreground">This feature is coming soon!</p>
-              </div>
-              <div className="flex justify-end">
-                <Button onClick={() => setIsComingSoonDialogOpen(false)} data-testid="button-close-coming-soon">
-                  Close
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
-
           {/* Two Column Layout - Connected Design */}
           <div className="flex-1 flex flex-col md:flex-row overflow-hidden bg-card border rounded-2xl max-h-[759px] shadow-[0_20px_60px_rgb(0,0,0,0.15),0_8px_25px_rgb(0,0,0,0.1),0_2px_8px_rgb(0,0,0,0.08)] dark:shadow-[0_20px_60px_rgb(0,0,0,0.5),0_8px_25px_rgb(0,0,0,0.4),0_2px_8px_rgb(0,0,0,0.3)]">
-            {/* Mobile Top Navigation */}
-            <div className="flex md:hidden w-full bg-white dark:bg-gray-950 items-center justify-around px-2 py-3 rounded-t-2xl shrink-0 border-b border-gray-200 dark:border-gray-800">
-              <Button
-                variant="ghost"
-                size="icon"
-                className={`h-10 w-10 transition-colors ${
-                  currentView === 'inbox' ? 'bg-indigo-100 text-indigo-600 hover:bg-indigo-100 dark:bg-indigo-950 dark:text-indigo-400' : 'text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800'
-                }`}
-                onClick={() => setCurrentView('inbox')}
-                data-testid="mobile-nav-inbox"
-              >
-                <MessageSquare className="w-5 h-5" />
-              </Button>
-              
-              <Button
-                variant="ghost"
-                size="icon"
-                className={`h-10 w-10 transition-colors ${
-                  currentView === 'contacts' ? 'bg-indigo-100 text-indigo-600 hover:bg-indigo-100 dark:bg-indigo-950 dark:text-indigo-400' : 'text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800'
-                }`}
-                onClick={() => setCurrentView('contacts')}
-                data-testid="mobile-nav-contacts"
-              >
-                <Users className="w-5 h-5" />
-              </Button>
-              
-              <Button
-                variant="ghost"
-                size="icon"
-                className={`h-10 w-10 transition-colors ${
-                  currentView === 'phone' ? 'bg-indigo-100 text-indigo-600 hover:bg-indigo-100 dark:bg-indigo-950 dark:text-indigo-400' : 'text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800'
-                }`}
-                onClick={() => setIsComingSoonDialogOpen(true)}
-                data-testid="mobile-nav-phone"
-              >
-                <Phone className="w-5 h-5" />
-              </Button>
-              
-              <Button
-                variant="ghost"
-                size="icon"
-                className={`h-10 w-10 transition-colors ${
-                  currentView === 'settings' ? 'bg-indigo-100 text-indigo-600 hover:bg-indigo-100 dark:bg-indigo-950 dark:text-indigo-400' : 'text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800'
-                }`}
-                onClick={() => setCurrentView('settings')}
-                data-testid="mobile-nav-settings"
-              >
-                <Settings className="w-5 h-5" />
-              </Button>
-            </div>
-            
-            {/* Desktop Left Sidebar */}
-            <div className="hidden md:flex w-16 bg-gradient-to-b from-indigo-600 to-indigo-700 flex-col items-center py-4 gap-4 rounded-l-2xl">
-              <Button
-                variant="ghost"
-                size="icon"
-                className={`h-10 w-10 transition-colors ${
-                  currentView === 'inbox' ? 'bg-white text-indigo-600 hover:bg-white' : 'text-white hover:bg-white/20'
-                }`}
-                onClick={() => setCurrentView('inbox')}
-                data-testid="sidebar-inbox"
-              >
-                <MessageSquare className="w-6 h-6" />
-              </Button>
-              
-              <Button
-                variant="ghost"
-                size="icon"
-                className={`h-10 w-10 transition-colors ${
-                  currentView === 'contacts' ? 'bg-white text-indigo-600 hover:bg-white' : 'text-white hover:bg-white/20'
-                }`}
-                onClick={() => setCurrentView('contacts')}
-                data-testid="sidebar-contacts"
-              >
-                <Users className="w-6 h-6" />
-              </Button>
-              
-              <Button
-                variant="ghost"
-                size="icon"
-                className={`h-10 w-10 transition-colors ${
-                  currentView === 'phone' ? 'bg-white text-indigo-600 hover:bg-white' : 'text-white hover:bg-white/20'
-                }`}
-                onClick={() => setIsComingSoonDialogOpen(true)}
-                data-testid="sidebar-phone"
-              >
-                <Phone className="w-6 h-6" />
-              </Button>
-              
-              <div className="flex-1" />
-              
-              <Button
-                variant="ghost"
-                size="icon"
-                className={`h-10 w-10 transition-colors ${
-                  currentView === 'settings' ? 'bg-white text-indigo-600 hover:bg-white' : 'text-white hover:bg-white/20'
-                }`}
-                onClick={() => setCurrentView('settings')}
-                data-testid="sidebar-settings"
-              >
-                <Settings className="w-6 h-6" />
-              </Button>
-            </div>
-            
-            {/* INBOX VIEW - Conversation List and Message Thread */}
-            {currentView === 'inbox' && (
-              <>
-                {/* Conversation List */}
-                <div className={`w-full md:w-96 md:h-full border-r flex flex-col overflow-hidden relative ${isMobileThreadView ? 'hidden md:flex' : 'flex'}`}>
-                  {/* Inbox Header */}
-                  <div className="p-4 border-b shrink-0">
-                    <h2 className="text-xl font-semibold mb-3 text-indigo-600" data-testid="text-inbox-title">Inbox</h2>
+            {/* Conversation List */}
+            <div className={`w-full md:w-96 md:h-full border-r flex flex-col overflow-hidden relative ${isMobileThreadView ? 'hidden md:flex' : 'flex'}`}>
+              {/* Inbox Header */}
+              <div className="p-4 border-b shrink-0">
+                <div className="flex items-center justify-between mb-3">
+                  <h2 className="text-xl font-semibold text-indigo-600" data-testid="text-inbox-title">Inbox</h2>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
+                    data-testid="button-inbox-settings"
+                  >
+                    <Settings className="w-5 h-5 text-muted-foreground" />
+                  </Button>
+                </div>
                     <div className="relative">
                       <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                       <Input
@@ -783,7 +659,6 @@ export default function Inbox() {
               </div>
             </div>
           ) : (
-            <>
               {/* Thread Header */}
               <div className="px-4 py-2 border-b flex items-center gap-2">
                 <Button
@@ -1012,101 +887,10 @@ export default function Inbox() {
                   </div>
                 )}
               </div>
-            </>
-          )}
-        </div>
-      </>
-    )}
-
-    {/* CONTACTS VIEW */}
-    {currentView === 'contacts' && (
-      <div className="flex-1 flex flex-col overflow-hidden">
-        {contactsLoading ? (
-          <div className="flex-1 flex items-center justify-center">
-            <p className="text-muted-foreground">Loading contacts...</p>
-          </div>
-        ) : allContacts.length === 0 ? (
-          <div className="flex-1 flex items-center justify-center">
-            <div className="text-center p-8">
-              <Users className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-              <p className="text-muted-foreground">No contacts yet</p>
             </div>
           </div>
-        ) : (
-          <ScrollArea className="flex-1">
-            <div className="p-4">
-              <h2 className="text-lg font-semibold mb-4" data-testid="text-recent-contacts">Recent Contacts</h2>
-              <div className="space-y-2">
-                {allContacts.map((contact) => (
-                  <div
-                    key={contact.id}
-                    className="flex items-center gap-3 p-3 rounded-xl border bg-card hover:bg-accent transition-colors"
-                    data-testid={`contact-card-${contact.id}`}
-                  >
-                    <Avatar className="rounded-xl">
-                      <AvatarFallback className={`rounded-xl text-white ${getAvatarColor(contact.id)}`}>
-                        {getInitials(contact.firstName, contact.lastName)}
-                      </AvatarFallback>
-                    </Avatar>
-                    
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium truncate" data-testid={`contact-name-${contact.id}`}>
-                        {contact.firstName} {contact.lastName}
-                      </p>
-                      {contact.phone && (
-                        <p className="text-sm text-muted-foreground truncate" data-testid={`contact-phone-${contact.id}`}>
-                          {contact.phone}
-                        </p>
-                      )}
-                      {!contact.phone && contact.email && (
-                        <p className="text-sm text-muted-foreground truncate" data-testid={`contact-email-${contact.id}`}>
-                          {contact.email}
-                        </p>
-                      )}
-                    </div>
-                    
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="shrink-0"
-                      onClick={() => handleContactToInbox(contact.id)}
-                      data-testid={`button-add-contact-${contact.id}`}
-                    >
-                      <Plus className="w-5 h-5" />
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </ScrollArea>
-        )}
-      </div>
-    )}
-
-    {/* PHONE VIEW - Coming Soon */}
-    {currentView === 'phone' && (
-      <div className="flex-1 flex items-center justify-center">
-        <div className="text-center p-8">
-          <Phone className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-          <p className="text-lg font-medium mb-1" data-testid="text-coming-soon-phone">Coming Soon</p>
-          <p className="text-sm text-muted-foreground">Phone features will be available soon</p>
         </div>
       </div>
-    )}
-
-    {/* SETTINGS VIEW - Coming Soon */}
-    {currentView === 'settings' && (
-      <div className="flex-1 flex items-center justify-center">
-        <div className="text-center p-8">
-          <Settings className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-          <p className="text-lg font-medium mb-1" data-testid="text-coming-soon-settings">Coming Soon</p>
-          <p className="text-sm text-muted-foreground">Settings will be available soon</p>
-        </div>
-      </div>
-    )}
-  </div>
-</div>
-  </div>
-</div>
+    </div>
   );
 }
