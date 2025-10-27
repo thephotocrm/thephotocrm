@@ -2644,7 +2644,14 @@ export default function Automations() {
                 </DialogHeader>
                 
                 <Form {...form}>
-                  <form onSubmit={form.handleSubmit(handleCreateAutomation)} className="flex flex-col min-h-0 flex-1">
+                  <form onSubmit={(e) => {
+                    // Only allow submission at step 5
+                    if (wizardStep !== totalSteps) {
+                      e.preventDefault();
+                      return false;
+                    }
+                    form.handleSubmit(handleCreateAutomation)(e);
+                  }} className="flex flex-col min-h-0 flex-1">
                     <div className="flex-1 min-h-0 overflow-y-auto px-6 py-4 space-y-8">
                   
                   {/* Step 1: Basic Information */}
