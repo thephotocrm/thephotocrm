@@ -189,8 +189,10 @@ export default function Projects() {
 
   const stageCounts = getStageCounts();
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString();
+  const formatDate = (date: string | Date | null | undefined) => {
+    if (!date) return 'TBD';
+    const dateObj = typeof date === 'string' ? new Date(date) : date;
+    return dateObj.toLocaleDateString();
   };
 
   const getProjectTypeLabel = (type: string) => {
@@ -532,7 +534,7 @@ export default function Projects() {
                       
                       <div className="flex items-center gap-2 text-xs text-muted-foreground">
                         <Calendar className="w-3 h-3" />
-                        <span>{project.eventDate ? formatDate(project.eventDate) : 'TBD'}</span>
+                        <span>{project.hasEventDate ? formatDate(project.eventDate) : 'TBD'}</span>
                       </div>
                     </div>
                   </Card>
@@ -566,7 +568,7 @@ export default function Projects() {
                         <TableCell>{project.client?.firstName} {project.client?.lastName}</TableCell>
                         <TableCell>{getProjectTypeLabel(project.projectType)}</TableCell>
                         <TableCell>
-                          {project.eventDate ? formatDate(project.eventDate) : 'TBD'}
+                          {project.hasEventDate ? formatDate(project.eventDate) : 'TBD'}
                         </TableCell>
                         <TableCell>
                           {project.stage && (
