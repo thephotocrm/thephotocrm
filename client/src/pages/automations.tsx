@@ -4257,6 +4257,12 @@ export default function Automations() {
                                   // Exclude trigger-based automations
                                   if (a.businessTriggers && a.businessTriggers.length > 0) return false;
                                   if (a.automationType === 'STAGE_CHANGE') return false; // Stage change automations are trigger-based
+                                  
+                                  // For custom email builder automations (no steps yet)
+                                  if (a.useEmailBuilder && a.emailBlocks && a.emailBlocks.length > 0) {
+                                    return true; // Show immediately since they're stage-based
+                                  }
+                                  
                                   // For communication automations, check first step delay
                                   const firstStep = a.steps?.[0];
                                   return firstStep && firstStep.delayMinutes === 0;
