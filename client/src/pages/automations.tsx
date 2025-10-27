@@ -1719,14 +1719,9 @@ export default function Automations() {
             return false;
           }
         } else if (data.channel === 'EMAIL') {
-          // For EMAIL, require template, questionnaire, OR custom email builder
-          // Custom email builder validation happens in handleCreateAutomation
-          // Skip validation if using custom email builder mode (validated later)
-          if (emailBuilderMode !== 'build') {
-            // If using template mode, require template or questionnaire
-            if (!hasTemplate && !hasQuestionnaire) {
-              return false;
-            }
+          // For EMAIL, require template, questionnaire, OR custom email builder with content
+          if (!hasTemplate && !hasQuestionnaire && !hasCustomEmailBuilder) {
+            return false;
           }
         }
       }
