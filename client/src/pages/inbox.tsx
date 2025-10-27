@@ -366,7 +366,7 @@ export default function Inbox() {
   });
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-col" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
       {/* Desktop Header - hidden on mobile */}
       <header className="hidden md:block border-b border-border px-4 md:px-6 py-6 shrink-0">
         <div className="max-w-[1140px] mx-auto w-full">
@@ -769,7 +769,7 @@ export default function Inbox() {
               </ScrollArea>
 
               {/* Message Composer */}
-              <div className="shrink-0 p-3 bg-blue-50/70 dark:bg-blue-950/40" style={{ paddingBottom: 'calc(0.75rem + env(safe-area-inset-bottom, 0px))' }}>
+              <div className="shrink-0 p-3 bg-blue-50/70 dark:bg-blue-950/40">
                 {selectedImage && (
                   <div className="mb-2 mx-3 relative inline-block">
                     <img src={selectedImage} alt="Preview" className="max-h-32 rounded-xl border" />
