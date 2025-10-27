@@ -370,7 +370,7 @@ export default function Inbox() {
       {/* Desktop Header - hidden on mobile */}
       <header className="hidden md:block border-b border-border px-4 md:px-6 py-6 shrink-0">
         <div className="max-w-[1140px] mx-auto w-full">
-          <h1 className="text-3xl md:text-4xl font-semibold">Inbox</h1>
+          <h1 className="text-3xl md:text-4xl font-semibold">SMS Inbox</h1>
         </div>
       </header>
 
@@ -411,12 +411,12 @@ export default function Inbox() {
               <DialogTrigger asChild>
                 <Button data-testid="button-new-message">
                   <Plus className="w-4 h-4 mr-2" />
-                  New Message
+                  New Text Message
                 </Button>
               </DialogTrigger>
               <DialogContent className="sm:max-w-md">
                 <DialogHeader>
-                  <DialogTitle>New Message</DialogTitle>
+                  <DialogTitle>New Text Message</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-4">
                   <div className="relative">
@@ -473,7 +473,7 @@ export default function Inbox() {
               {/* Inbox Header */}
               <div className="p-4 border-b shrink-0">
                 <div className="flex items-center justify-between mb-3">
-                  <h2 className="text-xl font-semibold text-indigo-600" data-testid="text-inbox-title">Inbox</h2>
+                  <h2 className="text-xl font-semibold text-indigo-600" data-testid="text-inbox-title">SMS Inbox</h2>
                   <Button
                     variant="ghost"
                     size="icon"
@@ -511,7 +511,7 @@ export default function Inbox() {
                   </DialogTrigger>
                   <DialogContent className="sm:max-w-md">
                     <DialogHeader>
-                      <DialogTitle>New Message</DialogTitle>
+                      <DialogTitle>New Text Message</DialogTitle>
                     </DialogHeader>
                     <div className="space-y-4">
                       <div className="relative">
@@ -817,7 +817,7 @@ export default function Inbox() {
                   />
                   
                   <Textarea
-                    placeholder="Type your message..."
+                    placeholder="Type your text message..."
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
                     onKeyDown={(e) => {

@@ -99,7 +99,7 @@ export function AppSidebar() {
     { name: "Dashboard", href: "/", icon: LayoutDashboard },
     { name: "Projects", href: "/projects", icon: FolderOpen },
     { name: "Contacts", href: "/contacts", icon: Users },
-    { name: "Inbox", href: "/inbox", icon: InboxIcon, badge: unreadCount },
+    { name: "SMS Inbox", href: "/inbox", icon: InboxIcon, badge: unreadCount },
     { name: "Scheduling", href: "/scheduling", icon: Calendar },
   ];
 
