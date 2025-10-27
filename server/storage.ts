@@ -3165,7 +3165,7 @@ export class DatabaseStorage implements IStorage {
             )
           );
 
-        // Count unread SMS messages (messages after last read timestamp)
+        // Count unread SMS messages (only INBOUND messages after last read timestamp)
         const unreadCount = conversationRead
           ? await db
               .select({ count: sql<number>`count(*)` })
@@ -3173,6 +3173,7 @@ export class DatabaseStorage implements IStorage {
               .where(
                 and(
                   eq(smsLogs.clientId, contactId),
+                  eq(smsLogs.direction, 'INBOUND'), // Only count messages FROM clients
                   gt(smsLogs.createdAt, conversationRead.lastReadAt)
                 )
               )
@@ -3180,7 +3181,12 @@ export class DatabaseStorage implements IStorage {
           : await db
               .select({ count: sql<number>`count(*)` })
               .from(smsLogs)
-              .where(eq(smsLogs.clientId, contactId))
+              .where(
+                and(
+                  eq(smsLogs.clientId, contactId),
+                  eq(smsLogs.direction, 'INBOUND') // Only count messages FROM clients
+                )
+              )
               .then(result => result[0]?.count || 0);
 
         return {

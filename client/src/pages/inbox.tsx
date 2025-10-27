@@ -618,7 +618,7 @@ export default function Inbox() {
             </div>
 
             {/* Message Thread */}
-            <div className={`flex-1 flex flex-col ${!isMobileThreadView ? 'hidden md:flex' : 'flex'}`}>
+            <div className={`flex-1 flex flex-col overflow-hidden ${!isMobileThreadView ? 'hidden md:flex' : 'flex'}`}>
           {!selectedContactId ? (
             <div className="flex-1 flex items-center justify-center text-muted-foreground bg-gradient-to-br from-background to-muted/20">
               <div className="text-center p-8">
@@ -632,7 +632,7 @@ export default function Inbox() {
           ) : (
               <>
               {/* Thread Header */}
-              <div className="px-4 py-2 border-b flex items-center gap-2">
+              <div className="px-4 py-2 border-b flex items-center gap-2 shrink-0">
                 <Button
                   variant="ghost"
                   size="icon"
@@ -769,7 +769,7 @@ export default function Inbox() {
               </ScrollArea>
 
               {/* Message Composer */}
-              <div className="p-3 bg-blue-50/70 dark:bg-blue-950/40">
+              <div className="shrink-0 p-3 bg-blue-50/70 dark:bg-blue-950/40">
                 {selectedImage && (
                   <div className="mb-2 mx-3 relative inline-block">
                     <img src={selectedImage} alt="Preview" className="max-h-32 rounded-xl border" />
