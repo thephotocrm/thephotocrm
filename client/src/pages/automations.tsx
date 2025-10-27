@@ -2173,8 +2173,9 @@ export default function Automations() {
         title: `${count > 1 ? 'Automations' : 'Automation'} created successfully`,
         description: `Created ${count} automation${count > 1 ? 's' : ''} successfully.`
       });
-      console.log('🔄 Invalidating queries with key: ["/api/automations"]');
-      queryClient.invalidateQueries({ queryKey: ["/api/automations"] });
+      console.log('🔄 Invalidating queries with key: ["/api/automations", activeProjectType]');
+      queryClient.invalidateQueries({ queryKey: ["/api/automations", activeProjectType] });
+      queryClient.invalidateQueries({ queryKey: ["/api/automations"] }); // Also invalidate base key for safety
       console.log('🚪 Closing dialog and resetting form');
       setCreateDialogOpen(false);
       form.reset();
