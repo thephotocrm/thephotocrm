@@ -1704,7 +1704,7 @@ export default function Automations() {
       if (data.enableCommunication) {
         const hasTemplate = data.templateId && data.templateId.length > 0 && data.templateId !== "unavailable";
         const hasQuestionnaire = data.questionnaireTemplateId && data.questionnaireTemplateId.length > 0 && data.questionnaireTemplateId !== "none" && data.questionnaireTemplateId !== "unavailable";
-        const hasSmartFile = data.smartFileTemplateId && data.smartFileTemplateId.length > 0 && data.smartFileTemplateId !== "unavailable";
+        const hasSmartFile = data.smartFileTemplateId && data.smartFileTemplateId.length > 0 && data.smartFileTemplateId !== "unavailable" && data.smartFileTemplateId !== "none";
         const hasCustomSms = data.customSmsContent && data.customSmsContent.length > 0;
         const hasCustomEmailBuilder = emailBuilderMode === 'build' && customEmailBlocks.length > 0 && customEmailSubject.trim().length > 0;
         
@@ -1718,10 +1718,15 @@ export default function Automations() {
           if (!hasTemplate && !hasCustomSms && !hasQuestionnaire) {
             return false;
           }
-        } else {
-          // For EMAIL, require template, questionnaire, or custom email builder
-          if (!hasTemplate && !hasQuestionnaire && !hasCustomEmailBuilder) {
-            return false;
+        } else if (data.channel === 'EMAIL') {
+          // For EMAIL, require template, questionnaire, OR custom email builder
+          // Custom email builder validation happens in handleCreateAutomation
+          // Skip validation if using custom email builder mode (validated later)
+          if (emailBuilderMode !== 'build') {
+            // If using template mode, require template or questionnaire
+            if (!hasTemplate && !hasQuestionnaire) {
+              return false;
+            }
           }
         }
       }
