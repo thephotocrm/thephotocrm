@@ -525,12 +525,12 @@ export default function Inbox() {
           {/* Two Column Layout - Connected Design */}
           <div className="flex-1 flex flex-col md:flex-row overflow-hidden bg-card border rounded-2xl max-h-[759px] shadow-[0_20px_60px_rgb(0,0,0,0.15),0_8px_25px_rgb(0,0,0,0.1),0_2px_8px_rgb(0,0,0,0.08)] dark:shadow-[0_20px_60px_rgb(0,0,0,0.5),0_8px_25px_rgb(0,0,0,0.4),0_2px_8px_rgb(0,0,0,0.3)]">
             {/* Mobile Top Navigation */}
-            <div className="flex md:hidden w-full bg-gradient-to-r from-indigo-600 to-indigo-700 items-center justify-around px-2 py-3 rounded-t-2xl shrink-0">
+            <div className="flex md:hidden w-full bg-white dark:bg-gray-950 items-center justify-around px-2 py-3 rounded-t-2xl shrink-0 border-b border-gray-200 dark:border-gray-800">
               <Button
                 variant="ghost"
                 size="icon"
                 className={`h-10 w-10 transition-colors ${
-                  currentView === 'inbox' ? 'bg-white text-indigo-600 hover:bg-white' : 'text-white hover:bg-white/20'
+                  currentView === 'inbox' ? 'bg-indigo-100 text-indigo-600 hover:bg-indigo-100 dark:bg-indigo-950 dark:text-indigo-400' : 'text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800'
                 }`}
                 onClick={() => setCurrentView('inbox')}
                 data-testid="mobile-nav-inbox"
@@ -542,7 +542,7 @@ export default function Inbox() {
                 variant="ghost"
                 size="icon"
                 className={`h-10 w-10 transition-colors ${
-                  currentView === 'contacts' ? 'bg-white text-indigo-600 hover:bg-white' : 'text-white hover:bg-white/20'
+                  currentView === 'contacts' ? 'bg-indigo-100 text-indigo-600 hover:bg-indigo-100 dark:bg-indigo-950 dark:text-indigo-400' : 'text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800'
                 }`}
                 onClick={() => setCurrentView('contacts')}
                 data-testid="mobile-nav-contacts"
@@ -554,7 +554,7 @@ export default function Inbox() {
                 variant="ghost"
                 size="icon"
                 className={`h-10 w-10 transition-colors ${
-                  currentView === 'phone' ? 'bg-white text-indigo-600 hover:bg-white' : 'text-white hover:bg-white/20'
+                  currentView === 'phone' ? 'bg-indigo-100 text-indigo-600 hover:bg-indigo-100 dark:bg-indigo-950 dark:text-indigo-400' : 'text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800'
                 }`}
                 onClick={() => setIsComingSoonDialogOpen(true)}
                 data-testid="mobile-nav-phone"
@@ -566,7 +566,7 @@ export default function Inbox() {
                 variant="ghost"
                 size="icon"
                 className={`h-10 w-10 transition-colors ${
-                  currentView === 'settings' ? 'bg-white text-indigo-600 hover:bg-white' : 'text-white hover:bg-white/20'
+                  currentView === 'settings' ? 'bg-indigo-100 text-indigo-600 hover:bg-indigo-100 dark:bg-indigo-950 dark:text-indigo-400' : 'text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800'
                 }`}
                 onClick={() => setCurrentView('settings')}
                 data-testid="mobile-nav-settings"
