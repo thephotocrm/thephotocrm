@@ -2645,12 +2645,23 @@ export default function Automations() {
                 
                 <Form {...form}>
                   <form onSubmit={(e) => {
+                    e.preventDefault(); // Always prevent default form submission
+                    console.log('📝 Form onSubmit fired, wizardStep:', wizardStep, 'totalSteps:', totalSteps);
+                    
                     // Only allow submission at step 5
                     if (wizardStep !== totalSteps) {
-                      e.preventDefault();
+                      console.log('🚫 Not at final step, blocking submission');
                       return false;
                     }
+                    
+                    console.log('✅ At final step, calling handleCreateAutomation');
                     form.handleSubmit(handleCreateAutomation)(e);
+                  }} onKeyDown={(e) => {
+                    // Prevent Enter key from submitting the form unless at step 5
+                    if (e.key === 'Enter' && wizardStep !== totalSteps) {
+                      e.preventDefault();
+                      console.log('🚫 Enter key blocked - not at final step');
+                    }
                   }} className="flex flex-col min-h-0 flex-1">
                     <div className="flex-1 min-h-0 overflow-y-auto px-6 py-4 space-y-8">
                   
