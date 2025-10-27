@@ -1,17 +1,20 @@
 import { useEffect, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { useLocation, Link } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Images, ExternalLink, Search, Settings, Calendar } from "lucide-react";
+import { Images, ExternalLink, Search, Settings, Calendar, Globe, Lock, Link as LinkIcon } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { queryClient, apiRequest } from "@/lib/queryClient";
 
 export default function Galleries() {
   const { user, loading } = useAuth();
   const [, setLocation] = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
+  const { toast } = useToast();
 
   const { data: projects, isLoading } = useQuery<any[]>({
     queryKey: ["/api/projects"],
@@ -21,6 +24,27 @@ export default function Galleries() {
   const { data: photographer } = useQuery<any>({
     queryKey: ["/api/photographer"],
     enabled: !!user
+  });
+
+  // Mutation to toggle gallery visibility
+  const toggleVisibilityMutation = useMutation({
+    mutationFn: async ({ projectId, isPublic }: { projectId: string; isPublic: boolean }) => {
+      return apiRequest("PATCH", `/api/projects/${projectId}/gallery/visibility`, { isPublic });
+    },
+    onSuccess: (data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
+      toast({
+        title: "Success",
+        description: data.message || `Gallery marked as ${variables.isPublic ? 'public' : 'private'}`,
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update gallery visibility",
+        variant: "destructive",
+      });
+    },
   });
 
   // Handle unauthorized access in useEffect to avoid render-time state updates
@@ -43,12 +67,12 @@ export default function Galleries() {
 
   // Default sample galleries for demo purposes (before ShootProof connection)
   const defaultGalleries = [
-    { id: 'default-1', title: 'Summer Beach Wedding', client: { firstName: 'Sample', lastName: 'Client' }, galleryCreatedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), galleryReady: true, galleryUrl: '#', imageUrl: 'https://images.unsplash.com/photo-1519741497674-611481863552?w=800&q=80', height: 'tall' },
-    { id: 'default-2', title: 'Mountain Engagement', client: { firstName: 'Demo', lastName: 'Couple' }, galleryCreatedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(), galleryReady: true, galleryUrl: '#', imageUrl: 'https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=800&q=80', height: 'short' },
-    { id: 'default-3', title: 'Rustic Barn Wedding', client: { firstName: 'Example', lastName: 'Bride' }, galleryCreatedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(), galleryReady: false, galleryUrl: '#', imageUrl: 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=800&q=80', height: 'medium' },
-    { id: 'default-4', title: 'City Skyline Portraits', client: { firstName: 'Test', lastName: 'User' }, galleryCreatedAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(), galleryReady: true, galleryUrl: '#', imageUrl: 'https://images.unsplash.com/photo-1606216794079-e06c86c28c73?w=800&q=80', height: 'tall' },
-    { id: 'default-5', title: 'Garden Party Wedding', client: { firstName: 'Preview', lastName: 'Client' }, galleryCreatedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), galleryReady: true, galleryUrl: '#', imageUrl: 'https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?w=800&q=80', height: 'medium' },
-    { id: 'default-6', title: 'Downtown Loft Wedding', client: { firstName: 'Sample', lastName: 'Couple' }, galleryCreatedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(), galleryReady: true, galleryUrl: '#', imageUrl: 'https://images.unsplash.com/photo-1591604466107-ec97de577aff?w=800&q=80', height: 'short' },
+    { id: 'default-1', title: 'Summer Beach Wedding', client: { firstName: 'Sample', lastName: 'Client' }, galleryCreatedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), galleryReady: true, galleryUrl: '#', imageUrl: 'https://images.unsplash.com/photo-1519741497674-611481863552?w=800&q=80', height: 'tall', isPublicGallery: true },
+    { id: 'default-2', title: 'Mountain Engagement', client: { firstName: 'Demo', lastName: 'Couple' }, galleryCreatedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(), galleryReady: true, galleryUrl: '#', imageUrl: 'https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=800&q=80', height: 'short', isPublicGallery: false },
+    { id: 'default-3', title: 'Rustic Barn Wedding', client: { firstName: 'Example', lastName: 'Bride' }, galleryCreatedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(), galleryReady: false, galleryUrl: '#', imageUrl: 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=800&q=80', height: 'medium', isPublicGallery: true },
+    { id: 'default-4', title: 'City Skyline Portraits', client: { firstName: 'Test', lastName: 'User' }, galleryCreatedAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(), galleryReady: true, galleryUrl: '#', imageUrl: 'https://images.unsplash.com/photo-1606216794079-e06c86c28c73?w=800&q=80', height: 'tall', isPublicGallery: false },
+    { id: 'default-5', title: 'Garden Party Wedding', client: { firstName: 'Preview', lastName: 'Client' }, galleryCreatedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), galleryReady: true, galleryUrl: '#', imageUrl: 'https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?w=800&q=80', height: 'medium', isPublicGallery: true },
+    { id: 'default-6', title: 'Downtown Loft Wedding', client: { firstName: 'Sample', lastName: 'Couple' }, galleryCreatedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(), galleryReady: true, galleryUrl: '#', imageUrl: 'https://images.unsplash.com/photo-1591604466107-ec97de577aff?w=800&q=80', height: 'short', isPublicGallery: false },
   ];
 
   // Use default galleries if not connected, actual galleries if connected
@@ -70,6 +94,49 @@ export default function Galleries() {
       project.client?.email?.toLowerCase().includes(search)
     );
   });
+
+  // Handle visibility toggle
+  const handleToggleVisibility = (e: React.MouseEvent, project: any) => {
+    e.stopPropagation();
+    
+    // For demo galleries, show toast but don't make API call
+    if (!isShootProofConnected) {
+      toast({
+        title: "Demo Mode",
+        description: "Connect ShootProof to enable gallery visibility controls",
+        variant: "default",
+      });
+      return;
+    }
+
+    // Toggle the visibility
+    const newIsPublic = !project.isPublicGallery;
+    toggleVisibilityMutation.mutate({
+      projectId: project.id,
+      isPublic: newIsPublic,
+    });
+  };
+
+  // Handle share gallery page
+  const handleShareGalleryPage = async () => {
+    if (!photographer?.publicToken) return;
+    
+    const shareUrl = `${window.location.origin}/public/galleries/${photographer.publicToken}`;
+    
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      toast({
+        title: "Success",
+        description: "Gallery showcase URL copied to clipboard!",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to copy URL to clipboard",
+        variant: "destructive",
+      });
+    }
+  };
 
   return (
     <div className="h-full flex flex-col">
@@ -97,12 +164,25 @@ export default function Galleries() {
               />
             </div>
           </div>
-          <Link href="/settings">
-            <Button variant="outline" size="sm" data-testid="button-gallery-settings">
-              <Settings className="w-4 h-4 mr-2" />
-              Gallery Settings
-            </Button>
-          </Link>
+          <div className="flex gap-2">
+            {photographer && photographer.publicToken && (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={handleShareGalleryPage}
+                data-testid="button-share-gallery-page"
+              >
+                <LinkIcon className="w-4 h-4 mr-2" />
+                Share Gallery Page
+              </Button>
+            )}
+            <Link href="/settings">
+              <Button variant="outline" size="sm" data-testid="button-gallery-settings">
+                <Settings className="w-4 h-4 mr-2" />
+                Gallery Settings
+              </Button>
+            </Link>
+          </div>
         </div>
       </header>
 
@@ -168,14 +248,72 @@ export default function Galleries() {
                             alt={project.title}
                             className="w-full h-full object-cover"
                           />
+                          
+                          {/* Public/Private Visibility Badge - Top Left Corner */}
+                          <button
+                            onClick={(e) => handleToggleVisibility(e, project)}
+                            className="absolute top-2 left-2 z-10 transition-all hover:scale-105"
+                            data-testid={`toggle-visibility-${project.id}`}
+                            disabled={toggleVisibilityMutation.isPending}
+                          >
+                            <Badge 
+                              variant={project.isPublicGallery ? "default" : "secondary"}
+                              className={`flex items-center gap-1.5 ${
+                                project.isPublicGallery 
+                                  ? 'bg-green-600 hover:bg-green-700 text-white' 
+                                  : 'bg-gray-600 hover:bg-gray-700 text-white'
+                              }`}
+                            >
+                              {project.isPublicGallery ? (
+                                <>
+                                  <Globe className="w-3 h-3" />
+                                  Public
+                                </>
+                              ) : (
+                                <>
+                                  <Lock className="w-3 h-3" />
+                                  Private
+                                </>
+                              )}
+                            </Badge>
+                          </button>
                         </div>
                       ) : (
-                        <div className={`bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900 dark:to-pink-900 flex items-center justify-center ${
+                        <div className={`relative bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900 dark:to-pink-900 flex items-center justify-center ${
                           project.height === 'tall' ? 'h-80' : 
                           project.height === 'short' ? 'h-48' : 
                           'h-64'
                         }`}>
                           <Images className="w-12 h-12 text-purple-400 opacity-50" />
+                          
+                          {/* Public/Private Visibility Badge - Top Left Corner */}
+                          <button
+                            onClick={(e) => handleToggleVisibility(e, project)}
+                            className="absolute top-2 left-2 z-10 transition-all hover:scale-105"
+                            data-testid={`toggle-visibility-${project.id}`}
+                            disabled={toggleVisibilityMutation.isPending}
+                          >
+                            <Badge 
+                              variant={project.isPublicGallery ? "default" : "secondary"}
+                              className={`flex items-center gap-1.5 ${
+                                project.isPublicGallery 
+                                  ? 'bg-green-600 hover:bg-green-700 text-white' 
+                                  : 'bg-gray-600 hover:bg-gray-700 text-white'
+                              }`}
+                            >
+                              {project.isPublicGallery ? (
+                                <>
+                                  <Globe className="w-3 h-3" />
+                                  Public
+                                </>
+                              ) : (
+                                <>
+                                  <Lock className="w-3 h-3" />
+                                  Private
+                                </>
+                              )}
+                            </Badge>
+                          </button>
                         </div>
                       )}
                       {!isShootProofConnected && (

@@ -8163,6 +8163,37 @@ ${photographer.businessName}`
     }
   });
 
+  // Toggle gallery public/private status
+  app.patch("/api/projects/:projectId/gallery/visibility", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
+    try {
+      const { projectId } = req.params;
+      const { isPublic } = req.body;
+      const photographerId = req.user!.photographerId!;
+
+      const project = await storage.getProject(projectId);
+      
+      if (!project || project.photographerId !== photographerId) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      if (!project.galleryUrl) {
+        return res.status(400).json({ message: "No gallery URL set for this project" });
+      }
+
+      await storage.updateProject(projectId, {
+        isPublicGallery: isPublic
+      });
+
+      res.json({ 
+        message: `Gallery marked as ${isPublic ? 'public' : 'private'}`,
+        isPublicGallery: isPublic
+      });
+    } catch (error) {
+      console.error('Gallery visibility toggle error:', error);
+      res.status(500).json({ message: "Failed to update gallery visibility" });
+    }
+  });
+
   // === QUESTIONNAIRE TEMPLATE ROUTES ===
 
   // Get questionnaire templates for photographer
@@ -9763,6 +9794,53 @@ ${photographer.businessName}
         message: "Failed to get payouts",
         error: error.message 
       });
+    }
+  });
+
+  // ============================================
+  // PUBLIC GALLERY ROUTES
+  // ============================================
+
+  // GET /api/public/galleries/:photographerPublicToken - Get public galleries for a photographer (PUBLIC ROUTE)
+  app.get("/api/public/galleries/:photographerPublicToken", async (req, res) => {
+    try {
+      const { photographerPublicToken } = req.params;
+
+      // Find photographer by public token
+      const photographer = await storage.getPhotographerByPublicToken(photographerPublicToken);
+      
+      if (!photographer) {
+        return res.status(404).json({ message: "Photographer not found" });
+      }
+
+      // Get all projects with galleries that are marked as public
+      const projects = await storage.getProjectsByPhotographer(photographer.id);
+      
+      const publicGalleries = projects
+        .filter((project: any) => project.galleryUrl && project.isPublicGallery)
+        .map((project: any) => ({
+          id: project.id,
+          title: project.title,
+          projectType: project.projectType,
+          galleryUrl: project.galleryUrl,
+          galleryId: project.galleryId,
+          galleryCreatedAt: project.galleryCreatedAt,
+          galleryReady: project.galleryReady,
+          client: project.client ? {
+            firstName: project.client.firstName,
+            lastName: project.client.lastName
+          } : null
+        }));
+
+      res.json({
+        photographer: {
+          businessName: photographer.businessName
+        },
+        galleries: publicGalleries
+      });
+    } catch (error) {
+      console.error("Get public galleries error:", error);
+      res.status(500).json({ message: "Internal server error" });
     }
   });
 

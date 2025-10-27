@@ -55,6 +55,7 @@ import PublicSmartFile from "@/pages/public-smart-file";
 import SmartFileSuccess from "@/pages/smart-file-success";
 import PublicBooking from "@/pages/public-booking";
 import PublicBookingCalendar from "@/pages/public-booking-calendar";
+import PublicGalleries from "@/pages/public-galleries";
 import BookingConfirmation from "@/pages/booking-confirmation";
 import AdminDashboard from "@/pages/admin-dashboard";
 import AdminSetup from "@/pages/admin-setup";
@@ -193,6 +194,7 @@ function Router() {
       <Route path="/smart-file/:token" component={PublicSmartFile} />
       <Route path="/public/booking/:token" component={PublicBooking} />
       <Route path="/booking/calendar/:publicToken" component={PublicBookingCalendar} />
+      <Route path="/public/galleries/:photographerPublicToken" component={PublicGalleries} />
       <Route path="/booking/confirmation" component={BookingConfirmation} />
       <Route path="/admin/setup" component={AdminSetup} />
       <Route path="/lead-form" component={LeadFormDemo} />
