@@ -444,8 +444,8 @@ export default function Inbox() {
         </div>
 
         <div className="flex-1 flex flex-col overflow-hidden w-full max-w-none md:max-w-[1140px] px-0 md:px-8 pt-0 md:pt-6 pb-0 md:pb-8 gap-0 md:gap-4 relative z-10">
-          {/* Action Bar */}
-          <div className="shrink-0 flex items-center justify-end">
+          {/* Action Bar - Desktop Only */}
+          <div className="shrink-0 hidden md:flex items-center justify-end">
             <Dialog open={isNewMessageDialogOpen} onOpenChange={setIsNewMessageDialogOpen}>
               <DialogTrigger asChild>
                 <Button data-testid="button-new-message">
@@ -523,8 +523,69 @@ export default function Inbox() {
           </Dialog>
 
           {/* Two Column Layout - Connected Design */}
-          <div className="flex-1 flex overflow-hidden bg-card border rounded-2xl max-h-[759px] shadow-[0_20px_60px_rgb(0,0,0,0.15),0_8px_25px_rgb(0,0,0,0.1),0_2px_8px_rgb(0,0,0,0.08)] dark:shadow-[0_20px_60px_rgb(0,0,0,0.5),0_8px_25px_rgb(0,0,0,0.4),0_2px_8px_rgb(0,0,0,0.3)]">
-            {/* Left Sidebar */}
+          <div className="flex-1 flex flex-col md:flex-row overflow-hidden bg-card border rounded-2xl max-h-[759px] shadow-[0_20px_60px_rgb(0,0,0,0.15),0_8px_25px_rgb(0,0,0,0.1),0_2px_8px_rgb(0,0,0,0.08)] dark:shadow-[0_20px_60px_rgb(0,0,0,0.5),0_8px_25px_rgb(0,0,0,0.4),0_2px_8px_rgb(0,0,0,0.3)]">
+            {/* Mobile Top Navigation */}
+            <div className="flex md:hidden w-full bg-gradient-to-r from-indigo-600 to-indigo-700 items-center justify-around px-2 py-3 rounded-t-2xl shrink-0">
+              <Button
+                variant="ghost"
+                size="icon"
+                className={`h-10 w-10 transition-colors ${
+                  currentView === 'inbox' ? 'bg-white text-indigo-600 hover:bg-white' : 'text-white hover:bg-white/20'
+                }`}
+                onClick={() => setCurrentView('inbox')}
+                data-testid="mobile-nav-inbox"
+              >
+                <MessageSquare className="w-5 h-5" />
+              </Button>
+              
+              <Button
+                variant="ghost"
+                size="icon"
+                className={`h-10 w-10 transition-colors ${
+                  currentView === 'contacts' ? 'bg-white text-indigo-600 hover:bg-white' : 'text-white hover:bg-white/20'
+                }`}
+                onClick={() => setCurrentView('contacts')}
+                data-testid="mobile-nav-contacts"
+              >
+                <Users className="w-5 h-5" />
+              </Button>
+              
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-10 w-10 text-white hover:bg-white/20"
+                onClick={() => setIsNewMessageDialogOpen(true)}
+                data-testid="mobile-nav-new-message"
+              >
+                <Plus className="w-5 h-5" />
+              </Button>
+              
+              <Button
+                variant="ghost"
+                size="icon"
+                className={`h-10 w-10 transition-colors ${
+                  currentView === 'phone' ? 'bg-white text-indigo-600 hover:bg-white' : 'text-white hover:bg-white/20'
+                }`}
+                onClick={() => setIsComingSoonDialogOpen(true)}
+                data-testid="mobile-nav-phone"
+              >
+                <Phone className="w-5 h-5" />
+              </Button>
+              
+              <Button
+                variant="ghost"
+                size="icon"
+                className={`h-10 w-10 transition-colors ${
+                  currentView === 'settings' ? 'bg-white text-indigo-600 hover:bg-white' : 'text-white hover:bg-white/20'
+                }`}
+                onClick={() => setCurrentView('settings')}
+                data-testid="mobile-nav-settings"
+              >
+                <Settings className="w-5 h-5" />
+              </Button>
+            </div>
+            
+            {/* Desktop Left Sidebar */}
             <div className="hidden md:flex w-16 bg-gradient-to-b from-indigo-600 to-indigo-700 flex-col items-center py-4 gap-4 rounded-l-2xl">
               <Button
                 variant="ghost"
