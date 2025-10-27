@@ -15,9 +15,10 @@ interface Message {
 interface ChatbotWidgetProps {
   context?: string;
   photographerName?: string;
+  hideOnMobile?: boolean;
 }
 
-export function ChatbotWidget({ context = "general", photographerName }: ChatbotWidgetProps) {
+export function ChatbotWidget({ context = "general", photographerName, hideOnMobile = false }: ChatbotWidgetProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -182,7 +183,10 @@ export function ChatbotWidget({ context = "general", photographerName }: Chatbot
 
       <Button
         onClick={() => setIsOpen(!isOpen)}
-        className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg z-40"
+        className={cn(
+          "fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg z-40",
+          hideOnMobile && "hidden md:flex"
+        )}
         size="icon"
         data-testid="button-toggle-chatbot"
       >

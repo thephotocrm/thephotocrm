@@ -553,16 +553,6 @@ export default function Inbox() {
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-10 w-10 text-white hover:bg-white/20"
-                onClick={() => setIsNewMessageDialogOpen(true)}
-                data-testid="mobile-nav-new-message"
-              >
-                <Plus className="w-5 h-5" />
-              </Button>
-              
-              <Button
-                variant="ghost"
-                size="icon"
                 className={`h-10 w-10 transition-colors ${
                   currentView === 'phone' ? 'bg-white text-indigo-600 hover:bg-white' : 'text-white hover:bg-white/20'
                 }`}
@@ -636,23 +626,13 @@ export default function Inbox() {
               >
                 <Settings className="w-6 h-6" />
               </Button>
-              
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-10 w-10 text-white hover:bg-white/20"
-                onClick={() => setIsNewMessageDialogOpen(true)}
-                data-testid="sidebar-add"
-              >
-                <Plus className="w-6 h-6" />
-              </Button>
             </div>
             
             {/* INBOX VIEW - Conversation List and Message Thread */}
             {currentView === 'inbox' && (
               <>
                 {/* Conversation List */}
-                <div className={`w-full md:w-96 border-r flex flex-col overflow-hidden ${isMobileThreadView ? 'hidden md:flex' : 'flex'}`}>
+                <div className={`w-full md:w-96 border-r flex flex-col overflow-hidden relative ${isMobileThreadView ? 'hidden md:flex' : 'flex'}`}>
                   {/* Inbox Header */}
                   <div className="p-4 border-b shrink-0">
                     <h2 className="text-xl font-semibold mb-3 text-indigo-600" data-testid="text-inbox-title">Inbox</h2>
@@ -778,6 +758,16 @@ export default function Inbox() {
                   ))
                 )}
               </div>
+              
+              {/* Floating New Message Button */}
+              <Button
+                size="icon"
+                className="absolute bottom-4 right-4 h-14 w-14 rounded-full shadow-lg bg-indigo-600 hover:bg-indigo-700 text-white"
+                onClick={() => setIsNewMessageDialogOpen(true)}
+                data-testid="button-floating-new-message"
+              >
+                <Plus className="w-6 h-6" />
+              </Button>
             </div>
 
             {/* Message Thread */}

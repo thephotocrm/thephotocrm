@@ -65,6 +65,7 @@ const Checkout = lazy(() => import("@/pages/checkout"));
 
 function ProtectedRoutes() {
   const { user, loading } = useAuth();
+  const [location] = useLocation();
   const [onboardingModalOpen, setOnboardingModalOpen] = useState(false);
 
   // Fetch photographer data for onboarding (only for photographers)
@@ -149,7 +150,11 @@ function ProtectedRoutes() {
             <Route component={NotFound} />
           </Switch>
         </SidebarInset>
-        <ChatbotWidget context="dashboard" photographerName={user?.businessName} />
+        <ChatbotWidget 
+          context="dashboard" 
+          photographerName={user?.businessName} 
+          hideOnMobile={location === '/inbox'}
+        />
       </SidebarProvider>
       
       {/* Onboarding Modal - Global for photographers */}
