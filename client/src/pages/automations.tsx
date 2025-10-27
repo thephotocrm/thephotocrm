@@ -4211,6 +4211,11 @@ export default function Automations() {
                         {(() => {
                           // Include automations with stageId OR stageCondition (not targetStageId alone)
                           const stageBased = automations.filter((a: any) => a.stageId || a.stageCondition);
+                          
+                          console.log('🔍 Debug - All automations:', automations.length);
+                          console.log('🔍 Debug - Stage-based automations:', stageBased.length);
+                          console.log('🔍 Debug - Selected stage ID:', selectedStageId);
+                          console.log('🔍 Debug - Stage-based automation stageIds:', stageBased.map((a: any) => ({ name: a.name, stageId: a.stageId })));
 
                           // Get automations for the selected stage
                           const selectedStage = stages?.find((s: any) => s.id === selectedStageId);
@@ -4221,6 +4226,9 @@ export default function Automations() {
                             if (!a.stageCondition && a.stageId === selectedStageId) return true;
                             return false;
                           });
+                          
+                          console.log('🔍 Debug - Filtered stage automations:', stageAutomations.length);
+                          console.log('🔍 Debug - Filtered automation names:', stageAutomations.map((a: any) => a.name));
 
                           return stages && stages.length > 0 ? (
                             <div className="space-y-4">
