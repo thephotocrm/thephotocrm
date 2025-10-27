@@ -1,0 +1,112 @@
+Perfect — here’s a copy-paste set of changes for your app that fixes the iOS Safari bottom-bar/keyboard overlap.
+
+⸻
+
+1) index.html (HEAD)
+
+Add or update this meta so iOS uses the full screen and reports safe-area insets:
+
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+
+
+⸻
+
+2) inbox.tsx
+
+Make the thread area the only scroller and make the composer sticky to the bottom. Also add a tiny visual-viewport nudge so it stays above the keyboard and Safari toolbar.
+
+a) Imports
+
+At the top, ensure you have useEffect:
+
+import React, { useEffect, useState } from "react";
+
+b) Add the visual-viewport hook (once per page/component)
+
+Paste this near the top of your component (inside the component function):
+
+// Keep bottom padding correct on iOS when the keyboard / URL bar changes height
+useEffect(() => {
+  const vv = (window as any).visualViewport;
+  const setInsets = () => {
+    const inset = window.innerHeight - ((vv?.height ?? window.innerHeight) + (vv?.offsetTop ?? 0));
+    document.documentElement.style.setProperty('--vv-bottom', `${Math.max(0, inset)}px`);
+  };
+  if (vv) {
+    vv.addEventListener('resize', setInsets);
+    vv.addEventListener('scroll', setInsets);
+  }
+  window.addEventListener('orientationchange', setInsets);
+  setInsets();
+  return () => {
+    if (vv) {
+      vv.removeEventListener('resize', setInsets);
+      vv.removeEventListener('scroll', setInsets);
+    }
+    window.removeEventListener('orientationchange', setInsets);
+  };
+}, []);
+
+Also (optional but nice) set a default once globally (can be here or in your global CSS):
+
+useEffect(() => {
+  document.documentElement.style.setProperty('--vv-bottom', '0px');
+}, []);
+
+c) Make the right pane a column and avoid overflow:hidden on it
+
+Where you render the conversation pane, make sure the container is not the scroller:
+
+<div className="flex flex-col min-h-[100dvh]">   {/* right pane root */}
+  {/* Header ... */}
+
+  {/* Messages list becomes the only scroller */}
+  <div className="flex-1 overflow-auto">
+    {/* If you use a ScrollArea component, give it flex-1 + overflow-auto */}
+    <ScrollArea
+      className="h-full"
+      style={{
+        paddingBottom: 'calc(80px + env(safe-area-inset-bottom, 0px) + var(--vv-bottom, 0px))'
+      }}
+    >
+      {/* ... your messages ... */}
+    </ScrollArea>
+  </div>
+
+  {/* Composer (see next block) */}
+</div>
+
+d) Replace your composer container with sticky bottom-0
+
+Make sure this element sits after the messages list and outside its scrolling element:
+
+<div
+  className="sticky bottom-0 z-40 border-t border-border bg-white/85 dark:bg-slate-900/75 backdrop-blur-sm"
+  style={{ paddingBottom: 'calc(12px + env(safe-area-inset-bottom, 0px) + var(--vv-bottom, 0px))' }}
+>
+  {/* your input, buttons, etc. */}
+</div>
+
+Notes
+	•	Do not put overflow:hidden on any ancestor of the composer; position: sticky won’t work otherwise.
+	•	If any ancestor has transform, filter, perspective, or will-change, leave the composer outside that element.
+	•	You no longer need position: fixed on the composer; sticky is more reliable on iOS.
+
+⸻
+
+3) (If you had 100vh) swap to dynamic viewport units
+
+If any container still uses 100vh, change to 100dvh:
+
+/* tailwind users can inline class: min-h-[100dvh] as shown above */
+
+
+⸻
+
+Checklist to verify
+	•	Messages list scrolls; the outer pane does not.
+	•	Composer stays pinned when scrolling.
+	•	When the iOS keyboard opens, the composer jumps above it (thanks to --vv-bottom).
+	•	The messages list has enough padding-bottom so the last message isn’t hidden behind the composer.
+
+That’s it. Drop these in and the input bar won’t be covered by Safari’s bottom bar or the keyboard anymore.
