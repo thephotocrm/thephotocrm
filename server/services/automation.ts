@@ -453,10 +453,16 @@ async function processEmailBuilderAutomation(automation: any, photographerId: st
         brandingData
       );
       
-      // Send email
+      // Send email with verified sender address
+      const fromEmail = process.env.SENDGRID_FROM_EMAIL || 'scoop@missionscoopable.com';
+      const fromName = photographer?.emailFromName || photographer?.businessName || 'Scoop Photography';
+      const replyToEmail = photographer?.emailFromAddr || process.env.SENDGRID_REPLY_TO || fromEmail;
+      
       try {
         const emailResult = await sendEmail({
           to: project.email,
+          from: `${fromName} <${fromEmail}>`,
+          replyTo: `${fromName} <${replyToEmail}>`,
           subject: renderedSubject,
           html: brandedHtml,
           photographerId: photographer.id,
