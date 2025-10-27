@@ -632,7 +632,7 @@ export default function Inbox() {
             {currentView === 'inbox' && (
               <>
                 {/* Conversation List */}
-                <div className={`w-full md:w-96 border-r flex flex-col overflow-hidden relative ${isMobileThreadView ? 'hidden md:flex' : 'flex'}`}>
+                <div className={`w-full md:w-96 md:h-full border-r flex flex-col overflow-hidden relative ${isMobileThreadView ? 'hidden md:flex' : 'flex'}`}>
                   {/* Inbox Header */}
                   <div className="p-4 border-b shrink-0">
                     <h2 className="text-xl font-semibold mb-3 text-indigo-600" data-testid="text-inbox-title">Inbox</h2>
@@ -648,7 +648,7 @@ export default function Inbox() {
                     </div>
                   </div>
                   
-                  <div className="flex-1 min-h-0 overflow-y-auto">
+                  <div className="flex-1 h-0 overflow-y-auto">
                 {conversationsLoading ? (
                   <div className="p-4 text-center text-muted-foreground">Loading conversations...</div>
                 ) : filteredConversations.length === 0 ? (
@@ -762,7 +762,7 @@ export default function Inbox() {
               {/* Floating New Message Button */}
               <Button
                 size="icon"
-                className="absolute bottom-4 right-4 h-14 w-14 rounded-full shadow-lg bg-indigo-600 hover:bg-indigo-700 text-white"
+                className="fixed md:absolute bottom-4 right-4 h-14 w-14 rounded-full shadow-lg bg-indigo-600 hover:bg-indigo-700 text-white z-50 md:z-auto"
                 onClick={() => setIsNewMessageDialogOpen(true)}
                 data-testid="button-floating-new-message"
               >
