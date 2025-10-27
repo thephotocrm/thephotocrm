@@ -339,6 +339,16 @@ export const automations = pgTable("automations", {
   templateId: varchar("template_id").references(() => templates.id), // Template for countdown automations
   // Questionnaire assignment fields (for communication automations)
   questionnaireTemplateId: varchar("questionnaire_template_id").references(() => questionnaireTemplates.id),
+  // Custom email builder fields (alternative to templateId)
+  useEmailBuilder: boolean("use_email_builder").default(false), // Flag to indicate custom email builder was used
+  emailSubject: text("email_subject"), // Subject line for custom emails
+  emailBlocks: jsonb("email_blocks"), // Block-based email builder content
+  includeHeroImage: boolean("include_hero_image").default(false),
+  heroImageUrl: text("hero_image_url"),
+  includeHeader: boolean("include_header").default(false),
+  headerStyle: text("header_style"), // minimal, professional, bold, classic
+  includeSignature: boolean("include_signature").default(true),
+  signatureStyle: text("signature_style"), // simple, professional, detailed, branded
   // Conditional logic fields
   eventDateCondition: text("event_date_condition"), // null = no condition, HAS_EVENT_DATE = must have date, NO_EVENT_DATE = must not have date
   effectiveFrom: timestamp("effective_from").defaultNow(), // Only run on clients who entered stage at/after this time
@@ -1355,9 +1365,10 @@ export const validateAutomationSchema = insertAutomationSchema.refine(
       return data.triggerType !== undefined && data.targetStageId !== undefined;
     }
     if (data.automationType === 'COUNTDOWN') {
-      // Countdown automations require daysBefore, eventType, and templateId
-      // stageCondition is optional for filtering
-      return data.daysBefore !== undefined && data.eventType !== undefined && data.templateId !== undefined;
+      // Countdown automations require daysBefore, eventType, and either templateId OR email blocks (for custom emails)
+      const hasTemplate = data.templateId !== undefined;
+      const hasEmailBlocks = data.useEmailBuilder && data.emailBlocks !== undefined && data.emailSubject !== undefined;
+      return data.daysBefore !== undefined && data.eventType !== undefined && (hasTemplate || hasEmailBlocks);
     }
     return true;
   },

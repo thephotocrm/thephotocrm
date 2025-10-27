@@ -2165,7 +2165,7 @@ export default function Automations() {
     console.log('📋 Channel:', data.channel);
     console.log('📁 Smart File Template ID:', data.smartFileTemplateId);
     
-    // If using custom email builder, create template first
+    // If using custom email builder, add email blocks directly to automation
     if (data.channel === 'EMAIL' && emailBuilderMode === 'build') {
       try {
         // Validate custom email
@@ -2187,47 +2187,47 @@ export default function Automations() {
           return;
         }
         
-        // Validate template name if saving as template
-        if (saveAsTemplate && !newTemplateName.trim()) {
-          toast({
-            title: "Template name required",
-            description: "Please enter a name for your template",
-            variant: "destructive"
-          });
-          return;
+        // Add email blocks directly to automation data
+        (data as any).useEmailBuilder = true;
+        (data as any).emailSubject = customEmailSubject;
+        (data as any).emailBlocks = customEmailBlocks;
+        (data as any).includeHeroImage = includeHeroImage;
+        (data as any).heroImageUrl = includeHeroImage ? heroImageUrl : undefined;
+        (data as any).includeHeader = includeHeader;
+        (data as any).headerStyle = includeHeader ? headerStyle : undefined;
+        (data as any).includeSignature = includeSignature;
+        (data as any).signatureStyle = includeSignature ? signatureStyle : undefined;
+        
+        // Optionally save as template if user requested
+        if (saveAsTemplate && newTemplateName.trim()) {
+          try {
+            await apiRequest('POST', '/api/templates', {
+              name: newTemplateName,
+              channel: 'EMAIL',
+              subject: customEmailSubject,
+              contentBlocks: customEmailBlocks,
+              includeHeroImage,
+              heroImageUrl: includeHeroImage ? heroImageUrl : undefined,
+              includeHeader,
+              headerStyle: includeHeader ? headerStyle : undefined,
+              includeSignature,
+              signatureStyle: includeSignature ? signatureStyle : undefined
+            });
+            
+            toast({
+              title: "Template saved",
+              description: `"${newTemplateName}" has been saved to your templates`
+            });
+          } catch (error: any) {
+            // Don't fail the automation creation if template save fails
+            console.error('Failed to save template:', error);
+          }
         }
-        
-        // Create template
-        const templateName = saveAsTemplate ? newTemplateName : `${data.name} - Email`;
-        const templateResponse = await apiRequest('POST', '/api/templates', {
-          name: templateName,
-          channel: 'EMAIL',
-          subject: customEmailSubject,
-          contentBlocks: customEmailBlocks,
-          includeHeroImage,
-          heroImageUrl: includeHeroImage ? heroImageUrl : undefined,
-          includeHeader,
-          headerStyle: includeHeader ? headerStyle : undefined,
-          includeSignature,
-          signatureStyle: includeSignature ? signatureStyle : undefined
-        });
-        
-        const newTemplate = await templateResponse.json();
-        
-        if (saveAsTemplate) {
-          toast({
-            title: "Template saved",
-            description: `"${newTemplateName}" has been saved to your templates`
-          });
-        }
-        
-        // Use the newly created template ID
-        data.templateId = newTemplate.id;
         
       } catch (error: any) {
         toast({
-          title: "Failed to create template",
-          description: error.message || "An error occurred while creating the template",
+          title: "Validation failed",
+          description: error.message || "An error occurred while validating the email",
           variant: "destructive"
         });
         return;

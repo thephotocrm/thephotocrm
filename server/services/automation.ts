@@ -1106,29 +1106,38 @@ async function sendCountdownMessage(project: any, automation: any, photographerI
     
   const timezone = photographer?.timezone || 'UTC';
 
-  // Check template exists BEFORE reservation
-  if (!automation.templateId) {
-    console.log(`📝 No template ID for countdown automation ${automation.name}, skipping (no reservation)`);
+  // Check if automation has email content (either template or email blocks) BEFORE reservation
+  const hasEmailBlocks = automation.useEmailBuilder && automation.emailBlocks && automation.emailSubject;
+  const hasTemplate = automation.templateId;
+  
+  if (!hasEmailBlocks && !hasTemplate) {
+    console.log(`📝 No email content (template or email blocks) for countdown automation ${automation.name}, skipping (no reservation)`);
     return;
   }
   
-  const [template] = await db
-    .select()
-    .from(templates)
-    .where(and(
-      eq(templates.id, automation.templateId),
-      eq(templates.photographerId, photographerId)
-    ));
+  // Get template if using templateId
+  let template = null;
+  if (hasTemplate) {
+    const [templateRecord] = await db
+      .select()
+      .from(templates)
+      .where(and(
+        eq(templates.id, automation.templateId),
+        eq(templates.photographerId, photographerId)
+      ));
 
-  if (!template) {
-    console.log(`📝 Template not found for countdown automation, templateId: ${automation.templateId}, skipping (no reservation)`);
-    return;
-  }
+    if (!templateRecord) {
+      console.log(`📝 Template not found for countdown automation, templateId: ${automation.templateId}, skipping (no reservation)`);
+      return;
+    }
 
-  // Validate template-channel match BEFORE reservation
-  if (template.channel !== automation.channel) {
-    console.log(`❌ Template channel mismatch for countdown automation ${automation.name}: template=${template.channel}, automation=${automation.channel}, skipping (no reservation)`);
-    return;
+    // Validate template-channel match BEFORE reservation
+    if (templateRecord.channel !== automation.channel) {
+      console.log(`❌ Template channel mismatch for countdown automation ${automation.name}: template=${templateRecord.channel}, automation=${automation.channel}, skipping (no reservation)`);
+      return;
+    }
+    
+    template = templateRecord;
   }
   
   // Calculate today in photographer's timezone using proper timezone handling
@@ -1244,9 +1253,49 @@ async function sendCountdownMessage(project: any, automation: any, photographerI
   try {
     // Send message
     if (automation.channel === 'EMAIL' && project.email) {
-    const subject = renderTemplate(template.subject || '', variables);
-    const htmlBody = renderTemplate(template.htmlBody || '', variables);
-    const textBody = renderTemplate(template.textBody || '', variables);
+    // Render email content based on whether using email blocks or template
+    let subject: string;
+    let htmlBody: string;
+    let textBody: string;
+    
+    if (hasEmailBlocks) {
+      // Import email block rendering functions
+      const { contentBlocksToHtml, renderTemplate: renderTemplateFn } = await import('@shared/template-utils');
+      const { wrapEmailContent } = await import('./email-branding');
+      
+      // Render subject with variables
+      subject = renderTemplateFn(automation.emailSubject || '', variables);
+      
+      // Render email blocks to HTML
+      const blocksHtml = contentBlocksToHtml(automation.emailBlocks as any[], {
+        baseUrl: process.env.REPLIT_DEV_DOMAIN 
+          ? `https://${process.env.REPLIT_DEV_DOMAIN}`
+          : 'https://thephotocrm.com'
+      });
+      
+      // Apply branding (headers and signatures)
+      const brandingData = {
+        includeHeroImage: automation.includeHeroImage || false,
+        heroImageUrl: automation.heroImageUrl || undefined,
+        includeHeader: automation.includeHeader || false,
+        headerStyle: automation.headerStyle || undefined,
+        includeSignature: automation.includeSignature !== false, // default true
+        signatureStyle: automation.signatureStyle || undefined,
+        photographerId
+      };
+      
+      htmlBody = await wrapEmailContent(blocksHtml, brandingData);
+      textBody = automation.emailSubject || ''; // Simple text version
+    } else if (template) {
+      // Use existing template rendering
+      subject = renderTemplate(template.subject || '', variables);
+      htmlBody = renderTemplate(template.htmlBody || '', variables);
+      textBody = renderTemplate(template.textBody || '', variables);
+    } else {
+      console.error('No email content available (neither blocks nor template)');
+      await updateExecutionStatus(reservation.executionId!, 'FAILED');
+      return;
+    }
 
     console.log(`📧 Sending countdown email to ${project.firstName} ${project.lastName} (${project.email})...`);
     
