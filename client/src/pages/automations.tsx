@@ -1706,7 +1706,6 @@ export default function Automations() {
         const hasQuestionnaire = data.questionnaireTemplateId && data.questionnaireTemplateId.length > 0 && data.questionnaireTemplateId !== "none" && data.questionnaireTemplateId !== "unavailable";
         const hasSmartFile = data.smartFileTemplateId && data.smartFileTemplateId.length > 0 && data.smartFileTemplateId !== "unavailable" && data.smartFileTemplateId !== "none";
         const hasCustomSms = data.customSmsContent && data.customSmsContent.length > 0;
-        const hasCustomEmailBuilder = emailBuilderMode === 'build' && customEmailBlocks.length > 0 && customEmailSubject.trim().length > 0;
         
         // For SMART_FILE channel, only smartFileTemplateId is required
         if (data.channel === 'SMART_FILE') {
@@ -1718,12 +1717,9 @@ export default function Automations() {
           if (!hasTemplate && !hasCustomSms && !hasQuestionnaire) {
             return false;
           }
-        } else if (data.channel === 'EMAIL') {
-          // For EMAIL, require template, questionnaire, OR custom email builder with content
-          if (!hasTemplate && !hasQuestionnaire && !hasCustomEmailBuilder) {
-            return false;
-          }
         }
+        // For EMAIL: validation happens in handleCreateAutomation where we have access to emailBuilderMode state
+        // We can't validate custom email builder here because emailBuilderMode/customEmailBlocks are state, not form data
       }
       // If pipeline is enabled, require target stage
       if (data.enablePipeline) {
@@ -2547,7 +2543,7 @@ export default function Automations() {
         return hasTemplate || hasCustom;
       } else if (channel === 'EMAIL') {
         const hasTemplate = form.watch('templateId') && form.watch('templateId') !== 'unavailable';
-        const hasCustom = emailBuilderMode === 'build' && customEmailBlocks.length > 0;
+        const hasCustom = emailBuilderMode === 'build' && customEmailBlocks.length > 0 && customEmailSubject.trim().length > 0;
         return hasTemplate || hasCustom;
       }
     }
