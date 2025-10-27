@@ -119,7 +119,7 @@ export default function PublicSmartFile() {
   const [clientSignature, setClientSignature] = useState<string | null>(null);
   const [selectedPaymentOption, setSelectedPaymentOption] = useState<'DEPOSIT' | 'FULL' | null>(null);
   const [formAnswers, setFormAnswers] = useState<Map<string, any>>(new Map());
-  const [showBookingConfirmation, setShowBookingConfirmation] = useState(false);
+  const [bookingSuccess, setBookingSuccess] = useState(false);
   const [bookingDetails, setBookingDetails] = useState<{ date: Date; time: string } | null>(null);
   const hasAutoAcceptedRef = useRef(false);
   const contractRendererRef = useRef<HTMLDivElement>(null);
@@ -391,7 +391,7 @@ export default function PublicSmartFile() {
     },
     onSuccess: (response: any) => {
       queryClient.invalidateQueries({ queryKey: [`/api/public/smart-files/${params?.token}`] });
-      setShowBookingConfirmation(true);
+      setBookingSuccess(true);
     },
     onError: (error: any) => {
       toast({
@@ -2279,29 +2279,77 @@ export default function PublicSmartFile() {
 
                 {/* SCHEDULING Page */}
                 {currentPage.pageType === "SCHEDULING" && (
-                  <SchedulingCalendar
-                    heading={currentPage.content.heading}
-                    description={currentPage.content.description}
-                    durationMinutes={currentPage.content.durationMinutes}
-                    bookingType={currentPage.content.bookingType}
-                    bufferBefore={currentPage.content.bufferBefore}
-                    bufferAfter={currentPage.content.bufferAfter}
-                    allowRescheduling={currentPage.content.allowRescheduling}
-                    isPreview={false}
-                    isLoading={bookingMutation.isPending}
-                    photographerName={data.photographer.businessName}
-                    photographerPhoto={null}
-                    photographerId={data.photographer.id}
-                    showPhotographerProfile={currentPage.content.showPhotographerProfile ?? true}
-                    onBookingConfirm={(date, time) => {
-                      setBookingDetails({ date, time });
-                      bookingMutation.mutate({
-                        date,
-                        time,
-                        durationMinutes: currentPage.content.durationMinutes || 60
-                      });
-                    }}
-                  />
+                  <>
+                    {bookingSuccess && bookingDetails ? (
+                      <Card data-testid="card-booking-success">
+                        <CardContent className="pt-6">
+                          <div className="text-center space-y-4">
+                            <div className="mx-auto w-16 h-16 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center">
+                              <Check className="w-8 h-8 text-green-600 dark:text-green-400" />
+                            </div>
+                            <div>
+                              <h3 className="text-2xl font-semibold mb-2" data-testid="text-booking-confirmed">
+                                Appointment Confirmed!
+                              </h3>
+                              <p className="text-muted-foreground">
+                                Your appointment has been successfully scheduled
+                              </p>
+                            </div>
+                            <div className="bg-muted/50 dark:bg-muted/20 rounded-lg p-4 space-y-2">
+                              <div className="flex items-center justify-center gap-2 text-sm">
+                                <Calendar className="w-4 h-4 text-muted-foreground" />
+                                <span data-testid="text-booking-date">
+                                  {bookingDetails.date.toLocaleDateString('en-US', {
+                                    weekday: 'long',
+                                    month: 'long',
+                                    day: 'numeric',
+                                    year: 'numeric'
+                                  })}
+                                </span>
+                              </div>
+                              <div className="flex items-center justify-center gap-2 text-sm">
+                                <Clock className="w-4 h-4 text-muted-foreground" />
+                                <span data-testid="text-booking-time">
+                                  {new Date(`2000-01-01T${bookingDetails.time}`).toLocaleTimeString('en-US', {
+                                    hour: 'numeric',
+                                    minute: '2-digit',
+                                    hour12: true
+                                  })}
+                                </span>
+                              </div>
+                            </div>
+                            <p className="text-sm text-muted-foreground">
+                              A confirmation email has been sent to you with all the details.
+                            </p>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ) : (
+                      <SchedulingCalendar
+                        heading={currentPage.content.heading}
+                        description={currentPage.content.description}
+                        durationMinutes={currentPage.content.durationMinutes}
+                        bookingType={currentPage.content.bookingType}
+                        bufferBefore={currentPage.content.bufferBefore}
+                        bufferAfter={currentPage.content.bufferAfter}
+                        allowRescheduling={currentPage.content.allowRescheduling}
+                        isPreview={false}
+                        isLoading={bookingMutation.isPending}
+                        photographerName={data.photographer.businessName}
+                        photographerPhoto={null}
+                        photographerId={data.photographer.id}
+                        showPhotographerProfile={currentPage.content.showPhotographerProfile ?? true}
+                        onBookingConfirm={(date, time) => {
+                          setBookingDetails({ date, time });
+                          bookingMutation.mutate({
+                            date,
+                            time,
+                            durationMinutes: currentPage.content.durationMinutes || 60
+                          });
+                        }}
+                      />
+                    )}
+                  </>
                 )}
               </div>
 
@@ -2361,85 +2409,6 @@ export default function PublicSmartFile() {
           </div>
         </div>
       </div>
-
-      {/* Booking Confirmation Dialog */}
-      <Dialog open={showBookingConfirmation} onOpenChange={setShowBookingConfirmation}>
-        <DialogContent data-testid="dialog-booking-confirmation">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <div className="w-12 h-12 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center">
-                <Check className="w-6 h-6 text-green-600 dark:text-green-400" />
-              </div>
-              <span>Booking Confirmed!</span>
-            </DialogTitle>
-            <DialogDescription>
-              Your appointment has been successfully scheduled.
-            </DialogDescription>
-          </DialogHeader>
-          
-          {bookingDetails && (
-            <div className="space-y-4 py-4">
-              <div className="bg-muted/50 rounded-lg p-4 space-y-2">
-                <div className="flex items-center gap-2">
-                  <Calendar className="w-4 h-4 text-muted-foreground" />
-                  <span className="font-medium">
-                    {bookingDetails.date.toLocaleDateString('en-US', { 
-                      weekday: 'long', 
-                      month: 'long', 
-                      day: 'numeric',
-                      year: 'numeric'
-                    })}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-muted-foreground" />
-                  <span className="font-medium">
-                    {new Date(`2000-01-01T${bookingDetails.time}`).toLocaleTimeString('en-US', {
-                      hour: 'numeric',
-                      minute: '2-digit',
-                      hour12: true
-                    })}
-                  </span>
-                </div>
-              </div>
-              <p className="text-sm text-muted-foreground">
-                A confirmation email will be sent to you shortly with all the details.
-              </p>
-            </div>
-          )}
-
-          <DialogFooter className="flex-col sm:flex-row gap-2">
-            {currentPageIndex < sortedPages.length - 1 ? (
-              <>
-                <Button
-                  variant="outline"
-                  onClick={() => setShowBookingConfirmation(false)}
-                  data-testid="button-close-confirmation"
-                >
-                  Close
-                </Button>
-                <Button
-                  onClick={() => {
-                    setShowBookingConfirmation(false);
-                    setCurrentPageIndex(currentPageIndex + 1);
-                  }}
-                  data-testid="button-continue-next"
-                >
-                  Continue to Next Page
-                </Button>
-              </>
-            ) : (
-              <Button
-                onClick={() => setShowBookingConfirmation(false)}
-                className="w-full"
-                data-testid="button-done"
-              >
-                Done
-              </Button>
-            )}
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
