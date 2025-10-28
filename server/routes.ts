@@ -608,9 +608,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/auth/register", async (req, res) => {
     try {
-      const { email, password, businessName, role = "PHOTOGRAPHER" } = req.body;
+      const { email, password, businessName, name, role = "PHOTOGRAPHER" } = req.body;
       
       const normalizedEmail = email.toLowerCase().trim();
+      
+      // Use businessName if provided, otherwise default to name or email prefix
+      const finalBusinessName = businessName || name || normalizedEmail.split('@')[0];
       
       // Check if user exists
       const existingUser = await storage.getUserByEmail(normalizedEmail);
@@ -627,9 +630,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Create Stripe customer
           const customer = await stripe.customers.create({
             email: normalizedEmail,
-            name: businessName,
+            name: finalBusinessName,
             metadata: {
-              businessName: businessName
+              businessName: finalBusinessName
             }
           });
 
@@ -667,7 +670,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         // Only create database records if Stripe succeeded
         const photographer = await storage.createPhotographer({
-          businessName,
+          businessName: finalBusinessName,
           timezone: "America/New_York",
           stripeCustomerId: stripeData.customerId,
           stripeSubscriptionId: stripeData.subscriptionId,
@@ -708,7 +711,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ];
 
         for (const template of defaultScheduleTemplates) {
-          await storage.createDailyTemplate({
+          await storage.createDailyAvailabilityTemplate({
             ...template,
             photographerId: photographer.id
           });
