@@ -159,8 +159,8 @@
   background: hsl(221, 83%, 53%);
   background-clip: padding-box;
   border-radius: 4px;
-  border-top: 30px solid transparent;
-  border-bottom: 30px solid transparent;
+  border-top: 50px solid transparent;
+  border-bottom: 50px solid transparent;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
