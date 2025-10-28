@@ -57,6 +57,7 @@ const SidebarProvider = React.forwardRef<
     defaultOpen?: boolean
     open?: boolean
     onOpenChange?: (open: boolean) => void
+    fixedHeight?: boolean
   }
 >(
   (
@@ -64,6 +65,7 @@ const SidebarProvider = React.forwardRef<
       defaultOpen = true,
       open: openProp,
       onOpenChange: setOpenProp,
+      fixedHeight = false,
       className,
       style,
       children,
@@ -141,7 +143,7 @@ const SidebarProvider = React.forwardRef<
               {
                 "--sidebar-width": SIDEBAR_WIDTH,
                 "--sidebar-width-icon": SIDEBAR_WIDTH_ICON,
-                minHeight: '100dvh',
+                ...(fixedHeight ? { height: '100dvh' } : { minHeight: '100dvh' }),
                 overflow: 'hidden',
                 ...style,
               } as React.CSSProperties

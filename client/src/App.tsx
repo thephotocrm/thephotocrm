@@ -103,7 +103,7 @@ function ProtectedRoutes() {
           photographerEmail={user?.isImpersonating ? user?.email : undefined}
         />
       )}
-      <SidebarProvider>
+      <SidebarProvider fixedHeight={location === '/inbox'}>
         <AppSidebar />
         <SidebarInset>
           {/* Onboarding Banner - Shows on all pages for photographers */}
