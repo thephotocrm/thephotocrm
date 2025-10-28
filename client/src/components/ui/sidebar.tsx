@@ -142,6 +142,7 @@ const SidebarProvider = React.forwardRef<
                 "--sidebar-width": SIDEBAR_WIDTH,
                 "--sidebar-width-icon": SIDEBAR_WIDTH_ICON,
                 minHeight: '100dvh',
+                overflow: 'hidden',
                 ...style,
               } as React.CSSProperties
             }
