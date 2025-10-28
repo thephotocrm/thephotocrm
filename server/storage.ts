@@ -49,6 +49,8 @@ export interface IStorage {
   // Users
   getUser(id: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
+  getUserByGoogleId(googleId: string): Promise<User | undefined>;
+  linkGoogleAccount(userId: string, googleId: string): Promise<User>;
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: string, user: Partial<User>): Promise<User>;
   
@@ -390,6 +392,22 @@ export class DatabaseStorage implements IStorage {
   async getUserByEmail(email: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.email, email));
     return user || undefined;
+  }
+
+  async getUserByGoogleId(googleId: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.googleId, googleId));
+    return user || undefined;
+  }
+
+  async linkGoogleAccount(userId: string, googleId: string): Promise<User> {
+    const [user] = await db.update(users)
+      .set({ 
+        googleId, 
+        authProvider: 'google' 
+      })
+      .where(eq(users.id, userId))
+      .returning();
+    return user;
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {

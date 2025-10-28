@@ -331,7 +331,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.use(cookieParser());
+  // Initialize cookie-parser with secret for signed cookies (used in OAuth flow)
+  const cookieSecret = process.env.SESSION_SECRET || process.env.REPL_ID || 'default-cookie-secret-change-in-production';
+  app.use(cookieParser(cookieSecret));
 
   // Serve attached_assets directory for uploaded files (logos, etc.)
   const attachedAssetsPath = path.join(process.cwd(), 'attached_assets');
@@ -763,6 +765,149 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/auth/logout", (req, res) => {
     res.clearCookie('token');
     res.json({ message: "Logged out successfully" });
+  });
+
+  // Google OAuth Routes (Sign in with Google)
+  app.get("/api/auth/google", async (req, res) => {
+    try {
+      const { getGoogleAuthUrl, generateStateToken } = await import('./services/googleAuth');
+      
+      // Generate CSRF protection state token
+      const state = generateStateToken();
+      
+      // Store state in signed cookie for validation in callback (expires in 10 minutes)
+      res.cookie('oauth_state', state, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax', // Allow cross-site for OAuth redirect
+        maxAge: 10 * 60 * 1000, // 10 minutes
+        signed: true // Use signed cookies for tampering protection
+      });
+      
+      // Use request protocol (http/https) instead of hardcoded https
+      const protocol = req.protocol || 'https';
+      const redirectUri = `${protocol}://${req.get('host')}/api/auth/google/callback`;
+      
+      const authUrl = await getGoogleAuthUrl(redirectUri, state);
+      res.redirect(authUrl);
+    } catch (error) {
+      console.error("Google auth start error:", error);
+      res.redirect('/login?error=oauth_failed');
+    }
+  });
+
+  app.get("/api/auth/google/callback", async (req, res) => {
+    try {
+      const { code, state } = req.query;
+      
+      if (!code || typeof code !== 'string') {
+        console.error("❌ Missing authorization code in Google OAuth callback");
+        return res.redirect('/login?error=missing_code');
+      }
+
+      // Validate CSRF state token
+      if (!state || typeof state !== 'string') {
+        console.error("❌ Missing state parameter in OAuth callback");
+        return res.redirect('/login?error=invalid_state');
+      }
+
+      // Get state from signed cookie
+      const cookieState = req.signedCookies?.oauth_state;
+      if (!cookieState || cookieState !== state) {
+        console.error("❌ State mismatch in OAuth callback - possible CSRF attack");
+        console.log("Expected state from cookie:", cookieState);
+        console.log("Received state from query:", state);
+        return res.redirect('/login?error=invalid_state');
+      }
+
+      // Clear the state cookie after validation
+      res.clearCookie('oauth_state');
+
+      const { exchangeCodeForClaims } = await import('./services/googleAuth');
+      const protocol = req.protocol || 'https';
+      const redirectUri = `${protocol}://${req.get('host')}/api/auth/google/callback`;
+      
+      // Exchange code for user claims
+      const claims = await exchangeCodeForClaims(code, redirectUri);
+      
+      if (!claims.email) {
+        console.error("❌ No email in Google OAuth claims");
+        return res.redirect('/login?error=no_email');
+      }
+
+      // Verify email is confirmed by the OAuth provider
+      if (!claims.email_verified) {
+        console.error("❌ Email not verified by OAuth provider");
+        return res.redirect('/login?error=email_not_verified');
+      }
+
+      const normalizedEmail = claims.email.toLowerCase().trim();
+      const googleId = claims.sub;
+
+      // Try to find existing user by googleId first
+      let user = await storage.getUserByGoogleId(googleId);
+
+      if (!user) {
+        // Try to find by email (for account linking)
+        user = await storage.getUserByEmail(normalizedEmail);
+        
+        if (user) {
+          // Link Google account to existing user (email already verified)
+          console.log(`🔗 Linking verified Google account to existing user: ${user.email}`);
+          await storage.linkGoogleAccount(user.id, googleId);
+        } else {
+          // Create new user and photographer account
+          console.log(`✨ Creating new photographer account via Google OAuth: ${normalizedEmail}`);
+          
+          // Extract name from claims
+          const firstName = claims.first_name || normalizedEmail.split('@')[0];
+          const lastName = claims.last_name || '';
+          const businessName = `${firstName} ${lastName}`.trim() + " Photography";
+
+          // Create photographer first
+          const photographer = await storage.createPhotographer({
+            businessName,
+            photographerName: `${firstName} ${lastName}`.trim(),
+            timezone: "America/New_York"
+          });
+
+          // Create user linked to photographer
+          user = await storage.createUser({
+            email: normalizedEmail,
+            role: "PHOTOGRAPHER",
+            photographerId: photographer.id,
+            googleId,
+            authProvider: "google"
+            // passwordHash is null for OAuth users
+          });
+
+          console.log(`✅ Created photographer (${photographer.id}) and user (${user.id})`);
+        }
+      }
+
+      // Generate JWT token (same as email/password login)
+      const { generateToken } = await import('./services/auth');
+      const token = generateToken({
+        userId: user.id,
+        email: user.email,
+        role: user.role,
+        photographerId: user.photographerId || undefined
+      });
+
+      // Set HTTP-only cookie (same as email/password login)
+      res.cookie('token', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+      });
+
+      // Redirect to dashboard
+      res.redirect('/dashboard');
+    } catch (error) {
+      console.error("❌ Google OAuth callback error:", error);
+      res.redirect('/login?error=oauth_failed');
+    }
   });
 
   // Portal Token Routes (Magic Links for Client Auto-Login)
