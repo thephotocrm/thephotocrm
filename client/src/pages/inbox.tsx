@@ -100,8 +100,23 @@ export default function Inbox() {
       
       // Scroll to bottom after message is sent
       setTimeout(() => {
+        console.log('📤 Scroll after send message');
         if (messageListRef.current) {
+          console.log('📤 BEFORE send scroll:', {
+            scrollTop: messageListRef.current.scrollTop,
+            scrollHeight: messageListRef.current.scrollHeight,
+            clientHeight: messageListRef.current.clientHeight
+          });
+          
           messageListRef.current.scrollTop = messageListRef.current.scrollHeight;
+          
+          console.log('📤 AFTER send scroll:', {
+            scrollTop: messageListRef.current.scrollTop,
+            scrollHeight: messageListRef.current.scrollHeight,
+            clientHeight: messageListRef.current.clientHeight
+          });
+        } else {
+          console.log('❌ messageListRef is null after send');
         }
       }, 150);
     },
@@ -420,15 +435,40 @@ export default function Inbox() {
 
   // Auto-scroll to bottom when messages load or thread changes
   useEffect(() => {
+    console.log('🔵 Auto-scroll useEffect fired', {
+      threadLength: thread.length,
+      selectedContactId,
+      hasRef: !!messageListRef.current
+    });
+    
     if (thread.length > 0 && selectedContactId && messageListRef.current) {
+      // Log scroll values BEFORE attempting to scroll
+      console.log('🟡 BEFORE scroll:', {
+        scrollTop: messageListRef.current.scrollTop,
+        scrollHeight: messageListRef.current.scrollHeight,
+        clientHeight: messageListRef.current.clientHeight
+      });
+      
       // Use requestAnimationFrame to ensure DOM is updated
       requestAnimationFrame(() => {
         setTimeout(() => {
           if (messageListRef.current) {
             messageListRef.current.scrollTop = messageListRef.current.scrollHeight;
+            
+            // Log scroll values AFTER attempting to scroll
+            console.log('🟢 AFTER scroll:', {
+              scrollTop: messageListRef.current.scrollTop,
+              scrollHeight: messageListRef.current.scrollHeight,
+              clientHeight: messageListRef.current.clientHeight,
+              isAtBottom: (messageListRef.current.scrollTop + messageListRef.current.clientHeight) >= messageListRef.current.scrollHeight - 10
+            });
+          } else {
+            console.log('❌ messageListRef.current is null in setTimeout');
           }
         }, 100);
       });
+    } else {
+      console.log('⚠️ Skip scroll - conditions not met');
     }
   }, [thread.length, selectedContactId]);
 
