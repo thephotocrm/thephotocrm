@@ -704,10 +704,10 @@ export default function Inbox() {
                 )}
               </div>
               
-              {/* Floating New Message Button */}
+              {/* Floating New Message Button - Mobile Only */}
               <Button
                 size="icon"
-                className="fixed md:absolute bottom-4 right-4 h-14 w-14 rounded-full shadow-lg bg-indigo-600 hover:bg-indigo-700 text-white z-50 md:z-auto"
+                className="fixed bottom-4 right-4 h-14 w-14 rounded-full shadow-lg bg-indigo-600 hover:bg-indigo-700 text-white z-50 md:hidden"
                 onClick={() => setIsNewMessageDialogOpen(true)}
                 data-testid="button-floating-new-message"
               >
