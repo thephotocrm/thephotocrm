@@ -438,10 +438,16 @@ export default function Inbox() {
     console.log('🔵 Auto-scroll useEffect fired', {
       threadLength: thread.length,
       selectedContactId,
+      isMobileThreadView,
       hasRef: !!messageListRef.current
     });
     
-    if (thread.length > 0 && selectedContactId && messageListRef.current) {
+    // Only scroll if we have messages, a selected contact, the ref exists, AND the view is visible
+    // On mobile: requires isMobileThreadView to be true
+    // On desktop: thread view is always visible (isMobileThreadView stays false)
+    const isMobile = window.innerWidth < 768; // md breakpoint
+    
+    if (thread.length > 0 && selectedContactId && messageListRef.current && (isMobileThreadView || !isMobile)) {
       // Find the last message element and scroll it into view
       const scrollToBottom = () => {
         if (!messageListRef.current) {
@@ -490,9 +496,17 @@ export default function Inbox() {
         setTimeout(scrollToBottom, 100);
       });
     } else {
-      console.log('⚠️ Skip scroll - conditions not met');
+      const isMobile = window.innerWidth < 768;
+      console.log('⚠️ Skip scroll - conditions not met', {
+        hasThread: thread.length > 0,
+        hasContact: !!selectedContactId,
+        hasRef: !!messageListRef.current,
+        isMobile,
+        mobileViewVisible: isMobileThreadView,
+        viewShouldBeVisible: isMobileThreadView || !isMobile
+      });
     }
-  }, [thread.length, selectedContactId]);
+  }, [thread.length, selectedContactId, isMobileThreadView]);
 
   return (
     <div className="flex flex-col overflow-hidden md:h-full" style={{ height: '100svh' }}>
