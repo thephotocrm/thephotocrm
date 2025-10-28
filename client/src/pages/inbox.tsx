@@ -503,67 +503,6 @@ export default function Inbox() {
         </div>
 
         <div className="flex-1 flex flex-col md:overflow-hidden w-full max-w-none md:max-w-[1140px] px-0 md:px-8 pt-0 md:pt-6 pb-0 md:pb-8 gap-0 md:gap-4 relative z-10">
-          {/* Action Bar - Desktop Only */}
-          <div className="shrink-0 hidden md:flex items-center justify-end">
-            <Dialog open={isNewMessageDialogOpen} onOpenChange={setIsNewMessageDialogOpen}>
-              <DialogTrigger asChild>
-                <Button data-testid="button-new-message">
-                  <Plus className="w-4 h-4 mr-2" />
-                  New Text Message
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-md">
-                <DialogHeader>
-                  <DialogTitle>New Text Message</DialogTitle>
-                </DialogHeader>
-                <div className="space-y-4">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                    <Input
-                      placeholder="Search contacts..."
-                      value={contactSearch}
-                      onChange={(e) => setContactSearch(e.target.value)}
-                      className="pl-9"
-                      data-testid="input-contact-search"
-                    />
-                  </div>
-                  <ScrollArea className="h-80">
-                    {filteredContacts.length === 0 ? (
-                      <div className="p-4 text-center text-muted-foreground">
-                        {contactSearch ? 'No contacts found' : 'No contacts with phone numbers'}
-                      </div>
-                    ) : (
-                      filteredContacts.map((contact) => (
-                        <div
-                          key={contact.id}
-                          onClick={() => handleStartNewConversation(contact.id)}
-                          className="p-3 border-b cursor-pointer hover:bg-accent transition-colors"
-                          data-testid={`contact-option-${contact.id}`}
-                        >
-                          <div className="flex items-center gap-3">
-                            <Avatar>
-                              <AvatarFallback className={`text-white ${getAvatarColor(contact.id)}`}>
-                                {getInitials(contact.firstName, contact.lastName)}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div className="flex-1 min-w-0">
-                              <p className="font-medium truncate">
-                                {contact.firstName} {contact.lastName}
-                              </p>
-                              {contact.phone && (
-                                <p className="text-sm text-muted-foreground truncate">{contact.phone}</p>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      ))
-                    )}
-                  </ScrollArea>
-                </div>
-              </DialogContent>
-            </Dialog>
-          </div>
-
           {/* Two Column Layout - Connected Design */}
           <div className="flex-1 flex flex-col md:flex-row overflow-hidden bg-card border rounded-2xl md:max-h-[759px] shadow-[0_20px_60px_rgb(0,0,0,0.15),0_8px_25px_rgb(0,0,0,0.1),0_2px_8px_rgb(0,0,0,0.08)] dark:shadow-[0_20px_60px_rgb(0,0,0,0.5),0_8px_25px_rgb(0,0,0,0.4),0_2px_8px_rgb(0,0,0,0.3)]">
             {/* Conversation List */}
@@ -704,10 +643,10 @@ export default function Inbox() {
                 )}
               </div>
               
-              {/* Floating New Message Button - Mobile Only */}
+              {/* Floating New Message Button */}
               <Button
                 size="icon"
-                className="fixed bottom-4 right-4 h-14 w-14 rounded-full shadow-lg bg-indigo-600 hover:bg-indigo-700 text-white z-50 md:hidden"
+                className="fixed md:absolute bottom-4 right-4 h-14 w-14 rounded-full shadow-lg bg-indigo-600 hover:bg-indigo-700 text-white z-50 md:z-auto"
                 onClick={() => setIsNewMessageDialogOpen(true)}
                 data-testid="button-floating-new-message"
               >
