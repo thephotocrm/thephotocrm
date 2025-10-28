@@ -53,24 +53,8 @@ export default function Login() {
     <>
       {/* Mobile View - Full Screen */}
       <div className="md:hidden min-h-screen w-full flex flex-col" style={{ backgroundColor: '#F5F1E8' }}>
-        {/* Top Photography Circles */}
-        <div className="relative h-44 overflow-hidden">
-          <div className="absolute top-5 left-8 w-20 h-20 rounded-full overflow-hidden border-2 border-white shadow-lg">
-            <img src={bridePhoto} alt="" className="w-full h-full object-cover" />
-          </div>
-          <div className="absolute top-4 right-12 w-24 h-24 rounded-full overflow-hidden border-2 border-white shadow-lg">
-            <img src={couplePhoto} alt="" className="w-full h-full object-cover opacity-85" />
-          </div>
-          <div className="absolute top-26 left-20 w-16 h-16 rounded-full overflow-hidden border-2 border-white shadow-lg">
-            <img src={celebrationPhoto} alt="" className="w-full h-full object-cover opacity-70" />
-          </div>
-          <div className="absolute top-24 right-24 w-20 h-20 rounded-full overflow-hidden border-2 border-white shadow-lg">
-            <img src={groomPhoto} alt="" className="w-full h-full object-cover opacity-75" />
-          </div>
-        </div>
-
         {/* Main Content */}
-        <div className="flex-1 px-6 flex flex-col justify-between pb-8">
+        <div className="flex-1 px-6 flex flex-col justify-between pb-8 pt-16">
           <div>
             {/* Heading */}
             <div className="text-center mb-8">
