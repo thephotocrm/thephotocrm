@@ -392,50 +392,6 @@ export default function Inbox() {
     return fullName.includes(searchLower) || message.includes(searchLower);
   });
 
-  // Visual Viewport API - dynamically track iOS keyboard and address bar changes
-  useEffect(() => {
-    const vv = (window as any).visualViewport;
-    const composer = document.querySelector('[data-composer="true"]') as HTMLElement;
-    
-    const setPosition = () => {
-      if (!composer || !vv) return;
-      
-      // Calculate the visible viewport height (accounts for keyboard)
-      const viewportHeight = vv.height;
-      const offsetTop = vv.offsetTop || 0;
-      
-      // Position composer at the bottom of visible viewport
-      composer.style.bottom = 'auto'; // CRITICAL: Clear bottom to prevent stretching
-      composer.style.top = `${offsetTop + viewportHeight}px`;
-      composer.style.transform = 'translateY(-100%)';
-      
-      // Also update CSS variable for message list padding
-      const inset = window.innerHeight - (viewportHeight + offsetTop);
-      document.documentElement.style.setProperty('--vv-bottom', `${Math.max(0, inset)}px`);
-    };
-    
-    if (vv) {
-      vv.addEventListener('resize', setPosition);
-      vv.addEventListener('scroll', setPosition);
-    }
-    window.addEventListener('orientationchange', setPosition);
-    
-    // Set initial position with a delay to ensure DOM is ready
-    setTimeout(setPosition, 100);
-    
-    return () => {
-      if (vv) {
-        vv.removeEventListener('resize', setPosition);
-        vv.removeEventListener('scroll', setPosition);
-      }
-      window.removeEventListener('orientationchange', setPosition);
-    };
-  }, [selectedContactId]); // Re-run when thread changes
-
-  // Initialize CSS variable default
-  useEffect(() => {
-    document.documentElement.style.setProperty('--vv-bottom', '0px');
-  }, []);
 
   // Auto-scroll to bottom when messages load or thread changes
   useEffect(() => {
@@ -805,7 +761,7 @@ export default function Inbox() {
               </div>
 
               {/* Messages */}
-              <div ref={messageListRef} data-message-list="true" className="flex-1 p-4 bg-blue-50/70 dark:bg-blue-950/40 overflow-y-auto custom-scrollbar" style={{ paddingBottom: 'calc(140px + env(safe-area-inset-bottom, 0px) + var(--vv-bottom, 0px))' }}>
+              <div ref={messageListRef} data-message-list="true" className="flex-1 p-4 bg-blue-50/70 dark:bg-blue-950/40 overflow-y-auto custom-scrollbar">
                 {threadLoading ? (
                   <div className="text-center text-muted-foreground">Loading messages...</div>
                 ) : thread.length === 0 ? (
@@ -915,12 +871,9 @@ export default function Inbox() {
               {/* Message Composer */}
               <div 
                 data-composer="true"
-                className="shrink-0 bg-blue-50 dark:bg-blue-950 fixed left-0 right-0 md:static p-3 md:p-3 z-50" 
+                className="shrink-0 bg-blue-50 dark:bg-blue-950 border-t p-3" 
                 style={{ 
-                  paddingBottom: 'calc(12px + env(safe-area-inset-bottom, 0px))',
-                  top: 'auto',
-                  bottom: '0',
-                  transform: 'none'
+                  paddingBottom: 'calc(12px + env(safe-area-inset-bottom, 0px))'
                 }}
               >
                 {selectedImage && (
