@@ -168,10 +168,13 @@ export const photographers = pgTable("photographers", {
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   email: text("email").notNull().unique(),
-  passwordHash: text("password_hash").notNull(),
+  passwordHash: text("password_hash"), // Optional for OAuth users
   role: text("role").notNull(),
   photographerId: varchar("photographer_id").references(() => photographers.id),
   clientId: varchar("client_id"),
+  // OAuth fields
+  googleId: text("google_id").unique(), // Google OAuth user ID
+  authProvider: text("auth_provider"), // 'google' or 'email'
   resetToken: text("reset_token"),
   resetTokenExpiry: timestamp("reset_token_expiry"),
   resetTokenUsed: boolean("reset_token_used").default(false),
