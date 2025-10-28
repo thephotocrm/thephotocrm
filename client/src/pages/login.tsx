@@ -148,9 +148,9 @@ export default function Login() {
 
           {/* Bottom Section */}
           <div className="text-center mt-8">
-            <div className="flex justify-center items-center gap-3 mb-3">
-              <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-gray-200 shadow-lg">
-                <img src={weddingPhoto} alt="" className="w-full h-full object-cover" />
+            <div className="flex justify-center items-center mb-3">
+              <div className="w-14 h-14 rounded-full bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 flex items-center justify-center shadow-lg">
+                <Camera className="w-7 h-7 text-white" />
               </div>
             </div>
             <p className="text-sm text-gray-600">
