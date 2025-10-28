@@ -420,14 +420,17 @@ export default function Inbox() {
 
   // Auto-scroll to bottom when messages load or thread changes
   useEffect(() => {
-    if (thread.length > 0 && selectedContactId) {
-      setTimeout(() => {
-        if (messageListRef.current) {
-          messageListRef.current.scrollTop = messageListRef.current.scrollHeight;
-        }
-      }, 300);
+    if (thread.length > 0 && selectedContactId && messageListRef.current) {
+      // Use requestAnimationFrame to ensure DOM is updated
+      requestAnimationFrame(() => {
+        setTimeout(() => {
+          if (messageListRef.current) {
+            messageListRef.current.scrollTop = messageListRef.current.scrollHeight;
+          }
+        }, 100);
+      });
     }
-  }, [thread, selectedContactId]);
+  }, [thread.length, selectedContactId]);
 
   return (
     <div className="flex flex-col overflow-hidden md:h-full" style={{ height: '100svh' }}>
