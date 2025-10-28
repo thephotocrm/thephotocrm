@@ -365,8 +365,35 @@ export default function Inbox() {
     return fullName.includes(searchLower) || message.includes(searchLower);
   });
 
+  // Visual Viewport API - dynamically track iOS keyboard and address bar changes
+  useEffect(() => {
+    const vv = (window as any).visualViewport;
+    const setInsets = () => {
+      const inset = window.innerHeight - ((vv?.height ?? window.innerHeight) + (vv?.offsetTop ?? 0));
+      document.documentElement.style.setProperty('--vv-bottom', `${Math.max(0, inset)}px`);
+    };
+    if (vv) {
+      vv.addEventListener('resize', setInsets);
+      vv.addEventListener('scroll', setInsets);
+    }
+    window.addEventListener('orientationchange', setInsets);
+    setInsets();
+    return () => {
+      if (vv) {
+        vv.removeEventListener('resize', setInsets);
+        vv.removeEventListener('scroll', setInsets);
+      }
+      window.removeEventListener('orientationchange', setInsets);
+    };
+  }, []);
+
+  // Initialize CSS variable default
+  useEffect(() => {
+    document.documentElement.style.setProperty('--vv-bottom', '0px');
+  }, []);
+
   return (
-    <div className="flex flex-col md:h-full" style={{ minHeight: '100dvh' }}>
+    <div className="flex flex-col md:h-full">
       {/* Desktop Header - hidden on mobile */}
       <header className="hidden md:block border-b border-border px-4 md:px-6 py-6 shrink-0">
         <div className="max-w-[1140px] mx-auto w-full">
@@ -618,7 +645,7 @@ export default function Inbox() {
             </div>
 
             {/* Message Thread */}
-            <div className={`flex-1 flex flex-col md:overflow-hidden ${!isMobileThreadView ? 'hidden md:flex' : 'flex'}`}>
+            <div className={`flex-1 flex flex-col min-h-[100dvh] md:overflow-hidden ${!isMobileThreadView ? 'hidden md:flex' : 'flex'}`}>
           {!selectedContactId ? (
             <div className="flex-1 flex items-center justify-center text-muted-foreground bg-gradient-to-br from-background to-muted/20">
               <div className="text-center p-8">
@@ -663,7 +690,7 @@ export default function Inbox() {
               </div>
 
               {/* Messages */}
-              <ScrollArea className="flex-1 p-4 bg-blue-50/70 dark:bg-blue-950/40" style={{ paddingBottom: 'calc(80px + env(safe-area-inset-bottom, 0px))' }}>
+              <ScrollArea className="flex-1 p-4 bg-blue-50/70 dark:bg-blue-950/40" style={{ paddingBottom: 'calc(80px + env(safe-area-inset-bottom, 0px) + var(--vv-bottom, 0px))' }}>
                 {threadLoading ? (
                   <div className="text-center text-muted-foreground">Loading messages...</div>
                 ) : thread.length === 0 ? (
@@ -769,7 +796,7 @@ export default function Inbox() {
               </ScrollArea>
 
               {/* Message Composer */}
-              <div className="shrink-0 bg-blue-50/70 dark:bg-blue-950/40 sticky bottom-0 md:static p-3 md:p-3" style={{ paddingBottom: 'calc(12px + env(safe-area-inset-bottom, 0px))' }}>
+              <div className="shrink-0 bg-blue-50/70 dark:bg-blue-950/40 sticky bottom-0 md:static p-3 md:p-3" style={{ paddingBottom: 'calc(12px + env(safe-area-inset-bottom, 0px) + var(--vv-bottom, 0px))' }}>
                 {selectedImage && (
                   <div className="mb-2 mx-3 relative inline-block">
                     <img src={selectedImage} alt="Preview" className="max-h-32 rounded-xl border" />
