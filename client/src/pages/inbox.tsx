@@ -109,13 +109,15 @@ export default function Inbox() {
           });
           
           const isMobile = window.innerWidth < 768;
-          messageListRef.current.scrollTop = messageListRef.current.scrollHeight + (isMobile ? 50 : 0);
+          const targetScroll = messageListRef.current.scrollHeight + (isMobile ? 200 : 0);
+          messageListRef.current.scrollTop = targetScroll;
           
           console.log('📤 AFTER send scroll:', {
             scrollTop: messageListRef.current.scrollTop,
             scrollHeight: messageListRef.current.scrollHeight,
             clientHeight: messageListRef.current.clientHeight,
-            mobileOffset: isMobile ? '50px added' : 'none'
+            targetScroll,
+            mobileOffset: isMobile ? '200px added' : 'none'
           });
         } else {
           console.log('❌ messageListRef is null after send');
@@ -457,36 +459,18 @@ export default function Inbox() {
           return;
         }
         
-        // Try to find the last message bubble
-        const messages = messageListRef.current.querySelectorAll('[data-message-bubble]');
-        
-        console.log('🔍 Found messages:', messages.length);
         console.log('🟡 Container dimensions:', {
           scrollTop: messageListRef.current.scrollTop,
           scrollHeight: messageListRef.current.scrollHeight,
           clientHeight: messageListRef.current.clientHeight
         });
         
-        if (messages.length > 0) {
-          const lastMessage = messages[messages.length - 1];
-          console.log('📍 Scrolling last message into view');
-          lastMessage.scrollIntoView({ behavior: 'auto', block: 'end' });
-          
-          // Add extra 50px scroll on mobile to ensure message is fully visible above composer
+        if (messageListRef.current.scrollHeight > 0) {
           const isMobile = window.innerWidth < 768;
-          if (isMobile && messageListRef.current) {
-            setTimeout(() => {
-              if (messageListRef.current) {
-                messageListRef.current.scrollTop += 50;
-                console.log('📱 Added 50px mobile scroll offset');
-              }
-            }, 10);
-          }
-        } else if (messageListRef.current.scrollHeight > 0) {
-          console.log('📍 Scrolling container to bottom (scrollHeight:', messageListRef.current.scrollHeight, ')');
-          const isMobile = window.innerWidth < 768;
-          // Add 50px extra on mobile
-          messageListRef.current.scrollTop = messageListRef.current.scrollHeight + (isMobile ? 50 : 0);
+          // Scroll to bottom + extra offset on mobile (browser will clamp to max scroll)
+          const targetScroll = messageListRef.current.scrollHeight + (isMobile ? 200 : 0);
+          messageListRef.current.scrollTop = targetScroll;
+          console.log('📍 Set scrollTop to:', targetScroll, isMobile ? '(+200px mobile offset)' : '(no offset)');
         } else {
           console.log('⏳ Container not ready, will retry...');
           // Retry after a short delay if container isn't ready
