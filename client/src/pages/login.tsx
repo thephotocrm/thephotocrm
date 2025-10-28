@@ -54,21 +54,21 @@ export default function Login() {
       {/* Mobile View - Full Screen */}
       <div className="md:hidden min-h-screen w-full flex flex-col bg-white">
         {/* Top Photography Circles */}
-        <div className="relative h-52 overflow-hidden">
-          <div className="absolute top-3 left-5 w-16 h-16 rounded-full overflow-hidden border-2 border-white shadow-lg">
+        <div className="relative h-40 overflow-hidden">
+          <div className="absolute top-4 left-6 w-14 h-14 rounded-full overflow-hidden border-2 border-white shadow-lg">
             <img src={bridePhoto} alt="" className="w-full h-full object-cover" />
           </div>
-          <div className="absolute top-8 right-12 w-20 h-20 rounded-full overflow-hidden border-2 border-white shadow-lg">
+          <div className="absolute top-3 right-10 w-16 h-16 rounded-full overflow-hidden border-2 border-white shadow-lg">
             <img src={couplePhoto} alt="" className="w-full h-full object-cover opacity-85" />
           </div>
-          <div className="absolute top-28 left-20 w-14 h-14 rounded-full overflow-hidden border-2 border-white shadow-lg">
+          <div className="absolute top-22 left-16 w-12 h-12 rounded-full overflow-hidden border-2 border-white shadow-lg">
             <img src={celebrationPhoto} alt="" className="w-full h-full object-cover opacity-70" />
           </div>
-          <div className="absolute top-16 right-24 w-18 h-18 rounded-full overflow-hidden border-2 border-white shadow-lg">
+          <div className="absolute top-20 right-20 w-14 h-14 rounded-full overflow-hidden border-2 border-white shadow-lg">
             <img src={groomPhoto} alt="" className="w-full h-full object-cover opacity-75" />
           </div>
-          <div className="absolute top-32 right-6 w-15 h-15 rounded-full overflow-hidden border-2 border-white shadow-lg">
-            <img src={weddingPhoto} alt="" className="w-full h-full object-cover opacity-60" />
+          <div className="absolute top-24 right-8 w-13 h-13 rounded-full overflow-hidden border-2 border-white shadow-lg">
+            <img src={weddingPhoto} alt="" className="w-full h-full object-cover opacity-65" />
           </div>
         </div>
 
