@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Camera, Eye, EyeOff, Mail, Building2 } from "lucide-react";
-import weddingPhoto from "@assets/stock_images/professional_wedding_67201dd8.jpg";
+import photographerPhoto from "@assets/stock_images/happy_photographer_w_b5ffd29e.jpg";
 
 export default function Register() {
   const [, setLocation] = useLocation();
@@ -162,7 +162,21 @@ export default function Register() {
         {/* Main Container with rounded corners and shadow */}
         <div className="w-full max-w-6xl bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row min-h-[600px]">
           
-          {/* Left Side - Signup Form */}
+          {/* Left Side - Photography Background */}
+          <div className="hidden md:block md:w-3/5 relative overflow-hidden">
+            {/* Background Image */}
+            <div 
+              className="absolute inset-0 bg-cover bg-center"
+              style={{ 
+                backgroundImage: `url(${photographerPhoto})`,
+              }}
+            />
+            
+            {/* Gradient Overlay for better contrast */}
+            <div className="absolute inset-0 bg-gradient-to-br from-black/20 via-transparent to-black/30" />
+          </div>
+
+          {/* Right Side - Signup Form */}
           <div className="w-full md:w-2/5 p-8 md:p-12 flex flex-col" style={{ backgroundColor: '#F5F1E8' }}>
             {/* Logo */}
             <div className="mb-8">
@@ -267,20 +281,6 @@ export default function Register() {
             <div className="mt-auto pt-8 flex justify-center gap-6 text-xs text-gray-500">
               <button className="hover:text-gray-700 underline">Terms & Conditions</button>
             </div>
-          </div>
-
-          {/* Right Side - Photography Background */}
-          <div className="hidden md:block md:w-3/5 relative overflow-hidden">
-            {/* Background Image */}
-            <div 
-              className="absolute inset-0 bg-cover bg-center"
-              style={{ 
-                backgroundImage: `url(${weddingPhoto})`,
-              }}
-            />
-            
-            {/* Gradient Overlay for better contrast */}
-            <div className="absolute inset-0 bg-gradient-to-br from-black/20 via-transparent to-black/30" />
           </div>
         </div>
       </div>
