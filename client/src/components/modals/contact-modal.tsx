@@ -64,7 +64,7 @@ export default function ContactModal({ contactId, isOpen, onClose }: ContactModa
     {
       id: "1",
       type: "email",
-      subject: "Welcome to Lazy Photog Studio",
+      subject: "Welcome to thePhotoCrm Studio",
       sentAt: "2024-01-15T10:00:00",
       status: "opened"
     },

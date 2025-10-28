@@ -56,7 +56,7 @@ export default function Login() {
           <div className="mb-8">
             <div className="inline-flex items-center gap-2 px-4 py-2 border-2 border-gray-800 rounded-full">
               <Camera className="w-5 h-5" />
-              <span className="font-semibold text-lg">Lazy Photog</span>
+              <span className="font-semibold text-lg">thePhotoCrm</span>
             </div>
             <p className="text-sm text-gray-600 mt-3 ml-1">CRM for Wedding Photographers</p>
           </div>

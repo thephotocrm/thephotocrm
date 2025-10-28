@@ -1,5 +1,5 @@
 ### Overview
-Lazy Photog is a comprehensive multi-tenant CRM system for wedding photographers. It streamlines workflows from inquiry to project completion by offering contact pipeline management, automated communication, a Smart Files proposal/invoice builder, payment processing, and scheduling. The project aims to provide a production-ready MVP that significantly enhances efficiency for photographers, with ambitions for substantial growth in the photography industry.
+thePhotoCrm is a comprehensive multi-tenant CRM system for wedding photographers. It streamlines workflows from inquiry to project completion by offering contact pipeline management, automated communication, a Smart Files proposal/invoice builder, payment processing, and scheduling. The project aims to provide a production-ready MVP that significantly enhances efficiency for photographers, with ambitions for substantial growth in the photography industry.
 
 ### User Preferences
 Preferred communication style: Simple, everyday language.

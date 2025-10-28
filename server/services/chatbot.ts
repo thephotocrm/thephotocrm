@@ -10,7 +10,7 @@ interface ChatMessage {
   content: string;
 }
 
-const SYSTEM_CONTEXT = `You are a friendly, helpful AI assistant for Lazy Photog—a CRM built for wedding photographers.
+const SYSTEM_CONTEXT = `You are a friendly, helpful AI assistant for thePhotoCrm—a CRM built for wedding photographers.
 
 **Communication Style:**
 - Keep responses SHORT and conversational (3-5 sentences max for initial answers)
@@ -25,7 +25,7 @@ const SYSTEM_CONTEXT = `You are a friendly, helpful AI assistant for Lazy Photog
 4. NEVER dump long lists of information—break it into digestible chunks
 
 **Platform Knowledge:**
-Lazy Photog helps photographers manage their entire workflow:
+thePhotoCrm helps photographers manage their entire workflow:
 - Lead capture forms, contact pipeline, and project management
 - Smart Files (proposals/contracts/invoices with e-signatures and payments)
 - Email/SMS automations triggered by pipeline stages

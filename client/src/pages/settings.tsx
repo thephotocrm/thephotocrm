@@ -1428,7 +1428,7 @@ export default function Settings() {
                               try {
                                 const result = await apiRequest("POST", "/api/test-sms", {
                                   phoneNumber: phone,
-                                  message: "🎉 Twilio is working! This is a test SMS from Lazy Photog."
+                                  message: "🎉 Twilio is working! This is a test SMS from thePhotoCrm."
                                 });
 
                                 toast({
@@ -1523,7 +1523,7 @@ export default function Settings() {
                               <p className="font-medium text-blue-800 dark:text-blue-200">Free Trial Active</p>
                               <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
                                 Your 14-day free trial ends on {new Date(subscription.trialEndsAt).toLocaleDateString()}. 
-                                Add a payment method to continue using Lazy Photog after your trial ends.
+                                Add a payment method to continue using thePhotoCrm after your trial ends.
                               </p>
                             </div>
                           </div>
@@ -1551,7 +1551,7 @@ export default function Settings() {
                             <div>
                               <p className="font-medium text-yellow-800 dark:text-yellow-200">Payment Failed</p>
                               <p className="text-sm text-yellow-700 dark:text-yellow-300 mt-1">
-                                Your last payment failed. Please update your payment method to continue using Lazy Photog.
+                                Your last payment failed. Please update your payment method to continue using thePhotoCrm.
                               </p>
                             </div>
                           </div>

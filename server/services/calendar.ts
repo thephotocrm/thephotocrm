@@ -465,7 +465,7 @@ export class GoogleCalendarService {
       // Create a new dedicated calendar for business bookings
       const calendarResource = {
         summary: expectedSummary,
-        description: `Dedicated calendar for ${businessName} photography client bookings and appointments. Managed by Lazy Photog CRM.`,
+        description: `Dedicated calendar for ${businessName} photography client bookings and appointments. Managed by thePhotoCrm.`,
         timeZone: timeZone
       };
 
