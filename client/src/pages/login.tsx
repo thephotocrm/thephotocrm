@@ -50,17 +50,17 @@ export default function Login() {
       {/* Mobile View - Full Screen */}
       <div className="md:hidden min-h-screen w-full flex flex-col bg-white">
         {/* Top Photography Circles */}
-        <div className="relative h-48 overflow-hidden">
-          <div className="absolute top-4 left-4 w-16 h-16 rounded-full overflow-hidden border-2 border-white shadow-lg">
+        <div className="relative h-32 overflow-hidden">
+          <div className="absolute top-4 left-4 w-14 h-14 rounded-full overflow-hidden border-2 border-white shadow-lg">
             <img src={weddingPhoto} alt="" className="w-full h-full object-cover" />
           </div>
-          <div className="absolute top-8 right-8 w-20 h-20 rounded-full overflow-hidden border-2 border-white shadow-lg">
+          <div className="absolute top-6 right-8 w-16 h-16 rounded-full overflow-hidden border-2 border-white shadow-lg">
             <img src={weddingPhoto} alt="" className="w-full h-full object-cover opacity-80" />
           </div>
-          <div className="absolute top-20 left-20 w-14 h-14 rounded-full overflow-hidden border-2 border-white shadow-lg">
+          <div className="absolute top-16 left-16 w-12 h-12 rounded-full overflow-hidden border-2 border-white shadow-lg">
             <img src={weddingPhoto} alt="" className="w-full h-full object-cover opacity-60" />
           </div>
-          <div className="absolute top-24 right-20 w-18 h-18 rounded-full overflow-hidden border-2 border-white shadow-lg">
+          <div className="absolute top-12 right-16 w-14 h-14 rounded-full overflow-hidden border-2 border-white shadow-lg">
             <img src={weddingPhoto} alt="" className="w-full h-full object-cover opacity-70" />
           </div>
         </div>
@@ -144,11 +144,6 @@ export default function Login() {
 
           {/* Bottom Section */}
           <div className="text-center mt-8">
-            <div className="flex justify-center items-center gap-3 mb-3">
-              <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-gray-200">
-                <img src={weddingPhoto} alt="" className="w-full h-full object-cover" />
-              </div>
-            </div>
             <p className="text-sm text-gray-600">
               New to thePhotoCrm?{" "}
               <button
