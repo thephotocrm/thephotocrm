@@ -645,7 +645,7 @@ export default function Inbox() {
             </div>
 
             {/* Message Thread */}
-            <div className={`flex-1 flex flex-col md:overflow-hidden ${!isMobileThreadView ? 'hidden md:flex' : 'flex'}`}>
+            <div className={`flex-1 flex flex-col min-h-[100dvh] ${!isMobileThreadView ? 'hidden md:flex' : 'flex'}`}>
           {!selectedContactId ? (
             <div className="flex-1 flex items-center justify-center text-muted-foreground bg-gradient-to-br from-background to-muted/20">
               <div className="text-center p-8">
@@ -690,7 +690,7 @@ export default function Inbox() {
               </div>
 
               {/* Messages */}
-              <ScrollArea className="flex-1 p-4 bg-blue-50/70 dark:bg-blue-950/40" style={{ paddingBottom: 'calc(80px + env(safe-area-inset-bottom, 0px) + var(--vv-bottom, 0px))' }}>
+              <div className="flex-1 p-4 bg-blue-50/70 dark:bg-blue-950/40 overflow-y-auto" style={{ paddingBottom: 'calc(80px + env(safe-area-inset-bottom, 0px) + var(--vv-bottom, 0px))' }}>
                 {threadLoading ? (
                   <div className="text-center text-muted-foreground">Loading messages...</div>
                 ) : thread.length === 0 ? (
@@ -793,7 +793,7 @@ export default function Inbox() {
                     ))}
                   </div>
                 )}
-              </ScrollArea>
+              </div>
 
               {/* Message Composer */}
               <div className="shrink-0 bg-blue-50/70 dark:bg-blue-950/40 sticky bottom-0 md:static p-3 md:p-3" style={{ paddingBottom: 'calc(12px + env(safe-area-inset-bottom, 0px) + var(--vv-bottom, 0px))' }}>
