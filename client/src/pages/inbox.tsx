@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -56,6 +56,7 @@ export default function Inbox() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const messageListRef = useRef<HTMLDivElement>(null);
 
   // Fetch conversations
   const { data: conversations = [], isLoading: conversationsLoading } = useQuery<Conversation[]>({
@@ -99,11 +100,10 @@ export default function Inbox() {
       
       // Scroll to bottom after message is sent
       setTimeout(() => {
-        const messageList = document.querySelector('[data-message-list="true"]');
-        if (messageList) {
-          messageList.scrollTop = messageList.scrollHeight;
+        if (messageListRef.current) {
+          messageListRef.current.scrollTop = messageListRef.current.scrollHeight;
         }
-      }, 100);
+      }, 150);
     },
     onError: (error: any) => {
       toast({
@@ -420,15 +420,14 @@ export default function Inbox() {
 
   // Auto-scroll to bottom when messages load or thread changes
   useEffect(() => {
-    if (thread.length > 0) {
+    if (thread.length > 0 && selectedContactId) {
       setTimeout(() => {
-        const messageList = document.querySelector('[data-message-list="true"]');
-        if (messageList) {
-          messageList.scrollTop = messageList.scrollHeight;
+        if (messageListRef.current) {
+          messageListRef.current.scrollTop = messageListRef.current.scrollHeight;
         }
-      }, 200);
+      }, 300);
     }
-  }, [thread.length, selectedContactId]);
+  }, [thread, selectedContactId]);
 
   return (
     <div className="flex flex-col overflow-hidden md:h-full" style={{ height: '100svh' }}>
@@ -728,7 +727,7 @@ export default function Inbox() {
               </div>
 
               {/* Messages */}
-              <div data-message-list="true" className="flex-1 p-4 bg-blue-50/70 dark:bg-blue-950/40 overflow-y-auto" style={{ paddingBottom: 'calc(140px + env(safe-area-inset-bottom, 0px) + var(--vv-bottom, 0px))' }}>
+              <div ref={messageListRef} data-message-list="true" className="flex-1 p-4 bg-blue-50/70 dark:bg-blue-950/40 overflow-y-auto" style={{ paddingBottom: 'calc(140px + env(safe-area-inset-bottom, 0px) + var(--vv-bottom, 0px))' }}>
                 {threadLoading ? (
                   <div className="text-center text-muted-foreground">Loading messages...</div>
                 ) : thread.length === 0 ? (
