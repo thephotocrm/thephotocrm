@@ -442,30 +442,52 @@ export default function Inbox() {
     });
     
     if (thread.length > 0 && selectedContactId && messageListRef.current) {
-      // Log scroll values BEFORE attempting to scroll
-      console.log('🟡 BEFORE scroll:', {
-        scrollTop: messageListRef.current.scrollTop,
-        scrollHeight: messageListRef.current.scrollHeight,
-        clientHeight: messageListRef.current.clientHeight
-      });
-      
-      // Use requestAnimationFrame to ensure DOM is updated
-      requestAnimationFrame(() => {
+      // Find the last message element and scroll it into view
+      const scrollToBottom = () => {
+        if (!messageListRef.current) {
+          console.log('❌ messageListRef is null');
+          return;
+        }
+        
+        // Try to find the last message bubble
+        const messages = messageListRef.current.querySelectorAll('[data-message-bubble]');
+        
+        console.log('🔍 Found messages:', messages.length);
+        console.log('🟡 Container dimensions:', {
+          scrollTop: messageListRef.current.scrollTop,
+          scrollHeight: messageListRef.current.scrollHeight,
+          clientHeight: messageListRef.current.clientHeight
+        });
+        
+        if (messages.length > 0) {
+          const lastMessage = messages[messages.length - 1];
+          console.log('📍 Scrolling last message into view');
+          lastMessage.scrollIntoView({ behavior: 'auto', block: 'end' });
+        } else if (messageListRef.current.scrollHeight > 0) {
+          console.log('📍 Scrolling container to bottom (scrollHeight:', messageListRef.current.scrollHeight, ')');
+          messageListRef.current.scrollTop = messageListRef.current.scrollHeight;
+        } else {
+          console.log('⏳ Container not ready, will retry...');
+          // Retry after a short delay if container isn't ready
+          setTimeout(scrollToBottom, 50);
+        }
+        
+        // Log final state
         setTimeout(() => {
           if (messageListRef.current) {
-            messageListRef.current.scrollTop = messageListRef.current.scrollHeight;
-            
-            // Log scroll values AFTER attempting to scroll
-            console.log('🟢 AFTER scroll:', {
+            console.log('🟢 FINAL scroll state:', {
               scrollTop: messageListRef.current.scrollTop,
               scrollHeight: messageListRef.current.scrollHeight,
               clientHeight: messageListRef.current.clientHeight,
               isAtBottom: (messageListRef.current.scrollTop + messageListRef.current.clientHeight) >= messageListRef.current.scrollHeight - 10
             });
-          } else {
-            console.log('❌ messageListRef.current is null in setTimeout');
           }
-        }, 100);
+        }, 150);
+      };
+      
+      // Use requestAnimationFrame to ensure DOM is updated
+      requestAnimationFrame(() => {
+        setTimeout(scrollToBottom, 100);
       });
     } else {
       console.log('⚠️ Skip scroll - conditions not met');
@@ -801,6 +823,7 @@ export default function Inbox() {
                                     key={message.id}
                                     className={`flex group ${message.isInbound ? 'justify-start' : 'justify-end'}`}
                                     data-testid={`sms-message-${message.id}`}
+                                    data-message-bubble="true"
                                   >
                                     <div
                                       className={`max-w-sm px-4 py-2 ${
@@ -845,6 +868,7 @@ export default function Inbox() {
                                     key={message.id}
                                     className="flex justify-center my-4"
                                     data-testid={`email-notification-${message.id}`}
+                                    data-message-bubble="true"
                                   >
                                     <div className="bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg px-4 py-2 flex items-center gap-2 max-w-md">
                                       <Mail className="w-4 h-4 text-blue-600 dark:text-blue-400" />
