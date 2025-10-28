@@ -532,7 +532,7 @@ export default function Inbox() {
           </div>
 
           {/* Two Column Layout - Connected Design */}
-          <div className="flex-1 flex flex-col md:flex-row md:overflow-hidden bg-card border rounded-2xl md:max-h-[759px] shadow-[0_20px_60px_rgb(0,0,0,0.15),0_8px_25px_rgb(0,0,0,0.1),0_2px_8px_rgb(0,0,0,0.08)] dark:shadow-[0_20px_60px_rgb(0,0,0,0.5),0_8px_25px_rgb(0,0,0,0.4),0_2px_8px_rgb(0,0,0,0.3)]">
+          <div className="flex-1 flex flex-col md:flex-row overflow-hidden bg-card border rounded-2xl md:max-h-[759px] shadow-[0_20px_60px_rgb(0,0,0,0.15),0_8px_25px_rgb(0,0,0,0.1),0_2px_8px_rgb(0,0,0,0.08)] dark:shadow-[0_20px_60px_rgb(0,0,0,0.5),0_8px_25px_rgb(0,0,0,0.4),0_2px_8px_rgb(0,0,0,0.3)]">
             {/* Conversation List */}
             <div className={`w-full md:w-96 md:h-full border-r flex flex-col overflow-hidden relative ${isMobileThreadView ? 'hidden md:flex' : 'flex'}`}>
               {/* Inbox Header */}
@@ -683,7 +683,7 @@ export default function Inbox() {
             </div>
 
             {/* Message Thread */}
-            <div className={`flex-1 flex flex-col ${!isMobileThreadView ? 'hidden md:flex' : 'flex'}`}>
+            <div className={`flex-1 flex flex-col h-full ${!isMobileThreadView ? 'hidden md:flex' : 'flex'}`}>
           {!selectedContactId ? (
             <div className="flex-1 flex items-center justify-center text-muted-foreground bg-gradient-to-br from-background to-muted/20">
               <div className="text-center p-8">
