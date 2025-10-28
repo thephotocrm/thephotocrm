@@ -64,7 +64,7 @@ export default function Login() {
           <div className="absolute top-26 left-20 w-16 h-16 rounded-full overflow-hidden border-2 border-white shadow-lg">
             <img src={celebrationPhoto} alt="" className="w-full h-full object-cover opacity-70" />
           </div>
-          <div className="absolute top-24 right-24 w-18 h-18 rounded-full overflow-hidden border-2 border-white shadow-lg">
+          <div className="absolute top-24 right-24 w-20 h-20 rounded-full overflow-hidden border-2 border-white shadow-lg">
             <img src={groomPhoto} alt="" className="w-full h-full object-cover opacity-75" />
           </div>
         </div>
