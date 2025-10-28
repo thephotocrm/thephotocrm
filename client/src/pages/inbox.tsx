@@ -393,7 +393,7 @@ export default function Inbox() {
   }, []);
 
   return (
-    <div className="flex flex-col md:h-full">
+    <div className="flex flex-col h-screen md:h-full">
       {/* Desktop Header - hidden on mobile */}
       <header className="hidden md:block border-b border-border px-4 md:px-6 py-6 shrink-0">
         <div className="max-w-[1140px] mx-auto w-full">
