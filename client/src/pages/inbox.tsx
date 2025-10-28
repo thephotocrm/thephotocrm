@@ -805,7 +805,7 @@ export default function Inbox() {
               </div>
 
               {/* Messages */}
-              <div ref={messageListRef} data-message-list="true" className="flex-1 p-4 bg-blue-50/70 dark:bg-blue-950/40 overflow-y-auto" style={{ paddingBottom: 'calc(140px + env(safe-area-inset-bottom, 0px) + var(--vv-bottom, 0px))' }}>
+              <div ref={messageListRef} data-message-list="true" className="flex-1 p-4 bg-blue-50/70 dark:bg-blue-950/40 overflow-y-auto scrollbar-hide" style={{ paddingBottom: 'calc(140px + env(safe-area-inset-bottom, 0px) + var(--vv-bottom, 0px))' }}>
                 {threadLoading ? (
                   <div className="text-center text-muted-foreground">Loading messages...</div>
                 ) : thread.length === 0 ? (
