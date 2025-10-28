@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Camera } from "lucide-react";
+import { Camera, Eye, EyeOff } from "lucide-react";
+import weddingPhoto from "@assets/stock_images/professional_wedding_67201dd8.jpg";
 
 export default function Login() {
   const [, setLocation] = useLocation();
@@ -14,6 +14,7 @@ export default function Login() {
   const { toast } = useToast();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
   // Redirect if already logged in
@@ -45,72 +46,133 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-background">
-      <Card className="w-full max-w-md mx-4">
-        <CardHeader className="text-center">
-          <div className="w-12 h-12 bg-primary rounded-lg flex items-center justify-center mx-auto mb-4">
-            <Camera className="w-6 h-6 text-primary-foreground" />
+    <div className="min-h-screen w-full flex items-center justify-center p-4 md:p-8" style={{ backgroundColor: '#9CA3AF' }}>
+      {/* Main Container with rounded corners and shadow */}
+      <div className="w-full max-w-6xl bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row min-h-[600px]">
+        
+        {/* Left Side - Login Form */}
+        <div className="w-full md:w-2/5 p-8 md:p-12 flex flex-col" style={{ backgroundColor: '#F5F1E8' }}>
+          {/* Logo */}
+          <div className="mb-8">
+            <div className="inline-flex items-center gap-2 px-4 py-2 border-2 border-gray-800 rounded-full">
+              <Camera className="w-5 h-5" />
+              <span className="font-semibold text-lg">Lazy Photog</span>
+            </div>
+            <p className="text-sm text-gray-600 mt-3 ml-1">CRM for Wedding Photographers</p>
           </div>
-          <CardTitle className="text-2xl">Welcome back</CardTitle>
-          <CardDescription>
-            Sign in to your Lazy Photog account
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                data-testid="input-email"
-              />
-            </div>
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="password">Password</Label>
-                <Button 
-                  variant="link" 
-                  className="p-0 h-auto text-sm" 
-                  onClick={() => setLocation("/forgot-password")}
-                  type="button"
-                  data-testid="link-forgot-password"
-                >
-                  Forgot password?
-                </Button>
-              </div>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                data-testid="input-password"
-              />
-            </div>
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={loading}
-              data-testid="button-login"
-            >
-              {loading ? "Signing in..." : "Sign in"}
-            </Button>
-          </form>
 
-          <div className="mt-6 text-center">
-            <p className="text-sm text-muted-foreground">
-              Don't have an account?{" "}
-              <Button variant="link" className="p-0" onClick={() => setLocation("/register")}>
-                Sign up
+          {/* Form Content */}
+          <div className="flex-1 flex flex-col justify-center max-w-sm">
+            <div className="mb-8">
+              <h1 className="text-3xl md:text-4xl font-bold mb-2">Welcome back</h1>
+              <p className="text-gray-600">Sign in to your account</p>
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="space-y-2">
+                <Label htmlFor="email" className="text-sm font-medium text-gray-700">
+                  Email
+                </Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="your.email@example.com"
+                  required
+                  className="bg-white border-gray-300 h-12 rounded-xl"
+                  data-testid="input-email"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="password" className="text-sm font-medium text-gray-700">
+                  Password
+                </Label>
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••••••••••"
+                    required
+                    className="bg-white border-gray-300 h-12 rounded-xl pr-12"
+                    data-testid="input-password"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                    data-testid="button-toggle-password"
+                  >
+                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
+                </div>
+              </div>
+
+              <Button
+                type="submit"
+                className="w-full h-12 rounded-xl text-white font-semibold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 hover:opacity-90 transition-opacity"
+                disabled={loading}
+                data-testid="button-login"
+              >
+                {loading ? "Signing in..." : "Sign in"}
               </Button>
-            </p>
+            </form>
+
+            <div className="mt-6 text-center">
+              <Button 
+                variant="link" 
+                className="text-sm text-gray-600 hover:text-gray-900 p-0 h-auto" 
+                onClick={() => setLocation("/forgot-password")}
+                type="button"
+                data-testid="link-forgot-password"
+              >
+                Forgot password?
+              </Button>
+            </div>
+
+            <div className="mt-8 text-center">
+              <p className="text-sm text-gray-600">
+                Don't have an account?{" "}
+                <button
+                  onClick={() => setLocation("/register")}
+                  className="font-semibold text-gray-900 hover:underline"
+                  data-testid="link-register"
+                >
+                  Sign up
+                </button>
+              </p>
+            </div>
           </div>
-        </CardContent>
-      </Card>
+
+          {/* Footer Links */}
+          <div className="mt-auto pt-8 flex justify-center gap-6 text-xs text-gray-500">
+            <button className="hover:text-gray-700 underline">Terms & Conditions</button>
+          </div>
+        </div>
+
+        {/* Right Side - Photography Background */}
+        <div className="hidden md:block md:w-3/5 relative overflow-hidden">
+          {/* Background Image */}
+          <div 
+            className="absolute inset-0 bg-cover bg-center"
+            style={{ 
+              backgroundImage: `url(${weddingPhoto})`,
+            }}
+          />
+          
+          {/* Gradient Overlay for better contrast */}
+          <div className="absolute inset-0 bg-gradient-to-br from-black/20 via-transparent to-black/30" />
+          
+          {/* Floating Mockup Elements - Similar to reference */}
+          <div className="absolute inset-0 flex items-center justify-center p-12">
+            {/* You can add floating UI mockups here similar to the reference image */}
+            {/* For now, keeping it clean with just the photo */}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
