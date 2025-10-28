@@ -52,7 +52,7 @@ export default function Login() {
   return (
     <>
       {/* Mobile View - Full Screen */}
-      <div className="md:hidden min-h-screen w-full flex flex-col" style={{ backgroundColor: '#F5F1E8' }}>
+      <div className="md:hidden w-full flex flex-col" style={{ backgroundColor: '#F5F1E8', minHeight: '100dvh' }}>
         {/* Main Content */}
         <div className="flex-1 px-6 flex flex-col justify-between pb-8 pt-16">
           <div>
