@@ -426,7 +426,7 @@ export default function Inbox() {
         if (messageList) {
           messageList.scrollTop = messageList.scrollHeight;
         }
-      }, 100);
+      }, 200);
     }
   }, [thread.length, selectedContactId]);
 
