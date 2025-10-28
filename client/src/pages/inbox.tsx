@@ -120,7 +120,7 @@ export default function Inbox() {
         } else {
           console.log('❌ messageListRef is null after send');
         }
-      }, 150);
+      }, 300);
     },
     onError: (error: any) => {
       toast({
