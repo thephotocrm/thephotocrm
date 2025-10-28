@@ -7,6 +7,10 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Camera, Eye, EyeOff, Mail } from "lucide-react";
 import weddingPhoto from "@assets/stock_images/professional_wedding_67201dd8.jpg";
+import bridePhoto from "@assets/stock_images/elegant_bride_portra_230e6331.jpg";
+import couplePhoto from "@assets/stock_images/romantic_couple_wedd_59a9d3f2.jpg";
+import celebrationPhoto from "@assets/stock_images/wedding_celebration__be8a7c2c.jpg";
+import groomPhoto from "@assets/stock_images/groom_portrait_weddi_fd40303a.jpg";
 
 export default function Login() {
   const [, setLocation] = useLocation();
@@ -50,18 +54,21 @@ export default function Login() {
       {/* Mobile View - Full Screen */}
       <div className="md:hidden min-h-screen w-full flex flex-col bg-white">
         {/* Top Photography Circles */}
-        <div className="relative h-32 overflow-hidden">
-          <div className="absolute top-4 left-4 w-14 h-14 rounded-full overflow-hidden border-2 border-white shadow-lg">
-            <img src={weddingPhoto} alt="" className="w-full h-full object-cover" />
+        <div className="relative h-52 overflow-hidden">
+          <div className="absolute top-3 left-5 w-16 h-16 rounded-full overflow-hidden border-2 border-white shadow-lg">
+            <img src={bridePhoto} alt="" className="w-full h-full object-cover" />
           </div>
-          <div className="absolute top-6 right-8 w-16 h-16 rounded-full overflow-hidden border-2 border-white shadow-lg">
-            <img src={weddingPhoto} alt="" className="w-full h-full object-cover opacity-80" />
+          <div className="absolute top-8 right-12 w-20 h-20 rounded-full overflow-hidden border-2 border-white shadow-lg">
+            <img src={couplePhoto} alt="" className="w-full h-full object-cover opacity-85" />
           </div>
-          <div className="absolute top-16 left-16 w-12 h-12 rounded-full overflow-hidden border-2 border-white shadow-lg">
+          <div className="absolute top-28 left-20 w-14 h-14 rounded-full overflow-hidden border-2 border-white shadow-lg">
+            <img src={celebrationPhoto} alt="" className="w-full h-full object-cover opacity-70" />
+          </div>
+          <div className="absolute top-16 right-24 w-18 h-18 rounded-full overflow-hidden border-2 border-white shadow-lg">
+            <img src={groomPhoto} alt="" className="w-full h-full object-cover opacity-75" />
+          </div>
+          <div className="absolute top-32 right-6 w-15 h-15 rounded-full overflow-hidden border-2 border-white shadow-lg">
             <img src={weddingPhoto} alt="" className="w-full h-full object-cover opacity-60" />
-          </div>
-          <div className="absolute top-12 right-16 w-14 h-14 rounded-full overflow-hidden border-2 border-white shadow-lg">
-            <img src={weddingPhoto} alt="" className="w-full h-full object-cover opacity-70" />
           </div>
         </div>
 
