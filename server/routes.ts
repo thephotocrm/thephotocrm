@@ -9864,8 +9864,10 @@ ${photographer.businessName}
     try {
       const photographerId = req.user!.photographerId!;
       const { contactId } = req.params;
+      const limit = parseInt(req.query.limit as string) || 50;
+      const offset = parseInt(req.query.offset as string) || 0;
 
-      console.log(`📨 Fetching thread for contactId: ${contactId}, photographerId: ${photographerId}`);
+      console.log(`📨 Fetching thread for contactId: ${contactId}, photographerId: ${photographerId}, limit: ${limit}, offset: ${offset}`);
 
       // Verify contact belongs to photographer
       const contact = await storage.getContact(contactId);
@@ -9874,9 +9876,9 @@ ${photographer.businessName}
         return res.status(404).json({ message: "Contact not found" });
       }
 
-      const thread = await storage.getInboxThread(contactId, photographerId);
-      console.log(`📬 Thread fetched: ${thread.length} messages found`);
-      res.json(thread);
+      const result = await storage.getInboxThread(contactId, photographerId, limit, offset);
+      console.log(`📬 Thread fetched: ${result.messages.length} messages found, hasMore: ${result.hasMore}`);
+      res.json(result);
     } catch (error: any) {
       console.error('Error fetching inbox thread:', error);
       res.status(500).json({ 

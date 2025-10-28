@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import { MessageSquare, Mail, Send, MessageCircle, ArrowLeft, Plus, Search, Check, CheckCheck, XCircle, Smile, Image as ImageIcon, MessageSquarePlus, Settings } from "lucide-react";
+import { MessageSquare, Mail, Send, MessageCircle, ArrowLeft, Plus, Search, Check, CheckCheck, XCircle, Smile, Image as ImageIcon, MessageSquarePlus, Settings, ChevronDown } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "wouter";
 import { format, isToday, isYesterday, isThisWeek, isThisYear } from "date-fns";
@@ -54,6 +54,10 @@ export default function Inbox() {
   const [conversationSearch, setConversationSearch] = useState("");
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [olderMessages, setOlderMessages] = useState<ThreadMessage[]>([]);
+  const [loadingOlder, setLoadingOlder] = useState(false);
+  const [hasMoreMessages, setHasMoreMessages] = useState(false);
+  const [showScrollToBottom, setShowScrollToBottom] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const messageListRef = useRef<HTMLDivElement>(null);
@@ -70,12 +74,69 @@ export default function Inbox() {
     enabled: isNewMessageDialogOpen || !!selectedContactId
   });
 
-  // Fetch thread for selected contact
-  const { data: thread = [], isLoading: threadLoading } = useQuery<ThreadMessage[]>({
+  // Fetch latest thread messages - always polls at offset 0
+  const { data: latestThreadData, isLoading: threadLoading } = useQuery<{ messages: ThreadMessage[], hasMore: boolean }>({
     queryKey: ['/api/inbox/thread', selectedContactId],
+    queryFn: async () => {
+      const url = `/api/inbox/thread/${selectedContactId}?limit=50&offset=0`;
+      const response = await fetch(url, { credentials: 'include' });
+      if (!response.ok) throw new Error('Failed to fetch thread');
+      return response.json();
+    },
     enabled: !!selectedContactId,
-    refetchInterval: 5000 // Poll every 5 seconds when viewing a thread
+    refetchInterval: 5000 // Always poll for latest messages
   });
+
+  // Reset older messages when changing contacts
+  useEffect(() => {
+    setOlderMessages([]);
+    setHasMoreMessages(false);
+  }, [selectedContactId]);
+
+  // Update hasMore flag from latest query
+  useEffect(() => {
+    if (latestThreadData) {
+      setHasMoreMessages(latestThreadData.hasMore);
+    }
+  }, [latestThreadData]);
+
+  // Load earlier messages manually
+  const loadEarlierMessages = async () => {
+    if (!selectedContactId || loadingOlder) return;
+    
+    setLoadingOlder(true);
+    try {
+      const currentMessageCount = (latestThreadData?.messages.length || 0) + olderMessages.length;
+      const url = `/api/inbox/thread/${selectedContactId}?limit=50&offset=${currentMessageCount}`;
+      const response = await fetch(url, { credentials: 'include' });
+      if (!response.ok) throw new Error('Failed to fetch older messages');
+      const data: { messages: ThreadMessage[], hasMore: boolean } = await response.json();
+      
+      // Reverse to ASC and deduplicate by ID
+      const reversedNew = [...data.messages].reverse();
+      const existingIds = new Set([
+        ...olderMessages.map(m => m.id),
+        ...(latestThreadData?.messages || []).map(m => m.id)
+      ]);
+      const deduped = reversedNew.filter(m => !existingIds.has(m.id));
+      
+      setOlderMessages(prev => [...deduped, ...prev]);
+      setHasMoreMessages(data.hasMore);
+    } catch (error) {
+      console.error('Failed to load earlier messages:', error);
+      toast({
+        variant: "destructive",
+        title: "Failed to load",
+        description: "Could not load earlier messages"
+      });
+    } finally {
+      setLoadingOlder(false);
+    }
+  };
+
+  // Combine older messages + latest messages (both in ASC order)
+  const latestMessages = latestThreadData?.messages ? [...latestThreadData.messages].reverse() : [];
+  const thread = [...olderMessages, ...latestMessages];
 
   // Common emojis for quick access
   const commonEmojis = ['😊', '😂', '❤️', '👍', '🎉', '🙏', '✨', '🔥', '💯', '👏', '😍', '🤔', '😎', '💪', '🙌'];
@@ -98,29 +159,17 @@ export default function Inbox() {
         description: "Your SMS was delivered successfully"
       });
       
-      // Scroll to bottom after message is sent
+      // Scroll to bottom after message is sent (only if user was already near bottom)
       setTimeout(() => {
-        console.log('📤 Scroll after send message');
         if (messageListRef.current) {
-          console.log('📤 BEFORE send scroll:', {
-            scrollTop: messageListRef.current.scrollTop,
-            scrollHeight: messageListRef.current.scrollHeight,
-            clientHeight: messageListRef.current.clientHeight
-          });
+          const { scrollTop, scrollHeight, clientHeight } = messageListRef.current;
+          const wasNearBottom = scrollHeight - scrollTop - clientHeight < 200;
           
-          const isMobile = window.innerWidth < 768;
-          const targetScroll = messageListRef.current.scrollHeight + (isMobile ? 200 : 0);
-          messageListRef.current.scrollTop = targetScroll;
-          
-          console.log('📤 AFTER send scroll:', {
-            scrollTop: messageListRef.current.scrollTop,
-            scrollHeight: messageListRef.current.scrollHeight,
-            clientHeight: messageListRef.current.clientHeight,
-            targetScroll,
-            mobileOffset: isMobile ? '200px added' : 'none'
-          });
-        } else {
-          console.log('❌ messageListRef is null after send');
+          if (wasNearBottom) {
+            const isMobile = window.innerWidth < 768;
+            const targetScroll = messageListRef.current.scrollHeight + (isMobile ? 200 : 0);
+            messageListRef.current.scrollTop = targetScroll;
+          }
         }
       }, 300);
     },
@@ -200,6 +249,30 @@ export default function Inbox() {
   const handleBackToList = () => {
     setIsMobileThreadView(false);
   };
+
+  const handleScrollToBottom = () => {
+    if (messageListRef.current) {
+      messageListRef.current.scrollTo({
+        top: messageListRef.current.scrollHeight,
+        behavior: 'smooth'
+      });
+    }
+  };
+
+  // Detect scroll position to show/hide scroll-to-bottom button
+  useEffect(() => {
+    const messageList = messageListRef.current;
+    if (!messageList) return;
+
+    const handleScroll = () => {
+      const { scrollTop, scrollHeight, clientHeight } = messageList;
+      const isNearBottom = scrollHeight - scrollTop - clientHeight < 100;
+      setShowScrollToBottom(!isNearBottom);
+    };
+
+    messageList.addEventListener('scroll', handleScroll);
+    return () => messageList.removeEventListener('scroll', handleScroll);
+  }, [selectedContactId]);
 
   const handleStartNewConversation = (contactId: string) => {
     setSelectedContactId(contactId);
@@ -700,13 +773,42 @@ export default function Inbox() {
               </div>
 
               {/* Messages */}
-              <div ref={messageListRef} data-message-list="true" className="flex-1 p-4 bg-blue-50/70 dark:bg-blue-950/40 overflow-y-auto custom-scrollbar">
+              <div ref={messageListRef} data-message-list="true" className="flex-1 p-4 bg-blue-50/70 dark:bg-blue-950/40 overflow-y-auto custom-scrollbar relative">
                 {threadLoading ? (
                   <div className="text-center text-muted-foreground">Loading messages...</div>
                 ) : thread.length === 0 ? (
                   <div className="text-center text-muted-foreground py-8">No messages yet</div>
                 ) : (
                   <div className="space-y-6">
+                    {/* Load Earlier Messages Button */}
+                    {hasMoreMessages && (
+                      <div className="flex justify-center py-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={async () => {
+                            if (!messageListRef.current) return;
+                            const scrollBefore = messageListRef.current.scrollHeight;
+                            const scrollTopBefore = messageListRef.current.scrollTop;
+                            
+                            await loadEarlierMessages();
+                            
+                            // Use requestAnimationFrame to wait for DOM update
+                            requestAnimationFrame(() => {
+                              if (messageListRef.current) {
+                                const scrollAfter = messageListRef.current.scrollHeight;
+                                const scrollDiff = scrollAfter - scrollBefore;
+                                messageListRef.current.scrollTop = scrollTopBefore + scrollDiff;
+                              }
+                            });
+                          }}
+                          disabled={loadingOlder}
+                          data-testid="button-load-earlier"
+                        >
+                          {loadingOlder ? 'Loading...' : 'Load Earlier Messages'}
+                        </Button>
+                      </div>
+                    )}
                     {groupedMessages.map((dateGroup) => (
                       <div key={dateGroup.date} className="space-y-4">
                         {/* Date Divider */}
@@ -803,6 +905,20 @@ export default function Inbox() {
                         ))}
                       </div>
                     ))}
+                  </div>
+                )}
+
+                {/* Floating Scroll to Bottom Button */}
+                {showScrollToBottom && (
+                  <div className="absolute bottom-20 right-4 z-10">
+                    <Button
+                      size="icon"
+                      className="h-10 w-10 rounded-full shadow-lg bg-primary text-primary-foreground hover:bg-primary/90"
+                      onClick={handleScrollToBottom}
+                      data-testid="button-scroll-to-bottom"
+                    >
+                      <ChevronDown className="w-5 h-5" />
+                    </Button>
                   </div>
                 )}
               </div>

@@ -357,7 +357,7 @@ export interface IStorage {
   
   // Inbox / Conversation Reads
   getInboxConversations(photographerId: string): Promise<any[]>;
-  getInboxThread(contactId: string, photographerId: string): Promise<any[]>;
+  getInboxThread(contactId: string, photographerId: string, limit?: number, offset?: number): Promise<{ messages: any[], hasMore: boolean }>;
   markConversationAsRead(photographerId: string, contactId: string): Promise<void>;
   getUnreadCount(photographerId: string): Promise<number>;
   upsertConversationRead(data: InsertConversationRead): Promise<ConversationRead>;
@@ -3202,7 +3202,7 @@ export class DatabaseStorage implements IStorage {
     return conversations;
   }
 
-  async getInboxThread(contactId: string, photographerId: string): Promise<any[]> {
+  async getInboxThread(contactId: string, photographerId: string, limit: number = 50, offset: number = 0): Promise<{ messages: any[], hasMore: boolean }> {
     // Get all SMS messages for this contact
     const smsMessages = await db
       .select()
@@ -3223,7 +3223,7 @@ export class DatabaseStorage implements IStorage {
       .orderBy(asc(emailHistory.createdAt));
 
     // Combine and format all messages
-    const thread = [
+    const allMessages = [
       ...smsMessages.map(sms => ({
         type: 'SMS',
         id: sms.id,
@@ -3244,14 +3244,19 @@ export class DatabaseStorage implements IStorage {
       }))
     ];
 
-    // Sort by timestamp
-    thread.sort((a, b) => {
+    // Sort by timestamp DESC (newest first)
+    allMessages.sort((a, b) => {
       const timeA = a.timestamp ? new Date(a.timestamp).getTime() : 0;
       const timeB = b.timestamp ? new Date(b.timestamp).getTime() : 0;
-      return timeA - timeB;
+      return timeB - timeA; // DESC order
     });
 
-    return thread;
+    // Apply pagination
+    const totalCount = allMessages.length;
+    const messages = allMessages.slice(offset, offset + limit);
+    const hasMore = offset + limit < totalCount;
+
+    return { messages, hasMore };
   }
 
   async markConversationAsRead(photographerId: string, contactId: string): Promise<void> {
