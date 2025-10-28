@@ -96,6 +96,14 @@ export default function Inbox() {
         title: "Message sent",
         description: "Your SMS was delivered successfully"
       });
+      
+      // Scroll to bottom after message is sent
+      setTimeout(() => {
+        const messageList = document.querySelector('[data-message-list="true"]');
+        if (messageList) {
+          messageList.scrollTop = messageList.scrollHeight;
+        }
+      }, 100);
     },
     onError: (error: any) => {
       toast({
@@ -410,6 +418,18 @@ export default function Inbox() {
     document.documentElement.style.setProperty('--vv-bottom', '0px');
   }, []);
 
+  // Auto-scroll to bottom when messages load or thread changes
+  useEffect(() => {
+    if (thread.length > 0) {
+      setTimeout(() => {
+        const messageList = document.querySelector('[data-message-list="true"]');
+        if (messageList) {
+          messageList.scrollTop = messageList.scrollHeight;
+        }
+      }, 100);
+    }
+  }, [thread.length, selectedContactId]);
+
   return (
     <div className="flex flex-col md:h-full" style={{ height: '100svh' }}>
       {/* Desktop Header - hidden on mobile */}
@@ -708,7 +728,7 @@ export default function Inbox() {
               </div>
 
               {/* Messages */}
-              <div className="flex-1 p-4 bg-blue-50/70 dark:bg-blue-950/40 overflow-y-auto" style={{ paddingBottom: 'calc(80px + env(safe-area-inset-bottom, 0px) + var(--vv-bottom, 0px))' }}>
+              <div data-message-list="true" className="flex-1 p-4 bg-blue-50/70 dark:bg-blue-950/40 overflow-y-auto" style={{ paddingBottom: 'calc(80px + env(safe-area-inset-bottom, 0px) + var(--vv-bottom, 0px))' }}>
                 {threadLoading ? (
                   <div className="text-center text-muted-foreground">Loading messages...</div>
                 ) : thread.length === 0 ? (
@@ -816,7 +836,7 @@ export default function Inbox() {
               {/* Message Composer */}
               <div 
                 data-composer="true"
-                className="shrink-0 bg-blue-50/70 dark:bg-blue-950/40 fixed left-0 right-0 md:static p-3 md:p-3 z-50" 
+                className="shrink-0 bg-blue-50 dark:bg-blue-950 fixed left-0 right-0 md:static p-3 md:p-3 z-50" 
                 style={{ 
                   paddingBottom: 'calc(12px + env(safe-area-inset-bottom, 0px))',
                   top: 'auto',
