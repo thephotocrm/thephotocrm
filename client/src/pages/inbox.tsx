@@ -368,24 +368,42 @@ export default function Inbox() {
   // Visual Viewport API - dynamically track iOS keyboard and address bar changes
   useEffect(() => {
     const vv = (window as any).visualViewport;
-    const setInsets = () => {
-      const inset = window.innerHeight - ((vv?.height ?? window.innerHeight) + (vv?.offsetTop ?? 0));
+    const composer = document.querySelector('[data-composer="true"]') as HTMLElement;
+    
+    const setPosition = () => {
+      if (!composer || !vv) return;
+      
+      // Calculate the visible viewport height (accounts for keyboard)
+      const viewportHeight = vv.height;
+      const offsetTop = vv.offsetTop || 0;
+      
+      // Position composer at the bottom of visible viewport
+      composer.style.bottom = 'auto'; // CRITICAL: Clear bottom to prevent stretching
+      composer.style.top = `${offsetTop + viewportHeight}px`;
+      composer.style.transform = 'translateY(-100%)';
+      
+      // Also update CSS variable for message list padding
+      const inset = window.innerHeight - (viewportHeight + offsetTop);
       document.documentElement.style.setProperty('--vv-bottom', `${Math.max(0, inset)}px`);
     };
+    
     if (vv) {
-      vv.addEventListener('resize', setInsets);
-      vv.addEventListener('scroll', setInsets);
+      vv.addEventListener('resize', setPosition);
+      vv.addEventListener('scroll', setPosition);
     }
-    window.addEventListener('orientationchange', setInsets);
-    setInsets();
+    window.addEventListener('orientationchange', setPosition);
+    
+    // Set initial position with a delay to ensure DOM is ready
+    setTimeout(setPosition, 100);
+    
     return () => {
       if (vv) {
-        vv.removeEventListener('resize', setInsets);
-        vv.removeEventListener('scroll', setInsets);
+        vv.removeEventListener('resize', setPosition);
+        vv.removeEventListener('scroll', setPosition);
       }
-      window.removeEventListener('orientationchange', setInsets);
+      window.removeEventListener('orientationchange', setPosition);
     };
-  }, []);
+  }, [selectedContactId]); // Re-run when thread changes
 
   // Initialize CSS variable default
   useEffect(() => {
@@ -393,7 +411,7 @@ export default function Inbox() {
   }, []);
 
   return (
-    <div className="flex flex-col h-screen md:h-full">
+    <div className="flex flex-col md:h-full" style={{ height: '100svh' }}>
       {/* Desktop Header - hidden on mobile */}
       <header className="hidden md:block border-b border-border px-4 md:px-6 py-6 shrink-0">
         <div className="max-w-[1140px] mx-auto w-full">
@@ -796,7 +814,16 @@ export default function Inbox() {
               </div>
 
               {/* Message Composer */}
-              <div className="shrink-0 bg-blue-50/70 dark:bg-blue-950/40 sticky bottom-0 md:static p-3 md:p-3" style={{ paddingBottom: 'calc(12px + env(safe-area-inset-bottom, 0px) + var(--vv-bottom, 0px))' }}>
+              <div 
+                data-composer="true"
+                className="shrink-0 bg-blue-50/70 dark:bg-blue-950/40 fixed left-0 right-0 md:static p-3 md:p-3 z-50" 
+                style={{ 
+                  paddingBottom: 'calc(12px + env(safe-area-inset-bottom, 0px))',
+                  top: 'auto',
+                  bottom: '0',
+                  transform: 'none'
+                }}
+              >
                 {selectedImage && (
                   <div className="mb-2 mx-3 relative inline-block">
                     <img src={selectedImage} alt="Preview" className="max-h-32 rounded-xl border" />
