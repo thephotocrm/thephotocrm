@@ -4849,6 +4849,51 @@ ${photographer?.businessName || 'Your Photography Team'}`;
     }
   });
 
+  // GET /api/public/smart-files/:token/booking - Get booking for Smart File (PUBLIC ROUTE)
+  app.get("/api/public/smart-files/:token/booking", async (req, res) => {
+    try {
+      const { token } = req.params;
+
+      // Get Smart File data
+      const projectSmartFile = await storage.getProjectSmartFileByToken(token);
+      
+      if (!projectSmartFile) {
+        return res.status(404).json({ message: "Smart File not found" });
+      }
+
+      // Get booking for this Smart File
+      const booking = await storage.getBookingByProjectSmartFileId(projectSmartFile.id);
+
+      if (!booking) {
+        return res.json({ booking: null });
+      }
+
+      // Get photographer data for photo
+      const photographer = await storage.getPhotographer(projectSmartFile.photographerId);
+
+      res.json({ 
+        booking: {
+          id: booking.id,
+          title: booking.title,
+          description: booking.description,
+          startAt: booking.startAt,
+          endAt: booking.endAt,
+          status: booking.status,
+          googleMeetLink: booking.googleMeetLink
+        },
+        photographer: photographer ? {
+          id: photographer.id,
+          businessName: photographer.businessName,
+          photographerName: photographer.photographerName,
+          headshotUrl: photographer.headshotUrl
+        } : null
+      });
+    } catch (error) {
+      console.error("Get Smart File booking error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   // POST /api/public/smart-files/:token/booking - Create booking from Smart File (PUBLIC ROUTE)
   app.post("/api/public/smart-files/:token/booking", async (req, res) => {
     try {

@@ -178,6 +178,7 @@ export interface IStorage {
   getBookingsByPhotographer(photographerId: string): Promise<Booking[]>;
   getBooking(id: string): Promise<Booking | undefined>;
   getBookingByToken(token: string): Promise<Booking | undefined>;
+  getBookingByProjectSmartFileId(projectSmartFileId: string): Promise<Booking | undefined>;
   createBooking(booking: InsertBooking): Promise<Booking>;
   updateBooking(id: string, booking: Partial<Booking>): Promise<Booking>;
   deleteBooking(id: string): Promise<void>;
@@ -1367,6 +1368,11 @@ export class DatabaseStorage implements IStorage {
 
   async getBookingByToken(token: string): Promise<Booking | undefined> {
     const [booking] = await db.select().from(bookings).where(eq(bookings.bookingToken, token));
+    return booking || undefined;
+  }
+
+  async getBookingByProjectSmartFileId(projectSmartFileId: string): Promise<Booking | undefined> {
+    const [booking] = await db.select().from(bookings).where(eq(bookings.projectSmartFileId, projectSmartFileId));
     return booking || undefined;
   }
 
