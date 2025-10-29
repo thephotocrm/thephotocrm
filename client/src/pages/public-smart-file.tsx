@@ -121,6 +121,7 @@ export default function PublicSmartFile() {
   const [formAnswers, setFormAnswers] = useState<Map<string, any>>(new Map());
   const [bookingSuccess, setBookingSuccess] = useState(false);
   const [bookingDetails, setBookingDetails] = useState<{ date: Date; time: string } | null>(null);
+  const [selectionsNeedResigning, setSelectionsNeedResigning] = useState(false);
   const hasAutoAcceptedRef = useRef(false);
   const contractRendererRef = useRef<HTMLDivElement>(null);
 
@@ -307,6 +308,28 @@ export default function PublicSmartFile() {
     }
   });
 
+  const resetSelectionsMutation = useMutation({
+    mutationFn: async () => {
+      await apiRequest("POST", `/api/public/smart-files/${params?.token}/reset-selections`, {});
+      return { reset: true };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/public/smart-files/${params?.token}`] });
+      setSelectionsNeedResigning(true);
+      toast({
+        title: "Selections Reset",
+        description: "You can now edit your selections. Please re-sign the contract when done.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to reset selections. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
   const saveSignatureMutation = useMutation({
     mutationFn: async (signatureData: { clientSignatureUrl: string }) => {
       // Capture the contract HTML at signature time for legal record
@@ -431,8 +454,12 @@ export default function PublicSmartFile() {
     const clientHasSigned = !!data.projectSmartFile.clientSignatureUrl;
     const canPay = !requiresClientSignature || clientHasSigned;
     
-    // Auto-accept if: not accepted, can pay (signed if needed), and has selections
-    if (!isAccepted && canPay && selectedPackages.size > 0) {
+    // Check if packages are required (only if Smart File has PACKAGE pages)
+    const hasPackagePages = sortedPages.some(p => p.pageType === 'PACKAGE');
+    const hasRequiredSelections = !hasPackagePages || selectedPackages.size > 0;
+    
+    // Auto-accept if: not accepted, can pay (signed if needed), and has required selections
+    if (!isAccepted && canPay && hasRequiredSelections) {
       hasAutoAcceptedRef.current = true;
       handleAccept();
     }
@@ -548,7 +575,11 @@ export default function PublicSmartFile() {
       return;
     }
 
-    if (selectedPackages.size === 0) {
+    // Only require package selection if Smart File contains PACKAGE pages
+    const mergedPages = getMergedPages();
+    const hasPackagePages = mergedPages.some(page => page.pageType === 'PACKAGE');
+    
+    if (hasPackagePages && selectedPackages.size === 0) {
       toast({
         title: "Package Required",
         description: "Please select at least one package before proceeding.",
@@ -666,6 +697,25 @@ export default function PublicSmartFile() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         <div className="max-w-4xl mx-auto">
+          {/* Re-signing Required Banner - Show when contract requires signature but client hasn't signed yet */}
+          {requiresClientSignature && !clientHasSigned && data.projectSmartFile.selectedPackages && (
+            <div className="mb-6">
+              <div className="bg-amber-50 dark:bg-amber-950/20 border-2 border-amber-500 rounded-lg p-4" data-testid="banner-resigning-required">
+                <div className="flex items-start gap-3">
+                  <FileSignature className="w-5 h-5 text-amber-600 dark:text-amber-500 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <h3 className="font-semibold text-amber-900 dark:text-amber-100">Contract Signature Required</h3>
+                    <p className="text-sm text-amber-800 dark:text-amber-200 mt-1">
+                      {selectionsNeedResigning 
+                        ? "Your selections have been updated. Please review the contract and sign it again before proceeding with payment."
+                        : "Please review and sign the contract to proceed with payment."}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Main Content */}
           <div>
             {sortedPages.length === 0 ? (
@@ -2429,6 +2479,22 @@ export default function PublicSmartFile() {
                   </>
                 )}
               </div>
+
+              {/* Edit Selections Button - Shows when accepted but not fully paid, and Smart File has packages/add-ons */}
+              {['ACCEPTED', 'DEPOSIT_PAID'].includes(data.projectSmartFile.status) && 
+               sortedPages.some(p => p.pageType === 'PACKAGE' || p.pageType === 'ADDON') && (
+                <div className="mt-6">
+                  <Button
+                    onClick={() => resetSelectionsMutation.mutate()}
+                    variant="outline"
+                    className="w-full"
+                    disabled={resetSelectionsMutation.isPending}
+                    data-testid="button-edit-selections"
+                  >
+                    {resetSelectionsMutation.isPending ? "Resetting..." : "Edit Selections"}
+                  </Button>
+                </div>
+              )}
 
               {/* Pay Balance Button - Shows on all pages when deposit is paid and balance is due */}
               {data.projectSmartFile.status === 'DEPOSIT_PAID' && currentPage.pageType !== 'PAYMENT' && paymentPageIndex !== -1 && (

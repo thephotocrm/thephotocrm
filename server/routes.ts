@@ -4300,6 +4300,29 @@ ${photographer?.businessName || 'Your Photography Team'}`;
         });
       }
 
+      // Check if this is a re-acceptance after editing (had selections before)
+      // Parse selections if they're JSON strings, with error handling
+      let oldPackages: any[] = [];
+      let oldAddOns: any[] = [];
+      try {
+        oldPackages = projectSmartFile.selectedPackages 
+          ? (Array.isArray(projectSmartFile.selectedPackages) 
+              ? projectSmartFile.selectedPackages 
+              : JSON.parse(projectSmartFile.selectedPackages))
+          : [];
+        oldAddOns = projectSmartFile.selectedAddOns
+          ? (Array.isArray(projectSmartFile.selectedAddOns)
+              ? projectSmartFile.selectedAddOns
+              : JSON.parse(projectSmartFile.selectedAddOns))
+          : [];
+      } catch (parseError) {
+        console.error("Error parsing old selections:", parseError);
+        // Fall back to empty arrays if parsing fails
+      }
+      
+      // Re-acceptance = had either packages or add-ons before
+      const isReAcceptance = (oldPackages && oldPackages.length > 0) || (oldAddOns && oldAddOns.length > 0);
+
       // Update status to ACCEPTED and store selections
       const updated = await storage.updateProjectSmartFile(projectSmartFile.id, {
         status: 'ACCEPTED',
@@ -4310,6 +4333,42 @@ ${photographer?.businessName || 'Your Photography Team'}`;
         totalCents,
         depositCents
       });
+
+      // Log activity for re-acceptance with before/after selections
+      if (isReAcceptance) {
+        try {
+          const [project, contact] = await Promise.all([
+            storage.getProject(projectSmartFile.projectId),
+            storage.getContact(projectSmartFile.clientId)
+          ]);
+
+          if (project && contact) {
+            const oldPackageNames = Array.isArray(oldPackages) 
+              ? oldPackages.map((pkg: any) => pkg.name).join(', ')
+              : 'N/A';
+            const newPackageNames = Array.isArray(selectedPackages)
+              ? selectedPackages.map((pkg: any) => pkg.name).join(', ')
+              : 'N/A';
+            
+            const oldAddonNames = Array.isArray(oldAddOns) && oldAddOns.length > 0
+              ? oldAddOns.map((addon: any) => `${addon.name} (x${addon.quantity})`).join(', ')
+              : 'None';
+            const newAddonNames = Array.isArray(selectedAddOns) && selectedAddOns.length > 0
+              ? selectedAddOns.map((addon: any) => `${addon.name} (x${addon.quantity})`).join(', ')
+              : 'None';
+
+            await storage.createProjectActivity({
+              projectId: project.id,
+              photographerId: projectSmartFile.photographerId,
+              title: `${contact.firstName} ${contact.lastName} finalized updated selections`,
+              description: `Client re-signed contract with updated selections.\n\nPrevious: ${oldPackageNames}${oldAddonNames !== 'None' ? ` | Add-ons: ${oldAddonNames}` : ''}\n\nNew: ${newPackageNames}${newAddonNames !== 'None' ? ` | Add-ons: ${newAddonNames}` : ''}\n\nTotal: $${((totalCents || 0) / 100).toFixed(2)}`
+            });
+          }
+        } catch (activityError) {
+          console.error("Error logging re-acceptance activity:", activityError);
+          // Don't fail the request if activity logging fails
+        }
+      }
 
       // Send notification to photographer
       try {
@@ -4361,6 +4420,74 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       res.json(updated);
     } catch (error) {
       console.error("Accept smart file error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // POST /api/public/smart-files/:token/reset-selections - Reset selections and clear signature (PUBLIC ROUTE)
+  app.post("/api/public/smart-files/:token/reset-selections", async (req, res) => {
+    try {
+      const { token } = req.params;
+
+      // Find projectSmartFile by token
+      const projectSmartFile = await storage.getProjectSmartFileByToken(token);
+      
+      if (!projectSmartFile) {
+        return res.status(404).json({ message: "Smart File not found" });
+      }
+
+      // Only allow resetting if status is ACCEPTED or DEPOSIT_PAID (not PAID)
+      if (!['ACCEPTED', 'DEPOSIT_PAID'].includes(projectSmartFile.status)) {
+        return res.status(400).json({ 
+          message: "Can only reset selections for accepted proposals that haven't been fully paid." 
+        });
+      }
+
+      // Store old selections for activity logging
+      const oldPackages = projectSmartFile.selectedPackages || [];
+      const oldAddOns = projectSmartFile.selectedAddOns || [];
+
+      // Reset selections: clear signature, reset status to VIEWED
+      const updated = await storage.updateProjectSmartFile(projectSmartFile.id, {
+        status: 'VIEWED',
+        clientSignatureUrl: null,
+        clientSignedAt: null,
+        clientSignedIp: null,
+        clientSignedUserAgent: null,
+        acceptedAt: null
+      });
+
+      // Log activity
+      try {
+        const [project, contact] = await Promise.all([
+          storage.getProject(projectSmartFile.projectId),
+          storage.getContact(projectSmartFile.clientId)
+        ]);
+
+        if (project && contact) {
+          const packageNames = Array.isArray(oldPackages) 
+            ? oldPackages.map((pkg: any) => pkg.name).join(', ')
+            : 'N/A';
+          
+          const addonNames = Array.isArray(oldAddOns) && oldAddOns.length > 0
+            ? oldAddOns.map((addon: any) => `${addon.name} (x${addon.quantity})`).join(', ')
+            : 'None';
+
+          await storage.createProjectActivity({
+            projectId: project.id,
+            photographerId: projectSmartFile.photographerId,
+            title: `${contact.firstName} ${contact.lastName} edited selections`,
+            description: `Client edited their package and add-on selections. Previous selections: ${packageNames}${addonNames !== 'None' ? ` | Add-ons: ${addonNames}` : ''}. Contract requires re-signing.`
+          });
+        }
+      } catch (activityError) {
+        console.error("Error logging reset selections activity:", activityError);
+        // Don't fail the request if activity logging fails
+      }
+
+      res.json(updated);
+    } catch (error) {
+      console.error("Reset selections error:", error);
       res.status(500).json({ message: "Internal server error" });
     }
   });
