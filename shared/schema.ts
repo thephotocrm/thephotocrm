@@ -768,6 +768,7 @@ export const bookings = pgTable("bookings", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   photographerId: varchar("photographer_id").notNull().references(() => photographers.id),
   projectId: varchar("project_id").references(() => projects.id),
+  projectSmartFileId: varchar("project_smart_file_id").references(() => projectSmartFiles.id),
   title: text("title").notNull(),
   description: text("description"),
   startAt: timestamp("start_at").notNull(),
