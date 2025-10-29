@@ -1723,7 +1723,7 @@ export default function ProjectDetail() {
                               )}
                               <DropdownMenuItem asChild>
                                 <a 
-                                  href={sf.token ? `/p/${sf.token}` : `/smart-files/${sf.smartFileId}?projectId=${project.id}`} 
+                                  href={sf.token ? `/smart-file/${sf.token}` : `/smart-files/${sf.smartFileId}?projectId=${project.id}`} 
                                   target="_blank" 
                                   rel="noopener noreferrer"
                                   data-testid={`preview-smart-file-${sf.smartFileId}`}
@@ -1734,7 +1734,7 @@ export default function ProjectDetail() {
                               </DropdownMenuItem>
                               {sf.token && (
                                 <DropdownMenuItem onClick={() => {
-                                  const url = `${window.location.origin}/p/${sf.token}`;
+                                  const url = `${window.location.origin}/smart-file/${sf.token}`;
                                   navigator.clipboard.writeText(url);
                                   toast({ title: "Link copied to clipboard" });
                                 }}>
