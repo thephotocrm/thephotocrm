@@ -4911,6 +4911,12 @@ ${photographer?.businessName || 'Your Photography Team'}`;
         return res.status(404).json({ message: "Smart File not found" });
       }
 
+      // Check if a booking already exists for this Smart File (prevent duplicates)
+      const existingBooking = await storage.getBookingByProjectSmartFileId(projectSmartFile.id);
+      if (existingBooking) {
+        return res.status(400).json({ message: "An appointment has already been booked for this Smart File" });
+      }
+
       // Get project and client data
       const [project, client] = await Promise.all([
         storage.getProject(projectSmartFile.projectId),

@@ -182,6 +182,12 @@ export default function PublicSmartFile() {
     refetchOnMount: true, // Refetch when component mounts
   });
 
+  // Check if this Smart File already has a booking
+  const { data: existingBookingData, isLoading: isLoadingBooking } = useQuery<{ booking: any; photographer: any } | null>({
+    queryKey: [`/api/public/smart-files/${params?.token}/booking`],
+    enabled: !!params?.token && !!data,
+  });
+
   // Clamp currentPageIndex when pages change
   useEffect(() => {
     if (data && freshPackages && freshAddOns) {
@@ -382,6 +388,11 @@ export default function PublicSmartFile() {
 
   const bookingMutation = useMutation({
     mutationFn: async (bookingData: { date: Date; time: string; durationMinutes: number }) => {
+      // Prevent booking if one already exists
+      if (existingBookingData?.booking) {
+        throw new Error("An appointment has already been booked for this Smart File");
+      }
+      
       const response = await apiRequest("POST", `/api/public/smart-files/${params?.token}/booking`, {
         date: bookingData.date.toISOString(),
         time: bookingData.time,
@@ -391,6 +402,7 @@ export default function PublicSmartFile() {
     },
     onSuccess: (response: any) => {
       queryClient.invalidateQueries({ queryKey: [`/api/public/smart-files/${params?.token}`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/public/smart-files/${params?.token}/booking`] });
       setBookingSuccess(true);
     },
     onError: (error: any) => {
@@ -2280,47 +2292,112 @@ export default function PublicSmartFile() {
                 {/* SCHEDULING Page */}
                 {currentPage.pageType === "SCHEDULING" && (
                   <>
-                    {bookingSuccess && bookingDetails ? (
+                    {isLoadingBooking ? (
+                      <Card>
+                        <CardContent className="pt-6">
+                          <div className="space-y-4">
+                            <div className="animate-pulse">
+                              <div className="h-8 bg-muted rounded w-3/4 mx-auto mb-4"></div>
+                              <div className="h-4 bg-muted rounded w-1/2 mx-auto mb-6"></div>
+                              <div className="h-64 bg-muted rounded"></div>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ) : (bookingSuccess && bookingDetails) || existingBookingData?.booking ? (
                       <Card data-testid="card-booking-success">
                         <CardContent className="pt-6">
                           <div className="text-center space-y-4">
-                            <div className="mx-auto w-16 h-16 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center">
-                              <Check className="w-8 h-8 text-green-600 dark:text-green-400" />
+                            {/* Show photographer photo if available */}
+                            {existingBookingData?.photographer?.headshotUrl && (
+                              <div className="mx-auto w-24 h-24 rounded-full overflow-hidden border-4 border-border">
+                                <img 
+                                  src={existingBookingData.photographer.headshotUrl} 
+                                  alt={existingBookingData.photographer.businessName || existingBookingData.photographer.photographerName}
+                                  className="w-full h-full object-cover"
+                                  data-testid="img-photographer-headshot"
+                                />
+                              </div>
+                            )}
+                            
+                            <div className={cn(
+                              "mx-auto w-16 h-16 rounded-full flex items-center justify-center",
+                              existingBookingData?.booking?.status === 'CANCELLED' 
+                                ? "bg-red-100 dark:bg-red-900" 
+                                : "bg-green-100 dark:bg-green-900"
+                            )}>
+                              <Check className={cn(
+                                "w-8 h-8",
+                                existingBookingData?.booking?.status === 'CANCELLED'
+                                  ? "text-red-600 dark:text-red-400"
+                                  : "text-green-600 dark:text-green-400"
+                              )} />
                             </div>
                             <div>
                               <h3 className="text-2xl font-semibold mb-2" data-testid="text-booking-confirmed">
-                                Appointment Confirmed!
+                                {existingBookingData?.booking?.status === 'CANCELLED' 
+                                  ? 'Appointment Cancelled' 
+                                  : 'Appointment Confirmed!'}
                               </h3>
                               <p className="text-muted-foreground">
-                                Your appointment has been successfully scheduled
+                                {existingBookingData?.booking?.status === 'CANCELLED'
+                                  ? 'This appointment has been cancelled'
+                                  : (bookingSuccess 
+                                    ? 'Your appointment has been successfully scheduled'
+                                    : 'Your appointment details')}
                               </p>
                             </div>
                             <div className="bg-muted/50 dark:bg-muted/20 rounded-lg p-4 space-y-2">
                               <div className="flex items-center justify-center gap-2 text-sm">
                                 <Calendar className="w-4 h-4 text-muted-foreground" />
                                 <span data-testid="text-booking-date">
-                                  {bookingDetails.date.toLocaleDateString('en-US', {
-                                    weekday: 'long',
-                                    month: 'long',
-                                    day: 'numeric',
-                                    year: 'numeric'
-                                  })}
+                                  {existingBookingData?.booking 
+                                    ? new Date(existingBookingData.booking.startAt).toLocaleDateString('en-US', {
+                                        weekday: 'long',
+                                        month: 'long',
+                                        day: 'numeric',
+                                        year: 'numeric'
+                                      })
+                                    : bookingDetails?.date.toLocaleDateString('en-US', {
+                                        weekday: 'long',
+                                        month: 'long',
+                                        day: 'numeric',
+                                        year: 'numeric'
+                                      })}
                                 </span>
                               </div>
                               <div className="flex items-center justify-center gap-2 text-sm">
                                 <Clock className="w-4 h-4 text-muted-foreground" />
                                 <span data-testid="text-booking-time">
-                                  {new Date(`2000-01-01T${bookingDetails.time}`).toLocaleTimeString('en-US', {
-                                    hour: 'numeric',
-                                    minute: '2-digit',
-                                    hour12: true
-                                  })}
+                                  {existingBookingData?.booking
+                                    ? new Date(existingBookingData.booking.startAt).toLocaleTimeString('en-US', {
+                                        hour: 'numeric',
+                                        minute: '2-digit',
+                                        hour12: true
+                                      })
+                                    : bookingDetails && new Date(`2000-01-01T${bookingDetails.time}`).toLocaleTimeString('en-US', {
+                                        hour: 'numeric',
+                                        minute: '2-digit',
+                                        hour12: true
+                                      })}
                                 </span>
                               </div>
+                              {existingBookingData?.booking?.status && (
+                                <div className="pt-2">
+                                  <Badge 
+                                    variant={existingBookingData.booking.status === 'CANCELLED' ? 'destructive' : 'default'}
+                                    data-testid={`badge-status-${existingBookingData.booking.status.toLowerCase()}`}
+                                  >
+                                    {existingBookingData.booking.status}
+                                  </Badge>
+                                </div>
+                              )}
                             </div>
-                            <p className="text-sm text-muted-foreground">
-                              A confirmation email has been sent to you with all the details.
-                            </p>
+                            {bookingSuccess && (
+                              <p className="text-sm text-muted-foreground">
+                                A confirmation email has been sent to you with all the details.
+                              </p>
+                            )}
                           </div>
                         </CardContent>
                       </Card>
