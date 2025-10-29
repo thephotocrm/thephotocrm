@@ -141,19 +141,22 @@ export async function sendSms(params: SmsParams): Promise<{ success: boolean; si
       console.log('Including MMS image:', params.mediaUrl);
     }
 
-    // Build status callback URL for delivery tracking
-    const baseUrl = process.env.REPLIT_DEV_DOMAIN 
-      ? `https://${process.env.REPLIT_DEV_DOMAIN}`
-      : 'http://localhost:5000';
-    const statusCallbackUrl = `${baseUrl}/webhooks/twilio/status`;
-
     // Build message payload
     const messagePayload: any = {
       body: params.body,
       from: fromPhone,
-      to: sanitizedPhone,
-      statusCallback: statusCallbackUrl
+      to: sanitizedPhone
     };
+
+    // Only include status callback if we have a valid public domain
+    // Localhost URLs are rejected by Twilio and cause "invalid URL" errors
+    if (process.env.REPLIT_DEV_DOMAIN) {
+      const statusCallbackUrl = `https://${process.env.REPLIT_DEV_DOMAIN}/webhooks/twilio/status`;
+      messagePayload.statusCallback = statusCallbackUrl;
+      console.log('Status callback URL:', statusCallbackUrl);
+    } else {
+      console.log('No public domain available, skipping status callback');
+    }
 
     // Add media URL if provided (for MMS)
     if (params.mediaUrl) {
