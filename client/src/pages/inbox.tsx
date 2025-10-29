@@ -10,11 +10,12 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import { MessageSquare, Mail, Send, MessageCircle, ArrowLeft, Plus, Search, Check, CheckCheck, XCircle, Smile, Image as ImageIcon, MessageSquarePlus, Settings, ChevronDown } from "lucide-react";
+import { MessageSquare, Mail, Send, MessageCircle, ArrowLeft, Plus, Search, Check, CheckCheck, XCircle, Smile, Image as ImageIcon, MessageSquarePlus, Settings, ChevronDown, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "wouter";
 import { format, isToday, isYesterday, isThisWeek, isThisYear } from "date-fns";
 import { getAvatarColor, getInitials } from "@/lib/avatar-utils";
+import { compressImageForMMS } from "@/lib/image-compression";
 
 interface Contact {
   id: string;
@@ -54,6 +55,7 @@ export default function Inbox() {
   const [conversationSearch, setConversationSearch] = useState("");
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [imageUploadLoading, setImageUploadLoading] = useState(false);
   const [olderMessages, setOlderMessages] = useState<ThreadMessage[]>([]);
   const [loadingOlder, setLoadingOlder] = useState(false);
   const [hasMoreMessages, setHasMoreMessages] = useState(false);
@@ -224,26 +226,47 @@ export default function Inbox() {
     setShowEmojiPicker(false);
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Check file size (5MB limit for MMS)
-    if (file.size > 5 * 1024 * 1024) {
+    // Check if file is an image
+    if (!file.type.startsWith('image/')) {
       toast({
         variant: "destructive",
-        title: "File too large",
-        description: "Image must be under 5MB for MMS"
+        title: "Invalid file type",
+        description: "Please select an image file"
       });
       return;
     }
 
-    // Create temporary URL for preview
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      setSelectedImage(e.target?.result as string);
-    };
-    reader.readAsDataURL(file);
+    setImageUploadLoading(true);
+
+    try {
+      // Compress image for MMS delivery
+      const result = await compressImageForMMS(file);
+
+      if (result.success && result.dataUrl) {
+        setSelectedImage(result.dataUrl);
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Image too large",
+          description: result.error || "Unable to compress image for text message"
+        });
+      }
+    } catch (error) {
+      console.error('Image upload error:', error);
+      toast({
+        variant: "destructive",
+        title: "Upload failed",
+        description: "Failed to process image. Please try again."
+      });
+    } finally {
+      setImageUploadLoading(false);
+      // Reset the input so the same file can be selected again
+      e.target.value = '';
+    }
   };
 
   const handleBackToList = () => {
@@ -962,10 +985,15 @@ export default function Inbox() {
                       size="icon"
                       className="h-8 w-8 shrink-0"
                       asChild
+                      disabled={imageUploadLoading}
                       data-testid="button-image"
                     >
                       <div>
-                        <ImageIcon className="w-5 h-5 text-muted-foreground" />
+                        {imageUploadLoading ? (
+                          <Loader2 className="w-5 h-5 text-muted-foreground animate-spin" />
+                        ) : (
+                          <ImageIcon className="w-5 h-5 text-muted-foreground" />
+                        )}
                       </div>
                     </Button>
                   </label>
@@ -975,6 +1003,7 @@ export default function Inbox() {
                     accept="image/*"
                     className="hidden"
                     onChange={handleImageUpload}
+                    disabled={imageUploadLoading}
                   />
                   
                   <Textarea
