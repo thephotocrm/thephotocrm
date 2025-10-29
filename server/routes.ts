@@ -4889,6 +4889,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       const booking = await storage.createBooking({
         photographerId: project.photographerId,
         projectId: project.id,
+        projectSmartFileId: projectSmartFile.id,
         title: `${projectSmartFile.smartFileName} - Appointment`,
         description: `Booking from Smart File: ${projectSmartFile.smartFileName}`,
         startAt: bookingDate,
