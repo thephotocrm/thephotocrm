@@ -272,13 +272,13 @@ async function processEmailBuilderAutomation(automation: any, photographerId: st
       }
       
       // Reserve execution atomically
-      // For email builder automations, use automation ID as stepId to enable unique constraint
+      // For email builder automations, don't pass stepId (uses automation+channel uniqueness)
       const reservation = await reserveAutomationExecution(
         project.id,
         automation.id,
         'COMMUNICATION',
-        'EMAIL',
-        automation.id // Use automation ID as stepId for email builder automations
+        'EMAIL'
+        // No stepId for email builder automations - uniqueness via automationId+channel constraint
       );
       
       if (!reservation.canExecute) {

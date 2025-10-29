@@ -483,6 +483,10 @@ export const automationExecutions = pgTable("automation_executions", {
   communicationUniqueIdx: unique("automation_executions_communication_unique").on(
     table.projectId, table.automationStepId
   ),
+  // Unique constraint for email builder automations: one execution per project+automation+channel
+  emailBuilderUniqueIdx: unique("automation_executions_email_builder_unique").on(
+    table.projectId, table.automationId, table.channel
+  ),
   // Unique constraint for stage change automations: one execution per project+automation+trigger
   stageChangeUniqueIdx: unique("automation_executions_stage_change_unique").on(
     table.projectId, table.automationId, table.triggerType
