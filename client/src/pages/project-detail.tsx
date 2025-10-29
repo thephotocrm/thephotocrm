@@ -1722,7 +1722,12 @@ export default function ProjectDetail() {
                                 </DropdownMenuItem>
                               )}
                               <DropdownMenuItem asChild>
-                                <a href={`/smart-files/${sf.smartFileId}?projectId=${project.id}`} target="_blank" rel="noopener noreferrer">
+                                <a 
+                                  href={sf.token ? `/p/${sf.token}` : `/smart-files/${sf.smartFileId}?projectId=${project.id}`} 
+                                  target="_blank" 
+                                  rel="noopener noreferrer"
+                                  data-testid={`preview-smart-file-${sf.smartFileId}`}
+                                >
                                   <Eye className="w-4 h-4 mr-2" />
                                   Preview
                                 </a>
