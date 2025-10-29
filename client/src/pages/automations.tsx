@@ -187,6 +187,12 @@ function AutomationStepManager({ automation, onDelete }: { automation: any, onDe
                 <Target className="w-3 h-3 mr-1" />
                 {automation.businessTriggers[0].triggerType.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, (l: string) => l.toUpperCase())}
               </Badge>
+            ) : automation.stageId && (automation.useEmailBuilder || automation.emailBlocks) ? (
+              // Stage-based automation with direct email content (no steps)
+              <Badge variant="default" className="bg-amber-500 dark:bg-amber-600 text-white text-xs">
+                <Zap className="w-3 h-3 mr-1" />
+                Immediately
+              </Badge>
             ) : steps.length > 0 && steps[0].delayMinutes > 0 ? (
               // Time-based automation (has delay)
               <Badge variant="default" className="bg-blue-500 dark:bg-blue-600 text-white text-xs">
@@ -252,8 +258,30 @@ function AutomationStepManager({ automation, onDelete }: { automation: any, onDe
           
           {isLoading ? (
             <p className="text-sm text-muted-foreground">Loading steps...</p>
-          ) : steps.length === 0 ? (
+          ) : steps.length === 0 && !automation.emailBlocks ? (
             <p className="text-sm text-muted-foreground">No steps configured</p>
+          ) : steps.length === 0 && automation.emailBlocks ? (
+            // Show email content preview for automations using email builder
+            <div className="bg-muted/50 border rounded-md p-3 text-sm">
+              <p className="font-semibold mb-2">Email Message:</p>
+              {automation.emailSubject && (
+                <p className="font-medium mb-2 text-muted-foreground">Subject: {automation.emailSubject}</p>
+              )}
+              <div className="text-muted-foreground space-y-2">
+                {automation.emailBlocks && Array.isArray(automation.emailBlocks) && automation.emailBlocks.map((block: any, idx: number) => {
+                  if (block.type === 'HEADING') {
+                    return <p key={idx} className="font-bold text-base">{block.content}</p>;
+                  } else if (block.type === 'TEXT') {
+                    return <p key={idx} className="whitespace-pre-wrap">{block.content}</p>;
+                  } else if (block.type === 'BUTTON') {
+                    return <p key={idx} className="text-blue-600 dark:text-blue-400">🔘 Button: {block.content}</p>;
+                  } else if (block.type === 'SPACER') {
+                    return <div key={idx} className="h-4" />;
+                  }
+                  return null;
+                })}
+              </div>
+            </div>
           ) : (
             steps.map((step: any, index: number) => {
             const template = templates?.find(t => t.id === step.templateId);
