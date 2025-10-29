@@ -240,6 +240,16 @@ export default function Login() {
                       {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                     </button>
                   </div>
+                  <div className="text-right">
+                    <button
+                      type="button"
+                      onClick={() => setLocation("/forgot-password")}
+                      className="text-sm text-gray-600 hover:text-gray-900"
+                      data-testid="link-forgot-password-desktop"
+                    >
+                      Forgot password?
+                    </button>
+                  </div>
                 </div>
 
                 <Button
@@ -276,18 +286,6 @@ export default function Login() {
                 </svg>
                 Continue with Google
               </a>
-
-              <div className="mt-6 text-center">
-                <Button 
-                  variant="link" 
-                  className="text-sm text-gray-600 hover:text-gray-900 p-0 h-auto" 
-                  onClick={() => setLocation("/forgot-password")}
-                  type="button"
-                  data-testid="link-forgot-password-desktop"
-                >
-                  Forgot password?
-                </Button>
-              </div>
 
               <div className="mt-8 text-center">
                 <p className="text-sm text-gray-600">
