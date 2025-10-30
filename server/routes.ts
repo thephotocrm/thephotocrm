@@ -900,10 +900,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/auth/google/callback", async (req, res) => {
     try {
-      const { code, state } = req.query;
+      // Log ALL query parameters to debug Google OAuth issues
+      console.log("🔍 Google OAuth callback - Full query params:", req.query);
+      
+      const { code, state, error, error_description } = req.query;
+      
+      // Check if Google sent an error
+      if (error) {
+        console.error("❌ Google OAuth error:", error);
+        console.error("Error description:", error_description);
+        return res.redirect(`/login?error=google_oauth&details=${error}`);
+      }
       
       if (!code || typeof code !== 'string') {
         console.error("❌ Missing authorization code in Google OAuth callback");
+        console.error("Full query params:", req.query);
         return res.redirect('/login?error=missing_code');
       }
 
