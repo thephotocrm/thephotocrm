@@ -151,6 +151,7 @@ export default function Inbox() {
     onSuccess: () => {
       setNewMessage("");
       setSelectedImage(null);
+      setImageUploadLoading(false);
       setShowEmojiPicker(false);
       // Force immediate refetch instead of just invalidating
       queryClient.refetchQueries({ queryKey: ['/api/inbox/conversations'] });
@@ -214,10 +215,19 @@ export default function Inbox() {
   const handleSendMessage = () => {
     if (!selectedContactId || !newMessage.trim()) return;
 
+    // MMS not yet supported - need image hosting
+    if (selectedImage) {
+      toast({
+        variant: "destructive",
+        title: "MMS not available",
+        description: "Image messaging will be available soon. For now, please send images via email."
+      });
+      return;
+    }
+
     sendSmsMutation.mutate({
       contactId: selectedContactId,
-      message: newMessage.trim(),
-      imageUrl: selectedImage || undefined
+      message: newMessage.trim()
     });
   };
 
@@ -262,8 +272,9 @@ export default function Inbox() {
         title: "Upload failed",
         description: "Failed to process image. Please try again."
       });
-    } finally {
+      // Clear loading state on error
       setImageUploadLoading(false);
+    } finally {
       // Reset the input so the same file can be selected again
       e.target.value = '';
     }

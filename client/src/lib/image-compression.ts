@@ -121,22 +121,27 @@ function compressImage(
   height: number,
   quality: number
 ): Promise<string> {
-  return new Promise((resolve) => {
-    const canvas = document.createElement('canvas');
-    canvas.width = width;
-    canvas.height = height;
-    
-    const ctx = canvas.getContext('2d');
-    if (!ctx) {
-      throw new Error('Failed to get canvas context');
+  return new Promise((resolve, reject) => {
+    try {
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        reject(new Error('Failed to get canvas context'));
+        return;
+      }
+      
+      // Draw image on canvas
+      ctx.drawImage(image, 0, 0, width, height);
+      
+      // Convert to JPEG with specified quality
+      const dataUrl = canvas.toDataURL('image/jpeg', quality);
+      resolve(dataUrl);
+    } catch (error) {
+      reject(error);
     }
-    
-    // Draw image on canvas
-    ctx.drawImage(image, 0, 0, width, height);
-    
-    // Convert to JPEG with specified quality
-    const dataUrl = canvas.toDataURL('image/jpeg', quality);
-    resolve(dataUrl);
   });
 }
 
