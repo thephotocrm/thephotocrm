@@ -232,44 +232,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
         log(`📸 MMS received with media: ${twilioMediaUrl}`);
         
         try {
-          // Download image from Twilio with authentication
-          const twilioAccountSid = process.env.TWILIO_ACCOUNT_SID?.trim();
-          const twilioAuthToken = process.env.TWILIO_AUTH_TOKEN?.trim();
+          log(`🔐 Downloading MMS image from Twilio...`);
           
-          if (!twilioAccountSid || !twilioAuthToken) {
-            log('❌ Twilio credentials not configured, cannot download MMS image');
+          // Use unauthenticated fetch - Twilio media URLs are temporarily accessible without auth
+          const response = await fetch(twilioMediaUrl);
+          
+          log(`📡 Twilio download response: ${response.status} ${response.statusText}`);
+          
+          if (response.ok) {
+            const arrayBuffer = await response.arrayBuffer();
+            const buffer = Buffer.from(arrayBuffer);
+            
+            // Get content type from response
+            const contentType = response.headers.get('content-type') || 'image/jpeg';
+            log(`📦 Downloaded ${buffer.length} bytes, type: ${contentType}`);
+            
+            // Convert buffer to base64 data URI for Cloudinary
+            const base64Image = `data:${contentType};base64,${buffer.toString('base64')}`;
+            
+            // Upload to Cloudinary for public access
+            const cloudinaryUrl = await uploadImageToCloudinary(base64Image, 'inbound-mms');
+            mediaUrl = cloudinaryUrl;
+            log(`✅ Uploaded inbound MMS to Cloudinary: ${cloudinaryUrl}`);
           } else {
-            log(`🔐 Attempting to download MMS from Twilio...`);
-            const authString = Buffer.from(`${twilioAccountSid}:${twilioAuthToken}`).toString('base64');
-            
-            const response = await fetch(twilioMediaUrl, {
-              headers: {
-                'Authorization': `Basic ${authString}`
-              }
-            });
-            
-            log(`📡 Twilio download response: ${response.status} ${response.statusText}`);
-            
-            if (response.ok) {
-              const arrayBuffer = await response.arrayBuffer();
-              const buffer = Buffer.from(arrayBuffer);
-              
-              // Get content type from response
-              const contentType = response.headers.get('content-type') || 'image/jpeg';
-              log(`📦 Downloaded ${buffer.length} bytes, type: ${contentType}`);
-              
-              // Convert buffer to base64 data URI for Cloudinary
-              const base64Image = `data:${contentType};base64,${buffer.toString('base64')}`;
-              
-              // Upload to Cloudinary for public access
-              const cloudinaryUrl = await uploadImageToCloudinary(base64Image, 'inbound-mms');
-              mediaUrl = cloudinaryUrl;
-              log(`✅ Uploaded inbound MMS to Cloudinary: ${cloudinaryUrl}`);
-            } else {
-              const errorText = await response.text();
-              log(`❌ Failed to download from Twilio: ${response.status} ${response.statusText}`);
-              log(`❌ Error details: ${errorText}`);
-            }
+            const errorText = await response.text();
+            log(`❌ Failed to download from Twilio: ${response.status} ${response.statusText}`);
+            log(`❌ Error details: ${errorText}`);
           }
         } catch (error: any) {
           log(`❌ Error processing inbound MMS: ${error.message}`);
