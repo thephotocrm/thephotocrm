@@ -36,6 +36,21 @@ import crypto from "crypto";
 import multer from "multer";
 import fs from "fs";
 
+/**
+ * Get the correct protocol for OAuth redirects
+ * Uses X-Forwarded-Proto when available (Replit sets this to https),
+ * falls back to req.protocol for local development
+ */
+function getOAuthProtocol(req: express.Request): string {
+  // Check X-Forwarded-Proto header (set by proxies like Replit)
+  const forwardedProto = req.get('X-Forwarded-Proto');
+  if (forwardedProto === 'https' || forwardedProto === 'http') {
+    return forwardedProto;
+  }
+  
+  // Fall back to req.protocol for local development
+  return req.protocol || 'https';
+}
 
 /**
  * Process Gmail push notification asynchronously
@@ -871,8 +886,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         signed: true // Use signed cookies for tampering protection
       });
       
-      // Always use HTTPS for OAuth redirects (Replit serves externally via HTTPS)
-      const redirectUri = `https://${req.get('host')}/api/auth/google/callback`;
+      // Use environment-aware protocol (HTTPS on Replit, HTTP on localhost)
+      const protocol = getOAuthProtocol(req);
+      const redirectUri = `${protocol}://${req.get('host')}/api/auth/google/callback`;
       
       const authUrl = await getGoogleAuthUrl(redirectUri, state);
       res.redirect(authUrl);
@@ -910,8 +926,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.clearCookie('oauth_state');
 
       const { exchangeCodeForClaims } = await import('./services/googleAuth');
-      // Always use HTTPS for OAuth redirects (Replit serves externally via HTTPS)
-      const redirectUri = `https://${req.get('host')}/api/auth/google/callback`;
+      // Use environment-aware protocol (HTTPS on Replit, HTTP on localhost)
+      const protocol = getOAuthProtocol(req);
+      const redirectUri = `${protocol}://${req.get('host')}/api/auth/google/callback`;
       
       // Exchange code for user claims
       const claims = await exchangeCodeForClaims(code, redirectUri);
