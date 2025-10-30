@@ -231,7 +231,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Media processing happens asynchronously in background
       res.status(200).type('text/xml').send('<?xml version="1.0" encoding="UTF-8"?><Response></Response>');
       
-      // Process media attachments in background (doesn't block webhook response)
+      // STEP 1: Create SMS logs FIRST for all contacts (so they exist before we try to update them)
+      for (const contact of contacts) {
+        log(`Processing contact ${contact.firstName} ${contact.lastName} for photographer ${contact.photographerId}`);
+        
+        const photographer = await storage.getPhotographer(contact.photographerId);
+        
+        if (!photographer) {
+          log(`No photographer found for contact: ${contact.id}`);
+          continue;
+        }
+
+        const contactWithProjects = await storage.getContact(contact.id);
+        const latestProject = contactWithProjects?.projects?.[0];
+
+        // Create SMS log for this contact (media URL will be updated async)
+        await storage.createSmsLog({
+          clientId: contact.id,
+          projectId: latestProject?.id || null,
+          status: 'received',
+          direction: 'INBOUND',
+          fromPhone: from,
+          toPhone: to,
+          messageBody: messageBody,
+          imageUrl: null, // Will be updated asynchronously after media download
+          isForwarded: false,
+          providerId: messageSid,
+          sentAt: new Date()
+        });
+
+        log(`Created SMS log for contact ${contact.id}`);
+
+        // Log SMS to project activity if contact has a project
+        if (latestProject) {
+          const messagePreview = messageBody.length > 100 ? messageBody.substring(0, 100) + '...' : messageBody;
+          await storage.addProjectActivityLog({
+            projectId: latestProject.id,
+            activityType: 'SMS_RECEIVED',
+            action: 'RECEIVED',
+            title: `SMS received from ${contact.firstName} ${contact.lastName}`,
+            description: messagePreview,
+            relatedId: messageSid,
+            relatedType: 'SMS_LOG'
+          });
+        }
+      }
+      
+      // STEP 2: Process media attachments in background (doesn't block webhook response)
       if (mediaCount > 0) {
         // Process all media files (MediaUrl0, MediaUrl1, etc.)
         const mediaUrls: string[] = [];
@@ -319,55 +365,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
             log(`❌ Error updating SMS log media: ${error.message}`);
           }
         }
-      }
-
-      // Process each contact (multi-tenant: same phone number can belong to multiple photographers)
-      for (const contact of contacts) {
-        log(`Processing contact ${contact.firstName} ${contact.lastName} for photographer ${contact.photographerId}`);
-        
-        const photographer = await storage.getPhotographer(contact.photographerId);
-        
-        if (!photographer) {
-          log(`No photographer found for contact: ${contact.id}`);
-          continue;
-        }
-
-        const contactWithProjects = await storage.getContact(contact.id);
-        const latestProject = contactWithProjects?.projects?.[0];
-
-        // Create SMS log for this contact (media URL will be updated async)
-        await storage.createSmsLog({
-          clientId: contact.id,
-          projectId: latestProject?.id || null,
-          status: 'received',
-          direction: 'INBOUND',
-          fromPhone: from,
-          toPhone: to,
-          messageBody: messageBody,
-          imageUrl: null, // Will be updated asynchronously after media download
-          isForwarded: false,
-          providerId: messageSid,
-          sentAt: new Date()
-        });
-
-        log(`Created SMS log for contact ${contact.id}`);
-
-        // Log SMS to project activity if contact has a project
-        if (latestProject) {
-          const messagePreview = messageBody.length > 100 ? messageBody.substring(0, 100) + '...' : messageBody;
-          await storage.addProjectActivityLog({
-            projectId: latestProject.id,
-            activityType: 'SMS_RECEIVED',
-            action: 'RECEIVED',
-            title: `SMS received from ${contact.firstName} ${contact.lastName}`,
-            description: messagePreview,
-            relatedId: messageSid,
-            relatedType: 'SMS_LOG'
-          });
-        }
-
-        // Automatic forwarding disabled - messages only logged to inbox
-        // (Photographer can view messages in the Inbox page)
       }
     } catch (error: any) {
       console.error('❌ TWILIO WEBHOOK ERROR:', error);
