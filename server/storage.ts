@@ -3255,7 +3255,8 @@ export class DatabaseStorage implements IStorage {
         direction: sms.direction,
         timestamp: sms.createdAt,
         isInbound: sms.direction === 'INBOUND',
-        status: sms.status // Include delivery status
+        status: sms.status, // Include delivery status
+        imageUrl: sms.imageUrl // Include MMS image URL
       })),
       ...emailEvents.map(email => ({
         type: 'EMAIL',
