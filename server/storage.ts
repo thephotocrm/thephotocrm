@@ -321,6 +321,8 @@ export interface IStorage {
   // SMS Logging
   createSmsLog(smsLog: InsertSmsLog): Promise<SmsLog>;
   updateSmsLogStatus(providerId: string, status: string): Promise<void>;
+  getSmsLogByProviderId(providerId: string, clientId: string): Promise<SmsLog | undefined>;
+  updateSmsLogImageUrl(id: string, imageUrl: string): Promise<void>;
   
   // Email History
   createEmailHistory(emailHistory: InsertEmailHistory): Promise<EmailHistory>;
@@ -2947,6 +2949,23 @@ export class DatabaseStorage implements IStorage {
         deliveredAt: status === 'delivered' ? new Date() : undefined
       })
       .where(eq(smsLogs.providerId, providerId));
+  }
+
+  async getSmsLogByProviderId(providerId: string, clientId: string): Promise<SmsLog | undefined> {
+    const [log] = await db.select()
+      .from(smsLogs)
+      .where(and(
+        eq(smsLogs.providerId, providerId),
+        eq(smsLogs.clientId, clientId)
+      ))
+      .limit(1);
+    return log;
+  }
+
+  async updateSmsLogImageUrl(id: string, imageUrl: string): Promise<void> {
+    await db.update(smsLogs)
+      .set({ imageUrl })
+      .where(eq(smsLogs.id, id));
   }
 
   // Email History

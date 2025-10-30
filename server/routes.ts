@@ -192,7 +192,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/webhooks/twilio/inbound", async (req, res) => {
     console.log('🎯 TWILIO WEBHOOK - Request received at ' + new Date().toISOString());
     console.log('Request body:', req.body);
-    console.log('Request headers:', req.headers);
     log('🎯 TWILIO WEBHOOK - Received at ' + new Date().toISOString());
     log('Request body: ' + JSON.stringify(req.body, null, 2));
     
@@ -217,55 +216,96 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (contacts.length === 0) {
         log(`No contacts found for phone number: ${from}`);
         // Return TwiML response to acknowledge receipt
-        return res.status(200).send('<?xml version="1.0" encoding="UTF-8"?><Response></Response>');
+        return res.status(200).type('text/xml').send('<?xml version="1.0" encoding="UTF-8"?><Response></Response>');
       }
 
       log(`Found ${contacts.length} contact(s) with phone ${normalizedPhone}`);
 
-      // Handle media attachments (MMS)
+      const messageBody = text || '';
       const mediaCount = parseInt(numMedia || '0', 10);
-      let mediaUrl: string | null = null;
       
-      // Download from Twilio and re-upload to Cloudinary for public access
-      if (mediaCount > 0 && req.body.MediaUrl0) {
-        const twilioMediaUrl = req.body.MediaUrl0;
-        log(`📸 MMS received with media: ${twilioMediaUrl}`);
+      // CRITICAL: Respond to Twilio immediately to prevent timeouts
+      // Media processing happens asynchronously in background
+      res.status(200).type('text/xml').send('<?xml version="1.0" encoding="UTF-8"?><Response></Response>');
+      
+      // Process media attachments in background (doesn't block webhook response)
+      if (mediaCount > 0) {
+        // Process all media files (MediaUrl0, MediaUrl1, etc.)
+        const mediaUrls: string[] = [];
         
-        try {
-          log(`🔐 Downloading MMS image from Twilio...`);
+        for (let i = 0; i < mediaCount; i++) {
+          const twilioMediaUrl = req.body[`MediaUrl${i}`];
+          if (!twilioMediaUrl) continue;
           
-          // Use unauthenticated fetch - Twilio media URLs are temporarily accessible without auth
-          const response = await fetch(twilioMediaUrl);
+          log(`📸 MMS received with media ${i + 1}/${mediaCount}: ${twilioMediaUrl}`);
           
-          log(`📡 Twilio download response: ${response.status} ${response.statusText}`);
-          
-          if (response.ok) {
-            const arrayBuffer = await response.arrayBuffer();
-            const buffer = Buffer.from(arrayBuffer);
+          try {
+            log(`🔐 Downloading MMS image from Twilio with Basic Auth...`);
             
-            // Get content type from response
-            const contentType = response.headers.get('content-type') || 'image/jpeg';
-            log(`📦 Downloaded ${buffer.length} bytes, type: ${contentType}`);
+            // CRITICAL FIX: Add Basic Auth with Account SID and Auth Token
+            const accountSid = process.env.TWILIO_ACCOUNT_SID;
+            const authToken = process.env.TWILIO_AUTH_TOKEN;
             
-            // Convert buffer to base64 data URI for Cloudinary
-            const base64Image = `data:${contentType};base64,${buffer.toString('base64')}`;
+            if (!accountSid || !authToken) {
+              log(`❌ Missing Twilio credentials for media download`);
+              continue;
+            }
             
-            // Upload to Cloudinary for public access
-            const cloudinaryUrl = await uploadImageToCloudinary(base64Image, 'inbound-mms');
-            mediaUrl = cloudinaryUrl;
-            log(`✅ Uploaded inbound MMS to Cloudinary: ${cloudinaryUrl}`);
-          } else {
-            const errorText = await response.text();
-            log(`❌ Failed to download from Twilio: ${response.status} ${response.statusText}`);
-            log(`❌ Error details: ${errorText}`);
+            const authHeader = 'Basic ' + Buffer.from(`${accountSid}:${authToken}`).toString('base64');
+            
+            const response = await fetch(twilioMediaUrl, {
+              headers: {
+                'Authorization': authHeader
+              }
+            });
+            
+            log(`📡 Twilio download response: ${response.status} ${response.statusText}`);
+            
+            if (response.ok) {
+              const arrayBuffer = await response.arrayBuffer();
+              const buffer = Buffer.from(arrayBuffer);
+              
+              // Get content type from response
+              const contentType = response.headers.get('content-type') || 'image/jpeg';
+              log(`📦 Downloaded ${buffer.length} bytes, type: ${contentType}`);
+              
+              // Convert buffer to base64 data URI for Cloudinary
+              const base64Image = `data:${contentType};base64,${buffer.toString('base64')}`;
+              
+              // Upload to Cloudinary for public access
+              const cloudinaryUrl = await uploadImageToCloudinary(base64Image, 'inbound-mms');
+              mediaUrls.push(cloudinaryUrl);
+              log(`✅ Uploaded inbound MMS ${i + 1} to Cloudinary: ${cloudinaryUrl}`);
+            } else {
+              const errorText = await response.text();
+              log(`❌ Failed to download from Twilio: ${response.status} ${response.statusText}`);
+              log(`❌ Error details: ${errorText}`);
+            }
+          } catch (error: any) {
+            log(`❌ Error processing inbound MMS ${i + 1}: ${error.message}`);
+            log(`❌ Stack: ${error.stack}`);
           }
-        } catch (error: any) {
-          log(`❌ Error processing inbound MMS: ${error.message}`);
-          log(`❌ Stack: ${error.stack}`);
+        }
+        
+        // Update SMS logs with media URLs after async processing
+        const primaryMediaUrl = mediaUrls.length > 0 ? mediaUrls[0] : null;
+        
+        for (const contact of contacts) {
+          try {
+            log(`Updating SMS log for contact ${contact.id} with media URL`);
+            
+            // Find the SMS log we just created for this message
+            const smsLog = await storage.getSmsLogByProviderId(messageSid, contact.id);
+            
+            if (smsLog && primaryMediaUrl) {
+              await storage.updateSmsLogImageUrl(smsLog.id, primaryMediaUrl);
+              log(`✅ Updated SMS log ${smsLog.id} with image URL: ${primaryMediaUrl}`);
+            }
+          } catch (error: any) {
+            log(`❌ Error updating SMS log media: ${error.message}`);
+          }
         }
       }
-      
-      const messageBody = text || '';
 
       // Process each contact (multi-tenant: same phone number can belong to multiple photographers)
       for (const contact of contacts) {
@@ -281,7 +321,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const contactWithProjects = await storage.getContact(contact.id);
         const latestProject = contactWithProjects?.projects?.[0];
 
-        // Create SMS log for this contact
+        // Create SMS log for this contact (media URL will be updated async)
         await storage.createSmsLog({
           clientId: contact.id,
           projectId: latestProject?.id || null,
@@ -290,7 +330,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           fromPhone: from,
           toPhone: to,
           messageBody: messageBody,
-          imageUrl: mediaUrl,
+          imageUrl: null, // Will be updated asynchronously after media download
           isForwarded: false,
           providerId: messageSid,
           sentAt: new Date()
@@ -315,15 +355,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Automatic forwarding disabled - messages only logged to inbox
         // (Photographer can view messages in the Inbox page)
       }
-
-      // Return TwiML response to acknowledge receipt
-      return res.status(200).type('text/xml').send('<?xml version="1.0" encoding="UTF-8"?><Response></Response>');
     } catch (error: any) {
       console.error('❌ TWILIO WEBHOOK ERROR:', error);
       console.error('Error stack:', error.stack);
       console.error('Error message:', error.message);
-      // Always return 200 with TwiML to prevent retry storms
-      return res.status(200).type('text/xml').send('<?xml version="1.0" encoding="UTF-8"?><Response></Response>');
+      // If we haven't responded yet, return 200 with TwiML to prevent retry storms
+      if (!res.headersSent) {
+        return res.status(200).type('text/xml').send('<?xml version="1.0" encoding="UTF-8"?><Response></Response>');
+      }
     }
   });
 
