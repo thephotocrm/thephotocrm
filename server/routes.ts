@@ -1918,6 +1918,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Archive/Unarchive contact
+  app.patch("/api/contacts/:id/archive", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
+    try {
+      const { archive } = req.body;
+      
+      // Verify contact belongs to this photographer
+      const existingContact = await storage.getContact(req.params.id);
+      if (!existingContact || existingContact.photographerId !== req.user!.photographerId!) {
+        return res.status(404).json({ message: "Contact not found" });
+      }
+      
+      // Update contact status
+      const newStatus = archive ? 'ARCHIVED' : 'ACTIVE';
+      const contact = await storage.updateContact(req.params.id, {
+        status: newStatus
+      });
+      
+      res.json({ 
+        message: archive ? "Contact archived successfully" : "Contact restored successfully",
+        contact
+      });
+    } catch (error) {
+      console.error('Archive contact error:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   app.put("/api/contacts/:id/stage", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       const { stageId } = req.body;

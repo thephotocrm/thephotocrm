@@ -286,8 +286,9 @@ export default function ContactDetail() {
   return (
     <SidebarInset>
         {/* Header */}
-        <header className="bg-card border-b border-border px-6 py-4">
-          <div className="flex items-center justify-between">
+        <header className="bg-card border-b border-border px-4 md:px-6 py-4">
+          {/* Desktop: Row layout */}
+          <div className="hidden md:flex items-center justify-between">
             <SidebarTrigger className="-ml-1" />
             <div className="flex items-center space-x-4">
               <Button 
@@ -320,6 +321,49 @@ export default function ContactDetail() {
               <Button 
                 onClick={() => setShowMessageForm(true)}
                 data-testid="button-send-message"
+              >
+                <MessageSquare className="w-4 h-4 mr-2" />
+                Message Contact
+              </Button>
+            </div>
+          </div>
+
+          {/* Mobile: Column layout */}
+          <div className="md:hidden space-y-3">
+            <div className="flex items-center justify-between">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => setLocation("/contacts")}
+                data-testid="button-back-to-contacts"
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back to Contacts
+              </Button>
+            </div>
+            
+            <div>
+              <h1 className="text-2xl font-semibold">
+                {client.firstName} {client.lastName}
+              </h1>
+              <p className="text-sm text-muted-foreground">Contact Details & History</p>
+            </div>
+            
+            <div className="flex flex-col gap-2">
+              <Button
+                variant="outline"
+                onClick={() => sendLoginLinkMutation.mutate()}
+                disabled={sendLoginLinkMutation.isPending || !client.email}
+                data-testid="button-send-login-link"
+                className="w-full"
+              >
+                <LinkIcon className="w-4 h-4 mr-2" />
+                {sendLoginLinkMutation.isPending ? "Sending..." : "Send Login Link"}
+              </Button>
+              <Button 
+                onClick={() => setShowMessageForm(true)}
+                data-testid="button-send-message"
+                className="w-full"
               >
                 <MessageSquare className="w-4 h-4 mr-2" />
                 Message Contact

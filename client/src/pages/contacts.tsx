@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Search, Mail, Phone, Calendar, Trash2, Eye, MoreHorizontal } from "lucide-react";
+import { Plus, Search, Mail, Phone, Calendar, Trash2, Eye, MoreHorizontal, Archive, ArchiveRestore } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import {
   Dialog,
@@ -33,9 +33,245 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import { type ContactWithProjects } from "@shared/schema";
 import { getAvatarColor, getInitials } from "@/lib/avatar-utils";
+
+interface ContactsListProps {
+  clients: ContactWithProjects[];
+  onDelete: (client: ContactWithProjects) => void;
+  onArchive: (clientId: string) => void;
+  setLocation: (path: string) => void;
+  isArchived: boolean;
+}
+
+function ContactsList({ clients, onDelete, onArchive, setLocation, isArchived }: ContactsListProps) {
+  return (
+    <div>
+      {/* Desktop Table View */}
+      <div className="hidden md:block">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+              <TableHead>Contact</TableHead>
+              <TableHead>Active Projects</TableHead>
+              <TableHead>Latest Project</TableHead>
+              <TableHead>Created</TableHead>
+              <TableHead>Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {clients.map((client: ContactWithProjects) => (
+              <TableRow key={client.id} data-testid={`client-row-${client.id}`}>
+                <TableCell className="font-medium">
+                  {client.firstName} {client.lastName}
+                </TableCell>
+                <TableCell>
+                  <div className="space-y-1">
+                    {client.email && (
+                      <div className="flex items-center text-sm">
+                        <Mail className="w-3 h-3 mr-1" />
+                        {client.email}
+                      </div>
+                    )}
+                    {client.phone && (
+                      <div className="flex items-center text-sm">
+                        <Phone className="w-3 h-3 mr-1" />
+                        {client.phone}
+                      </div>
+                    )}
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <span className="text-sm font-medium">
+                    {client.projects?.length || 0} {(client.projects?.length || 0) === 1 ? 'project' : 'projects'}
+                  </span>
+                </TableCell>
+                <TableCell>
+                  {client.projects && client.projects.length > 0 ? (
+                    <div className="space-y-1">
+                      <div className="text-sm font-medium">
+                        {client.projects[0].projectType}
+                      </div>
+                      {client.projects[0].eventDate && (
+                        <div className="text-xs text-muted-foreground flex items-center">
+                          <Calendar className="w-3 h-3 mr-1" />
+                          {new Date(client.projects[0].eventDate).toLocaleDateString()}
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <span className="text-muted-foreground">No projects</span>
+                  )}
+                </TableCell>
+                <TableCell>
+                  {client.createdAt ? new Date(client.createdAt).toLocaleDateString() : 'N/A'}
+                </TableCell>
+                <TableCell>
+                  <div className="flex gap-2">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => setLocation(`/contacts/${client.id}`)}
+                      data-testid={`button-view-contact-${client.id}`}
+                    >
+                      View
+                    </Button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="outline" size="sm" data-testid={`button-contact-actions-${client.id}`}>
+                          <MoreHorizontal className="w-4 h-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => onArchive(client.id)} data-testid={`button-archive-${client.id}`}>
+                          {isArchived ? (
+                            <>
+                              <ArchiveRestore className="w-4 h-4 mr-2" />
+                              Restore Contact
+                            </>
+                          ) : (
+                            <>
+                              <Archive className="w-4 h-4 mr-2" />
+                              Archive Contact
+                            </>
+                          )}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
+                          onClick={() => onDelete(client)} 
+                          className="text-destructive"
+                          data-testid={`button-delete-${client.id}`}
+                        >
+                          <Trash2 className="w-4 h-4 mr-2" />
+                          Delete Contact
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+      
+      {/* Mobile Card View */}
+      <div className="md:hidden space-y-4">
+        {clients.map((client: ContactWithProjects) => {
+          const clientName = `${client.firstName} ${client.lastName}`;
+          
+          return (
+            <div key={client.id} className="border dark:border-border rounded-lg p-4 space-y-3 hover:shadow-md dark:hover:shadow-lg transition-shadow duration-200 bg-gradient-to-br from-white to-gray-50/50 dark:from-slate-900 dark:to-slate-800/50" data-testid={`client-card-${client.id}`}>
+              {/* Contact Header with Avatar */}
+              <div className="flex items-start justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold text-white ${getAvatarColor(client.id)}`}>
+                    {getInitials(client.firstName, client.lastName)}
+                  </div>
+                  <div>
+                    <h3 className="font-medium text-lg">
+                      {client.firstName} {client.lastName}
+                    </h3>
+                    {client.projects && client.projects.length > 0 && (
+                      <div className="text-xs text-muted-foreground">
+                        Latest: {client.projects[0].projectType}
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setLocation(`/contacts/${client.id}`)}
+                    data-testid={`button-view-contact-${client.id}`}
+                    aria-label={`View ${clientName} details`}
+                  >
+                    <Eye className="w-4 h-4" />
+                  </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="sm" data-testid={`button-client-actions-${client.id}`} aria-label={`More actions for ${clientName}`}>
+                        <MoreHorizontal className="w-4 h-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => setLocation(`/contacts/${client.id}`)}>
+                        <Eye className="w-4 h-4 mr-2" />
+                        View Details
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => onArchive(client.id)} data-testid={`button-archive-${client.id}`}>
+                        {isArchived ? (
+                          <>
+                            <ArchiveRestore className="w-4 h-4 mr-2" />
+                            Restore Contact
+                          </>
+                        ) : (
+                          <>
+                            <Archive className="w-4 h-4 mr-2" />
+                            Archive Contact
+                          </>
+                        )}
+                      </DropdownMenuItem>
+                      <DropdownMenuItem 
+                        onClick={() => onDelete(client)} 
+                        className="text-destructive"
+                        data-testid={`button-delete-${client.id}`}
+                      >
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        Delete Contact
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              </div>
+              
+              {/* Contact Info */}
+              <div className="space-y-2">
+                {client.email && (
+                  <div className="flex items-center text-sm text-muted-foreground">
+                    <Mail className="w-4 h-4 mr-2" />
+                    {client.email}
+                  </div>
+                )}
+                {client.phone && (
+                  <div className="flex items-center text-sm text-muted-foreground">
+                    <Phone className="w-4 h-4 mr-2" />
+                    {client.phone}
+                  </div>
+                )}
+              </div>
+              
+              {/* Project Info with Visual Indicators */}
+              <div className="flex justify-between items-center pt-2 border-t">
+                <div className="flex items-center space-x-2">
+                  <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                    (client.projects?.length || 0) > 0 
+                      ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300' 
+                      : 'bg-gray-100 text-gray-600 dark:bg-slate-800 dark:text-slate-300'
+                  }`}>
+                    {client.projects?.length || 0} {(client.projects?.length || 0) === 1 ? 'project' : 'projects'}
+                  </div>
+                  {client.projects && client.projects.length > 0 && client.projects[0].eventDate && (
+                    <div className="text-xs text-muted-foreground flex items-center">
+                      <Calendar className="w-3 h-3 mr-1" />
+                      {new Date(client.projects[0].eventDate).toLocaleDateString()}
+                    </div>
+                  )}
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  Added {client.createdAt ? new Date(client.createdAt).toLocaleDateString() : 'N/A'}
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
 
 export default function Contacts() {
   const { user, loading } = useAuth();
@@ -53,6 +289,7 @@ export default function Contacts() {
   const [searchTerm, setSearchTerm] = useState("");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [clientToDelete, setClientToDelete] = useState<ContactWithProjects | null>(null);
+  const [activeTab, setActiveTab] = useState<"active" | "archived">("active");
 
   // All hooks must be called before any early returns
   const { data: clients, isLoading } = useQuery<ContactWithProjects[]>({
@@ -114,6 +351,28 @@ export default function Contacts() {
     }
   });
 
+  const archiveClientMutation = useMutation({
+    mutationFn: async ({ clientId, archive }: { clientId: string; archive: boolean }) => {
+      await apiRequest("PATCH", `/api/contacts/${clientId}/archive`, { archive });
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/contacts"] });
+      toast({
+        title: variables.archive ? "Contact archived" : "Contact restored",
+        description: variables.archive 
+          ? "Contact has been moved to the archived list." 
+          : "Contact has been restored to the active list.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to update contact status. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
   const resetForm = () => {
     setFirstName("");
     setLastName("");
@@ -147,10 +406,20 @@ export default function Contacts() {
     }
   };
 
-  const filteredClients = clients?.filter((client: ContactWithProjects) =>
+  // Split clients into active and archived
+  const activeClients = clients?.filter((client: ContactWithProjects) => 
+    client.status === 'ACTIVE' || !client.status
+  ) || [];
+  
+  const archivedClients = clients?.filter((client: ContactWithProjects) => 
+    client.status === 'ARCHIVED'
+  ) || [];
+
+  // Apply search filter based on active tab
+  const filteredClients = (activeTab === 'active' ? activeClients : archivedClients).filter((client: ContactWithProjects) =>
     `${client.firstName} ${client.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
     client.email?.toLowerCase().includes(searchTerm.toLowerCase())
-  ) || [];
+  );
 
   return (
     <div>
@@ -312,207 +581,63 @@ export default function Contacts() {
             </div>
           </div>
 
-          {/* Clients Table */}
+          {/* Clients Table with Tabs */}
           <Card>
-            <CardHeader>
-              <CardTitle>All Clients ({filteredClients.length})</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {isLoading ? (
-                <div className="flex items-center justify-center py-8">
-                  <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
+            <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "active" | "archived")}>
+              <CardHeader>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                  <CardTitle>Contacts</CardTitle>
+                  <TabsList>
+                    <TabsTrigger value="active" data-testid="tab-active-contacts">
+                      Active ({activeClients.length})
+                    </TabsTrigger>
+                    <TabsTrigger value="archived" data-testid="tab-archived-contacts">
+                      Archived ({archivedClients.length})
+                    </TabsTrigger>
+                  </TabsList>
                 </div>
-              ) : filteredClients.length === 0 ? (
-                <div className="text-center py-8">
-                  <p className="text-muted-foreground">No clients found.</p>
-                </div>
-              ) : (
-                <div>
-                {/* Desktop Table View */}
-                <div className="hidden md:block">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Name</TableHead>
-                        <TableHead>Contact</TableHead>
-                        <TableHead>Active Projects</TableHead>
-                        <TableHead>Latest Project</TableHead>
-                        <TableHead>Created</TableHead>
-                        <TableHead>Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {filteredClients.map((client: ContactWithProjects) => (
-                        <TableRow key={client.id} data-testid={`client-row-${client.id}`}>
-                          <TableCell className="font-medium">
-                            {client.firstName} {client.lastName}
-                          </TableCell>
-                          <TableCell>
-                            <div className="space-y-1">
-                              {client.email && (
-                                <div className="flex items-center text-sm">
-                                  <Mail className="w-3 h-3 mr-1" />
-                                  {client.email}
-                                </div>
-                              )}
-                              {client.phone && (
-                                <div className="flex items-center text-sm">
-                                  <Phone className="w-3 h-3 mr-1" />
-                                  {client.phone}
-                                </div>
-                              )}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <span className="text-sm font-medium">
-                              {client.projects?.length || 0} {(client.projects?.length || 0) === 1 ? 'project' : 'projects'}
-                            </span>
-                          </TableCell>
-                          <TableCell>
-                            {client.projects && client.projects.length > 0 ? (
-                              <div className="space-y-1">
-                                <div className="text-sm font-medium">
-                                  {client.projects[0].projectType}
-                                </div>
-                                {client.projects[0].eventDate && (
-                                  <div className="text-xs text-muted-foreground flex items-center">
-                                    <Calendar className="w-3 h-3 mr-1" />
-                                    {new Date(client.projects[0].eventDate).toLocaleDateString()}
-                                  </div>
-                                )}
-                              </div>
-                            ) : (
-                              <span className="text-muted-foreground">No projects</span>
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            {client.createdAt ? new Date(client.createdAt).toLocaleDateString() : 'N/A'}
-                          </TableCell>
-                          <TableCell>
-                          <div className="flex gap-2">
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
-                              onClick={() => setLocation(`/contacts/${client.id}`)}
-                              data-testid={`button-view-contact-${client.id}`}
-                            >
-                              View
-                            </Button>
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
-                              onClick={() => handleDeleteClick(client)}
-                              className="text-destructive hover:text-destructive"
-                              data-testid={`button-delete-client-${client.id}`}
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-                
-                {/* Mobile Card View */}
-                <div className="md:hidden space-y-4">
-                  {filteredClients.map((client: ContactWithProjects) => {
-                    const clientName = `${client.firstName} ${client.lastName}`;
-                    
-                    return (
-                    <div key={client.id} className="border dark:border-border rounded-lg p-4 space-y-3 hover:shadow-md dark:hover:shadow-lg transition-shadow duration-200 bg-gradient-to-br from-white to-gray-50/50 dark:from-slate-900 dark:to-slate-800/50" data-testid={`client-card-${client.id}`}>
-                      {/* Contact Header with Avatar */}
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-center space-x-3">
-                          <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold text-white ${getAvatarColor(client.id)}`}>
-                            {getInitials(client.firstName, client.lastName)}
-                          </div>
-                          <div>
-                            <h3 className="font-medium text-lg">
-                              {client.firstName} {client.lastName}
-                            </h3>
-                            {client.projects && client.projects.length > 0 && (
-                              <div className="text-xs text-muted-foreground">
-                                Latest: {client.projects[0].projectType}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                        <div className="flex gap-2">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setLocation(`/contacts/${client.id}`)}
-                            data-testid={`button-view-contact-${client.id}`}
-                            aria-label={`View ${clientName} details`}
-                          >
-                            <Eye className="w-4 h-4" />
-                          </Button>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="sm" data-testid={`button-client-actions-${client.id}`} aria-label={`More actions for ${clientName}`}>
-                                <MoreHorizontal className="w-4 h-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={() => setLocation(`/contacts/${client.id}`)}>
-                                <Eye className="w-4 h-4 mr-2" />
-                                View Details
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => handleDeleteClick(client)}>
-                                <Trash2 className="w-4 h-4 mr-2" />
-                                Delete Contact
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </div>
-                      </div>
-                      
-                      {/* Contact Info */}
-                      <div className="space-y-2">
-                        {client.email && (
-                          <div className="flex items-center text-sm text-muted-foreground">
-                            <Mail className="w-4 h-4 mr-2" />
-                            {client.email}
-                          </div>
-                        )}
-                        {client.phone && (
-                          <div className="flex items-center text-sm text-muted-foreground">
-                            <Phone className="w-4 h-4 mr-2" />
-                            {client.phone}
-                          </div>
-                        )}
-                      </div>
-                      
-                      {/* Project Info with Visual Indicators */}
-                      <div className="flex justify-between items-center pt-2 border-t">
-                        <div className="flex items-center space-x-2">
-                          <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                            (client.projects?.length || 0) > 0 
-                              ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300' 
-                              : 'bg-gray-100 text-gray-600 dark:bg-slate-800 dark:text-slate-300'
-                          }`}>
-                            {client.projects?.length || 0} {(client.projects?.length || 0) === 1 ? 'project' : 'projects'}
-                          </div>
-                          {client.projects && client.projects.length > 0 && client.projects[0].eventDate && (
-                            <div className="text-xs text-muted-foreground flex items-center">
-                              <Calendar className="w-3 h-3 mr-1" />
-                              {new Date(client.projects[0].eventDate).toLocaleDateString()}
-                            </div>
-                          )}
-                        </div>
-                        <div className="text-xs text-muted-foreground">
-                          Added {client.createdAt ? new Date(client.createdAt).toLocaleDateString() : 'N/A'}
-                        </div>
-                      </div>
+              </CardHeader>
+              <CardContent>
+                <TabsContent value="active" className="mt-0">
+                  {isLoading ? (
+                    <div className="flex items-center justify-center py-8">
+                      <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
                     </div>
-                    );
-                  })}
-                </div>
-                </div>
-              )}
-            </CardContent>
+                  ) : filteredClients.length === 0 ? (
+                    <div className="text-center py-8">
+                      <p className="text-muted-foreground">No active contacts found.</p>
+                    </div>
+                  ) : (
+                    <ContactsList 
+                      clients={filteredClients} 
+                      onDelete={handleDeleteClick}
+                      onArchive={(clientId) => archiveClientMutation.mutate({ clientId, archive: true })}
+                      setLocation={setLocation}
+                      isArchived={false}
+                    />
+                  )}
+                </TabsContent>
+                <TabsContent value="archived" className="mt-0">
+                  {isLoading ? (
+                    <div className="flex items-center justify-center py-8">
+                      <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
+                    </div>
+                  ) : filteredClients.length === 0 ? (
+                    <div className="text-center py-8">
+                      <p className="text-muted-foreground">No archived contacts found.</p>
+                    </div>
+                  ) : (
+                    <ContactsList 
+                      clients={filteredClients} 
+                      onDelete={handleDeleteClick}
+                      onArchive={(clientId) => archiveClientMutation.mutate({ clientId, archive: false })}
+                      setLocation={setLocation}
+                      isArchived={true}
+                    />
+                  )}
+                </TabsContent>
+              </CardContent>
+            </Tabs>
           </Card>
         </div>
       
