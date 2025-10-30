@@ -871,9 +871,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         signed: true // Use signed cookies for tampering protection
       });
       
-      // Use request protocol (http/https) instead of hardcoded https
-      const protocol = req.protocol || 'https';
-      const redirectUri = `${protocol}://${req.get('host')}/api/auth/google/callback`;
+      // Always use HTTPS for OAuth redirects (Replit serves externally via HTTPS)
+      const redirectUri = `https://${req.get('host')}/api/auth/google/callback`;
       
       const authUrl = await getGoogleAuthUrl(redirectUri, state);
       res.redirect(authUrl);
@@ -911,8 +910,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.clearCookie('oauth_state');
 
       const { exchangeCodeForClaims } = await import('./services/googleAuth');
-      const protocol = req.protocol || 'https';
-      const redirectUri = `${protocol}://${req.get('host')}/api/auth/google/callback`;
+      // Always use HTTPS for OAuth redirects (Replit serves externally via HTTPS)
+      const redirectUri = `https://${req.get('host')}/api/auth/google/callback`;
       
       // Exchange code for user claims
       const claims = await exchangeCodeForClaims(code, redirectUri);
