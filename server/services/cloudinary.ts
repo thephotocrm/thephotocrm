@@ -5,11 +5,22 @@
 
 import { v2 as cloudinary } from 'cloudinary';
 
-// Configure Cloudinary
+// Configure Cloudinary with environment variables
+const cloudName = process.env.CLOUDINARY_CLOUD_NAME?.trim();
+const apiKey = process.env.CLOUDINARY_API_KEY?.trim();
+const apiSecret = process.env.CLOUDINARY_API_SECRET?.trim();
+
+console.log('🔐 Cloudinary config check:', {
+  hasCloudName: !!cloudName,
+  hasApiKey: !!apiKey,
+  hasApiSecret: !!apiSecret,
+  cloudName: cloudName || 'MISSING'
+});
+
 cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
+  cloud_name: cloudName,
+  api_key: apiKey,
+  api_secret: apiSecret,
   secure: true
 });
 
@@ -27,12 +38,7 @@ export async function uploadImageToCloudinary(
     // Upload to Cloudinary
     const result = await cloudinary.uploader.upload(base64Image, {
       folder,
-      resource_type: 'image',
-      format: 'jpg', // Force JPEG format for consistency
-      transformation: [
-        { quality: 'auto' }, // Automatic quality optimization
-        { fetch_format: 'auto' } // Auto format based on browser support
-      ]
+      resource_type: 'image'
     });
 
     // Return the secure URL
