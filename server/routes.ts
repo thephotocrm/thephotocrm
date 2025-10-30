@@ -12,6 +12,7 @@ import { hashPassword, authenticateUser, generateToken } from "./services/auth";
 import { sendEmail, fetchIncomingGmailMessage } from "./services/email";
 import { sendSms } from "./services/sms";
 import { generateDripCampaign, regenerateEmail } from "./services/openai";
+import { uploadImageToCloudinary } from "./services/cloudinary";
 import { createPaymentIntent, createCheckoutSession, createConnectCheckoutSession, createConnectPaymentIntent, calculatePlatformFee, handleWebhook, stripe } from "./services/stripe";
 import { googleCalendarService, createBookingCalendarEvent } from "./services/calendar";
 import { slotGenerationService } from "./services/slotGeneration";
@@ -225,10 +226,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const mediaCount = parseInt(numMedia || '0', 10);
       let mediaUrl: string | null = null;
       
-      // Extract first media URL if present
+      // Download from Twilio and re-upload to Cloudinary for public access
       if (mediaCount > 0 && req.body.MediaUrl0) {
-        mediaUrl = req.body.MediaUrl0;
-        log(`MMS received with media: ${mediaUrl}`);
+        const twilioMediaUrl = req.body.MediaUrl0;
+        log(`📸 MMS received with media: ${twilioMediaUrl}`);
+        
+        try {
+          // Download image from Twilio with authentication
+          const twilioAccountSid = process.env.TWILIO_ACCOUNT_SID;
+          const twilioAuthToken = process.env.TWILIO_AUTH_TOKEN;
+          
+          if (!twilioAccountSid || !twilioAuthToken) {
+            log('❌ Twilio credentials not configured, cannot download MMS image');
+          } else {
+            const authString = Buffer.from(`${twilioAccountSid}:${twilioAuthToken}`).toString('base64');
+            
+            const response = await fetch(twilioMediaUrl, {
+              headers: {
+                'Authorization': `Basic ${authString}`
+              }
+            });
+            
+            if (response.ok) {
+              const arrayBuffer = await response.arrayBuffer();
+              const buffer = Buffer.from(arrayBuffer);
+              
+              // Get content type from response
+              const contentType = response.headers.get('content-type') || 'image/jpeg';
+              
+              // Convert buffer to base64 data URI for Cloudinary
+              const base64Image = `data:${contentType};base64,${buffer.toString('base64')}`;
+              
+              // Upload to Cloudinary for public access
+              const cloudinaryUrl = await uploadImageToCloudinary(base64Image, 'inbound-mms');
+              mediaUrl = cloudinaryUrl;
+              log(`✅ Uploaded inbound MMS to Cloudinary: ${cloudinaryUrl}`);
+            } else {
+              log(`❌ Failed to download from Twilio: ${response.status} ${response.statusText}`);
+            }
+          }
+        } catch (error: any) {
+          log(`❌ Error processing inbound MMS: ${error.message}`);
+        }
       }
       
       const messageBody = text || '';
