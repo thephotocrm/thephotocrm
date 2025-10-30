@@ -1061,6 +1061,72 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Account Linking Confirmation (when user chooses to link Google to existing password account)
+  app.post("/api/auth/link-google", async (req, res) => {
+    try {
+      const { token, password } = req.body;
+
+      if (!token || !password) {
+        return res.status(400).json({ message: "Token and password are required" });
+      }
+
+      // Validate linking request
+      const linkingRequest = await storage.getLinkingRequest(token);
+      if (!linkingRequest) {
+        return res.status(400).json({ message: "Invalid or expired linking request" });
+      }
+
+      // Get the user
+      const user = await storage.getUser(linkingRequest.userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Verify password
+      const isPasswordValid = await bcrypt.compare(password, user.passwordHash || '');
+      if (!isPasswordValid) {
+        return res.status(401).json({ message: "Invalid password" });
+      }
+
+      // Link Google account
+      await storage.linkGoogleAccount(user.id, linkingRequest.googleId);
+      
+      // Mark linking request as used
+      await storage.markLinkingRequestUsed(token);
+
+      // Generate JWT token
+      const { generateToken } = await import('./services/auth');
+      const authToken = generateToken({
+        userId: user.id,
+        email: user.email,
+        role: user.role,
+        photographerId: user.photographerId || undefined
+      });
+
+      // Set HTTP-only cookie
+      res.cookie('token', authToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+      });
+
+      res.json({ 
+        success: true,
+        message: "Account successfully linked",
+        user: {
+          id: user.id,
+          email: user.email,
+          role: user.role,
+          photographerId: user.photographerId
+        }
+      });
+    } catch (error) {
+      console.error("Account linking error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   // Portal Token Routes (Magic Links for Client Auto-Login)
   app.post("/api/portal-tokens", authenticateToken, async (req, res) => {
     try {

@@ -17,6 +17,7 @@ import Login from "@/pages/login";
 import Register from "@/pages/register";
 import ForgotPassword from "@/pages/forgot-password";
 import ResetPassword from "@/pages/reset-password";
+import LinkGoogle from "@/pages/link-google";
 import Dashboard from "@/pages/dashboard";
 import Contacts from "@/pages/contacts";
 import ContactDetail from "@/pages/contact-detail";
@@ -181,6 +182,7 @@ function Router() {
       <Route path="/register" component={Register} />
       <Route path="/forgot-password" component={ForgotPassword} />
       <Route path="/reset-password" component={ResetPassword} />
+      <Route path="/link-google" component={LinkGoogle} />
       
       {/* Public pages */}
       <Route path="/checkout">
