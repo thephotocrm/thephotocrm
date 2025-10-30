@@ -976,14 +976,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       if (!user) {
         // Try to find by email (for account linking)
-        user = await storage.getUserByEmail(normalizedEmail);
+        const existingUser = await storage.getUserByEmail(normalizedEmail);
         
-        if (user) {
-          // Link Google account to existing user (email already verified)
-          console.log(`🔗 Linking verified Google account to existing user: ${user.email}`);
-          await storage.linkGoogleAccount(user.id, googleId);
+        if (existingUser) {
+          // SCENARIO 2: Existing password user trying to sign in with Google
+          // Security: DO NOT auto-link! Redirect to confirmation page
+          console.log(`🔐 Existing password user detected: ${existingUser.email}`);
+          console.log(`Redirecting to account linking confirmation...`);
+          
+          // Create temporary linking token (expires in 10 minutes)
+          const crypto = await import('crypto');
+          const linkingToken = crypto.randomBytes(32).toString('hex');
+          const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+          
+          // Store linking request with Google claims
+          await storage.createLinkingRequest({
+            token: linkingToken,
+            userId: existingUser.id,
+            googleId,
+            email: normalizedEmail,
+            firstName: claims.first_name,
+            lastName: claims.last_name,
+            profileImageUrl: claims.profile_image_url,
+            expiresAt
+          });
+          
+          // Redirect to account linking confirmation page
+          return res.redirect(`/link-account?token=${linkingToken}`);
         } else {
-          // Create new user and photographer account
+          // SCENARIO 1: New Google user - auto-create account
           console.log(`✨ Creating new photographer account via Google OAuth: ${normalizedEmail}`);
           
           // Extract name from claims
@@ -991,7 +1012,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const lastName = claims.last_name || '';
           const businessName = `${firstName} ${lastName}`.trim() + " Photography";
 
-          // Create photographer first
+          // Create photographer first (with free trial)
           const photographer = await storage.createPhotographer({
             businessName,
             photographerName: `${firstName} ${lastName}`.trim(),
@@ -1010,6 +1031,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
           console.log(`✅ Created photographer (${photographer.id}) and user (${user.id})`);
         }
+      } else {
+        // SCENARIO 3: Existing Google user - just log them in
+        console.log(`✅ Existing Google user logging in: ${user.email}`);
       }
 
       // Generate JWT token (same as email/password login)

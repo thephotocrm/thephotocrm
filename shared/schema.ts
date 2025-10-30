@@ -181,6 +181,25 @@ export const users = pgTable("users", {
   createdAt: timestamp("created_at").defaultNow()
 });
 
+// Account linking requests for Google OAuth
+export const linkingRequests = pgTable("linking_requests", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  token: text("token").notNull().unique(), // Temporary linking token
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  googleId: text("google_id").notNull(), // Google OAuth user ID to link
+  email: text("email").notNull(),
+  firstName: text("first_name"),
+  lastName: text("last_name"),
+  profileImageUrl: text("profile_image_url"),
+  expiresAt: timestamp("expires_at").notNull(),
+  used: boolean("used").default(false),
+  createdAt: timestamp("created_at").defaultNow()
+}, (table) => ({
+  tokenIdx: index("linking_requests_token_idx").on(table.token),
+  userIdIdx: index("linking_requests_user_id_idx").on(table.userId),
+  expiresAtIdx: index("linking_requests_expires_at_idx").on(table.expiresAt)
+}));
+
 export const adminActivityLog = pgTable("admin_activity_log", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   adminUserId: varchar("admin_user_id").notNull().references(() => users.id),
@@ -1313,6 +1332,12 @@ export const insertUserSchema = createInsertSchema(users).omit({
   createdAt: true
 });
 
+export const insertLinkingRequestSchema = createInsertSchema(linkingRequests).omit({
+  id: true,
+  createdAt: true,
+  used: true
+});
+
 export const insertAdminActivityLogSchema = createInsertSchema(adminActivityLog).omit({
   id: true,
   createdAt: true
@@ -1541,6 +1566,8 @@ export type Photographer = typeof photographers.$inferSelect;
 export type InsertPhotographer = z.infer<typeof insertPhotographerSchema>;
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
+export type LinkingRequest = typeof linkingRequests.$inferSelect;
+export type InsertLinkingRequest = z.infer<typeof insertLinkingRequestSchema>;
 export type AdminActivityLog = typeof adminActivityLog.$inferSelect;
 export type InsertAdminActivityLog = z.infer<typeof insertAdminActivityLogSchema>;
 export type Contact = typeof contacts.$inferSelect;

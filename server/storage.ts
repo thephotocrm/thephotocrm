@@ -1,5 +1,5 @@
 import { 
-  photographers, users, contacts, projects, projectParticipants, projectNotes, stages, templates, automations, automationSteps, automationBusinessTriggers,
+  photographers, users, linkingRequests, contacts, projects, projectParticipants, projectNotes, stages, templates, automations, automationSteps, automationBusinessTriggers,
   emailLogs, emailHistory, smsLogs, automationExecutions, photographerLinks, checklistTemplateItems, projectChecklistItems,
   packages, packageItems, addOns, questionnaireTemplates, questionnaireQuestions, projectQuestionnaires,
   availabilitySlots, bookings,
@@ -12,6 +12,7 @@ import {
   smartFiles, smartFilePages, projectSmartFiles,
   adCampaigns, adPaymentMethods, adPerformance, adBillingTransactions,
   type User, type InsertUser, type Photographer, type InsertPhotographer,
+  type LinkingRequest, type InsertLinkingRequest,
   type AdminActivityLog, type InsertAdminActivityLog,
   type Contact, type InsertContact, type Project, type InsertProject, type ProjectNote, type InsertProjectNote, type ProjectParticipant, type InsertProjectParticipant, type ProjectWithClientAndStage, type ContactWithProjects, type Stage, type InsertStage,
   type Template, type InsertTemplate, type Automation, type InsertAutomation,
@@ -53,6 +54,11 @@ export interface IStorage {
   linkGoogleAccount(userId: string, googleId: string): Promise<User>;
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: string, user: Partial<User>): Promise<User>;
+  
+  // Account Linking Requests
+  createLinkingRequest(request: InsertLinkingRequest): Promise<LinkingRequest>;
+  getLinkingRequest(token: string): Promise<LinkingRequest | undefined>;
+  markLinkingRequestUsed(token: string): Promise<void>;
   
   // Photographers
   getAllPhotographers(): Promise<Photographer[]>;
@@ -411,6 +417,30 @@ export class DatabaseStorage implements IStorage {
       .where(eq(users.id, userId))
       .returning();
     return user;
+  }
+
+  async createLinkingRequest(request: InsertLinkingRequest): Promise<LinkingRequest> {
+    const [linkingRequest] = await db.insert(linkingRequests).values(request).returning();
+    return linkingRequest;
+  }
+
+  async getLinkingRequest(token: string): Promise<LinkingRequest | undefined> {
+    const [request] = await db.select()
+      .from(linkingRequests)
+      .where(
+        and(
+          eq(linkingRequests.token, token),
+          eq(linkingRequests.used, false),
+          gte(linkingRequests.expiresAt, new Date())
+        )
+      );
+    return request || undefined;
+  }
+
+  async markLinkingRequestUsed(token: string): Promise<void> {
+    await db.update(linkingRequests)
+      .set({ used: true })
+      .where(eq(linkingRequests.token, token));
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
