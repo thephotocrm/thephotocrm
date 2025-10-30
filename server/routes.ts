@@ -200,7 +200,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Defensive destructuring with fallback to prevent crashes
       const { From: from, To: to, Body: text, NumMedia: numMedia, MessageSid: messageSid } = req.body || {};
       
-      if (!from || !text) {
+      // Check media count to allow MMS-only messages (no text, just image)
+      const mediaCount = parseInt(numMedia || '0', 10);
+      
+      // Reject only if no sender OR (no text AND no media)
+      if (!from || (!text && mediaCount === 0)) {
         log('Invalid Twilio webhook payload: ' + JSON.stringify(req.body));
         // Always return 200 with TwiML to prevent 11200 errors
         return res.status(200).type('text/xml').send('<?xml version="1.0" encoding="UTF-8"?><Response></Response>');
@@ -222,7 +226,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       log(`Found ${contacts.length} contact(s) with phone ${normalizedPhone}`);
 
       const messageBody = text || '';
-      const mediaCount = parseInt(numMedia || '0', 10);
       
       // CRITICAL: Respond to Twilio immediately to prevent timeouts
       // Media processing happens asynchronously in background
