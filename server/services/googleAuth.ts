@@ -58,11 +58,14 @@ export async function exchangeCodeForClaims(
 ): Promise<GoogleUserClaims> {
   const config = await getGoogleOidcConfig();
   
-  const tokens = await client.authorizationCodeGrant(config, {
-    client_id: process.env.GOOGLE_CLIENT_ID!,
-    client_secret: process.env.GOOGLE_CLIENT_SECRET,
-    code,
-    redirect_uri: redirectUri,
+  // openid-client requires URL parameters as full URL objects
+  const callbackUrl = new URL(redirectUri);
+  callbackUrl.searchParams.set('code', code);
+  
+  const tokens = await client.authorizationCodeGrant(config, callbackUrl, {
+    pkce: false,
+    expectedNonce: undefined,
+    expectedState: undefined,
   });
 
   const claims = tokens.claims();
