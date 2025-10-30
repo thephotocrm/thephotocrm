@@ -10235,21 +10235,58 @@ ${photographer.businessName}
         return res.status(400).json({ message: "Contact has no phone number" });
       }
 
+      // Handle image upload to Cloudinary if base64 image provided
+      let finalMediaUrl: string | undefined = undefined;
+      let uploadedToCloudinary = false;
+      
+      if (imageUrl) {
+        if (imageUrl.startsWith('data:image/')) {
+          // Upload base64 image to Cloudinary
+          try {
+            const { uploadImageToCloudinary } = await import('./services/cloudinary');
+            finalMediaUrl = await uploadImageToCloudinary(imageUrl);
+            uploadedToCloudinary = true;
+            console.log('✅ Image uploaded to Cloudinary:', finalMediaUrl);
+          } catch (uploadError) {
+            console.error('❌ Cloudinary upload failed:', uploadError);
+            return res.status(500).json({ 
+              message: "Failed to upload image",
+              error: "Could not process image for sending" 
+            });
+          }
+        } else if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
+          // Already a hosted URL, use as-is
+          finalMediaUrl = imageUrl;
+          console.log('ℹ️ Using pre-hosted media URL:', finalMediaUrl);
+        }
+      }
+
       // Send SMS/MMS
       const result = await sendSms({
         to: contact.phone,
         body: message,
-        mediaUrl: imageUrl || undefined
+        mediaUrl: finalMediaUrl
       });
 
       if (!result.success) {
+        // Clean up Cloudinary upload if send failed
+        if (uploadedToCloudinary && finalMediaUrl) {
+          try {
+            const { deleteImageFromCloudinary } = await import('./services/cloudinary');
+            await deleteImageFromCloudinary(finalMediaUrl);
+            console.log('🧹 Cleaned up orphaned Cloudinary image after send failure');
+          } catch (cleanupError) {
+            console.error('⚠️ Failed to cleanup Cloudinary image:', cleanupError);
+          }
+        }
+        
         return res.status(500).json({ 
           message: "Failed to send SMS",
           error: result.error 
         });
       }
 
-      // Log the SMS
+      // Log the SMS with the actual media URL that was sent
       await storage.createSmsLog({
         clientId: contactId,
         status: 'sent',
@@ -10259,7 +10296,7 @@ ${photographer.businessName}
         fromPhone: process.env.SIMPLETEXTING_PHONE_NUMBER || '',
         toPhone: contact.phone,
         messageBody: message,
-        imageUrl: imageUrl || null
+        imageUrl: finalMediaUrl || null
       });
 
       // Log SMS to project activity if contact has a project

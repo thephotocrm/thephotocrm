@@ -177,6 +177,9 @@ export default function Inbox() {
       }, 300);
     },
     onError: (error: any) => {
+      // Reset loading state so user can retry
+      setImageUploadLoading(false);
+      
       toast({
         variant: "destructive",
         title: "Failed to send",
@@ -215,19 +218,10 @@ export default function Inbox() {
   const handleSendMessage = () => {
     if (!selectedContactId || !newMessage.trim()) return;
 
-    // MMS not yet supported - need image hosting
-    if (selectedImage) {
-      toast({
-        variant: "destructive",
-        title: "MMS not available",
-        description: "Image messaging will be available soon. For now, please send images via email."
-      });
-      return;
-    }
-
     sendSmsMutation.mutate({
       contactId: selectedContactId,
-      message: newMessage.trim()
+      message: newMessage.trim(),
+      imageUrl: selectedImage || undefined
     });
   };
 
