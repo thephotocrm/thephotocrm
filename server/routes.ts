@@ -293,18 +293,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Update SMS logs with media URLs after async processing
         const primaryMediaUrl = mediaUrls.length > 0 ? mediaUrls[0] : null;
         
+        console.error(`🔍 DEBUG: mediaUrls array has ${mediaUrls.length} items`);
+        console.error(`🔍 DEBUG: primaryMediaUrl = ${primaryMediaUrl}`);
+        
         for (const contact of contacts) {
           try {
-            log(`Updating SMS log for contact ${contact.id} with media URL`);
+            console.error(`🔍 DEBUG: Looking for SMS log with messageSid=${messageSid}, contactId=${contact.id}`);
             
             // Find the SMS log we just created for this message
             const smsLog = await storage.getSmsLogByProviderId(messageSid, contact.id);
             
+            console.error(`🔍 DEBUG: Found SMS log? ${smsLog ? 'YES (id: ' + smsLog.id + ')' : 'NO'}`);
+            
             if (smsLog && primaryMediaUrl) {
+              console.error(`🔍 DEBUG: Updating SMS log ${smsLog.id} with imageUrl: ${primaryMediaUrl}`);
               await storage.updateSmsLogImageUrl(smsLog.id, primaryMediaUrl);
+              console.error(`✅ Updated SMS log ${smsLog.id} with image URL: ${primaryMediaUrl}`);
               log(`✅ Updated SMS log ${smsLog.id} with image URL: ${primaryMediaUrl}`);
+            } else {
+              console.error(`⚠️ Skipping update - smsLog=${!!smsLog}, primaryMediaUrl=${!!primaryMediaUrl}`);
             }
           } catch (error: any) {
+            console.error(`❌ Error updating SMS log media: ${error.message}`);
+            console.error(`❌ Stack: ${error.stack}`);
             log(`❌ Error updating SMS log media: ${error.message}`);
           }
         }
