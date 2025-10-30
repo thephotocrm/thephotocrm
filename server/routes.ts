@@ -230,15 +230,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       log(`Normalized phone from ${from} to ${normalizedPhone}`);
 
       // Get ALL contacts with this phone number (multi-tenant support)
-      const contacts = await storage.getAllContactsByPhone(normalizedPhone);
+      const allContacts = await storage.getAllContactsByPhone(normalizedPhone);
       
-      if (contacts.length === 0) {
+      if (allContacts.length === 0) {
         log(`No contacts found for phone number: ${from}`);
         // Return TwiML response to acknowledge receipt
         return res.status(200).type('text/xml').send('<?xml version="1.0" encoding="UTF-8"?><Response></Response>');
       }
 
-      log(`Found ${contacts.length} contact(s) with phone ${normalizedPhone}`);
+      log(`Found ${allContacts.length} contact(s) with phone ${normalizedPhone}`);
+
+      // CRITICAL FIX: Group contacts by photographer to avoid duplicate messages
+      // Create ONE message per photographer, using the MOST RECENT contact
+      const contactsByPhotographer = new Map<string, typeof allContacts[0]>();
+      for (const contact of allContacts) {
+        const existing = contactsByPhotographer.get(contact.photographerId);
+        if (!existing || new Date(contact.createdAt) > new Date(existing.createdAt)) {
+          contactsByPhotographer.set(contact.photographerId, contact);
+        }
+      }
+      
+      const contacts = Array.from(contactsByPhotographer.values());
+      log(`✅ Deduplicated to ${contacts.length} unique photographer(s)`);
 
       const messageBody = text || '';
       
