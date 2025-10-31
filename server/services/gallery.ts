@@ -8,7 +8,7 @@ const GOOGLE_DRIVE_API_BASE = "https://www.googleapis.com/drive/v3";
 const GOOGLE_OAUTH_TOKEN_URL = "https://oauth2.googleapis.com/token";
 
 // ShootProof API Configuration
-const SHOOTPROOF_API_BASE = "https://api.shootproof.com/v3";
+const SHOOTPROOF_API_BASE = "https://api.shootproof.com/studio";
 const SHOOTPROOF_TOKEN_URL = "https://auth.shootproof.com/oauth2/authorization/token";
 
 export interface GalleryService {
@@ -114,45 +114,48 @@ class GalleryServiceImpl implements GalleryService {
     // Create event name
     const eventName = `${project.title} - ${project.client?.firstName || ""} ${project.client?.lastName || ""}`.trim();
 
-    // Get service description to navigate v3 API
-    const serviceResponse = await fetch(`${SHOOTPROOF_API_BASE}/studio`, {
+    // Get studio information to find the default brand ID
+    const studioResponse = await fetch(`${SHOOTPROOF_API_BASE}/me`, {
       method: "GET",
       headers: {
         Authorization: `Bearer ${accessToken}`,
-        Accept: "application/json",
+        Accept: "application/vnd.shootproof+json",
       },
     });
 
-    if (!serviceResponse.ok) {
-      const error = await serviceResponse.text();
-      throw new Error(`Failed to access ShootProof API: ${error}`);
+    if (!studioResponse.ok) {
+      const error = await studioResponse.text();
+      throw new Error(`Failed to get ShootProof studio info: ${error}`);
     }
 
-    const serviceData = await serviceResponse.json();
+    const studioData = await studioResponse.json();
     
-    // Find the events endpoint from the service description links
-    const eventsEndpoint = serviceData._links?.events?.href || `${SHOOTPROOF_API_BASE}/studio/events`;
+    // Get the brand ID - usually studios have a default brand
+    // The brand endpoint link is in the studio data
+    const brandLink = studioData._links?.brand?.href;
+    if (!brandLink) {
+      throw new Error("No brand found for ShootProof studio. Please create a brand in ShootProof first.");
+    }
 
-    // Create event via ShootProof v3 API
-    const createResponse = await fetch(eventsEndpoint, {
+    // Extract brand ID from the link (format: /studio/brand/{id})
+    const brandIdMatch = brandLink.match(/\/brand\/([^/]+)/);
+    if (!brandIdMatch) {
+      throw new Error("Could not determine brand ID from ShootProof studio data.");
+    }
+    const brandId = brandIdMatch[1];
+
+    // Create event via ShootProof Studio API
+    const createResponse = await fetch(`${SHOOTPROOF_API_BASE}/brand/${brandId}/event`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${accessToken}`,
-        "Content-Type": "application/json",
-        Accept: "application/json",
+        "Content-Type": "application/vnd.shootproof+json",
+        Accept: "application/vnd.shootproof+json",
       },
       body: JSON.stringify({
         name: eventName,
-        // Add event date if available
-        ...(project.eventDate && { event_date: project.eventDate }),
-        // Add contact information if available
-        ...(project.client?.email && {
-          contact: {
-            email: project.client.email,
-            first_name: project.client.firstName,
-            last_name: project.client.lastName,
-          },
-        }),
+        // Add event date if available (ISO 8601 format)
+        ...(project.eventDate && { eventDate: new Date(project.eventDate).toISOString() }),
       }),
     });
 
@@ -163,7 +166,8 @@ class GalleryServiceImpl implements GalleryService {
 
     const event = await createResponse.json();
 
-    // Construct gallery URL (ShootProof event URL structure)
+    // Construct gallery URL from event data
+    // ShootProof events have a 'url' field with the public gallery URL
     const url = event.url || event._links?.self?.href || `https://www.shootproof.com/gallery/${event.id}`;
 
     // Update project with gallery info

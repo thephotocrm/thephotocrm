@@ -8607,16 +8607,19 @@ ${photographer.businessName}`
 
       const tokens = await tokenResponse.json();
 
-      // Get user/studio info using v3 API
-      const userResponse = await fetch('https://api.shootproof.com/v3/studio', {
+      // Get user/studio info using Studio API
+      const userResponse = await fetch('https://api.shootproof.com/studio/me', {
         headers: {
           'Authorization': `Bearer ${tokens.access_token}`,
-          'Accept': 'application/json'
+          'Accept': 'application/vnd.shootproof+json'
         }
       });
 
       if (!userResponse.ok) {
-        console.error('❌ Failed to fetch ShootProof studio info');
+        const errorBody = await userResponse.text();
+        console.error('❌ Failed to fetch ShootProof studio info:');
+        console.error('   Status:', userResponse.status, userResponse.statusText);
+        console.error('   Response:', errorBody);
         return res.redirect(`${baseUrl}/settings?shootproof_error=studio_fetch_failed`);
       }
 
