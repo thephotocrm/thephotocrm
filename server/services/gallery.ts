@@ -15,6 +15,7 @@ export interface GalleryService {
   createGallery(projectId: string, photographerId: string): Promise<{ url: string; id: string }>;
   refreshGoogleDriveToken(photographerId: string): Promise<string>;
   refreshShootProofToken(photographerId: string): Promise<string>;
+  syncShootProofGalleries(photographerId: string): Promise<{ matched: number; total: number }>;
 }
 
 class GalleryServiceImpl implements GalleryService {

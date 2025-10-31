@@ -267,6 +267,7 @@ export const projects = pgTable("projects", {
   galleryReady: boolean("gallery_ready").default(false), // Whether photographer marked it ready to send
   galleryCreatedAt: timestamp("gallery_created_at"), // When auto-created
   gallerySharedAt: timestamp("gallery_shared_at"), // When marked ready and sent to client
+  gallerySyncedAt: timestamp("gallery_synced_at"), // Last time we synced galleries from external platforms
   isPublicGallery: boolean("is_public_gallery").default(false), // Whether gallery is publicly visible on photographer's showcase page
   // Client Portal
   includePortalLinks: boolean("include_portal_links").default(true), // Include magic links in emails
