@@ -268,12 +268,14 @@ class GalleryServiceImpl implements GalleryService {
 
     const data = await response.json();
 
-    // Update stored tokens
+    // Update stored tokens (persist refresh_token if ShootProof rotates it)
     await db
       .update(photographers)
       .set({
         shootproofAccessToken: data.access_token,
         shootproofTokenExpiry: new Date(Date.now() + data.expires_in * 1000),
+        // Update refresh token if a new one is provided
+        ...(data.refresh_token && { shootproofRefreshToken: data.refresh_token }),
       })
       .where(eq(photographers.id, photographerId));
 
