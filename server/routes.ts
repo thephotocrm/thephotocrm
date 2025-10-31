@@ -8531,7 +8531,8 @@ ${photographer.businessName}`
         });
       }
 
-      const redirectUri = process.env.SHOOTPROOF_REDIRECT_URI || `https://${req.get('host')}/api/auth/shootproof/callback`;
+      // Always use HTTPS for OAuth redirects (Replit domains use HTTPS)
+      const redirectUri = `https://${req.get('host')}/api/auth/shootproof/callback`;
       
       const state = Buffer.from(JSON.stringify({ 
         photographerId,
@@ -8539,8 +8540,19 @@ ${photographer.businessName}`
         timestamp: Date.now()
       })).toString('base64url');
 
-      const authUrl = `https://api.shootproof.com/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&state=${state}`;
+      // Use correct ShootProof OAuth 2.0 authorization URL
+      const params = new URLSearchParams({
+        response_type: 'code',
+        client_id: clientId,
+        redirect_uri: redirectUri,
+        scope: 'studio', // Required scope for API access
+        state
+      });
 
+      const authUrl = `https://auth.shootproof.com/oauth2/authorization/new?${params.toString()}`;
+
+      console.log(`🔗 ShootProof OAuth initiated for photographer ${photographerId}`);
+      console.log(`🔗 Redirect URI: ${redirectUri}`);
       res.json({ authUrl });
     } catch (error) {
       console.error('ShootProof auth URL error:', error);
@@ -8553,84 +8565,80 @@ ${photographer.businessName}`
     try {
       const { code, state } = req.query;
       
+      // Build base URL for redirects
+      const baseUrl = `https://${req.get('host')}`;
+      
       if (!code || !state) {
-        return res.status(400).send(`
-          <html>
-            <body style="font-family: Arial, sans-serif; text-align: center; padding: 50px;">
-              <h2 style="color: red;">❌ Authorization Failed</h2>
-              <p>Missing authorization code or state.</p>
-            </body>
-          </html>
-        `);
+        console.error('❌ Missing code or state in ShootProof callback');
+        return res.redirect(`${baseUrl}/settings?shootproof_error=missing_params`);
       }
 
       const stateData = JSON.parse(Buffer.from(state as string, 'base64url').toString());
       const photographerId = stateData.photographerId;
 
       const clientId = process.env.SHOOTPROOF_CLIENT_ID;
-      const clientSecret = process.env.SHOOTPROOF_CLIENT_SECRET;
-      const redirectUri = process.env.SHOOTPROOF_REDIRECT_URI || `https://${req.get('host')}/api/auth/shootproof/callback`;
+      const redirectUri = `https://${req.get('host')}/api/auth/shootproof/callback`;
 
-      const tokenResponse = await fetch('https://api.shootproof.com/oauth/token', {
+      if (!clientId) {
+        console.error('❌ SHOOTPROOF_CLIENT_ID not configured');
+        return res.redirect(`${baseUrl}/settings?shootproof_error=not_configured`);
+      }
+
+      // Exchange code for tokens using correct ShootProof OAuth 2.0 token endpoint
+      // NOTE: ShootProof uses public client OAuth - NO client_secret needed!
+      const tokenResponse = await fetch('https://auth.shootproof.com/oauth2/authorization/token', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
         },
         body: new URLSearchParams({
           grant_type: 'authorization_code',
+          client_id: clientId,
           code: code as string,
-          client_id: clientId!,
-          client_secret: clientSecret!,
           redirect_uri: redirectUri
         })
       });
 
       if (!tokenResponse.ok) {
-        throw new Error('Failed to exchange code for tokens');
+        const error = await tokenResponse.text();
+        console.error('❌ Failed to exchange code for tokens:', error);
+        return res.redirect(`${baseUrl}/settings?shootproof_error=token_exchange_failed`);
       }
 
       const tokens = await tokenResponse.json();
 
-      const userResponse = await fetch('https://api.shootproof.com/v2/studio', {
+      // Get user/studio info using v3 API
+      const userResponse = await fetch('https://api.shootproof.com/v3/studio', {
         headers: {
-          'Authorization': `Bearer ${tokens.access_token}`
+          'Authorization': `Bearer ${tokens.access_token}`,
+          'Accept': 'application/json'
         }
       });
 
+      if (!userResponse.ok) {
+        console.error('❌ Failed to fetch ShootProof studio info');
+        return res.redirect(`${baseUrl}/settings?shootproof_error=studio_fetch_failed`);
+      }
+
       const userData = await userResponse.json();
 
+      // Update photographer with ShootProof tokens and info
       await storage.updatePhotographer(photographerId, {
         shootproofAccessToken: tokens.access_token,
         shootproofRefreshToken: tokens.refresh_token,
         shootproofTokenExpiry: new Date(Date.now() + tokens.expires_in * 1000),
         shootproofStudioId: userData.id || null,
-        shootproofEmail: userData.email || null,
-        shootproofConnectedAt: new Date()
+        shootproofEmail: userData.email || userData.contact?.email || null,
+        shootproofConnectedAt: new Date(),
+        galleryPlatform: 'SHOOTPROOF'
       });
 
-      res.send(`
-        <html>
-          <body style="font-family: Arial, sans-serif; text-align: center; padding: 50px;">
-            <h2 style="color: green;">✅ ShootProof Connected Successfully!</h2>
-            <p>Your gallery integration is now active. You can close this window.</p>
-            <script>
-              setTimeout(() => {
-                window.close();
-              }, 3000);
-            </script>
-          </body>
-        </html>
-      `);
+      console.log('✅ ShootProof connected successfully for photographer:', photographerId);
+      res.redirect(`${baseUrl}/settings?shootproof_connected=true`);
     } catch (error) {
       console.error('ShootProof callback error:', error);
-      res.status(500).send(`
-        <html>
-          <body style="font-family: Arial, sans-serif; text-align: center; padding: 50px;">
-            <h2 style="color: red;">❌ Authorization Failed</h2>
-            <p>An unexpected error occurred. Please try again or contact support.</p>
-          </body>
-        </html>
-      `);
+      const baseUrl = `https://${req.get('host')}`;
+      res.redirect(`${baseUrl}/settings?shootproof_error=callback_failed`);
     }
   });
 
