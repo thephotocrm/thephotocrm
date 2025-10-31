@@ -8,8 +8,8 @@ const GOOGLE_DRIVE_API_BASE = "https://www.googleapis.com/drive/v3";
 const GOOGLE_OAUTH_TOKEN_URL = "https://oauth2.googleapis.com/token";
 
 // ShootProof API Configuration
-const SHOOTPROOF_API_BASE = "https://api.shootproof.com/v2";
-const SHOOTPROOF_OAUTH_BASE = "https://api.shootproof.com/oauth";
+const SHOOTPROOF_API_BASE = "https://api.shootproof.com/v3";
+const SHOOTPROOF_TOKEN_URL = "https://auth.shootproof.com/oauth2/authorization/token";
 
 export interface GalleryService {
   createGallery(projectId: string, photographerId: string): Promise<{ url: string; id: string }>;
@@ -111,69 +111,72 @@ class GalleryServiceImpl implements GalleryService {
     // Ensure token is fresh
     const accessToken = await this.refreshShootProofToken(photographer.id);
 
-    // Create event first (ShootProof requires events to contain albums)
-    const eventName = `${project.title} - ${project.client?.firstName} ${project.client?.lastName}`;
+    // Create event name
+    const eventName = `${project.title} - ${project.client?.firstName || ""} ${project.client?.lastName || ""}`.trim();
 
-    const eventResponse = await fetch(`${SHOOTPROOF_API_BASE}/events`, {
+    // Get service description to navigate v3 API
+    const serviceResponse = await fetch(`${SHOOTPROOF_API_BASE}/studio`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        Accept: "application/json",
+      },
+    });
+
+    if (!serviceResponse.ok) {
+      const error = await serviceResponse.text();
+      throw new Error(`Failed to access ShootProof API: ${error}`);
+    }
+
+    const serviceData = await serviceResponse.json();
+    
+    // Find the events endpoint from the service description links
+    const eventsEndpoint = serviceData._links?.events?.href || `${SHOOTPROOF_API_BASE}/studio/events`;
+
+    // Create event via ShootProof v3 API
+    const createResponse = await fetch(eventsEndpoint, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${accessToken}`,
         "Content-Type": "application/json",
+        Accept: "application/json",
       },
       body: JSON.stringify({
         name: eventName,
-        event_date: project.eventDate || new Date().toISOString(),
+        // Add event date if available
+        ...(project.eventDate && { event_date: project.eventDate }),
+        // Add contact information if available
+        ...(project.client?.email && {
+          contact: {
+            email: project.client.email,
+            first_name: project.client.firstName,
+            last_name: project.client.lastName,
+          },
+        }),
       }),
     });
 
-    if (!eventResponse.ok) {
-      const error = await eventResponse.text();
+    if (!createResponse.ok) {
+      const error = await createResponse.text();
       throw new Error(`Failed to create ShootProof event: ${error}`);
     }
 
-    const event = await eventResponse.json();
-    const eventId = event.id;
+    const event = await createResponse.json();
 
-    // Create album within the event
-    const albumResponse = await fetch(`${SHOOTPROOF_API_BASE}/events/${eventId}/albums`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        name: "Gallery",
-      }),
-    });
-
-    if (!albumResponse.ok) {
-      const error = await albumResponse.text();
-      throw new Error(`Failed to create ShootProof album: ${error}`);
-    }
-
-    const album = await albumResponse.json();
-    
-    // Verify the album has a public URL
-    if (!album.public_url) {
-      throw new Error(
-        "ShootProof album created but is not publicly accessible. " +
-        "Please publish the album in ShootProof before sharing with clients."
-      );
-    }
-    
-    const url = album.public_url;
+    // Construct gallery URL (ShootProof event URL structure)
+    const url = event.url || event._links?.self?.href || `https://www.shootproof.com/gallery/${event.id}`;
 
     // Update project with gallery info
     await db
       .update(projects)
       .set({
         galleryUrl: url,
-        galleryId: album.id,
+        galleryId: event.id,
         galleryCreatedAt: new Date(),
       })
       .where(eq(projects.id, project.id));
 
-    return { url, id: album.id };
+    return { url, id: event.id };
   }
 
   async refreshGoogleDriveToken(photographerId: string): Promise<string> {
@@ -235,31 +238,32 @@ class GalleryServiceImpl implements GalleryService {
       throw new Error("ShootProof not connected");
     }
 
-    // Check if token is still valid
+    // Check if token is still valid (5 minute buffer)
     if (
       photographer.shootproofAccessToken &&
       photographer.shootproofTokenExpiry &&
-      new Date(photographer.shootproofTokenExpiry) > new Date()
+      new Date(photographer.shootproofTokenExpiry).getTime() > Date.now() + 5 * 60 * 1000
     ) {
       return photographer.shootproofAccessToken;
     }
 
-    // Refresh token
-    const response = await fetch(`${SHOOTPROOF_OAUTH_BASE}/token`, {
+    // Refresh token using ShootProof OAuth 2.0 public client flow (no client secret needed)
+    const response = await fetch(SHOOTPROOF_TOKEN_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
       },
       body: new URLSearchParams({
-        client_id: process.env.SHOOTPROOF_CLIENT_ID || "",
-        client_secret: process.env.SHOOTPROOF_CLIENT_SECRET || "",
-        refresh_token: photographer.shootproofRefreshToken,
         grant_type: "refresh_token",
+        client_id: process.env.SHOOTPROOF_CLIENT_ID || "",
+        refresh_token: photographer.shootproofRefreshToken,
+        scope: "studio",
       }),
     });
 
     if (!response.ok) {
-      throw new Error("Failed to refresh ShootProof token");
+      const error = await response.text();
+      throw new Error(`Failed to refresh ShootProof token: ${error}`);
     }
 
     const data = await response.json();
@@ -269,7 +273,6 @@ class GalleryServiceImpl implements GalleryService {
       .update(photographers)
       .set({
         shootproofAccessToken: data.access_token,
-        shootproofRefreshToken: data.refresh_token,
         shootproofTokenExpiry: new Date(Date.now() + data.expires_in * 1000),
       })
       .where(eq(photographers.id, photographerId));
