@@ -699,52 +699,6 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* How It Works */}
-      <section className="py-16 px-4 bg-slate-100 dark:bg-slate-900/50">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              How it works
-            </h2>
-            <p className="text-lg text-slate-600 dark:text-slate-400">
-              From first inquiry to final delivery—all automated
-            </p>
-          </div>
-          
-          <div className="grid md:grid-cols-3 gap-8 mb-12">
-            <div className="text-center">
-              <div className="bg-blue-600 text-white w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-4">
-                1
-              </div>
-              <h3 className="font-bold text-lg mb-2">Leads inquire</h3>
-              <p className="text-sm text-slate-600 dark:text-slate-400">
-                Couples fill out your contact form and land in your pipeline. Track every lead from first touch to signed contract.
-              </p>
-            </div>
-            
-            <div className="text-center">
-              <div className="bg-blue-600 text-white w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-4">
-                2
-              </div>
-              <h3 className="font-bold text-lg mb-2">Automation takes over</h3>
-              <p className="text-sm text-slate-600 dark:text-slate-400">
-                Personalized follow-up emails and SMS messages go out automatically. Your calendar link gets them booked without back-and-forth.
-              </p>
-            </div>
-            
-            <div className="text-center">
-              <div className="bg-blue-600 text-white w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-4">
-                3
-              </div>
-              <h3 className="font-bold text-lg mb-2">Close & deliver seamlessly</h3>
-              <p className="text-sm text-slate-600 dark:text-slate-400">
-                Send proposals, collect payments via Stripe, assign questionnaires, and send shoot reminders—all triggered by your custom pipeline stages.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* Complete Client Journey */}
       <section className="py-16 px-4 bg-white dark:bg-slate-900">
         <div className="max-w-5xl mx-auto">
