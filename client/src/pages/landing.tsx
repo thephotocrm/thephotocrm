@@ -699,6 +699,143 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* Leads Section */}
+      <section className="py-16 px-4 bg-gradient-to-br from-amber-50 via-orange-50 to-amber-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
+        <div className="max-w-6xl mx-auto">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            {/* Left Side - Content */}
+            <div>
+              <div className="inline-block bg-gradient-to-r from-amber-500 to-orange-500 text-white px-4 py-2 rounded-full text-sm font-semibold mb-6">
+                OPTIONAL ADD-ON
+              </div>
+              <h2 className="text-4xl md:text-5xl font-bold mb-6">
+                <span className="text-amber-600 dark:text-amber-500">NEED LEADS?</span>
+                <br />
+                <span className="text-slate-900 dark:text-white">JUST FLIP THE SWITCH</span>
+              </h2>
+              
+              {/* Steps */}
+              <div className="space-y-8">
+                {/* Step 1 */}
+                <div className="flex gap-4">
+                  <div className="flex-shrink-0">
+                    <div className="w-16 h-16 rounded-full bg-white dark:bg-slate-800 shadow-lg flex items-center justify-center">
+                      <Target className="w-8 h-8 text-amber-600" />
+                    </div>
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold mb-2">Turn on exclusive leads when ready</h3>
+                    <p className="text-slate-700 dark:text-slate-300">
+                      Already running your own ads? Perfect. Need more bookings? Just activate our lead service and receive high-quality leads sent directly to your CRM.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Step 2 */}
+                <div className="flex gap-4">
+                  <div className="flex-shrink-0">
+                    <div className="w-16 h-16 rounded-full bg-white dark:bg-slate-800 shadow-lg flex items-center justify-center">
+                      <Zap className="w-8 h-8 text-amber-600" />
+                    </div>
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold mb-2">Automate follow-up</h3>
+                    <p className="text-slate-700 dark:text-slate-300">
+                      Powerful automations instantly respond with personalized emails, SMS messages, and proposals—so you never miss an opportunity.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Step 3 */}
+                <div className="flex gap-4">
+                  <div className="flex-shrink-0">
+                    <div className="w-16 h-16 rounded-full bg-white dark:bg-slate-800 shadow-lg flex items-center justify-center">
+                      <DollarSign className="w-8 h-8 text-amber-600" />
+                    </div>
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold mb-2">Close more deals</h3>
+                    <p className="text-slate-700 dark:text-slate-300">
+                      With instant proposals, automated follow-ups, and integrated payments, leads convert faster—all while you focus on your craft.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* CTA Button */}
+              <div className="mt-10">
+                <Button
+                  className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-lg hover:shadow-xl transition-all text-lg px-8 py-6"
+                  size="lg"
+                  onClick={() => setLocation("/how-it-works")}
+                  data-testid="button-learn-leads"
+                >
+                  Learn How It Works
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Button>
+              </div>
+            </div>
+
+            {/* Right Side - Visual/Stats */}
+            <div className="relative">
+              <Card className="bg-white dark:bg-slate-800 shadow-2xl border-4 border-amber-400 dark:border-amber-600">
+                <CardContent className="p-8">
+                  <div className="text-center mb-6">
+                    <div className="inline-flex items-center gap-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white px-4 py-2 rounded-full mb-4">
+                      <TrendingUp className="h-5 w-5" />
+                      <span className="font-semibold">Real Results</span>
+                    </div>
+                  </div>
+                  
+                  {/* Stats Grid */}
+                  <div className="grid grid-cols-2 gap-6 mb-6">
+                    <div className="text-center p-4 bg-amber-50 dark:bg-slate-700 rounded-lg">
+                      <div className="text-3xl font-bold text-amber-600 dark:text-amber-500 mb-1">3x</div>
+                      <div className="text-sm text-slate-600 dark:text-slate-400">More Leads</div>
+                    </div>
+                    <div className="text-center p-4 bg-amber-50 dark:bg-slate-700 rounded-lg">
+                      <div className="text-3xl font-bold text-amber-600 dark:text-amber-500 mb-1">2x</div>
+                      <div className="text-sm text-slate-600 dark:text-slate-400">Conversion Rate</div>
+                    </div>
+                    <div className="text-center p-4 bg-amber-50 dark:bg-slate-700 rounded-lg">
+                      <div className="text-3xl font-bold text-amber-600 dark:text-amber-500 mb-1">24/7</div>
+                      <div className="text-sm text-slate-600 dark:text-slate-400">Auto-Response</div>
+                    </div>
+                    <div className="text-center p-4 bg-amber-50 dark:bg-slate-700 rounded-lg">
+                      <div className="text-3xl font-bold text-amber-600 dark:text-amber-500 mb-1">$0</div>
+                      <div className="text-sm text-slate-600 dark:text-slate-400">Lost Leads</div>
+                    </div>
+                  </div>
+
+                  {/* Testimonial snippet */}
+                  <div className="border-t border-amber-200 dark:border-slate-600 pt-6">
+                    <p className="text-slate-700 dark:text-slate-300 italic text-sm mb-3">
+                      "The automated lead system filled my calendar in 2 weeks. Game changer!"
+                    </p>
+                    <div className="flex items-center gap-3">
+                      <img 
+                        src="https://i.pravatar.cc/150?img=68" 
+                        alt="Photographer" 
+                        className="w-10 h-10 rounded-full"
+                      />
+                      <div>
+                        <div className="font-semibold text-sm">Sarah M.</div>
+                        <div className="text-xs text-slate-500">Wedding Photographer</div>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Floating badge */}
+              <div className="absolute -top-4 -right-4 bg-gradient-to-r from-green-500 to-emerald-500 text-white px-4 py-2 rounded-full shadow-lg font-semibold text-sm transform rotate-12">
+                ✓ No Setup Fees
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Complete Client Journey */}
       <section className="py-16 px-4 bg-white dark:bg-slate-900">
         <div className="max-w-5xl mx-auto">
@@ -871,143 +1008,6 @@ export default function Landing() {
                 </p>
               </CardContent>
             </Card>
-          </div>
-        </div>
-      </section>
-
-      {/* Leads Section */}
-      <section className="py-16 px-4 bg-gradient-to-br from-amber-50 via-orange-50 to-amber-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
-        <div className="max-w-6xl mx-auto">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            {/* Left Side - Content */}
-            <div>
-              <div className="inline-block bg-gradient-to-r from-amber-500 to-orange-500 text-white px-4 py-2 rounded-full text-sm font-semibold mb-6">
-                OPTIONAL ADD-ON
-              </div>
-              <h2 className="text-4xl md:text-5xl font-bold mb-6">
-                <span className="text-amber-600 dark:text-amber-500">NEED LEADS?</span>
-                <br />
-                <span className="text-slate-900 dark:text-white">JUST FLIP THE SWITCH</span>
-              </h2>
-              
-              {/* Steps */}
-              <div className="space-y-8">
-                {/* Step 1 */}
-                <div className="flex gap-4">
-                  <div className="flex-shrink-0">
-                    <div className="w-16 h-16 rounded-full bg-white dark:bg-slate-800 shadow-lg flex items-center justify-center">
-                      <Target className="w-8 h-8 text-amber-600" />
-                    </div>
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-bold mb-2">Turn on exclusive leads when ready</h3>
-                    <p className="text-slate-700 dark:text-slate-300">
-                      Already running your own ads? Perfect. Need more bookings? Just activate our lead service and receive high-quality leads sent directly to your CRM.
-                    </p>
-                  </div>
-                </div>
-
-                {/* Step 2 */}
-                <div className="flex gap-4">
-                  <div className="flex-shrink-0">
-                    <div className="w-16 h-16 rounded-full bg-white dark:bg-slate-800 shadow-lg flex items-center justify-center">
-                      <Zap className="w-8 h-8 text-amber-600" />
-                    </div>
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-bold mb-2">Automate follow-up</h3>
-                    <p className="text-slate-700 dark:text-slate-300">
-                      Powerful automations instantly respond with personalized emails, SMS messages, and proposals—so you never miss an opportunity.
-                    </p>
-                  </div>
-                </div>
-
-                {/* Step 3 */}
-                <div className="flex gap-4">
-                  <div className="flex-shrink-0">
-                    <div className="w-16 h-16 rounded-full bg-white dark:bg-slate-800 shadow-lg flex items-center justify-center">
-                      <DollarSign className="w-8 h-8 text-amber-600" />
-                    </div>
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-bold mb-2">Close more deals</h3>
-                    <p className="text-slate-700 dark:text-slate-300">
-                      With instant proposals, automated follow-ups, and integrated payments, leads convert faster—all while you focus on your craft.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* CTA Button */}
-              <div className="mt-10">
-                <Button
-                  className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-lg hover:shadow-xl transition-all text-lg px-8 py-6"
-                  size="lg"
-                  onClick={() => setLocation("/how-it-works")}
-                  data-testid="button-learn-leads"
-                >
-                  Learn How It Works
-                  <ArrowRight className="ml-2 h-5 w-5" />
-                </Button>
-              </div>
-            </div>
-
-            {/* Right Side - Visual/Stats */}
-            <div className="relative">
-              <Card className="bg-white dark:bg-slate-800 shadow-2xl border-4 border-amber-400 dark:border-amber-600">
-                <CardContent className="p-8">
-                  <div className="text-center mb-6">
-                    <div className="inline-flex items-center gap-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white px-4 py-2 rounded-full mb-4">
-                      <TrendingUp className="h-5 w-5" />
-                      <span className="font-semibold">Real Results</span>
-                    </div>
-                  </div>
-                  
-                  {/* Stats Grid */}
-                  <div className="grid grid-cols-2 gap-6 mb-6">
-                    <div className="text-center p-4 bg-amber-50 dark:bg-slate-700 rounded-lg">
-                      <div className="text-3xl font-bold text-amber-600 dark:text-amber-500 mb-1">3x</div>
-                      <div className="text-sm text-slate-600 dark:text-slate-400">More Leads</div>
-                    </div>
-                    <div className="text-center p-4 bg-amber-50 dark:bg-slate-700 rounded-lg">
-                      <div className="text-3xl font-bold text-amber-600 dark:text-amber-500 mb-1">2x</div>
-                      <div className="text-sm text-slate-600 dark:text-slate-400">Conversion Rate</div>
-                    </div>
-                    <div className="text-center p-4 bg-amber-50 dark:bg-slate-700 rounded-lg">
-                      <div className="text-3xl font-bold text-amber-600 dark:text-amber-500 mb-1">24/7</div>
-                      <div className="text-sm text-slate-600 dark:text-slate-400">Auto-Response</div>
-                    </div>
-                    <div className="text-center p-4 bg-amber-50 dark:bg-slate-700 rounded-lg">
-                      <div className="text-3xl font-bold text-amber-600 dark:text-amber-500 mb-1">$0</div>
-                      <div className="text-sm text-slate-600 dark:text-slate-400">Lost Leads</div>
-                    </div>
-                  </div>
-
-                  {/* Testimonial snippet */}
-                  <div className="border-t border-amber-200 dark:border-slate-600 pt-6">
-                    <p className="text-slate-700 dark:text-slate-300 italic text-sm mb-3">
-                      "The automated lead system filled my calendar in 2 weeks. Game changer!"
-                    </p>
-                    <div className="flex items-center gap-3">
-                      <img 
-                        src="https://i.pravatar.cc/150?img=68" 
-                        alt="Photographer" 
-                        className="w-10 h-10 rounded-full"
-                      />
-                      <div>
-                        <div className="font-semibold text-sm">Sarah M.</div>
-                        <div className="text-xs text-slate-500">Wedding Photographer</div>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Floating badge */}
-              <div className="absolute -top-4 -right-4 bg-gradient-to-r from-green-500 to-emerald-500 text-white px-4 py-2 rounded-full shadow-lg font-semibold text-sm transform rotate-12">
-                ✓ No Setup Fees
-              </div>
-            </div>
           </div>
         </div>
       </section>
