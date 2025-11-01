@@ -928,10 +928,12 @@ export default function Landing() {
             {/* Left Side - Content */}
             <div>
               <div className="inline-block bg-gradient-to-r from-amber-500 to-orange-500 text-white px-4 py-2 rounded-full text-sm font-semibold mb-6">
-                THE FAST TRACK
+                OPTIONAL ADD-ON
               </div>
               <h2 className="text-4xl md:text-5xl font-bold mb-6">
-                <span className="text-amber-600 dark:text-amber-500">YOUR NEXT JOB</span>
+                <span className="text-amber-600 dark:text-amber-500">NEED LEADS?</span>
+                <br />
+                <span className="text-slate-900 dark:text-white">JUST FLIP THE SWITCH</span>
               </h2>
               
               {/* Steps */}
@@ -944,9 +946,9 @@ export default function Landing() {
                     </div>
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold mb-2">Get exclusive leads</h3>
+                    <h3 className="text-xl font-bold mb-2">Turn on exclusive leads when ready</h3>
                     <p className="text-slate-700 dark:text-slate-300">
-                      Receive high-quality leads from Google Ads and Facebook sent directly to your CRM, matched to your photography style and location.
+                      Already running your own ads? Perfect. Need more bookings? Just activate our lead service and receive high-quality leads sent directly to your CRM.
                     </p>
                   </div>
                 </div>
