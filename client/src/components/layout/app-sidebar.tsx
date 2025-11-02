@@ -587,40 +587,45 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <SidebarSeparator />
+        {/* Settings & Tutorials - Only show for photographers */}
+        {!showAdminNav && (
+          <>
+            <SidebarSeparator />
 
-        <SidebarGroup>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  asChild
-                  isActive={location === "/settings"}
-                  data-testid="nav-settings"
-                  className="bg-slate-800/50 text-white hover:bg-slate-700/70 data-[active=true]:bg-slate-700 data-[active=true]:text-white"
-                >
-                  <Link href="/settings">
-                    <Settings className="w-5 h-5" />
-                    <span className="text-sm">Settings</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  asChild
-                  isActive={location === "/tutorials"}
-                  data-testid="nav-tutorials"
-                  className="bg-slate-800/50 text-white hover:bg-slate-700/70 data-[active=true]:bg-slate-700 data-[active=true]:text-white"
-                >
-                  <Link href="/tutorials">
-                    <GraduationCap className="w-5 h-5" />
-                    <span className="text-sm">Tutorials</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+            <SidebarGroup>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={location === "/settings"}
+                      data-testid="nav-settings"
+                      className="bg-slate-800/50 text-white hover:bg-slate-700/70 data-[active=true]:bg-slate-700 data-[active=true]:text-white"
+                    >
+                      <Link href="/settings">
+                        <Settings className="w-5 h-5" />
+                        <span className="text-sm">Settings</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={location === "/tutorials"}
+                      data-testid="nav-tutorials"
+                      className="bg-slate-800/50 text-white hover:bg-slate-700/70 data-[active=true]:bg-slate-700 data-[active=true]:text-white"
+                    >
+                      <Link href="/tutorials">
+                        <GraduationCap className="w-5 h-5" />
+                        <span className="text-sm">Tutorials</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          </>
+        )}
         </>
         )}
       </SidebarContent>
