@@ -53,7 +53,7 @@ export default function AdminDashboard() {
         title: 'Impersonation Started',
         description: 'You are now viewing as the selected photographer.',
       });
-      setLocation('/');
+      setLocation('/dashboard');
     },
     onError: (error: any) => {
       toast({
