@@ -839,6 +839,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         photographerId
       });
 
+      // Send SMS notification to admin about new registration
+      try {
+        await sendSms({
+          to: "+19722497048",
+          body: `🎉 New ${role} account created!\n\nEmail: ${normalizedEmail}\nBusiness: ${finalBusinessName}\n\nWelcome to thePhotoCrm!`
+        });
+      } catch (smsError) {
+        // Don't fail registration if SMS fails - just log it
+        console.error("Failed to send registration SMS notification:", smsError);
+      }
+
       res.status(201).json({ message: "User created successfully", userId: user.id });
     } catch (error) {
       console.error("Registration error:", error);
