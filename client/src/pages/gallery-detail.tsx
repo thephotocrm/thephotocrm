@@ -150,19 +150,22 @@ export default function GalleryDetail() {
 
     uppyRef.current = uppy;
 
-    // Mount dashboard if element exists
-    if (uppyDashboardRef.current && !uppyDashboardRef.current.querySelector('.uppy-Dashboard')) {
-      uppy.use(Dashboard, {
-        target: uppyDashboardRef.current,
-        inline: true,
-        height: 400,
-        showProgressDetails: true,
-        note: 'Upload up to 10,000 images at once • Up to 100MB per file • Drag & drop supported',
-        proudlyDisplayPoweredByUppy: false,
-      });
-    }
+    // Mount dashboard after a small delay to ensure DOM is fully rendered
+    const timeoutId = setTimeout(() => {
+      if (uppyDashboardRef.current && !uppyDashboardRef.current.querySelector('.uppy-Dashboard')) {
+        uppy.use(Dashboard, {
+          target: uppyDashboardRef.current,
+          inline: true,
+          height: 400,
+          showProgressDetails: true,
+          note: 'Upload up to 10,000 images at once • Up to 100MB per file • Drag & drop supported',
+          proudlyDisplayPoweredByUppy: false,
+        });
+      }
+    }, 100);
 
     return () => {
+      clearTimeout(timeoutId);
       uppy.close();
     };
   }, [galleryId, user, toast]);
