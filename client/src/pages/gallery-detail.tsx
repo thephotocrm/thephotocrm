@@ -44,12 +44,12 @@ export default function GalleryDetail() {
   });
 
   // Initialize form when gallery loads
-  useState(() => {
+  useEffect(() => {
     if (gallery) {
       setEditedTitle(gallery.title || "");
       setEditedDescription(gallery.description || "");
     }
-  });
+  }, [gallery]);
 
   // Cloudinary config
   const CLOUDINARY_CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || "";
@@ -187,7 +187,9 @@ export default function GalleryDetail() {
 
     return () => {
       clearTimeout(timeoutId);
-      uppy.close();
+      if (uppy && typeof uppy.close === 'function') {
+        uppy.close({ reason: 'unmount' });
+      }
     };
   }, [galleryId, user, toast]);
 
