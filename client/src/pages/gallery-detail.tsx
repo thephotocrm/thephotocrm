@@ -82,10 +82,8 @@ export default function GalleryDetail() {
         retryDelays: [0, 1000, 3000, 5000],
         chunkSize: 10 * 1024 * 1024, // 10MB chunks
         limit: 3, // 3 parallel uploads
-        // Add metadata to each upload
-        onBeforeRequest: (req) => {
-          req.setHeader('Authorization', `Bearer ${document.cookie.split('token=')[1]?.split(';')[0]}`);
-        },
+        // Authentication happens automatically via httpOnly cookie
+        withCredentials: true,
       })
       .on('file-added', (file) => {
         console.log('[Uppy] File added:', file.name);
