@@ -1921,3 +1921,232 @@ export type ProjectSmartFileWithRelations = ProjectSmartFile & {
   };
 };
 
+// === NATIVE GALLERY SYSTEM ===
+
+export const galleryStatusEnum = {
+  DRAFT: "DRAFT",
+  READY: "READY",
+  SHARED: "SHARED"
+} as const;
+
+// Native galleries (replaces third-party integrations)
+export const galleries = pgTable("galleries", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  projectId: varchar("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
+  photographerId: varchar("photographer_id").notNull().references(() => photographers.id),
+  title: text("title").notNull(),
+  description: text("description"),
+  status: text("status").notNull().default("DRAFT"), // DRAFT, READY, SHARED
+  isPublic: boolean("is_public").default(false), // For photographer's public portfolio showcase
+  // Branding & Customization
+  logoUrl: text("logo_url"), // Custom logo for this gallery (overrides photographer's default)
+  watermarkEnabled: boolean("watermark_enabled").default(true),
+  watermarkText: text("watermark_text"), // Custom watermark text
+  watermarkPosition: text("watermark_position").default("bottom-right"), // bottom-right, bottom-left, center, etc.
+  brandColorPrimary: text("brand_color_primary"), // Override photographer's brand colors
+  brandColorSecondary: text("brand_color_secondary"),
+  // Download Settings
+  allowDownloads: boolean("allow_downloads").default(true),
+  downloadRequiresApproval: boolean("download_requires_approval").default(false),
+  watermarkDownloads: boolean("watermark_downloads").default(true), // Apply watermark to downloads
+  // Print Settings (for future lab integration)
+  enablePrinting: boolean("enable_printing").default(false),
+  printLabProvider: text("print_lab_provider"), // Future: WHCC, MPIX, etc.
+  printLabSettings: jsonb("print_lab_settings"), // Future: pricing, product catalog, etc.
+  // Expiration & Access Control
+  expiresAt: timestamp("expires_at"), // Optional expiration date
+  accessPin: text("access_pin"), // Optional PIN for additional security
+  // Metadata
+  coverImageId: varchar("cover_image_id"), // Reference to gallery_images.id for cover
+  imageCount: integer("image_count").default(0),
+  viewCount: integer("view_count").default(0),
+  sharedAt: timestamp("shared_at"), // When marked as SHARED and sent to client
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+}, (table) => ({
+  projectIdIdx: index("galleries_project_id_idx").on(table.projectId),
+  photographerIdIdx: index("galleries_photographer_id_idx").on(table.photographerId),
+  statusIdx: index("galleries_status_idx").on(table.status),
+  isPublicIdx: index("galleries_is_public_idx").on(table.isPublic)
+}));
+
+// Gallery images (stored in Cloudinary)
+export const galleryImages = pgTable("gallery_images", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  galleryId: varchar("gallery_id").notNull().references(() => galleries.id, { onDelete: "cascade" }),
+  photographerId: varchar("photographer_id").notNull().references(() => photographers.id),
+  // Cloudinary URLs for different variants
+  originalUrl: text("original_url").notNull(), // Full resolution original
+  webUrl: text("web_url").notNull(), // Web-optimized (1920px)
+  thumbnailUrl: text("thumbnail_url").notNull(), // Grid thumbnail (400px)
+  watermarkedUrl: text("watermarked_url"), // Watermarked version
+  // Cloudinary metadata
+  cloudinaryPublicId: text("cloudinary_public_id").notNull(),
+  cloudinaryFolder: text("cloudinary_folder").notNull(),
+  format: text("format"), // jpg, png, raw, etc.
+  width: integer("width"),
+  height: integer("height"),
+  fileSize: integer("file_size"), // Bytes
+  // Image metadata (EXIF data for print quality)
+  capturedAt: timestamp("captured_at"), // From EXIF
+  cameraMake: text("camera_make"),
+  cameraModel: text("camera_model"),
+  focalLength: text("focal_length"),
+  aperture: text("aperture"),
+  shutterSpeed: text("shutter_speed"),
+  iso: text("iso"),
+  colorProfile: text("color_profile"), // sRGB, Adobe RGB, etc. (important for printing)
+  dpi: integer("dpi"), // Print resolution
+  // Organization
+  sortIndex: integer("sort_index").notNull().default(0), // For drag-drop reordering
+  caption: text("caption"),
+  tags: text("tags").array(), // Searchable tags
+  // Print readiness (for future lab integration)
+  printReady: boolean("print_ready").default(true), // High enough resolution for printing
+  minPrintSize: text("min_print_size"), // e.g., "8x10", "16x20" based on resolution
+  // Timestamps
+  uploadedAt: timestamp("uploaded_at").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow()
+}, (table) => ({
+  galleryIdIdx: index("gallery_images_gallery_id_idx").on(table.galleryId),
+  sortIndexIdx: index("gallery_images_sort_index_idx").on(table.sortIndex),
+  cloudinaryPublicIdIdx: index("gallery_images_cloudinary_public_id_idx").on(table.cloudinaryPublicId)
+}));
+
+// Client favorites (heart/like system)
+export const galleryFavorites = pgTable("gallery_favorites", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  galleryId: varchar("gallery_id").notNull().references(() => galleries.id, { onDelete: "cascade" }),
+  imageId: varchar("image_id").notNull().references(() => galleryImages.id, { onDelete: "cascade" }),
+  contactId: varchar("contact_id").notNull().references(() => contacts.id, { onDelete: "cascade" }),
+  createdAt: timestamp("created_at").defaultNow()
+}, (table) => ({
+  uniqueFavorite: unique("unique_gallery_favorite").on(table.galleryId, table.imageId, table.contactId),
+  galleryIdIdx: index("gallery_favorites_gallery_id_idx").on(table.galleryId),
+  contactIdIdx: index("gallery_favorites_contact_id_idx").on(table.contactId)
+}));
+
+// Download requests & ZIP archives
+export const galleryDownloads = pgTable("gallery_downloads", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  galleryId: varchar("gallery_id").notNull().references(() => galleries.id, { onDelete: "cascade" }),
+  contactId: varchar("contact_id").notNull().references(() => contacts.id),
+  scope: text("scope").notNull(), // ALL (all images) or FAVORITES (favorited only)
+  includeWatermark: boolean("include_watermark").default(true),
+  // ZIP archive details
+  zipUrl: text("zip_url"), // Cloudinary archive URL
+  zipSize: integer("zip_size"), // Bytes
+  imageCount: integer("image_count"),
+  status: text("status").notNull().default("PENDING"), // PENDING, PROCESSING, READY, EXPIRED, FAILED
+  expiresAt: timestamp("expires_at"), // 24-48 hour expiration
+  downloadedAt: timestamp("downloaded_at"),
+  createdAt: timestamp("created_at").defaultNow()
+}, (table) => ({
+  galleryIdIdx: index("gallery_downloads_gallery_id_idx").on(table.galleryId),
+  contactIdIdx: index("gallery_downloads_contact_id_idx").on(table.contactId),
+  statusIdx: index("gallery_downloads_status_idx").on(table.status)
+}));
+
+// Gallery view analytics
+export const galleryViews = pgTable("gallery_views", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  galleryId: varchar("gallery_id").notNull().references(() => galleries.id, { onDelete: "cascade" }),
+  contactId: varchar("contact_id").references(() => contacts.id), // Null for anonymous views
+  ipAddress: text("ip_address"),
+  userAgent: text("user_agent"),
+  viewedAt: timestamp("viewed_at").defaultNow()
+}, (table) => ({
+  galleryIdIdx: index("gallery_views_gallery_id_idx").on(table.galleryId),
+  viewedAtIdx: index("gallery_views_viewed_at_idx").on(table.viewedAt)
+}));
+
+// Relations
+export const galleriesRelations = relations(galleries, ({ one, many }) => ({
+  project: one(projects, {
+    fields: [galleries.projectId],
+    references: [projects.id]
+  }),
+  photographer: one(photographers, {
+    fields: [galleries.photographerId],
+    references: [photographers.id]
+  }),
+  images: many(galleryImages),
+  favorites: many(galleryFavorites),
+  downloads: many(galleryDownloads),
+  views: many(galleryViews)
+}));
+
+export const galleryImagesRelations = relations(galleryImages, ({ one, many }) => ({
+  gallery: one(galleries, {
+    fields: [galleryImages.galleryId],
+    references: [galleries.id]
+  }),
+  photographer: one(photographers, {
+    fields: [galleryImages.photographerId],
+    references: [photographers.id]
+  }),
+  favorites: many(galleryFavorites)
+}));
+
+export const galleryFavoritesRelations = relations(galleryFavorites, ({ one }) => ({
+  gallery: one(galleries, {
+    fields: [galleryFavorites.galleryId],
+    references: [galleries.id]
+  }),
+  image: one(galleryImages, {
+    fields: [galleryFavorites.imageId],
+    references: [galleryImages.id]
+  }),
+  contact: one(contacts, {
+    fields: [galleryFavorites.contactId],
+    references: [contacts.id]
+  })
+}));
+
+// Insert schemas
+export const insertGallerySchema = createInsertSchema(galleries).omit({
+  id: true,
+  imageCount: true,
+  viewCount: true,
+  createdAt: true,
+  updatedAt: true
+});
+
+export const insertGalleryImageSchema = createInsertSchema(galleryImages).omit({
+  id: true,
+  uploadedAt: true,
+  createdAt: true
+});
+
+export const insertGalleryFavoriteSchema = createInsertSchema(galleryFavorites).omit({
+  id: true,
+  createdAt: true
+});
+
+export const insertGalleryDownloadSchema = createInsertSchema(galleryDownloads).omit({
+  id: true,
+  createdAt: true
+});
+
+// Types
+export type Gallery = typeof galleries.$inferSelect;
+export type InsertGallery = z.infer<typeof insertGallerySchema>;
+export type GalleryImage = typeof galleryImages.$inferSelect;
+export type InsertGalleryImage = z.infer<typeof insertGalleryImageSchema>;
+export type GalleryFavorite = typeof galleryFavorites.$inferSelect;
+export type InsertGalleryFavorite = z.infer<typeof insertGalleryFavoriteSchema>;
+export type GalleryDownload = typeof galleryDownloads.$inferSelect;
+export type InsertGalleryDownload = z.infer<typeof insertGalleryDownloadSchema>;
+
+// Extended types with relations
+export type GalleryWithImages = Gallery & {
+  images: GalleryImage[];
+  favoriteCount?: number;
+  clientFavorites?: string[]; // Array of image IDs favorited by specific client
+};
+
+export type GalleryImageWithFavorites = GalleryImage & {
+  isFavorited?: boolean;
+  favoriteCount?: number;
+};
+
