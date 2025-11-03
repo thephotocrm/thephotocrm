@@ -8784,6 +8784,35 @@ ${photographer.businessName}`
 
   // === NATIVE GALLERY SYSTEM ROUTES ===
 
+  // Cloudinary Upload Signing
+  app.post("/api/cloudinary/sign-upload", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      const { v2: cloudinary } = await import('cloudinary');
+      const timestamp = Math.round(Date.now() / 1000);
+      const folder = req.body.folder || 'galleries';
+      
+      const signature = cloudinary.utils.api_sign_request(
+        {
+          timestamp,
+          folder,
+          upload_preset: 'unsigned_preset'
+        },
+        process.env.CLOUDINARY_API_SECRET!
+      );
+
+      res.json({
+        signature,
+        timestamp,
+        cloudName: process.env.CLOUDINARY_CLOUD_NAME,
+        apiKey: process.env.CLOUDINARY_API_KEY,
+        folder
+      });
+    } catch (error) {
+      console.error('Cloudinary signing error:', error);
+      res.status(500).json({ message: "Failed to generate upload signature" });
+    }
+  });
+
   // Gallery Management (Photographer)
 
   // GET /api/galleries - List all galleries for photographer
@@ -9120,11 +9149,41 @@ ${photographer.businessName}`
         return res.status(400).json({ message: "Scope must be 'ALL' or 'FAVORITES'" });
       }
 
+      // Get images to include in the ZIP
+      let publicIds: string[] = [];
+      
+      if (scope === 'FAVORITES') {
+        const favorites = await storage.getFavorites(id, userId);
+        const favoriteImageIds = favorites.map(f => f.imageId);
+        const allImages = await storage.getGalleryImages(id);
+        const favoriteImages = allImages.filter(img => favoriteImageIds.includes(img.id));
+        publicIds = favoriteImages.map(img => img.cloudinaryPublicId);
+      } else {
+        const images = await storage.getGalleryImages(id);
+        publicIds = images.map(img => img.cloudinaryPublicId);
+      }
+
+      if (publicIds.length === 0) {
+        return res.status(400).json({ message: "No images to download" });
+      }
+
+      // Generate ZIP using Cloudinary archive API
+      const { v2: cloudinary } = await import('cloudinary');
+      const archiveUrl = cloudinary.utils.download_zip_url({
+        public_ids: publicIds,
+        resource_type: 'image'
+      });
+
+      // Create download record with URL and expiry (24 hours)
+      const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+      
       const validatedData = insertGalleryDownloadSchema.parse({
         galleryId: id,
         userId,
         scope,
-        status: 'PENDING'
+        status: 'READY',
+        downloadUrl: archiveUrl,
+        expiresAt
       });
 
       const download = await storage.createGalleryDownload(validatedData);
@@ -9134,7 +9193,7 @@ ${photographer.businessName}`
       if (error.name === 'ZodError') {
         return res.status(400).json({ message: "Invalid download request", details: error.errors });
       }
-      res.status(500).json({ message: "Failed to request download" });
+      res.status(500).json({ message: "Failed to generate download" });
     }
   });
 
