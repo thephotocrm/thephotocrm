@@ -3704,6 +3704,17 @@ export class DatabaseStorage implements IStorage {
       .set({ imageCount: sql`${galleries.imageCount} + 1` })
       .where(eq(galleries.id, image.galleryId));
 
+    // Track storage usage: increment photographer's storage bytes
+    if (image.fileSize && image.photographerId) {
+      await db.execute(sql`
+        UPDATE photographers 
+        SET gallery_storage_bytes = (
+          CAST(gallery_storage_bytes AS BIGINT) + ${image.fileSize}
+        )::TEXT
+        WHERE id = ${image.photographerId}
+      `);
+    }
+
     return created;
   }
 
@@ -3725,6 +3736,17 @@ export class DatabaseStorage implements IStorage {
       await db.update(galleries)
         .set({ imageCount: sql`${galleries.imageCount} - 1` })
         .where(eq(galleries.id, image.galleryId));
+
+      // Track storage usage: decrement photographer's storage bytes
+      if (image.fileSize && image.photographerId) {
+        await db.execute(sql`
+          UPDATE photographers 
+          SET gallery_storage_bytes = (
+            GREATEST(CAST(gallery_storage_bytes AS BIGINT) - ${image.fileSize}, 0)
+          )::TEXT
+          WHERE id = ${image.photographerId}
+        `);
+      }
     }
   }
 
@@ -3811,6 +3833,76 @@ export class DatabaseStorage implements IStorage {
 
     // Increment view count
     await this.incrementGalleryViewCount(galleryId);
+  }
+
+  // Gallery Plans
+  async getGalleryPlans(): Promise<any[]> {
+    return await db.select()
+      .from(galleryPlans)
+      .where(eq(galleryPlans.isActive, true))
+      .orderBy(galleryPlans.sortOrder);
+  }
+
+  async getGalleryPlan(id: string): Promise<any | undefined> {
+    const [plan] = await db.select()
+      .from(galleryPlans)
+      .where(eq(galleryPlans.id, id));
+    return plan || undefined;
+  }
+
+  async getPhotographerStorageUsage(photographerId: string): Promise<{
+    usedBytes: number;
+    limitBytes: number | null;
+    planName: string | null;
+  }> {
+    const [photographer] = await db.select({
+      galleryStorageBytes: photographers.galleryStorageBytes,
+      galleryPlanId: photographers.galleryPlanId
+    })
+      .from(photographers)
+      .where(eq(photographers.id, photographerId));
+
+    if (!photographer) {
+      return { usedBytes: 0, limitBytes: null, planName: null };
+    }
+
+    const usedBytes = parseInt(photographer.galleryStorageBytes || '0', 10);
+
+    if (!photographer.galleryPlanId) {
+      return { usedBytes, limitBytes: null, planName: null };
+    }
+
+    const plan = await this.getGalleryPlan(photographer.galleryPlanId);
+    const limitBytes = plan?.storageLimitBytes ? parseInt(plan.storageLimitBytes, 10) : null;
+    
+    return {
+      usedBytes,
+      limitBytes,
+      planName: plan?.displayName || null
+    };
+  }
+
+  async checkStorageQuota(photographerId: string, additionalBytes: number): Promise<{
+    allowed: boolean;
+    reason?: string;
+  }> {
+    const usage = await this.getPhotographerStorageUsage(photographerId);
+
+    // If no plan or unlimited plan (limitBytes === null), allow
+    if (!usage.limitBytes) {
+      return { allowed: true };
+    }
+
+    const newTotal = usage.usedBytes + additionalBytes;
+
+    if (newTotal > usage.limitBytes) {
+      return {
+        allowed: false,
+        reason: `Storage quota exceeded. Used: ${(usage.usedBytes / (1024 ** 3)).toFixed(2)}GB, Limit: ${(usage.limitBytes / (1024 ** 3)).toFixed(2)}GB`
+      };
+    }
+
+    return { allowed: true };
   }
 }
 

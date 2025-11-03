@@ -158,6 +158,9 @@ export const photographers = pgTable("photographers", {
   shootproofConnectedAt: timestamp("shootproof_connected_at"),
   shootproofStudioId: text("shootproof_studio_id"),
   shootproofEmail: text("shootproof_email"),
+  // Native Gallery Storage Tracking
+  galleryStorageBytes: text("gallery_storage_bytes").default("0").notNull(), // Bytes used for native gallery storage (stored as text for bigint support)
+  galleryPlanId: varchar("gallery_plan_id"), // Current gallery subscription plan
   // Onboarding tracking
   onboardingVersion: integer("onboarding_version").default(1),
   onboardingCompletedAt: timestamp("onboarding_completed_at"),
@@ -2059,6 +2062,21 @@ export const galleryViews = pgTable("gallery_views", {
   viewedAtIdx: index("gallery_views_viewed_at_idx").on(table.viewedAt)
 }));
 
+// Gallery subscription plans
+export const galleryPlans = pgTable("gallery_plans", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  displayName: text("display_name").notNull(),
+  description: text("description"),
+  storageLimitBytes: text("storage_limit_bytes"),
+  priceMonthly: integer("price_monthly").notNull(),
+  stripePriceId: text("stripe_price_id"),
+  isActive: boolean("is_active").default(true).notNull(),
+  sortOrder: integer("sort_order").default(0).notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+
 // Relations
 export const galleriesRelations = relations(galleries, ({ one, many }) => ({
   project: one(projects, {
@@ -2127,6 +2145,12 @@ export const insertGalleryDownloadSchema = createInsertSchema(galleryDownloads).
   createdAt: true
 });
 
+export const insertGalleryPlanSchema = createInsertSchema(galleryPlans).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true
+});
+
 // Types
 export type Gallery = typeof galleries.$inferSelect;
 export type InsertGallery = z.infer<typeof insertGallerySchema>;
@@ -2136,6 +2160,8 @@ export type GalleryFavorite = typeof galleryFavorites.$inferSelect;
 export type InsertGalleryFavorite = z.infer<typeof insertGalleryFavoriteSchema>;
 export type GalleryDownload = typeof galleryDownloads.$inferSelect;
 export type InsertGalleryDownload = z.infer<typeof insertGalleryDownloadSchema>;
+export type GalleryPlan = typeof galleryPlans.$inferSelect;
+export type InsertGalleryPlan = z.infer<typeof insertGalleryPlanSchema>;
 
 // Extended types with relations
 export type GalleryWithImages = Gallery & {
