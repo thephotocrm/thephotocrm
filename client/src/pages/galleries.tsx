@@ -117,6 +117,10 @@ export default function Galleries() {
   // When project is selected, auto-fill gallery title
   const handleProjectChange = (projectId: string) => {
     setSelectedProjectId(projectId);
+    if (projectId === "STANDALONE") {
+      setGalleryTitle(""); // Clear title for standalone galleries
+      return;
+    }
     const project = projects.find(p => p.id === projectId);
     if (project) {
       setGalleryTitle(project.title || `${project.client?.firstName} ${project.client?.lastName} Gallery`);
@@ -135,7 +139,7 @@ export default function Galleries() {
     }
 
     createGalleryMutation.mutate({
-      projectId: selectedProjectId || null, // Allow null for standalone portfolio galleries
+      projectId: selectedProjectId === "STANDALONE" ? null : selectedProjectId || null, // Allow null for standalone portfolio galleries
       photographerId: user!.photographerId!,
       title: galleryTitle,
       status: "DRAFT",
@@ -518,7 +522,7 @@ export default function Galleries() {
                   <SelectValue placeholder="Select a project (optional)" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">None - Standalone Portfolio Gallery</SelectItem>
+                  <SelectItem value="STANDALONE">None - Standalone Portfolio Gallery</SelectItem>
                   {projects.map((project: any) => (
                     <SelectItem key={project.id} value={project.id}>
                       {project.title} - {project.client?.firstName} {project.client?.lastName}
