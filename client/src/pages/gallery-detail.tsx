@@ -156,10 +156,31 @@ export default function GalleryDetail() {
         uppy.use(Dashboard, {
           target: uppyDashboardRef.current,
           inline: true,
-          height: 400,
+          height: 450,
+          width: '100%',
           showProgressDetails: true,
-          note: 'Upload up to 10,000 images at once • Up to 100MB per file • Drag & drop supported',
+          note: 'Images only, up to 100MB per file',
           proudlyDisplayPoweredByUppy: false,
+          theme: 'auto',
+          fileManagerSelectionType: 'both',
+          showRemoveButtonAfterComplete: true,
+          showSelectedFiles: true,
+          locale: {
+            strings: {
+              dropPasteImportFiles: '%{browseFiles} or drag & drop up to 10,000 images here',
+              dropPasteFiles: 'Drop images here or %{browseFiles}',
+              browseFiles: 'click to browse',
+              uploadComplete: 'Upload complete!',
+              uploadingXFiles: {
+                0: 'Uploading %{smart_count} image',
+                1: 'Uploading %{smart_count} images',
+              },
+              xFilesSelected: {
+                0: '%{smart_count} image selected',
+                1: '%{smart_count} images selected',
+              },
+            },
+          },
         });
       }
     }, 100);
@@ -419,11 +440,14 @@ export default function GalleryDetail() {
           <TabsContent value="upload" className="flex-1 p-4 sm:p-6 mt-0">
             <div className="max-w-[1400px] mx-auto space-y-6">
               {/* Uppy Upload Dashboard - Chunked/Resumable Uploads */}
-              <Card>
+              <Card className="border-2 border-dashed hover:border-primary/50 transition-colors">
                 <CardHeader>
-                  <CardTitle>Upload Images</CardTitle>
+                  <CardTitle className="flex items-center gap-2">
+                    <Upload className="w-5 h-5 text-primary" />
+                    Upload Images
+                  </CardTitle>
                   <p className="text-sm text-muted-foreground mt-1">
-                    Drag & drop images or click to browse • Supports up to 10,000 files • Resumes if interrupted
+                    Drag & drop up to 10,000 images or click to browse • Individual files up to 100MB • Chunked & resumable uploads
                   </p>
                 </CardHeader>
                 <CardContent>
@@ -431,7 +455,7 @@ export default function GalleryDetail() {
                   <div 
                     ref={uppyDashboardRef} 
                     data-testid="uppy-dashboard"
-                    className="rounded-lg overflow-hidden"
+                    className="rounded-lg overflow-hidden border border-muted"
                   />
                 </CardContent>
               </Card>
