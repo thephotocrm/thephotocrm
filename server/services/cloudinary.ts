@@ -69,6 +69,39 @@ export async function deleteImageFromCloudinary(imageUrl: string): Promise<void>
 }
 
 /**
+ * Upload a file buffer to Cloudinary
+ * @param fileBuffer - File buffer to upload
+ * @param folder - Cloudinary folder path
+ * @param options - Additional Cloudinary upload options
+ * @returns Cloudinary upload result with URLs and metadata
+ */
+export async function uploadToCloudinary(
+  fileBuffer: Buffer,
+  folder: string,
+  options: Record<string, any> = {}
+): Promise<any> {
+  return new Promise((resolve, reject) => {
+    const uploadStream = cloudinary.uploader.upload_stream(
+      {
+        folder,
+        resource_type: 'auto',
+        ...options
+      },
+      (error, result) => {
+        if (error) {
+          console.error('Cloudinary upload error:', error);
+          reject(error);
+        } else {
+          resolve(result);
+        }
+      }
+    );
+
+    uploadStream.end(fileBuffer);
+  });
+}
+
+/**
  * Check if Cloudinary is properly configured
  */
 export function isCloudinaryConfigured(): boolean {

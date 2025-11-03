@@ -13,6 +13,7 @@ import { sendEmail, fetchIncomingGmailMessage } from "./services/email";
 import { sendSms } from "./services/sms";
 import { generateDripCampaign, regenerateEmail } from "./services/openai";
 import { uploadImageToCloudinary } from "./services/cloudinary";
+import { tusServer } from "./services/tus-upload";
 import { createPaymentIntent, createCheckoutSession, createConnectCheckoutSession, createConnectPaymentIntent, calculatePlatformFee, handleWebhook, stripe } from "./services/stripe";
 import { googleCalendarService, createBookingCalendarEvent } from "./services/calendar";
 import { slotGenerationService } from "./services/slotGeneration";
@@ -149,6 +150,37 @@ async function processGmailNotification(photographerId: string, emailAddress: st
 export async function registerRoutes(app: Express): Promise<Server> {
   // NOTE: SimpleTexting webhook routes are registered in server/index.ts BEFORE this function
   // to ensure proper body parsing middleware is available
+  
+  // TUS Resumable Upload Server for Gallery Images
+  // Handles chunked uploads with resume capability
+  app.all("/api/galleries/:galleryId/upload/tus/*", authenticateToken, requirePhotographer, requireActiveSubscription, requireGalleryPlan, async (req, res) => {
+    // Verify gallery ownership
+    const { galleryId } = req.params;
+    const photographerId = req.user!.photographerId!;
+    
+    try {
+      const gallery = await storage.getGallery(galleryId);
+      
+      if (!gallery) {
+        return res.status(404).json({ message: "Gallery not found" });
+      }
+      
+      if (gallery.photographerId !== photographerId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      // Inject gallery and photographer metadata into the request for TUS server
+      // The TUS server will extract these from upload metadata
+      req.headers["x-gallery-id"] = galleryId;
+      req.headers["x-photographer-id"] = photographerId;
+      
+      // Forward to TUS server
+      tusServer.handle(req, res);
+    } catch (error) {
+      console.error("TUS upload error:", error);
+      res.status(500).json({ message: "Upload server error" });
+    }
+  });
   
   // Gmail push notification webhook (uses processGmailNotification function above)
   app.post("/webhooks/gmail/push", async (req, res) => {
@@ -9021,6 +9053,79 @@ ${photographer.businessName}`
   });
 
   // Image Upload & Management (Photographer)
+
+  // POST /api/galleries/:id/images/finalize - Finalize TUS upload and create database record
+  // Used by Uppy after successful Cloudinary upload
+  app.post("/api/galleries/:id/images/finalize", authenticateToken, requirePhotographer, requireActiveSubscription, requireGalleryPlan, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const photographerId = req.user!.photographerId!;
+
+      const gallery = await storage.getGallery(id);
+      
+      if (!gallery) {
+        return res.status(404).json({ message: "Gallery not found" });
+      }
+
+      if (gallery.photographerId !== photographerId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      // Extract Cloudinary metadata from request
+      const {
+        originalUrl,
+        webUrl,
+        thumbnailUrl,
+        cloudinaryPublicId,
+        cloudinaryFolder,
+        format,
+        width,
+        height,
+        fileSize
+      } = req.body;
+
+      if (!originalUrl || !cloudinaryPublicId) {
+        return res.status(400).json({ 
+          message: "Missing required Cloudinary metadata" 
+        });
+      }
+
+      // Check storage quota
+      const quotaCheck = await storage.checkStorageQuota(photographerId, fileSize || 0);
+      if (!quotaCheck.allowed) {
+        return res.status(402).json({ 
+          message: "Storage quota exceeded", 
+          reason: quotaCheck.reason,
+          upgradeRequired: true
+        });
+      }
+
+      // Create gallery image record
+      const imageData = {
+        galleryId: id,
+        photographerId,
+        originalUrl,
+        webUrl,
+        thumbnailUrl,
+        cloudinaryPublicId,
+        cloudinaryFolder,
+        format,
+        width,
+        height,
+        fileSize
+      };
+
+      const image = await storage.createGalleryImage(imageData);
+      
+      res.status(201).json(image);
+    } catch (error: any) {
+      console.error('Failed to finalize upload:', error);
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ message: "Invalid image data", details: error.errors });
+      }
+      res.status(500).json({ message: "Failed to finalize upload" });
+    }
+  });
 
   // POST /api/galleries/:id/images - Add image to gallery
   app.post("/api/galleries/:id/images", authenticateToken, requirePhotographer, requireActiveSubscription, requireGalleryPlan, async (req, res) => {
