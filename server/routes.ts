@@ -8894,7 +8894,7 @@ ${photographer.businessName}`
     }
   });
 
-  // DELETE /api/galleries/:id - Delete gallery
+  // DELETE /api/galleries/:id - Delete gallery (soft delete)
   app.delete("/api/galleries/:id", authenticateToken, requirePhotographer, requireActiveSubscription, requireGalleryPlan, async (req, res) => {
     try {
       const { id } = req.params;
@@ -8911,10 +8911,44 @@ ${photographer.businessName}`
       }
 
       await storage.deleteGallery(id);
-      res.json({ message: "Gallery deleted successfully" });
+      res.json({ message: "Gallery moved to trash" });
     } catch (error) {
       console.error('Failed to delete gallery:', error);
       res.status(500).json({ message: "Failed to delete gallery" });
+    }
+  });
+
+  // GET /api/galleries/trash - Get deleted galleries
+  app.get("/api/galleries-trash", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
+    try {
+      const photographerId = req.user!.photographerId!;
+      const deletedGalleries = await storage.getDeletedGalleries(photographerId);
+      res.json(deletedGalleries);
+    } catch (error) {
+      console.error('Failed to get deleted galleries:', error);
+      res.status(500).json({ message: "Failed to get deleted galleries" });
+    }
+  });
+
+  // POST /api/galleries/:id/restore - Restore deleted gallery
+  app.post("/api/galleries/:id/restore", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const photographerId = req.user!.photographerId!;
+
+      // Get the deleted gallery to verify ownership
+      const deletedGalleries = await storage.getDeletedGalleries(photographerId);
+      const gallery = deletedGalleries.find(g => g.id === id);
+      
+      if (!gallery) {
+        return res.status(404).json({ message: "Deleted gallery not found" });
+      }
+
+      await storage.restoreGallery(id);
+      res.json({ message: "Gallery restored successfully" });
+    } catch (error) {
+      console.error('Failed to restore gallery:', error);
+      res.status(500).json({ message: "Failed to restore gallery" });
     }
   });
 

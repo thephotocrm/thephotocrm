@@ -9,7 +9,8 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Images, Plus, Search, Eye, Calendar, Globe, Lock } from "lucide-react";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Images, Plus, Search, Eye, Calendar, Globe, Lock, Trash2, RotateCcw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { format } from "date-fns";
@@ -22,12 +23,19 @@ export default function Galleries() {
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [selectedProjectId, setSelectedProjectId] = useState("");
   const [galleryTitle, setGalleryTitle] = useState("");
+  const [activeTab, setActiveTab] = useState<string>("active");
   const { toast } = useToast();
 
-  // Fetch galleries
+  // Fetch active galleries
   const { data: galleries = [], isLoading } = useQuery<any[]>({
     queryKey: ["/api/galleries"],
-    enabled: !!user
+    enabled: !!user && activeTab === "active"
+  });
+
+  // Fetch deleted galleries (trash)
+  const { data: deletedGalleries = [], isLoading: isLoadingTrash } = useQuery<any[]>({
+    queryKey: ["/api/galleries-trash"],
+    enabled: !!user && activeTab === "trash"
   });
 
   // Fetch projects for gallery creation
@@ -78,6 +86,28 @@ export default function Galleries() {
       toast({
         title: "Error",
         description: error.message || "Failed to update privacy",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Restore deleted gallery
+  const restoreGalleryMutation = useMutation({
+    mutationFn: async (galleryId: string) => {
+      return apiRequest("POST", `/api/galleries/${galleryId}/restore`, {});
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/galleries"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/galleries-trash"] });
+      toast({
+        title: "Success",
+        description: "Gallery restored successfully",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to restore gallery",
         variant: "destructive",
       });
     },
@@ -181,7 +211,23 @@ export default function Galleries() {
       {/* Gallery Grid */}
       <div className="flex-1 p-4 sm:p-6 overflow-auto">
         <div className="max-w-[1400px] mx-auto">
-          {filteredGalleries.length === 0 ? (
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="mb-6">
+              <TabsTrigger value="active" data-testid="tab-active-galleries">
+                <Images className="w-4 h-4 mr-2" />
+                Active Galleries
+              </TabsTrigger>
+              <TabsTrigger value="trash" data-testid="tab-trash-galleries">
+                <Trash2 className="w-4 h-4 mr-2" />
+                Trash
+              </TabsTrigger>
+            </TabsList>
+
+            {/* Active Galleries Tab */}
+            <TabsContent value="active">
+              {isLoading ? (
+                <div className="text-center py-12">Loading galleries...</div>
+              ) : filteredGalleries.length === 0 ? (
             <Card className="max-w-md mx-auto mt-12">
               <CardContent className="py-12">
                 <div className="text-center">
@@ -322,6 +368,110 @@ export default function Galleries() {
               </div>
             </>
           )}
+            </TabsContent>
+
+            {/* Trash Tab */}
+            <TabsContent value="trash">
+              {isLoadingTrash ? (
+                <div className="text-center py-12">Loading deleted galleries...</div>
+              ) : deletedGalleries.length === 0 ? (
+                <Card className="max-w-md mx-auto mt-12">
+                  <CardContent className="py-12">
+                    <div className="text-center">
+                      <Trash2 className="w-12 h-12 mx-auto text-muted-foreground mb-3" />
+                      <h3 className="text-lg font-semibold mb-2">Trash is empty</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Deleted galleries will appear here with a 30-day recovery window
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              ) : (
+                <>
+                  <div className="mb-4 text-sm text-muted-foreground">
+                    {deletedGalleries.length} {deletedGalleries.length === 1 ? 'gallery' : 'galleries'} in trash
+                  </div>
+                  
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                    {deletedGalleries.map((gallery: any) => (
+                      <Card 
+                        key={gallery.id}
+                        className="hover:shadow-lg transition-all duration-300 opacity-75"
+                        data-testid={`deleted-gallery-card-${gallery.id}`}
+                      >
+                        {/* Cover Image */}
+                        <div className="relative h-48 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 overflow-hidden">
+                          {gallery.coverImage?.thumbnailUrl ? (
+                            <img 
+                              src={gallery.coverImage.thumbnailUrl}
+                              alt={gallery.title}
+                              className="w-full h-full object-cover opacity-60"
+                            />
+                          ) : gallery.images && gallery.images[0]?.thumbnailUrl ? (
+                            <img 
+                              src={gallery.images[0].thumbnailUrl}
+                              alt={gallery.title}
+                              className="w-full h-full object-cover opacity-60"
+                            />
+                          ) : (
+                            <div className="flex items-center justify-center h-full">
+                              <Images className="w-12 h-12 text-gray-400 opacity-50" />
+                            </div>
+                          )}
+                          
+                          {/* Deleted Badge */}
+                          <div className="absolute top-2 right-2">
+                            <Badge variant="destructive">
+                              <Trash2 className="w-3 h-3 mr-1" />
+                              Deleted
+                            </Badge>
+                          </div>
+                        </div>
+
+                        {/* Gallery Info */}
+                        <CardContent className="p-4">
+                          <h3 className="font-semibold text-lg mb-1 truncate" data-testid={`text-deleted-gallery-title-${gallery.id}`}>
+                            {gallery.title}
+                          </h3>
+                          
+                          <p className="text-sm text-muted-foreground mb-3">
+                            {gallery.project?.client?.firstName} {gallery.project?.client?.lastName}
+                          </p>
+
+                          <div className="flex items-center gap-4 text-xs text-muted-foreground mb-3">
+                            <div className="flex items-center gap-1">
+                              <Images className="w-3 h-3" />
+                              <span>
+                                {gallery.imageCount || 0} images
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Trash2 className="w-3 h-3" />
+                              <span>
+                                {format(new Date(gallery.deletedAt), 'MMM d, yyyy')}
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Restore Button */}
+                          <Button
+                            onClick={() => restoreGalleryMutation.mutate(gallery.id)}
+                            disabled={restoreGalleryMutation.isPending}
+                            className="w-full"
+                            variant="outline"
+                            data-testid={`button-restore-gallery-${gallery.id}`}
+                          >
+                            <RotateCcw className="w-4 h-4 mr-2" />
+                            {restoreGalleryMutation.isPending ? "Restoring..." : "Restore Gallery"}
+                          </Button>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </>
+              )}
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
 
