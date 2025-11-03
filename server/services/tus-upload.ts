@@ -24,7 +24,7 @@ ensureUploadDir();
 
 // Create TUS server instance
 export const tusServer = new Server({
-  path: "/api/galleries",
+  path: "/upload/tus",
   datastore: new FileStore({ directory: tusDataDir }),
   // Limit upload size to 100MB per file
   maxSize: 100 * 1024 * 1024,

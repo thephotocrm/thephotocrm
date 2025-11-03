@@ -192,6 +192,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Handler function for TUS requests
   const handleTusUpload = async (req: any, res: any) => {
     console.log('[TUS Handler] Starting upload handler');
+    console.log('[TUS Handler] Original URL:', req.url);
     console.log('[TUS Handler] req.user:', req.user);
     console.log('[TUS Handler] req.params:', req.params);
     
@@ -225,7 +226,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       req.headers["x-gallery-id"] = galleryId;
       req.headers["x-photographer-id"] = photographerId;
       
+      // Rewrite the URL for TUS server to match its configured path
+      // From: /api/galleries/:galleryId/upload/tus[/:uploadId]
+      // To: /upload/tus[/:uploadId]
+      const originalUrl = req.url;
+      const tusPath = originalUrl.replace(`/api/galleries/${galleryId}`, '');
+      req.url = tusPath;
+      
+      console.log('[TUS Handler] Rewritten URL:', req.url);
       console.log('[TUS Handler] Forwarding to TUS server');
+      
       // Forward to TUS server
       tusServer.handle(req, res);
     } catch (error) {
