@@ -1934,7 +1934,7 @@ export const galleryStatusEnum = {
 // Native galleries (replaces third-party integrations)
 export const galleries = pgTable("galleries", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  projectId: varchar("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
+  projectId: varchar("project_id").references(() => projects.id, { onDelete: "cascade" }), // Nullable for standalone portfolio galleries
   photographerId: varchar("photographer_id").notNull().references(() => photographers.id),
   title: text("title").notNull(),
   description: text("description"),
