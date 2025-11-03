@@ -1,28 +1,6 @@
 import { useState } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { useAuth } from "@/hooks/use-auth";
-import { useLocation } from "wouter";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Images, Plus, Search, Eye, Calendar, Globe, Lock } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import { queryClient, apiRequest } from "@/lib/queryClient";
-import { format } from "date-fns";
-
-export default function Galleries() {
-  const { user } = useAuth();
-  const [, setLocation] = useLocation();
-  const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("ALL");
-  const [createModalOpen, setCreateModalOpen] = useState(false);
-  const [selectedProjectId, setSelectedProjectId] = useState("");
-  const [galleryTitle, setGalleryTitle] = useState("");
-  const { toast } = useToast();
+import { useQuery, useMutation } from "@antml:invoke name="$FUNCTION_NAME">
+<parameter name="$PARAMETER_NAME">$PARAMETER_VALUE
 
   // Fetch galleries
   const { data: galleries = [], isLoading } = useQuery<any[]>({
