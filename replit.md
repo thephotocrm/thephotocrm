@@ -1,5 +1,5 @@
 ### Overview
-thePhotoCrm is a comprehensive multi-tenant CRM system for wedding photographers. It streamlines workflows from inquiry to project completion by offering contact pipeline management, automated communication, a Smart Files proposal/invoice builder, payment processing, and scheduling. The project aims to provide a production-ready MVP that significantly enhances efficiency for photographers, with ambitions for substantial growth in the photography industry.
+thePhotoCrm is a comprehensive multi-tenant CRM system designed for wedding photographers. It aims to streamline workflows from initial inquiry to project completion by offering contact pipeline management, automated communication, a Smart Files proposal/invoice builder, payment processing, and scheduling. The project's goal is to deliver a production-ready MVP that significantly enhances efficiency for photographers, with strong potential for growth within the photography industry.
 
 ### User Preferences
 Preferred communication style: Simple, everyday language.
@@ -7,56 +7,51 @@ Preferred communication style: Simple, everyday language.
 ### System Architecture
 
 **UI/UX Decisions:**
-*   **Dashboard:** HoneyBook-style widget-based layout with stat cards, quick actions, recent projects, upcoming appointments, and payments overview.
+*   **Dashboard:** Widget-based layout with stat cards, quick actions, and overviews of recent projects, appointments, and payments.
 *   **Projects Page:** Horizontal stage pipeline with table view, filtering, search, and customization.
-*   **Automations UI:** Professional, modern design with enhanced visual hierarchy, color-coded badges, and a timeline-style display.
-*   **Navigation:** Phase-based collapsible sidebar navigation optimized for photographer workflow with five main sections:
-    - **Work** (daily operations): Dashboard, Projects, Contacts, Inbox, Scheduling
-    - **Client Delivery** (fulfillment phase): Galleries, Smart Files, Packages, Add-ons  
-    - **Marketing** (engagement): Automations, Drip Campaigns, Templates, Email Branding, Lead Forms
-    - **Get Leads** (advertising platform with gold theme): Lead Hub, Revenue Estimator, How It Works, Ad Platforms - styled with black backgrounds, gold borders, gold icons, and white text
-    - **Business Tools** (admin): Reports, Earnings, Tutorials, Settings
-*   **Project Detail Page:** HoneyBook-style design with a hero section, participant bar, action buttons, tabbed content area (Activity, Files, Tasks, Financials, Notes, Details), and a right sidebar ("About Project"). Includes a timeline/activity feed.
+*   **Automations UI:** Professional and modern design featuring enhanced visual hierarchy, color-coded badges, and a timeline display.
+*   **Navigation:** Phase-based collapsible sidebar navigation structured into five main sections: Work, Client Delivery, Marketing, Get Leads (gold theme), and Business Tools.
+*   **Project Detail Page:** Hero section, participant bar, action buttons, tabbed content (Activity, Files, Tasks, Financials, Notes, Details), and a right sidebar ("About Project") including a timeline/activity feed.
 *   **Frontend Technologies:** React with Vite, Wouter for routing, Shadcn/ui (Radix UI-based) for components, and Tailwind CSS for styling.
 
 **Technical Implementations:**
-*   **Multi-Tenant Architecture:** Ensures strict data isolation for each photographer.
-*   **Static Email Marketing Platform:** Drip campaign system with pre-written templates, 3-phase timing, and support for various project types and visual themes. **Visual Email Builder:** Integrated block-based email editor for drip campaigns with drag-to-reorder blocks (Heading, Text, Button, Image, Spacer), real-time preview, time-of-day scheduling (0-23 hours), and safe draft creation from templates. Supports editing static templates via auto-draft conversion, preserving all builder metadata (`emailBlocks`, `useEmailBuilder`, `sendAtHour`). Draft campaigns remain in DRAFT status until explicitly activated, preventing accidental email sends. **Clean Email Blocks Implementation:** All 6 static campaign types (Wedding, Portrait, Commercial, Engagement, Maternity, Family) now use the `createSimpleEmailBlocks()` helper to generate clean, beautiful, immediately-editable email blocks. Each campaign's emails are pre-populated with handcrafted HEADING/SPACER/TEXT/BUTTON blocks that capture the campaign's themes and helpful tips, eliminating the need for HTML parsing and providing a superior user experience with ready-to-edit content.
-*   **Automation System:** Event-driven engine using `node-cron` for scheduled tasks, supporting stage-based triggers, dynamic content, and multi-channel delivery (email, SMS, Smart Files). Includes internal URL shortening with click tracking. Scheduling logic respects `sendAtHour` field for precise email timing with while-loop prevention of premature sends. **Direct Email Block Storage:** Automations now store email content directly (`emailBlocks`, `emailSubject`, header/signature settings) instead of creating separate template records, matching the drip campaign pattern. This simplifies the data model and eliminates template validation issues during automation creation.
-*   **Two-Way SMS Communication:** Integrates Twilio for sending and receiving SMS/MMS, including a two-way relay and message logging. **MMS Image Support:** Complete image messaging infrastructure with client-side compression (reduces images to <500KB), Cloudinary CDN hosting, and automatic cleanup on send failures. System handles both base64 and pre-hosted image URLs with robust error handling and retry capabilities.
-*   **Payment Processing & Stripe Connect:** Requires Stripe Connect Express accounts, supporting configurable platform fees and webhook integration.
-*   **Smart Files System:** Drag-and-drop invoice/proposal builder with a template system and 7 page types (Text, Package Selection, Add-ons, Contract, Payment, Form, Scheduling). Features include project integration, public client view, status tracking, and integrated Stripe Connect checkout. **Scheduling Confirmation:** One booking per Smart File scheduling block - once an appointment is booked, the calendar is replaced with a confirmation view showing date, time, photographer photo, and status (CONFIRMED/CANCELLED). Both client-side and server-side protections prevent duplicate bookings, even with rapid double-clicks. Loading skeleton ensures calendar never renders before checking for existing bookings. **Editable Selections with Re-signing:** Clients can edit package/add-on selections after acceptance via "Edit Selections" button (visible when status is ACCEPTED or DEPOSIT_PAID). Editing clears client signature, resets status to VIEWED, and requires contract re-signing. Complete activity logging tracks before/after selection changes for package-only, add-on-only, and mixed scenarios. Re-signing banner persists across page refreshes using backend state. **Contract-Only Smart Files:** Package selection is now conditional - only required when Smart File contains PACKAGE page types. Supports contract-only workflows without packages, with proper $0 payment handling and auto-accept logic.
-*   **Contract & E-Signature System:** Honeybook-style contract generation with dual signature capture, dynamic templates, and HTML5 canvas-based signature.
-*   **Global Packages & Add-ons System:** Centralized management with photographer ownership for global updates.
-*   **Google Integration:** Comprehensive Google Workspace integration via single OAuth for Calendar, Meet, and Gmail API for email sending and reply capture.
-*   **Marketing Landing Page & Subscription System:** Conversion-optimized landing page with founder pricing, free trial, demo booking, and subscription enforcement.
+*   **Multi-Tenant Architecture:** Ensures strict data isolation per photographer.
+*   **Static Email Marketing Platform:** Drip campaign system with pre-written templates, 3-phase timing, and a block-based visual email builder supporting drag-to-reorder blocks, real-time preview, time-of-day scheduling, and safe draft creation.
+*   **Automation System:** Event-driven engine using `node-cron` for scheduled tasks, supporting stage-based triggers, dynamic content, multi-channel delivery (email, SMS, Smart Files), and internal URL shortening with click tracking. Email content is stored directly within automations.
+*   **Two-Way SMS Communication:** Integrates Twilio for SMS/MMS, including a two-way relay, message logging, and MMS image support with client-side compression and Cloudinary hosting.
+*   **Payment Processing & Stripe Connect:** Supports configurable platform fees and webhook integration via Stripe Connect Express accounts.
+*   **Smart Files System:** Drag-and-drop invoice/proposal builder with templates and 7 page types. Features include project integration, public client view, status tracking, integrated Stripe checkout, single-booking scheduling confirmation, and editable selections with required re-signing. Supports contract-only Smart Files.
+*   **Contract & E-Signature System:** Honeybook-style contract generation with dual signature capture and dynamic templates.
+*   **Global Packages & Add-ons System:** Centralized management of offerings.
+*   **Google Integration:** Comprehensive OAuth integration for Calendar, Meet, and Gmail API for email sending and reply capture.
+*   **Marketing Landing Page & Subscription System:** Conversion-optimized landing page with subscription enforcement, free trial, and demo booking.
 *   **Multi-Form Lead Capture System:** Flexible lead generation with customizable forms, embed codes, custom fields, and client deduplication.
-*   **Authentication & Authorization:** Three-tier role system (PHOTOGRAPHER, CLIENT, ADMIN) with stateless JWT authentication and role-based middleware. **Google OAuth Integration:** Full Google Sign-In support with hybrid authentication architecture - OAuth for identity verification, JWT for session management. Features CSRF protection via signed cookies, email verification enforcement, secure account linking, and auto-creation of photographer accounts. Photographers can sign up or log in using either Google OAuth or traditional email/password authentication.
+*   **Authentication & Authorization:** Three-tier role system (PHOTOGRAPHER, CLIENT, ADMIN) with stateless JWT authentication, role-based middleware, and Google OAuth integration with hybrid authentication.
 *   **Super Admin Dashboard:** Manages photographers, subscriptions, account impersonation, and activity logging.
-*   **Premium Features System:** Implements `hasPremiumAccess` for subscription management. Note: "Get Leads" section is NOT behind a paywall - all photographers have access to advertising features.
-*   **Managed Advertising Platform:** White-label advertising service for Google Ads and Facebook campaigns, with tiered pricing where platform fee is taken FROM the photographer's budget (not added on top): 40% fee under $2k/month, 30% for $2k-$5k, 20% for $5k-$10k, capped at $1,500 for $10k+ budgets. Includes budget slider, lead estimates, and campaign status tracking. **Revenue Model:** Platform takes a percentage of the photographer's total budget, with more going to actual ad spend as they scale.
-*   **Lead Management System:** Three-part system including a Revenue Estimator (with estimated revenue calculator showing potential earnings at $1,500/lead with 50% close rate, marked as industry average), Lead Hub dashboard, and an educational "How It Works" page.
-*   **Tutorials System:** Comprehensive video tutorial library with setup guides, feature deep-dives, and complete workflow explanations.
-*   **AI Chatbot for Client Support:** Intelligent chatbot assistant powered by OpenAI GPT-5 for client support, appearing as a responsive floating widget on authenticated and public pages. Provides accurate navigation guidance, context-aware responses, and conversation history.
-*   **AI Automation Builder:** Conversational chat interface using OpenAI GPT-4o-mini for natural language automation creation. Supports sequential building of multiple automations, time-based scheduling, and generates friendly names and descriptions. Integrates personalized placeholders and Smart File support.
-*   **Photographer Settings with Personalization:** Allows configuration of photographer and business names for personalizing automated messages.
-*   **Manual Smart File Sending:** Enables instant sending of Smart Files from the project detail page via email or SMS with template selection.
-*   **Email Branding System:** Professional email headers and signatures with 4 header styles (minimal, professional, bold, classic) and 4 signature styles (simple, professional, detailed, branded). Photographers can customize contact information, business address, website, and social media links. **File Upload Support:** Logo and headshot images can be uploaded directly (stored in `attached_assets/logos` and `attached_assets/headshots`), with automatic conversion to absolute URLs using REPLIT_DEV_DOMAIN for email compatibility. **Social Media Icons:** Uses Clearbit Logo API for PNG brand logos (Facebook, Instagram, X/Twitter, LinkedIn) that render correctly in all major email clients including Gmail and Outlook. Branding is automatically applied to all outgoing emails via both Gmail and SendGrid, with branded versions stored in email history for accurate audit trails.
-*   **Gallery Integration & Auto-Creation System:** Comprehensive gallery automation with OAuth integration for Google Drive and ShootProof. **Google Drive**: Uses OAuth 2.0 with read-write scope, creates folders with restricted read-only client permissions. **ShootProof**: Public client OAuth flow (no client_secret) using Studio API v3 with vendor-specific headers (`application/vnd.shootproof+json`). Integration fetches studio info from `/studio/me`, extracts brand ID, and creates events via `/studio/brand/{brandId}/event`. Supports refresh token rotation and automatic token expiry management. Features automatic gallery creation when clients pay deposits, photographers can manually create galleries, add custom gallery links, mark galleries ready, and trigger GALLERY_SHARED automations for client notifications. Includes Gallery tab on project detail page, dedicated Galleries management page listing all active and ready-for-gallery projects, and Gallery Integration section in settings for platform connection management.
-*   **Onboarding System:** Multi-step wizard guiding new photographers through essential setup (Profile → Branding → Google → Stripe → First Project). Features persistent banner showing progress, auto-detection of completed steps, celebration screen with confetti, and two-way sync with Settings page. Modal appears on first login, banner persists until completion or dismissal. Database tracks onboarding version, completion timestamp, and dismissal state.
-*   **Magic Link Portal System:** Passwordless client authentication system enabling one-click project access via email links. Features crypto-grade secure token generation (crypto.randomBytes), 90-day token expiration, automatic CLIENT user creation with bcrypt-hashed credentials, and HttpOnly cookie authentication. Photographers can enable portal links per-project via includePortalLinks toggle; when enabled, all outgoing emails automatically include magic link footer. Public /portal/:token route validates tokens, auto-creates/authenticates clients, and redirects to project view. Database stores portal tokens with project, client, and photographer associations.
+*   **Premium Features System:** Implements `hasPremiumAccess` for subscription management, with advertising features universally accessible.
+*   **Managed Advertising Platform:** White-label service for Google Ads and Facebook campaigns with tiered pricing based on photographer budget, including budget sliders and lead estimates.
+*   **Lead Management System:** Includes a Revenue Estimator, Lead Hub dashboard, and an educational "How It Works" page.
+*   **Tutorials System:** Video tutorial library covering setup, features, and workflows.
+*   **AI Chatbot for Client Support:** OpenAI GPT-5 powered chatbot for navigation and context-aware support.
+*   **AI Automation Builder:** Conversational chat interface using OpenAI GPT-4o-mini for natural language automation creation.
+*   **Photographer Settings with Personalization:** Allows configuration of photographer and business names for automated message personalization.
+*   **Manual Smart File Sending:** Enables instant Smart File delivery via email or SMS from project details.
+*   **Email Branding System:** Professional email headers and signatures with customizable styles, contact info, and support for logo/headshot uploads and social media icons (via Clearbit Logo API).
+*   **Native Gallery System:** Integrated photo gallery platform using Cloudinary for CDN, featuring drag-and-drop uploads, reordering, captions, watermarks, privacy settings, client favorites, view tracking, and a REST API. Supports public and private galleries and integrates with project workflows.
+*   **Onboarding System:** Multi-step wizard for new photographers (Profile, Branding, Google, Stripe, First Project) with persistent progress tracking and celebratory completion.
+*   **Magic Link Portal System:** Passwordless client authentication for one-click project access via secure, time-limited email links.
 *   **Terminology Refactor:** System-wide change from "Clients" to "Contacts."
 
 **System Design Choices:**
-*   **Backend:** Node.js with Express.js. Drizzle ORM for PostgreSQL. JWT tokens in httpOnly cookies, bcrypt for password hashing. RESTful API with role-based access control.
-*   **Database Design:** Centered around a photographer-tenant model, with key entities like Photographers, Users, Contacts, Stages, Templates, Automations, Smart Files, Packages, and Add-ons.
+*   **Backend:** Node.js with Express.js, Drizzle ORM for PostgreSQL, JWT tokens in httpOnly cookies, bcrypt for password hashing, and RESTful API with role-based access control.
+*   **Database Design:** Photographer-tenant model with key entities including Photographers, Users, Contacts, Stages, Templates, Automations, Smart Files, Packages, and Add-ons.
 
 ### External Dependencies
 
 **Communication Services:**
 *   **Gmail API:** For direct email sending and conversation tracking.
 *   **Twilio:** For SMS/MMS messaging and two-way client communication.
-*   **Cloudinary:** CDN hosting for MMS image uploads (25GB free tier).
+*   **Cloudinary:** CDN hosting for MMS image uploads and native gallery images.
 
 **Payment Processing:**
 *   **Stripe:** For payment infrastructure and Stripe Connect.
@@ -68,10 +63,8 @@ Preferred communication style: Simple, everyday language.
 **Development & Deployment:**
 *   **Replit:** Development environment and deployment.
 *   **Vite:** Frontend build tool.
-*   **TypeScript:** For type safety.
 
 **UI & Design System:**
 *   **Radix UI:** Unstyled, accessible component primitives.
 *   **Tailwind CSS:** Utility-first CSS framework.
 *   **Lucide React:** Icon library.
-*   **Class Variance Authority:** Type-safe component variant management.
