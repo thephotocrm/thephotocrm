@@ -63,20 +63,7 @@ export default function GalleryDetail() {
   useEffect(() => {
     if (!galleryId || !user) return;
 
-    // Helper to get auth token from cookies
-    const getAuthToken = () => {
-      const cookies = document.cookie.split(';');
-      for (let cookie of cookies) {
-        const [name, value] = cookie.trim().split('=');
-        if (name === 'token') {
-          return value;
-        }
-      }
-      return null;
-    };
-
-    const token = getAuthToken();
-    console.log('[Upload] Auth token found:', !!token);
+    console.log('[Upload] Initializing Uppy with cookie authentication');
 
     const uppy = new Uppy({
       id: `gallery-${galleryId}`,
@@ -92,10 +79,7 @@ export default function GalleryDetail() {
         fieldName: 'file',
         formData: true,
         limit: 3, // 3 parallel uploads
-        withCredentials: true,
-        headers: token ? {
-          'Authorization': `Bearer ${token}`
-        } : {},
+        withCredentials: true, // This will send cookies automatically
       })
       .on('file-added', (file) => {
         console.log('[Upload] File added:', file.name);

@@ -778,7 +778,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.cookie('token', token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
+        sameSite: 'lax',
         maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
       });
 
@@ -948,7 +948,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.cookie('token', result.token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
+        sameSite: 'lax',
         maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
       });
 
@@ -1138,7 +1138,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.cookie('token', token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
+        sameSite: 'lax',
         maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
       });
 
@@ -1196,7 +1196,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.cookie('token', authToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
+        sameSite: 'lax',
         maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
       });
 
@@ -1312,7 +1312,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.cookie('token', jwtToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
+        sameSite: 'lax',
         maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
       });
 
@@ -1590,7 +1590,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.cookie('token', impersonationToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
+        sameSite: 'lax',
         maxAge: 2 * 60 * 60 * 1000 // 2 hours for impersonation
       });
 
@@ -1641,7 +1641,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.cookie('token', adminToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
+        sameSite: 'lax',
         maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
       });
 
