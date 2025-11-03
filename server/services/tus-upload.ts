@@ -34,13 +34,20 @@ export const tusServer = new Server({
   respectForwardedHeaders: true,
   // Callbacks for upload lifecycle
   async onUploadCreate(req, res, upload) {
-    console.log("[TUS] Upload created:", upload.id);
-    
-    // Extract metadata from upload
-    const metadata = upload.metadata || {};
-    console.log("[TUS] Upload metadata:", metadata);
-    
-    return res;
+    try {
+      console.log("[TUS] onUploadCreate called");
+      console.log("[TUS] upload object:", upload);
+      console.log("[TUS] Upload created:", upload?.id);
+      
+      // Extract metadata from upload
+      const metadata = upload?.metadata || {};
+      console.log("[TUS] Upload metadata:", metadata);
+      
+      return res;
+    } catch (error) {
+      console.error("[TUS] Error in onUploadCreate:", error);
+      throw error;
+    }
   },
   async onUploadFinish(req, res, upload) {
     console.log("[TUS] Upload finished:", upload.id);
