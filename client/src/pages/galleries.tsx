@@ -1,158 +1,158 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
-import { useLocation, Link } from "wouter";
+import { useLocation } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Images, ExternalLink, Search, Settings, Calendar, Globe, Lock, Link as LinkIcon } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Images, Plus, Search, Eye, Calendar, Globe, Lock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
+import { format } from "date-fns";
 
 export default function Galleries() {
-  const { user, loading } = useAuth();
+  const { user } = useAuth();
   const [, setLocation] = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("ALL");
+  const [createModalOpen, setCreateModalOpen] = useState(false);
+  const [selectedProjectId, setSelectedProjectId] = useState("");
+  const [galleryTitle, setGalleryTitle] = useState("");
   const { toast } = useToast();
 
-  const { data: projects, isLoading } = useQuery<any[]>({
+  // Fetch galleries
+  const { data: galleries = [], isLoading } = useQuery<any[]>({
+    queryKey: ["/api/galleries"],
+    enabled: !!user
+  });
+
+  // Fetch projects for gallery creation
+  const { data: projects = [] } = useQuery<any[]>({
     queryKey: ["/api/projects"],
-    enabled: !!user
+    enabled: createModalOpen && !!user
   });
 
-  const { data: photographer } = useQuery<any>({
-    queryKey: ["/api/photographer"],
-    enabled: !!user
-  });
-
-  // Mutation to toggle gallery visibility
-  const toggleVisibilityMutation = useMutation({
-    mutationFn: async ({ projectId, isPublic }: { projectId: string; isPublic: boolean }) => {
-      return apiRequest("PATCH", `/api/projects/${projectId}/gallery/visibility`, { isPublic });
+  // Create gallery mutation
+  const createGalleryMutation = useMutation({
+    mutationFn: async (data: any) => {
+      return apiRequest("POST", "/api/galleries", data);
     },
-    onSuccess: (data, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/galleries"] });
       toast({
         title: "Success",
-        description: data.message || `Gallery marked as ${variables.isPublic ? 'public' : 'private'}`,
+        description: "Gallery created successfully",
+      });
+      setCreateModalOpen(false);
+      setSelectedProjectId("");
+      setGalleryTitle("");
+      // Navigate to gallery detail for upload
+      setLocation(`/galleries/${data.id}`);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to create gallery",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Toggle public/private
+  const togglePrivacyMutation = useMutation({
+    mutationFn: async ({ galleryId, isPublic }: { galleryId: string; isPublic: boolean }) => {
+      return apiRequest("PUT", `/api/galleries/${galleryId}`, { isPublic });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/galleries"] });
+      toast({
+        title: "Success",
+        description: "Privacy setting updated",
       });
     },
     onError: (error: any) => {
       toast({
         title: "Error",
-        description: error.message || "Failed to update gallery visibility",
+        description: error.message || "Failed to update privacy",
         variant: "destructive",
       });
     },
   });
 
-  // Handle unauthorized access in useEffect to avoid render-time state updates
-  useEffect(() => {
-    if (!loading && (!user || user.role !== "PHOTOGRAPHER")) {
-      setLocation("/");
+  // When project is selected, auto-fill gallery title
+  const handleProjectChange = (projectId: string) => {
+    setSelectedProjectId(projectId);
+    const project = projects.find(p => p.id === projectId);
+    if (project) {
+      setGalleryTitle(project.title || `${project.client?.firstName} ${project.client?.lastName} Gallery`);
     }
-  }, [user, loading, setLocation]);
+  };
 
-  if (loading) {
-    return <div className="flex items-center justify-center h-screen">Loading...</div>;
-  }
-
-  if (!user || user.role !== "PHOTOGRAPHER") {
-    return null;
-  }
-
-  // Check if ShootProof is connected
-  const isShootProofConnected = !!photographer?.shootproofAccessToken;
-
-  // Default sample galleries for demo purposes (before ShootProof connection)
-  const defaultGalleries = [
-    { id: 'default-1', title: 'Summer Beach Wedding', client: { firstName: 'Sample', lastName: 'Client' }, galleryCreatedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), galleryReady: true, galleryUrl: '#', imageUrl: 'https://images.unsplash.com/photo-1519741497674-611481863552?w=800&q=80', height: 'tall', isPublicGallery: true },
-    { id: 'default-2', title: 'Mountain Engagement', client: { firstName: 'Demo', lastName: 'Couple' }, galleryCreatedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(), galleryReady: true, galleryUrl: '#', imageUrl: 'https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=800&q=80', height: 'short', isPublicGallery: false },
-    { id: 'default-3', title: 'Rustic Barn Wedding', client: { firstName: 'Example', lastName: 'Bride' }, galleryCreatedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(), galleryReady: false, galleryUrl: '#', imageUrl: 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=800&q=80', height: 'medium', isPublicGallery: true },
-    { id: 'default-4', title: 'City Skyline Portraits', client: { firstName: 'Test', lastName: 'User' }, galleryCreatedAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(), galleryReady: true, galleryUrl: '#', imageUrl: 'https://images.unsplash.com/photo-1606216794079-e06c86c28c73?w=800&q=80', height: 'tall', isPublicGallery: false },
-    { id: 'default-5', title: 'Garden Party Wedding', client: { firstName: 'Preview', lastName: 'Client' }, galleryCreatedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), galleryReady: true, galleryUrl: '#', imageUrl: 'https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?w=800&q=80', height: 'medium', isPublicGallery: true },
-    { id: 'default-6', title: 'Downtown Loft Wedding', client: { firstName: 'Sample', lastName: 'Couple' }, galleryCreatedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(), galleryReady: true, galleryUrl: '#', imageUrl: 'https://images.unsplash.com/photo-1591604466107-ec97de577aff?w=800&q=80', height: 'short', isPublicGallery: false },
-  ];
-
-  // Use default galleries if not connected, actual galleries if connected
-  const actualProjectsWithGalleries = (projects?.filter((project: any) => project.galleryUrl) || []).map((project: any, index: number) => ({
-    ...project,
-    // Assign varying heights to create mosaic effect
-    height: index % 3 === 0 ? 'tall' : index % 3 === 1 ? 'short' : 'medium'
-  }));
-  const projectsWithGalleries = isShootProofConnected ? actualProjectsWithGalleries : defaultGalleries;
-  
-  // Filter galleries by search query
-  const filteredGalleries = projectsWithGalleries.filter((project: any) => {
-    if (!searchQuery) return true;
-    const search = searchQuery.toLowerCase();
-    return (
-      project.title?.toLowerCase().includes(search) ||
-      project.client?.firstName?.toLowerCase().includes(search) ||
-      project.client?.lastName?.toLowerCase().includes(search) ||
-      project.client?.email?.toLowerCase().includes(search)
-    );
-  });
-
-  // Handle visibility toggle
-  const handleToggleVisibility = (e: React.MouseEvent, project: any) => {
-    e.stopPropagation();
-    
-    // For demo galleries, show toast but don't make API call
-    if (!isShootProofConnected) {
+  // Create gallery handler
+  const handleCreateGallery = () => {
+    if (!selectedProjectId || !galleryTitle) {
       toast({
-        title: "Demo Mode",
-        description: "Connect ShootProof to enable gallery visibility controls",
-        variant: "default",
+        title: "Error",
+        description: "Please select a project and enter a gallery title",
+        variant: "destructive",
       });
       return;
     }
 
-    // Toggle the visibility
-    const newIsPublic = !project.isPublicGallery;
-    toggleVisibilityMutation.mutate({
-      projectId: project.id,
-      isPublic: newIsPublic,
+    createGalleryMutation.mutate({
+      projectId: selectedProjectId,
+      photographerId: user!.photographerId!,
+      title: galleryTitle,
+      status: "DRAFT",
+      isPublic: false,
     });
   };
 
-  // Handle share gallery page
-  const handleShareGalleryPage = async () => {
-    if (!photographer?.publicToken) return;
+  // Filter galleries
+  const filteredGalleries = galleries.filter((gallery: any) => {
+    const matchesSearch = !searchQuery || 
+      gallery.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      gallery.project?.client?.firstName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      gallery.project?.client?.lastName?.toLowerCase().includes(searchQuery.toLowerCase());
     
-    const shareUrl = `${window.location.origin}/public/galleries/${photographer.publicToken}`;
+    const matchesStatus = statusFilter === "ALL" || gallery.status === statusFilter;
     
-    try {
-      await navigator.clipboard.writeText(shareUrl);
-      toast({
-        title: "Success",
-        description: "Gallery showcase URL copied to clipboard!",
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to copy URL to clipboard",
-        variant: "destructive",
-      });
-    }
-  };
+    return matchesSearch && matchesStatus;
+  });
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-lg">Loading galleries...</div>
+      </div>
+    );
+  }
 
   return (
-    <div className="h-full flex flex-col">
-      <header className="shrink-0 border-b px-4 py-4 bg-white dark:bg-gray-950">
-        <div className="flex flex-col md:flex-row md:items-center gap-4">
-          <div className="flex items-center gap-2">
-            <Images className="w-6 h-6 text-purple-600" />
-            <h1 className="text-xl font-semibold">Client Galleries</h1>
-            {!isShootProofConnected && (
-              <Badge variant="secondary" className="ml-2">
-                Default
-              </Badge>
-            )}
+    <div className="h-full flex flex-col bg-gray-50 dark:bg-gray-900">
+      {/* Header */}
+      <header className="shrink-0 border-b px-4 sm:px-6 py-4 bg-white dark:bg-gray-950">
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Images className="w-6 h-6 text-purple-600" />
+              <h1 className="text-xl sm:text-2xl font-semibold">Galleries</h1>
+            </div>
+            <Button 
+              onClick={() => setCreateModalOpen(true)}
+              data-testid="button-create-gallery"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Create Gallery
+            </Button>
           </div>
-          <div className="flex-1 md:max-w-md">
-            <div className="relative">
+          
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
                 type="text"
@@ -163,199 +163,228 @@ export default function Galleries() {
                 data-testid="input-gallery-search"
               />
             </div>
-          </div>
-          <div className="flex gap-2">
-            {photographer && photographer.publicToken && (
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={handleShareGalleryPage}
-                data-testid="button-share-gallery-page"
-              >
-                <LinkIcon className="w-4 h-4 mr-2" />
-                Share Gallery Page
-              </Button>
-            )}
-            <Link href="/settings">
-              <Button variant="outline" size="sm" data-testid="button-gallery-settings">
-                <Settings className="w-4 h-4 mr-2" />
-                Gallery Settings
-              </Button>
-            </Link>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-full sm:w-[180px]" data-testid="select-status-filter">
+                <SelectValue placeholder="Filter by status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALL">All Status</SelectItem>
+                <SelectItem value="DRAFT">Draft</SelectItem>
+                <SelectItem value="READY">Ready</SelectItem>
+                <SelectItem value="SHARED">Shared</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
       </header>
 
-      <div className="flex-1 p-6 overflow-auto bg-gray-50 dark:bg-gray-900">
-        <div className="max-w-[1140px] mx-auto">
-          {projectsWithGalleries.length === 0 ? (
+      {/* Gallery Grid */}
+      <div className="flex-1 p-4 sm:p-6 overflow-auto">
+        <div className="max-w-[1400px] mx-auto">
+          {filteredGalleries.length === 0 ? (
             <Card className="max-w-md mx-auto mt-12">
               <CardContent className="py-12">
                 <div className="text-center">
                   <Images className="w-12 h-12 mx-auto text-muted-foreground mb-3" />
                   <h3 className="text-lg font-semibold mb-2">
-                    {isShootProofConnected ? 'No Galleries Yet' : 'Connect ShootProof to Get Started'}
+                    {searchQuery || statusFilter !== "ALL" ? "No galleries found" : "No galleries yet"}
                   </h3>
                   <p className="text-sm text-muted-foreground mb-4">
-                    {isShootProofConnected 
-                      ? 'Your ShootProof galleries will appear here once created'
-                      : 'Connect your ShootProof account to sync your professional galleries with client print ordering'}
+                    {searchQuery || statusFilter !== "ALL" 
+                      ? "Try adjusting your search or filters" 
+                      : "Create your first gallery to get started"}
                   </p>
-                  <Link href="/settings">
-                    <Button variant="outline">
-                      <Settings className="w-4 h-4 mr-2" />
-                      {isShootProofConnected ? 'Gallery Settings' : 'Connect ShootProof'}
+                  {!searchQuery && statusFilter === "ALL" && (
+                    <Button 
+                      onClick={() => setCreateModalOpen(true)}
+                      data-testid="button-create-first-gallery"
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      Create Gallery
                     </Button>
-                  </Link>
+                  )}
                 </div>
               </CardContent>
             </Card>
-          ) : filteredGalleries.length === 0 ? (
-            <div className="text-center py-12">
-              <Search className="w-12 h-12 mx-auto text-muted-foreground mb-3" />
-              <h3 className="text-lg font-semibold mb-2">No galleries found</h3>
-              <p className="text-sm text-muted-foreground">
-                Try adjusting your search query
-              </p>
-            </div>
           ) : (
-            <div>
+            <>
               <div className="mb-4 text-sm text-muted-foreground">
-                {filteredGalleries.length} {filteredGalleries.length === 1 ? 'gallery' : 'galleries'} found
+                {filteredGalleries.length} {filteredGalleries.length === 1 ? 'gallery' : 'galleries'}
               </div>
               
-              {/* Masonry/Mosaic Grid Layout */}
-              <div className="columns-1 md:columns-2 lg:columns-3 xl:columns-4 gap-4 space-y-4">
-                {filteredGalleries.map((project: any) => (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                {filteredGalleries.map((gallery: any) => (
                   <Card 
-                    key={project.id} 
-                    className="break-inside-avoid hover:shadow-xl transition-all duration-300 group cursor-pointer mb-4"
-                    onClick={() => setLocation(`/galleries/${project.id}`)}
-                    data-testid={`gallery-tile-${project.id}`}
+                    key={gallery.id}
+                    className="hover:shadow-lg transition-all duration-300 group cursor-pointer"
+                    onClick={() => setLocation(`/galleries/${gallery.id}`)}
+                    data-testid={`gallery-card-${gallery.id}`}
                   >
-                    <div className="relative overflow-hidden">
-                      {/* Varying height based on tile size */}
-                      {project.imageUrl ? (
-                        <div 
-                          className={`relative bg-gray-200 dark:bg-gray-800 ${
-                            project.height === 'tall' ? 'h-80' : 
-                            project.height === 'short' ? 'h-48' : 
-                            'h-64'
+                    {/* Cover Image */}
+                    <div className="relative h-48 bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900 dark:to-pink-900 overflow-hidden">
+                      {gallery.coverImage?.thumbnailUrl ? (
+                        <img 
+                          src={gallery.coverImage.thumbnailUrl}
+                          alt={gallery.title}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : gallery.images && gallery.images[0]?.thumbnailUrl ? (
+                        <img 
+                          src={gallery.images[0].thumbnailUrl}
+                          alt={gallery.title}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="flex items-center justify-center h-full">
+                          <Images className="w-12 h-12 text-purple-400 opacity-50" />
+                        </div>
+                      )}
+                      
+                      {/* Status Badge - Top Right */}
+                      <div className="absolute top-2 right-2">
+                        <Badge 
+                          variant={gallery.status === 'SHARED' ? 'default' : 'secondary'}
+                          data-testid={`badge-status-${gallery.id}`}
+                        >
+                          {gallery.status}
+                        </Badge>
+                      </div>
+
+                      {/* Privacy Toggle - Top Left */}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          togglePrivacyMutation.mutate({
+                            galleryId: gallery.id,
+                            isPublic: !gallery.isPublic
+                          });
+                        }}
+                        className="absolute top-2 left-2 transition-all hover:scale-105"
+                        data-testid={`toggle-privacy-${gallery.id}`}
+                      >
+                        <Badge 
+                          variant={gallery.isPublic ? "default" : "secondary"}
+                          className={`flex items-center gap-1.5 ${
+                            gallery.isPublic 
+                              ? 'bg-green-600 hover:bg-green-700 text-white' 
+                              : 'bg-gray-600 hover:bg-gray-700 text-white'
                           }`}
                         >
-                          <img 
-                            src={project.imageUrl} 
-                            alt={project.title}
-                            className="w-full h-full object-cover"
-                          />
-                          
-                          {/* Public/Private Visibility Badge - Top Left Corner */}
-                          <button
-                            onClick={(e) => handleToggleVisibility(e, project)}
-                            className="absolute top-2 left-2 z-10 transition-all hover:scale-105"
-                            data-testid={`toggle-visibility-${project.id}`}
-                            disabled={toggleVisibilityMutation.isPending}
-                          >
-                            <Badge 
-                              variant={project.isPublicGallery ? "default" : "secondary"}
-                              className={`flex items-center gap-1.5 ${
-                                project.isPublicGallery 
-                                  ? 'bg-green-600 hover:bg-green-700 text-white' 
-                                  : 'bg-gray-600 hover:bg-gray-700 text-white'
-                              }`}
-                            >
-                              {project.isPublicGallery ? (
-                                <>
-                                  <Globe className="w-3 h-3" />
-                                  Public
-                                </>
-                              ) : (
-                                <>
-                                  <Lock className="w-3 h-3" />
-                                  Private
-                                </>
-                              )}
-                            </Badge>
-                          </button>
-                        </div>
-                      ) : (
-                        <div className={`relative bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900 dark:to-pink-900 flex items-center justify-center ${
-                          project.height === 'tall' ? 'h-80' : 
-                          project.height === 'short' ? 'h-48' : 
-                          'h-64'
-                        }`}>
-                          <Images className="w-12 h-12 text-purple-400 opacity-50" />
-                          
-                          {/* Public/Private Visibility Badge - Top Left Corner */}
-                          <button
-                            onClick={(e) => handleToggleVisibility(e, project)}
-                            className="absolute top-2 left-2 z-10 transition-all hover:scale-105"
-                            data-testid={`toggle-visibility-${project.id}`}
-                            disabled={toggleVisibilityMutation.isPending}
-                          >
-                            <Badge 
-                              variant={project.isPublicGallery ? "default" : "secondary"}
-                              className={`flex items-center gap-1.5 ${
-                                project.isPublicGallery 
-                                  ? 'bg-green-600 hover:bg-green-700 text-white' 
-                                  : 'bg-gray-600 hover:bg-gray-700 text-white'
-                              }`}
-                            >
-                              {project.isPublicGallery ? (
-                                <>
-                                  <Globe className="w-3 h-3" />
-                                  Public
-                                </>
-                              ) : (
-                                <>
-                                  <Lock className="w-3 h-3" />
-                                  Private
-                                </>
-                              )}
-                            </Badge>
-                          </button>
-                        </div>
-                      )}
-                      {!isShootProofConnected && (
-                        <div className="absolute top-2 right-2">
-                          <Badge variant="secondary" className="text-xs bg-white/90 dark:bg-gray-800/90">
-                            Demo
-                          </Badge>
-                        </div>
-                      )}
-                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100">
-                        <ExternalLink className="w-8 h-8 text-white" />
-                      </div>
+                          {gallery.isPublic ? (
+                            <>
+                              <Globe className="w-3 h-3" />
+                              Public
+                            </>
+                          ) : (
+                            <>
+                              <Lock className="w-3 h-3" />
+                              Private
+                            </>
+                          )}
+                        </Badge>
+                      </button>
                     </div>
+
+                    {/* Gallery Info */}
                     <CardContent className="p-4">
-                      <h3 className="font-semibold text-lg mb-1 group-hover:text-purple-600 transition-colors">
-                        {project.title}
+                      <h3 className="font-semibold text-lg mb-1 truncate" data-testid={`text-gallery-title-${gallery.id}`}>
+                        {gallery.title}
                       </h3>
-                      <p className="text-sm text-muted-foreground mb-3">
-                        {project.client?.firstName} {project.client?.lastName}
-                      </p>
                       
-                      <div className="flex items-center justify-between">
-                        {project.galleryCreatedAt && (
-                          <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                            <Calendar className="w-3 h-3" />
-                            {new Date(project.galleryCreatedAt).toLocaleDateString()}
-                          </div>
-                        )}
-                        {project.galleryReady && (
-                          <Badge variant="secondary" className="text-xs">
-                            Shared
-                          </Badge>
-                        )}
+                      <p className="text-sm text-muted-foreground mb-3">
+                        {gallery.project?.client?.firstName} {gallery.project?.client?.lastName}
+                      </p>
+
+                      <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                        <div className="flex items-center gap-1">
+                          <Images className="w-3 h-3" />
+                          <span data-testid={`text-image-count-${gallery.id}`}>
+                            {gallery.imageCount || 0} images
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Eye className="w-3 h-3" />
+                          <span data-testid={`text-view-count-${gallery.id}`}>
+                            {gallery.viewCount || 0} views
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-1 text-xs text-muted-foreground mt-2">
+                        <Calendar className="w-3 h-3" />
+                        <span data-testid={`text-created-date-${gallery.id}`}>
+                          {format(new Date(gallery.createdAt), 'MMM d, yyyy')}
+                        </span>
                       </div>
                     </CardContent>
                   </Card>
                 ))}
               </div>
-            </div>
+            </>
           )}
         </div>
       </div>
+
+      {/* Create Gallery Modal */}
+      <Dialog open={createModalOpen} onOpenChange={setCreateModalOpen}>
+        <DialogContent className="sm:max-w-[500px]" data-testid="dialog-create-gallery">
+          <DialogHeader>
+            <DialogTitle>Create New Gallery</DialogTitle>
+            <DialogDescription>
+              Select a project and create a gallery to upload photos for your client.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="project">Project</Label>
+              <Select 
+                value={selectedProjectId} 
+                onValueChange={handleProjectChange}
+              >
+                <SelectTrigger id="project" data-testid="select-project">
+                  <SelectValue placeholder="Select a project" />
+                </SelectTrigger>
+                <SelectContent>
+                  {projects.map((project: any) => (
+                    <SelectItem key={project.id} value={project.id}>
+                      {project.title} - {project.client?.firstName} {project.client?.lastName}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="title">Gallery Title</Label>
+              <Input
+                id="title"
+                value={galleryTitle}
+                onChange={(e) => setGalleryTitle(e.target.value)}
+                placeholder="Enter gallery title"
+                data-testid="input-gallery-title"
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => setCreateModalOpen(false)}
+              data-testid="button-cancel-create"
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleCreateGallery}
+              disabled={createGalleryMutation.isPending || !selectedProjectId || !galleryTitle}
+              data-testid="button-submit-create"
+            >
+              {createGalleryMutation.isPending ? "Creating..." : "Create Gallery"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

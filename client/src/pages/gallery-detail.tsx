@@ -1,204 +1,790 @@
-import { useParams, useLocation } from 'wouter';
-import { useQuery } from '@tanstack/react-query';
-import { ArrowLeft, Download, Heart, Share2, Calendar, User } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { format } from 'date-fns';
+import { useState, useCallback, useRef } from "react";
+import { useParams, useLocation } from "wouter";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { useAuth } from "@/hooks/use-auth";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { 
+  ArrowLeft, Upload, Trash2, Share2, Save, Eye, Download, 
+  Globe, Lock, Image as ImageIcon, Calendar, User, Copy, X
+} from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { queryClient, apiRequest } from "@/lib/queryClient";
+import { format } from "date-fns";
+
+interface UploadProgress {
+  file: File;
+  progress: number;
+  status: 'uploading' | 'processing' | 'complete' | 'error';
+  error?: string;
+}
 
 export default function GalleryDetail() {
   const { galleryId } = useParams();
   const [, setLocation] = useLocation();
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  const [uploadQueue, setUploadQueue] = useState<UploadProgress[]>([]);
+  const [isDragging, setIsDragging] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
+  
+  // Form states for settings
+  const [editedTitle, setEditedTitle] = useState("");
+  const [editedDescription, setEditedDescription] = useState("");
 
-  const { data: photographer } = useQuery<any>({
-    queryKey: ['/api/photographer'],
+  // Fetch gallery with images
+  const { data: gallery, isLoading } = useQuery<any>({
+    queryKey: ["/api/galleries", galleryId],
+    enabled: !!galleryId && !!user,
   });
 
-  const { data: projects } = useQuery<any[]>({
-    queryKey: ['/api/projects'],
+  // Initialize form when gallery loads
+  useState(() => {
+    if (gallery) {
+      setEditedTitle(gallery.title || "");
+      setEditedDescription(gallery.description || "");
+    }
   });
 
-  const isShootProofConnected = !!photographer?.shootproofAccessToken;
+  // Cloudinary config
+  const CLOUDINARY_CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || "";
+  const CLOUDINARY_UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET || "unsigned_preset";
 
-  // Generate placeholder photos for demo galleries
-  const generateDemoPhotos = (galleryId: string, count: number = 24) => {
-    const weddingPhotoIds = [
-      'photo-1519741497674-611481863552', // Bride portrait
-      'photo-1606216794079-e06c86c28c73', // Couple kiss
-      'photo-1511285560929-80b456fea0bc', // Rustic wedding
-      'photo-1465495976277-4387d4b0b4c6', // Garden wedding
-      'photo-1591604466107-ec97de577aff', // Ceremony
-      'photo-1464366400600-7168b8af9bc3', // Rings
-      'photo-1522673607200-164d1b6ce486', // Reception
-      'photo-1583939003579-730e3918a45a', // First dance
-      'photo-1529636798458-92182e662485', // Wedding details
-      'photo-1523438885200-e635ba2c371e', // Bouquet
-      'photo-1532712938310-34cb3982ef74', // Venue
-      'photo-1525258592283-2f1df0984c18', // Couple walking
-      'photo-1519225421980-715cb0215aed', // Bridal party
-      'photo-1460978812857-470ed1c77af0', // Groom
-      'photo-1520854221256-17451cc331bf', // Table setting
-      'photo-1517457373958-b7bdd4587205', // Outdoor ceremony
-      'photo-1469371670807-013ccf25f16a', // Couple portrait
-      'photo-1543599538-a6c4ed79c582', // Wedding cake
-      'photo-1515934751635-c81c6bc9a2d8', // Dance floor
-      'photo-1522413452208-996ff3f3e740', // Toast
-      'photo-1545569341-9eb8b30979d9', // Candid moment
-      'photo-1544161515-4ab6ce6db874', // Bride getting ready
-      'photo-1522413452208-996ff3f3e740', // Reception details
-      'photo-1520854221256-17451cc331bf', // Floral centerpiece
-    ];
+  // Update gallery mutation
+  const updateGalleryMutation = useMutation({
+    mutationFn: async (data: any) => {
+      return apiRequest("PUT", `/api/galleries/${galleryId}`, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/galleries", galleryId] });
+      queryClient.invalidateQueries({ queryKey: ["/api/galleries"] });
+      toast({
+        title: "Success",
+        description: "Gallery updated successfully",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update gallery",
+        variant: "destructive",
+      });
+    },
+  });
 
-    return Array.from({ length: count }, (_, i) => ({
-      id: `${galleryId}-photo-${i}`,
-      url: `https://images.unsplash.com/${weddingPhotoIds[i % weddingPhotoIds.length]}?w=800&q=80`,
-      thumbnail: `https://images.unsplash.com/${weddingPhotoIds[i % weddingPhotoIds.length]}?w=400&q=80`,
-      // Vary the aspect ratio for visual interest
-      aspectRatio: i % 4 === 0 ? 'portrait' : i % 4 === 1 ? 'landscape' : i % 4 === 2 ? 'square' : 'landscape',
-    }));
+  // Delete gallery mutation
+  const deleteGalleryMutation = useMutation({
+    mutationFn: async () => {
+      return apiRequest("DELETE", `/api/galleries/${galleryId}`, {});
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/galleries"] });
+      toast({
+        title: "Success",
+        description: "Gallery deleted successfully",
+      });
+      setLocation("/galleries");
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete gallery",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Share gallery mutation
+  const shareGalleryMutation = useMutation({
+    mutationFn: async () => {
+      return apiRequest("PATCH", `/api/galleries/${galleryId}/share`, {});
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/galleries", galleryId] });
+      queryClient.invalidateQueries({ queryKey: ["/api/galleries"] });
+      toast({
+        title: "Success",
+        description: "Gallery marked as shared",
+      });
+      setShareDialogOpen(true);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to share gallery",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Delete image mutation
+  const deleteImageMutation = useMutation({
+    mutationFn: async (imageId: string) => {
+      return apiRequest("DELETE", `/api/galleries/${galleryId}/images/${imageId}`, {});
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/galleries", galleryId] });
+      toast({
+        title: "Success",
+        description: "Image deleted successfully",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete image",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Update image caption mutation
+  const updateImageMutation = useMutation({
+    mutationFn: async ({ imageId, caption }: { imageId: string; caption: string }) => {
+      return apiRequest("PUT", `/api/galleries/${galleryId}/images/${imageId}`, { caption });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/galleries", galleryId] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update caption",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Upload file to Cloudinary and create image record
+  const uploadFile = async (file: File, index: number) => {
+    try {
+      // Update status
+      setUploadQueue(prev => prev.map((item, i) => 
+        i === index ? { ...item, status: 'uploading', progress: 0 } : item
+      ));
+
+      // Upload to Cloudinary
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+      formData.append('folder', `galleries/${galleryId}`);
+
+      const uploadResponse = await fetch(
+        `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`,
+        {
+          method: 'POST',
+          body: formData,
+        }
+      );
+
+      if (!uploadResponse.ok) {
+        throw new Error('Upload to Cloudinary failed');
+      }
+
+      const cloudinaryData = await uploadResponse.json();
+
+      // Update progress
+      setUploadQueue(prev => prev.map((item, i) => 
+        i === index ? { ...item, progress: 50, status: 'processing' } : item
+      ));
+
+      // Create image record in database
+      const imageData = {
+        galleryId: galleryId!,
+        photographerId: user!.photographerId!,
+        originalUrl: cloudinaryData.secure_url,
+        webUrl: cloudinaryData.secure_url.replace('/upload/', '/upload/w_1920,q_auto/'),
+        thumbnailUrl: cloudinaryData.secure_url.replace('/upload/', '/upload/w_400,h_300,c_fill/'),
+        watermarkedUrl: cloudinaryData.secure_url,
+        cloudinaryPublicId: cloudinaryData.public_id,
+        cloudinaryFolder: `galleries/${galleryId}`,
+        format: cloudinaryData.format,
+        width: cloudinaryData.width,
+        height: cloudinaryData.height,
+        fileSize: cloudinaryData.bytes,
+        sortIndex: (gallery?.images?.length || 0) + index,
+      };
+
+      await apiRequest("POST", `/api/galleries/${galleryId}/images`, imageData);
+
+      // Mark as complete
+      setUploadQueue(prev => prev.map((item, i) => 
+        i === index ? { ...item, progress: 100, status: 'complete' } : item
+      ));
+
+      // Refresh gallery
+      queryClient.invalidateQueries({ queryKey: ["/api/galleries", galleryId] });
+    } catch (error: any) {
+      console.error('Upload error:', error);
+      setUploadQueue(prev => prev.map((item, i) => 
+        i === index ? { ...item, status: 'error', error: error.message || 'Upload failed' } : item
+      ));
+    }
   };
 
-  // Default sample galleries
-  const defaultGalleries = [
-    { id: 'default-1', title: 'Summer Beach Wedding', client: { firstName: 'Sample', lastName: 'Client' }, galleryCreatedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), galleryReady: true, galleryUrl: '#', imageUrl: 'https://images.unsplash.com/photo-1519741497674-611481863552?w=800&q=80', height: 'tall' },
-    { id: 'default-2', title: 'Mountain Engagement', client: { firstName: 'Demo', lastName: 'Couple' }, galleryCreatedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(), galleryReady: true, galleryUrl: '#', imageUrl: 'https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=800&q=80', height: 'short' },
-    { id: 'default-3', title: 'Rustic Barn Wedding', client: { firstName: 'Example', lastName: 'Bride' }, galleryCreatedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(), galleryReady: false, galleryUrl: '#', imageUrl: 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=800&q=80', height: 'medium' },
-    { id: 'default-4', title: 'City Skyline Portraits', client: { firstName: 'Test', lastName: 'User' }, galleryCreatedAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(), galleryReady: true, galleryUrl: '#', imageUrl: 'https://images.unsplash.com/photo-1606216794079-e06c86c28c73?w=800&q=80', height: 'tall' },
-    { id: 'default-5', title: 'Garden Party Wedding', client: { firstName: 'Preview', lastName: 'Client' }, galleryCreatedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), galleryReady: true, galleryUrl: '#', imageUrl: 'https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?w=800&q=80', height: 'medium' },
-    { id: 'default-6', title: 'Downtown Loft Wedding', client: { firstName: 'Sample', lastName: 'Couple' }, galleryCreatedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(), galleryReady: true, galleryUrl: '#', imageUrl: 'https://images.unsplash.com/photo-1591604466107-ec97de577aff?w=800&q=80', height: 'short' },
-  ];
+  // Handle file selection
+  const handleFileSelect = useCallback((files: FileList | null) => {
+    if (!files || files.length === 0) return;
 
-  const actualProjectsWithGalleries = (projects?.filter((project: any) => project.galleryUrl) || []).map((project: any, index: number) => ({
-    ...project,
-    height: index % 3 === 0 ? 'tall' : index % 3 === 1 ? 'short' : 'medium'
-  }));
+    const fileArray = Array.from(files);
+    const imageFiles = fileArray.filter(file => file.type.startsWith('image/'));
 
-  const projectsWithGalleries = isShootProofConnected ? actualProjectsWithGalleries : defaultGalleries;
-  const gallery = projectsWithGalleries.find((g: any) => g.id === galleryId);
+    if (imageFiles.length === 0) {
+      toast({
+        title: "Error",
+        description: "Please select image files only",
+        variant: "destructive",
+      });
+      return;
+    }
 
-  if (!gallery) {
+    // Add to queue
+    const newQueue = imageFiles.map(file => ({
+      file,
+      progress: 0,
+      status: 'uploading' as const,
+    }));
+
+    setUploadQueue(prev => [...prev, ...newQueue]);
+
+    // Start uploading
+    imageFiles.forEach((file, index) => {
+      uploadFile(file, uploadQueue.length + index);
+    });
+  }, [uploadQueue.length]);
+
+  // Drag and drop handlers
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+  }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    handleFileSelect(e.dataTransfer.files);
+  }, [handleFileSelect]);
+
+  // Save settings
+  const handleSaveSettings = () => {
+    updateGalleryMutation.mutate({
+      title: editedTitle,
+      description: editedDescription,
+    });
+  };
+
+  // Copy share link
+  const copyShareLink = () => {
+    const shareUrl = `${window.location.origin}/client/galleries/${galleryId}`;
+    navigator.clipboard.writeText(shareUrl);
+    toast({
+      title: "Copied!",
+      description: "Gallery link copied to clipboard",
+    });
+  };
+
+  if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-8">
-        <div className="max-w-4xl mx-auto text-center">
-          <h1 className="text-2xl font-bold mb-4">Gallery not found</h1>
-          <Button onClick={() => setLocation('/galleries')} data-testid="button-back-galleries">
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Galleries
-          </Button>
-        </div>
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-lg">Loading gallery...</div>
       </div>
     );
   }
 
-  const photos = isShootProofConnected ? [] : generateDemoPhotos(galleryId!);
+  if (!gallery) {
+    return (
+      <div className="flex flex-col items-center justify-center h-screen gap-4">
+        <h1 className="text-2xl font-bold">Gallery not found</h1>
+        <Button onClick={() => setLocation("/galleries")} data-testid="button-back-to-galleries">
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Back to Galleries
+        </Button>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="h-full flex flex-col bg-gray-50 dark:bg-gray-900">
       {/* Header */}
-      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setLocation('/galleries')}
-                data-testid="button-back"
-                className="w-fit"
-              >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back
-              </Button>
-              <div>
-                <div className="flex items-center gap-2 flex-wrap">
-                  <h1 className="text-xl sm:text-2xl font-bold" data-testid="text-gallery-title">
-                    {gallery.title}
-                  </h1>
-                  {!isShootProofConnected && (
-                    <Badge variant="secondary" className="text-xs" data-testid="badge-demo">
-                      Demo
-                    </Badge>
+      <header className="shrink-0 border-b px-4 sm:px-6 py-4 bg-white dark:bg-gray-950">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setLocation("/galleries")}
+              data-testid="button-back"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back
+            </Button>
+            <div>
+              <h1 className="text-xl sm:text-2xl font-semibold" data-testid="text-gallery-title">
+                {gallery.title}
+              </h1>
+              <div className="flex items-center gap-2 mt-1">
+                <Badge variant={gallery.status === 'SHARED' ? 'default' : 'secondary'} data-testid="badge-status">
+                  {gallery.status}
+                </Badge>
+                <Badge 
+                  variant={gallery.isPublic ? "default" : "secondary"}
+                  className={gallery.isPublic ? 'bg-green-600' : 'bg-gray-600'}
+                  data-testid="badge-privacy"
+                >
+                  {gallery.isPublic ? (
+                    <>
+                      <Globe className="w-3 h-3 mr-1" />
+                      Public
+                    </>
+                  ) : (
+                    <>
+                      <Lock className="w-3 h-3 mr-1" />
+                      Private
+                    </>
                   )}
-                </div>
-                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mt-2 text-sm text-gray-600 dark:text-gray-400">
-                  <div className="flex items-center gap-1">
-                    <User className="w-4 h-4" />
-                    <span data-testid="text-client-name">
-                      {gallery.client.firstName} {gallery.client.lastName}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Calendar className="w-4 h-4" />
-                    <span data-testid="text-gallery-date">
-                      {format(new Date(gallery.galleryCreatedAt), 'MMM d, yyyy')}
-                    </span>
-                  </div>
-                  {!isShootProofConnected && (
-                    <Badge variant="outline" className="text-xs" data-testid="badge-photo-count">
-                      {photos.length} photos
-                    </Badge>
-                  )}
-                </div>
+                </Badge>
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" className="flex-1 sm:flex-none" data-testid="button-share">
-                <Share2 className="w-4 h-4 mr-2" />
-                Share
-              </Button>
-              <Button variant="outline" size="sm" className="flex-1 sm:flex-none" data-testid="button-download-all">
-                <Download className="w-4 h-4 mr-2" />
-                Download All
-              </Button>
-            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => shareGalleryMutation.mutate()}
+              disabled={shareGalleryMutation.isPending || gallery.status === 'SHARED'}
+              data-testid="button-share-gallery"
+            >
+              <Share2 className="w-4 h-4 mr-2" />
+              {gallery.status === 'SHARED' ? 'Shared' : 'Share Gallery'}
+            </Button>
           </div>
         </div>
-      </div>
+      </header>
 
-      {/* Photo Grid */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {!isShootProofConnected && photos.length > 0 ? (
-          <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-4 space-y-4">
-            {photos.map((photo, index) => (
-              <Card
-                key={photo.id}
-                className="break-inside-avoid hover:shadow-xl transition-all duration-300 group cursor-pointer mb-4 overflow-hidden"
-                data-testid={`photo-card-${index}`}
-              >
-                <div className="relative">
-                  <img
-                    src={photo.url}
-                    alt={`Photo ${index + 1}`}
-                    className={`w-full object-cover ${
-                      photo.aspectRatio === 'portrait' ? 'h-96' :
-                      photo.aspectRatio === 'square' ? 'h-64' :
-                      'h-80'
+      {/* Tabs */}
+      <div className="flex-1 overflow-auto">
+        <Tabs defaultValue="upload" className="h-full flex flex-col">
+          <div className="border-b bg-white dark:bg-gray-950 px-4 sm:px-6">
+            <TabsList className="w-full sm:w-auto">
+              <TabsTrigger value="upload" data-testid="tab-upload">
+                <Upload className="w-4 h-4 mr-2" />
+                Upload
+              </TabsTrigger>
+              <TabsTrigger value="settings" data-testid="tab-settings">
+                <Globe className="w-4 h-4 mr-2" />
+                Settings
+              </TabsTrigger>
+              <TabsTrigger value="info" data-testid="tab-info">
+                <Eye className="w-4 h-4 mr-2" />
+                Info
+              </TabsTrigger>
+            </TabsList>
+          </div>
+
+          {/* Upload Tab */}
+          <TabsContent value="upload" className="flex-1 p-4 sm:p-6 mt-0">
+            <div className="max-w-[1400px] mx-auto space-y-6">
+              {/* Upload Zone */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Upload Images</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    onDrop={handleDrop}
+                    className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+                      isDragging 
+                        ? 'border-purple-500 bg-purple-50 dark:bg-purple-950/20' 
+                        : 'border-gray-300 dark:border-gray-700'
                     }`}
-                  />
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100">
-                    <div className="flex gap-2">
-                      <Button size="sm" variant="secondary" data-testid={`button-favorite-${index}`}>
-                        <Heart className="w-4 h-4" />
-                      </Button>
-                      <Button size="sm" variant="secondary" data-testid={`button-download-${index}`}>
-                        <Download className="w-4 h-4" />
-                      </Button>
+                    data-testid="upload-dropzone"
+                  >
+                    <Upload className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+                    <h3 className="text-lg font-semibold mb-2">Drop images here</h3>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      or click to browse your files
+                    </p>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      multiple
+                      accept="image/*"
+                      onChange={(e) => handleFileSelect(e.target.files)}
+                      className="hidden"
+                      data-testid="input-file-upload"
+                    />
+                    <Button 
+                      onClick={() => fileInputRef.current?.click()}
+                      data-testid="button-browse-files"
+                    >
+                      Browse Files
+                    </Button>
+                  </div>
+
+                  {/* Upload Progress */}
+                  {uploadQueue.length > 0 && (
+                    <div className="mt-6 space-y-3">
+                      <h4 className="font-semibold">Uploading {uploadQueue.length} files</h4>
+                      {uploadQueue.map((item, index) => (
+                        <div key={index} className="space-y-2">
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="truncate flex-1">{item.file.name}</span>
+                            <span className="text-muted-foreground ml-2">
+                              {item.status === 'complete' ? 'Complete' : 
+                               item.status === 'error' ? 'Failed' : 
+                               `${item.progress}%`}
+                            </span>
+                          </div>
+                          <Progress 
+                            value={item.progress} 
+                            className={item.status === 'error' ? 'bg-red-200' : ''}
+                            data-testid={`upload-progress-${index}`}
+                          />
+                          {item.error && (
+                            <p className="text-sm text-red-600">{item.error}</p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Uploaded Images Grid */}
+              {gallery.images && gallery.images.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>
+                      Uploaded Images ({gallery.images.length})
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                      {gallery.images.map((image: any, index: number) => (
+                        <Card key={image.id} className="overflow-hidden" data-testid={`image-card-${index}`}>
+                          <div className="relative aspect-video">
+                            <img
+                              src={image.thumbnailUrl}
+                              alt={image.caption || `Image ${index + 1}`}
+                              className="w-full h-full object-cover"
+                            />
+                            <Button
+                              variant="destructive"
+                              size="icon"
+                              className="absolute top-2 right-2"
+                              onClick={() => deleteImageMutation.mutate(image.id)}
+                              data-testid={`button-delete-image-${index}`}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                          <CardContent className="p-3">
+                            <Input
+                              placeholder="Add caption..."
+                              value={image.caption || ""}
+                              onChange={(e) => {
+                                // Optimistic update
+                                queryClient.setQueryData(
+                                  ["/api/galleries", galleryId],
+                                  (old: any) => ({
+                                    ...old,
+                                    images: old.images.map((img: any) =>
+                                      img.id === image.id ? { ...img, caption: e.target.value } : img
+                                    ),
+                                  })
+                                );
+                              }}
+                              onBlur={(e) => {
+                                updateImageMutation.mutate({
+                                  imageId: image.id,
+                                  caption: e.target.value,
+                                });
+                              }}
+                              data-testid={`input-caption-${index}`}
+                            />
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          </TabsContent>
+
+          {/* Settings Tab */}
+          <TabsContent value="settings" className="flex-1 p-4 sm:p-6 mt-0">
+            <div className="max-w-2xl mx-auto space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Gallery Settings</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="title">Gallery Title</Label>
+                    <Input
+                      id="title"
+                      value={editedTitle}
+                      onChange={(e) => setEditedTitle(e.target.value)}
+                      data-testid="input-edit-title"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="description">Description (Optional)</Label>
+                    <Textarea
+                      id="description"
+                      value={editedDescription}
+                      onChange={(e) => setEditedDescription(e.target.value)}
+                      placeholder="Add a description for your gallery"
+                      rows={4}
+                      data-testid="input-edit-description"
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label htmlFor="privacy">Public Gallery</Label>
+                      <p className="text-sm text-muted-foreground">
+                        Show this gallery on your public portfolio
+                      </p>
+                    </div>
+                    <Switch
+                      id="privacy"
+                      checked={gallery.isPublic || false}
+                      onCheckedChange={(checked) => {
+                        updateGalleryMutation.mutate({ isPublic: checked });
+                      }}
+                      data-testid="switch-public"
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label htmlFor="watermark">Enable Watermarks</Label>
+                      <p className="text-sm text-muted-foreground">
+                        Add watermark to gallery images
+                      </p>
+                    </div>
+                    <Switch
+                      id="watermark"
+                      checked={gallery.watermarkEnabled || false}
+                      onCheckedChange={(checked) => {
+                        updateGalleryMutation.mutate({ watermarkEnabled: checked });
+                      }}
+                      data-testid="switch-watermark"
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label htmlFor="downloads">Allow Downloads</Label>
+                      <p className="text-sm text-muted-foreground">
+                        Let clients download images
+                      </p>
+                    </div>
+                    <Switch
+                      id="downloads"
+                      checked={gallery.allowDownloads ?? true}
+                      onCheckedChange={(checked) => {
+                        updateGalleryMutation.mutate({ allowDownloads: checked });
+                      }}
+                      data-testid="switch-downloads"
+                    />
+                  </div>
+
+                  <div className="flex gap-2">
+                    <Button 
+                      onClick={handleSaveSettings}
+                      disabled={updateGalleryMutation.isPending}
+                      data-testid="button-save-settings"
+                    >
+                      <Save className="w-4 h-4 mr-2" />
+                      Save Changes
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Danger Zone */}
+              <Card className="border-red-200 dark:border-red-900">
+                <CardHeader>
+                  <CardTitle className="text-red-600 dark:text-red-400">Danger Zone</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-semibold">Delete Gallery</p>
+                      <p className="text-sm text-muted-foreground">
+                        This action cannot be undone
+                      </p>
+                    </div>
+                    <Button
+                      variant="destructive"
+                      onClick={() => setDeleteConfirmOpen(true)}
+                      data-testid="button-delete-gallery"
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Delete Gallery
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          {/* Info Tab */}
+          <TabsContent value="info" className="flex-1 p-4 sm:p-6 mt-0">
+            <div className="max-w-2xl mx-auto space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Gallery Statistics</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm text-muted-foreground">Total Images</p>
+                      <p className="text-2xl font-bold" data-testid="text-image-count">
+                        {gallery.imageCount || 0}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Total Views</p>
+                      <p className="text-2xl font-bold" data-testid="text-view-count">
+                        {gallery.viewCount || 0}
+                      </p>
                     </div>
                   </div>
-                </div>
+
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <Calendar className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-sm">
+                        Created {format(new Date(gallery.createdAt), 'MMMM d, yyyy')}
+                      </span>
+                    </div>
+                    {gallery.sharedAt && (
+                      <div className="flex items-center gap-2">
+                        <Share2 className="w-4 h-4 text-muted-foreground" />
+                        <span className="text-sm">
+                          Shared {format(new Date(gallery.sharedAt), 'MMMM d, yyyy')}
+                        </span>
+                      </div>
+                    )}
+                    {gallery.project?.client && (
+                      <div className="flex items-center gap-2">
+                        <User className="w-4 h-4 text-muted-foreground" />
+                        <span className="text-sm">
+                          {gallery.project.client.firstName} {gallery.project.client.lastName}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
               </Card>
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-12">
-            <p className="text-gray-500 dark:text-gray-400">
-              {isShootProofConnected
-                ? 'Connect ShootProof to view gallery photos'
-                : 'No photos available'}
-            </p>
-          </div>
-        )}
+
+              {gallery.status === 'SHARED' && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Share Link</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex gap-2">
+                      <Input
+                        value={`${window.location.origin}/client/galleries/${galleryId}`}
+                        readOnly
+                        data-testid="input-share-link"
+                      />
+                      <Button onClick={copyShareLink} data-testid="button-copy-link">
+                        <Copy className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          </TabsContent>
+        </Tabs>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+        <DialogContent data-testid="dialog-delete-confirm">
+          <DialogHeader>
+            <DialogTitle>Delete Gallery?</DialogTitle>
+            <DialogDescription>
+              This will permanently delete this gallery and all its images. This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setDeleteConfirmOpen(false)}
+              data-testid="button-cancel-delete"
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => {
+                deleteGalleryMutation.mutate();
+                setDeleteConfirmOpen(false);
+              }}
+              disabled={deleteGalleryMutation.isPending}
+              data-testid="button-confirm-delete"
+            >
+              Delete Gallery
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Share Success Dialog */}
+      <Dialog open={shareDialogOpen} onOpenChange={setShareDialogOpen}>
+        <DialogContent data-testid="dialog-share-success">
+          <DialogHeader>
+            <DialogTitle>Gallery Shared!</DialogTitle>
+            <DialogDescription>
+              Your gallery is now shared. Copy the link below to send to your client.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex gap-2 py-4">
+            <Input
+              value={`${window.location.origin}/client/galleries/${galleryId}`}
+              readOnly
+              data-testid="input-share-link-dialog"
+            />
+            <Button onClick={copyShareLink} data-testid="button-copy-link-dialog">
+              <Copy className="w-4 h-4" />
+            </Button>
+          </div>
+          <DialogFooter>
+            <Button onClick={() => setShareDialogOpen(false)} data-testid="button-close-share-dialog">
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

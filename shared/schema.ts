@@ -261,13 +261,12 @@ export const projects = pgTable("projects", {
   emailOptIn: boolean("email_opt_in").default(true),
   leadFormId: varchar("lead_form_id").references(() => leadForms.id),
   formSubmissionData: jsonb("form_submission_data"),
-  // Gallery Integration
+  // Gallery Integration (Legacy - for Google Drive/ShootProof)
   galleryUrl: text("gallery_url"), // Link to Google Drive folder or ShootProof album
   galleryId: text("gallery_id"), // Platform-specific ID (folder ID or album ID)
   galleryReady: boolean("gallery_ready").default(false), // Whether photographer marked it ready to send
   galleryCreatedAt: timestamp("gallery_created_at"), // When auto-created
   gallerySharedAt: timestamp("gallery_shared_at"), // When marked ready and sent to client
-  gallerySyncedAt: timestamp("gallery_synced_at"), // Last time we synced galleries from external platforms
   isPublicGallery: boolean("is_public_gallery").default(false), // Whether gallery is publicly visible on photographer's showcase page
   // Client Portal
   includePortalLinks: boolean("include_portal_links").default(true), // Include magic links in emails

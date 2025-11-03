@@ -33,6 +33,7 @@ import SmartFiles from "@/pages/smart-files";
 import SmartFileBuilder from "@/pages/smart-file-builder";
 import Galleries from "@/pages/galleries";
 import GalleryDetail from "@/pages/gallery-detail";
+import ClientGalleryView from "@/pages/client-gallery-view";
 import LeadForms from "@/pages/lead-forms";
 import LeadFormBuilder from "@/pages/lead-form-builder";
 import WidgetGenerator from "@/pages/widget-generator";
@@ -197,6 +198,7 @@ function Router() {
       <Route path="/public/booking/:token" component={PublicBooking} />
       <Route path="/booking/calendar/:publicToken" component={PublicBookingCalendar} />
       <Route path="/public/galleries/:photographerPublicToken" component={PublicGalleries} />
+      <Route path="/client/galleries/:galleryId" component={ClientGalleryView} />
       <Route path="/booking/confirmation" component={BookingConfirmation} />
       <Route path="/admin/setup" component={AdminSetup} />
       <Route path="/lead-form" component={LeadFormDemo} />
