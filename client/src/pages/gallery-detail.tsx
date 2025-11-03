@@ -15,7 +15,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { 
   ArrowLeft, Upload, Trash2, Share2, Save, Eye, Download, 
-  Globe, Lock, Image as ImageIcon, Calendar, User, Copy, X
+  Globe, Lock, Image as ImageIcon, Calendar, User, Copy, X, Star
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
@@ -145,6 +145,28 @@ export default function GalleryDetail() {
       toast({
         title: "Error",
         description: error.message || "Failed to delete image",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Set cover image mutation
+  const setCoverImageMutation = useMutation({
+    mutationFn: async (imageId: string) => {
+      return apiRequest("PATCH", `/api/galleries/${galleryId}/cover-image`, { imageId });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/galleries", galleryId] });
+      queryClient.invalidateQueries({ queryKey: ["/api/galleries"] });
+      toast({
+        title: "Success",
+        description: "Cover image updated successfully",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to set cover image",
         variant: "destructive",
       });
     },
@@ -488,15 +510,38 @@ export default function GalleryDetail() {
                               alt={image.caption || `Image ${index + 1}`}
                               className="w-full h-full object-cover"
                             />
-                            <Button
-                              variant="destructive"
-                              size="icon"
-                              className="absolute top-2 right-2"
-                              onClick={() => deleteImageMutation.mutate(image.id)}
-                              data-testid={`button-delete-image-${index}`}
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
+                            
+                            {/* Cover Image Badge */}
+                            {gallery.coverImageId === image.id && (
+                              <Badge 
+                                className="absolute top-2 left-2 bg-yellow-500 hover:bg-yellow-600"
+                                data-testid={`badge-cover-image-${index}`}
+                              >
+                                <Star className="w-3 h-3 mr-1 fill-current" />
+                                Cover
+                              </Badge>
+                            )}
+                            
+                            {/* Action Buttons */}
+                            <div className="absolute top-2 right-2 flex gap-2">
+                              <Button
+                                variant={gallery.coverImageId === image.id ? "secondary" : "default"}
+                                size="icon"
+                                onClick={() => setCoverImageMutation.mutate(image.id)}
+                                title="Set as cover image"
+                                data-testid={`button-set-cover-${index}`}
+                              >
+                                <Star className={`w-4 h-4 ${gallery.coverImageId === image.id ? 'fill-current' : ''}`} />
+                              </Button>
+                              <Button
+                                variant="destructive"
+                                size="icon"
+                                onClick={() => deleteImageMutation.mutate(image.id)}
+                                data-testid={`button-delete-image-${index}`}
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
                           </div>
                           <CardContent className="p-3">
                             <Input

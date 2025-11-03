@@ -8980,6 +8980,46 @@ ${photographer.businessName}`
     }
   });
 
+  // PATCH /api/galleries/:id/cover-image - Set cover image (photographer only)
+  app.patch("/api/galleries/:id/cover-image", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { imageId } = req.body;
+      const photographerId = req.user!.photographerId!;
+
+      // Verify gallery ownership
+      const gallery = await storage.getGallery(id);
+      
+      if (!gallery) {
+        return res.status(404).json({ message: "Gallery not found" });
+      }
+
+      if (gallery.photographerId !== photographerId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      // Verify image belongs to this gallery
+      if (imageId) {
+        const images = await storage.getGalleryImages(id);
+        const imageExists = images.some(img => img.id === imageId);
+        
+        if (!imageExists) {
+          return res.status(400).json({ message: "Image does not belong to this gallery" });
+        }
+      }
+
+      // Update cover image
+      const updated = await storage.updateGallery(id, {
+        coverImageId: imageId || null
+      });
+
+      res.json(updated);
+    } catch (error) {
+      console.error('Failed to set cover image:', error);
+      res.status(500).json({ message: "Failed to set cover image" });
+    }
+  });
+
   // Image Upload & Management (Photographer)
 
   // POST /api/galleries/:id/images - Add image to gallery

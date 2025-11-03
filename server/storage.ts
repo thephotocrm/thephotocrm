@@ -49,7 +49,7 @@ import {
   type GalleryDownload, type InsertGalleryDownload
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, asc, inArray, gte, lte, gt, sql, isNotNull } from "drizzle-orm";
+import { eq, and, desc, asc, inArray, gte, lte, gt, sql, isNotNull, isNull } from "drizzle-orm";
 
 export interface IStorage {
   // Users
@@ -3569,8 +3569,18 @@ export class DatabaseStorage implements IStorage {
 
   // Native Galleries
   async getGalleriesByPhotographer(photographerId: string): Promise<Gallery[]> {
-    return await db.select()
+    const results = await db.select({
+      gallery: galleries,
+      coverImage: galleryImages
+    })
       .from(galleries)
+      .leftJoin(
+        galleryImages,
+        and(
+          eq(galleryImages.id, galleries.coverImageId),
+          isNull(galleryImages.deletedAt)
+        )
+      )
       .where(
         and(
           eq(galleries.photographerId, photographerId),
@@ -3578,11 +3588,23 @@ export class DatabaseStorage implements IStorage {
         )
       )
       .orderBy(desc(galleries.createdAt));
+    
+    return results.map(r => ({ ...r.gallery, coverImage: r.coverImage || undefined }));
   }
 
   async getGalleriesByProject(projectId: string): Promise<Gallery[]> {
-    return await db.select()
+    const results = await db.select({
+      gallery: galleries,
+      coverImage: galleryImages
+    })
       .from(galleries)
+      .leftJoin(
+        galleryImages,
+        and(
+          eq(galleryImages.id, galleries.coverImageId),
+          isNull(galleryImages.deletedAt)
+        )
+      )
       .where(
         and(
           eq(galleries.projectId, projectId),
@@ -3590,14 +3612,26 @@ export class DatabaseStorage implements IStorage {
         )
       )
       .orderBy(desc(galleries.createdAt));
+    
+    return results.map(r => ({ ...r.gallery, coverImage: r.coverImage || undefined }));
   }
 
   async getGallery(id: string): Promise<GalleryWithImages | undefined> {
-    const [gallery] = await db.select()
+    const [result] = await db.select({
+      gallery: galleries,
+      coverImage: galleryImages
+    })
       .from(galleries)
+      .leftJoin(
+        galleryImages,
+        and(
+          eq(galleryImages.id, galleries.coverImageId),
+          isNull(galleryImages.deletedAt)
+        )
+      )
       .where(eq(galleries.id, id));
     
-    if (!gallery) return undefined;
+    if (!result) return undefined;
 
     const images = await db.select()
       .from(galleryImages)
@@ -3609,7 +3643,11 @@ export class DatabaseStorage implements IStorage {
       )
       .orderBy(asc(galleryImages.sortIndex));
 
-    return { ...gallery, images };
+    return { 
+      ...result.gallery, 
+      coverImage: result.coverImage || undefined,
+      images 
+    };
   }
 
   async getPublicGalleries(photographerId: string): Promise<any[]> {
