@@ -98,10 +98,15 @@ export default function GalleryDetail() {
         })
           .use(Tus, {
             endpoint: `/api/galleries/${galleryId}/upload/tus`,
-            resume: false, // Disable resume to avoid old upload ID conflicts
             retryDelays: [0, 1000, 3000, 5000],
             chunkSize: 10 * 1024 * 1024, // 10MB chunks
             limit: 3, // 3 parallel uploads
+            // Disable URL storage to prevent resuming old uploads
+            urlStorage: {
+              findUploadFile: async () => null,
+              storeUploadUrl: async () => {},
+              removeUploadUrl: async () => {}
+            },
             // Send auth token in headers for all requests
             headers: {
               'Authorization': `Bearer ${token}`

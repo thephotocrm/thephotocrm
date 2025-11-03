@@ -1,0 +1,1857 @@
+55@uppy_tus.js?v=b67252a2:1270 tus: The `resume` option has been removed in tus-js-client v2. Please use the URL storage API instead.
+chunk-5BGMXE2E.js?v=b67252a2:1947 [Uppy] [16:28:09] tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/1131be2b11bb82a8c334a4d061eb667b, response code: 200, response text: , request id: n/a)
+error @ chunk-5BGMXE2E.js?v=b67252a2:1947
+log @ chunk-5BGMXE2E.js?v=b67252a2:3214
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:3603
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+gallery-detail.tsx:154 [Uppy] Upload error: DetailedError2: tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/1131be2b11bb82a8c334a4d061eb667b, response code: 200, response text: , request id: n/a)
+    at Upload2._emitHttpError (@uppy_tus.js?v=b67252a2:1547:23)
+    at @uppy_tus.js?v=b67252a2:1723:18
+(anonymous) @ gallery-detail.tsx:154
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+chunk-5BGMXE2E.js?v=b67252a2:1947 [Uppy] [16:28:09] tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/6e6029427120789128f60cd25483b500, response code: 200, response text: , request id: n/a)
+error @ chunk-5BGMXE2E.js?v=b67252a2:1947
+log @ chunk-5BGMXE2E.js?v=b67252a2:3214
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:3603
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+gallery-detail.tsx:154 [Uppy] Upload error: DetailedError2: tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/6e6029427120789128f60cd25483b500, response code: 200, response text: , request id: n/a)
+    at Upload2._emitHttpError (@uppy_tus.js?v=b67252a2:1547:23)
+    at @uppy_tus.js?v=b67252a2:1723:18
+(anonymous) @ gallery-detail.tsx:154
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+chunk-5BGMXE2E.js?v=b67252a2:1947 [Uppy] [16:28:09] tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/b33fe0caebf50e674be0dce635d4f6b9, response code: 200, response text: , request id: n/a)
+error @ chunk-5BGMXE2E.js?v=b67252a2:1947
+log @ chunk-5BGMXE2E.js?v=b67252a2:3214
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:3603
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+gallery-detail.tsx:154 [Uppy] Upload error: DetailedError2: tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/b33fe0caebf50e674be0dce635d4f6b9, response code: 200, response text: , request id: n/a)
+    at Upload2._emitHttpError (@uppy_tus.js?v=b67252a2:1547:23)
+    at @uppy_tus.js?v=b67252a2:1723:18
+(anonymous) @ gallery-detail.tsx:154
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+chunk-5BGMXE2E.js?v=b67252a2:1947 [Uppy] [16:28:09] tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/6f6e2ff629e077bc08f068c8d63d7aaf, response code: 200, response text: , request id: n/a)
+error @ chunk-5BGMXE2E.js?v=b67252a2:1947
+log @ chunk-5BGMXE2E.js?v=b67252a2:3214
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:3603
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+gallery-detail.tsx:154 [Uppy] Upload error: DetailedError2: tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/6f6e2ff629e077bc08f068c8d63d7aaf, response code: 200, response text: , request id: n/a)
+    at Upload2._emitHttpError (@uppy_tus.js?v=b67252a2:1547:23)
+    at @uppy_tus.js?v=b67252a2:1723:18
+(anonymous) @ gallery-detail.tsx:154
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+chunk-5BGMXE2E.js?v=b67252a2:1947 [Uppy] [16:28:09] tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/8dc59a9660063e7dd446311667a1c937, response code: 200, response text: , request id: n/a)
+error @ chunk-5BGMXE2E.js?v=b67252a2:1947
+log @ chunk-5BGMXE2E.js?v=b67252a2:3214
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:3603
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+gallery-detail.tsx:154 [Uppy] Upload error: DetailedError2: tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/8dc59a9660063e7dd446311667a1c937, response code: 200, response text: , request id: n/a)
+    at Upload2._emitHttpError (@uppy_tus.js?v=b67252a2:1547:23)
+    at @uppy_tus.js?v=b67252a2:1723:18
+(anonymous) @ gallery-detail.tsx:154
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+chunk-5BGMXE2E.js?v=b67252a2:1947 [Uppy] [16:28:09] tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/43c9edadc48f106a2142c03e3ca26c22, response code: 200, response text: , request id: n/a)
+error @ chunk-5BGMXE2E.js?v=b67252a2:1947
+log @ chunk-5BGMXE2E.js?v=b67252a2:3214
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:3603
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+gallery-detail.tsx:154 [Uppy] Upload error: DetailedError2: tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/43c9edadc48f106a2142c03e3ca26c22, response code: 200, response text: , request id: n/a)
+    at Upload2._emitHttpError (@uppy_tus.js?v=b67252a2:1547:23)
+    at @uppy_tus.js?v=b67252a2:1723:18
+(anonymous) @ gallery-detail.tsx:154
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+chunk-5BGMXE2E.js?v=b67252a2:1947 [Uppy] [16:28:09] tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/cb7d36937aef9e91ba6c9e62121455c5, response code: 200, response text: , request id: n/a)
+error @ chunk-5BGMXE2E.js?v=b67252a2:1947
+log @ chunk-5BGMXE2E.js?v=b67252a2:3214
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:3603
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+gallery-detail.tsx:154 [Uppy] Upload error: DetailedError2: tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/cb7d36937aef9e91ba6c9e62121455c5, response code: 200, response text: , request id: n/a)
+    at Upload2._emitHttpError (@uppy_tus.js?v=b67252a2:1547:23)
+    at @uppy_tus.js?v=b67252a2:1723:18
+(anonymous) @ gallery-detail.tsx:154
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+chunk-5BGMXE2E.js?v=b67252a2:1947 [Uppy] [16:28:09] tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/3453b00a8ad78f667faa3188ccead1d4, response code: 200, response text: , request id: n/a)
+error @ chunk-5BGMXE2E.js?v=b67252a2:1947
+log @ chunk-5BGMXE2E.js?v=b67252a2:3214
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:3603
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+gallery-detail.tsx:154 [Uppy] Upload error: DetailedError2: tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/3453b00a8ad78f667faa3188ccead1d4, response code: 200, response text: , request id: n/a)
+    at Upload2._emitHttpError (@uppy_tus.js?v=b67252a2:1547:23)
+    at @uppy_tus.js?v=b67252a2:1723:18
+(anonymous) @ gallery-detail.tsx:154
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+chunk-5BGMXE2E.js?v=b67252a2:1947 [Uppy] [16:28:09] tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/31cef29b7959a65594a12909f8f8584f, response code: 200, response text: , request id: n/a)
+error @ chunk-5BGMXE2E.js?v=b67252a2:1947
+log @ chunk-5BGMXE2E.js?v=b67252a2:3214
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:3603
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+gallery-detail.tsx:154 [Uppy] Upload error: DetailedError2: tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/31cef29b7959a65594a12909f8f8584f, response code: 200, response text: , request id: n/a)
+    at Upload2._emitHttpError (@uppy_tus.js?v=b67252a2:1547:23)
+    at @uppy_tus.js?v=b67252a2:1723:18
+(anonymous) @ gallery-detail.tsx:154
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+chunk-5BGMXE2E.js?v=b67252a2:1947 [Uppy] [16:28:09] tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/f03500aa1c8b5a1ca50c8f563e3c439b, response code: 200, response text: , request id: n/a)
+error @ chunk-5BGMXE2E.js?v=b67252a2:1947
+log @ chunk-5BGMXE2E.js?v=b67252a2:3214
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:3603
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+gallery-detail.tsx:154 [Uppy] Upload error: DetailedError2: tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/f03500aa1c8b5a1ca50c8f563e3c439b, response code: 200, response text: , request id: n/a)
+    at Upload2._emitHttpError (@uppy_tus.js?v=b67252a2:1547:23)
+    at @uppy_tus.js?v=b67252a2:1723:18
+(anonymous) @ gallery-detail.tsx:154
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+chunk-5BGMXE2E.js?v=b67252a2:1947 [Uppy] [16:28:09] tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/436f8c5b5ee60685fbd2cd6f78224415, response code: 200, response text: , request id: n/a)
+error @ chunk-5BGMXE2E.js?v=b67252a2:1947
+log @ chunk-5BGMXE2E.js?v=b67252a2:3214
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:3603
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+gallery-detail.tsx:154 [Uppy] Upload error: DetailedError2: tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/436f8c5b5ee60685fbd2cd6f78224415, response code: 200, response text: , request id: n/a)
+    at Upload2._emitHttpError (@uppy_tus.js?v=b67252a2:1547:23)
+    at @uppy_tus.js?v=b67252a2:1723:18
+(anonymous) @ gallery-detail.tsx:154
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+chunk-5BGMXE2E.js?v=b67252a2:1947 [Uppy] [16:28:09] tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/95e3baef60f0b943b16f8afc35cec04c, response code: 200, response text: , request id: n/a)
+error @ chunk-5BGMXE2E.js?v=b67252a2:1947
+log @ chunk-5BGMXE2E.js?v=b67252a2:3214
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:3603
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+gallery-detail.tsx:154 [Uppy] Upload error: DetailedError2: tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/95e3baef60f0b943b16f8afc35cec04c, response code: 200, response text: , request id: n/a)
+    at Upload2._emitHttpError (@uppy_tus.js?v=b67252a2:1547:23)
+    at @uppy_tus.js?v=b67252a2:1723:18
+(anonymous) @ gallery-detail.tsx:154
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+chunk-5BGMXE2E.js?v=b67252a2:1947 [Uppy] [16:28:09] tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/2da377a9d29e05d9b150f5595e98018a, response code: 200, response text: , request id: n/a)
+error @ chunk-5BGMXE2E.js?v=b67252a2:1947
+log @ chunk-5BGMXE2E.js?v=b67252a2:3214
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:3603
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+gallery-detail.tsx:154 [Uppy] Upload error: DetailedError2: tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/2da377a9d29e05d9b150f5595e98018a, response code: 200, response text: , request id: n/a)
+    at Upload2._emitHttpError (@uppy_tus.js?v=b67252a2:1547:23)
+    at @uppy_tus.js?v=b67252a2:1723:18
+(anonymous) @ gallery-detail.tsx:154
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+chunk-5BGMXE2E.js?v=b67252a2:1947 [Uppy] [16:28:09] tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/79d991c1dad768c9efdf38406b918e5e, response code: 200, response text: , request id: n/a)
+error @ chunk-5BGMXE2E.js?v=b67252a2:1947
+log @ chunk-5BGMXE2E.js?v=b67252a2:3214
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:3603
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+gallery-detail.tsx:154 [Uppy] Upload error: DetailedError2: tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/79d991c1dad768c9efdf38406b918e5e, response code: 200, response text: , request id: n/a)
+    at Upload2._emitHttpError (@uppy_tus.js?v=b67252a2:1547:23)
+    at @uppy_tus.js?v=b67252a2:1723:18
+(anonymous) @ gallery-detail.tsx:154
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+chunk-5BGMXE2E.js?v=b67252a2:1947 [Uppy] [16:28:09] tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/4209a38d0140db59cfeb3222b77aa932, response code: 200, response text: , request id: n/a)
+error @ chunk-5BGMXE2E.js?v=b67252a2:1947
+log @ chunk-5BGMXE2E.js?v=b67252a2:3214
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:3603
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+gallery-detail.tsx:154 [Uppy] Upload error: DetailedError2: tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/4209a38d0140db59cfeb3222b77aa932, response code: 200, response text: , request id: n/a)
+    at Upload2._emitHttpError (@uppy_tus.js?v=b67252a2:1547:23)
+    at @uppy_tus.js?v=b67252a2:1723:18
+(anonymous) @ gallery-detail.tsx:154
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+chunk-5BGMXE2E.js?v=b67252a2:1947 [Uppy] [16:28:09] tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/48028e2dacffeb75ffdec459d626198a, response code: 200, response text: , request id: n/a)
+error @ chunk-5BGMXE2E.js?v=b67252a2:1947
+log @ chunk-5BGMXE2E.js?v=b67252a2:3214
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:3603
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+gallery-detail.tsx:154 [Uppy] Upload error: DetailedError2: tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/48028e2dacffeb75ffdec459d626198a, response code: 200, response text: , request id: n/a)
+    at Upload2._emitHttpError (@uppy_tus.js?v=b67252a2:1547:23)
+    at @uppy_tus.js?v=b67252a2:1723:18
+(anonymous) @ gallery-detail.tsx:154
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+chunk-5BGMXE2E.js?v=b67252a2:1947 [Uppy] [16:28:09] tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/7b733baefbb8f3d5aabf778e0f08f525, response code: 200, response text: , request id: n/a)
+error @ chunk-5BGMXE2E.js?v=b67252a2:1947
+log @ chunk-5BGMXE2E.js?v=b67252a2:3214
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:3603
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+gallery-detail.tsx:154 [Uppy] Upload error: DetailedError2: tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/7b733baefbb8f3d5aabf778e0f08f525, response code: 200, response text: , request id: n/a)
+    at Upload2._emitHttpError (@uppy_tus.js?v=b67252a2:1547:23)
+    at @uppy_tus.js?v=b67252a2:1723:18
+(anonymous) @ gallery-detail.tsx:154
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+chunk-5BGMXE2E.js?v=b67252a2:1947 [Uppy] [16:28:09] tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/84b0c99e7b6508309f046617c4057e11, response code: 200, response text: , request id: n/a)
+error @ chunk-5BGMXE2E.js?v=b67252a2:1947
+log @ chunk-5BGMXE2E.js?v=b67252a2:3214
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:3603
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+gallery-detail.tsx:154 [Uppy] Upload error: DetailedError2: tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/84b0c99e7b6508309f046617c4057e11, response code: 200, response text: , request id: n/a)
+    at Upload2._emitHttpError (@uppy_tus.js?v=b67252a2:1547:23)
+    at @uppy_tus.js?v=b67252a2:1723:18
+(anonymous) @ gallery-detail.tsx:154
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+chunk-5BGMXE2E.js?v=b67252a2:1947 [Uppy] [16:28:09] tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/75dfad04305136796c1a68a3f8c9ba50, response code: 200, response text: , request id: n/a)
+error @ chunk-5BGMXE2E.js?v=b67252a2:1947
+log @ chunk-5BGMXE2E.js?v=b67252a2:3214
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:3603
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+gallery-detail.tsx:154 [Uppy] Upload error: DetailedError2: tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/75dfad04305136796c1a68a3f8c9ba50, response code: 200, response text: , request id: n/a)
+    at Upload2._emitHttpError (@uppy_tus.js?v=b67252a2:1547:23)
+    at @uppy_tus.js?v=b67252a2:1723:18
+(anonymous) @ gallery-detail.tsx:154
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+chunk-5BGMXE2E.js?v=b67252a2:1947 [Uppy] [16:28:09] tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/3f9623edc16e2b58730e375254b8a1e1, response code: 200, response text: , request id: n/a)
+error @ chunk-5BGMXE2E.js?v=b67252a2:1947
+log @ chunk-5BGMXE2E.js?v=b67252a2:3214
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:3603
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+gallery-detail.tsx:154 [Uppy] Upload error: DetailedError2: tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/3f9623edc16e2b58730e375254b8a1e1, response code: 200, response text: , request id: n/a)
+    at Upload2._emitHttpError (@uppy_tus.js?v=b67252a2:1547:23)
+    at @uppy_tus.js?v=b67252a2:1723:18
+(anonymous) @ gallery-detail.tsx:154
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+chunk-5BGMXE2E.js?v=b67252a2:1947 [Uppy] [16:28:09] tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/2052c41fdbb6b4cd8a8a2743651ac728, response code: 200, response text: , request id: n/a)
+error @ chunk-5BGMXE2E.js?v=b67252a2:1947
+log @ chunk-5BGMXE2E.js?v=b67252a2:3214
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:3603
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+gallery-detail.tsx:154 [Uppy] Upload error: DetailedError2: tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/2052c41fdbb6b4cd8a8a2743651ac728, response code: 200, response text: , request id: n/a)
+    at Upload2._emitHttpError (@uppy_tus.js?v=b67252a2:1547:23)
+    at @uppy_tus.js?v=b67252a2:1723:18
+(anonymous) @ gallery-detail.tsx:154
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+chunk-5BGMXE2E.js?v=b67252a2:1947 [Uppy] [16:28:09] tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/f26d026c76a5b81b4efc18a0d3640721, response code: 200, response text: , request id: n/a)
+error @ chunk-5BGMXE2E.js?v=b67252a2:1947
+log @ chunk-5BGMXE2E.js?v=b67252a2:3214
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:3603
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+gallery-detail.tsx:154 [Uppy] Upload error: DetailedError2: tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/f26d026c76a5b81b4efc18a0d3640721, response code: 200, response text: , request id: n/a)
+    at Upload2._emitHttpError (@uppy_tus.js?v=b67252a2:1547:23)
+    at @uppy_tus.js?v=b67252a2:1723:18
+(anonymous) @ gallery-detail.tsx:154
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+chunk-5BGMXE2E.js?v=b67252a2:1947 [Uppy] [16:28:09] tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/175274ca2ae5ad6da15249000a863a86, response code: 200, response text: , request id: n/a)
+error @ chunk-5BGMXE2E.js?v=b67252a2:1947
+log @ chunk-5BGMXE2E.js?v=b67252a2:3214
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:3603
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+gallery-detail.tsx:154 [Uppy] Upload error: DetailedError2: tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/175274ca2ae5ad6da15249000a863a86, response code: 200, response text: , request id: n/a)
+    at Upload2._emitHttpError (@uppy_tus.js?v=b67252a2:1547:23)
+    at @uppy_tus.js?v=b67252a2:1723:18
+(anonymous) @ gallery-detail.tsx:154
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+chunk-5BGMXE2E.js?v=b67252a2:1947 [Uppy] [16:28:09] tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/29a135a2c081b74411dedf2f8d786930, response code: 200, response text: , request id: n/a)
+error @ chunk-5BGMXE2E.js?v=b67252a2:1947
+log @ chunk-5BGMXE2E.js?v=b67252a2:3214
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:3603
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+gallery-detail.tsx:154 [Uppy] Upload error: DetailedError2: tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/29a135a2c081b74411dedf2f8d786930, response code: 200, response text: , request id: n/a)
+    at Upload2._emitHttpError (@uppy_tus.js?v=b67252a2:1547:23)
+    at @uppy_tus.js?v=b67252a2:1723:18
+(anonymous) @ gallery-detail.tsx:154
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+chunk-5BGMXE2E.js?v=b67252a2:1947 [Uppy] [16:28:09] tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/af41f8d56c60911cb511a97916b2311f, response code: 200, response text: , request id: n/a)
+error @ chunk-5BGMXE2E.js?v=b67252a2:1947
+log @ chunk-5BGMXE2E.js?v=b67252a2:3214
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:3603
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+gallery-detail.tsx:154 [Uppy] Upload error: DetailedError2: tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/af41f8d56c60911cb511a97916b2311f, response code: 200, response text: , request id: n/a)
+    at Upload2._emitHttpError (@uppy_tus.js?v=b67252a2:1547:23)
+    at @uppy_tus.js?v=b67252a2:1723:18
+(anonymous) @ gallery-detail.tsx:154
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+chunk-5BGMXE2E.js?v=b67252a2:1947 [Uppy] [16:28:09] tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/c7e5fa51ae43b950a8fddc2e3a07fd38, response code: 200, response text: , request id: n/a)
+error @ chunk-5BGMXE2E.js?v=b67252a2:1947
+log @ chunk-5BGMXE2E.js?v=b67252a2:3214
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:3603
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+gallery-detail.tsx:154 [Uppy] Upload error: DetailedError2: tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/c7e5fa51ae43b950a8fddc2e3a07fd38, response code: 200, response text: , request id: n/a)
+    at Upload2._emitHttpError (@uppy_tus.js?v=b67252a2:1547:23)
+    at @uppy_tus.js?v=b67252a2:1723:18
+(anonymous) @ gallery-detail.tsx:154
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+chunk-5BGMXE2E.js?v=b67252a2:1947 [Uppy] [16:28:09] tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/82ce83a0c17eabf1033c8c73a6be37b4, response code: 200, response text: , request id: n/a)
+error @ chunk-5BGMXE2E.js?v=b67252a2:1947
+log @ chunk-5BGMXE2E.js?v=b67252a2:3214
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:3603
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+gallery-detail.tsx:154 [Uppy] Upload error: DetailedError2: tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/82ce83a0c17eabf1033c8c73a6be37b4, response code: 200, response text: , request id: n/a)
+    at Upload2._emitHttpError (@uppy_tus.js?v=b67252a2:1547:23)
+    at @uppy_tus.js?v=b67252a2:1723:18
+(anonymous) @ gallery-detail.tsx:154
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+chunk-5BGMXE2E.js?v=b67252a2:1947 [Uppy] [16:28:09] tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/a954c6aef0f5805ca9984c20d972ece1, response code: 200, response text: , request id: n/a)
+error @ chunk-5BGMXE2E.js?v=b67252a2:1947
+log @ chunk-5BGMXE2E.js?v=b67252a2:3214
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:3603
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+gallery-detail.tsx:154 [Uppy] Upload error: DetailedError2: tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/a954c6aef0f5805ca9984c20d972ece1, response code: 200, response text: , request id: n/a)
+    at Upload2._emitHttpError (@uppy_tus.js?v=b67252a2:1547:23)
+    at @uppy_tus.js?v=b67252a2:1723:18
+(anonymous) @ gallery-detail.tsx:154
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+chunk-5BGMXE2E.js?v=b67252a2:1947 [Uppy] [16:28:09] tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/f337e2aab9d54eeb4616ed7af25a192b, response code: 200, response text: , request id: n/a)
+error @ chunk-5BGMXE2E.js?v=b67252a2:1947
+log @ chunk-5BGMXE2E.js?v=b67252a2:3214
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:3603
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+gallery-detail.tsx:154 [Uppy] Upload error: DetailedError2: tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/f337e2aab9d54eeb4616ed7af25a192b, response code: 200, response text: , request id: n/a)
+    at Upload2._emitHttpError (@uppy_tus.js?v=b67252a2:1547:23)
+    at @uppy_tus.js?v=b67252a2:1723:18
+(anonymous) @ gallery-detail.tsx:154
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+chunk-5BGMXE2E.js?v=b67252a2:1947 [Uppy] [16:28:09] tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/8e233087c3430b66b4540dd7e70213a9, response code: 200, response text: , request id: n/a)
+error @ chunk-5BGMXE2E.js?v=b67252a2:1947
+log @ chunk-5BGMXE2E.js?v=b67252a2:3214
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:3603
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+gallery-detail.tsx:154 [Uppy] Upload error: DetailedError2: tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/8e233087c3430b66b4540dd7e70213a9, response code: 200, response text: , request id: n/a)
+    at Upload2._emitHttpError (@uppy_tus.js?v=b67252a2:1547:23)
+    at @uppy_tus.js?v=b67252a2:1723:18
+(anonymous) @ gallery-detail.tsx:154
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+chunk-5BGMXE2E.js?v=b67252a2:1947 [Uppy] [16:28:09] tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/60435afb0f9a85f816c7b94a659e1d95, response code: 200, response text: , request id: n/a)
+error @ chunk-5BGMXE2E.js?v=b67252a2:1947
+log @ chunk-5BGMXE2E.js?v=b67252a2:3214
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:3603
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+gallery-detail.tsx:154 [Uppy] Upload error: DetailedError2: tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/60435afb0f9a85f816c7b94a659e1d95, response code: 200, response text: , request id: n/a)
+    at Upload2._emitHttpError (@uppy_tus.js?v=b67252a2:1547:23)
+    at @uppy_tus.js?v=b67252a2:1723:18
+(anonymous) @ gallery-detail.tsx:154
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+chunk-5BGMXE2E.js?v=b67252a2:1947 [Uppy] [16:28:09] tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/0d8800e0e30828ab3b7876d8707ab759, response code: 200, response text: , request id: n/a)
+error @ chunk-5BGMXE2E.js?v=b67252a2:1947
+log @ chunk-5BGMXE2E.js?v=b67252a2:3214
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:3603
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+gallery-detail.tsx:154 [Uppy] Upload error: DetailedError2: tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/0d8800e0e30828ab3b7876d8707ab759, response code: 200, response text: , request id: n/a)
+    at Upload2._emitHttpError (@uppy_tus.js?v=b67252a2:1547:23)
+    at @uppy_tus.js?v=b67252a2:1723:18
+(anonymous) @ gallery-detail.tsx:154
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+chunk-5BGMXE2E.js?v=b67252a2:1947 [Uppy] [16:28:09] tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/de6a348a1ca296b8498043180ee037a2, response code: 200, response text: , request id: n/a)
+error @ chunk-5BGMXE2E.js?v=b67252a2:1947
+log @ chunk-5BGMXE2E.js?v=b67252a2:3214
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:3603
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+gallery-detail.tsx:154 [Uppy] Upload error: DetailedError2: tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/de6a348a1ca296b8498043180ee037a2, response code: 200, response text: , request id: n/a)
+    at Upload2._emitHttpError (@uppy_tus.js?v=b67252a2:1547:23)
+    at @uppy_tus.js?v=b67252a2:1723:18
+(anonymous) @ gallery-detail.tsx:154
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+chunk-5BGMXE2E.js?v=b67252a2:1947 [Uppy] [16:28:09] tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/6cd8a6399548c8d874da6051f0402e1c, response code: 200, response text: , request id: n/a)
+error @ chunk-5BGMXE2E.js?v=b67252a2:1947
+log @ chunk-5BGMXE2E.js?v=b67252a2:3214
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:3603
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+gallery-detail.tsx:154 [Uppy] Upload error: DetailedError2: tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/6cd8a6399548c8d874da6051f0402e1c, response code: 200, response text: , request id: n/a)
+    at Upload2._emitHttpError (@uppy_tus.js?v=b67252a2:1547:23)
+    at @uppy_tus.js?v=b67252a2:1723:18
+(anonymous) @ gallery-detail.tsx:154
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+chunk-5BGMXE2E.js?v=b67252a2:1947 [Uppy] [16:28:09] tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/6c46d3d0f29f9a928da88b830b0106c0, response code: 200, response text: , request id: n/a)
+error @ chunk-5BGMXE2E.js?v=b67252a2:1947
+log @ chunk-5BGMXE2E.js?v=b67252a2:3214
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:3603
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+gallery-detail.tsx:154 [Uppy] Upload error: DetailedError2: tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/6c46d3d0f29f9a928da88b830b0106c0, response code: 200, response text: , request id: n/a)
+    at Upload2._emitHttpError (@uppy_tus.js?v=b67252a2:1547:23)
+    at @uppy_tus.js?v=b67252a2:1723:18
+(anonymous) @ gallery-detail.tsx:154
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+chunk-5BGMXE2E.js?v=b67252a2:1947 [Uppy] [16:28:10] tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/03f51ce5fd5e7b09397d87f367f7b686, response code: 200, response text: , request id: n/a)
+error @ chunk-5BGMXE2E.js?v=b67252a2:1947
+log @ chunk-5BGMXE2E.js?v=b67252a2:3214
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:3603
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+gallery-detail.tsx:154 [Uppy] Upload error: DetailedError2: tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/03f51ce5fd5e7b09397d87f367f7b686, response code: 200, response text: , request id: n/a)
+    at Upload2._emitHttpError (@uppy_tus.js?v=b67252a2:1547:23)
+    at @uppy_tus.js?v=b67252a2:1723:18
+(anonymous) @ gallery-detail.tsx:154
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+chunk-5BGMXE2E.js?v=b67252a2:1947 [Uppy] [16:28:10] tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/decc24d3c8b68db94c704b3fedaf5131, response code: 200, response text: , request id: n/a)
+error @ chunk-5BGMXE2E.js?v=b67252a2:1947
+log @ chunk-5BGMXE2E.js?v=b67252a2:3214
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:3603
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+gallery-detail.tsx:154 [Uppy] Upload error: DetailedError2: tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/decc24d3c8b68db94c704b3fedaf5131, response code: 200, response text: , request id: n/a)
+    at Upload2._emitHttpError (@uppy_tus.js?v=b67252a2:1547:23)
+    at @uppy_tus.js?v=b67252a2:1723:18
+(anonymous) @ gallery-detail.tsx:154
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+chunk-5BGMXE2E.js?v=b67252a2:1947 [Uppy] [16:28:10] tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/e596557994da19e89f4cf0473b9bf45a, response code: 200, response text: , request id: n/a)
+error @ chunk-5BGMXE2E.js?v=b67252a2:1947
+log @ chunk-5BGMXE2E.js?v=b67252a2:3214
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:3603
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+gallery-detail.tsx:154 [Uppy] Upload error: DetailedError2: tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/e596557994da19e89f4cf0473b9bf45a, response code: 200, response text: , request id: n/a)
+    at Upload2._emitHttpError (@uppy_tus.js?v=b67252a2:1547:23)
+    at @uppy_tus.js?v=b67252a2:1723:18
+(anonymous) @ gallery-detail.tsx:154
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+chunk-5BGMXE2E.js?v=b67252a2:1947 [Uppy] [16:28:10] tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/63af0a58a74cd420f99fe784e23b324b, response code: 200, response text: , request id: n/a)
+error @ chunk-5BGMXE2E.js?v=b67252a2:1947
+log @ chunk-5BGMXE2E.js?v=b67252a2:3214
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:3603
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+gallery-detail.tsx:154 [Uppy] Upload error: DetailedError2: tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/63af0a58a74cd420f99fe784e23b324b, response code: 200, response text: , request id: n/a)
+    at Upload2._emitHttpError (@uppy_tus.js?v=b67252a2:1547:23)
+    at @uppy_tus.js?v=b67252a2:1723:18
+(anonymous) @ gallery-detail.tsx:154
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+chunk-5BGMXE2E.js?v=b67252a2:1947 [Uppy] [16:28:10] tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/ea11e2d681aa3fd2b86104818ac862eb, response code: 200, response text: , request id: n/a)
+error @ chunk-5BGMXE2E.js?v=b67252a2:1947
+log @ chunk-5BGMXE2E.js?v=b67252a2:3214
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:3603
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+gallery-detail.tsx:154 [Uppy] Upload error: DetailedError2: tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/ea11e2d681aa3fd2b86104818ac862eb, response code: 200, response text: , request id: n/a)
+    at Upload2._emitHttpError (@uppy_tus.js?v=b67252a2:1547:23)
+    at @uppy_tus.js?v=b67252a2:1723:18
+(anonymous) @ gallery-detail.tsx:154
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+chunk-5BGMXE2E.js?v=b67252a2:1947 [Uppy] [16:28:10] tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/d0c376d4902d0bc96eeeccbc1e7a2069, response code: 200, response text: , request id: n/a)
+error @ chunk-5BGMXE2E.js?v=b67252a2:1947
+log @ chunk-5BGMXE2E.js?v=b67252a2:3214
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:3603
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+gallery-detail.tsx:154 [Uppy] Upload error: DetailedError2: tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/d0c376d4902d0bc96eeeccbc1e7a2069, response code: 200, response text: , request id: n/a)
+    at Upload2._emitHttpError (@uppy_tus.js?v=b67252a2:1547:23)
+    at @uppy_tus.js?v=b67252a2:1723:18
+(anonymous) @ gallery-detail.tsx:154
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+chunk-5BGMXE2E.js?v=b67252a2:1947 [Uppy] [16:28:10] tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/a5aee09f5ed9633f9a22affa5628b76a, response code: 200, response text: , request id: n/a)
+error @ chunk-5BGMXE2E.js?v=b67252a2:1947
+log @ chunk-5BGMXE2E.js?v=b67252a2:3214
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:3603
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+gallery-detail.tsx:154 [Uppy] Upload error: DetailedError2: tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/a5aee09f5ed9633f9a22affa5628b76a, response code: 200, response text: , request id: n/a)
+    at Upload2._emitHttpError (@uppy_tus.js?v=b67252a2:1547:23)
+    at @uppy_tus.js?v=b67252a2:1723:18
+(anonymous) @ gallery-detail.tsx:154
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+chunk-5BGMXE2E.js?v=b67252a2:1947 [Uppy] [16:28:10] tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/cd2881a6c6aefef11a8f10d3a08ca4b1, response code: 200, response text: , request id: n/a)
+error @ chunk-5BGMXE2E.js?v=b67252a2:1947
+log @ chunk-5BGMXE2E.js?v=b67252a2:3214
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:3603
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+gallery-detail.tsx:154 [Uppy] Upload error: DetailedError2: tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/cd2881a6c6aefef11a8f10d3a08ca4b1, response code: 200, response text: , request id: n/a)
+    at Upload2._emitHttpError (@uppy_tus.js?v=b67252a2:1547:23)
+    at @uppy_tus.js?v=b67252a2:1723:18
+(anonymous) @ gallery-detail.tsx:154
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+chunk-5BGMXE2E.js?v=b67252a2:1947 [Uppy] [16:28:10] tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/11013eae6de3f18d4101c0f4f26bd82a, response code: 200, response text: , request id: n/a)
+error @ chunk-5BGMXE2E.js?v=b67252a2:1947
+log @ chunk-5BGMXE2E.js?v=b67252a2:3214
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:3603
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+gallery-detail.tsx:154 [Uppy] Upload error: DetailedError2: tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/11013eae6de3f18d4101c0f4f26bd82a, response code: 200, response text: , request id: n/a)
+    at Upload2._emitHttpError (@uppy_tus.js?v=b67252a2:1547:23)
+    at @uppy_tus.js?v=b67252a2:1723:18
+(anonymous) @ gallery-detail.tsx:154
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+chunk-5BGMXE2E.js?v=b67252a2:1947 [Uppy] [16:28:10] tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/346bb683951a9bae462560b7cf9fcd77, response code: 200, response text: , request id: n/a)
+error @ chunk-5BGMXE2E.js?v=b67252a2:1947
+log @ chunk-5BGMXE2E.js?v=b67252a2:3214
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:3603
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+gallery-detail.tsx:154 [Uppy] Upload error: DetailedError2: tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/346bb683951a9bae462560b7cf9fcd77, response code: 200, response text: , request id: n/a)
+    at Upload2._emitHttpError (@uppy_tus.js?v=b67252a2:1547:23)
+    at @uppy_tus.js?v=b67252a2:1723:18
+(anonymous) @ gallery-detail.tsx:154
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+chunk-5BGMXE2E.js?v=b67252a2:1947 [Uppy] [16:28:10] tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/c8710c8ae3a55027f8fe76295e4ca897, response code: 200, response text: , request id: n/a)
+error @ chunk-5BGMXE2E.js?v=b67252a2:1947
+log @ chunk-5BGMXE2E.js?v=b67252a2:3214
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:3603
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+gallery-detail.tsx:154 [Uppy] Upload error: DetailedError2: tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/c8710c8ae3a55027f8fe76295e4ca897, response code: 200, response text: , request id: n/a)
+    at Upload2._emitHttpError (@uppy_tus.js?v=b67252a2:1547:23)
+    at @uppy_tus.js?v=b67252a2:1723:18
+(anonymous) @ gallery-detail.tsx:154
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+chunk-5BGMXE2E.js?v=b67252a2:1947 [Uppy] [16:28:10] tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/7d2ac3d486e5961200dc7a16349569b4, response code: 200, response text: , request id: n/a)
+error @ chunk-5BGMXE2E.js?v=b67252a2:1947
+log @ chunk-5BGMXE2E.js?v=b67252a2:3214
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:3603
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+gallery-detail.tsx:154 [Uppy] Upload error: DetailedError2: tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/7d2ac3d486e5961200dc7a16349569b4, response code: 200, response text: , request id: n/a)
+    at Upload2._emitHttpError (@uppy_tus.js?v=b67252a2:1547:23)
+    at @uppy_tus.js?v=b67252a2:1723:18
+(anonymous) @ gallery-detail.tsx:154
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+chunk-5BGMXE2E.js?v=b67252a2:1947 [Uppy] [16:28:10] tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/80b29e8982e24e5b934036641dfd6124, response code: 200, response text: , request id: n/a)
+error @ chunk-5BGMXE2E.js?v=b67252a2:1947
+log @ chunk-5BGMXE2E.js?v=b67252a2:3214
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:3603
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+gallery-detail.tsx:154 [Uppy] Upload error: DetailedError2: tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/80b29e8982e24e5b934036641dfd6124, response code: 200, response text: , request id: n/a)
+    at Upload2._emitHttpError (@uppy_tus.js?v=b67252a2:1547:23)
+    at @uppy_tus.js?v=b67252a2:1723:18
+(anonymous) @ gallery-detail.tsx:154
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+chunk-5BGMXE2E.js?v=b67252a2:1947 [Uppy] [16:28:10] tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/936c05f08cd56d668dc49ccb5c4ba055, response code: 200, response text: , request id: n/a)
+error @ chunk-5BGMXE2E.js?v=b67252a2:1947
+log @ chunk-5BGMXE2E.js?v=b67252a2:3214
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:3603
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+gallery-detail.tsx:154 [Uppy] Upload error: DetailedError2: tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/936c05f08cd56d668dc49ccb5c4ba055, response code: 200, response text: , request id: n/a)
+    at Upload2._emitHttpError (@uppy_tus.js?v=b67252a2:1547:23)
+    at @uppy_tus.js?v=b67252a2:1723:18
+(anonymous) @ gallery-detail.tsx:154
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+chunk-5BGMXE2E.js?v=b67252a2:1947 [Uppy] [16:28:10] tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/a3162eaf92508522c677152be797e3c3, response code: 200, response text: , request id: n/a)
+error @ chunk-5BGMXE2E.js?v=b67252a2:1947
+log @ chunk-5BGMXE2E.js?v=b67252a2:3214
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:3603
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+gallery-detail.tsx:154 [Uppy] Upload error: DetailedError2: tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/a3162eaf92508522c677152be797e3c3, response code: 200, response text: , request id: n/a)
+    at Upload2._emitHttpError (@uppy_tus.js?v=b67252a2:1547:23)
+    at @uppy_tus.js?v=b67252a2:1723:18
+(anonymous) @ gallery-detail.tsx:154
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+chunk-5BGMXE2E.js?v=b67252a2:1947 [Uppy] [16:28:10] tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/aaac9d7372d9666c203a61d5321b383c, response code: 200, response text: , request id: n/a)
+error @ chunk-5BGMXE2E.js?v=b67252a2:1947
+log @ chunk-5BGMXE2E.js?v=b67252a2:3214
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:3603
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+gallery-detail.tsx:154 [Uppy] Upload error: DetailedError2: tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/aaac9d7372d9666c203a61d5321b383c, response code: 200, response text: , request id: n/a)
+    at Upload2._emitHttpError (@uppy_tus.js?v=b67252a2:1547:23)
+    at @uppy_tus.js?v=b67252a2:1723:18
+(anonymous) @ gallery-detail.tsx:154
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+chunk-5BGMXE2E.js?v=b67252a2:1947 [Uppy] [16:28:10] tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/725f68d5c5e5a723fc2e4b6125f63e70, response code: 200, response text: , request id: n/a)
+error @ chunk-5BGMXE2E.js?v=b67252a2:1947
+log @ chunk-5BGMXE2E.js?v=b67252a2:3214
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:3603
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+gallery-detail.tsx:154 [Uppy] Upload error: DetailedError2: tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/725f68d5c5e5a723fc2e4b6125f63e70, response code: 200, response text: , request id: n/a)
+    at Upload2._emitHttpError (@uppy_tus.js?v=b67252a2:1547:23)
+    at @uppy_tus.js?v=b67252a2:1723:18
+(anonymous) @ gallery-detail.tsx:154
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+chunk-5BGMXE2E.js?v=b67252a2:1947 [Uppy] [16:28:10] tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/4544de5fa312ea727d0ed8435c08f9d3, response code: 200, response text: , request id: n/a)
+error @ chunk-5BGMXE2E.js?v=b67252a2:1947
+log @ chunk-5BGMXE2E.js?v=b67252a2:3214
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:3603
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+gallery-detail.tsx:154 [Uppy] Upload error: DetailedError2: tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/4544de5fa312ea727d0ed8435c08f9d3, response code: 200, response text: , request id: n/a)
+    at Upload2._emitHttpError (@uppy_tus.js?v=b67252a2:1547:23)
+    at @uppy_tus.js?v=b67252a2:1723:18
+(anonymous) @ gallery-detail.tsx:154
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+chunk-5BGMXE2E.js?v=b67252a2:1947 [Uppy] [16:28:10] tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/79a2beb7895b5788e98bad669150ceb4, response code: 200, response text: , request id: n/a)
+error @ chunk-5BGMXE2E.js?v=b67252a2:1947
+log @ chunk-5BGMXE2E.js?v=b67252a2:3214
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:3603
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+gallery-detail.tsx:154 [Uppy] Upload error: DetailedError2: tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/79a2beb7895b5788e98bad669150ceb4, response code: 200, response text: , request id: n/a)
+    at Upload2._emitHttpError (@uppy_tus.js?v=b67252a2:1547:23)
+    at @uppy_tus.js?v=b67252a2:1723:18
+(anonymous) @ gallery-detail.tsx:154
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+chunk-5BGMXE2E.js?v=b67252a2:1947 [Uppy] [16:28:10] tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/ed97ddc73b2a26aaf0922c97d10506cf, response code: 200, response text: , request id: n/a)
+error @ chunk-5BGMXE2E.js?v=b67252a2:1947
+log @ chunk-5BGMXE2E.js?v=b67252a2:3214
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:3603
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+gallery-detail.tsx:154 [Uppy] Upload error: DetailedError2: tus: invalid or missing offset value, originated from request (method: HEAD, url: https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/upload/tus/ed97ddc73b2a26aaf0922c97d10506cf, response code: 200, response text: , request id: n/a)
+    at Upload2._emitHttpError (@uppy_tus.js?v=b67252a2:1547:23)
+    at @uppy_tus.js?v=b67252a2:1723:18
