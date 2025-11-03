@@ -151,6 +151,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // NOTE: SimpleTexting webhook routes are registered in server/index.ts BEFORE this function
   // to ensure proper body parsing middleware is available
   
+  // CRITICAL: Initialize cookie-parser FIRST before any routes that need cookies
+  const cookieSecret = process.env.SESSION_SECRET || process.env.REPL_ID || 'default-cookie-secret-change-in-production';
+  app.use(cookieParser(cookieSecret));
+  console.log('✅ Cookie-parser middleware initialized');
+  
   // Simple chunked upload for gallery images using Multer + Cloudinary
   const uploadStorage = multer.memoryStorage();
   const upload = multer({
@@ -521,9 +526,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Initialize cookie-parser with secret for signed cookies (used in OAuth flow)
-  const cookieSecret = process.env.SESSION_SECRET || process.env.REPL_ID || 'default-cookie-secret-change-in-production';
-  app.use(cookieParser(cookieSecret));
+  // Cookie-parser already initialized at the top of registerRoutes
 
   // Serve attached_assets directory for uploaded files (logos, etc.)
   const attachedAssetsPath = path.join(process.cwd(), 'attached_assets');
