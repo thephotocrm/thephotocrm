@@ -13,8 +13,12 @@ export function authenticateToken(req: Request, res: Response, next: NextFunctio
   console.log('=== AUTHENTICATE TOKEN MIDDLEWARE ===');
   console.log('Request URL:', req.url);
   console.log('Request method:', req.method);
-  console.log('Has cookies:', !!req.cookies);
+  console.log('Has cookies object:', !!req.cookies);
+  console.log('All cookies:', JSON.stringify(req.cookies));
+  console.log('Cookie header:', req.headers.cookie);
   console.log('Has Authorization header:', !!req.headers.authorization);
+  console.log('Origin:', req.headers.origin);
+  console.log('Host:', req.headers.host);
   
   // Try to get token from cookie first
   let token = req.cookies?.token;
