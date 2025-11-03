@@ -104,8 +104,10 @@ export default function GalleryDetail() {
             // Disable URL storage to prevent resuming old uploads
             urlStorage: {
               findUploadFile: async () => null,
+              findUploadsByFingerprint: async () => [],
               storeUploadUrl: async () => {},
-              removeUploadUrl: async () => {}
+              removeUploadUrl: async () => {},
+              listAllUploads: async () => []
             },
             // Send auth token in headers for all requests
             headers: {
