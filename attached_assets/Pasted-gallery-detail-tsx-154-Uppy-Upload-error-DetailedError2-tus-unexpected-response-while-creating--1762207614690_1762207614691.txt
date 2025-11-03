@@ -1,0 +1,3089 @@
+gallery-detail.tsx:154 [Uppy] Upload error: DetailedError2: tus: unexpected response while creating upload, originated from request (method: POST, url: /api/galleries/e0374733-2aaa-4c88-9a28-e09c3d09ea95/upload/tus, response code: 500, response text: Something went wrong with that request
+Cannot read properties of undefined (reading 'id')
+, request id: n/a)
+    at Upload2._emitHttpError (@uppy_tus.js?v=b67252a2:1547:23)
+    at @uppy_tus.js?v=b67252a2:1660:18
+(anonymous) @ gallery-detail.tsx:154
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+@uppy_tus.js?v=b67252a2:2802  POST https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/api/galleries/e0374733-2aaa-4c88-9a28-e09c3d09ea95/upload/tus 500 (Internal Server Error)
+(anonymous) @ @uppy_tus.js?v=b67252a2:2802
+send @ @uppy_tus.js?v=b67252a2:2795
+_callee$ @ @uppy_tus.js?v=b67252a2:1992
+tryCatch @ @uppy_tus.js?v=b67252a2:839
+(anonymous) @ @uppy_tus.js?v=b67252a2:916
+(anonymous) @ @uppy_tus.js?v=b67252a2:862
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1055
+_next @ @uppy_tus.js?v=b67252a2:1073
+Promise.then
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1064
+_next @ @uppy_tus.js?v=b67252a2:1073
+(anonymous) @ @uppy_tus.js?v=b67252a2:1078
+(anonymous) @ @uppy_tus.js?v=b67252a2:1070
+sendRequest @ @uppy_tus.js?v=b67252a2:1976
+_sendRequest @ @uppy_tus.js?v=b67252a2:1913
+_createUpload @ @uppy_tus.js?v=b67252a2:1656
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+(anonymous) @ @uppy_tus.js?v=b67252a2:1563
+setTimeout
+_emitError @ @uppy_tus.js?v=b67252a2:1562
+_emitHttpError @ @uppy_tus.js?v=b67252a2:1547
+(anonymous) @ @uppy_tus.js?v=b67252a2:1660
+Promise.then
+_createUpload @ @uppy_tus.js?v=b67252a2:1658
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+(anonymous) @ @uppy_tus.js?v=b67252a2:1563
+setTimeout
+_emitError @ @uppy_tus.js?v=b67252a2:1562
+_emitHttpError @ @uppy_tus.js?v=b67252a2:1547
+(anonymous) @ @uppy_tus.js?v=b67252a2:1660
+Promise.then
+_createUpload @ @uppy_tus.js?v=b67252a2:1658
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+(anonymous) @ @uppy_tus.js?v=b67252a2:1563
+setTimeout
+_emitError @ @uppy_tus.js?v=b67252a2:1562
+_emitHttpError @ @uppy_tus.js?v=b67252a2:1547
+(anonymous) @ @uppy_tus.js?v=b67252a2:1660
+Promise.then
+_createUpload @ @uppy_tus.js?v=b67252a2:1658
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+(anonymous) @ @uppy_tus.js?v=b67252a2:1563
+setTimeout
+_emitError @ @uppy_tus.js?v=b67252a2:1562
+_emitHttpError @ @uppy_tus.js?v=b67252a2:1547
+(anonymous) @ @uppy_tus.js?v=b67252a2:1660
+Promise.then
+_createUpload @ @uppy_tus.js?v=b67252a2:1658
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+qRequest @ @uppy_tus.js?v=b67252a2:3451
+call_fn @ chunk-5BGMXE2E.js?v=b67252a2:1114
+next_fn @ chunk-5BGMXE2E.js?v=b67252a2:1151
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1138
+XMLHttpRequest.send
+(anonymous) @ @uppy_tus.js?v=b67252a2:2802
+send @ @uppy_tus.js?v=b67252a2:2795
+_callee$ @ @uppy_tus.js?v=b67252a2:1992
+tryCatch @ @uppy_tus.js?v=b67252a2:839
+(anonymous) @ @uppy_tus.js?v=b67252a2:916
+(anonymous) @ @uppy_tus.js?v=b67252a2:862
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1055
+_next @ @uppy_tus.js?v=b67252a2:1073
+Promise.then
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1064
+_next @ @uppy_tus.js?v=b67252a2:1073
+(anonymous) @ @uppy_tus.js?v=b67252a2:1078
+(anonymous) @ @uppy_tus.js?v=b67252a2:1070
+sendRequest @ @uppy_tus.js?v=b67252a2:1976
+_sendRequest @ @uppy_tus.js?v=b67252a2:1913
+_createUpload @ @uppy_tus.js?v=b67252a2:1656
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+qRequest @ @uppy_tus.js?v=b67252a2:3451
+call_fn @ chunk-5BGMXE2E.js?v=b67252a2:1114
+next_fn @ chunk-5BGMXE2E.js?v=b67252a2:1151
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1138
+XMLHttpRequest.send
+(anonymous) @ @uppy_tus.js?v=b67252a2:2802
+send @ @uppy_tus.js?v=b67252a2:2795
+_callee$ @ @uppy_tus.js?v=b67252a2:1992
+tryCatch @ @uppy_tus.js?v=b67252a2:839
+(anonymous) @ @uppy_tus.js?v=b67252a2:916
+(anonymous) @ @uppy_tus.js?v=b67252a2:862
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1055
+_next @ @uppy_tus.js?v=b67252a2:1073
+Promise.then
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1064
+_next @ @uppy_tus.js?v=b67252a2:1073
+(anonymous) @ @uppy_tus.js?v=b67252a2:1078
+(anonymous) @ @uppy_tus.js?v=b67252a2:1070
+sendRequest @ @uppy_tus.js?v=b67252a2:1976
+_sendRequest @ @uppy_tus.js?v=b67252a2:1913
+_createUpload @ @uppy_tus.js?v=b67252a2:1656
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+qRequest @ @uppy_tus.js?v=b67252a2:3451
+call_fn @ chunk-5BGMXE2E.js?v=b67252a2:1114
+next_fn @ chunk-5BGMXE2E.js?v=b67252a2:1151
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1138
+XMLHttpRequest.send
+(anonymous) @ @uppy_tus.js?v=b67252a2:2802
+send @ @uppy_tus.js?v=b67252a2:2795
+_callee$ @ @uppy_tus.js?v=b67252a2:1992
+tryCatch @ @uppy_tus.js?v=b67252a2:839
+(anonymous) @ @uppy_tus.js?v=b67252a2:916
+(anonymous) @ @uppy_tus.js?v=b67252a2:862
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1055
+_next @ @uppy_tus.js?v=b67252a2:1073
+Promise.then
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1064
+_next @ @uppy_tus.js?v=b67252a2:1073
+(anonymous) @ @uppy_tus.js?v=b67252a2:1078
+(anonymous) @ @uppy_tus.js?v=b67252a2:1070
+sendRequest @ @uppy_tus.js?v=b67252a2:1976
+_sendRequest @ @uppy_tus.js?v=b67252a2:1913
+_createUpload @ @uppy_tus.js?v=b67252a2:1656
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+qRequest @ @uppy_tus.js?v=b67252a2:3451
+call_fn @ chunk-5BGMXE2E.js?v=b67252a2:1114
+next_fn @ chunk-5BGMXE2E.js?v=b67252a2:1151
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1138
+XMLHttpRequest.send
+(anonymous) @ @uppy_tus.js?v=b67252a2:2802
+send @ @uppy_tus.js?v=b67252a2:2795
+_callee$ @ @uppy_tus.js?v=b67252a2:1992
+tryCatch @ @uppy_tus.js?v=b67252a2:839
+(anonymous) @ @uppy_tus.js?v=b67252a2:916
+(anonymous) @ @uppy_tus.js?v=b67252a2:862
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1055
+_next @ @uppy_tus.js?v=b67252a2:1073
+Promise.then
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1064
+_next @ @uppy_tus.js?v=b67252a2:1073
+(anonymous) @ @uppy_tus.js?v=b67252a2:1078
+(anonymous) @ @uppy_tus.js?v=b67252a2:1070
+sendRequest @ @uppy_tus.js?v=b67252a2:1976
+_sendRequest @ @uppy_tus.js?v=b67252a2:1913
+_createUpload @ @uppy_tus.js?v=b67252a2:1656
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+qRequest @ @uppy_tus.js?v=b67252a2:3451
+call_fn @ chunk-5BGMXE2E.js?v=b67252a2:1114
+next_fn @ chunk-5BGMXE2E.js?v=b67252a2:1151
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1138
+XMLHttpRequest.send
+(anonymous) @ @uppy_tus.js?v=b67252a2:2802
+send @ @uppy_tus.js?v=b67252a2:2795
+_callee$ @ @uppy_tus.js?v=b67252a2:1992
+tryCatch @ @uppy_tus.js?v=b67252a2:839
+(anonymous) @ @uppy_tus.js?v=b67252a2:916
+(anonymous) @ @uppy_tus.js?v=b67252a2:862
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1055
+_next @ @uppy_tus.js?v=b67252a2:1073
+Promise.then
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1064
+_next @ @uppy_tus.js?v=b67252a2:1073
+(anonymous) @ @uppy_tus.js?v=b67252a2:1078
+(anonymous) @ @uppy_tus.js?v=b67252a2:1070
+sendRequest @ @uppy_tus.js?v=b67252a2:1976
+_sendRequest @ @uppy_tus.js?v=b67252a2:1913
+_createUpload @ @uppy_tus.js?v=b67252a2:1656
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+qRequest @ @uppy_tus.js?v=b67252a2:3451
+call_fn @ chunk-5BGMXE2E.js?v=b67252a2:1114
+next_fn @ chunk-5BGMXE2E.js?v=b67252a2:1151
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1138
+XMLHttpRequest.send
+(anonymous) @ @uppy_tus.js?v=b67252a2:2802
+send @ @uppy_tus.js?v=b67252a2:2795
+_callee$ @ @uppy_tus.js?v=b67252a2:1992
+tryCatch @ @uppy_tus.js?v=b67252a2:839
+(anonymous) @ @uppy_tus.js?v=b67252a2:916
+(anonymous) @ @uppy_tus.js?v=b67252a2:862
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1055
+_next @ @uppy_tus.js?v=b67252a2:1073
+Promise.then
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1064
+_next @ @uppy_tus.js?v=b67252a2:1073
+(anonymous) @ @uppy_tus.js?v=b67252a2:1078
+(anonymous) @ @uppy_tus.js?v=b67252a2:1070
+sendRequest @ @uppy_tus.js?v=b67252a2:1976
+_sendRequest @ @uppy_tus.js?v=b67252a2:1913
+_createUpload @ @uppy_tus.js?v=b67252a2:1656
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+qRequest @ @uppy_tus.js?v=b67252a2:3451
+call_fn @ chunk-5BGMXE2E.js?v=b67252a2:1114
+next_fn @ chunk-5BGMXE2E.js?v=b67252a2:1151
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1138Understand this error
+chunk-5BGMXE2E.js?v=b67252a2:1947 [Uppy] [15:58:56] tus: unexpected response while creating upload, originated from request (method: POST, url: /api/galleries/e0374733-2aaa-4c88-9a28-e09c3d09ea95/upload/tus, response code: 500, response text: Something went wrong with that request
+Cannot read properties of undefined (reading 'id')
+, request id: n/a)
+error @ chunk-5BGMXE2E.js?v=b67252a2:1947
+log @ chunk-5BGMXE2E.js?v=b67252a2:3214
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:3603
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+gallery-detail.tsx:154 [Uppy] Upload error: DetailedError2: tus: unexpected response while creating upload, originated from request (method: POST, url: /api/galleries/e0374733-2aaa-4c88-9a28-e09c3d09ea95/upload/tus, response code: 500, response text: Something went wrong with that request
+Cannot read properties of undefined (reading 'id')
+, request id: n/a)
+    at Upload2._emitHttpError (@uppy_tus.js?v=b67252a2:1547:23)
+    at @uppy_tus.js?v=b67252a2:1660:18
+(anonymous) @ gallery-detail.tsx:154
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+@uppy_tus.js?v=b67252a2:2802  POST https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/api/galleries/e0374733-2aaa-4c88-9a28-e09c3d09ea95/upload/tus 500 (Internal Server Error)
+(anonymous) @ @uppy_tus.js?v=b67252a2:2802
+send @ @uppy_tus.js?v=b67252a2:2795
+_callee$ @ @uppy_tus.js?v=b67252a2:1992
+tryCatch @ @uppy_tus.js?v=b67252a2:839
+(anonymous) @ @uppy_tus.js?v=b67252a2:916
+(anonymous) @ @uppy_tus.js?v=b67252a2:862
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1055
+_next @ @uppy_tus.js?v=b67252a2:1073
+Promise.then
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1064
+_next @ @uppy_tus.js?v=b67252a2:1073
+(anonymous) @ @uppy_tus.js?v=b67252a2:1078
+(anonymous) @ @uppy_tus.js?v=b67252a2:1070
+sendRequest @ @uppy_tus.js?v=b67252a2:1976
+_sendRequest @ @uppy_tus.js?v=b67252a2:1913
+_createUpload @ @uppy_tus.js?v=b67252a2:1656
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+(anonymous) @ @uppy_tus.js?v=b67252a2:1563
+setTimeout
+_emitError @ @uppy_tus.js?v=b67252a2:1562
+_emitHttpError @ @uppy_tus.js?v=b67252a2:1547
+(anonymous) @ @uppy_tus.js?v=b67252a2:1660
+Promise.then
+_createUpload @ @uppy_tus.js?v=b67252a2:1658
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+(anonymous) @ @uppy_tus.js?v=b67252a2:1563
+setTimeout
+_emitError @ @uppy_tus.js?v=b67252a2:1562
+_emitHttpError @ @uppy_tus.js?v=b67252a2:1547
+(anonymous) @ @uppy_tus.js?v=b67252a2:1660
+Promise.then
+_createUpload @ @uppy_tus.js?v=b67252a2:1658
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+(anonymous) @ @uppy_tus.js?v=b67252a2:1563
+setTimeout
+_emitError @ @uppy_tus.js?v=b67252a2:1562
+_emitHttpError @ @uppy_tus.js?v=b67252a2:1547
+(anonymous) @ @uppy_tus.js?v=b67252a2:1660
+Promise.then
+_createUpload @ @uppy_tus.js?v=b67252a2:1658
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+(anonymous) @ @uppy_tus.js?v=b67252a2:1563
+setTimeout
+_emitError @ @uppy_tus.js?v=b67252a2:1562
+_emitHttpError @ @uppy_tus.js?v=b67252a2:1547
+(anonymous) @ @uppy_tus.js?v=b67252a2:1660
+Promise.then
+_createUpload @ @uppy_tus.js?v=b67252a2:1658
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+qRequest @ @uppy_tus.js?v=b67252a2:3451
+call_fn @ chunk-5BGMXE2E.js?v=b67252a2:1114
+next_fn @ chunk-5BGMXE2E.js?v=b67252a2:1151
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1138
+XMLHttpRequest.send
+(anonymous) @ @uppy_tus.js?v=b67252a2:2802
+send @ @uppy_tus.js?v=b67252a2:2795
+_callee$ @ @uppy_tus.js?v=b67252a2:1992
+tryCatch @ @uppy_tus.js?v=b67252a2:839
+(anonymous) @ @uppy_tus.js?v=b67252a2:916
+(anonymous) @ @uppy_tus.js?v=b67252a2:862
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1055
+_next @ @uppy_tus.js?v=b67252a2:1073
+Promise.then
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1064
+_next @ @uppy_tus.js?v=b67252a2:1073
+(anonymous) @ @uppy_tus.js?v=b67252a2:1078
+(anonymous) @ @uppy_tus.js?v=b67252a2:1070
+sendRequest @ @uppy_tus.js?v=b67252a2:1976
+_sendRequest @ @uppy_tus.js?v=b67252a2:1913
+_createUpload @ @uppy_tus.js?v=b67252a2:1656
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+qRequest @ @uppy_tus.js?v=b67252a2:3451
+call_fn @ chunk-5BGMXE2E.js?v=b67252a2:1114
+next_fn @ chunk-5BGMXE2E.js?v=b67252a2:1151
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1138
+XMLHttpRequest.send
+(anonymous) @ @uppy_tus.js?v=b67252a2:2802
+send @ @uppy_tus.js?v=b67252a2:2795
+_callee$ @ @uppy_tus.js?v=b67252a2:1992
+tryCatch @ @uppy_tus.js?v=b67252a2:839
+(anonymous) @ @uppy_tus.js?v=b67252a2:916
+(anonymous) @ @uppy_tus.js?v=b67252a2:862
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1055
+_next @ @uppy_tus.js?v=b67252a2:1073
+Promise.then
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1064
+_next @ @uppy_tus.js?v=b67252a2:1073
+(anonymous) @ @uppy_tus.js?v=b67252a2:1078
+(anonymous) @ @uppy_tus.js?v=b67252a2:1070
+sendRequest @ @uppy_tus.js?v=b67252a2:1976
+_sendRequest @ @uppy_tus.js?v=b67252a2:1913
+_createUpload @ @uppy_tus.js?v=b67252a2:1656
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+qRequest @ @uppy_tus.js?v=b67252a2:3451
+call_fn @ chunk-5BGMXE2E.js?v=b67252a2:1114
+next_fn @ chunk-5BGMXE2E.js?v=b67252a2:1151
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1138
+XMLHttpRequest.send
+(anonymous) @ @uppy_tus.js?v=b67252a2:2802
+send @ @uppy_tus.js?v=b67252a2:2795
+_callee$ @ @uppy_tus.js?v=b67252a2:1992
+tryCatch @ @uppy_tus.js?v=b67252a2:839
+(anonymous) @ @uppy_tus.js?v=b67252a2:916
+(anonymous) @ @uppy_tus.js?v=b67252a2:862
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1055
+_next @ @uppy_tus.js?v=b67252a2:1073
+Promise.then
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1064
+_next @ @uppy_tus.js?v=b67252a2:1073
+(anonymous) @ @uppy_tus.js?v=b67252a2:1078
+(anonymous) @ @uppy_tus.js?v=b67252a2:1070
+sendRequest @ @uppy_tus.js?v=b67252a2:1976
+_sendRequest @ @uppy_tus.js?v=b67252a2:1913
+_createUpload @ @uppy_tus.js?v=b67252a2:1656
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+qRequest @ @uppy_tus.js?v=b67252a2:3451
+call_fn @ chunk-5BGMXE2E.js?v=b67252a2:1114
+next_fn @ chunk-5BGMXE2E.js?v=b67252a2:1151
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1138
+XMLHttpRequest.send
+(anonymous) @ @uppy_tus.js?v=b67252a2:2802
+send @ @uppy_tus.js?v=b67252a2:2795
+_callee$ @ @uppy_tus.js?v=b67252a2:1992
+tryCatch @ @uppy_tus.js?v=b67252a2:839
+(anonymous) @ @uppy_tus.js?v=b67252a2:916
+(anonymous) @ @uppy_tus.js?v=b67252a2:862
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1055
+_next @ @uppy_tus.js?v=b67252a2:1073
+Promise.then
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1064
+_next @ @uppy_tus.js?v=b67252a2:1073
+(anonymous) @ @uppy_tus.js?v=b67252a2:1078
+(anonymous) @ @uppy_tus.js?v=b67252a2:1070
+sendRequest @ @uppy_tus.js?v=b67252a2:1976
+_sendRequest @ @uppy_tus.js?v=b67252a2:1913
+_createUpload @ @uppy_tus.js?v=b67252a2:1656
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+qRequest @ @uppy_tus.js?v=b67252a2:3451
+call_fn @ chunk-5BGMXE2E.js?v=b67252a2:1114
+next_fn @ chunk-5BGMXE2E.js?v=b67252a2:1151
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1138
+XMLHttpRequest.send
+(anonymous) @ @uppy_tus.js?v=b67252a2:2802
+send @ @uppy_tus.js?v=b67252a2:2795
+_callee$ @ @uppy_tus.js?v=b67252a2:1992
+tryCatch @ @uppy_tus.js?v=b67252a2:839
+(anonymous) @ @uppy_tus.js?v=b67252a2:916
+(anonymous) @ @uppy_tus.js?v=b67252a2:862
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1055
+_next @ @uppy_tus.js?v=b67252a2:1073
+Promise.then
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1064
+_next @ @uppy_tus.js?v=b67252a2:1073
+(anonymous) @ @uppy_tus.js?v=b67252a2:1078
+(anonymous) @ @uppy_tus.js?v=b67252a2:1070
+sendRequest @ @uppy_tus.js?v=b67252a2:1976
+_sendRequest @ @uppy_tus.js?v=b67252a2:1913
+_createUpload @ @uppy_tus.js?v=b67252a2:1656
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+qRequest @ @uppy_tus.js?v=b67252a2:3451
+call_fn @ chunk-5BGMXE2E.js?v=b67252a2:1114
+next_fn @ chunk-5BGMXE2E.js?v=b67252a2:1151
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1138
+XMLHttpRequest.send
+(anonymous) @ @uppy_tus.js?v=b67252a2:2802
+send @ @uppy_tus.js?v=b67252a2:2795
+_callee$ @ @uppy_tus.js?v=b67252a2:1992
+tryCatch @ @uppy_tus.js?v=b67252a2:839
+(anonymous) @ @uppy_tus.js?v=b67252a2:916
+(anonymous) @ @uppy_tus.js?v=b67252a2:862
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1055
+_next @ @uppy_tus.js?v=b67252a2:1073
+Promise.then
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1064
+_next @ @uppy_tus.js?v=b67252a2:1073
+(anonymous) @ @uppy_tus.js?v=b67252a2:1078
+(anonymous) @ @uppy_tus.js?v=b67252a2:1070
+sendRequest @ @uppy_tus.js?v=b67252a2:1976
+_sendRequest @ @uppy_tus.js?v=b67252a2:1913
+_createUpload @ @uppy_tus.js?v=b67252a2:1656
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+qRequest @ @uppy_tus.js?v=b67252a2:3451
+call_fn @ chunk-5BGMXE2E.js?v=b67252a2:1114
+next_fn @ chunk-5BGMXE2E.js?v=b67252a2:1151
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1138Understand this error
+chunk-5BGMXE2E.js?v=b67252a2:1947 [Uppy] [15:58:56] tus: unexpected response while creating upload, originated from request (method: POST, url: /api/galleries/e0374733-2aaa-4c88-9a28-e09c3d09ea95/upload/tus, response code: 500, response text: Something went wrong with that request
+Cannot read properties of undefined (reading 'id')
+, request id: n/a)
+error @ chunk-5BGMXE2E.js?v=b67252a2:1947
+log @ chunk-5BGMXE2E.js?v=b67252a2:3214
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:3603
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+gallery-detail.tsx:154 [Uppy] Upload error: DetailedError2: tus: unexpected response while creating upload, originated from request (method: POST, url: /api/galleries/e0374733-2aaa-4c88-9a28-e09c3d09ea95/upload/tus, response code: 500, response text: Something went wrong with that request
+Cannot read properties of undefined (reading 'id')
+, request id: n/a)
+    at Upload2._emitHttpError (@uppy_tus.js?v=b67252a2:1547:23)
+    at @uppy_tus.js?v=b67252a2:1660:18
+(anonymous) @ gallery-detail.tsx:154
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+@uppy_tus.js?v=b67252a2:2802  POST https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/api/galleries/e0374733-2aaa-4c88-9a28-e09c3d09ea95/upload/tus 500 (Internal Server Error)
+(anonymous) @ @uppy_tus.js?v=b67252a2:2802
+send @ @uppy_tus.js?v=b67252a2:2795
+_callee$ @ @uppy_tus.js?v=b67252a2:1992
+tryCatch @ @uppy_tus.js?v=b67252a2:839
+(anonymous) @ @uppy_tus.js?v=b67252a2:916
+(anonymous) @ @uppy_tus.js?v=b67252a2:862
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1055
+_next @ @uppy_tus.js?v=b67252a2:1073
+Promise.then
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1064
+_next @ @uppy_tus.js?v=b67252a2:1073
+(anonymous) @ @uppy_tus.js?v=b67252a2:1078
+(anonymous) @ @uppy_tus.js?v=b67252a2:1070
+sendRequest @ @uppy_tus.js?v=b67252a2:1976
+_sendRequest @ @uppy_tus.js?v=b67252a2:1913
+_createUpload @ @uppy_tus.js?v=b67252a2:1656
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+(anonymous) @ @uppy_tus.js?v=b67252a2:1563
+setTimeout
+_emitError @ @uppy_tus.js?v=b67252a2:1562
+_emitHttpError @ @uppy_tus.js?v=b67252a2:1547
+(anonymous) @ @uppy_tus.js?v=b67252a2:1660
+Promise.then
+_createUpload @ @uppy_tus.js?v=b67252a2:1658
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+(anonymous) @ @uppy_tus.js?v=b67252a2:1563
+setTimeout
+_emitError @ @uppy_tus.js?v=b67252a2:1562
+_emitHttpError @ @uppy_tus.js?v=b67252a2:1547
+(anonymous) @ @uppy_tus.js?v=b67252a2:1660
+Promise.then
+_createUpload @ @uppy_tus.js?v=b67252a2:1658
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+(anonymous) @ @uppy_tus.js?v=b67252a2:1563
+setTimeout
+_emitError @ @uppy_tus.js?v=b67252a2:1562
+_emitHttpError @ @uppy_tus.js?v=b67252a2:1547
+(anonymous) @ @uppy_tus.js?v=b67252a2:1660
+Promise.then
+_createUpload @ @uppy_tus.js?v=b67252a2:1658
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+(anonymous) @ @uppy_tus.js?v=b67252a2:1563
+setTimeout
+_emitError @ @uppy_tus.js?v=b67252a2:1562
+_emitHttpError @ @uppy_tus.js?v=b67252a2:1547
+(anonymous) @ @uppy_tus.js?v=b67252a2:1660
+Promise.then
+_createUpload @ @uppy_tus.js?v=b67252a2:1658
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+qRequest @ @uppy_tus.js?v=b67252a2:3451
+call_fn @ chunk-5BGMXE2E.js?v=b67252a2:1114
+next_fn @ chunk-5BGMXE2E.js?v=b67252a2:1151
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1138
+XMLHttpRequest.send
+(anonymous) @ @uppy_tus.js?v=b67252a2:2802
+send @ @uppy_tus.js?v=b67252a2:2795
+_callee$ @ @uppy_tus.js?v=b67252a2:1992
+tryCatch @ @uppy_tus.js?v=b67252a2:839
+(anonymous) @ @uppy_tus.js?v=b67252a2:916
+(anonymous) @ @uppy_tus.js?v=b67252a2:862
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1055
+_next @ @uppy_tus.js?v=b67252a2:1073
+Promise.then
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1064
+_next @ @uppy_tus.js?v=b67252a2:1073
+(anonymous) @ @uppy_tus.js?v=b67252a2:1078
+(anonymous) @ @uppy_tus.js?v=b67252a2:1070
+sendRequest @ @uppy_tus.js?v=b67252a2:1976
+_sendRequest @ @uppy_tus.js?v=b67252a2:1913
+_createUpload @ @uppy_tus.js?v=b67252a2:1656
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+qRequest @ @uppy_tus.js?v=b67252a2:3451
+call_fn @ chunk-5BGMXE2E.js?v=b67252a2:1114
+next_fn @ chunk-5BGMXE2E.js?v=b67252a2:1151
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1138
+XMLHttpRequest.send
+(anonymous) @ @uppy_tus.js?v=b67252a2:2802
+send @ @uppy_tus.js?v=b67252a2:2795
+_callee$ @ @uppy_tus.js?v=b67252a2:1992
+tryCatch @ @uppy_tus.js?v=b67252a2:839
+(anonymous) @ @uppy_tus.js?v=b67252a2:916
+(anonymous) @ @uppy_tus.js?v=b67252a2:862
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1055
+_next @ @uppy_tus.js?v=b67252a2:1073
+Promise.then
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1064
+_next @ @uppy_tus.js?v=b67252a2:1073
+(anonymous) @ @uppy_tus.js?v=b67252a2:1078
+(anonymous) @ @uppy_tus.js?v=b67252a2:1070
+sendRequest @ @uppy_tus.js?v=b67252a2:1976
+_sendRequest @ @uppy_tus.js?v=b67252a2:1913
+_createUpload @ @uppy_tus.js?v=b67252a2:1656
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+qRequest @ @uppy_tus.js?v=b67252a2:3451
+call_fn @ chunk-5BGMXE2E.js?v=b67252a2:1114
+next_fn @ chunk-5BGMXE2E.js?v=b67252a2:1151
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1138
+XMLHttpRequest.send
+(anonymous) @ @uppy_tus.js?v=b67252a2:2802
+send @ @uppy_tus.js?v=b67252a2:2795
+_callee$ @ @uppy_tus.js?v=b67252a2:1992
+tryCatch @ @uppy_tus.js?v=b67252a2:839
+(anonymous) @ @uppy_tus.js?v=b67252a2:916
+(anonymous) @ @uppy_tus.js?v=b67252a2:862
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1055
+_next @ @uppy_tus.js?v=b67252a2:1073
+Promise.then
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1064
+_next @ @uppy_tus.js?v=b67252a2:1073
+(anonymous) @ @uppy_tus.js?v=b67252a2:1078
+(anonymous) @ @uppy_tus.js?v=b67252a2:1070
+sendRequest @ @uppy_tus.js?v=b67252a2:1976
+_sendRequest @ @uppy_tus.js?v=b67252a2:1913
+_createUpload @ @uppy_tus.js?v=b67252a2:1656
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+qRequest @ @uppy_tus.js?v=b67252a2:3451
+call_fn @ chunk-5BGMXE2E.js?v=b67252a2:1114
+next_fn @ chunk-5BGMXE2E.js?v=b67252a2:1151
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1138
+XMLHttpRequest.send
+(anonymous) @ @uppy_tus.js?v=b67252a2:2802
+send @ @uppy_tus.js?v=b67252a2:2795
+_callee$ @ @uppy_tus.js?v=b67252a2:1992
+tryCatch @ @uppy_tus.js?v=b67252a2:839
+(anonymous) @ @uppy_tus.js?v=b67252a2:916
+(anonymous) @ @uppy_tus.js?v=b67252a2:862
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1055
+_next @ @uppy_tus.js?v=b67252a2:1073
+Promise.then
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1064
+_next @ @uppy_tus.js?v=b67252a2:1073
+(anonymous) @ @uppy_tus.js?v=b67252a2:1078
+(anonymous) @ @uppy_tus.js?v=b67252a2:1070
+sendRequest @ @uppy_tus.js?v=b67252a2:1976
+_sendRequest @ @uppy_tus.js?v=b67252a2:1913
+_createUpload @ @uppy_tus.js?v=b67252a2:1656
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+qRequest @ @uppy_tus.js?v=b67252a2:3451
+call_fn @ chunk-5BGMXE2E.js?v=b67252a2:1114
+next_fn @ chunk-5BGMXE2E.js?v=b67252a2:1151
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1138
+XMLHttpRequest.send
+(anonymous) @ @uppy_tus.js?v=b67252a2:2802
+send @ @uppy_tus.js?v=b67252a2:2795
+_callee$ @ @uppy_tus.js?v=b67252a2:1992
+tryCatch @ @uppy_tus.js?v=b67252a2:839
+(anonymous) @ @uppy_tus.js?v=b67252a2:916
+(anonymous) @ @uppy_tus.js?v=b67252a2:862
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1055
+_next @ @uppy_tus.js?v=b67252a2:1073
+Promise.then
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1064
+_next @ @uppy_tus.js?v=b67252a2:1073
+(anonymous) @ @uppy_tus.js?v=b67252a2:1078
+(anonymous) @ @uppy_tus.js?v=b67252a2:1070
+sendRequest @ @uppy_tus.js?v=b67252a2:1976
+_sendRequest @ @uppy_tus.js?v=b67252a2:1913
+_createUpload @ @uppy_tus.js?v=b67252a2:1656
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+qRequest @ @uppy_tus.js?v=b67252a2:3451
+call_fn @ chunk-5BGMXE2E.js?v=b67252a2:1114
+next_fn @ chunk-5BGMXE2E.js?v=b67252a2:1151
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1138
+XMLHttpRequest.send
+(anonymous) @ @uppy_tus.js?v=b67252a2:2802
+send @ @uppy_tus.js?v=b67252a2:2795
+_callee$ @ @uppy_tus.js?v=b67252a2:1992
+tryCatch @ @uppy_tus.js?v=b67252a2:839
+(anonymous) @ @uppy_tus.js?v=b67252a2:916
+(anonymous) @ @uppy_tus.js?v=b67252a2:862
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1055
+_next @ @uppy_tus.js?v=b67252a2:1073
+Promise.then
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1064
+_next @ @uppy_tus.js?v=b67252a2:1073
+(anonymous) @ @uppy_tus.js?v=b67252a2:1078
+(anonymous) @ @uppy_tus.js?v=b67252a2:1070
+sendRequest @ @uppy_tus.js?v=b67252a2:1976
+_sendRequest @ @uppy_tus.js?v=b67252a2:1913
+_createUpload @ @uppy_tus.js?v=b67252a2:1656
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+qRequest @ @uppy_tus.js?v=b67252a2:3451
+call_fn @ chunk-5BGMXE2E.js?v=b67252a2:1114
+next_fn @ chunk-5BGMXE2E.js?v=b67252a2:1151
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1138Understand this error
+chunk-5BGMXE2E.js?v=b67252a2:1947 [Uppy] [15:58:57] tus: unexpected response while creating upload, originated from request (method: POST, url: /api/galleries/e0374733-2aaa-4c88-9a28-e09c3d09ea95/upload/tus, response code: 500, response text: Something went wrong with that request
+Cannot read properties of undefined (reading 'id')
+, request id: n/a)
+error @ chunk-5BGMXE2E.js?v=b67252a2:1947
+log @ chunk-5BGMXE2E.js?v=b67252a2:3214
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:3603
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+gallery-detail.tsx:154 [Uppy] Upload error: DetailedError2: tus: unexpected response while creating upload, originated from request (method: POST, url: /api/galleries/e0374733-2aaa-4c88-9a28-e09c3d09ea95/upload/tus, response code: 500, response text: Something went wrong with that request
+Cannot read properties of undefined (reading 'id')
+, request id: n/a)
+    at Upload2._emitHttpError (@uppy_tus.js?v=b67252a2:1547:23)
+    at @uppy_tus.js?v=b67252a2:1660:18
+(anonymous) @ gallery-detail.tsx:154
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+@uppy_tus.js?v=b67252a2:2802  POST https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/api/galleries/e0374733-2aaa-4c88-9a28-e09c3d09ea95/upload/tus 500 (Internal Server Error)
+(anonymous) @ @uppy_tus.js?v=b67252a2:2802
+send @ @uppy_tus.js?v=b67252a2:2795
+_callee$ @ @uppy_tus.js?v=b67252a2:1992
+tryCatch @ @uppy_tus.js?v=b67252a2:839
+(anonymous) @ @uppy_tus.js?v=b67252a2:916
+(anonymous) @ @uppy_tus.js?v=b67252a2:862
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1055
+_next @ @uppy_tus.js?v=b67252a2:1073
+Promise.then
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1064
+_next @ @uppy_tus.js?v=b67252a2:1073
+(anonymous) @ @uppy_tus.js?v=b67252a2:1078
+(anonymous) @ @uppy_tus.js?v=b67252a2:1070
+sendRequest @ @uppy_tus.js?v=b67252a2:1976
+_sendRequest @ @uppy_tus.js?v=b67252a2:1913
+_createUpload @ @uppy_tus.js?v=b67252a2:1656
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+(anonymous) @ @uppy_tus.js?v=b67252a2:1563
+setTimeout
+_emitError @ @uppy_tus.js?v=b67252a2:1562
+_emitHttpError @ @uppy_tus.js?v=b67252a2:1547
+(anonymous) @ @uppy_tus.js?v=b67252a2:1660
+Promise.then
+_createUpload @ @uppy_tus.js?v=b67252a2:1658
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+(anonymous) @ @uppy_tus.js?v=b67252a2:1563
+setTimeout
+_emitError @ @uppy_tus.js?v=b67252a2:1562
+_emitHttpError @ @uppy_tus.js?v=b67252a2:1547
+(anonymous) @ @uppy_tus.js?v=b67252a2:1660
+Promise.then
+_createUpload @ @uppy_tus.js?v=b67252a2:1658
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+(anonymous) @ @uppy_tus.js?v=b67252a2:1563
+setTimeout
+_emitError @ @uppy_tus.js?v=b67252a2:1562
+_emitHttpError @ @uppy_tus.js?v=b67252a2:1547
+(anonymous) @ @uppy_tus.js?v=b67252a2:1660
+Promise.then
+_createUpload @ @uppy_tus.js?v=b67252a2:1658
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+(anonymous) @ @uppy_tus.js?v=b67252a2:1563
+setTimeout
+_emitError @ @uppy_tus.js?v=b67252a2:1562
+_emitHttpError @ @uppy_tus.js?v=b67252a2:1547
+(anonymous) @ @uppy_tus.js?v=b67252a2:1660
+Promise.then
+_createUpload @ @uppy_tus.js?v=b67252a2:1658
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+qRequest @ @uppy_tus.js?v=b67252a2:3451
+call_fn @ chunk-5BGMXE2E.js?v=b67252a2:1114
+next_fn @ chunk-5BGMXE2E.js?v=b67252a2:1151
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1138
+XMLHttpRequest.send
+(anonymous) @ @uppy_tus.js?v=b67252a2:2802
+send @ @uppy_tus.js?v=b67252a2:2795
+_callee$ @ @uppy_tus.js?v=b67252a2:1992
+tryCatch @ @uppy_tus.js?v=b67252a2:839
+(anonymous) @ @uppy_tus.js?v=b67252a2:916
+(anonymous) @ @uppy_tus.js?v=b67252a2:862
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1055
+_next @ @uppy_tus.js?v=b67252a2:1073
+Promise.then
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1064
+_next @ @uppy_tus.js?v=b67252a2:1073
+(anonymous) @ @uppy_tus.js?v=b67252a2:1078
+(anonymous) @ @uppy_tus.js?v=b67252a2:1070
+sendRequest @ @uppy_tus.js?v=b67252a2:1976
+_sendRequest @ @uppy_tus.js?v=b67252a2:1913
+_createUpload @ @uppy_tus.js?v=b67252a2:1656
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+qRequest @ @uppy_tus.js?v=b67252a2:3451
+call_fn @ chunk-5BGMXE2E.js?v=b67252a2:1114
+next_fn @ chunk-5BGMXE2E.js?v=b67252a2:1151
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1138
+XMLHttpRequest.send
+(anonymous) @ @uppy_tus.js?v=b67252a2:2802
+send @ @uppy_tus.js?v=b67252a2:2795
+_callee$ @ @uppy_tus.js?v=b67252a2:1992
+tryCatch @ @uppy_tus.js?v=b67252a2:839
+(anonymous) @ @uppy_tus.js?v=b67252a2:916
+(anonymous) @ @uppy_tus.js?v=b67252a2:862
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1055
+_next @ @uppy_tus.js?v=b67252a2:1073
+Promise.then
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1064
+_next @ @uppy_tus.js?v=b67252a2:1073
+(anonymous) @ @uppy_tus.js?v=b67252a2:1078
+(anonymous) @ @uppy_tus.js?v=b67252a2:1070
+sendRequest @ @uppy_tus.js?v=b67252a2:1976
+_sendRequest @ @uppy_tus.js?v=b67252a2:1913
+_createUpload @ @uppy_tus.js?v=b67252a2:1656
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+qRequest @ @uppy_tus.js?v=b67252a2:3451
+call_fn @ chunk-5BGMXE2E.js?v=b67252a2:1114
+next_fn @ chunk-5BGMXE2E.js?v=b67252a2:1151
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1138
+XMLHttpRequest.send
+(anonymous) @ @uppy_tus.js?v=b67252a2:2802
+send @ @uppy_tus.js?v=b67252a2:2795
+_callee$ @ @uppy_tus.js?v=b67252a2:1992
+tryCatch @ @uppy_tus.js?v=b67252a2:839
+(anonymous) @ @uppy_tus.js?v=b67252a2:916
+(anonymous) @ @uppy_tus.js?v=b67252a2:862
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1055
+_next @ @uppy_tus.js?v=b67252a2:1073
+Promise.then
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1064
+_next @ @uppy_tus.js?v=b67252a2:1073
+(anonymous) @ @uppy_tus.js?v=b67252a2:1078
+(anonymous) @ @uppy_tus.js?v=b67252a2:1070
+sendRequest @ @uppy_tus.js?v=b67252a2:1976
+_sendRequest @ @uppy_tus.js?v=b67252a2:1913
+_createUpload @ @uppy_tus.js?v=b67252a2:1656
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+qRequest @ @uppy_tus.js?v=b67252a2:3451
+call_fn @ chunk-5BGMXE2E.js?v=b67252a2:1114
+next_fn @ chunk-5BGMXE2E.js?v=b67252a2:1151
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1138
+XMLHttpRequest.send
+(anonymous) @ @uppy_tus.js?v=b67252a2:2802
+send @ @uppy_tus.js?v=b67252a2:2795
+_callee$ @ @uppy_tus.js?v=b67252a2:1992
+tryCatch @ @uppy_tus.js?v=b67252a2:839
+(anonymous) @ @uppy_tus.js?v=b67252a2:916
+(anonymous) @ @uppy_tus.js?v=b67252a2:862
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1055
+_next @ @uppy_tus.js?v=b67252a2:1073
+Promise.then
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1064
+_next @ @uppy_tus.js?v=b67252a2:1073
+(anonymous) @ @uppy_tus.js?v=b67252a2:1078
+(anonymous) @ @uppy_tus.js?v=b67252a2:1070
+sendRequest @ @uppy_tus.js?v=b67252a2:1976
+_sendRequest @ @uppy_tus.js?v=b67252a2:1913
+_createUpload @ @uppy_tus.js?v=b67252a2:1656
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+qRequest @ @uppy_tus.js?v=b67252a2:3451
+call_fn @ chunk-5BGMXE2E.js?v=b67252a2:1114
+next_fn @ chunk-5BGMXE2E.js?v=b67252a2:1151
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1138
+XMLHttpRequest.send
+(anonymous) @ @uppy_tus.js?v=b67252a2:2802
+send @ @uppy_tus.js?v=b67252a2:2795
+_callee$ @ @uppy_tus.js?v=b67252a2:1992
+tryCatch @ @uppy_tus.js?v=b67252a2:839
+(anonymous) @ @uppy_tus.js?v=b67252a2:916
+(anonymous) @ @uppy_tus.js?v=b67252a2:862
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1055
+_next @ @uppy_tus.js?v=b67252a2:1073
+Promise.then
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1064
+_next @ @uppy_tus.js?v=b67252a2:1073
+(anonymous) @ @uppy_tus.js?v=b67252a2:1078
+(anonymous) @ @uppy_tus.js?v=b67252a2:1070
+sendRequest @ @uppy_tus.js?v=b67252a2:1976
+_sendRequest @ @uppy_tus.js?v=b67252a2:1913
+_createUpload @ @uppy_tus.js?v=b67252a2:1656
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+qRequest @ @uppy_tus.js?v=b67252a2:3451
+call_fn @ chunk-5BGMXE2E.js?v=b67252a2:1114
+next_fn @ chunk-5BGMXE2E.js?v=b67252a2:1151
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1138
+XMLHttpRequest.send
+(anonymous) @ @uppy_tus.js?v=b67252a2:2802
+send @ @uppy_tus.js?v=b67252a2:2795
+_callee$ @ @uppy_tus.js?v=b67252a2:1992
+tryCatch @ @uppy_tus.js?v=b67252a2:839
+(anonymous) @ @uppy_tus.js?v=b67252a2:916
+(anonymous) @ @uppy_tus.js?v=b67252a2:862
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1055
+_next @ @uppy_tus.js?v=b67252a2:1073
+Promise.then
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1064
+_next @ @uppy_tus.js?v=b67252a2:1073
+(anonymous) @ @uppy_tus.js?v=b67252a2:1078
+(anonymous) @ @uppy_tus.js?v=b67252a2:1070
+sendRequest @ @uppy_tus.js?v=b67252a2:1976
+_sendRequest @ @uppy_tus.js?v=b67252a2:1913
+_createUpload @ @uppy_tus.js?v=b67252a2:1656
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+qRequest @ @uppy_tus.js?v=b67252a2:3451
+call_fn @ chunk-5BGMXE2E.js?v=b67252a2:1114
+next_fn @ chunk-5BGMXE2E.js?v=b67252a2:1151
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1138Understand this error
+chunk-5BGMXE2E.js?v=b67252a2:1947 [Uppy] [15:58:57] tus: unexpected response while creating upload, originated from request (method: POST, url: /api/galleries/e0374733-2aaa-4c88-9a28-e09c3d09ea95/upload/tus, response code: 500, response text: Something went wrong with that request
+Cannot read properties of undefined (reading 'id')
+, request id: n/a)
+error @ chunk-5BGMXE2E.js?v=b67252a2:1947
+log @ chunk-5BGMXE2E.js?v=b67252a2:3214
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:3603
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+gallery-detail.tsx:154 [Uppy] Upload error: DetailedError2: tus: unexpected response while creating upload, originated from request (method: POST, url: /api/galleries/e0374733-2aaa-4c88-9a28-e09c3d09ea95/upload/tus, response code: 500, response text: Something went wrong with that request
+Cannot read properties of undefined (reading 'id')
+, request id: n/a)
+    at Upload2._emitHttpError (@uppy_tus.js?v=b67252a2:1547:23)
+    at @uppy_tus.js?v=b67252a2:1660:18
+(anonymous) @ gallery-detail.tsx:154
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+@uppy_tus.js?v=b67252a2:2802  POST https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/api/galleries/e0374733-2aaa-4c88-9a28-e09c3d09ea95/upload/tus 500 (Internal Server Error)
+(anonymous) @ @uppy_tus.js?v=b67252a2:2802
+send @ @uppy_tus.js?v=b67252a2:2795
+_callee$ @ @uppy_tus.js?v=b67252a2:1992
+tryCatch @ @uppy_tus.js?v=b67252a2:839
+(anonymous) @ @uppy_tus.js?v=b67252a2:916
+(anonymous) @ @uppy_tus.js?v=b67252a2:862
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1055
+_next @ @uppy_tus.js?v=b67252a2:1073
+Promise.then
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1064
+_next @ @uppy_tus.js?v=b67252a2:1073
+(anonymous) @ @uppy_tus.js?v=b67252a2:1078
+(anonymous) @ @uppy_tus.js?v=b67252a2:1070
+sendRequest @ @uppy_tus.js?v=b67252a2:1976
+_sendRequest @ @uppy_tus.js?v=b67252a2:1913
+_createUpload @ @uppy_tus.js?v=b67252a2:1656
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+(anonymous) @ @uppy_tus.js?v=b67252a2:1563
+setTimeout
+_emitError @ @uppy_tus.js?v=b67252a2:1562
+_emitHttpError @ @uppy_tus.js?v=b67252a2:1547
+(anonymous) @ @uppy_tus.js?v=b67252a2:1660
+Promise.then
+_createUpload @ @uppy_tus.js?v=b67252a2:1658
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+(anonymous) @ @uppy_tus.js?v=b67252a2:1563
+setTimeout
+_emitError @ @uppy_tus.js?v=b67252a2:1562
+_emitHttpError @ @uppy_tus.js?v=b67252a2:1547
+(anonymous) @ @uppy_tus.js?v=b67252a2:1660
+Promise.then
+_createUpload @ @uppy_tus.js?v=b67252a2:1658
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+(anonymous) @ @uppy_tus.js?v=b67252a2:1563
+setTimeout
+_emitError @ @uppy_tus.js?v=b67252a2:1562
+_emitHttpError @ @uppy_tus.js?v=b67252a2:1547
+(anonymous) @ @uppy_tus.js?v=b67252a2:1660
+Promise.then
+_createUpload @ @uppy_tus.js?v=b67252a2:1658
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+(anonymous) @ @uppy_tus.js?v=b67252a2:1563
+setTimeout
+_emitError @ @uppy_tus.js?v=b67252a2:1562
+_emitHttpError @ @uppy_tus.js?v=b67252a2:1547
+(anonymous) @ @uppy_tus.js?v=b67252a2:1660
+Promise.then
+_createUpload @ @uppy_tus.js?v=b67252a2:1658
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+qRequest @ @uppy_tus.js?v=b67252a2:3451
+call_fn @ chunk-5BGMXE2E.js?v=b67252a2:1114
+next_fn @ chunk-5BGMXE2E.js?v=b67252a2:1151
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1138
+XMLHttpRequest.send
+(anonymous) @ @uppy_tus.js?v=b67252a2:2802
+send @ @uppy_tus.js?v=b67252a2:2795
+_callee$ @ @uppy_tus.js?v=b67252a2:1992
+tryCatch @ @uppy_tus.js?v=b67252a2:839
+(anonymous) @ @uppy_tus.js?v=b67252a2:916
+(anonymous) @ @uppy_tus.js?v=b67252a2:862
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1055
+_next @ @uppy_tus.js?v=b67252a2:1073
+Promise.then
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1064
+_next @ @uppy_tus.js?v=b67252a2:1073
+(anonymous) @ @uppy_tus.js?v=b67252a2:1078
+(anonymous) @ @uppy_tus.js?v=b67252a2:1070
+sendRequest @ @uppy_tus.js?v=b67252a2:1976
+_sendRequest @ @uppy_tus.js?v=b67252a2:1913
+_createUpload @ @uppy_tus.js?v=b67252a2:1656
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+qRequest @ @uppy_tus.js?v=b67252a2:3451
+call_fn @ chunk-5BGMXE2E.js?v=b67252a2:1114
+next_fn @ chunk-5BGMXE2E.js?v=b67252a2:1151
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1138
+XMLHttpRequest.send
+(anonymous) @ @uppy_tus.js?v=b67252a2:2802
+send @ @uppy_tus.js?v=b67252a2:2795
+_callee$ @ @uppy_tus.js?v=b67252a2:1992
+tryCatch @ @uppy_tus.js?v=b67252a2:839
+(anonymous) @ @uppy_tus.js?v=b67252a2:916
+(anonymous) @ @uppy_tus.js?v=b67252a2:862
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1055
+_next @ @uppy_tus.js?v=b67252a2:1073
+Promise.then
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1064
+_next @ @uppy_tus.js?v=b67252a2:1073
+(anonymous) @ @uppy_tus.js?v=b67252a2:1078
+(anonymous) @ @uppy_tus.js?v=b67252a2:1070
+sendRequest @ @uppy_tus.js?v=b67252a2:1976
+_sendRequest @ @uppy_tus.js?v=b67252a2:1913
+_createUpload @ @uppy_tus.js?v=b67252a2:1656
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+qRequest @ @uppy_tus.js?v=b67252a2:3451
+call_fn @ chunk-5BGMXE2E.js?v=b67252a2:1114
+next_fn @ chunk-5BGMXE2E.js?v=b67252a2:1151
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1138
+XMLHttpRequest.send
+(anonymous) @ @uppy_tus.js?v=b67252a2:2802
+send @ @uppy_tus.js?v=b67252a2:2795
+_callee$ @ @uppy_tus.js?v=b67252a2:1992
+tryCatch @ @uppy_tus.js?v=b67252a2:839
+(anonymous) @ @uppy_tus.js?v=b67252a2:916
+(anonymous) @ @uppy_tus.js?v=b67252a2:862
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1055
+_next @ @uppy_tus.js?v=b67252a2:1073
+Promise.then
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1064
+_next @ @uppy_tus.js?v=b67252a2:1073
+(anonymous) @ @uppy_tus.js?v=b67252a2:1078
+(anonymous) @ @uppy_tus.js?v=b67252a2:1070
+sendRequest @ @uppy_tus.js?v=b67252a2:1976
+_sendRequest @ @uppy_tus.js?v=b67252a2:1913
+_createUpload @ @uppy_tus.js?v=b67252a2:1656
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+qRequest @ @uppy_tus.js?v=b67252a2:3451
+call_fn @ chunk-5BGMXE2E.js?v=b67252a2:1114
+next_fn @ chunk-5BGMXE2E.js?v=b67252a2:1151
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1138
+XMLHttpRequest.send
+(anonymous) @ @uppy_tus.js?v=b67252a2:2802
+send @ @uppy_tus.js?v=b67252a2:2795
+_callee$ @ @uppy_tus.js?v=b67252a2:1992
+tryCatch @ @uppy_tus.js?v=b67252a2:839
+(anonymous) @ @uppy_tus.js?v=b67252a2:916
+(anonymous) @ @uppy_tus.js?v=b67252a2:862
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1055
+_next @ @uppy_tus.js?v=b67252a2:1073
+Promise.then
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1064
+_next @ @uppy_tus.js?v=b67252a2:1073
+(anonymous) @ @uppy_tus.js?v=b67252a2:1078
+(anonymous) @ @uppy_tus.js?v=b67252a2:1070
+sendRequest @ @uppy_tus.js?v=b67252a2:1976
+_sendRequest @ @uppy_tus.js?v=b67252a2:1913
+_createUpload @ @uppy_tus.js?v=b67252a2:1656
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+qRequest @ @uppy_tus.js?v=b67252a2:3451
+call_fn @ chunk-5BGMXE2E.js?v=b67252a2:1114
+next_fn @ chunk-5BGMXE2E.js?v=b67252a2:1151
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1138
+XMLHttpRequest.send
+(anonymous) @ @uppy_tus.js?v=b67252a2:2802
+send @ @uppy_tus.js?v=b67252a2:2795
+_callee$ @ @uppy_tus.js?v=b67252a2:1992
+tryCatch @ @uppy_tus.js?v=b67252a2:839
+(anonymous) @ @uppy_tus.js?v=b67252a2:916
+(anonymous) @ @uppy_tus.js?v=b67252a2:862
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1055
+_next @ @uppy_tus.js?v=b67252a2:1073
+Promise.then
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1064
+_next @ @uppy_tus.js?v=b67252a2:1073
+(anonymous) @ @uppy_tus.js?v=b67252a2:1078
+(anonymous) @ @uppy_tus.js?v=b67252a2:1070
+sendRequest @ @uppy_tus.js?v=b67252a2:1976
+_sendRequest @ @uppy_tus.js?v=b67252a2:1913
+_createUpload @ @uppy_tus.js?v=b67252a2:1656
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+qRequest @ @uppy_tus.js?v=b67252a2:3451
+call_fn @ chunk-5BGMXE2E.js?v=b67252a2:1114
+next_fn @ chunk-5BGMXE2E.js?v=b67252a2:1151
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1138
+XMLHttpRequest.send
+(anonymous) @ @uppy_tus.js?v=b67252a2:2802
+send @ @uppy_tus.js?v=b67252a2:2795
+_callee$ @ @uppy_tus.js?v=b67252a2:1992
+tryCatch @ @uppy_tus.js?v=b67252a2:839
+(anonymous) @ @uppy_tus.js?v=b67252a2:916
+(anonymous) @ @uppy_tus.js?v=b67252a2:862
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1055
+_next @ @uppy_tus.js?v=b67252a2:1073
+Promise.then
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1064
+_next @ @uppy_tus.js?v=b67252a2:1073
+(anonymous) @ @uppy_tus.js?v=b67252a2:1078
+(anonymous) @ @uppy_tus.js?v=b67252a2:1070
+sendRequest @ @uppy_tus.js?v=b67252a2:1976
+_sendRequest @ @uppy_tus.js?v=b67252a2:1913
+_createUpload @ @uppy_tus.js?v=b67252a2:1656
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+qRequest @ @uppy_tus.js?v=b67252a2:3451
+call_fn @ chunk-5BGMXE2E.js?v=b67252a2:1114
+next_fn @ chunk-5BGMXE2E.js?v=b67252a2:1151
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1138Understand this error
+chunk-5BGMXE2E.js?v=b67252a2:1947 [Uppy] [15:58:57] tus: unexpected response while creating upload, originated from request (method: POST, url: /api/galleries/e0374733-2aaa-4c88-9a28-e09c3d09ea95/upload/tus, response code: 500, response text: Something went wrong with that request
+Cannot read properties of undefined (reading 'id')
+, request id: n/a)
+error @ chunk-5BGMXE2E.js?v=b67252a2:1947
+log @ chunk-5BGMXE2E.js?v=b67252a2:3214
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:3603
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+gallery-detail.tsx:154 [Uppy] Upload error: DetailedError2: tus: unexpected response while creating upload, originated from request (method: POST, url: /api/galleries/e0374733-2aaa-4c88-9a28-e09c3d09ea95/upload/tus, response code: 500, response text: Something went wrong with that request
+Cannot read properties of undefined (reading 'id')
+, request id: n/a)
+    at Upload2._emitHttpError (@uppy_tus.js?v=b67252a2:1547:23)
+    at @uppy_tus.js?v=b67252a2:1660:18
+(anonymous) @ gallery-detail.tsx:154
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+@uppy_tus.js?v=b67252a2:2802  POST https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/api/galleries/e0374733-2aaa-4c88-9a28-e09c3d09ea95/upload/tus 500 (Internal Server Error)
+(anonymous) @ @uppy_tus.js?v=b67252a2:2802
+send @ @uppy_tus.js?v=b67252a2:2795
+_callee$ @ @uppy_tus.js?v=b67252a2:1992
+tryCatch @ @uppy_tus.js?v=b67252a2:839
+(anonymous) @ @uppy_tus.js?v=b67252a2:916
+(anonymous) @ @uppy_tus.js?v=b67252a2:862
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1055
+_next @ @uppy_tus.js?v=b67252a2:1073
+Promise.then
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1064
+_next @ @uppy_tus.js?v=b67252a2:1073
+(anonymous) @ @uppy_tus.js?v=b67252a2:1078
+(anonymous) @ @uppy_tus.js?v=b67252a2:1070
+sendRequest @ @uppy_tus.js?v=b67252a2:1976
+_sendRequest @ @uppy_tus.js?v=b67252a2:1913
+_createUpload @ @uppy_tus.js?v=b67252a2:1656
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+(anonymous) @ @uppy_tus.js?v=b67252a2:1563
+setTimeout
+_emitError @ @uppy_tus.js?v=b67252a2:1562
+_emitHttpError @ @uppy_tus.js?v=b67252a2:1547
+(anonymous) @ @uppy_tus.js?v=b67252a2:1660
+Promise.then
+_createUpload @ @uppy_tus.js?v=b67252a2:1658
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+(anonymous) @ @uppy_tus.js?v=b67252a2:1563
+setTimeout
+_emitError @ @uppy_tus.js?v=b67252a2:1562
+_emitHttpError @ @uppy_tus.js?v=b67252a2:1547
+(anonymous) @ @uppy_tus.js?v=b67252a2:1660
+Promise.then
+_createUpload @ @uppy_tus.js?v=b67252a2:1658
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+(anonymous) @ @uppy_tus.js?v=b67252a2:1563
+setTimeout
+_emitError @ @uppy_tus.js?v=b67252a2:1562
+_emitHttpError @ @uppy_tus.js?v=b67252a2:1547
+(anonymous) @ @uppy_tus.js?v=b67252a2:1660
+Promise.then
+_createUpload @ @uppy_tus.js?v=b67252a2:1658
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+(anonymous) @ @uppy_tus.js?v=b67252a2:1563
+setTimeout
+_emitError @ @uppy_tus.js?v=b67252a2:1562
+_emitHttpError @ @uppy_tus.js?v=b67252a2:1547
+(anonymous) @ @uppy_tus.js?v=b67252a2:1660
+Promise.then
+_createUpload @ @uppy_tus.js?v=b67252a2:1658
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+qRequest @ @uppy_tus.js?v=b67252a2:3451
+call_fn @ chunk-5BGMXE2E.js?v=b67252a2:1114
+next_fn @ chunk-5BGMXE2E.js?v=b67252a2:1151
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1138
+XMLHttpRequest.send
+(anonymous) @ @uppy_tus.js?v=b67252a2:2802
+send @ @uppy_tus.js?v=b67252a2:2795
+_callee$ @ @uppy_tus.js?v=b67252a2:1992
+tryCatch @ @uppy_tus.js?v=b67252a2:839
+(anonymous) @ @uppy_tus.js?v=b67252a2:916
+(anonymous) @ @uppy_tus.js?v=b67252a2:862
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1055
+_next @ @uppy_tus.js?v=b67252a2:1073
+Promise.then
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1064
+_next @ @uppy_tus.js?v=b67252a2:1073
+(anonymous) @ @uppy_tus.js?v=b67252a2:1078
+(anonymous) @ @uppy_tus.js?v=b67252a2:1070
+sendRequest @ @uppy_tus.js?v=b67252a2:1976
+_sendRequest @ @uppy_tus.js?v=b67252a2:1913
+_createUpload @ @uppy_tus.js?v=b67252a2:1656
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+qRequest @ @uppy_tus.js?v=b67252a2:3451
+call_fn @ chunk-5BGMXE2E.js?v=b67252a2:1114
+next_fn @ chunk-5BGMXE2E.js?v=b67252a2:1151
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1138
+XMLHttpRequest.send
+(anonymous) @ @uppy_tus.js?v=b67252a2:2802
+send @ @uppy_tus.js?v=b67252a2:2795
+_callee$ @ @uppy_tus.js?v=b67252a2:1992
+tryCatch @ @uppy_tus.js?v=b67252a2:839
+(anonymous) @ @uppy_tus.js?v=b67252a2:916
+(anonymous) @ @uppy_tus.js?v=b67252a2:862
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1055
+_next @ @uppy_tus.js?v=b67252a2:1073
+Promise.then
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1064
+_next @ @uppy_tus.js?v=b67252a2:1073
+(anonymous) @ @uppy_tus.js?v=b67252a2:1078
+(anonymous) @ @uppy_tus.js?v=b67252a2:1070
+sendRequest @ @uppy_tus.js?v=b67252a2:1976
+_sendRequest @ @uppy_tus.js?v=b67252a2:1913
+_createUpload @ @uppy_tus.js?v=b67252a2:1656
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+qRequest @ @uppy_tus.js?v=b67252a2:3451
+call_fn @ chunk-5BGMXE2E.js?v=b67252a2:1114
+next_fn @ chunk-5BGMXE2E.js?v=b67252a2:1151
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1138
+XMLHttpRequest.send
+(anonymous) @ @uppy_tus.js?v=b67252a2:2802
+send @ @uppy_tus.js?v=b67252a2:2795
+_callee$ @ @uppy_tus.js?v=b67252a2:1992
+tryCatch @ @uppy_tus.js?v=b67252a2:839
+(anonymous) @ @uppy_tus.js?v=b67252a2:916
+(anonymous) @ @uppy_tus.js?v=b67252a2:862
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1055
+_next @ @uppy_tus.js?v=b67252a2:1073
+Promise.then
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1064
+_next @ @uppy_tus.js?v=b67252a2:1073
+(anonymous) @ @uppy_tus.js?v=b67252a2:1078
+(anonymous) @ @uppy_tus.js?v=b67252a2:1070
+sendRequest @ @uppy_tus.js?v=b67252a2:1976
+_sendRequest @ @uppy_tus.js?v=b67252a2:1913
+_createUpload @ @uppy_tus.js?v=b67252a2:1656
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+qRequest @ @uppy_tus.js?v=b67252a2:3451
+call_fn @ chunk-5BGMXE2E.js?v=b67252a2:1114
+next_fn @ chunk-5BGMXE2E.js?v=b67252a2:1151
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1138
+XMLHttpRequest.send
+(anonymous) @ @uppy_tus.js?v=b67252a2:2802
+send @ @uppy_tus.js?v=b67252a2:2795
+_callee$ @ @uppy_tus.js?v=b67252a2:1992
+tryCatch @ @uppy_tus.js?v=b67252a2:839
+(anonymous) @ @uppy_tus.js?v=b67252a2:916
+(anonymous) @ @uppy_tus.js?v=b67252a2:862
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1055
+_next @ @uppy_tus.js?v=b67252a2:1073
+Promise.then
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1064
+_next @ @uppy_tus.js?v=b67252a2:1073
+(anonymous) @ @uppy_tus.js?v=b67252a2:1078
+(anonymous) @ @uppy_tus.js?v=b67252a2:1070
+sendRequest @ @uppy_tus.js?v=b67252a2:1976
+_sendRequest @ @uppy_tus.js?v=b67252a2:1913
+_createUpload @ @uppy_tus.js?v=b67252a2:1656
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+qRequest @ @uppy_tus.js?v=b67252a2:3451
+call_fn @ chunk-5BGMXE2E.js?v=b67252a2:1114
+next_fn @ chunk-5BGMXE2E.js?v=b67252a2:1151
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1138
+XMLHttpRequest.send
+(anonymous) @ @uppy_tus.js?v=b67252a2:2802
+send @ @uppy_tus.js?v=b67252a2:2795
+_callee$ @ @uppy_tus.js?v=b67252a2:1992
+tryCatch @ @uppy_tus.js?v=b67252a2:839
+(anonymous) @ @uppy_tus.js?v=b67252a2:916
+(anonymous) @ @uppy_tus.js?v=b67252a2:862
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1055
+_next @ @uppy_tus.js?v=b67252a2:1073
+Promise.then
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1064
+_next @ @uppy_tus.js?v=b67252a2:1073
+(anonymous) @ @uppy_tus.js?v=b67252a2:1078
+(anonymous) @ @uppy_tus.js?v=b67252a2:1070
+sendRequest @ @uppy_tus.js?v=b67252a2:1976
+_sendRequest @ @uppy_tus.js?v=b67252a2:1913
+_createUpload @ @uppy_tus.js?v=b67252a2:1656
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+qRequest @ @uppy_tus.js?v=b67252a2:3451
+call_fn @ chunk-5BGMXE2E.js?v=b67252a2:1114
+next_fn @ chunk-5BGMXE2E.js?v=b67252a2:1151
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1138
+XMLHttpRequest.send
+(anonymous) @ @uppy_tus.js?v=b67252a2:2802
+send @ @uppy_tus.js?v=b67252a2:2795
+_callee$ @ @uppy_tus.js?v=b67252a2:1992
+tryCatch @ @uppy_tus.js?v=b67252a2:839
+(anonymous) @ @uppy_tus.js?v=b67252a2:916
+(anonymous) @ @uppy_tus.js?v=b67252a2:862
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1055
+_next @ @uppy_tus.js?v=b67252a2:1073
+Promise.then
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1064
+_next @ @uppy_tus.js?v=b67252a2:1073
+(anonymous) @ @uppy_tus.js?v=b67252a2:1078
+(anonymous) @ @uppy_tus.js?v=b67252a2:1070
+sendRequest @ @uppy_tus.js?v=b67252a2:1976
+_sendRequest @ @uppy_tus.js?v=b67252a2:1913
+_createUpload @ @uppy_tus.js?v=b67252a2:1656
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+qRequest @ @uppy_tus.js?v=b67252a2:3451
+call_fn @ chunk-5BGMXE2E.js?v=b67252a2:1114
+next_fn @ chunk-5BGMXE2E.js?v=b67252a2:1151
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1138Understand this error
+chunk-5BGMXE2E.js?v=b67252a2:1947 [Uppy] [15:58:57] tus: unexpected response while creating upload, originated from request (method: POST, url: /api/galleries/e0374733-2aaa-4c88-9a28-e09c3d09ea95/upload/tus, response code: 500, response text: Something went wrong with that request
+Cannot read properties of undefined (reading 'id')
+, request id: n/a)
+error @ chunk-5BGMXE2E.js?v=b67252a2:1947
+log @ chunk-5BGMXE2E.js?v=b67252a2:3214
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:3603
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+gallery-detail.tsx:154 [Uppy] Upload error: DetailedError2: tus: unexpected response while creating upload, originated from request (method: POST, url: /api/galleries/e0374733-2aaa-4c88-9a28-e09c3d09ea95/upload/tus, response code: 500, response text: Something went wrong with that request
+Cannot read properties of undefined (reading 'id')
+, request id: n/a)
+    at Upload2._emitHttpError (@uppy_tus.js?v=b67252a2:1547:23)
+    at @uppy_tus.js?v=b67252a2:1660:18
+(anonymous) @ gallery-detail.tsx:154
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+@uppy_tus.js?v=b67252a2:2802  POST https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/api/galleries/e0374733-2aaa-4c88-9a28-e09c3d09ea95/upload/tus 500 (Internal Server Error)
+(anonymous) @ @uppy_tus.js?v=b67252a2:2802
+send @ @uppy_tus.js?v=b67252a2:2795
+_callee$ @ @uppy_tus.js?v=b67252a2:1992
+tryCatch @ @uppy_tus.js?v=b67252a2:839
+(anonymous) @ @uppy_tus.js?v=b67252a2:916
+(anonymous) @ @uppy_tus.js?v=b67252a2:862
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1055
+_next @ @uppy_tus.js?v=b67252a2:1073
+Promise.then
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1064
+_next @ @uppy_tus.js?v=b67252a2:1073
+(anonymous) @ @uppy_tus.js?v=b67252a2:1078
+(anonymous) @ @uppy_tus.js?v=b67252a2:1070
+sendRequest @ @uppy_tus.js?v=b67252a2:1976
+_sendRequest @ @uppy_tus.js?v=b67252a2:1913
+_createUpload @ @uppy_tus.js?v=b67252a2:1656
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+(anonymous) @ @uppy_tus.js?v=b67252a2:1563
+setTimeout
+_emitError @ @uppy_tus.js?v=b67252a2:1562
+_emitHttpError @ @uppy_tus.js?v=b67252a2:1547
+(anonymous) @ @uppy_tus.js?v=b67252a2:1660
+Promise.then
+_createUpload @ @uppy_tus.js?v=b67252a2:1658
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+(anonymous) @ @uppy_tus.js?v=b67252a2:1563
+setTimeout
+_emitError @ @uppy_tus.js?v=b67252a2:1562
+_emitHttpError @ @uppy_tus.js?v=b67252a2:1547
+(anonymous) @ @uppy_tus.js?v=b67252a2:1660
+Promise.then
+_createUpload @ @uppy_tus.js?v=b67252a2:1658
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+(anonymous) @ @uppy_tus.js?v=b67252a2:1563
+setTimeout
+_emitError @ @uppy_tus.js?v=b67252a2:1562
+_emitHttpError @ @uppy_tus.js?v=b67252a2:1547
+(anonymous) @ @uppy_tus.js?v=b67252a2:1660
+Promise.then
+_createUpload @ @uppy_tus.js?v=b67252a2:1658
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+(anonymous) @ @uppy_tus.js?v=b67252a2:1563
+setTimeout
+_emitError @ @uppy_tus.js?v=b67252a2:1562
+_emitHttpError @ @uppy_tus.js?v=b67252a2:1547
+(anonymous) @ @uppy_tus.js?v=b67252a2:1660
+Promise.then
+_createUpload @ @uppy_tus.js?v=b67252a2:1658
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+qRequest @ @uppy_tus.js?v=b67252a2:3451
+call_fn @ chunk-5BGMXE2E.js?v=b67252a2:1114
+next_fn @ chunk-5BGMXE2E.js?v=b67252a2:1151
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1138
+XMLHttpRequest.send
+(anonymous) @ @uppy_tus.js?v=b67252a2:2802
+send @ @uppy_tus.js?v=b67252a2:2795
+_callee$ @ @uppy_tus.js?v=b67252a2:1992
+tryCatch @ @uppy_tus.js?v=b67252a2:839
+(anonymous) @ @uppy_tus.js?v=b67252a2:916
+(anonymous) @ @uppy_tus.js?v=b67252a2:862
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1055
+_next @ @uppy_tus.js?v=b67252a2:1073
+Promise.then
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1064
+_next @ @uppy_tus.js?v=b67252a2:1073
+(anonymous) @ @uppy_tus.js?v=b67252a2:1078
+(anonymous) @ @uppy_tus.js?v=b67252a2:1070
+sendRequest @ @uppy_tus.js?v=b67252a2:1976
+_sendRequest @ @uppy_tus.js?v=b67252a2:1913
+_createUpload @ @uppy_tus.js?v=b67252a2:1656
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+qRequest @ @uppy_tus.js?v=b67252a2:3451
+call_fn @ chunk-5BGMXE2E.js?v=b67252a2:1114
+next_fn @ chunk-5BGMXE2E.js?v=b67252a2:1151
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1138
+XMLHttpRequest.send
+(anonymous) @ @uppy_tus.js?v=b67252a2:2802
+send @ @uppy_tus.js?v=b67252a2:2795
+_callee$ @ @uppy_tus.js?v=b67252a2:1992
+tryCatch @ @uppy_tus.js?v=b67252a2:839
+(anonymous) @ @uppy_tus.js?v=b67252a2:916
+(anonymous) @ @uppy_tus.js?v=b67252a2:862
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1055
+_next @ @uppy_tus.js?v=b67252a2:1073
+Promise.then
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1064
+_next @ @uppy_tus.js?v=b67252a2:1073
+(anonymous) @ @uppy_tus.js?v=b67252a2:1078
+(anonymous) @ @uppy_tus.js?v=b67252a2:1070
+sendRequest @ @uppy_tus.js?v=b67252a2:1976
+_sendRequest @ @uppy_tus.js?v=b67252a2:1913
+_createUpload @ @uppy_tus.js?v=b67252a2:1656
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+qRequest @ @uppy_tus.js?v=b67252a2:3451
+call_fn @ chunk-5BGMXE2E.js?v=b67252a2:1114
+next_fn @ chunk-5BGMXE2E.js?v=b67252a2:1151
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1138
+XMLHttpRequest.send
+(anonymous) @ @uppy_tus.js?v=b67252a2:2802
+send @ @uppy_tus.js?v=b67252a2:2795
+_callee$ @ @uppy_tus.js?v=b67252a2:1992
+tryCatch @ @uppy_tus.js?v=b67252a2:839
+(anonymous) @ @uppy_tus.js?v=b67252a2:916
+(anonymous) @ @uppy_tus.js?v=b67252a2:862
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1055
+_next @ @uppy_tus.js?v=b67252a2:1073
+Promise.then
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1064
+_next @ @uppy_tus.js?v=b67252a2:1073
+(anonymous) @ @uppy_tus.js?v=b67252a2:1078
+(anonymous) @ @uppy_tus.js?v=b67252a2:1070
+sendRequest @ @uppy_tus.js?v=b67252a2:1976
+_sendRequest @ @uppy_tus.js?v=b67252a2:1913
+_createUpload @ @uppy_tus.js?v=b67252a2:1656
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+qRequest @ @uppy_tus.js?v=b67252a2:3451
+call_fn @ chunk-5BGMXE2E.js?v=b67252a2:1114
+next_fn @ chunk-5BGMXE2E.js?v=b67252a2:1151
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1138
+XMLHttpRequest.send
+(anonymous) @ @uppy_tus.js?v=b67252a2:2802
+send @ @uppy_tus.js?v=b67252a2:2795
+_callee$ @ @uppy_tus.js?v=b67252a2:1992
+tryCatch @ @uppy_tus.js?v=b67252a2:839
+(anonymous) @ @uppy_tus.js?v=b67252a2:916
+(anonymous) @ @uppy_tus.js?v=b67252a2:862
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1055
+_next @ @uppy_tus.js?v=b67252a2:1073
+Promise.then
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1064
+_next @ @uppy_tus.js?v=b67252a2:1073
+(anonymous) @ @uppy_tus.js?v=b67252a2:1078
+(anonymous) @ @uppy_tus.js?v=b67252a2:1070
+sendRequest @ @uppy_tus.js?v=b67252a2:1976
+_sendRequest @ @uppy_tus.js?v=b67252a2:1913
+_createUpload @ @uppy_tus.js?v=b67252a2:1656
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+qRequest @ @uppy_tus.js?v=b67252a2:3451
+call_fn @ chunk-5BGMXE2E.js?v=b67252a2:1114
+next_fn @ chunk-5BGMXE2E.js?v=b67252a2:1151
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1138
+XMLHttpRequest.send
+(anonymous) @ @uppy_tus.js?v=b67252a2:2802
+send @ @uppy_tus.js?v=b67252a2:2795
+_callee$ @ @uppy_tus.js?v=b67252a2:1992
+tryCatch @ @uppy_tus.js?v=b67252a2:839
+(anonymous) @ @uppy_tus.js?v=b67252a2:916
+(anonymous) @ @uppy_tus.js?v=b67252a2:862
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1055
+_next @ @uppy_tus.js?v=b67252a2:1073
+Promise.then
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1064
+_next @ @uppy_tus.js?v=b67252a2:1073
+(anonymous) @ @uppy_tus.js?v=b67252a2:1078
+(anonymous) @ @uppy_tus.js?v=b67252a2:1070
+sendRequest @ @uppy_tus.js?v=b67252a2:1976
+_sendRequest @ @uppy_tus.js?v=b67252a2:1913
+_createUpload @ @uppy_tus.js?v=b67252a2:1656
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+qRequest @ @uppy_tus.js?v=b67252a2:3451
+call_fn @ chunk-5BGMXE2E.js?v=b67252a2:1114
+next_fn @ chunk-5BGMXE2E.js?v=b67252a2:1151
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1138
+XMLHttpRequest.send
+(anonymous) @ @uppy_tus.js?v=b67252a2:2802
+send @ @uppy_tus.js?v=b67252a2:2795
+_callee$ @ @uppy_tus.js?v=b67252a2:1992
+tryCatch @ @uppy_tus.js?v=b67252a2:839
+(anonymous) @ @uppy_tus.js?v=b67252a2:916
+(anonymous) @ @uppy_tus.js?v=b67252a2:862
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1055
+_next @ @uppy_tus.js?v=b67252a2:1073
+Promise.then
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1064
+_next @ @uppy_tus.js?v=b67252a2:1073
+(anonymous) @ @uppy_tus.js?v=b67252a2:1078
+(anonymous) @ @uppy_tus.js?v=b67252a2:1070
+sendRequest @ @uppy_tus.js?v=b67252a2:1976
+_sendRequest @ @uppy_tus.js?v=b67252a2:1913
+_createUpload @ @uppy_tus.js?v=b67252a2:1656
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+qRequest @ @uppy_tus.js?v=b67252a2:3451
+call_fn @ chunk-5BGMXE2E.js?v=b67252a2:1114
+next_fn @ chunk-5BGMXE2E.js?v=b67252a2:1151
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1138Understand this error
+chunk-5BGMXE2E.js?v=b67252a2:1947 [Uppy] [15:58:57] tus: unexpected response while creating upload, originated from request (method: POST, url: /api/galleries/e0374733-2aaa-4c88-9a28-e09c3d09ea95/upload/tus, response code: 500, response text: Something went wrong with that request
+Cannot read properties of undefined (reading 'id')
+, request id: n/a)
+error @ chunk-5BGMXE2E.js?v=b67252a2:1947
+log @ chunk-5BGMXE2E.js?v=b67252a2:3214
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:3603
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+gallery-detail.tsx:154 [Uppy] Upload error: DetailedError2: tus: unexpected response while creating upload, originated from request (method: POST, url: /api/galleries/e0374733-2aaa-4c88-9a28-e09c3d09ea95/upload/tus, response code: 500, response text: Something went wrong with that request
+Cannot read properties of undefined (reading 'id')
+, request id: n/a)
+    at Upload2._emitHttpError (@uppy_tus.js?v=b67252a2:1547:23)
+    at @uppy_tus.js?v=b67252a2:1660:18
+(anonymous) @ gallery-detail.tsx:154
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+@uppy_tus.js?v=b67252a2:2802  POST https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/api/galleries/e0374733-2aaa-4c88-9a28-e09c3d09ea95/upload/tus 500 (Internal Server Error)
+(anonymous) @ @uppy_tus.js?v=b67252a2:2802
+send @ @uppy_tus.js?v=b67252a2:2795
+_callee$ @ @uppy_tus.js?v=b67252a2:1992
+tryCatch @ @uppy_tus.js?v=b67252a2:839
+(anonymous) @ @uppy_tus.js?v=b67252a2:916
+(anonymous) @ @uppy_tus.js?v=b67252a2:862
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1055
+_next @ @uppy_tus.js?v=b67252a2:1073
+Promise.then
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1064
+_next @ @uppy_tus.js?v=b67252a2:1073
+(anonymous) @ @uppy_tus.js?v=b67252a2:1078
+(anonymous) @ @uppy_tus.js?v=b67252a2:1070
+sendRequest @ @uppy_tus.js?v=b67252a2:1976
+_sendRequest @ @uppy_tus.js?v=b67252a2:1913
+_createUpload @ @uppy_tus.js?v=b67252a2:1656
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+(anonymous) @ @uppy_tus.js?v=b67252a2:1563
+setTimeout
+_emitError @ @uppy_tus.js?v=b67252a2:1562
+_emitHttpError @ @uppy_tus.js?v=b67252a2:1547
+(anonymous) @ @uppy_tus.js?v=b67252a2:1660
+Promise.then
+_createUpload @ @uppy_tus.js?v=b67252a2:1658
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+(anonymous) @ @uppy_tus.js?v=b67252a2:1563
+setTimeout
+_emitError @ @uppy_tus.js?v=b67252a2:1562
+_emitHttpError @ @uppy_tus.js?v=b67252a2:1547
+(anonymous) @ @uppy_tus.js?v=b67252a2:1660
+Promise.then
+_createUpload @ @uppy_tus.js?v=b67252a2:1658
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+(anonymous) @ @uppy_tus.js?v=b67252a2:1563
+setTimeout
+_emitError @ @uppy_tus.js?v=b67252a2:1562
+_emitHttpError @ @uppy_tus.js?v=b67252a2:1547
+(anonymous) @ @uppy_tus.js?v=b67252a2:1660
+Promise.then
+_createUpload @ @uppy_tus.js?v=b67252a2:1658
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+(anonymous) @ @uppy_tus.js?v=b67252a2:1563
+setTimeout
+_emitError @ @uppy_tus.js?v=b67252a2:1562
+_emitHttpError @ @uppy_tus.js?v=b67252a2:1547
+(anonymous) @ @uppy_tus.js?v=b67252a2:1660
+Promise.then
+_createUpload @ @uppy_tus.js?v=b67252a2:1658
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+qRequest @ @uppy_tus.js?v=b67252a2:3451
+call_fn @ chunk-5BGMXE2E.js?v=b67252a2:1114
+next_fn @ chunk-5BGMXE2E.js?v=b67252a2:1151
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1138
+XMLHttpRequest.send
+(anonymous) @ @uppy_tus.js?v=b67252a2:2802
+send @ @uppy_tus.js?v=b67252a2:2795
+_callee$ @ @uppy_tus.js?v=b67252a2:1992
+tryCatch @ @uppy_tus.js?v=b67252a2:839
+(anonymous) @ @uppy_tus.js?v=b67252a2:916
+(anonymous) @ @uppy_tus.js?v=b67252a2:862
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1055
+_next @ @uppy_tus.js?v=b67252a2:1073
+Promise.then
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1064
+_next @ @uppy_tus.js?v=b67252a2:1073
+(anonymous) @ @uppy_tus.js?v=b67252a2:1078
+(anonymous) @ @uppy_tus.js?v=b67252a2:1070
+sendRequest @ @uppy_tus.js?v=b67252a2:1976
+_sendRequest @ @uppy_tus.js?v=b67252a2:1913
+_createUpload @ @uppy_tus.js?v=b67252a2:1656
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+qRequest @ @uppy_tus.js?v=b67252a2:3451
+call_fn @ chunk-5BGMXE2E.js?v=b67252a2:1114
+next_fn @ chunk-5BGMXE2E.js?v=b67252a2:1151
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1138
+XMLHttpRequest.send
+(anonymous) @ @uppy_tus.js?v=b67252a2:2802
+send @ @uppy_tus.js?v=b67252a2:2795
+_callee$ @ @uppy_tus.js?v=b67252a2:1992
+tryCatch @ @uppy_tus.js?v=b67252a2:839
+(anonymous) @ @uppy_tus.js?v=b67252a2:916
+(anonymous) @ @uppy_tus.js?v=b67252a2:862
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1055
+_next @ @uppy_tus.js?v=b67252a2:1073
+Promise.then
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1064
+_next @ @uppy_tus.js?v=b67252a2:1073
+(anonymous) @ @uppy_tus.js?v=b67252a2:1078
+(anonymous) @ @uppy_tus.js?v=b67252a2:1070
+sendRequest @ @uppy_tus.js?v=b67252a2:1976
+_sendRequest @ @uppy_tus.js?v=b67252a2:1913
+_createUpload @ @uppy_tus.js?v=b67252a2:1656
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+qRequest @ @uppy_tus.js?v=b67252a2:3451
+call_fn @ chunk-5BGMXE2E.js?v=b67252a2:1114
+next_fn @ chunk-5BGMXE2E.js?v=b67252a2:1151
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1138
+XMLHttpRequest.send
+(anonymous) @ @uppy_tus.js?v=b67252a2:2802
+send @ @uppy_tus.js?v=b67252a2:2795
+_callee$ @ @uppy_tus.js?v=b67252a2:1992
+tryCatch @ @uppy_tus.js?v=b67252a2:839
+(anonymous) @ @uppy_tus.js?v=b67252a2:916
+(anonymous) @ @uppy_tus.js?v=b67252a2:862
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1055
+_next @ @uppy_tus.js?v=b67252a2:1073
+Promise.then
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1064
+_next @ @uppy_tus.js?v=b67252a2:1073
+(anonymous) @ @uppy_tus.js?v=b67252a2:1078
+(anonymous) @ @uppy_tus.js?v=b67252a2:1070
+sendRequest @ @uppy_tus.js?v=b67252a2:1976
+_sendRequest @ @uppy_tus.js?v=b67252a2:1913
+_createUpload @ @uppy_tus.js?v=b67252a2:1656
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+qRequest @ @uppy_tus.js?v=b67252a2:3451
+call_fn @ chunk-5BGMXE2E.js?v=b67252a2:1114
+next_fn @ chunk-5BGMXE2E.js?v=b67252a2:1151
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1138
+XMLHttpRequest.send
+(anonymous) @ @uppy_tus.js?v=b67252a2:2802
+send @ @uppy_tus.js?v=b67252a2:2795
+_callee$ @ @uppy_tus.js?v=b67252a2:1992
+tryCatch @ @uppy_tus.js?v=b67252a2:839
+(anonymous) @ @uppy_tus.js?v=b67252a2:916
+(anonymous) @ @uppy_tus.js?v=b67252a2:862
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1055
+_next @ @uppy_tus.js?v=b67252a2:1073
+Promise.then
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1064
+_next @ @uppy_tus.js?v=b67252a2:1073
+(anonymous) @ @uppy_tus.js?v=b67252a2:1078
+(anonymous) @ @uppy_tus.js?v=b67252a2:1070
+sendRequest @ @uppy_tus.js?v=b67252a2:1976
+_sendRequest @ @uppy_tus.js?v=b67252a2:1913
+_createUpload @ @uppy_tus.js?v=b67252a2:1656
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+qRequest @ @uppy_tus.js?v=b67252a2:3451
+call_fn @ chunk-5BGMXE2E.js?v=b67252a2:1114
+next_fn @ chunk-5BGMXE2E.js?v=b67252a2:1151
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1138
+XMLHttpRequest.send
+(anonymous) @ @uppy_tus.js?v=b67252a2:2802
+send @ @uppy_tus.js?v=b67252a2:2795
+_callee$ @ @uppy_tus.js?v=b67252a2:1992
+tryCatch @ @uppy_tus.js?v=b67252a2:839
+(anonymous) @ @uppy_tus.js?v=b67252a2:916
+(anonymous) @ @uppy_tus.js?v=b67252a2:862
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1055
+_next @ @uppy_tus.js?v=b67252a2:1073
+Promise.then
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1064
+_next @ @uppy_tus.js?v=b67252a2:1073
+(anonymous) @ @uppy_tus.js?v=b67252a2:1078
+(anonymous) @ @uppy_tus.js?v=b67252a2:1070
+sendRequest @ @uppy_tus.js?v=b67252a2:1976
+_sendRequest @ @uppy_tus.js?v=b67252a2:1913
+_createUpload @ @uppy_tus.js?v=b67252a2:1656
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+qRequest @ @uppy_tus.js?v=b67252a2:3451
+call_fn @ chunk-5BGMXE2E.js?v=b67252a2:1114
+next_fn @ chunk-5BGMXE2E.js?v=b67252a2:1151
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1138
+XMLHttpRequest.send
+(anonymous) @ @uppy_tus.js?v=b67252a2:2802
+send @ @uppy_tus.js?v=b67252a2:2795
+_callee$ @ @uppy_tus.js?v=b67252a2:1992
+tryCatch @ @uppy_tus.js?v=b67252a2:839
+(anonymous) @ @uppy_tus.js?v=b67252a2:916
+(anonymous) @ @uppy_tus.js?v=b67252a2:862
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1055
+_next @ @uppy_tus.js?v=b67252a2:1073
+Promise.then
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1064
+_next @ @uppy_tus.js?v=b67252a2:1073
+(anonymous) @ @uppy_tus.js?v=b67252a2:1078
+(anonymous) @ @uppy_tus.js?v=b67252a2:1070
+sendRequest @ @uppy_tus.js?v=b67252a2:1976
+_sendRequest @ @uppy_tus.js?v=b67252a2:1913
+_createUpload @ @uppy_tus.js?v=b67252a2:1656
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+qRequest @ @uppy_tus.js?v=b67252a2:3451
+call_fn @ chunk-5BGMXE2E.js?v=b67252a2:1114
+next_fn @ chunk-5BGMXE2E.js?v=b67252a2:1151
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1138Understand this error
+chunk-5BGMXE2E.js?v=b67252a2:1947 [Uppy] [15:58:57] tus: unexpected response while creating upload, originated from request (method: POST, url: /api/galleries/e0374733-2aaa-4c88-9a28-e09c3d09ea95/upload/tus, response code: 500, response text: Something went wrong with that request
+Cannot read properties of undefined (reading 'id')
+, request id: n/a)
+error @ chunk-5BGMXE2E.js?v=b67252a2:1947
+log @ chunk-5BGMXE2E.js?v=b67252a2:3214
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:3603
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+gallery-detail.tsx:154 [Uppy] Upload error: DetailedError2: tus: unexpected response while creating upload, originated from request (method: POST, url: /api/galleries/e0374733-2aaa-4c88-9a28-e09c3d09ea95/upload/tus, response code: 500, response text: Something went wrong with that request
+Cannot read properties of undefined (reading 'id')
+, request id: n/a)
+    at Upload2._emitHttpError (@uppy_tus.js?v=b67252a2:1547:23)
+    at @uppy_tus.js?v=b67252a2:1660:18
+(anonymous) @ gallery-detail.tsx:154
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+@uppy_tus.js?v=b67252a2:2802  POST https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/api/galleries/e0374733-2aaa-4c88-9a28-e09c3d09ea95/upload/tus 500 (Internal Server Error)
+(anonymous) @ @uppy_tus.js?v=b67252a2:2802
+send @ @uppy_tus.js?v=b67252a2:2795
+_callee$ @ @uppy_tus.js?v=b67252a2:1992
+tryCatch @ @uppy_tus.js?v=b67252a2:839
+(anonymous) @ @uppy_tus.js?v=b67252a2:916
+(anonymous) @ @uppy_tus.js?v=b67252a2:862
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1055
+_next @ @uppy_tus.js?v=b67252a2:1073
+Promise.then
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1064
+_next @ @uppy_tus.js?v=b67252a2:1073
+(anonymous) @ @uppy_tus.js?v=b67252a2:1078
+(anonymous) @ @uppy_tus.js?v=b67252a2:1070
+sendRequest @ @uppy_tus.js?v=b67252a2:1976
+_sendRequest @ @uppy_tus.js?v=b67252a2:1913
+_createUpload @ @uppy_tus.js?v=b67252a2:1656
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+(anonymous) @ @uppy_tus.js?v=b67252a2:1563
+setTimeout
+_emitError @ @uppy_tus.js?v=b67252a2:1562
+_emitHttpError @ @uppy_tus.js?v=b67252a2:1547
+(anonymous) @ @uppy_tus.js?v=b67252a2:1660
+Promise.then
+_createUpload @ @uppy_tus.js?v=b67252a2:1658
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+(anonymous) @ @uppy_tus.js?v=b67252a2:1563
+setTimeout
+_emitError @ @uppy_tus.js?v=b67252a2:1562
+_emitHttpError @ @uppy_tus.js?v=b67252a2:1547
+(anonymous) @ @uppy_tus.js?v=b67252a2:1660
+Promise.then
+_createUpload @ @uppy_tus.js?v=b67252a2:1658
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+(anonymous) @ @uppy_tus.js?v=b67252a2:1563
+setTimeout
+_emitError @ @uppy_tus.js?v=b67252a2:1562
+_emitHttpError @ @uppy_tus.js?v=b67252a2:1547
+(anonymous) @ @uppy_tus.js?v=b67252a2:1660
+Promise.then
+_createUpload @ @uppy_tus.js?v=b67252a2:1658
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+(anonymous) @ @uppy_tus.js?v=b67252a2:1563
+setTimeout
+_emitError @ @uppy_tus.js?v=b67252a2:1562
+_emitHttpError @ @uppy_tus.js?v=b67252a2:1547
+(anonymous) @ @uppy_tus.js?v=b67252a2:1660
+Promise.then
+_createUpload @ @uppy_tus.js?v=b67252a2:1658
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+qRequest @ @uppy_tus.js?v=b67252a2:3451
+call_fn @ chunk-5BGMXE2E.js?v=b67252a2:1114
+next_fn @ chunk-5BGMXE2E.js?v=b67252a2:1151
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1138
+XMLHttpRequest.send
+(anonymous) @ @uppy_tus.js?v=b67252a2:2802
+send @ @uppy_tus.js?v=b67252a2:2795
+_callee$ @ @uppy_tus.js?v=b67252a2:1992
+tryCatch @ @uppy_tus.js?v=b67252a2:839
+(anonymous) @ @uppy_tus.js?v=b67252a2:916
+(anonymous) @ @uppy_tus.js?v=b67252a2:862
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1055
+_next @ @uppy_tus.js?v=b67252a2:1073
+Promise.then
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1064
+_next @ @uppy_tus.js?v=b67252a2:1073
+(anonymous) @ @uppy_tus.js?v=b67252a2:1078
+(anonymous) @ @uppy_tus.js?v=b67252a2:1070
+sendRequest @ @uppy_tus.js?v=b67252a2:1976
+_sendRequest @ @uppy_tus.js?v=b67252a2:1913
+_createUpload @ @uppy_tus.js?v=b67252a2:1656
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+qRequest @ @uppy_tus.js?v=b67252a2:3451
+call_fn @ chunk-5BGMXE2E.js?v=b67252a2:1114
+next_fn @ chunk-5BGMXE2E.js?v=b67252a2:1151
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1138
+XMLHttpRequest.send
+(anonymous) @ @uppy_tus.js?v=b67252a2:2802
+send @ @uppy_tus.js?v=b67252a2:2795
+_callee$ @ @uppy_tus.js?v=b67252a2:1992
+tryCatch @ @uppy_tus.js?v=b67252a2:839
+(anonymous) @ @uppy_tus.js?v=b67252a2:916
+(anonymous) @ @uppy_tus.js?v=b67252a2:862
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1055
+_next @ @uppy_tus.js?v=b67252a2:1073
+Promise.then
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1064
+_next @ @uppy_tus.js?v=b67252a2:1073
+(anonymous) @ @uppy_tus.js?v=b67252a2:1078
+(anonymous) @ @uppy_tus.js?v=b67252a2:1070
+sendRequest @ @uppy_tus.js?v=b67252a2:1976
+_sendRequest @ @uppy_tus.js?v=b67252a2:1913
+_createUpload @ @uppy_tus.js?v=b67252a2:1656
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+qRequest @ @uppy_tus.js?v=b67252a2:3451
+call_fn @ chunk-5BGMXE2E.js?v=b67252a2:1114
+next_fn @ chunk-5BGMXE2E.js?v=b67252a2:1151
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1138
+XMLHttpRequest.send
+(anonymous) @ @uppy_tus.js?v=b67252a2:2802
+send @ @uppy_tus.js?v=b67252a2:2795
+_callee$ @ @uppy_tus.js?v=b67252a2:1992
+tryCatch @ @uppy_tus.js?v=b67252a2:839
+(anonymous) @ @uppy_tus.js?v=b67252a2:916
+(anonymous) @ @uppy_tus.js?v=b67252a2:862
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1055
+_next @ @uppy_tus.js?v=b67252a2:1073
+Promise.then
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1064
+_next @ @uppy_tus.js?v=b67252a2:1073
+(anonymous) @ @uppy_tus.js?v=b67252a2:1078
+(anonymous) @ @uppy_tus.js?v=b67252a2:1070
+sendRequest @ @uppy_tus.js?v=b67252a2:1976
+_sendRequest @ @uppy_tus.js?v=b67252a2:1913
+_createUpload @ @uppy_tus.js?v=b67252a2:1656
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+qRequest @ @uppy_tus.js?v=b67252a2:3451
+call_fn @ chunk-5BGMXE2E.js?v=b67252a2:1114
+next_fn @ chunk-5BGMXE2E.js?v=b67252a2:1151
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1138
+XMLHttpRequest.send
+(anonymous) @ @uppy_tus.js?v=b67252a2:2802
+send @ @uppy_tus.js?v=b67252a2:2795
+_callee$ @ @uppy_tus.js?v=b67252a2:1992
+tryCatch @ @uppy_tus.js?v=b67252a2:839
+(anonymous) @ @uppy_tus.js?v=b67252a2:916
+(anonymous) @ @uppy_tus.js?v=b67252a2:862
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1055
+_next @ @uppy_tus.js?v=b67252a2:1073
+Promise.then
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1064
+_next @ @uppy_tus.js?v=b67252a2:1073
+(anonymous) @ @uppy_tus.js?v=b67252a2:1078
+(anonymous) @ @uppy_tus.js?v=b67252a2:1070
+sendRequest @ @uppy_tus.js?v=b67252a2:1976
+_sendRequest @ @uppy_tus.js?v=b67252a2:1913
+_createUpload @ @uppy_tus.js?v=b67252a2:1656
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+qRequest @ @uppy_tus.js?v=b67252a2:3451
+call_fn @ chunk-5BGMXE2E.js?v=b67252a2:1114
+next_fn @ chunk-5BGMXE2E.js?v=b67252a2:1151
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1138
+XMLHttpRequest.send
+(anonymous) @ @uppy_tus.js?v=b67252a2:2802
+send @ @uppy_tus.js?v=b67252a2:2795
+_callee$ @ @uppy_tus.js?v=b67252a2:1992
+tryCatch @ @uppy_tus.js?v=b67252a2:839
+(anonymous) @ @uppy_tus.js?v=b67252a2:916
+(anonymous) @ @uppy_tus.js?v=b67252a2:862
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1055
+_next @ @uppy_tus.js?v=b67252a2:1073
+Promise.then
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1064
+_next @ @uppy_tus.js?v=b67252a2:1073
+(anonymous) @ @uppy_tus.js?v=b67252a2:1078
+(anonymous) @ @uppy_tus.js?v=b67252a2:1070
+sendRequest @ @uppy_tus.js?v=b67252a2:1976
+_sendRequest @ @uppy_tus.js?v=b67252a2:1913
+_createUpload @ @uppy_tus.js?v=b67252a2:1656
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+qRequest @ @uppy_tus.js?v=b67252a2:3451
+call_fn @ chunk-5BGMXE2E.js?v=b67252a2:1114
+next_fn @ chunk-5BGMXE2E.js?v=b67252a2:1151
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1138
+XMLHttpRequest.send
+(anonymous) @ @uppy_tus.js?v=b67252a2:2802
+send @ @uppy_tus.js?v=b67252a2:2795
+_callee$ @ @uppy_tus.js?v=b67252a2:1992
+tryCatch @ @uppy_tus.js?v=b67252a2:839
+(anonymous) @ @uppy_tus.js?v=b67252a2:916
+(anonymous) @ @uppy_tus.js?v=b67252a2:862
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1055
+_next @ @uppy_tus.js?v=b67252a2:1073
+Promise.then
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1064
+_next @ @uppy_tus.js?v=b67252a2:1073
+(anonymous) @ @uppy_tus.js?v=b67252a2:1078
+(anonymous) @ @uppy_tus.js?v=b67252a2:1070
+sendRequest @ @uppy_tus.js?v=b67252a2:1976
+_sendRequest @ @uppy_tus.js?v=b67252a2:1913
+_createUpload @ @uppy_tus.js?v=b67252a2:1656
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+qRequest @ @uppy_tus.js?v=b67252a2:3451
+call_fn @ chunk-5BGMXE2E.js?v=b67252a2:1114
+next_fn @ chunk-5BGMXE2E.js?v=b67252a2:1151
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1138Understand this error
+chunk-5BGMXE2E.js?v=b67252a2:1947 [Uppy] [15:58:57] tus: unexpected response while creating upload, originated from request (method: POST, url: /api/galleries/e0374733-2aaa-4c88-9a28-e09c3d09ea95/upload/tus, response code: 500, response text: Something went wrong with that request
+Cannot read properties of undefined (reading 'id')
+, request id: n/a)
+error @ chunk-5BGMXE2E.js?v=b67252a2:1947
+log @ chunk-5BGMXE2E.js?v=b67252a2:3214
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:3603
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+gallery-detail.tsx:154 [Uppy] Upload error: DetailedError2: tus: unexpected response while creating upload, originated from request (method: POST, url: /api/galleries/e0374733-2aaa-4c88-9a28-e09c3d09ea95/upload/tus, response code: 500, response text: Something went wrong with that request
+Cannot read properties of undefined (reading 'id')
+, request id: n/a)
+    at Upload2._emitHttpError (@uppy_tus.js?v=b67252a2:1547:23)
+    at @uppy_tus.js?v=b67252a2:1660:18
+(anonymous) @ gallery-detail.tsx:154
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+@uppy_tus.js?v=b67252a2:2802  POST https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/api/galleries/e0374733-2aaa-4c88-9a28-e09c3d09ea95/upload/tus 500 (Internal Server Error)
+(anonymous) @ @uppy_tus.js?v=b67252a2:2802
+send @ @uppy_tus.js?v=b67252a2:2795
+_callee$ @ @uppy_tus.js?v=b67252a2:1992
+tryCatch @ @uppy_tus.js?v=b67252a2:839
+(anonymous) @ @uppy_tus.js?v=b67252a2:916
+(anonymous) @ @uppy_tus.js?v=b67252a2:862
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1055
+_next @ @uppy_tus.js?v=b67252a2:1073
+Promise.then
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1064
+_next @ @uppy_tus.js?v=b67252a2:1073
+(anonymous) @ @uppy_tus.js?v=b67252a2:1078
+(anonymous) @ @uppy_tus.js?v=b67252a2:1070
+sendRequest @ @uppy_tus.js?v=b67252a2:1976
+_sendRequest @ @uppy_tus.js?v=b67252a2:1913
+_createUpload @ @uppy_tus.js?v=b67252a2:1656
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+(anonymous) @ @uppy_tus.js?v=b67252a2:1563
+setTimeout
+_emitError @ @uppy_tus.js?v=b67252a2:1562
+_emitHttpError @ @uppy_tus.js?v=b67252a2:1547
+(anonymous) @ @uppy_tus.js?v=b67252a2:1660
+Promise.then
+_createUpload @ @uppy_tus.js?v=b67252a2:1658
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+(anonymous) @ @uppy_tus.js?v=b67252a2:1563
+setTimeout
+_emitError @ @uppy_tus.js?v=b67252a2:1562
+_emitHttpError @ @uppy_tus.js?v=b67252a2:1547
+(anonymous) @ @uppy_tus.js?v=b67252a2:1660
+Promise.then
+_createUpload @ @uppy_tus.js?v=b67252a2:1658
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+(anonymous) @ @uppy_tus.js?v=b67252a2:1563
+setTimeout
+_emitError @ @uppy_tus.js?v=b67252a2:1562
+_emitHttpError @ @uppy_tus.js?v=b67252a2:1547
+(anonymous) @ @uppy_tus.js?v=b67252a2:1660
+Promise.then
+_createUpload @ @uppy_tus.js?v=b67252a2:1658
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+(anonymous) @ @uppy_tus.js?v=b67252a2:1563
+setTimeout
+_emitError @ @uppy_tus.js?v=b67252a2:1562
+_emitHttpError @ @uppy_tus.js?v=b67252a2:1547
+(anonymous) @ @uppy_tus.js?v=b67252a2:1660
+Promise.then
+_createUpload @ @uppy_tus.js?v=b67252a2:1658
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+qRequest @ @uppy_tus.js?v=b67252a2:3451
+call_fn @ chunk-5BGMXE2E.js?v=b67252a2:1114
+next_fn @ chunk-5BGMXE2E.js?v=b67252a2:1151
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1138
+XMLHttpRequest.send
+(anonymous) @ @uppy_tus.js?v=b67252a2:2802
+send @ @uppy_tus.js?v=b67252a2:2795
+_callee$ @ @uppy_tus.js?v=b67252a2:1992
+tryCatch @ @uppy_tus.js?v=b67252a2:839
+(anonymous) @ @uppy_tus.js?v=b67252a2:916
+(anonymous) @ @uppy_tus.js?v=b67252a2:862
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1055
+_next @ @uppy_tus.js?v=b67252a2:1073
+Promise.then
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1064
+_next @ @uppy_tus.js?v=b67252a2:1073
+(anonymous) @ @uppy_tus.js?v=b67252a2:1078
+(anonymous) @ @uppy_tus.js?v=b67252a2:1070
+sendRequest @ @uppy_tus.js?v=b67252a2:1976
+_sendRequest @ @uppy_tus.js?v=b67252a2:1913
+_createUpload @ @uppy_tus.js?v=b67252a2:1656
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+qRequest @ @uppy_tus.js?v=b67252a2:3451
+call_fn @ chunk-5BGMXE2E.js?v=b67252a2:1114
+next_fn @ chunk-5BGMXE2E.js?v=b67252a2:1151
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1138
+XMLHttpRequest.send
+(anonymous) @ @uppy_tus.js?v=b67252a2:2802
+send @ @uppy_tus.js?v=b67252a2:2795
+_callee$ @ @uppy_tus.js?v=b67252a2:1992
+tryCatch @ @uppy_tus.js?v=b67252a2:839
+(anonymous) @ @uppy_tus.js?v=b67252a2:916
+(anonymous) @ @uppy_tus.js?v=b67252a2:862
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1055
+_next @ @uppy_tus.js?v=b67252a2:1073
+Promise.then
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1064
+_next @ @uppy_tus.js?v=b67252a2:1073
+(anonymous) @ @uppy_tus.js?v=b67252a2:1078
+(anonymous) @ @uppy_tus.js?v=b67252a2:1070
+sendRequest @ @uppy_tus.js?v=b67252a2:1976
+_sendRequest @ @uppy_tus.js?v=b67252a2:1913
+_createUpload @ @uppy_tus.js?v=b67252a2:1656
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+qRequest @ @uppy_tus.js?v=b67252a2:3451
+call_fn @ chunk-5BGMXE2E.js?v=b67252a2:1114
+next_fn @ chunk-5BGMXE2E.js?v=b67252a2:1151
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1138
+XMLHttpRequest.send
+(anonymous) @ @uppy_tus.js?v=b67252a2:2802
+send @ @uppy_tus.js?v=b67252a2:2795
+_callee$ @ @uppy_tus.js?v=b67252a2:1992
+tryCatch @ @uppy_tus.js?v=b67252a2:839
+(anonymous) @ @uppy_tus.js?v=b67252a2:916
+(anonymous) @ @uppy_tus.js?v=b67252a2:862
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1055
+_next @ @uppy_tus.js?v=b67252a2:1073
+Promise.then
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1064
+_next @ @uppy_tus.js?v=b67252a2:1073
+(anonymous) @ @uppy_tus.js?v=b67252a2:1078
+(anonymous) @ @uppy_tus.js?v=b67252a2:1070
+sendRequest @ @uppy_tus.js?v=b67252a2:1976
+_sendRequest @ @uppy_tus.js?v=b67252a2:1913
+_createUpload @ @uppy_tus.js?v=b67252a2:1656
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+qRequest @ @uppy_tus.js?v=b67252a2:3451
+call_fn @ chunk-5BGMXE2E.js?v=b67252a2:1114
+next_fn @ chunk-5BGMXE2E.js?v=b67252a2:1151
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1138
+XMLHttpRequest.send
+(anonymous) @ @uppy_tus.js?v=b67252a2:2802
+send @ @uppy_tus.js?v=b67252a2:2795
+_callee$ @ @uppy_tus.js?v=b67252a2:1992
+tryCatch @ @uppy_tus.js?v=b67252a2:839
+(anonymous) @ @uppy_tus.js?v=b67252a2:916
+(anonymous) @ @uppy_tus.js?v=b67252a2:862
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1055
+_next @ @uppy_tus.js?v=b67252a2:1073
+Promise.then
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1064
+_next @ @uppy_tus.js?v=b67252a2:1073
+(anonymous) @ @uppy_tus.js?v=b67252a2:1078
+(anonymous) @ @uppy_tus.js?v=b67252a2:1070
+sendRequest @ @uppy_tus.js?v=b67252a2:1976
+_sendRequest @ @uppy_tus.js?v=b67252a2:1913
+_createUpload @ @uppy_tus.js?v=b67252a2:1656
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+qRequest @ @uppy_tus.js?v=b67252a2:3451
+call_fn @ chunk-5BGMXE2E.js?v=b67252a2:1114
+next_fn @ chunk-5BGMXE2E.js?v=b67252a2:1151
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1138
+XMLHttpRequest.send
+(anonymous) @ @uppy_tus.js?v=b67252a2:2802
+send @ @uppy_tus.js?v=b67252a2:2795
+_callee$ @ @uppy_tus.js?v=b67252a2:1992
+tryCatch @ @uppy_tus.js?v=b67252a2:839
+(anonymous) @ @uppy_tus.js?v=b67252a2:916
+(anonymous) @ @uppy_tus.js?v=b67252a2:862
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1055
+_next @ @uppy_tus.js?v=b67252a2:1073
+Promise.then
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1064
+_next @ @uppy_tus.js?v=b67252a2:1073
+(anonymous) @ @uppy_tus.js?v=b67252a2:1078
+(anonymous) @ @uppy_tus.js?v=b67252a2:1070
+sendRequest @ @uppy_tus.js?v=b67252a2:1976
+_sendRequest @ @uppy_tus.js?v=b67252a2:1913
+_createUpload @ @uppy_tus.js?v=b67252a2:1656
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+qRequest @ @uppy_tus.js?v=b67252a2:3451
+call_fn @ chunk-5BGMXE2E.js?v=b67252a2:1114
+next_fn @ chunk-5BGMXE2E.js?v=b67252a2:1151
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1138
+XMLHttpRequest.send
+(anonymous) @ @uppy_tus.js?v=b67252a2:2802
+send @ @uppy_tus.js?v=b67252a2:2795
+_callee$ @ @uppy_tus.js?v=b67252a2:1992
+tryCatch @ @uppy_tus.js?v=b67252a2:839
+(anonymous) @ @uppy_tus.js?v=b67252a2:916
+(anonymous) @ @uppy_tus.js?v=b67252a2:862
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1055
+_next @ @uppy_tus.js?v=b67252a2:1073
+Promise.then
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1064
+_next @ @uppy_tus.js?v=b67252a2:1073
+(anonymous) @ @uppy_tus.js?v=b67252a2:1078
+(anonymous) @ @uppy_tus.js?v=b67252a2:1070
+sendRequest @ @uppy_tus.js?v=b67252a2:1976
+_sendRequest @ @uppy_tus.js?v=b67252a2:1913
+_createUpload @ @uppy_tus.js?v=b67252a2:1656
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+qRequest @ @uppy_tus.js?v=b67252a2:3451
+call_fn @ chunk-5BGMXE2E.js?v=b67252a2:1114
+next_fn @ chunk-5BGMXE2E.js?v=b67252a2:1151
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1138Understand this error
+chunk-5BGMXE2E.js?v=b67252a2:1947 [Uppy] [15:58:57] tus: unexpected response while creating upload, originated from request (method: POST, url: /api/galleries/e0374733-2aaa-4c88-9a28-e09c3d09ea95/upload/tus, response code: 500, response text: Something went wrong with that request
+Cannot read properties of undefined (reading 'id')
+, request id: n/a)
+error @ chunk-5BGMXE2E.js?v=b67252a2:1947
+log @ chunk-5BGMXE2E.js?v=b67252a2:3214
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:3603
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+gallery-detail.tsx:154 [Uppy] Upload error: DetailedError2: tus: unexpected response while creating upload, originated from request (method: POST, url: /api/galleries/e0374733-2aaa-4c88-9a28-e09c3d09ea95/upload/tus, response code: 500, response text: Something went wrong with that request
+Cannot read properties of undefined (reading 'id')
+, request id: n/a)
+    at Upload2._emitHttpError (@uppy_tus.js?v=b67252a2:1547:23)
+    at @uppy_tus.js?v=b67252a2:1660:18
+(anonymous) @ gallery-detail.tsx:154
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+@uppy_tus.js?v=b67252a2:2802  POST https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/api/galleries/e0374733-2aaa-4c88-9a28-e09c3d09ea95/upload/tus 500 (Internal Server Error)
+(anonymous) @ @uppy_tus.js?v=b67252a2:2802
+send @ @uppy_tus.js?v=b67252a2:2795
+_callee$ @ @uppy_tus.js?v=b67252a2:1992
+tryCatch @ @uppy_tus.js?v=b67252a2:839
+(anonymous) @ @uppy_tus.js?v=b67252a2:916
+(anonymous) @ @uppy_tus.js?v=b67252a2:862
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1055
+_next @ @uppy_tus.js?v=b67252a2:1073
+Promise.then
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1064
+_next @ @uppy_tus.js?v=b67252a2:1073
+(anonymous) @ @uppy_tus.js?v=b67252a2:1078
+(anonymous) @ @uppy_tus.js?v=b67252a2:1070
+sendRequest @ @uppy_tus.js?v=b67252a2:1976
+_sendRequest @ @uppy_tus.js?v=b67252a2:1913
+_createUpload @ @uppy_tus.js?v=b67252a2:1656
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+(anonymous) @ @uppy_tus.js?v=b67252a2:1563
+setTimeout
+_emitError @ @uppy_tus.js?v=b67252a2:1562
+_emitHttpError @ @uppy_tus.js?v=b67252a2:1547
+(anonymous) @ @uppy_tus.js?v=b67252a2:1660
+Promise.then
+_createUpload @ @uppy_tus.js?v=b67252a2:1658
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+(anonymous) @ @uppy_tus.js?v=b67252a2:1563
+setTimeout
+_emitError @ @uppy_tus.js?v=b67252a2:1562
+_emitHttpError @ @uppy_tus.js?v=b67252a2:1547
+(anonymous) @ @uppy_tus.js?v=b67252a2:1660
+Promise.then
+_createUpload @ @uppy_tus.js?v=b67252a2:1658
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+(anonymous) @ @uppy_tus.js?v=b67252a2:1563
+setTimeout
+_emitError @ @uppy_tus.js?v=b67252a2:1562
+_emitHttpError @ @uppy_tus.js?v=b67252a2:1547
+(anonymous) @ @uppy_tus.js?v=b67252a2:1660
+Promise.then
+_createUpload @ @uppy_tus.js?v=b67252a2:1658
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+(anonymous) @ @uppy_tus.js?v=b67252a2:1563
+setTimeout
+_emitError @ @uppy_tus.js?v=b67252a2:1562
+_emitHttpError @ @uppy_tus.js?v=b67252a2:1547
+(anonymous) @ @uppy_tus.js?v=b67252a2:1660
+Promise.then
+_createUpload @ @uppy_tus.js?v=b67252a2:1658
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+qRequest @ @uppy_tus.js?v=b67252a2:3451
+call_fn @ chunk-5BGMXE2E.js?v=b67252a2:1114
+next_fn @ chunk-5BGMXE2E.js?v=b67252a2:1151
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1138
+XMLHttpRequest.send
+(anonymous) @ @uppy_tus.js?v=b67252a2:2802
+send @ @uppy_tus.js?v=b67252a2:2795
+_callee$ @ @uppy_tus.js?v=b67252a2:1992
+tryCatch @ @uppy_tus.js?v=b67252a2:839
+(anonymous) @ @uppy_tus.js?v=b67252a2:916
+(anonymous) @ @uppy_tus.js?v=b67252a2:862
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1055
+_next @ @uppy_tus.js?v=b67252a2:1073
+Promise.then
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1064
+_next @ @uppy_tus.js?v=b67252a2:1073
+(anonymous) @ @uppy_tus.js?v=b67252a2:1078
+(anonymous) @ @uppy_tus.js?v=b67252a2:1070
+sendRequest @ @uppy_tus.js?v=b67252a2:1976
+_sendRequest @ @uppy_tus.js?v=b67252a2:1913
+_createUpload @ @uppy_tus.js?v=b67252a2:1656
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+qRequest @ @uppy_tus.js?v=b67252a2:3451
+call_fn @ chunk-5BGMXE2E.js?v=b67252a2:1114
+next_fn @ chunk-5BGMXE2E.js?v=b67252a2:1151
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1138
+XMLHttpRequest.send
+(anonymous) @ @uppy_tus.js?v=b67252a2:2802
+send @ @uppy_tus.js?v=b67252a2:2795
+_callee$ @ @uppy_tus.js?v=b67252a2:1992
+tryCatch @ @uppy_tus.js?v=b67252a2:839
+(anonymous) @ @uppy_tus.js?v=b67252a2:916
+(anonymous) @ @uppy_tus.js?v=b67252a2:862
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1055
+_next @ @uppy_tus.js?v=b67252a2:1073
+Promise.then
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1064
+_next @ @uppy_tus.js?v=b67252a2:1073
+(anonymous) @ @uppy_tus.js?v=b67252a2:1078
+(anonymous) @ @uppy_tus.js?v=b67252a2:1070
+sendRequest @ @uppy_tus.js?v=b67252a2:1976
+_sendRequest @ @uppy_tus.js?v=b67252a2:1913
+_createUpload @ @uppy_tus.js?v=b67252a2:1656
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+qRequest @ @uppy_tus.js?v=b67252a2:3451
+call_fn @ chunk-5BGMXE2E.js?v=b67252a2:1114
+next_fn @ chunk-5BGMXE2E.js?v=b67252a2:1151
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1138
+XMLHttpRequest.send
+(anonymous) @ @uppy_tus.js?v=b67252a2:2802
+send @ @uppy_tus.js?v=b67252a2:2795
+_callee$ @ @uppy_tus.js?v=b67252a2:1992
+tryCatch @ @uppy_tus.js?v=b67252a2:839
+(anonymous) @ @uppy_tus.js?v=b67252a2:916
+(anonymous) @ @uppy_tus.js?v=b67252a2:862
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1055
+_next @ @uppy_tus.js?v=b67252a2:1073
+Promise.then
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1064
+_next @ @uppy_tus.js?v=b67252a2:1073
+(anonymous) @ @uppy_tus.js?v=b67252a2:1078
+(anonymous) @ @uppy_tus.js?v=b67252a2:1070
+sendRequest @ @uppy_tus.js?v=b67252a2:1976
+_sendRequest @ @uppy_tus.js?v=b67252a2:1913
+_createUpload @ @uppy_tus.js?v=b67252a2:1656
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+qRequest @ @uppy_tus.js?v=b67252a2:3451
+call_fn @ chunk-5BGMXE2E.js?v=b67252a2:1114
+next_fn @ chunk-5BGMXE2E.js?v=b67252a2:1151
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1138
+XMLHttpRequest.send
+(anonymous) @ @uppy_tus.js?v=b67252a2:2802
+send @ @uppy_tus.js?v=b67252a2:2795
+_callee$ @ @uppy_tus.js?v=b67252a2:1992
+tryCatch @ @uppy_tus.js?v=b67252a2:839
+(anonymous) @ @uppy_tus.js?v=b67252a2:916
+(anonymous) @ @uppy_tus.js?v=b67252a2:862
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1055
+_next @ @uppy_tus.js?v=b67252a2:1073
+Promise.then
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1064
+_next @ @uppy_tus.js?v=b67252a2:1073
+(anonymous) @ @uppy_tus.js?v=b67252a2:1078
+(anonymous) @ @uppy_tus.js?v=b67252a2:1070
+sendRequest @ @uppy_tus.js?v=b67252a2:1976
+_sendRequest @ @uppy_tus.js?v=b67252a2:1913
+_createUpload @ @uppy_tus.js?v=b67252a2:1656
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+qRequest @ @uppy_tus.js?v=b67252a2:3451
+call_fn @ chunk-5BGMXE2E.js?v=b67252a2:1114
+next_fn @ chunk-5BGMXE2E.js?v=b67252a2:1151
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1138
+XMLHttpRequest.send
+(anonymous) @ @uppy_tus.js?v=b67252a2:2802
+send @ @uppy_tus.js?v=b67252a2:2795
+_callee$ @ @uppy_tus.js?v=b67252a2:1992
+tryCatch @ @uppy_tus.js?v=b67252a2:839
+(anonymous) @ @uppy_tus.js?v=b67252a2:916
+(anonymous) @ @uppy_tus.js?v=b67252a2:862
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1055
+_next @ @uppy_tus.js?v=b67252a2:1073
+Promise.then
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1064
+_next @ @uppy_tus.js?v=b67252a2:1073
+(anonymous) @ @uppy_tus.js?v=b67252a2:1078
+(anonymous) @ @uppy_tus.js?v=b67252a2:1070
+sendRequest @ @uppy_tus.js?v=b67252a2:1976
+_sendRequest @ @uppy_tus.js?v=b67252a2:1913
+_createUpload @ @uppy_tus.js?v=b67252a2:1656
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+qRequest @ @uppy_tus.js?v=b67252a2:3451
+call_fn @ chunk-5BGMXE2E.js?v=b67252a2:1114
+next_fn @ chunk-5BGMXE2E.js?v=b67252a2:1151
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1138
+XMLHttpRequest.send
+(anonymous) @ @uppy_tus.js?v=b67252a2:2802
+send @ @uppy_tus.js?v=b67252a2:2795
+_callee$ @ @uppy_tus.js?v=b67252a2:1992
+tryCatch @ @uppy_tus.js?v=b67252a2:839
+(anonymous) @ @uppy_tus.js?v=b67252a2:916
+(anonymous) @ @uppy_tus.js?v=b67252a2:862
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1055
+_next @ @uppy_tus.js?v=b67252a2:1073
+Promise.then
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1064
+_next @ @uppy_tus.js?v=b67252a2:1073
+(anonymous) @ @uppy_tus.js?v=b67252a2:1078
+(anonymous) @ @uppy_tus.js?v=b67252a2:1070
+sendRequest @ @uppy_tus.js?v=b67252a2:1976
+_sendRequest @ @uppy_tus.js?v=b67252a2:1913
+_createUpload @ @uppy_tus.js?v=b67252a2:1656
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+qRequest @ @uppy_tus.js?v=b67252a2:3451
+call_fn @ chunk-5BGMXE2E.js?v=b67252a2:1114
+next_fn @ chunk-5BGMXE2E.js?v=b67252a2:1151
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1138Understand this error
+chunk-5BGMXE2E.js?v=b67252a2:1947 [Uppy] [15:58:57] tus: unexpected response while creating upload, originated from request (method: POST, url: /api/galleries/e0374733-2aaa-4c88-9a28-e09c3d09ea95/upload/tus, response code: 500, response text: Something went wrong with that request
+Cannot read properties of undefined (reading 'id')
+, request id: n/a)
+error @ chunk-5BGMXE2E.js?v=b67252a2:1947
+log @ chunk-5BGMXE2E.js?v=b67252a2:3214
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:3603
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+gallery-detail.tsx:154 [Uppy] Upload error: DetailedError2: tus: unexpected response while creating upload, originated from request (method: POST, url: /api/galleries/e0374733-2aaa-4c88-9a28-e09c3d09ea95/upload/tus, response code: 500, response text: Something went wrong with that request
+Cannot read properties of undefined (reading 'id')
+, request id: n/a)
+    at Upload2._emitHttpError (@uppy_tus.js?v=b67252a2:1547:23)
+    at @uppy_tus.js?v=b67252a2:1660:18
+(anonymous) @ gallery-detail.tsx:154
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+@uppy_tus.js?v=b67252a2:2802  POST https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/api/galleries/e0374733-2aaa-4c88-9a28-e09c3d09ea95/upload/tus 500 (Internal Server Error)
+(anonymous) @ @uppy_tus.js?v=b67252a2:2802
+send @ @uppy_tus.js?v=b67252a2:2795
+_callee$ @ @uppy_tus.js?v=b67252a2:1992
+tryCatch @ @uppy_tus.js?v=b67252a2:839
+(anonymous) @ @uppy_tus.js?v=b67252a2:916
+(anonymous) @ @uppy_tus.js?v=b67252a2:862
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1055
+_next @ @uppy_tus.js?v=b67252a2:1073
+Promise.then
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1064
+_next @ @uppy_tus.js?v=b67252a2:1073
+(anonymous) @ @uppy_tus.js?v=b67252a2:1078
+(anonymous) @ @uppy_tus.js?v=b67252a2:1070
+sendRequest @ @uppy_tus.js?v=b67252a2:1976
+_sendRequest @ @uppy_tus.js?v=b67252a2:1913
+_createUpload @ @uppy_tus.js?v=b67252a2:1656
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+(anonymous) @ @uppy_tus.js?v=b67252a2:1563
+setTimeout
+_emitError @ @uppy_tus.js?v=b67252a2:1562
+_emitHttpError @ @uppy_tus.js?v=b67252a2:1547
+(anonymous) @ @uppy_tus.js?v=b67252a2:1660
+Promise.then
+_createUpload @ @uppy_tus.js?v=b67252a2:1658
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+(anonymous) @ @uppy_tus.js?v=b67252a2:1563
+setTimeout
+_emitError @ @uppy_tus.js?v=b67252a2:1562
+_emitHttpError @ @uppy_tus.js?v=b67252a2:1547
+(anonymous) @ @uppy_tus.js?v=b67252a2:1660
+Promise.then
+_createUpload @ @uppy_tus.js?v=b67252a2:1658
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+(anonymous) @ @uppy_tus.js?v=b67252a2:1563
+setTimeout
+_emitError @ @uppy_tus.js?v=b67252a2:1562
+_emitHttpError @ @uppy_tus.js?v=b67252a2:1547
+(anonymous) @ @uppy_tus.js?v=b67252a2:1660
+Promise.then
+_createUpload @ @uppy_tus.js?v=b67252a2:1658
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+(anonymous) @ @uppy_tus.js?v=b67252a2:1563
+setTimeout
+_emitError @ @uppy_tus.js?v=b67252a2:1562
+_emitHttpError @ @uppy_tus.js?v=b67252a2:1547
+(anonymous) @ @uppy_tus.js?v=b67252a2:1660
+Promise.then
+_createUpload @ @uppy_tus.js?v=b67252a2:1658
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+qRequest @ @uppy_tus.js?v=b67252a2:3451
+call_fn @ chunk-5BGMXE2E.js?v=b67252a2:1114
+next_fn @ chunk-5BGMXE2E.js?v=b67252a2:1151
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1138
+XMLHttpRequest.send
+(anonymous) @ @uppy_tus.js?v=b67252a2:2802
+send @ @uppy_tus.js?v=b67252a2:2795
+_callee$ @ @uppy_tus.js?v=b67252a2:1992
+tryCatch @ @uppy_tus.js?v=b67252a2:839
+(anonymous) @ @uppy_tus.js?v=b67252a2:916
+(anonymous) @ @uppy_tus.js?v=b67252a2:862
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1055
+_next @ @uppy_tus.js?v=b67252a2:1073
+Promise.then
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1064
+_next @ @uppy_tus.js?v=b67252a2:1073
+(anonymous) @ @uppy_tus.js?v=b67252a2:1078
+(anonymous) @ @uppy_tus.js?v=b67252a2:1070
+sendRequest @ @uppy_tus.js?v=b67252a2:1976
+_sendRequest @ @uppy_tus.js?v=b67252a2:1913
+_createUpload @ @uppy_tus.js?v=b67252a2:1656
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+qRequest @ @uppy_tus.js?v=b67252a2:3451
+call_fn @ chunk-5BGMXE2E.js?v=b67252a2:1114
+next_fn @ chunk-5BGMXE2E.js?v=b67252a2:1151
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1138
+XMLHttpRequest.send
+(anonymous) @ @uppy_tus.js?v=b67252a2:2802
+send @ @uppy_tus.js?v=b67252a2:2795
+_callee$ @ @uppy_tus.js?v=b67252a2:1992
+tryCatch @ @uppy_tus.js?v=b67252a2:839
+(anonymous) @ @uppy_tus.js?v=b67252a2:916
+(anonymous) @ @uppy_tus.js?v=b67252a2:862
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1055
+_next @ @uppy_tus.js?v=b67252a2:1073
+Promise.then
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1064
+_next @ @uppy_tus.js?v=b67252a2:1073
+(anonymous) @ @uppy_tus.js?v=b67252a2:1078
+(anonymous) @ @uppy_tus.js?v=b67252a2:1070
+sendRequest @ @uppy_tus.js?v=b67252a2:1976
+_sendRequest @ @uppy_tus.js?v=b67252a2:1913
+_createUpload @ @uppy_tus.js?v=b67252a2:1656
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+qRequest @ @uppy_tus.js?v=b67252a2:3451
+call_fn @ chunk-5BGMXE2E.js?v=b67252a2:1114
+next_fn @ chunk-5BGMXE2E.js?v=b67252a2:1151
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1138
+XMLHttpRequest.send
+(anonymous) @ @uppy_tus.js?v=b67252a2:2802
+send @ @uppy_tus.js?v=b67252a2:2795
+_callee$ @ @uppy_tus.js?v=b67252a2:1992
+tryCatch @ @uppy_tus.js?v=b67252a2:839
+(anonymous) @ @uppy_tus.js?v=b67252a2:916
+(anonymous) @ @uppy_tus.js?v=b67252a2:862
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1055
+_next @ @uppy_tus.js?v=b67252a2:1073
+Promise.then
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1064
+_next @ @uppy_tus.js?v=b67252a2:1073
+(anonymous) @ @uppy_tus.js?v=b67252a2:1078
+(anonymous) @ @uppy_tus.js?v=b67252a2:1070
+sendRequest @ @uppy_tus.js?v=b67252a2:1976
+_sendRequest @ @uppy_tus.js?v=b67252a2:1913
+_createUpload @ @uppy_tus.js?v=b67252a2:1656
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+qRequest @ @uppy_tus.js?v=b67252a2:3451
+call_fn @ chunk-5BGMXE2E.js?v=b67252a2:1114
+next_fn @ chunk-5BGMXE2E.js?v=b67252a2:1151
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1138
+XMLHttpRequest.send
+(anonymous) @ @uppy_tus.js?v=b67252a2:2802
+send @ @uppy_tus.js?v=b67252a2:2795
+_callee$ @ @uppy_tus.js?v=b67252a2:1992
+tryCatch @ @uppy_tus.js?v=b67252a2:839
+(anonymous) @ @uppy_tus.js?v=b67252a2:916
+(anonymous) @ @uppy_tus.js?v=b67252a2:862
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1055
+_next @ @uppy_tus.js?v=b67252a2:1073
+Promise.then
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1064
+_next @ @uppy_tus.js?v=b67252a2:1073
+(anonymous) @ @uppy_tus.js?v=b67252a2:1078
+(anonymous) @ @uppy_tus.js?v=b67252a2:1070
+sendRequest @ @uppy_tus.js?v=b67252a2:1976
+_sendRequest @ @uppy_tus.js?v=b67252a2:1913
+_createUpload @ @uppy_tus.js?v=b67252a2:1656
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+qRequest @ @uppy_tus.js?v=b67252a2:3451
+call_fn @ chunk-5BGMXE2E.js?v=b67252a2:1114
+next_fn @ chunk-5BGMXE2E.js?v=b67252a2:1151
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1138
+XMLHttpRequest.send
+(anonymous) @ @uppy_tus.js?v=b67252a2:2802
+send @ @uppy_tus.js?v=b67252a2:2795
+_callee$ @ @uppy_tus.js?v=b67252a2:1992
+tryCatch @ @uppy_tus.js?v=b67252a2:839
+(anonymous) @ @uppy_tus.js?v=b67252a2:916
+(anonymous) @ @uppy_tus.js?v=b67252a2:862
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1055
+_next @ @uppy_tus.js?v=b67252a2:1073
+Promise.then
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1064
+_next @ @uppy_tus.js?v=b67252a2:1073
+(anonymous) @ @uppy_tus.js?v=b67252a2:1078
+(anonymous) @ @uppy_tus.js?v=b67252a2:1070
+sendRequest @ @uppy_tus.js?v=b67252a2:1976
+_sendRequest @ @uppy_tus.js?v=b67252a2:1913
+_createUpload @ @uppy_tus.js?v=b67252a2:1656
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+qRequest @ @uppy_tus.js?v=b67252a2:3451
+call_fn @ chunk-5BGMXE2E.js?v=b67252a2:1114
+next_fn @ chunk-5BGMXE2E.js?v=b67252a2:1151
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1138
+XMLHttpRequest.send
+(anonymous) @ @uppy_tus.js?v=b67252a2:2802
+send @ @uppy_tus.js?v=b67252a2:2795
+_callee$ @ @uppy_tus.js?v=b67252a2:1992
+tryCatch @ @uppy_tus.js?v=b67252a2:839
+(anonymous) @ @uppy_tus.js?v=b67252a2:916
+(anonymous) @ @uppy_tus.js?v=b67252a2:862
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1055
+_next @ @uppy_tus.js?v=b67252a2:1073
+Promise.then
+asyncGeneratorStep @ @uppy_tus.js?v=b67252a2:1064
+_next @ @uppy_tus.js?v=b67252a2:1073
+(anonymous) @ @uppy_tus.js?v=b67252a2:1078
+(anonymous) @ @uppy_tus.js?v=b67252a2:1070
+sendRequest @ @uppy_tus.js?v=b67252a2:1976
+_sendRequest @ @uppy_tus.js?v=b67252a2:1913
+_createUpload @ @uppy_tus.js?v=b67252a2:1656
+_startSingleUpload @ @uppy_tus.js?v=b67252a2:1500
+(anonymous) @ @uppy_tus.js?v=b67252a2:1377
+Promise.then
+start @ @uppy_tus.js?v=b67252a2:1357
+qRequest @ @uppy_tus.js?v=b67252a2:3451
+call_fn @ chunk-5BGMXE2E.js?v=b67252a2:1114
+next_fn @ chunk-5BGMXE2E.js?v=b67252a2:1151
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1138Understand this error
+chunk-5BGMXE2E.js?v=b67252a2:1947 [Uppy] [15:58:57] tus: unexpected response while creating upload, originated from request (method: POST, url: /api/galleries/e0374733-2aaa-4c88-9a28-e09c3d09ea95/upload/tus, response code: 500, response text: Something went wrong with that request
+Cannot read properties of undefined (reading 'id')
+, request id: n/a)
+error @ chunk-5BGMXE2E.js?v=b67252a2:1947
+log @ chunk-5BGMXE2E.js?v=b67252a2:3214
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:3603
+emitAll @ chunk-5BGMXE2E.js?v=b67252a2:484
+emit @ chunk-5BGMXE2E.js?v=b67252a2:429
+emit @ chunk-5BGMXE2E.js?v=b67252a2:2594
+(anonymous) @ @uppy_tus.js?v=b67252a2:3494
+Promise.catch
+uploadLocalFile_fn @ @uppy_tus.js?v=b67252a2:3493
+(anonymous) @ @uppy_tus.js?v=b67252a2:3538
+uploadFiles_fn @ @uppy_tus.js?v=b67252a2:3520
+(anonymous) @ @uppy_tus.js?v=b67252a2:3223
+runUpload_fn @ chunk-5BGMXE2E.js?v=b67252a2:3819
+upload @ chunk-5BGMXE2E.js?v=b67252a2:3307
+(anonymous) @ @uppy_dashboard.js?v=b67252a2:4713
+(anonymous) @ chunk-5BGMXE2E.js?v=b67252a2:1447Understand this error
+gallery-detail.tsx:154 [Uppy] Upload error: DetailedError2: tus: unexpected response while creating upload, originated from request (method: POST, url: /api/galleries/e0374733-2aaa-4c88-9a28-e09c3d09ea95/upload/tus, response code: 500, response text: Something went wrong with that request
+Cannot read properties of undefined (reading 'id')
+, request id: n/a)
+    at Upload2._emitHttpError (@uppy_tus.js?v=b67252a2:1547:23)
+    at @uppy_tus.js?v=b67252a2:1660:18

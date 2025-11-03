@@ -191,10 +191,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Handler function for TUS requests
   const handleTusUpload = async (req: any, res: any) => {
-    const { galleryId } = req.params;
-    const photographerId = req.user!.photographerId!;
+    console.log('[TUS Handler] Starting upload handler');
+    console.log('[TUS Handler] req.user:', req.user);
+    console.log('[TUS Handler] req.params:', req.params);
     
     try {
+      const { galleryId } = req.params;
+      
+      if (!req.user) {
+        console.error('[TUS Handler] req.user is undefined!');
+        return res.status(401).json({ message: "Authentication required" });
+      }
+      
+      if (!req.user.photographerId) {
+        console.error('[TUS Handler] req.user.photographerId is undefined!', req.user);
+        return res.status(401).json({ message: "Photographer ID not found" });
+      }
+      
+      const photographerId = req.user.photographerId;
+      console.log('[TUS Handler] Photographer ID:', photographerId);
+      
       const gallery = await storage.getGallery(galleryId);
       
       if (!gallery) {
@@ -209,11 +225,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       req.headers["x-gallery-id"] = galleryId;
       req.headers["x-photographer-id"] = photographerId;
       
+      console.log('[TUS Handler] Forwarding to TUS server');
       // Forward to TUS server
       tusServer.handle(req, res);
     } catch (error) {
       console.error("TUS upload error:", error);
-      res.status(500).json({ message: "Upload server error" });
+      res.status(500).json({ message: "Upload server error", error: String(error) });
     }
   };
 
