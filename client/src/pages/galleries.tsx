@@ -20,6 +20,7 @@ export default function Galleries() {
   const [, setLocation] = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
+  const [privacyFilter, setPrivacyFilter] = useState<string>("all"); // all, public, private
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [selectedProjectId, setSelectedProjectId] = useState("");
   const [galleryTitle, setGalleryTitle] = useState("");
@@ -124,17 +125,17 @@ export default function Galleries() {
 
   // Create gallery handler
   const handleCreateGallery = () => {
-    if (!selectedProjectId || !galleryTitle) {
+    if (!galleryTitle) {
       toast({
         title: "Error",
-        description: "Please select a project and enter a gallery title",
+        description: "Please enter a gallery title",
         variant: "destructive",
       });
       return;
     }
 
     createGalleryMutation.mutate({
-      projectId: selectedProjectId,
+      projectId: selectedProjectId || null, // Allow null for standalone portfolio galleries
       photographerId: user!.photographerId!,
       title: galleryTitle,
       status: "DRAFT",
@@ -151,7 +152,11 @@ export default function Galleries() {
     
     const matchesStatus = statusFilter === "ALL" || gallery.status === statusFilter;
     
-    return matchesSearch && matchesStatus;
+    const matchesPrivacy = privacyFilter === "all" || 
+      (privacyFilter === "public" && gallery.isPublic) ||
+      (privacyFilter === "private" && !gallery.isPublic);
+    
+    return matchesSearch && matchesStatus && matchesPrivacy;
   });
 
   if (isLoading) {
@@ -225,6 +230,23 @@ export default function Galleries() {
 
             {/* Active Galleries Tab */}
             <TabsContent value="active">
+              {/* Privacy Filter Tabs */}
+              <Tabs value={privacyFilter} onValueChange={setPrivacyFilter} className="mb-6">
+                <TabsList>
+                  <TabsTrigger value="all" data-testid="tab-filter-all">
+                    All Galleries
+                  </TabsTrigger>
+                  <TabsTrigger value="public" data-testid="tab-filter-public">
+                    <Globe className="w-4 h-4 mr-2" />
+                    Public
+                  </TabsTrigger>
+                  <TabsTrigger value="private" data-testid="tab-filter-private">
+                    <Lock className="w-4 h-4 mr-2" />
+                    Private
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
+
               {isLoading ? (
                 <div className="text-center py-12">Loading galleries...</div>
               ) : filteredGalleries.length === 0 ? (
@@ -481,21 +503,22 @@ export default function Galleries() {
           <DialogHeader>
             <DialogTitle>Create New Gallery</DialogTitle>
             <DialogDescription>
-              Select a project and create a gallery to upload photos for your client.
+              Create a gallery for a client project or a standalone portfolio gallery to showcase your work.
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="project">Project</Label>
+              <Label htmlFor="project">Project (Optional)</Label>
               <Select 
                 value={selectedProjectId} 
                 onValueChange={handleProjectChange}
               >
                 <SelectTrigger id="project" data-testid="select-project">
-                  <SelectValue placeholder="Select a project" />
+                  <SelectValue placeholder="Select a project (optional)" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="">None - Standalone Portfolio Gallery</SelectItem>
                   {projects.map((project: any) => (
                     <SelectItem key={project.id} value={project.id}>
                       {project.title} - {project.client?.firstName} {project.client?.lastName}
@@ -527,7 +550,7 @@ export default function Galleries() {
             </Button>
             <Button 
               onClick={handleCreateGallery}
-              disabled={createGalleryMutation.isPending || !selectedProjectId || !galleryTitle}
+              disabled={createGalleryMutation.isPending || !galleryTitle}
               data-testid="button-submit-create"
             >
               {createGalleryMutation.isPending ? "Creating..." : "Create Gallery"}
