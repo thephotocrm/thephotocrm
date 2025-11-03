@@ -21,7 +21,7 @@ import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { format } from "date-fns";
 import Uppy from "@uppy/core";
-import Tus from "@uppy/tus";
+import XHRUpload from "@uppy/xhr-upload";
 import Dashboard from "@uppy/dashboard";
 
 export default function GalleryDetail() {
@@ -55,110 +55,48 @@ export default function GalleryDetail() {
   const CLOUDINARY_CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || "";
   const CLOUDINARY_UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET || "unsigned_preset";
 
-  // Uppy instance for chunked/resumable uploads
+  // Uppy instance for upload management
   const uppyRef = useRef<Uppy | null>(null);
   const uppyDashboardRef = useRef<HTMLDivElement>(null);
 
-  // Initialize Uppy instance  
+  // Initialize Uppy instance with XHR upload
   useEffect(() => {
     if (!galleryId || !user) return;
 
-    // Fetch upload token first
-    const initializeUppy = async () => {
-      try {
-        // Get upload token for authentication
-        const tokenResponse = await fetch('/api/auth/upload-token', {
-          credentials: 'include'
-        });
-        
-        if (!tokenResponse.ok) {
-          console.error('[Uppy] Failed to get upload token');
-          toast({
-            title: "Error",
-            description: "Failed to initialize upload. Please refresh the page.",
-            variant: "destructive",
-          });
-          return;
-        }
-        
-        const { token } = await tokenResponse.json();
-        
-        const uppy = new Uppy({
-          id: `gallery-${galleryId}`,
-          autoProceed: false,
-          restrictions: {
-            maxNumberOfFiles: 10000,
-            allowedFileTypes: ['image/*'],
-            maxFileSize: 100 * 1024 * 1024, // 100MB
-          },
-          meta: {
-            galleryId,
-            photographerId: user.photographerId
-          },
-        })
-          .use(Tus, {
-            endpoint: `/api/galleries/${galleryId}/upload/tus`,
-            retryDelays: [0, 1000, 3000, 5000],
-            chunkSize: 10 * 1024 * 1024, // 10MB chunks
-            limit: 3, // 3 parallel uploads
-            // Disable URL storage to prevent resuming old uploads
-            urlStorage: {
-              findUploadFile: async () => null,
-              findUploadsByFingerprint: async () => [],
-              storeUploadUrl: async () => {},
-              removeUploadUrl: async () => {},
-              listAllUploads: async () => []
-            },
-            // Send auth token in headers for all requests
-            headers: {
-              'Authorization': `Bearer ${token}`
-            },
-          })
+    const uppy = new Uppy({
+      id: `gallery-${galleryId}`,
+      autoProceed: false,
+      restrictions: {
+        maxNumberOfFiles: 10000,
+        allowedFileTypes: ['image/*'],
+        maxFileSize: 100 * 1024 * 1024, // 100MB per file
+      },
+    })
+      .use(XHRUpload, {
+        endpoint: `/api/galleries/${galleryId}/upload`,
+        fieldName: 'file',
+        formData: true,
+        limit: 3, // 3 parallel uploads
+      })
       .on('file-added', (file) => {
-        console.log('[Uppy] File added:', file.name);
+        console.log('[Upload] File added:', file.name);
       })
-      .on('upload', (data) => {
-        console.log('[Uppy] Upload started');
+      .on('upload', () => {
+        console.log('[Upload] Upload started');
       })
-      .on('upload-success', async (file, response) => {
-        console.log('[Uppy] Upload success:', file?.name, response);
+      .on('upload-success', (file, response) => {
+        console.log('[Upload] Upload success:', file?.name, response);
         
-        // Extract upload ID from TUS response URL
-        // The uploadURL is typically like: /api/galleries/:galleryId/upload/tus/:uploadId
-        const uploadId = response?.uploadURL ? 
-          response.uploadURL.split('/').pop() : null;
+        // Refresh gallery to show the new image
+        queryClient.invalidateQueries({ queryKey: ["/api/galleries", galleryId] });
         
-        if (uploadId) {
-          try {
-            // Finalize the upload by creating the gallery image record
-            await apiRequest("POST", `/api/galleries/${galleryId}/images/finalize`, { uploadId });
-            
-            // Refresh gallery to show the new image
-            queryClient.invalidateQueries({ queryKey: ["/api/galleries", galleryId] });
-            
-            toast({
-              title: "Success",
-              description: `${file?.name} uploaded successfully`,
-            });
-          } catch (error: any) {
-            console.error('[Uppy] Failed to finalize upload:', error);
-            toast({
-              title: "Upload Failed",
-              description: error.message || "Failed to save image record",
-              variant: "destructive",
-            });
-          }
-        } else {
-          console.error('[Uppy] No upload ID found in response');
-          toast({
-            title: "Error",
-            description: "Upload completed but couldn't retrieve upload ID",
-            variant: "destructive",
-          });
-        }
+        toast({
+          title: "Success",
+          description: `${file?.name} uploaded successfully`,
+        });
       })
       .on('upload-error', (file, error) => {
-        console.error('[Uppy] Upload error:', error);
+        console.error('[Upload] Upload error:', error);
         toast({
           title: "Upload Failed",
           description: `Failed to upload ${file?.name}`,
@@ -166,65 +104,58 @@ export default function GalleryDetail() {
         });
       })
       .on('complete', (result) => {
-        console.log('[Uppy] All uploads complete:', result);
+        console.log('[Upload] All uploads complete:', result);
         if (result.successful.length > 0) {
           toast({
             title: "Success",
             description: `${result.successful.length} images uploaded successfully`,
           });
         }
-        });
+      });
 
-        uppyRef.current = uppy;
+    uppyRef.current = uppy;
 
-        // Mount dashboard after a small delay to ensure DOM is fully rendered
-        const timeoutId = setTimeout(() => {
-          if (uppyDashboardRef.current && !uppyDashboardRef.current.querySelector('.uppy-Dashboard')) {
-            uppy.use(Dashboard, {
-              target: uppyDashboardRef.current,
-              inline: true,
-              height: 450,
-              width: '100%',
-              showProgressDetails: true,
-              note: 'Images only, up to 100MB per file',
-              proudlyDisplayPoweredByUppy: false,
-              theme: 'auto',
-              fileManagerSelectionType: 'both',
-              showRemoveButtonAfterComplete: true,
-              showSelectedFiles: true,
-              locale: {
-                strings: {
-                  dropPasteImportFiles: '%{browseFiles} or drag & drop up to 10,000 images here',
-                  dropPasteFiles: 'Drop images here or %{browseFiles}',
-                  browseFiles: 'click to browse',
-                  uploadComplete: 'Upload complete!',
-                  uploadingXFiles: {
-                    0: 'Uploading %{smart_count} image',
-                    1: 'Uploading %{smart_count} images',
-                  },
-                  xFilesSelected: {
-                    0: '%{smart_count} image selected',
-                    1: '%{smart_count} images selected',
-                  },
-                },
+    // Mount dashboard after a small delay to ensure DOM is fully rendered
+    const timeoutId = setTimeout(() => {
+      if (uppyDashboardRef.current && !uppyDashboardRef.current.querySelector('.uppy-Dashboard')) {
+        uppy.use(Dashboard, {
+          target: uppyDashboardRef.current,
+          inline: true,
+          height: 450,
+          width: '100%',
+          showProgressDetails: true,
+          note: 'Images only, up to 100MB per file',
+          proudlyDisplayPoweredByUppy: false,
+          theme: 'auto',
+          fileManagerSelectionType: 'both',
+          showRemoveButtonAfterComplete: true,
+          showSelectedFiles: true,
+          locale: {
+            strings: {
+              dropPasteImportFiles: '%{browseFiles} or drag & drop up to 10,000 images here',
+              dropPasteFiles: 'Drop images here or %{browseFiles}',
+              browseFiles: 'click to browse',
+              uploadComplete: 'Upload complete!',
+              uploadingXFiles: {
+                0: 'Uploading %{smart_count} image',
+                1: 'Uploading %{smart_count} images',
               },
-            });
-          }
-        }, 100);
+              xFilesSelected: {
+                0: '%{smart_count} image selected',
+                1: '%{smart_count} images selected',
+              },
+            },
+          },
+        });
+      }
+    }, 100);
 
-        return () => {
-          clearTimeout(timeoutId);
-          if (uppy && typeof uppy.close === 'function') {
-            uppy.close({ reason: 'unmount' });
-          }
-        };
-      } catch (error) {
-        console.error('[Uppy] Initialization error:', error);
+    return () => {
+      clearTimeout(timeoutId);
+      if (uppy && typeof uppy.close === 'function') {
+        uppy.close({ reason: 'unmount' });
       }
     };
-
-    // Call the async initialization function
-    initializeUppy();
   }, [galleryId, user, toast]);
 
   // Update gallery mutation

@@ -151,102 +151,80 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // NOTE: SimpleTexting webhook routes are registered in server/index.ts BEFORE this function
   // to ensure proper body parsing middleware is available
   
-  // TUS Resumable Upload Server for Gallery Images
-  // Handles chunked uploads with resume capability
-  // Custom middleware to extract auth from cookie since TUS doesn't send cookies properly
-  const tusAuthMiddleware = async (req: any, res: any, next: any) => {
-    try {
-      // Try to get token from cookie (works for initial request)
-      let token = req.cookies?.token;
-      
-      // If no cookie, try the Authorization header (for subsequent chunks)
-      if (!token && req.headers.authorization) {
-        const authHeader = req.headers.authorization;
-        if (authHeader.startsWith('Bearer ')) {
-          token = authHeader.substring(7);
-        }
-      }
-      
-      if (!token) {
-        console.log('[TUS Auth] No token found in cookie or Authorization header');
-        return res.status(401).json({ message: "Authentication required" });
-      }
-      
-      // Verify the token using existing auth logic
-      const { verifyToken } = await import('./services/auth');
-      const payload = verifyToken(token);
-      
-      if (!payload) {
-        return res.status(401).json({ message: "Invalid token" });
-      }
-      
-      // Attach user to request
-      req.user = payload;
-      next();
-    } catch (error) {
-      console.error('[TUS Auth] Authentication error:', error);
-      return res.status(401).json({ message: "Authentication failed" });
+  // Simple chunked upload for gallery images using Multer + Cloudinary
+  const uploadStorage = multer.memoryStorage();
+  const upload = multer({
+    storage: uploadStorage,
+    limits: {
+      fileSize: 100 * 1024 * 1024, // 100MB per file
     }
-  };
-  
-  // Handler function for TUS requests
-  const handleTusUpload = async (req: any, res: any) => {
-    console.log('[TUS Handler] Starting upload handler');
-    console.log('[TUS Handler] Original URL:', req.url);
-    console.log('[TUS Handler] req.user:', req.user);
-    console.log('[TUS Handler] req.params:', req.params);
-    
+  });
+
+  // Direct upload endpoint for gallery images
+  app.post("/api/galleries/:galleryId/upload", authenticateToken, requirePhotographer, requireActiveSubscription, requireGalleryPlan, upload.single('file'), async (req, res) => {
     try {
       const { galleryId } = req.params;
+      const photographerId = (req as any).user.photographerId;
       
-      if (!req.user) {
-        console.error('[TUS Handler] req.user is undefined!');
-        return res.status(401).json({ message: "Authentication required" });
-      }
-      
-      if (!req.user.photographerId) {
-        console.error('[TUS Handler] req.user.photographerId is undefined!', req.user);
-        return res.status(401).json({ message: "Photographer ID not found" });
-      }
-      
-      const photographerId = req.user.photographerId;
-      console.log('[TUS Handler] Photographer ID:', photographerId);
-      
+      // Verify gallery access
       const gallery = await storage.getGallery(galleryId);
-      
       if (!gallery) {
         return res.status(404).json({ message: "Gallery not found" });
       }
-      
       if (gallery.photographerId !== photographerId) {
         return res.status(403).json({ message: "Access denied" });
       }
       
-      // Inject gallery and photographer metadata into the request for TUS server
-      req.headers["x-gallery-id"] = galleryId;
-      req.headers["x-photographer-id"] = photographerId;
+      if (!req.file) {
+        return res.status(400).json({ message: "No file uploaded" });
+      }
       
-      // Rewrite the URL for TUS server to match its configured path
-      // From: /api/galleries/:galleryId/upload/tus[/:uploadId]
-      // To: /upload/tus[/:uploadId]
-      const originalUrl = req.url;
-      const tusPath = originalUrl.replace(`/api/galleries/${galleryId}`, '');
-      req.url = tusPath;
+      console.log('[Upload] Processing file:', req.file.originalname);
       
-      console.log('[TUS Handler] Rewritten URL:', req.url);
-      console.log('[TUS Handler] Forwarding to TUS server');
+      // Upload to Cloudinary
+      const { uploadToCloudinary } = await import('./services/cloudinary');
+      const cloudinaryFolder = `galleries/${galleryId}`;
+      const cloudinaryResult = await uploadToCloudinary(
+        req.file.buffer,
+        cloudinaryFolder,
+        {
+          resource_type: "auto",
+          folder: cloudinaryFolder,
+          transformation: [
+            { quality: "auto", fetch_format: "auto" }
+          ]
+        }
+      );
       
-      // Forward to TUS server
-      tusServer.handle(req, res);
-    } catch (error) {
-      console.error("TUS upload error:", error);
-      res.status(500).json({ message: "Upload server error", error: String(error) });
+      console.log('[Upload] Cloudinary upload successful:', cloudinaryResult.public_id);
+      
+      // Create gallery image record
+      const galleryImage = await storage.createGalleryImage({
+        galleryId,
+        originalUrl: cloudinaryResult.secure_url,
+        webUrl: cloudinaryResult.secure_url.replace("/upload/", "/upload/w_1920,q_auto,f_auto/"),
+        thumbnailUrl: cloudinaryResult.secure_url.replace("/upload/", "/upload/w_400,h_400,c_fill,q_auto,f_auto/"),
+        cloudinaryPublicId: cloudinaryResult.public_id,
+        cloudinaryFolder,
+        format: cloudinaryResult.format,
+        width: cloudinaryResult.width,
+        height: cloudinaryResult.height,
+        fileSize: cloudinaryResult.bytes,
+        filename: req.file.originalname,
+        sortOrder: 0
+      });
+      
+      console.log('[Upload] Gallery image created:', galleryImage.id);
+      
+      res.json({ 
+        success: true,
+        image: galleryImage
+      });
+    } catch (error: any) {
+      console.error('[Upload] Error:', error);
+      res.status(500).json({ message: error.message || "Upload failed" });
     }
-  };
-
-  // Register both base endpoint and wildcard for TUS uploads
-  app.all("/api/galleries/:galleryId/upload/tus", tusAuthMiddleware, requirePhotographer, requireActiveSubscription, requireGalleryPlan, handleTusUpload);
-  app.all("/api/galleries/:galleryId/upload/tus/*", tusAuthMiddleware, requirePhotographer, requireActiveSubscription, requireGalleryPlan, handleTusUpload);
+  });
   
   // Gmail push notification webhook (uses processGmailNotification function above)
   app.post("/webhooks/gmail/push", async (req, res) => {
