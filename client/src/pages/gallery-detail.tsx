@@ -67,7 +67,7 @@ export default function GalleryDetail() {
       id: `gallery-${galleryId}`,
       autoProceed: false,
       restrictions: {
-        maxNumberOfFiles: 100,
+        maxNumberOfFiles: 10000,
         allowedFileTypes: ['image/*'],
         maxFileSize: 100 * 1024 * 1024, // 100MB
       },
@@ -157,7 +157,7 @@ export default function GalleryDetail() {
         inline: true,
         height: 400,
         showProgressDetails: true,
-        note: 'Images only, up to 100MB per file',
+        note: 'Upload up to 10,000 images at once • Up to 100MB per file • Drag & drop supported',
         proudlyDisplayPoweredByUppy: false,
       });
     }
@@ -420,7 +420,7 @@ export default function GalleryDetail() {
                 <CardHeader>
                   <CardTitle>Upload Images</CardTitle>
                   <p className="text-sm text-muted-foreground mt-1">
-                    Drag & drop images or click to browse • Supports up to 100 files • Resumes if interrupted
+                    Drag & drop images or click to browse • Supports up to 10,000 files • Resumes if interrupted
                   </p>
                 </CardHeader>
                 <CardContent>
