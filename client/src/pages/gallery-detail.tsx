@@ -63,28 +63,50 @@ export default function GalleryDetail() {
   useEffect(() => {
     if (!galleryId || !user) return;
 
-    const uppy = new Uppy({
-      id: `gallery-${galleryId}`,
-      autoProceed: false,
-      restrictions: {
-        maxNumberOfFiles: 10000,
-        allowedFileTypes: ['image/*'],
-        maxFileSize: 100 * 1024 * 1024, // 100MB
-      },
-      meta: {
-        galleryId,
-        photographerId: user.photographerId
-      },
-    })
-      .use(Tus, {
-        endpoint: `/api/galleries/${galleryId}/upload/tus`,
-        resume: true,
-        retryDelays: [0, 1000, 3000, 5000],
-        chunkSize: 10 * 1024 * 1024, // 10MB chunks
-        limit: 3, // 3 parallel uploads
-        // Authentication happens automatically via httpOnly cookie
-        withCredentials: true,
-      })
+    // Fetch upload token first
+    const initializeUppy = async () => {
+      try {
+        // Get upload token for authentication
+        const tokenResponse = await fetch('/api/auth/upload-token', {
+          credentials: 'include'
+        });
+        
+        if (!tokenResponse.ok) {
+          console.error('[Uppy] Failed to get upload token');
+          toast({
+            title: "Error",
+            description: "Failed to initialize upload. Please refresh the page.",
+            variant: "destructive",
+          });
+          return;
+        }
+        
+        const { token } = await tokenResponse.json();
+        
+        const uppy = new Uppy({
+          id: `gallery-${galleryId}`,
+          autoProceed: false,
+          restrictions: {
+            maxNumberOfFiles: 10000,
+            allowedFileTypes: ['image/*'],
+            maxFileSize: 100 * 1024 * 1024, // 100MB
+          },
+          meta: {
+            galleryId,
+            photographerId: user.photographerId
+          },
+        })
+          .use(Tus, {
+            endpoint: `/api/galleries/${galleryId}/upload/tus`,
+            resume: true,
+            retryDelays: [0, 1000, 3000, 5000],
+            chunkSize: 10 * 1024 * 1024, // 10MB chunks
+            limit: 3, // 3 parallel uploads
+            // Send auth token in headers for all requests
+            headers: {
+              'Authorization': `Bearer ${token}`
+            },
+          })
       .on('file-added', (file) => {
         console.log('[Uppy] File added:', file.name);
       })
@@ -144,51 +166,58 @@ export default function GalleryDetail() {
             description: `${result.successful.length} images uploaded successfully`,
           });
         }
-      });
-
-    uppyRef.current = uppy;
-
-    // Mount dashboard after a small delay to ensure DOM is fully rendered
-    const timeoutId = setTimeout(() => {
-      if (uppyDashboardRef.current && !uppyDashboardRef.current.querySelector('.uppy-Dashboard')) {
-        uppy.use(Dashboard, {
-          target: uppyDashboardRef.current,
-          inline: true,
-          height: 450,
-          width: '100%',
-          showProgressDetails: true,
-          note: 'Images only, up to 100MB per file',
-          proudlyDisplayPoweredByUppy: false,
-          theme: 'auto',
-          fileManagerSelectionType: 'both',
-          showRemoveButtonAfterComplete: true,
-          showSelectedFiles: true,
-          locale: {
-            strings: {
-              dropPasteImportFiles: '%{browseFiles} or drag & drop up to 10,000 images here',
-              dropPasteFiles: 'Drop images here or %{browseFiles}',
-              browseFiles: 'click to browse',
-              uploadComplete: 'Upload complete!',
-              uploadingXFiles: {
-                0: 'Uploading %{smart_count} image',
-                1: 'Uploading %{smart_count} images',
-              },
-              xFilesSelected: {
-                0: '%{smart_count} image selected',
-                1: '%{smart_count} images selected',
-              },
-            },
-          },
         });
-      }
-    }, 100);
 
-    return () => {
-      clearTimeout(timeoutId);
-      if (uppy && typeof uppy.close === 'function') {
-        uppy.close({ reason: 'unmount' });
+        uppyRef.current = uppy;
+
+        // Mount dashboard after a small delay to ensure DOM is fully rendered
+        const timeoutId = setTimeout(() => {
+          if (uppyDashboardRef.current && !uppyDashboardRef.current.querySelector('.uppy-Dashboard')) {
+            uppy.use(Dashboard, {
+              target: uppyDashboardRef.current,
+              inline: true,
+              height: 450,
+              width: '100%',
+              showProgressDetails: true,
+              note: 'Images only, up to 100MB per file',
+              proudlyDisplayPoweredByUppy: false,
+              theme: 'auto',
+              fileManagerSelectionType: 'both',
+              showRemoveButtonAfterComplete: true,
+              showSelectedFiles: true,
+              locale: {
+                strings: {
+                  dropPasteImportFiles: '%{browseFiles} or drag & drop up to 10,000 images here',
+                  dropPasteFiles: 'Drop images here or %{browseFiles}',
+                  browseFiles: 'click to browse',
+                  uploadComplete: 'Upload complete!',
+                  uploadingXFiles: {
+                    0: 'Uploading %{smart_count} image',
+                    1: 'Uploading %{smart_count} images',
+                  },
+                  xFilesSelected: {
+                    0: '%{smart_count} image selected',
+                    1: '%{smart_count} images selected',
+                  },
+                },
+              },
+            });
+          }
+        }, 100);
+
+        return () => {
+          clearTimeout(timeoutId);
+          if (uppy && typeof uppy.close === 'function') {
+            uppy.close({ reason: 'unmount' });
+          }
+        };
+      } catch (error) {
+        console.error('[Uppy] Initialization error:', error);
       }
     };
+
+    // Call the async initialization function
+    initializeUppy();
   }, [galleryId, user, toast]);
 
   // Update gallery mutation

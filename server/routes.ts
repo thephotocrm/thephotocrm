@@ -153,6 +153,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // TUS Resumable Upload Server for Gallery Images
   // Handles chunked uploads with resume capability
+  // Custom middleware to extract auth from cookie since TUS doesn't send cookies properly
+  const tusAuthMiddleware = async (req: any, res: any, next: any) => {
+    try {
+      // Try to get token from cookie (works for initial request)
+      let token = req.cookies?.token;
+      
+      // If no cookie, try the Authorization header (for subsequent chunks)
+      if (!token && req.headers.authorization) {
+        const authHeader = req.headers.authorization;
+        if (authHeader.startsWith('Bearer ')) {
+          token = authHeader.substring(7);
+        }
+      }
+      
+      if (!token) {
+        console.log('[TUS Auth] No token found in cookie or Authorization header');
+        return res.status(401).json({ message: "Authentication required" });
+      }
+      
+      // Verify the token using existing auth logic
+      const { verifyToken } = await import('./services/auth');
+      const payload = verifyToken(token);
+      
+      if (!payload) {
+        return res.status(401).json({ message: "Invalid token" });
+      }
+      
+      // Attach user to request
+      req.user = payload;
+      next();
+    } catch (error) {
+      console.error('[TUS Auth] Authentication error:', error);
+      return res.status(401).json({ message: "Authentication failed" });
+    }
+  };
+  
   // Handler function for TUS requests
   const handleTusUpload = async (req: any, res: any) => {
     const { galleryId } = req.params;
@@ -182,8 +218,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   };
 
   // Register both base endpoint and wildcard for TUS uploads
-  app.all("/api/galleries/:galleryId/upload/tus", authenticateToken, requirePhotographer, requireActiveSubscription, requireGalleryPlan, handleTusUpload);
-  app.all("/api/galleries/:galleryId/upload/tus/*", authenticateToken, requirePhotographer, requireActiveSubscription, requireGalleryPlan, handleTusUpload);
+  app.all("/api/galleries/:galleryId/upload/tus", tusAuthMiddleware, requirePhotographer, requireActiveSubscription, requireGalleryPlan, handleTusUpload);
+  app.all("/api/galleries/:galleryId/upload/tus/*", tusAuthMiddleware, requirePhotographer, requireActiveSubscription, requireGalleryPlan, handleTusUpload);
   
   // Gmail push notification webhook (uses processGmailNotification function above)
   app.post("/webhooks/gmail/push", async (req, res) => {
@@ -1646,6 +1682,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(updated);
     } catch (error) {
       console.error("Error updating subscription:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Get upload token for TUS uploads (since httpOnly cookies aren't accessible to JS)
+  app.get("/api/auth/upload-token", authenticateToken, async (req, res) => {
+    try {
+      const token = req.cookies?.token;
+      if (!token) {
+        return res.status(401).json({ message: "No token found" });
+      }
+      res.json({ token });
+    } catch (error) {
+      console.error("Error getting upload token:", error);
       res.status(500).json({ message: "Internal server error" });
     }
   });
