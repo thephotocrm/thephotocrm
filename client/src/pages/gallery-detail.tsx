@@ -79,7 +79,6 @@ export default function GalleryDetail() {
       .use(Tus, {
         endpoint: `/api/galleries/${galleryId}/upload/tus`,
         resume: true,
-        autoRetry: true,
         retryDelays: [0, 1000, 3000, 5000],
         chunkSize: 10 * 1024 * 1024, // 10MB chunks
         limit: 3, // 3 parallel uploads
