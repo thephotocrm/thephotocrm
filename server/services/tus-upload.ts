@@ -7,6 +7,10 @@ import { uploadToCloudinary } from "./cloudinary";
 // TUS server configuration for resumable uploads
 const tusDataDir = path.join(process.cwd(), "tus-uploads");
 
+// In-memory cache for Cloudinary upload results
+// Key: TUS upload ID, Value: Cloudinary data
+export const cloudinaryCache = new Map<string, any>();
+
 // Ensure upload directory exists
 async function ensureUploadDir() {
   try {
@@ -79,9 +83,10 @@ export const tusServer = new Server({
       
       console.log("[TUS] Cloudinary upload successful:", cloudinaryResult.public_id);
       
-      // Store Cloudinary result in upload metadata for retrieval
-      // We'll attach this to the response headers
-      const cloudinaryData = JSON.stringify({
+      // Store Cloudinary result in cache for retrieval by finalize endpoint
+      const cloudinaryData = {
+        galleryId,
+        photographerId,
         originalUrl: cloudinaryResult.secure_url,
         webUrl: cloudinaryResult.secure_url.replace("/upload/", "/upload/w_1920,q_auto,f_auto/"),
         thumbnailUrl: cloudinaryResult.secure_url.replace("/upload/", "/upload/w_400,h_400,c_fill,q_auto,f_auto/"),
@@ -90,18 +95,25 @@ export const tusServer = new Server({
         format: cloudinaryResult.format,
         width: cloudinaryResult.width,
         height: cloudinaryResult.height,
-        fileSize: cloudinaryResult.bytes
-      });
+        fileSize: cloudinaryResult.bytes,
+        filename
+      };
       
-      // Set custom header with Cloudinary data
-      res.setHeader("X-Cloudinary-Data", Buffer.from(cloudinaryData).toString("base64"));
+      // Cache the data with the upload ID
+      cloudinaryCache.set(upload.id, cloudinaryData);
+      
+      // Set expiry - clear cache after 1 hour
+      setTimeout(() => {
+        cloudinaryCache.delete(upload.id);
+        console.log("[TUS] Cleared cache for upload:", upload.id);
+      }, 60 * 60 * 1000);
       
       // Clean up the local file
       await fs.unlink(filePath).catch(err => 
         console.error("[TUS] Failed to delete temp file:", err)
       );
       
-      console.log("[TUS] Upload processing complete");
+      console.log("[TUS] Upload processing complete, data cached");
     } catch (error) {
       console.error("[TUS] Failed to process upload:", error);
       // Continue - TUS upload was successful even if post-processing failed

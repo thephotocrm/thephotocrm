@@ -153,8 +153,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // TUS Resumable Upload Server for Gallery Images
   // Handles chunked uploads with resume capability
-  app.all("/api/galleries/:galleryId/upload/tus/*", authenticateToken, requirePhotographer, requireActiveSubscription, requireGalleryPlan, async (req, res) => {
-    // Verify gallery ownership
+  // Handler function for TUS requests
+  const handleTusUpload = async (req: any, res: any) => {
     const { galleryId } = req.params;
     const photographerId = req.user!.photographerId!;
     
@@ -170,7 +170,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Inject gallery and photographer metadata into the request for TUS server
-      // The TUS server will extract these from upload metadata
       req.headers["x-gallery-id"] = galleryId;
       req.headers["x-photographer-id"] = photographerId;
       
@@ -180,7 +179,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("TUS upload error:", error);
       res.status(500).json({ message: "Upload server error" });
     }
-  });
+  };
+
+  // Register both base endpoint and wildcard for TUS uploads
+  app.all("/api/galleries/:galleryId/upload/tus", authenticateToken, requirePhotographer, requireActiveSubscription, requireGalleryPlan, handleTusUpload);
+  app.all("/api/galleries/:galleryId/upload/tus/*", authenticateToken, requirePhotographer, requireActiveSubscription, requireGalleryPlan, handleTusUpload);
   
   // Gmail push notification webhook (uses processGmailNotification function above)
   app.post("/webhooks/gmail/push", async (req, res) => {
@@ -9055,11 +9058,16 @@ ${photographer.businessName}`
   // Image Upload & Management (Photographer)
 
   // POST /api/galleries/:id/images/finalize - Finalize TUS upload and create database record
-  // Used by Uppy after successful Cloudinary upload
+  // Used by Uppy after successful Cloudinary upload via TUS
   app.post("/api/galleries/:id/images/finalize", authenticateToken, requirePhotographer, requireActiveSubscription, requireGalleryPlan, async (req, res) => {
     try {
       const { id } = req.params;
       const photographerId = req.user!.photographerId!;
+      const { uploadId } = req.body;
+
+      if (!uploadId) {
+        return res.status(400).json({ message: "Upload ID is required" });
+      }
 
       const gallery = await storage.getGallery(id);
       
@@ -9071,7 +9079,22 @@ ${photographer.businessName}`
         return res.status(403).json({ message: "Access denied" });
       }
 
-      // Extract Cloudinary metadata from request
+      // Retrieve Cloudinary data from cache
+      const { cloudinaryCache } = await import("./services/tus-upload");
+      const cloudinaryData = cloudinaryCache.get(uploadId);
+
+      if (!cloudinaryData) {
+        return res.status(404).json({ 
+          message: "Upload data not found. The upload may have expired or failed." 
+        });
+      }
+
+      // Verify the upload belongs to this gallery and photographer
+      if (cloudinaryData.galleryId !== id || cloudinaryData.photographerId !== photographerId) {
+        return res.status(403).json({ message: "Access denied to this upload" });
+      }
+
+      // Extract metadata from cached data
       const {
         originalUrl,
         webUrl,
@@ -9082,13 +9105,7 @@ ${photographer.businessName}`
         width,
         height,
         fileSize
-      } = req.body;
-
-      if (!originalUrl || !cloudinaryPublicId) {
-        return res.status(400).json({ 
-          message: "Missing required Cloudinary metadata" 
-        });
-      }
+      } = cloudinaryData;
 
       // Check storage quota
       const quotaCheck = await storage.checkStorageQuota(photographerId, fileSize || 0);
@@ -9116,6 +9133,10 @@ ${photographer.businessName}`
       };
 
       const image = await storage.createGalleryImage(imageData);
+      
+      // Clear the cache after successful creation
+      cloudinaryCache.delete(uploadId);
+      console.log("[TUS] Cleared cache for upload after finalization:", uploadId);
       
       res.status(201).json(image);
     } catch (error: any) {

@@ -37,7 +37,7 @@ Preferred communication style: Simple, everyday language.
 *   **Photographer Settings with Personalization:** Allows configuration of photographer and business names for automated message personalization.
 *   **Manual Smart File Sending:** Enables instant Smart File delivery via email or SMS from project details.
 *   **Email Branding System:** Professional email headers and signatures with customizable styles, contact info, and support for logo/headshot uploads and social media icons (via Clearbit Logo API).
-*   **Native Gallery System:** Integrated photo gallery platform using Cloudinary for CDN, featuring drag-and-drop uploads, reordering, captions, watermarks, privacy settings, client favorites, view tracking, and a REST API. Supports public and private galleries and integrates with project workflows.
+*   **Native Gallery System:** Integrated photo gallery platform using Cloudinary for CDN, featuring chunked/resumable uploads (Uppy + TUS protocol with 10MB chunks, 3 parallel uploads, pause/resume), drag-and-drop interface, reordering, captions, watermarks, privacy settings, client favorites, view tracking, and a REST API. Supports public and private galleries and integrates with project workflows.
 *   **Onboarding System:** Multi-step wizard for new photographers (Profile, Branding, Google, Stripe, First Project) with persistent progress tracking and celebratory completion.
 *   **Magic Link Portal System:** Passwordless client authentication for one-click project access via secure, time-limited email links.
 *   **Terminology Refactor:** System-wide change from "Clients" to "Contacts."

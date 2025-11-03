@@ -22,26 +22,14 @@ import { queryClient, apiRequest } from "@/lib/queryClient";
 import { format } from "date-fns";
 import Uppy from "@uppy/core";
 import Tus from "@uppy/tus";
-import { Dashboard } from "@uppy/dashboard";
-import "@uppy/core/dist/style.min.css";
-import "@uppy/dashboard/dist/style.min.css";
-
-interface UploadProgress {
-  file: File;
-  progress: number;
-  status: 'uploading' | 'processing' | 'complete' | 'error';
-  error?: string;
-}
+import Dashboard from "@uppy/dashboard";
 
 export default function GalleryDetail() {
   const { galleryId } = useParams();
   const [, setLocation] = useLocation();
   const { user } = useAuth();
   const { toast } = useToast();
-  const fileInputRef = useRef<HTMLInputElement>(null);
   
-  const [uploadQueue, setUploadQueue] = useState<UploadProgress[]>([]);
-  const [isDragging, setIsDragging] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   
@@ -66,6 +54,119 @@ export default function GalleryDetail() {
   // Cloudinary config
   const CLOUDINARY_CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || "";
   const CLOUDINARY_UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET || "unsigned_preset";
+
+  // Uppy instance for chunked/resumable uploads
+  const uppyRef = useRef<Uppy | null>(null);
+  const uppyDashboardRef = useRef<HTMLDivElement>(null);
+
+  // Initialize Uppy instance  
+  useEffect(() => {
+    if (!galleryId || !user) return;
+
+    const uppy = new Uppy({
+      id: `gallery-${galleryId}`,
+      autoProceed: false,
+      restrictions: {
+        maxNumberOfFiles: 100,
+        allowedFileTypes: ['image/*'],
+        maxFileSize: 100 * 1024 * 1024, // 100MB
+      },
+      meta: {
+        galleryId,
+        photographerId: user.photographerId
+      },
+    })
+      .use(Tus, {
+        endpoint: `/api/galleries/${galleryId}/upload/tus`,
+        resume: true,
+        autoRetry: true,
+        retryDelays: [0, 1000, 3000, 5000],
+        chunkSize: 10 * 1024 * 1024, // 10MB chunks
+        limit: 3, // 3 parallel uploads
+        // Add metadata to each upload
+        onBeforeRequest: (req) => {
+          req.setHeader('Authorization', `Bearer ${document.cookie.split('token=')[1]?.split(';')[0]}`);
+        },
+      })
+      .on('file-added', (file) => {
+        console.log('[Uppy] File added:', file.name);
+      })
+      .on('upload', (data) => {
+        console.log('[Uppy] Upload started');
+      })
+      .on('upload-success', async (file, response) => {
+        console.log('[Uppy] Upload success:', file?.name, response);
+        
+        // Extract upload ID from TUS response URL
+        // The uploadURL is typically like: /api/galleries/:galleryId/upload/tus/:uploadId
+        const uploadId = response?.uploadURL ? 
+          response.uploadURL.split('/').pop() : null;
+        
+        if (uploadId) {
+          try {
+            // Finalize the upload by creating the gallery image record
+            await apiRequest("POST", `/api/galleries/${galleryId}/images/finalize`, { uploadId });
+            
+            // Refresh gallery to show the new image
+            queryClient.invalidateQueries({ queryKey: ["/api/galleries", galleryId] });
+            
+            toast({
+              title: "Success",
+              description: `${file?.name} uploaded successfully`,
+            });
+          } catch (error: any) {
+            console.error('[Uppy] Failed to finalize upload:', error);
+            toast({
+              title: "Upload Failed",
+              description: error.message || "Failed to save image record",
+              variant: "destructive",
+            });
+          }
+        } else {
+          console.error('[Uppy] No upload ID found in response');
+          toast({
+            title: "Error",
+            description: "Upload completed but couldn't retrieve upload ID",
+            variant: "destructive",
+          });
+        }
+      })
+      .on('upload-error', (file, error) => {
+        console.error('[Uppy] Upload error:', error);
+        toast({
+          title: "Upload Failed",
+          description: `Failed to upload ${file?.name}`,
+          variant: "destructive",
+        });
+      })
+      .on('complete', (result) => {
+        console.log('[Uppy] All uploads complete:', result);
+        if (result.successful.length > 0) {
+          toast({
+            title: "Success",
+            description: `${result.successful.length} images uploaded successfully`,
+          });
+        }
+      });
+
+    uppyRef.current = uppy;
+
+    // Mount dashboard if element exists
+    if (uppyDashboardRef.current && !uppyDashboardRef.current.querySelector('.uppy-Dashboard')) {
+      uppy.use(Dashboard, {
+        target: uppyDashboardRef.current,
+        inline: true,
+        height: 400,
+        showProgressDetails: true,
+        note: 'Images only, up to 100MB per file',
+        proudlyDisplayPoweredByUppy: false,
+      });
+    }
+
+    return () => {
+      uppy.close();
+    };
+  }, [galleryId, user, toast]);
 
   // Update gallery mutation
   const updateGalleryMutation = useMutation({
@@ -194,120 +295,6 @@ export default function GalleryDetail() {
     },
   });
 
-  // Upload file to Cloudinary and create image record
-  const uploadFile = async (file: File, index: number) => {
-    try {
-      // Update status
-      setUploadQueue(prev => prev.map((item, i) => 
-        i === index ? { ...item, status: 'uploading', progress: 0 } : item
-      ));
-
-      // Upload to Cloudinary
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
-      formData.append('folder', `galleries/${galleryId}`);
-
-      const uploadResponse = await fetch(
-        `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`,
-        {
-          method: 'POST',
-          body: formData,
-        }
-      );
-
-      if (!uploadResponse.ok) {
-        throw new Error('Upload to Cloudinary failed');
-      }
-
-      const cloudinaryData = await uploadResponse.json();
-
-      // Update progress
-      setUploadQueue(prev => prev.map((item, i) => 
-        i === index ? { ...item, progress: 50, status: 'processing' } : item
-      ));
-
-      // Create image record in database
-      const imageData = {
-        galleryId: galleryId!,
-        photographerId: user!.photographerId!,
-        originalUrl: cloudinaryData.secure_url,
-        webUrl: cloudinaryData.secure_url.replace('/upload/', '/upload/w_1920,q_auto/'),
-        thumbnailUrl: cloudinaryData.secure_url.replace('/upload/', '/upload/w_400,h_300,c_fill/'),
-        watermarkedUrl: cloudinaryData.secure_url,
-        cloudinaryPublicId: cloudinaryData.public_id,
-        cloudinaryFolder: `galleries/${galleryId}`,
-        format: cloudinaryData.format,
-        width: cloudinaryData.width,
-        height: cloudinaryData.height,
-        fileSize: cloudinaryData.bytes,
-        sortIndex: (gallery?.images?.length || 0) + index,
-      };
-
-      await apiRequest("POST", `/api/galleries/${galleryId}/images`, imageData);
-
-      // Mark as complete
-      setUploadQueue(prev => prev.map((item, i) => 
-        i === index ? { ...item, progress: 100, status: 'complete' } : item
-      ));
-
-      // Refresh gallery
-      queryClient.invalidateQueries({ queryKey: ["/api/galleries", galleryId] });
-    } catch (error: any) {
-      console.error('Upload error:', error);
-      setUploadQueue(prev => prev.map((item, i) => 
-        i === index ? { ...item, status: 'error', error: error.message || 'Upload failed' } : item
-      ));
-    }
-  };
-
-  // Handle file selection
-  const handleFileSelect = useCallback((files: FileList | null) => {
-    if (!files || files.length === 0) return;
-
-    const fileArray = Array.from(files);
-    const imageFiles = fileArray.filter(file => file.type.startsWith('image/'));
-
-    if (imageFiles.length === 0) {
-      toast({
-        title: "Error",
-        description: "Please select image files only",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Add to queue
-    const newQueue = imageFiles.map(file => ({
-      file,
-      progress: 0,
-      status: 'uploading' as const,
-    }));
-
-    setUploadQueue(prev => [...prev, ...newQueue]);
-
-    // Start uploading
-    imageFiles.forEach((file, index) => {
-      uploadFile(file, uploadQueue.length + index);
-    });
-  }, [uploadQueue.length]);
-
-  // Drag and drop handlers
-  const handleDragOver = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(true);
-  }, []);
-
-  const handleDragLeave = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-  }, []);
-
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-    handleFileSelect(e.dataTransfer.files);
-  }, [handleFileSelect]);
 
   // Save settings
   const handleSaveSettings = () => {
@@ -429,71 +416,21 @@ export default function GalleryDetail() {
           {/* Upload Tab */}
           <TabsContent value="upload" className="flex-1 p-4 sm:p-6 mt-0">
             <div className="max-w-[1400px] mx-auto space-y-6">
-              {/* Upload Zone */}
+              {/* Uppy Upload Dashboard - Chunked/Resumable Uploads */}
               <Card>
                 <CardHeader>
                   <CardTitle>Upload Images</CardTitle>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Drag & drop images or click to browse • Supports up to 100 files • Resumes if interrupted
+                  </p>
                 </CardHeader>
                 <CardContent>
-                  <div
-                    onDragOver={handleDragOver}
-                    onDragLeave={handleDragLeave}
-                    onDrop={handleDrop}
-                    className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
-                      isDragging 
-                        ? 'border-purple-500 bg-purple-50 dark:bg-purple-950/20' 
-                        : 'border-gray-300 dark:border-gray-700'
-                    }`}
-                    data-testid="upload-dropzone"
-                  >
-                    <Upload className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-                    <h3 className="text-lg font-semibold mb-2">Drop images here</h3>
-                    <p className="text-sm text-muted-foreground mb-4">
-                      or click to browse your files
-                    </p>
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      multiple
-                      accept="image/*"
-                      onChange={(e) => handleFileSelect(e.target.files)}
-                      className="hidden"
-                      data-testid="input-file-upload"
-                    />
-                    <Button 
-                      onClick={() => fileInputRef.current?.click()}
-                      data-testid="button-browse-files"
-                    >
-                      Browse Files
-                    </Button>
-                  </div>
-
-                  {/* Upload Progress */}
-                  {uploadQueue.length > 0 && (
-                    <div className="mt-6 space-y-3">
-                      <h4 className="font-semibold">Uploading {uploadQueue.length} files</h4>
-                      {uploadQueue.map((item, index) => (
-                        <div key={index} className="space-y-2">
-                          <div className="flex items-center justify-between text-sm">
-                            <span className="truncate flex-1">{item.file.name}</span>
-                            <span className="text-muted-foreground ml-2">
-                              {item.status === 'complete' ? 'Complete' : 
-                               item.status === 'error' ? 'Failed' : 
-                               `${item.progress}%`}
-                            </span>
-                          </div>
-                          <Progress 
-                            value={item.progress} 
-                            className={item.status === 'error' ? 'bg-red-200' : ''}
-                            data-testid={`upload-progress-${index}`}
-                          />
-                          {item.error && (
-                            <p className="text-sm text-red-600">{item.error}</p>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                  {/* Uppy Dashboard mounts here */}
+                  <div 
+                    ref={uppyDashboardRef} 
+                    data-testid="uppy-dashboard"
+                    className="rounded-lg overflow-hidden"
+                  />
                 </CardContent>
               </Card>
 
