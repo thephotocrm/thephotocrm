@@ -3571,14 +3571,24 @@ export class DatabaseStorage implements IStorage {
   async getGalleriesByPhotographer(photographerId: string): Promise<Gallery[]> {
     return await db.select()
       .from(galleries)
-      .where(eq(galleries.photographerId, photographerId))
+      .where(
+        and(
+          eq(galleries.photographerId, photographerId),
+          isNull(galleries.deletedAt) // Filter out soft-deleted galleries
+        )
+      )
       .orderBy(desc(galleries.createdAt));
   }
 
   async getGalleriesByProject(projectId: string): Promise<Gallery[]> {
     return await db.select()
       .from(galleries)
-      .where(eq(galleries.projectId, projectId))
+      .where(
+        and(
+          eq(galleries.projectId, projectId),
+          isNull(galleries.deletedAt) // Filter out soft-deleted galleries
+        )
+      )
       .orderBy(desc(galleries.createdAt));
   }
 
@@ -3591,7 +3601,12 @@ export class DatabaseStorage implements IStorage {
 
     const images = await db.select()
       .from(galleryImages)
-      .where(eq(galleryImages.galleryId, id))
+      .where(
+        and(
+          eq(galleryImages.galleryId, id),
+          isNull(galleryImages.deletedAt) // Filter out soft-deleted images
+        )
+      )
       .orderBy(asc(galleryImages.sortIndex));
 
     return { ...gallery, images };
@@ -3624,7 +3639,8 @@ export class DatabaseStorage implements IStorage {
         and(
           eq(galleries.photographerId, photographerId),
           eq(galleries.isPublic, true),
-          isNotNull(galleries.sharedAt) // Gallery must have been shared
+          isNotNull(galleries.sharedAt), // Gallery must have been shared
+          isNull(galleries.deletedAt) // Filter out soft-deleted galleries
         )
       )
       .orderBy(desc(galleries.sharedAt));
@@ -3648,6 +3664,102 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteGallery(id: string): Promise<void> {
+    const deletedAt = new Date();
+    
+    // Soft delete: mark gallery as deleted
+    await db.update(galleries)
+      .set({ deletedAt })
+      .where(eq(galleries.id, id));
+    
+    // Cascade: soft-delete all gallery images (only non-deleted ones)
+    const images = await db.select()
+      .from(galleryImages)
+      .where(
+        and(
+          eq(galleryImages.galleryId, id),
+          isNull(galleryImages.deletedAt) // Only delete non-deleted images
+        )
+      );
+    
+    if (images.length > 0) {
+      const imageIds = images.map(img => img.id);
+      await db.update(galleryImages)
+        .set({ deletedAt })
+        .where(inArray(galleryImages.id, imageIds)); // Only update fetched image IDs
+      
+      // Decrement storage bytes for all images
+      const totalBytes = images.reduce((sum, img) => sum + (img.fileSize || 0), 0);
+      if (totalBytes > 0 && images[0].photographerId) {
+        await db.execute(sql`
+          UPDATE photographers 
+          SET gallery_storage_bytes = (
+            GREATEST(CAST(gallery_storage_bytes AS BIGINT) - ${totalBytes}, 0)
+          )::TEXT
+          WHERE id = ${images[0].photographerId}
+        `);
+      }
+    }
+  }
+
+  async restoreGallery(id: string): Promise<void> {
+    // Get gallery to check its deletedAt timestamp
+    const [gallery] = await db.select()
+      .from(galleries)
+      .where(eq(galleries.id, id));
+    
+    if (!gallery || !gallery.deletedAt) return;
+    
+    // Restore gallery
+    await db.update(galleries)
+      .set({ deletedAt: null })
+      .where(eq(galleries.id, id));
+    
+    // Cascade: restore only images deleted at same time as gallery (prevents restoring individually-deleted images)
+    const images = await db.select()
+      .from(galleryImages)
+      .where(
+        and(
+          eq(galleryImages.galleryId, id),
+          eq(galleryImages.deletedAt, gallery.deletedAt) // Only images deleted with gallery
+        )
+      );
+    
+    if (images.length > 0) {
+      const imageIds = images.map(img => img.id);
+      await db.update(galleryImages)
+        .set({ deletedAt: null })
+        .where(inArray(galleryImages.id, imageIds));
+      
+      // Increment storage bytes for images that were deleted with gallery
+      const totalBytes = images.reduce((sum, img) => sum + (img.fileSize || 0), 0);
+      if (totalBytes > 0 && images[0].photographerId) {
+        await db.execute(sql`
+          UPDATE photographers 
+          SET gallery_storage_bytes = (
+            CAST(gallery_storage_bytes AS BIGINT) + ${totalBytes}
+          )::TEXT
+          WHERE id = ${images[0].photographerId}
+        `);
+      }
+    }
+  }
+
+  async getDeletedGalleries(photographerId: string): Promise<Gallery[]> {
+    // Get soft-deleted galleries for trash view
+    const results = await db.select()
+      .from(galleries)
+      .where(
+        and(
+          eq(galleries.photographerId, photographerId),
+          isNotNull(galleries.deletedAt)
+        )
+      )
+      .orderBy(desc(galleries.deletedAt));
+    return results;
+  }
+
+  async permanentlyDeleteGallery(id: string): Promise<void> {
+    // Hard delete for cleanup after 30 days
     await db.delete(galleries)
       .where(eq(galleries.id, id));
   }
@@ -3662,7 +3774,12 @@ export class DatabaseStorage implements IStorage {
   async getGalleryImages(galleryId: string, contactId?: string): Promise<GalleryImageWithFavorites[]> {
     const images = await db.select()
       .from(galleryImages)
-      .where(eq(galleryImages.galleryId, galleryId))
+      .where(
+        and(
+          eq(galleryImages.galleryId, galleryId),
+          isNull(galleryImages.deletedAt) // Filter out soft-deleted images
+        )
+      )
       .orderBy(asc(galleryImages.sortIndex));
 
     if (!contactId) {
@@ -3729,7 +3846,9 @@ export class DatabaseStorage implements IStorage {
   async deleteGalleryImage(id: string): Promise<void> {
     const image = await this.getGalleryImage(id);
     if (image) {
-      await db.delete(galleryImages)
+      // Soft delete: mark as deleted instead of removing
+      await db.update(galleryImages)
+        .set({ deletedAt: new Date() })
         .where(eq(galleryImages.id, id));
 
       // Decrement gallery image count
@@ -3748,6 +3867,52 @@ export class DatabaseStorage implements IStorage {
         `);
       }
     }
+  }
+
+  async restoreGalleryImage(id: string): Promise<void> {
+    const image = await this.getGalleryImage(id);
+    if (image && image.deletedAt) {
+      // Restore soft-deleted image
+      await db.update(galleryImages)
+        .set({ deletedAt: null })
+        .where(eq(galleryImages.id, id));
+
+      // Increment gallery image count
+      await db.update(galleries)
+        .set({ imageCount: sql`${galleries.imageCount} + 1` })
+        .where(eq(galleries.id, image.galleryId));
+
+      // Track storage usage: increment photographer's storage bytes back
+      if (image.fileSize && image.photographerId) {
+        await db.execute(sql`
+          UPDATE photographers 
+          SET gallery_storage_bytes = (
+            CAST(gallery_storage_bytes AS BIGINT) + ${image.fileSize}
+          )::TEXT
+          WHERE id = ${image.photographerId}
+        `);
+      }
+    }
+  }
+
+  async getDeletedGalleryImages(galleryId: string): Promise<GalleryImage[]> {
+    // Get soft-deleted images for trash view
+    const images = await db.select()
+      .from(galleryImages)
+      .where(
+        and(
+          eq(galleryImages.galleryId, galleryId),
+          isNotNull(galleryImages.deletedAt)
+        )
+      )
+      .orderBy(desc(galleryImages.deletedAt));
+    return images;
+  }
+
+  async permanentlyDeleteGalleryImage(id: string): Promise<void> {
+    // Hard delete for cleanup after 30 days (no storage tracking needed - already decremented)
+    await db.delete(galleryImages)
+      .where(eq(galleryImages.id, id));
   }
 
   async reorderGalleryImages(imageOrders: { id: string, sortIndex: number }[]): Promise<void> {

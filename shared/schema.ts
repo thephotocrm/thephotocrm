@@ -1964,12 +1964,14 @@ export const galleries = pgTable("galleries", {
   viewCount: integer("view_count").default(0),
   sharedAt: timestamp("shared_at"), // When marked as SHARED and sent to client
   createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow()
+  updatedAt: timestamp("updated_at").defaultNow(),
+  deletedAt: timestamp("deleted_at") // Soft delete: null = active, timestamp = deleted (30-day recovery)
 }, (table) => ({
   projectIdIdx: index("galleries_project_id_idx").on(table.projectId),
   photographerIdIdx: index("galleries_photographer_id_idx").on(table.photographerId),
   statusIdx: index("galleries_status_idx").on(table.status),
-  isPublicIdx: index("galleries_is_public_idx").on(table.isPublic)
+  isPublicIdx: index("galleries_is_public_idx").on(table.isPublic),
+  deletedAtIdx: index("galleries_deleted_at_idx").on(table.deletedAt)
 }));
 
 // Gallery images (stored in Cloudinary)
@@ -2008,11 +2010,13 @@ export const galleryImages = pgTable("gallery_images", {
   minPrintSize: text("min_print_size"), // e.g., "8x10", "16x20" based on resolution
   // Timestamps
   uploadedAt: timestamp("uploaded_at").defaultNow(),
-  createdAt: timestamp("created_at").defaultNow()
+  createdAt: timestamp("created_at").defaultNow(),
+  deletedAt: timestamp("deleted_at") // Soft delete: null = active, timestamp = deleted (30-day recovery)
 }, (table) => ({
   galleryIdIdx: index("gallery_images_gallery_id_idx").on(table.galleryId),
   sortIndexIdx: index("gallery_images_sort_index_idx").on(table.sortIndex),
-  cloudinaryPublicIdIdx: index("gallery_images_cloudinary_public_id_idx").on(table.cloudinaryPublicId)
+  cloudinaryPublicIdIdx: index("gallery_images_cloudinary_public_id_idx").on(table.cloudinaryPublicId),
+  deletedAtIdx: index("gallery_images_deleted_at_idx").on(table.deletedAt)
 }));
 
 // Client favorites (heart/like system)
