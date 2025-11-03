@@ -3597,17 +3597,39 @@ export class DatabaseStorage implements IStorage {
     return { ...gallery, images };
   }
 
-  async getPublicGalleries(photographerId: string): Promise<Gallery[]> {
-    return await db.select()
+  async getPublicGalleries(photographerId: string): Promise<any[]> {
+    const results = await db
+      .select({
+        id: galleries.id,
+        title: galleries.title,
+        description: galleries.description,
+        status: galleries.status,
+        isPublic: galleries.isPublic,
+        publicToken: galleries.publicToken,
+        sharedAt: galleries.sharedAt,
+        createdAt: galleries.createdAt,
+        project: {
+          id: projects.id,
+          projectType: projects.projectType,
+          client: {
+            firstName: contacts.firstName,
+            lastName: contacts.lastName
+          }
+        }
+      })
       .from(galleries)
+      .leftJoin(projects, eq(galleries.projectId, projects.id))
+      .leftJoin(contacts, eq(projects.clientId, contacts.id))
       .where(
         and(
           eq(galleries.photographerId, photographerId),
           eq(galleries.isPublic, true),
-          eq(galleries.status, 'SHARED')
+          isNotNull(galleries.sharedAt) // Gallery must have been shared
         )
       )
       .orderBy(desc(galleries.sharedAt));
+    
+    return results;
   }
 
   async createGallery(gallery: InsertGallery): Promise<Gallery> {

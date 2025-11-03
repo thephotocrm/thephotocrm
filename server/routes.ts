@@ -10840,30 +10840,26 @@ ${photographer.businessName}
         return res.status(404).json({ message: "Photographer not found" });
       }
 
-      // Get all projects with galleries that are marked as public (demo or real)
-      const projects = await storage.getProjectsByPhotographer(photographer.id);
-      
-      const publicGalleries = projects
-        .filter((project: any) => project.isPublicGallery)
-        .map((project: any) => ({
-          id: project.id,
-          title: project.title,
-          projectType: project.projectType,
-          galleryUrl: project.galleryUrl,
-          galleryId: project.galleryId,
-          galleryCreatedAt: project.galleryCreatedAt,
-          galleryReady: project.galleryReady,
-          client: project.client ? {
-            firstName: project.client.firstName,
-            lastName: project.client.lastName
-          } : null
-        }));
+      // Get native public galleries with their projects and contacts
+      const publicGalleries = await storage.getPublicGalleries(photographer.id);
 
       res.json({
         photographer: {
           businessName: photographer.businessName
         },
-        galleries: publicGalleries
+        galleries: publicGalleries.map(gallery => ({
+          id: gallery.id,
+          title: gallery.title,
+          projectType: gallery.project?.projectType || 'WEDDING',
+          galleryUrl: `/client/gallery/${gallery.publicToken}`,
+          galleryId: gallery.id,
+          galleryCreatedAt: gallery.createdAt,
+          galleryReady: !!gallery.sharedAt, // Gallery is ready if it has been shared
+          client: gallery.project?.client ? {
+            firstName: gallery.project.client.firstName,
+            lastName: gallery.project.client.lastName
+          } : null
+        }))
       });
     } catch (error) {
       console.error("Get public galleries error:", error);

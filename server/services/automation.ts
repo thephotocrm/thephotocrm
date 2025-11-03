@@ -2,8 +2,8 @@ import { storage } from '../storage';
 import { sendEmail, renderTemplate } from './email';
 import { sendSms, renderSmsTemplate } from './sms';
 import { db } from '../db';
-import { contacts, automations, automationSteps, stages, templates, emailLogs, smsLogs, automationExecutions, photographers, projectSmartFiles, smartFiles, smartFilePages, projects, bookings, projectQuestionnaires, dripCampaigns, dripCampaignEmails, dripCampaignSubscriptions, dripEmailDeliveries, automationBusinessTriggers } from '@shared/schema';
-import { eq, and, or, gte, lte, isNull } from 'drizzle-orm';
+import { contacts, automations, automationSteps, stages, templates, emailLogs, smsLogs, automationExecutions, photographers, projectSmartFiles, smartFiles, smartFilePages, projects, bookings, projectQuestionnaires, dripCampaigns, dripCampaignEmails, dripCampaignSubscriptions, dripEmailDeliveries, automationBusinessTriggers, galleries } from '@shared/schema';
+import { eq, and, or, gte, lte, isNull, isNotNull } from 'drizzle-orm';
 
 async function getParticipantEmailsForBCC(projectId: string): Promise<string[]> {
   try {
@@ -1171,6 +1171,8 @@ async function checkTriggerCondition(triggerType: string, project: any, photogra
       return await checkClientOnboarded(project);
     case 'APPOINTMENT_BOOKED':
       return await checkAppointmentBooked(project);
+    case 'GALLERY_SHARED':
+      return await checkGalleryShared(project.id);
     default:
       console.log(`Unknown trigger type: ${triggerType}`);
       return false;
@@ -1268,6 +1270,18 @@ async function checkAppointmentBooked(project: any): Promise<boolean> {
       eq(bookings.status, 'CONFIRMED')
     ));
   return confirmedBookings.length > 0;
+}
+
+async function checkGalleryShared(projectId: string): Promise<boolean> {
+  // Check if project has a gallery that has been shared (sharedAt is not null, status is either ACTIVE or SHARED)
+  const sharedGalleries = await db
+    .select()
+    .from(galleries)
+    .where(and(
+      eq(galleries.projectId, projectId),
+      isNotNull(galleries.sharedAt)
+    ));
+  return sharedGalleries.length > 0;
 }
 
 async function checkMinAmountConstraint(projectId: string, minAmountCents: number): Promise<boolean> {
