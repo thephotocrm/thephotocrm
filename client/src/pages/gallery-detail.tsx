@@ -77,6 +77,7 @@ export default function GalleryDetail() {
         fieldName: 'file',
         formData: true,
         limit: 3, // 3 parallel uploads
+        withCredentials: true, // Send cookies with requests
       })
       .on('file-added', (file) => {
         console.log('[Upload] File added:', file.name);
