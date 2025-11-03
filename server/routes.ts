@@ -206,6 +206,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Create gallery image record
       const galleryImage = await storage.createGalleryImage({
         galleryId,
+        photographerId,
         originalUrl: cloudinaryResult.secure_url,
         webUrl: cloudinaryResult.secure_url.replace("/upload/", "/upload/w_1920,q_auto,f_auto/"),
         thumbnailUrl: cloudinaryResult.secure_url.replace("/upload/", "/upload/w_400,h_400,c_fill,q_auto,f_auto/"),
