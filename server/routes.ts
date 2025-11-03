@@ -7,7 +7,7 @@ import Stripe from "stripe";
 import { eq, sql, inArray } from "drizzle-orm";
 import { storage } from "./storage";
 import { db } from "./db";
-import { authenticateToken, requirePhotographer, requireRole, requireAdmin, requireActiveSubscription } from "./middleware/auth";
+import { authenticateToken, requirePhotographer, requireRole, requireAdmin, requireActiveSubscription, requireGalleryPlan } from "./middleware/auth";
 import { hashPassword, authenticateUser, generateToken } from "./services/auth";
 import { sendEmail, fetchIncomingGmailMessage } from "./services/email";
 import { sendSms } from "./services/sms";
@@ -8850,7 +8850,7 @@ ${photographer.businessName}`
   });
 
   // POST /api/galleries - Create new gallery
-  app.post("/api/galleries", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
+  app.post("/api/galleries", authenticateToken, requirePhotographer, requireActiveSubscription, requireGalleryPlan, async (req, res) => {
     try {
       const photographerId = req.user!.photographerId!;
       
@@ -8871,7 +8871,7 @@ ${photographer.businessName}`
   });
 
   // PUT /api/galleries/:id - Update gallery settings
-  app.put("/api/galleries/:id", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
+  app.put("/api/galleries/:id", authenticateToken, requirePhotographer, requireActiveSubscription, requireGalleryPlan, async (req, res) => {
     try {
       const { id } = req.params;
       const photographerId = req.user!.photographerId!;
@@ -8895,7 +8895,7 @@ ${photographer.businessName}`
   });
 
   // DELETE /api/galleries/:id - Delete gallery
-  app.delete("/api/galleries/:id", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
+  app.delete("/api/galleries/:id", authenticateToken, requirePhotographer, requireActiveSubscription, requireGalleryPlan, async (req, res) => {
     try {
       const { id } = req.params;
       const photographerId = req.user!.photographerId!;
@@ -8949,7 +8949,7 @@ ${photographer.businessName}`
   // Image Upload & Management (Photographer)
 
   // POST /api/galleries/:id/images - Add image to gallery
-  app.post("/api/galleries/:id/images", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
+  app.post("/api/galleries/:id/images", authenticateToken, requirePhotographer, requireActiveSubscription, requireGalleryPlan, async (req, res) => {
     try {
       const { id } = req.params;
       const photographerId = req.user!.photographerId!;
@@ -8968,6 +8968,23 @@ ${photographer.businessName}`
         ...req.body,
         galleryId: id
       });
+
+      // Require fileSize for quota enforcement
+      if (!validatedData.fileSize || validatedData.fileSize <= 0) {
+        return res.status(400).json({ 
+          message: "File size is required for storage quota tracking"
+        });
+      }
+
+      // Check storage quota before uploading
+      const quotaCheck = await storage.checkStorageQuota(photographerId, validatedData.fileSize);
+      if (!quotaCheck.allowed) {
+        return res.status(402).json({ 
+          message: "Storage quota exceeded", 
+          reason: quotaCheck.reason,
+          upgradeRequired: true
+        });
+      }
 
       const image = await storage.createGalleryImage(validatedData);
       res.status(201).json(image);
@@ -9218,6 +9235,31 @@ ${photographer.businessName}`
     } catch (error) {
       console.error('Failed to fetch download:', error);
       res.status(500).json({ message: "Failed to fetch download status" });
+    }
+  });
+
+  // === GALLERY PLANS & STORAGE ROUTES ===
+
+  // GET /api/gallery-plans - Get available gallery subscription plans
+  app.get("/api/gallery-plans", authenticateToken, async (req, res) => {
+    try {
+      const plans = await storage.getGalleryPlans();
+      res.json(plans);
+    } catch (error) {
+      console.error('Failed to fetch gallery plans:', error);
+      res.status(500).json({ message: "Failed to fetch gallery plans" });
+    }
+  });
+
+  // GET /api/gallery-storage/usage - Get photographer's storage usage
+  app.get("/api/gallery-storage/usage", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      const photographerId = req.user!.photographerId!;
+      const usage = await storage.getPhotographerStorageUsage(photographerId);
+      res.json(usage);
+    } catch (error) {
+      console.error('Failed to fetch storage usage:', error);
+      res.status(500).json({ message: "Failed to fetch storage usage" });
     }
   });
 

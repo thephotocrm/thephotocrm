@@ -116,3 +116,44 @@ export async function requireActiveSubscription(req: Request, res: Response, nex
     return res.status(500).json({ message: 'Internal server error' });
   }
 }
+
+export async function requireGalleryPlan(req: Request, res: Response, next: NextFunction) {
+  if (!req.user) {
+    return res.status(401).json({ message: 'Authentication required' });
+  }
+
+  // Admins bypass gallery plan check
+  if (req.user.role === 'ADMIN' || req.user.originalRole === 'ADMIN') {
+    next();
+    return;
+  }
+
+  // Only photographers need gallery plans
+  if (req.user.role !== 'PHOTOGRAPHER' || !req.user.photographerId) {
+    next();
+    return;
+  }
+
+  try {
+    const { storage } = await import('../storage');
+    const photographer = await storage.getPhotographer(req.user.photographerId);
+
+    if (!photographer) {
+      return res.status(404).json({ message: 'Photographer not found' });
+    }
+
+    // Check if photographer has a gallery plan
+    if (!photographer.galleryPlanId) {
+      return res.status(402).json({ 
+        message: 'Gallery subscription required',
+        galleryPlanRequired: true,
+        upgradeRequired: true
+      });
+    }
+
+    next();
+  } catch (error) {
+    console.error('Gallery plan check error:', error);
+    return res.status(500).json({ message: 'Internal server error' });
+  }
+}
