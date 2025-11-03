@@ -24,7 +24,9 @@ import { insertUserSchema, insertPhotographerSchema, insertContactSchema, insert
          projectTypeEnum, createOnboardingLinkSchema, createPayoutSchema, insertDailyAvailabilityTemplateSchema,
          insertDailyAvailabilityBreakSchema, insertDailyAvailabilityOverrideSchema,
          insertDripCampaignSchema, insertDripCampaignEmailSchema, insertDripCampaignSubscriptionSchema, insertProjectParticipantSchema,
-         insertSmartFileSchema, insertSmartFilePageSchema, users } from "@shared/schema";
+         insertSmartFileSchema, insertSmartFilePageSchema, 
+         insertGallerySchema, insertGalleryImageSchema, insertGalleryFavoriteSchema, insertGalleryDownloadSchema,
+         users } from "@shared/schema";
 import { z } from "zod";
 import { startCronJobs } from "./jobs/cron";
 import { processAutomations } from "./services/automation";
@@ -8777,6 +8779,386 @@ ${photographer.businessName}`
     } catch (error) {
       console.error('Gallery visibility toggle error:', error);
       res.status(500).json({ message: "Failed to update gallery visibility" });
+    }
+  });
+
+  // === NATIVE GALLERY SYSTEM ROUTES ===
+
+  // Gallery Management (Photographer)
+
+  // GET /api/galleries - List all galleries for photographer
+  app.get("/api/galleries", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
+    try {
+      const photographerId = req.user!.photographerId!;
+      const galleries = await storage.getGalleriesByPhotographer(photographerId);
+      res.json(galleries);
+    } catch (error) {
+      console.error('Failed to fetch galleries:', error);
+      res.status(500).json({ message: "Failed to fetch galleries" });
+    }
+  });
+
+  // GET /api/galleries/:id - Get single gallery with images
+  app.get("/api/galleries/:id", authenticateToken, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const gallery = await storage.getGallery(id);
+
+      if (!gallery) {
+        return res.status(404).json({ message: "Gallery not found" });
+      }
+
+      // Verify ownership for photographers
+      if (req.user!.role === 'PHOTOGRAPHER' && gallery.photographerId !== req.user!.photographerId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      res.json(gallery);
+    } catch (error) {
+      console.error('Failed to fetch gallery:', error);
+      res.status(500).json({ message: "Failed to fetch gallery" });
+    }
+  });
+
+  // POST /api/galleries - Create new gallery
+  app.post("/api/galleries", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
+    try {
+      const photographerId = req.user!.photographerId!;
+      
+      const validatedData = insertGallerySchema.parse({
+        ...req.body,
+        photographerId
+      });
+
+      const gallery = await storage.createGallery(validatedData);
+      res.status(201).json(gallery);
+    } catch (error: any) {
+      console.error('Failed to create gallery:', error);
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ message: "Invalid gallery data", details: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create gallery" });
+    }
+  });
+
+  // PUT /api/galleries/:id - Update gallery settings
+  app.put("/api/galleries/:id", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const photographerId = req.user!.photographerId!;
+
+      const gallery = await storage.getGallery(id);
+      
+      if (!gallery) {
+        return res.status(404).json({ message: "Gallery not found" });
+      }
+
+      if (gallery.photographerId !== photographerId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const updated = await storage.updateGallery(id, req.body);
+      res.json(updated);
+    } catch (error) {
+      console.error('Failed to update gallery:', error);
+      res.status(500).json({ message: "Failed to update gallery" });
+    }
+  });
+
+  // DELETE /api/galleries/:id - Delete gallery
+  app.delete("/api/galleries/:id", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const photographerId = req.user!.photographerId!;
+
+      const gallery = await storage.getGallery(id);
+      
+      if (!gallery) {
+        return res.status(404).json({ message: "Gallery not found" });
+      }
+
+      if (gallery.photographerId !== photographerId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      await storage.deleteGallery(id);
+      res.json({ message: "Gallery deleted successfully" });
+    } catch (error) {
+      console.error('Failed to delete gallery:', error);
+      res.status(500).json({ message: "Failed to delete gallery" });
+    }
+  });
+
+  // PATCH /api/galleries/:id/share - Mark gallery as SHARED
+  app.patch("/api/galleries/:id/share", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const photographerId = req.user!.photographerId!;
+
+      const gallery = await storage.getGallery(id);
+      
+      if (!gallery) {
+        return res.status(404).json({ message: "Gallery not found" });
+      }
+
+      if (gallery.photographerId !== photographerId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const updated = await storage.updateGallery(id, {
+        status: 'SHARED',
+        sharedAt: new Date()
+      });
+
+      res.json(updated);
+    } catch (error) {
+      console.error('Failed to share gallery:', error);
+      res.status(500).json({ message: "Failed to share gallery" });
+    }
+  });
+
+  // Image Upload & Management (Photographer)
+
+  // POST /api/galleries/:id/images - Add image to gallery
+  app.post("/api/galleries/:id/images", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const photographerId = req.user!.photographerId!;
+
+      const gallery = await storage.getGallery(id);
+      
+      if (!gallery) {
+        return res.status(404).json({ message: "Gallery not found" });
+      }
+
+      if (gallery.photographerId !== photographerId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const validatedData = insertGalleryImageSchema.parse({
+        ...req.body,
+        galleryId: id
+      });
+
+      const image = await storage.createGalleryImage(validatedData);
+      res.status(201).json(image);
+    } catch (error: any) {
+      console.error('Failed to add image:', error);
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ message: "Invalid image data", details: error.errors });
+      }
+      res.status(500).json({ message: "Failed to add image" });
+    }
+  });
+
+  // PUT /api/galleries/:id/images/:imageId - Update image
+  app.put("/api/galleries/:id/images/:imageId", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
+    try {
+      const { id, imageId } = req.params;
+      const photographerId = req.user!.photographerId!;
+
+      const gallery = await storage.getGallery(id);
+      
+      if (!gallery) {
+        return res.status(404).json({ message: "Gallery not found" });
+      }
+
+      if (gallery.photographerId !== photographerId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const updated = await storage.updateGalleryImage(imageId, req.body);
+      res.json(updated);
+    } catch (error) {
+      console.error('Failed to update image:', error);
+      res.status(500).json({ message: "Failed to update image" });
+    }
+  });
+
+  // DELETE /api/galleries/:id/images/:imageId - Delete image
+  app.delete("/api/galleries/:id/images/:imageId", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
+    try {
+      const { id, imageId } = req.params;
+      const photographerId = req.user!.photographerId!;
+
+      const gallery = await storage.getGallery(id);
+      
+      if (!gallery) {
+        return res.status(404).json({ message: "Gallery not found" });
+      }
+
+      if (gallery.photographerId !== photographerId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      await storage.deleteGalleryImage(imageId);
+      res.json({ message: "Image deleted successfully" });
+    } catch (error) {
+      console.error('Failed to delete image:', error);
+      res.status(500).json({ message: "Failed to delete image" });
+    }
+  });
+
+  // POST /api/galleries/:id/images/reorder - Bulk reorder images
+  app.post("/api/galleries/:id/images/reorder", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const photographerId = req.user!.photographerId!;
+      const { images } = req.body; // Array of {id, sortIndex}
+
+      const gallery = await storage.getGallery(id);
+      
+      if (!gallery) {
+        return res.status(404).json({ message: "Gallery not found" });
+      }
+
+      if (gallery.photographerId !== photographerId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      if (!Array.isArray(images)) {
+        return res.status(400).json({ message: "Images must be an array" });
+      }
+
+      await storage.reorderGalleryImages(images);
+      res.json({ message: "Images reordered successfully" });
+    } catch (error) {
+      console.error('Failed to reorder images:', error);
+      res.status(500).json({ message: "Failed to reorder images" });
+    }
+  });
+
+  // Client Gallery Viewing (CLIENT role)
+
+  // GET /api/galleries/:id/view - Get gallery for client viewing
+  app.get("/api/galleries/:id/view", authenticateToken, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const userId = req.user!.id;
+
+      const gallery = await storage.getGallery(id);
+      
+      if (!gallery) {
+        return res.status(404).json({ message: "Gallery not found" });
+      }
+
+      // Track view
+      await storage.trackGalleryView(id, userId);
+
+      // Get images with favorite status for this user
+      const images = await storage.getGalleryImages(id);
+      const favorites = await storage.getFavorites(id, userId);
+      const favoriteImageIds = new Set(favorites.map(f => f.imageId));
+
+      const imagesWithFavorites = images.map(image => ({
+        ...image,
+        isFavorited: favoriteImageIds.has(image.id)
+      }));
+
+      res.json({
+        ...gallery,
+        images: imagesWithFavorites
+      });
+    } catch (error) {
+      console.error('Failed to view gallery:', error);
+      res.status(500).json({ message: "Failed to view gallery" });
+    }
+  });
+
+  // POST /api/galleries/:id/favorites/:imageId - Toggle favorite on image
+  app.post("/api/galleries/:id/favorites/:imageId", authenticateToken, async (req, res) => {
+    try {
+      const { id, imageId } = req.params;
+      const userId = req.user!.id;
+
+      const gallery = await storage.getGallery(id);
+      
+      if (!gallery) {
+        return res.status(404).json({ message: "Gallery not found" });
+      }
+
+      const result = await storage.toggleFavorite(id, imageId, userId);
+      res.json(result);
+    } catch (error) {
+      console.error('Failed to toggle favorite:', error);
+      res.status(500).json({ message: "Failed to toggle favorite" });
+    }
+  });
+
+  // GET /api/galleries/:id/favorites - Get list of favorited image IDs
+  app.get("/api/galleries/:id/favorites", authenticateToken, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const userId = req.user!.id;
+
+      const favorites = await storage.getFavorites(id, userId);
+      const imageIds = favorites.map(f => f.imageId);
+      
+      res.json(imageIds);
+    } catch (error) {
+      console.error('Failed to fetch favorites:', error);
+      res.status(500).json({ message: "Failed to fetch favorites" });
+    }
+  });
+
+  // Download Management
+
+  // POST /api/galleries/:id/downloads - Request ZIP download
+  app.post("/api/galleries/:id/downloads", authenticateToken, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { scope } = req.body; // 'ALL' or 'FAVORITES'
+      const userId = req.user!.id;
+
+      const gallery = await storage.getGallery(id);
+      
+      if (!gallery) {
+        return res.status(404).json({ message: "Gallery not found" });
+      }
+
+      if (!['ALL', 'FAVORITES'].includes(scope)) {
+        return res.status(400).json({ message: "Scope must be 'ALL' or 'FAVORITES'" });
+      }
+
+      const validatedData = insertGalleryDownloadSchema.parse({
+        galleryId: id,
+        userId,
+        scope,
+        status: 'PENDING'
+      });
+
+      const download = await storage.createGalleryDownload(validatedData);
+      res.status(201).json(download);
+    } catch (error: any) {
+      console.error('Failed to request download:', error);
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ message: "Invalid download request", details: error.errors });
+      }
+      res.status(500).json({ message: "Failed to request download" });
+    }
+  });
+
+  // GET /api/galleries/downloads/:downloadId - Get download status/URL
+  app.get("/api/galleries/downloads/:downloadId", authenticateToken, async (req, res) => {
+    try {
+      const { downloadId } = req.params;
+      const userId = req.user!.id;
+
+      const download = await storage.getGalleryDownload(downloadId);
+      
+      if (!download) {
+        return res.status(404).json({ message: "Download not found" });
+      }
+
+      // Verify the download belongs to the user
+      if (download.userId !== userId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      res.json(download);
+    } catch (error) {
+      console.error('Failed to fetch download:', error);
+      res.status(500).json({ message: "Failed to fetch download status" });
     }
   });
 

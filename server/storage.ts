@@ -11,6 +11,7 @@ import {
   leadForms,
   smartFiles, smartFilePages, projectSmartFiles,
   adCampaigns, adPaymentMethods, adPerformance, adBillingTransactions,
+  galleries, galleryImages, galleryFavorites, galleryDownloads, galleryViews,
   type User, type InsertUser, type Photographer, type InsertPhotographer,
   type LinkingRequest, type InsertLinkingRequest,
   type AdminActivityLog, type InsertAdminActivityLog,
@@ -41,7 +42,11 @@ import {
   type ProjectSmartFile, type InsertProjectSmartFile,
   type SmartFileWithPages,
   type AdCampaign, type InsertAdCampaign,
-  type AdPaymentMethod, type InsertAdPaymentMethod
+  type AdPaymentMethod, type InsertAdPaymentMethod,
+  type Gallery, type InsertGallery, type GalleryWithImages,
+  type GalleryImage, type InsertGalleryImage, type GalleryImageWithFavorites,
+  type GalleryFavorite, type InsertGalleryFavorite,
+  type GalleryDownload, type InsertGalleryDownload
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, inArray, gte, lte, gt, sql, isNotNull } from "drizzle-orm";
@@ -390,6 +395,36 @@ export interface IStorage {
   getAdPaymentMethods(photographerId: string): Promise<AdPaymentMethod[]>;
   createAdPaymentMethod(method: InsertAdPaymentMethod): Promise<AdPaymentMethod>;
   deleteAdPaymentMethod(id: string): Promise<void>;
+  
+  // Native Galleries
+  getGalleriesByPhotographer(photographerId: string): Promise<Gallery[]>;
+  getGalleriesByProject(projectId: string): Promise<Gallery[]>;
+  getGallery(id: string): Promise<GalleryWithImages | undefined>;
+  getPublicGalleries(photographerId: string): Promise<Gallery[]>;
+  createGallery(gallery: InsertGallery): Promise<Gallery>;
+  updateGallery(id: string, gallery: Partial<Gallery>): Promise<Gallery>;
+  deleteGallery(id: string): Promise<void>;
+  incrementGalleryViewCount(id: string): Promise<void>;
+  
+  // Gallery Images
+  getGalleryImages(galleryId: string, contactId?: string): Promise<GalleryImageWithFavorites[]>;
+  getGalleryImage(id: string): Promise<GalleryImage | undefined>;
+  createGalleryImage(image: InsertGalleryImage): Promise<GalleryImage>;
+  updateGalleryImage(id: string, image: Partial<GalleryImage>): Promise<GalleryImage>;
+  deleteGalleryImage(id: string): Promise<void>;
+  reorderGalleryImages(imageOrders: { id: string, sortIndex: number }[]): Promise<void>;
+  
+  // Gallery Favorites
+  getFavorites(galleryId: string, contactId: string): Promise<string[]>; // Returns array of image IDs
+  toggleFavorite(favorite: InsertGalleryFavorite): Promise<{ action: 'added' | 'removed' }>;
+  
+  // Gallery Downloads
+  createGalleryDownload(download: InsertGalleryDownload): Promise<GalleryDownload>;
+  updateGalleryDownload(id: string, download: Partial<GalleryDownload>): Promise<GalleryDownload>;
+  getGalleryDownload(id: string): Promise<GalleryDownload | undefined>;
+  
+  // Gallery Views (analytics)
+  trackGalleryView(galleryId: string, contactId: string | null, ipAddress?: string, userAgent?: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -3530,6 +3565,230 @@ export class DatabaseStorage implements IStorage {
   async deleteAdPaymentMethod(id: string): Promise<void> {
     await db.delete(adPaymentMethods)
       .where(eq(adPaymentMethods.id, id));
+  }
+
+  // Native Galleries
+  async getGalleriesByPhotographer(photographerId: string): Promise<Gallery[]> {
+    return await db.select()
+      .from(galleries)
+      .where(eq(galleries.photographerId, photographerId))
+      .orderBy(desc(galleries.createdAt));
+  }
+
+  async getGalleriesByProject(projectId: string): Promise<Gallery[]> {
+    return await db.select()
+      .from(galleries)
+      .where(eq(galleries.projectId, projectId))
+      .orderBy(desc(galleries.createdAt));
+  }
+
+  async getGallery(id: string): Promise<GalleryWithImages | undefined> {
+    const [gallery] = await db.select()
+      .from(galleries)
+      .where(eq(galleries.id, id));
+    
+    if (!gallery) return undefined;
+
+    const images = await db.select()
+      .from(galleryImages)
+      .where(eq(galleryImages.galleryId, id))
+      .orderBy(asc(galleryImages.sortIndex));
+
+    return { ...gallery, images };
+  }
+
+  async getPublicGalleries(photographerId: string): Promise<Gallery[]> {
+    return await db.select()
+      .from(galleries)
+      .where(
+        and(
+          eq(galleries.photographerId, photographerId),
+          eq(galleries.isPublic, true),
+          eq(galleries.status, 'SHARED')
+        )
+      )
+      .orderBy(desc(galleries.sharedAt));
+  }
+
+  async createGallery(gallery: InsertGallery): Promise<Gallery> {
+    const [created] = await db.insert(galleries)
+      .values(gallery)
+      .returning();
+    return created;
+  }
+
+  async updateGallery(id: string, gallery: Partial<Gallery>): Promise<Gallery> {
+    const [updated] = await db.update(galleries)
+      .set({ ...gallery, updatedAt: new Date() })
+      .where(eq(galleries.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteGallery(id: string): Promise<void> {
+    await db.delete(galleries)
+      .where(eq(galleries.id, id));
+  }
+
+  async incrementGalleryViewCount(id: string): Promise<void> {
+    await db.update(galleries)
+      .set({ viewCount: sql`${galleries.viewCount} + 1` })
+      .where(eq(galleries.id, id));
+  }
+
+  // Gallery Images
+  async getGalleryImages(galleryId: string, contactId?: string): Promise<GalleryImageWithFavorites[]> {
+    const images = await db.select()
+      .from(galleryImages)
+      .where(eq(galleryImages.galleryId, galleryId))
+      .orderBy(asc(galleryImages.sortIndex));
+
+    if (!contactId) {
+      return images.map(img => ({ ...img, isFavorited: false }));
+    }
+
+    // Get favorites for this contact
+    const favorites = await db.select()
+      .from(galleryFavorites)
+      .where(
+        and(
+          eq(galleryFavorites.galleryId, galleryId),
+          eq(galleryFavorites.contactId, contactId)
+        )
+      );
+
+    const favoritedImageIds = new Set(favorites.map(f => f.imageId));
+
+    return images.map(img => ({
+      ...img,
+      isFavorited: favoritedImageIds.has(img.id)
+    }));
+  }
+
+  async getGalleryImage(id: string): Promise<GalleryImage | undefined> {
+    const [image] = await db.select()
+      .from(galleryImages)
+      .where(eq(galleryImages.id, id));
+    return image || undefined;
+  }
+
+  async createGalleryImage(image: InsertGalleryImage): Promise<GalleryImage> {
+    const [created] = await db.insert(galleryImages)
+      .values(image)
+      .returning();
+
+    // Increment gallery image count
+    await db.update(galleries)
+      .set({ imageCount: sql`${galleries.imageCount} + 1` })
+      .where(eq(galleries.id, image.galleryId));
+
+    return created;
+  }
+
+  async updateGalleryImage(id: string, image: Partial<GalleryImage>): Promise<GalleryImage> {
+    const [updated] = await db.update(galleryImages)
+      .set(image)
+      .where(eq(galleryImages.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteGalleryImage(id: string): Promise<void> {
+    const image = await this.getGalleryImage(id);
+    if (image) {
+      await db.delete(galleryImages)
+        .where(eq(galleryImages.id, id));
+
+      // Decrement gallery image count
+      await db.update(galleries)
+        .set({ imageCount: sql`${galleries.imageCount} - 1` })
+        .where(eq(galleries.id, image.galleryId));
+    }
+  }
+
+  async reorderGalleryImages(imageOrders: { id: string, sortIndex: number }[]): Promise<void> {
+    await Promise.all(
+      imageOrders.map(({ id, sortIndex }) =>
+        db.update(galleryImages)
+          .set({ sortIndex })
+          .where(eq(galleryImages.id, id))
+      )
+    );
+  }
+
+  // Gallery Favorites
+  async getFavorites(galleryId: string, contactId: string): Promise<string[]> {
+    const favorites = await db.select()
+      .from(galleryFavorites)
+      .where(
+        and(
+          eq(galleryFavorites.galleryId, galleryId),
+          eq(galleryFavorites.contactId, contactId)
+        )
+      );
+    return favorites.map(f => f.imageId);
+  }
+
+  async toggleFavorite(favorite: InsertGalleryFavorite): Promise<{ action: 'added' | 'removed' }> {
+    // Check if favorite already exists
+    const [existing] = await db.select()
+      .from(galleryFavorites)
+      .where(
+        and(
+          eq(galleryFavorites.galleryId, favorite.galleryId),
+          eq(galleryFavorites.imageId, favorite.imageId),
+          eq(galleryFavorites.contactId, favorite.contactId)
+        )
+      );
+
+    if (existing) {
+      // Remove favorite
+      await db.delete(galleryFavorites)
+        .where(eq(galleryFavorites.id, existing.id));
+      return { action: 'removed' };
+    } else {
+      // Add favorite
+      await db.insert(galleryFavorites)
+        .values(favorite);
+      return { action: 'added' };
+    }
+  }
+
+  // Gallery Downloads
+  async createGalleryDownload(download: InsertGalleryDownload): Promise<GalleryDownload> {
+    const [created] = await db.insert(galleryDownloads)
+      .values(download)
+      .returning();
+    return created;
+  }
+
+  async updateGalleryDownload(id: string, download: Partial<GalleryDownload>): Promise<GalleryDownload> {
+    const [updated] = await db.update(galleryDownloads)
+      .set(download)
+      .where(eq(galleryDownloads.id, id))
+      .returning();
+    return updated;
+  }
+
+  async getGalleryDownload(id: string): Promise<GalleryDownload | undefined> {
+    const [download] = await db.select()
+      .from(galleryDownloads)
+      .where(eq(galleryDownloads.id, id));
+    return download || undefined;
+  }
+
+  // Gallery Views (analytics)
+  async trackGalleryView(galleryId: string, contactId: string | null, ipAddress?: string, userAgent?: string): Promise<void> {
+    await db.insert(galleryViews)
+      .values({
+        galleryId,
+        contactId,
+        ipAddress,
+        userAgent
+      });
+
+    // Increment view count
+    await this.incrementGalleryViewCount(galleryId);
   }
 }
 
