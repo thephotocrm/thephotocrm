@@ -14,8 +14,20 @@ export function authenticateToken(req: Request, res: Response, next: NextFunctio
   console.log('Request URL:', req.url);
   console.log('Request method:', req.method);
   console.log('Has cookies:', !!req.cookies);
+  console.log('Has Authorization header:', !!req.headers.authorization);
   
-  const token = req.cookies?.token;
+  // Try to get token from cookie first
+  let token = req.cookies?.token;
+  
+  // If no cookie, try Authorization header
+  if (!token && req.headers.authorization) {
+    const authHeader = req.headers.authorization;
+    if (authHeader.startsWith('Bearer ')) {
+      token = authHeader.substring(7);
+      console.log('Token from Authorization header');
+    }
+  }
+  
   console.log('Token exists:', !!token);
 
   if (!token) {
