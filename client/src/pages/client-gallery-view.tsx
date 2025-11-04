@@ -202,10 +202,10 @@ export default function ClientGalleryView() {
                   </p>
                 </div>
 
-                {/* Cover Image with Gallery Info to the Right */}
-                <div className="flex flex-col md:flex-row gap-8 items-center justify-center">
+                {/* Cover Image - Centered, with Gallery Info positioned to the right */}
+                <div className="relative">
                   {/* Cover Image - Centered */}
-                  <div className="flex-shrink-0 max-h-[600px] overflow-hidden">
+                  <div className="max-w-[800px] mx-auto max-h-[600px] overflow-hidden">
                     <img
                       src={coverImage.webUrl}
                       alt={gallery.title}
@@ -214,12 +214,23 @@ export default function ClientGalleryView() {
                     />
                   </div>
                   
-                  {/* Gallery Info - Right Side (outside the image) */}
-                  <div className="flex-shrink-0 text-right md:ml-8">
-                    <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-wider">
+                  {/* Gallery Info - Positioned to the right of centered image */}
+                  <div className="hidden lg:block absolute right-0 top-1/2 -translate-y-1/2 text-right pr-4">
+                    <h2 className="text-5xl font-bold tracking-wider mb-4">
                       {gallery.title}
                     </h2>
-                    <div className="w-12 h-0.5 bg-foreground ml-auto mt-4 mb-4"></div>
+                    <div className="w-12 h-0.5 bg-foreground ml-auto mb-4"></div>
+                    <p className="text-lg text-muted-foreground">
+                      {format(new Date(gallery.createdAt), 'MMMM d, yyyy')}
+                    </p>
+                  </div>
+
+                  {/* Gallery Info - Below image on mobile/tablet */}
+                  <div className="lg:hidden text-center mt-8">
+                    <h2 className="text-4xl font-bold tracking-wider mb-4">
+                      {gallery.title}
+                    </h2>
+                    <div className="w-12 h-0.5 bg-foreground mx-auto mb-4"></div>
                     <p className="text-lg text-muted-foreground">
                       {format(new Date(gallery.createdAt), 'MMMM d, yyyy')}
                     </p>
