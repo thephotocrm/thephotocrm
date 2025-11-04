@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useParams } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
@@ -12,7 +12,6 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { format } from "date-fns";
-import Masonry from "react-masonry-css";
 
 export default function ClientGalleryView() {
   const { galleryId } = useParams();
@@ -182,6 +181,28 @@ export default function ClientGalleryView() {
     ? allImages.filter((img: any) => favoriteIds.includes(img.id))
     : allImages;
 
+  // Assign random sizes to images for Pinterest-style grid
+  const imagesWithSizes = useMemo(() => {
+    return displayedImages.map((img: any, index: number) => {
+      // Create a pattern where every 7th image is featured (2x2),
+      // every 5th is wide (2x1), every 9th is tall (1x2)
+      // Rest are regular (1x1)
+      let size: 'regular' | 'wide' | 'tall' | 'featured';
+      
+      if (index % 13 === 0) {
+        size = 'featured'; // 2x2
+      } else if (index % 7 === 0) {
+        size = 'wide'; // 2x1
+      } else if (index % 11 === 0) {
+        size = 'tall'; // 1x2
+      } else {
+        size = 'regular'; // 1x1
+      }
+      
+      return { ...img, size };
+    });
+  }, [displayedImages]);
+
   const currentImage = displayedImages[currentImageIndex];
 
   return (
@@ -334,33 +355,38 @@ export default function ClientGalleryView() {
             </p>
           </Card>
         ) : (
-          <Masonry
-            breakpointCols={{
-              default: 4,
-              1280: 3,
-              1024: 2,
-              640: 1
-            }}
-            className="flex -ml-4 w-auto"
-            columnClassName="pl-4 bg-clip-padding"
-          >
-            {displayedImages.map((image: any, index: number) => {
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 auto-rows-[200px] gap-4">
+            {imagesWithSizes.map((image: any, index: number) => {
               const isFavorited = favoriteIds.includes(image.id);
               // Use webUrl with Cloudinary transformation for performance while maintaining aspect ratio
               const displayUrl = image.webUrl?.replace('/upload/', '/upload/q_auto,f_auto,w_1200/') || image.thumbnailUrl;
               
+              // Determine grid span based on size
+              const getSpanClasses = () => {
+                switch (image.size) {
+                  case 'featured':
+                    return 'col-span-2 row-span-2'; // 2x2
+                  case 'wide':
+                    return 'col-span-2 row-span-1'; // 2x1
+                  case 'tall':
+                    return 'col-span-1 row-span-2'; // 1x2
+                  default:
+                    return 'col-span-1 row-span-1'; // 1x1
+                }
+              };
+              
               return (
                 <Card 
                   key={image.id}
-                  className="overflow-hidden group cursor-pointer hover:shadow-xl transition-all duration-300 mb-4"
+                  className={`overflow-hidden group cursor-pointer hover:shadow-xl transition-all duration-300 ${getSpanClasses()}`}
                   onClick={() => openLightbox(index)}
                   data-testid={`image-card-${index}`}
                 >
-                  <div className="relative">
+                  <div className="relative w-full h-full">
                     <img
                       src={displayUrl}
                       alt={image.caption || `Image ${index + 1}`}
-                      className="w-full h-auto object-cover"
+                      className="w-full h-full object-cover"
                       loading="lazy"
                     />
                     
@@ -399,7 +425,7 @@ export default function ClientGalleryView() {
                 </Card>
               );
             })}
-          </Masonry>
+          </div>
         )}
       </div>
 
