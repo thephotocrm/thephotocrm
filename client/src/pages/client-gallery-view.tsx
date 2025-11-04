@@ -12,6 +12,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { format } from "date-fns";
+import Masonry from "react-masonry-css";
 
 export default function ClientGalleryView() {
   const { galleryId } = useParams();
@@ -333,20 +334,31 @@ export default function ClientGalleryView() {
             </p>
           </Card>
         ) : (
-          <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-4">
+          <Masonry
+            breakpointCols={{
+              default: 4,
+              1280: 3,
+              1024: 2,
+              640: 1
+            }}
+            className="flex -ml-4 w-auto"
+            columnClassName="pl-4 bg-clip-padding"
+          >
             {displayedImages.map((image: any, index: number) => {
               const isFavorited = favoriteIds.includes(image.id);
+              // Use webUrl with Cloudinary transformation for performance while maintaining aspect ratio
+              const displayUrl = image.webUrl?.replace('/upload/', '/upload/q_auto,f_auto,w_1200/') || image.thumbnailUrl;
               
               return (
                 <Card 
                   key={image.id}
-                  className="overflow-hidden group cursor-pointer hover:shadow-xl transition-all duration-300 mb-4 break-inside-avoid"
+                  className="overflow-hidden group cursor-pointer hover:shadow-xl transition-all duration-300 mb-4"
                   onClick={() => openLightbox(index)}
                   data-testid={`image-card-${index}`}
                 >
                   <div className="relative">
                     <img
-                      src={image.thumbnailUrl}
+                      src={displayUrl}
                       alt={image.caption || `Image ${index + 1}`}
                       className="w-full h-auto object-cover"
                       loading="lazy"
@@ -387,7 +399,7 @@ export default function ClientGalleryView() {
                 </Card>
               );
             })}
-          </div>
+          </Masonry>
         )}
       </div>
 
