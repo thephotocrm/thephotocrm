@@ -202,16 +202,23 @@ export default function ClientGalleryView() {
                   </p>
                 </div>
 
-                {/* Cover Image - Centered, with Gallery Info positioned to the right */}
+                {/* Cover Image - Centered, with text on left and gallery info on right */}
                 <div className="relative">
                   {/* Cover Image - Centered */}
-                  <div className="max-w-[800px] mx-auto max-h-[600px] overflow-hidden">
+                  <div className="max-w-[700px] mx-auto max-h-[500px] overflow-hidden">
                     <img
                       src={coverImage.webUrl}
                       alt={gallery.title}
-                      className="w-full h-auto max-h-[600px] object-cover"
+                      className="w-full h-auto max-h-[500px] object-cover"
                       data-testid="cover-photo"
                     />
+                  </div>
+                  
+                  {/* "Photos by" - Vertical text on the left */}
+                  <div className="hidden lg:block absolute left-0 top-1/2 -translate-y-1/2 pl-4">
+                    <p className="text-sm tracking-widest uppercase" style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}>
+                      Photos by {gallery.photographer?.businessName || gallery.photographer?.photographerName || 'Photographer'}
+                    </p>
                   </div>
                   
                   {/* Gallery Info - Positioned to the right of centered image */}
