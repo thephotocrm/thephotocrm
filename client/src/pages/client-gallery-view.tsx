@@ -433,7 +433,7 @@ export default function ClientGalleryView() {
 
             {/* Main Image */}
             {currentImage && (
-              <div className="w-full h-full flex flex-col items-center justify-center p-12">
+              <div className="w-full h-full flex flex-col items-center justify-center px-12 pt-12 pb-32">
                 <img
                   src={currentImage.webUrl}
                   alt={currentImage.caption || 'Gallery image'}
@@ -453,7 +453,7 @@ export default function ClientGalleryView() {
                       </p>
                     </div>
 
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 pointer-events-auto">
                       <Button
                         variant="ghost"
                         size="icon"
