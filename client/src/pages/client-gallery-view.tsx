@@ -151,22 +151,22 @@ export default function ClientGalleryView() {
     ? allImages.filter((img: any) => favoriteIds.includes(img.id))
     : allImages;
 
-  // Assign random sizes to images for Pinterest-style grid
+  // Assign sizes to images for Pinterest-style grid (3 columns)
   const imagesWithSizes = useMemo(() => {
     return displayedImages.map((img: any, index: number) => {
-      // Create a pattern where every 7th image is featured (2x2),
-      // every 5th is wide (2x1), every 9th is tall (1x2)
-      // Rest are regular (1x1)
-      let size: 'regular' | 'wide' | 'tall' | 'featured';
+      // Pattern for 3-column grid:
+      // - Vertical: Always 1x2 (one column, two rows)
+      // - Horizontal varies: 1x1, 2x1, or 3x1 (spans across columns)
+      let size: 'regular' | 'wide' | 'extraWide' | 'tall';
       
-      if (index % 13 === 0) {
-        size = 'featured'; // 2x2
-      } else if (index % 7 === 0) {
-        size = 'wide'; // 2x1
+      if (index % 9 === 0) {
+        size = 'tall'; // 1x2 (vertical)
       } else if (index % 11 === 0) {
-        size = 'tall'; // 1x2
+        size = 'extraWide'; // 3x1 (full width)
+      } else if (index % 5 === 0) {
+        size = 'wide'; // 2x1 (double width)
       } else {
-        size = 'regular'; // 1x1
+        size = 'regular'; // 1x1 (standard)
       }
       
       return { ...img, size };
@@ -342,7 +342,7 @@ export default function ClientGalleryView() {
       )}
 
       {/* Image Grid */}
-      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 py-6">
+      <div className="max-w-[1400px] mx-auto px-8 sm:px-12 lg:px-16 py-6">
         {displayedImages.length === 0 ? (
           <Card className="p-12 text-center">
             <Heart className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
@@ -356,23 +356,23 @@ export default function ClientGalleryView() {
             </p>
           </Card>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 auto-rows-[200px] gap-4">
+          <div className="grid grid-cols-3 auto-rows-[250px] gap-4">
             {imagesWithSizes.map((image: any, index: number) => {
               const isFavorited = favoriteIds.includes(image.id);
               // Use webUrl with Cloudinary transformation for performance while maintaining aspect ratio
               const displayUrl = image.webUrl?.replace('/upload/', '/upload/q_auto,f_auto,w_1200/') || image.thumbnailUrl;
               
-              // Determine grid span based on size
+              // Determine grid span based on size (3-column grid)
               const getSpanClasses = () => {
                 switch (image.size) {
-                  case 'featured':
-                    return 'col-span-2 row-span-2'; // 2x2
+                  case 'extraWide':
+                    return 'col-span-3 row-span-1'; // 3x1 (full width)
                   case 'wide':
-                    return 'col-span-2 row-span-1'; // 2x1
+                    return 'col-span-2 row-span-1'; // 2x1 (double width)
                   case 'tall':
-                    return 'col-span-1 row-span-2'; // 1x2
+                    return 'col-span-1 row-span-2'; // 1x2 (vertical)
                   default:
-                    return 'col-span-1 row-span-1'; // 1x1
+                    return 'col-span-1 row-span-1'; // 1x1 (standard)
                 }
               };
               
