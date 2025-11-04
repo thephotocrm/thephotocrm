@@ -145,6 +145,36 @@ export default function ClientGalleryView() {
     setCurrentImageIndex((prev) => (prev === displayedImages.length - 1 ? 0 : prev + 1));
   };
 
+  // Prepare image data before early returns (hooks must be called unconditionally)
+  const allImages = gallery?.images || [];
+  const displayedImages = showFavoritesOnly 
+    ? allImages.filter((img: any) => favoriteIds.includes(img.id))
+    : allImages;
+
+  // Assign random sizes to images for Pinterest-style grid
+  const imagesWithSizes = useMemo(() => {
+    return displayedImages.map((img: any, index: number) => {
+      // Create a pattern where every 7th image is featured (2x2),
+      // every 5th is wide (2x1), every 9th is tall (1x2)
+      // Rest are regular (1x1)
+      let size: 'regular' | 'wide' | 'tall' | 'featured';
+      
+      if (index % 13 === 0) {
+        size = 'featured'; // 2x2
+      } else if (index % 7 === 0) {
+        size = 'wide'; // 2x1
+      } else if (index % 11 === 0) {
+        size = 'tall'; // 1x2
+      } else {
+        size = 'regular'; // 1x1
+      }
+      
+      return { ...img, size };
+    });
+  }, [displayedImages]);
+
+  const currentImage = displayedImages[currentImageIndex];
+
   // Keyboard navigation in lightbox
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -175,35 +205,6 @@ export default function ClientGalleryView() {
       </div>
     );
   }
-
-  const allImages = gallery.images || [];
-  const displayedImages = showFavoritesOnly 
-    ? allImages.filter((img: any) => favoriteIds.includes(img.id))
-    : allImages;
-
-  // Assign random sizes to images for Pinterest-style grid
-  const imagesWithSizes = useMemo(() => {
-    return displayedImages.map((img: any, index: number) => {
-      // Create a pattern where every 7th image is featured (2x2),
-      // every 5th is wide (2x1), every 9th is tall (1x2)
-      // Rest are regular (1x1)
-      let size: 'regular' | 'wide' | 'tall' | 'featured';
-      
-      if (index % 13 === 0) {
-        size = 'featured'; // 2x2
-      } else if (index % 7 === 0) {
-        size = 'wide'; // 2x1
-      } else if (index % 11 === 0) {
-        size = 'tall'; // 1x2
-      } else {
-        size = 'regular'; // 1x1
-      }
-      
-      return { ...img, size };
-    });
-  }, [displayedImages]);
-
-  const currentImage = displayedImages[currentImageIndex];
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
