@@ -190,14 +190,14 @@ export default function ClientGalleryView() {
         const coverImage = allImages.find((img: any) => img.id === gallery.coverImageId);
         if (coverImage) {
           return (
-            <div className="w-full py-12 bg-white dark:bg-gray-900">
-              <div className="max-w-[1200px] mx-auto px-4 sm:px-6">
+            <div className="w-full py-16 bg-white dark:bg-gray-900">
+              <div className="max-w-[1400px] mx-auto px-4 sm:px-6">
                 {/* Photographer Branding - Top Center */}
-                <div className="text-center mb-8">
-                  <h1 className="text-2xl sm:text-3xl font-bold tracking-wider uppercase">
+                <div className="text-center mb-12">
+                  <h1 className="text-xl sm:text-2xl font-semibold tracking-wide uppercase">
                     {gallery.photographer?.businessName || gallery.photographer?.photographerName || 'Gallery'}
                   </h1>
-                  <p className="text-sm text-muted-foreground mt-1">
+                  <p className="text-xs text-muted-foreground mt-2 tracking-wide">
                     Photo & Video
                   </p>
                 </div>
@@ -215,30 +215,30 @@ export default function ClientGalleryView() {
                   </div>
                   
                   {/* "Photos by" - Vertical text on the left */}
-                  <div className="hidden lg:block absolute left-0 top-1/2 -translate-y-1/2 pl-4">
-                    <p className="text-sm tracking-widest uppercase" style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}>
+                  <div className="hidden lg:block absolute left-8 top-1/2 -translate-y-1/2">
+                    <p className="text-xs tracking-wider uppercase text-muted-foreground" style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}>
                       Photos by {gallery.photographer?.businessName || gallery.photographer?.photographerName || 'Photographer'}
                     </p>
                   </div>
                   
                   {/* Gallery Info - Positioned to the right of centered image */}
-                  <div className="hidden lg:block absolute right-0 top-1/2 -translate-y-1/2 text-right pr-4">
-                    <h2 className="text-5xl font-bold tracking-wider mb-4">
+                  <div className="hidden lg:block absolute right-8 top-1/2 -translate-y-1/2 text-right">
+                    <h2 className="text-3xl font-semibold tracking-wide mb-3">
                       {gallery.title}
                     </h2>
-                    <div className="w-12 h-0.5 bg-foreground ml-auto mb-4"></div>
-                    <p className="text-lg text-muted-foreground">
+                    <div className="w-16 h-px bg-foreground ml-auto mb-3"></div>
+                    <p className="text-sm text-muted-foreground tracking-wide">
                       {format(new Date(gallery.createdAt), 'MMMM d, yyyy')}
                     </p>
                   </div>
 
                   {/* Gallery Info - Below image on mobile/tablet */}
-                  <div className="lg:hidden text-center mt-8">
-                    <h2 className="text-4xl font-bold tracking-wider mb-4">
+                  <div className="lg:hidden text-center mt-10">
+                    <h2 className="text-3xl font-semibold tracking-wide mb-3">
                       {gallery.title}
                     </h2>
-                    <div className="w-12 h-0.5 bg-foreground mx-auto mb-4"></div>
-                    <p className="text-lg text-muted-foreground">
+                    <div className="w-16 h-px bg-foreground mx-auto mb-3"></div>
+                    <p className="text-sm text-muted-foreground tracking-wide">
                       {format(new Date(gallery.createdAt), 'MMMM d, yyyy')}
                     </p>
                   </div>
