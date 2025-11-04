@@ -202,22 +202,25 @@ export default function ClientGalleryView() {
                   </p>
                 </div>
 
-                {/* Cover Image */}
-                <div className="relative max-h-[600px] overflow-hidden">
-                  <img
-                    src={coverImage.webUrl}
-                    alt={gallery.title}
-                    className="w-full h-auto max-h-[600px] object-cover"
-                    data-testid="cover-photo"
-                  />
+                {/* Cover Image with Gallery Info to the Right */}
+                <div className="flex flex-col md:flex-row gap-8 items-center">
+                  {/* Cover Image */}
+                  <div className="flex-shrink-0 max-h-[600px] overflow-hidden">
+                    <img
+                      src={coverImage.webUrl}
+                      alt={gallery.title}
+                      className="w-full h-auto max-h-[600px] object-cover"
+                      data-testid="cover-photo"
+                    />
+                  </div>
                   
-                  {/* Gallery Info Overlay - Right Side */}
-                  <div className="absolute right-4 sm:right-8 top-1/2 -translate-y-1/2 text-right">
-                    <h2 className="text-3xl sm:text-5xl md:text-6xl font-bold text-white drop-shadow-lg tracking-wider">
+                  {/* Gallery Info - Right Side */}
+                  <div className="flex-shrink-0 text-right">
+                    <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-wider">
                       {gallery.title}
                     </h2>
-                    <div className="w-12 h-0.5 bg-white ml-auto mt-3 mb-3"></div>
-                    <p className="text-sm sm:text-lg text-white/90 drop-shadow-md">
+                    <div className="w-12 h-0.5 bg-foreground ml-auto mt-4 mb-4"></div>
+                    <p className="text-lg text-muted-foreground">
                       {format(new Date(gallery.createdAt), 'MMMM d, yyyy')}
                     </p>
                   </div>
