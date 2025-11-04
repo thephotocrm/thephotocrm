@@ -185,14 +185,53 @@ export default function ClientGalleryView() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Header */}
+      {/* Cover Photo Hero - FIRST THING VISITORS SEE */}
+      {gallery.coverImageId && (() => {
+        const coverImage = allImages.find((img: any) => img.id === gallery.coverImageId);
+        if (coverImage) {
+          return (
+            <div className="w-full h-screen relative overflow-hidden bg-gray-900">
+              {/* Cover Image */}
+              <img
+                src={coverImage.webUrl}
+                alt={gallery.title}
+                className="w-full h-full object-cover"
+                data-testid="cover-photo"
+              />
+              
+              {/* Photographer Branding Overlay - Top Center */}
+              <div className="absolute top-8 left-0 right-0 text-center z-10">
+                <h1 className="text-3xl sm:text-4xl font-bold text-white tracking-wider uppercase drop-shadow-lg">
+                  {gallery.photographer?.businessName || gallery.photographer?.photographerName || 'Gallery'}
+                </h1>
+                <p className="text-sm sm:text-base text-white/90 mt-1 drop-shadow-md">
+                  Photo & Video
+                </p>
+              </div>
+
+              {/* Gallery Info Overlay - Right Side */}
+              <div className="absolute right-8 top-1/2 -translate-y-1/2 text-right z-10">
+                <h2 className="text-5xl sm:text-6xl font-bold text-white drop-shadow-lg tracking-wider">
+                  {gallery.title}
+                </h2>
+                <div className="w-12 h-0.5 bg-white ml-auto mt-4 mb-4"></div>
+                <p className="text-lg text-white/90 drop-shadow-md">
+                  {format(new Date(gallery.createdAt), 'MMMM d, yyyy')}
+                </p>
+              </div>
+
+              {/* Subtle gradient overlay */}
+              <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/30" />
+            </div>
+          );
+        }
+      })()}
+
+      {/* Header with Favorites Bar - BELOW COVER PHOTO */}
       <header className="bg-white dark:bg-gray-950 border-b sticky top-0 z-10">
         <div className="max-w-[1600px] mx-auto px-4 sm:px-6 py-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <h1 className="text-2xl sm:text-3xl font-bold mb-2" data-testid="text-gallery-title">
-                {gallery.title}
-              </h1>
               <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
                 {gallery.project?.client && (
                   <div className="flex items-center gap-1">
@@ -202,10 +241,6 @@ export default function ClientGalleryView() {
                     </span>
                   </div>
                 )}
-                <div className="flex items-center gap-1">
-                  <Calendar className="w-4 h-4" />
-                  <span>{format(new Date(gallery.createdAt), 'MMMM d, yyyy')}</span>
-                </div>
                 <div className="flex items-center gap-1">
                   <Grid3x3 className="w-4 h-4" />
                   <span data-testid="text-image-count">
@@ -253,24 +288,6 @@ export default function ClientGalleryView() {
           </div>
         </div>
       </header>
-
-      {/* Cover Photo Hero */}
-      {gallery.coverImageId && (() => {
-        const coverImage = allImages.find((img: any) => img.id === gallery.coverImageId);
-        if (coverImage) {
-          return (
-            <div className="w-full h-[60vh] min-h-[400px] max-h-[800px] relative overflow-hidden bg-gray-900">
-              <img
-                src={coverImage.webUrl}
-                alt={gallery.title}
-                className="w-full h-full object-cover"
-                data-testid="cover-photo"
-              />
-              <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/50" />
-            </div>
-          );
-        }
-      })()}
 
       {/* Gallery Description */}
       {gallery.description && (
