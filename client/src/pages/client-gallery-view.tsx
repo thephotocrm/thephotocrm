@@ -221,11 +221,11 @@ export default function ClientGalleryView() {
                     </div>
                     
                     {/* Gallery Info - Positioned right next to right edge of photo */}
-                    <div className="hidden lg:block absolute left-[calc(100%+1.5rem)] top-1/2 -translate-y-1/2 text-right">
+                    <div className="hidden lg:block absolute left-[calc(100%+1.5rem)] top-1/2 -translate-y-1/2 text-left">
                       <h2 className="text-3xl font-semibold tracking-wide mb-3 whitespace-nowrap">
                         {gallery.title}
                       </h2>
-                      <div className="w-16 h-px bg-foreground ml-auto mb-3"></div>
+                      <div className="w-16 h-px bg-foreground mb-3"></div>
                       <p className="text-sm text-muted-foreground tracking-wide whitespace-nowrap">
                         {format(new Date(gallery.createdAt), 'MMMM d, yyyy')}
                       </p>
