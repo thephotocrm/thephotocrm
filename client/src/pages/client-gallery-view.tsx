@@ -151,22 +151,33 @@ export default function ClientGalleryView() {
     ? allImages.filter((img: any) => favoriteIds.includes(img.id))
     : allImages;
 
-  // Assign sizes to images for Pinterest-style grid (3 columns)
+  // Assign sizes to images for Pinterest-style grid (3 columns) based on actual aspect ratio
   const imagesWithSizes = useMemo(() => {
-    return displayedImages.map((img: any, index: number) => {
-      // Pattern for 3-column grid:
-      // - Vertical: Always 1x2 (one column, two rows)
-      // - Horizontal varies: 1x1, 2x1, or 3x1 (spans across columns)
+    let horizontalIndex = 0; // Track horizontal images for pattern variation
+    
+    return displayedImages.map((img: any) => {
+      const width = img.width || 1;
+      const height = img.height || 1;
+      const aspectRatio = width / height;
+      
       let size: 'regular' | 'wide' | 'extraWide' | 'tall';
       
-      if (index % 9 === 0) {
-        size = 'tall'; // 1x2 (vertical)
-      } else if (index % 11 === 0) {
-        size = 'extraWide'; // 3x1 (full width)
-      } else if (index % 5 === 0) {
-        size = 'wide'; // 2x1 (double width)
-      } else {
-        size = 'regular'; // 1x1 (standard)
+      // If vertical (portrait orientation): Always 1x2
+      if (aspectRatio < 0.95) {
+        size = 'tall'; // 1x2 (one column, two rows)
+      } 
+      // If horizontal (landscape): Vary the width
+      else {
+        // Create variation in horizontal images - check BEFORE incrementing
+        if (horizontalIndex % 11 === 0 && horizontalIndex > 0) {
+          size = 'extraWide'; // 3x1 (full width - rare)
+        } else if (horizontalIndex % 5 === 0 && horizontalIndex > 0) {
+          size = 'wide'; // 2x1 (double width)
+        } else {
+          size = 'regular'; // 1x1 (standard)
+        }
+        
+        horizontalIndex++; // Increment after assignment
       }
       
       return { ...img, size };
