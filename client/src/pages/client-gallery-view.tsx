@@ -333,22 +333,22 @@ export default function ClientGalleryView() {
             </p>
           </Card>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-4">
             {displayedImages.map((image: any, index: number) => {
               const isFavorited = favoriteIds.includes(image.id);
               
               return (
                 <Card 
                   key={image.id}
-                  className="overflow-hidden group cursor-pointer hover:shadow-xl transition-all duration-300"
+                  className="overflow-hidden group cursor-pointer hover:shadow-xl transition-all duration-300 mb-4 break-inside-avoid"
                   onClick={() => openLightbox(index)}
                   data-testid={`image-card-${index}`}
                 >
-                  <div className="relative aspect-[4/3]">
+                  <div className="relative">
                     <img
                       src={image.thumbnailUrl}
                       alt={image.caption || `Image ${index + 1}`}
-                      className="w-full h-full object-cover"
+                      className="w-full h-auto object-cover"
                       loading="lazy"
                     />
                     
