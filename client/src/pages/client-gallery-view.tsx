@@ -203,11 +203,11 @@ export default function ClientGalleryView() {
                 </div>
 
                 {/* Cover Image */}
-                <div className="relative">
+                <div className="relative max-h-[600px] overflow-hidden">
                   <img
                     src={coverImage.webUrl}
                     alt={gallery.title}
-                    className="w-full h-auto object-cover"
+                    className="w-full h-auto max-h-[600px] object-cover"
                     data-testid="cover-photo"
                   />
                   
