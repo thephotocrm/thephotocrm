@@ -191,7 +191,7 @@ export default function ClientGalleryView() {
         if (coverImage) {
           return (
             <div className="w-full py-16 bg-white dark:bg-gray-900">
-              <div className="max-w-[1400px] mx-auto px-4 sm:px-6">
+              <div className="mx-auto px-4 sm:px-6">
                 {/* Photographer Branding - Top Center */}
                 <div className="text-center mb-12">
                   <h1 className="text-xl sm:text-2xl font-semibold tracking-wide uppercase">
@@ -203,9 +203,9 @@ export default function ClientGalleryView() {
                 </div>
 
                 {/* Cover Image - Centered, with text on left and gallery info on right */}
-                <div className="relative flex justify-center items-center min-h-[500px]">
-                  {/* Cover Image - Centered */}
-                  <div className="max-w-[700px] max-h-[500px] overflow-hidden">
+                <div className="flex justify-center items-center">
+                  {/* Cover Image with relative positioning for absolute children */}
+                  <div className="relative max-w-[700px] max-h-[500px] overflow-visible">
                     <img
                       src={coverImage.webUrl}
                       alt={gallery.title}
@@ -214,14 +214,14 @@ export default function ClientGalleryView() {
                     />
                     
                     {/* "Photos by" - Vertical text positioned right next to left edge of photo */}
-                    <div className="hidden lg:block absolute left-[-2rem] top-1/2 -translate-y-1/2">
+                    <div className="hidden lg:block absolute right-[calc(100%+1.5rem)] top-1/2 -translate-y-1/2">
                       <p className="text-xs tracking-wider uppercase text-muted-foreground" style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}>
                         Photos by {gallery.photographer?.businessName || gallery.photographer?.photographerName || 'Photographer'}
                       </p>
                     </div>
                     
                     {/* Gallery Info - Positioned right next to right edge of photo */}
-                    <div className="hidden lg:block absolute left-[calc(100%+2rem)] top-1/2 -translate-y-1/2 text-right">
+                    <div className="hidden lg:block absolute left-[calc(100%+1.5rem)] top-1/2 -translate-y-1/2 text-right">
                       <h2 className="text-3xl font-semibold tracking-wide mb-3 whitespace-nowrap">
                         {gallery.title}
                       </h2>
