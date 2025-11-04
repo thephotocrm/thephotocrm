@@ -203,9 +203,16 @@ export default function ClientGalleryView() {
                 </div>
 
                 {/* Cover Image - Centered, with text on left and gallery info on right */}
-                <div className="relative">
+                <div className="relative flex items-center justify-center gap-6">
+                  {/* "Photos by" - Vertical text on the left of photo */}
+                  <div className="hidden lg:block">
+                    <p className="text-xs tracking-wider uppercase text-muted-foreground" style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}>
+                      Photos by {gallery.photographer?.businessName || gallery.photographer?.photographerName || 'Photographer'}
+                    </p>
+                  </div>
+                  
                   {/* Cover Image - Centered */}
-                  <div className="max-w-[700px] mx-auto max-h-[500px] overflow-hidden">
+                  <div className="max-w-[700px] max-h-[500px] overflow-hidden flex-shrink-0">
                     <img
                       src={coverImage.webUrl}
                       alt={gallery.title}
@@ -214,15 +221,8 @@ export default function ClientGalleryView() {
                     />
                   </div>
                   
-                  {/* "Photos by" - Vertical text on the left */}
-                  <div className="hidden lg:block absolute left-8 top-1/2 -translate-y-1/2">
-                    <p className="text-xs tracking-wider uppercase text-muted-foreground" style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}>
-                      Photos by {gallery.photographer?.businessName || gallery.photographer?.photographerName || 'Photographer'}
-                    </p>
-                  </div>
-                  
-                  {/* Gallery Info - Positioned to the right of centered image */}
-                  <div className="hidden lg:block absolute right-8 top-1/2 -translate-y-1/2 text-right">
+                  {/* Gallery Info - Right next to photo on the right */}
+                  <div className="hidden lg:block text-right">
                     <h2 className="text-3xl font-semibold tracking-wide mb-3">
                       {gallery.title}
                     </h2>
