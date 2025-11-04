@@ -203,8 +203,8 @@ export default function ClientGalleryView() {
                 </div>
 
                 {/* Cover Image with Gallery Info to the Right */}
-                <div className="flex flex-col md:flex-row gap-8 items-center">
-                  {/* Cover Image */}
+                <div className="flex flex-col md:flex-row gap-8 items-center justify-center">
+                  {/* Cover Image - Centered */}
                   <div className="flex-shrink-0 max-h-[600px] overflow-hidden">
                     <img
                       src={coverImage.webUrl}
@@ -214,8 +214,8 @@ export default function ClientGalleryView() {
                     />
                   </div>
                   
-                  {/* Gallery Info - Right Side */}
-                  <div className="flex-shrink-0 text-right">
+                  {/* Gallery Info - Right Side (outside the image) */}
+                  <div className="flex-shrink-0 text-right md:ml-8">
                     <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-wider">
                       {gallery.title}
                     </h2>
