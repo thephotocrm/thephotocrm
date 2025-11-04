@@ -203,33 +203,33 @@ export default function ClientGalleryView() {
                 </div>
 
                 {/* Cover Image - Centered, with text on left and gallery info on right */}
-                <div className="relative flex items-center justify-center gap-6">
-                  {/* "Photos by" - Vertical text on the left of photo */}
-                  <div className="hidden lg:block">
-                    <p className="text-xs tracking-wider uppercase text-muted-foreground" style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}>
-                      Photos by {gallery.photographer?.businessName || gallery.photographer?.photographerName || 'Photographer'}
-                    </p>
-                  </div>
-                  
+                <div className="relative flex justify-center items-center min-h-[500px]">
                   {/* Cover Image - Centered */}
-                  <div className="max-w-[700px] max-h-[500px] overflow-hidden flex-shrink-0">
+                  <div className="max-w-[700px] max-h-[500px] overflow-hidden">
                     <img
                       src={coverImage.webUrl}
                       alt={gallery.title}
                       className="w-full h-auto max-h-[500px] object-cover"
                       data-testid="cover-photo"
                     />
-                  </div>
-                  
-                  {/* Gallery Info - Right next to photo on the right */}
-                  <div className="hidden lg:block text-right">
-                    <h2 className="text-3xl font-semibold tracking-wide mb-3">
-                      {gallery.title}
-                    </h2>
-                    <div className="w-16 h-px bg-foreground ml-auto mb-3"></div>
-                    <p className="text-sm text-muted-foreground tracking-wide">
-                      {format(new Date(gallery.createdAt), 'MMMM d, yyyy')}
-                    </p>
+                    
+                    {/* "Photos by" - Vertical text positioned right next to left edge of photo */}
+                    <div className="hidden lg:block absolute left-[-2rem] top-1/2 -translate-y-1/2">
+                      <p className="text-xs tracking-wider uppercase text-muted-foreground" style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}>
+                        Photos by {gallery.photographer?.businessName || gallery.photographer?.photographerName || 'Photographer'}
+                      </p>
+                    </div>
+                    
+                    {/* Gallery Info - Positioned right next to right edge of photo */}
+                    <div className="hidden lg:block absolute left-[calc(100%+2rem)] top-1/2 -translate-y-1/2 text-right">
+                      <h2 className="text-3xl font-semibold tracking-wide mb-3 whitespace-nowrap">
+                        {gallery.title}
+                      </h2>
+                      <div className="w-16 h-px bg-foreground ml-auto mb-3"></div>
+                      <p className="text-sm text-muted-foreground tracking-wide whitespace-nowrap">
+                        {format(new Date(gallery.createdAt), 'MMMM d, yyyy')}
+                      </p>
+                    </div>
                   </div>
 
                   {/* Gallery Info - Below image on mobile/tablet */}
