@@ -190,38 +190,39 @@ export default function ClientGalleryView() {
         const coverImage = allImages.find((img: any) => img.id === gallery.coverImageId);
         if (coverImage) {
           return (
-            <div className="w-full h-screen relative overflow-hidden bg-gray-900">
-              {/* Cover Image */}
-              <img
-                src={coverImage.webUrl}
-                alt={gallery.title}
-                className="w-full h-full object-cover"
-                data-testid="cover-photo"
-              />
-              
-              {/* Photographer Branding Overlay - Top Center */}
-              <div className="absolute top-8 left-0 right-0 text-center z-10">
-                <h1 className="text-3xl sm:text-4xl font-bold text-white tracking-wider uppercase drop-shadow-lg">
-                  {gallery.photographer?.businessName || gallery.photographer?.photographerName || 'Gallery'}
-                </h1>
-                <p className="text-sm sm:text-base text-white/90 mt-1 drop-shadow-md">
-                  Photo & Video
-                </p>
-              </div>
+            <div className="w-full py-12 bg-white dark:bg-gray-900">
+              <div className="max-w-[1200px] mx-auto px-4 sm:px-6">
+                {/* Photographer Branding - Top Center */}
+                <div className="text-center mb-8">
+                  <h1 className="text-2xl sm:text-3xl font-bold tracking-wider uppercase">
+                    {gallery.photographer?.businessName || gallery.photographer?.photographerName || 'Gallery'}
+                  </h1>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Photo & Video
+                  </p>
+                </div>
 
-              {/* Gallery Info Overlay - Right Side */}
-              <div className="absolute right-8 top-1/2 -translate-y-1/2 text-right z-10">
-                <h2 className="text-5xl sm:text-6xl font-bold text-white drop-shadow-lg tracking-wider">
-                  {gallery.title}
-                </h2>
-                <div className="w-12 h-0.5 bg-white ml-auto mt-4 mb-4"></div>
-                <p className="text-lg text-white/90 drop-shadow-md">
-                  {format(new Date(gallery.createdAt), 'MMMM d, yyyy')}
-                </p>
+                {/* Cover Image */}
+                <div className="relative">
+                  <img
+                    src={coverImage.webUrl}
+                    alt={gallery.title}
+                    className="w-full h-auto object-cover"
+                    data-testid="cover-photo"
+                  />
+                  
+                  {/* Gallery Info Overlay - Right Side */}
+                  <div className="absolute right-4 sm:right-8 top-1/2 -translate-y-1/2 text-right">
+                    <h2 className="text-3xl sm:text-5xl md:text-6xl font-bold text-white drop-shadow-lg tracking-wider">
+                      {gallery.title}
+                    </h2>
+                    <div className="w-12 h-0.5 bg-white ml-auto mt-3 mb-3"></div>
+                    <p className="text-sm sm:text-lg text-white/90 drop-shadow-md">
+                      {format(new Date(gallery.createdAt), 'MMMM d, yyyy')}
+                    </p>
+                  </div>
+                </div>
               </div>
-
-              {/* Subtle gradient overlay */}
-              <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/30" />
             </div>
           );
         }
