@@ -9370,11 +9370,22 @@ ${photographer.businessName}`
     }
   });
 
-  // POST /api/galleries/:id/favorites/:imageId - Toggle favorite on image
-  app.post("/api/galleries/:id/favorites/:imageId", authenticateToken, async (req, res) => {
+  // POST /api/galleries/:id/favorites/:imageId - Toggle favorite on image (supports both authenticated and anonymous users)
+  app.post("/api/galleries/:id/favorites/:imageId", async (req, res) => {
     try {
       const { id, imageId } = req.params;
-      const userId = req.user!.id;
+      
+      // Get sessionId from cookies or generate one
+      let sessionId = req.cookies?.gallerySessionId;
+      if (!sessionId) {
+        sessionId = nanoid();
+        res.cookie('gallerySessionId', sessionId, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'lax',
+          maxAge: 365 * 24 * 60 * 60 * 1000 // 1 year
+        });
+      }
 
       const gallery = await storage.getGallery(id);
       
@@ -9382,7 +9393,23 @@ ${photographer.businessName}`
         return res.status(404).json({ message: "Gallery not found" });
       }
 
-      const result = await storage.toggleFavorite(id, imageId, userId);
+      // For authenticated users, use contactId; otherwise use sessionId
+      const userId = (req as any).user?.id;
+      let contact = null;
+      if (userId) {
+        const user = await storage.getUser(userId);
+        if (user && user.role === 'CLIENT') {
+          contact = await storage.getContactByUserId(userId);
+        }
+      }
+
+      const result = await storage.toggleFavorite({
+        galleryId: id,
+        imageId,
+        contactId: contact?.id || null,
+        sessionId: contact ? null : sessionId
+      });
+      
       res.json(result);
     } catch (error) {
       console.error('Failed to toggle favorite:', error);
@@ -9390,16 +9417,27 @@ ${photographer.businessName}`
     }
   });
 
-  // GET /api/galleries/:id/favorites - Get list of favorited image IDs
-  app.get("/api/galleries/:id/favorites", authenticateToken, async (req, res) => {
+  // GET /api/galleries/:id/favorites - Get list of favorited image IDs (supports both authenticated and anonymous users)
+  app.get("/api/galleries/:id/favorites", async (req, res) => {
     try {
       const { id } = req.params;
-      const userId = req.user!.id;
-
-      const favorites = await storage.getFavorites(id, userId);
-      const imageIds = favorites.map(f => f.imageId);
       
-      res.json(imageIds);
+      // Get sessionId from cookies
+      const sessionId = req.cookies?.gallerySessionId;
+
+      // For authenticated users, use contactId; otherwise use sessionId
+      const userId = (req as any).user?.id;
+      let contactId = null;
+      if (userId) {
+        const user = await storage.getUser(userId);
+        if (user && user.role === 'CLIENT') {
+          const contact = await storage.getContactByUserId(userId);
+          contactId = contact?.id || null;
+        }
+      }
+
+      const favorites = await storage.getFavorites(id, contactId, sessionId);
+      res.json(favorites);
     } catch (error) {
       console.error('Failed to fetch favorites:', error);
       res.status(500).json({ message: "Failed to fetch favorites" });

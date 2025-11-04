@@ -415,7 +415,7 @@ export interface IStorage {
   reorderGalleryImages(imageOrders: { id: string, sortIndex: number }[]): Promise<void>;
   
   // Gallery Favorites
-  getFavorites(galleryId: string, contactId: string): Promise<string[]>; // Returns array of image IDs
+  getFavorites(galleryId: string, contactId?: string | null, sessionId?: string | null): Promise<string[]>; // Returns array of image IDs
   toggleFavorite(favorite: InsertGalleryFavorite): Promise<{ action: 'added' | 'removed' }>;
   
   // Gallery Downloads
@@ -3964,29 +3964,42 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Gallery Favorites
-  async getFavorites(galleryId: string, contactId: string): Promise<string[]> {
+  async getFavorites(galleryId: string, contactId?: string | null, sessionId?: string | null): Promise<string[]> {
+    const conditions = [eq(galleryFavorites.galleryId, galleryId)];
+    
+    if (contactId) {
+      conditions.push(eq(galleryFavorites.contactId, contactId));
+    } else if (sessionId) {
+      conditions.push(eq(galleryFavorites.sessionId, sessionId));
+    } else {
+      return []; // No identifier provided
+    }
+
     const favorites = await db.select()
       .from(galleryFavorites)
-      .where(
-        and(
-          eq(galleryFavorites.galleryId, galleryId),
-          eq(galleryFavorites.contactId, contactId)
-        )
-      );
+      .where(and(...conditions));
     return favorites.map(f => f.imageId);
   }
 
   async toggleFavorite(favorite: InsertGalleryFavorite): Promise<{ action: 'added' | 'removed' }> {
+    // Build conditions based on whether contactId or sessionId is provided
+    const conditions = [
+      eq(galleryFavorites.galleryId, favorite.galleryId),
+      eq(galleryFavorites.imageId, favorite.imageId)
+    ];
+    
+    if (favorite.contactId) {
+      conditions.push(eq(galleryFavorites.contactId, favorite.contactId));
+    } else if (favorite.sessionId) {
+      conditions.push(eq(galleryFavorites.sessionId, favorite.sessionId));
+    } else {
+      throw new Error('Either contactId or sessionId must be provided');
+    }
+
     // Check if favorite already exists
     const [existing] = await db.select()
       .from(galleryFavorites)
-      .where(
-        and(
-          eq(galleryFavorites.galleryId, favorite.galleryId),
-          eq(galleryFavorites.imageId, favorite.imageId),
-          eq(galleryFavorites.contactId, favorite.contactId)
-        )
-      );
+      .where(and(...conditions));
 
     if (existing) {
       // Remove favorite

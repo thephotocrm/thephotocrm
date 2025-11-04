@@ -2024,12 +2024,13 @@ export const galleryFavorites = pgTable("gallery_favorites", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   galleryId: varchar("gallery_id").notNull().references(() => galleries.id, { onDelete: "cascade" }),
   imageId: varchar("image_id").notNull().references(() => galleryImages.id, { onDelete: "cascade" }),
-  contactId: varchar("contact_id").notNull().references(() => contacts.id, { onDelete: "cascade" }),
+  contactId: varchar("contact_id").references(() => contacts.id, { onDelete: "cascade" }), // Nullable for anonymous users
+  sessionId: varchar("session_id"), // For anonymous user sessions
   createdAt: timestamp("created_at").defaultNow()
 }, (table) => ({
-  uniqueFavorite: unique("unique_gallery_favorite").on(table.galleryId, table.imageId, table.contactId),
   galleryIdIdx: index("gallery_favorites_gallery_id_idx").on(table.galleryId),
-  contactIdIdx: index("gallery_favorites_contact_id_idx").on(table.contactId)
+  contactIdIdx: index("gallery_favorites_contact_id_idx").on(table.contactId),
+  sessionIdIdx: index("gallery_favorites_session_id_idx").on(table.sessionId)
 }));
 
 // Download requests & ZIP archives

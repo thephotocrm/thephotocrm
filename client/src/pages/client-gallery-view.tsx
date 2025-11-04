@@ -254,6 +254,24 @@ export default function ClientGalleryView() {
         </div>
       </header>
 
+      {/* Cover Photo Hero */}
+      {gallery.coverImageId && (() => {
+        const coverImage = allImages.find((img: any) => img.id === gallery.coverImageId);
+        if (coverImage) {
+          return (
+            <div className="w-full h-[60vh] min-h-[400px] max-h-[800px] relative overflow-hidden bg-gray-900">
+              <img
+                src={coverImage.webUrl}
+                alt={gallery.title}
+                className="w-full h-full object-cover"
+                data-testid="cover-photo"
+              />
+              <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/50" />
+            </div>
+          );
+        }
+      })()}
+
       {/* Gallery Description */}
       {gallery.description && (
         <div className="max-w-[1600px] mx-auto px-4 sm:px-6 py-4">
