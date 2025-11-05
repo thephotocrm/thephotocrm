@@ -9368,7 +9368,7 @@ ${photographer.businessName}`
           return res.status(403).json({ message: "Invalid authentication" });
         }
       } else {
-        // For public galleries, track view with anonymous session
+        // For public galleries, set up anonymous session for favorites
         let sessionId = req.cookies?.gallerySessionId;
         if (!sessionId) {
           sessionId = nanoid();
@@ -9379,8 +9379,8 @@ ${photographer.businessName}`
             maxAge: 365 * 24 * 60 * 60 * 1000 // 1 year
           });
         }
-        // Track view with session ID (we'll use it as a string identifier)
-        await storage.trackGalleryView(id, sessionId);
+        // Track view without contactId for anonymous users
+        await storage.trackGalleryView(id, null);
       }
 
       // Get images
