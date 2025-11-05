@@ -1,6 +1,7 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { useParams } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import Masonry from 'react-masonry-css';
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -151,40 +152,15 @@ export default function ClientGalleryView() {
     ? allImages.filter((img: any) => favoriteIds.includes(img.id))
     : allImages;
 
-  // Assign sizes to images for Pinterest-style grid (3 columns) based on actual aspect ratio
-  const imagesWithSizes = useMemo(() => {
-    let horizontalIndex = 0; // Track horizontal images for pattern variation
-    
-    return displayedImages.map((img: any) => {
-      const width = img.width || 1;
-      const height = img.height || 1;
-      const aspectRatio = width / height;
-      
-      let size: 'regular' | 'wide' | 'extraWide' | 'tall';
-      
-      // If vertical (portrait orientation): Always 1x2
-      if (aspectRatio < 0.95) {
-        size = 'tall'; // 1x2 (one column, two rows)
-      } 
-      // If horizontal (landscape): Vary the width
-      else {
-        // Create variation in horizontal images - check BEFORE incrementing
-        if (horizontalIndex % 11 === 0 && horizontalIndex > 0) {
-          size = 'extraWide'; // 3x1 (full width - rare)
-        } else if (horizontalIndex % 5 === 0 && horizontalIndex > 0) {
-          size = 'wide'; // 2x1 (double width)
-        } else {
-          size = 'regular'; // 1x1 (standard)
-        }
-        
-        horizontalIndex++; // Increment after assignment
-      }
-      
-      return { ...img, size };
-    });
-  }, [displayedImages]);
-
   const currentImage = displayedImages[currentImageIndex];
+
+  // Masonry breakpoint configuration
+  const breakpointColumnsObj = {
+    default: 4, // 4 columns on large desktop
+    1536: 3,    // 3 columns on desktop
+    1024: 3,    // 3 columns on tablet
+    640: 2      // 2 columns on mobile
+  };
 
   // Keyboard navigation in lightbox
   useEffect(() => {
@@ -386,42 +362,28 @@ export default function ClientGalleryView() {
             </p>
           </Card>
         ) : (
-          <div className="grid grid-cols-2 lg:grid-cols-3 auto-rows-[180px] lg:auto-rows-[250px] gap-1 lg:gap-4">
-            {imagesWithSizes.map((image: any, index: number) => {
+          <Masonry
+            breakpointCols={breakpointColumnsObj}
+            className="flex gap-1 lg:gap-4"
+            columnClassName="masonry-column"
+          >
+            {displayedImages.map((image: any, index: number) => {
               const isFavorited = favoriteIds.includes(image.id);
               // Use webUrl with Cloudinary transformation for performance while maintaining aspect ratio
               const displayUrl = image.webUrl?.replace('/upload/', '/upload/q_auto,f_auto,w_1200/') || image.thumbnailUrl;
               
-              // Determine grid span based on size
-              const getSpanClasses = () => {
-                switch (image.size) {
-                  case 'extraWide':
-                    // Desktop: 3x1 (full width), Mobile: 1x1 (one column)
-                    return 'lg:col-span-3 col-span-1 row-span-1';
-                  case 'wide':
-                    // Desktop: 2x1 (double width), Mobile: 1x1 (one column)
-                    return 'lg:col-span-2 col-span-1 row-span-1';
-                  case 'tall':
-                    // Both: 1x2 (vertical - one column, two rows)
-                    return 'col-span-1 row-span-2';
-                  default:
-                    // Both: 1x1 (standard - one column, one row)
-                    return 'col-span-1 row-span-1';
-                }
-              };
-              
               return (
                 <Card 
                   key={image.id}
-                  className={`overflow-hidden group cursor-pointer hover:shadow-xl transition-all duration-300 rounded-none lg:rounded-lg ${getSpanClasses()}`}
+                  className="overflow-hidden group cursor-pointer hover:shadow-xl transition-all duration-300 rounded-none lg:rounded-lg mb-1 lg:mb-4"
                   onClick={() => openLightbox(index)}
                   data-testid={`image-card-${index}`}
                 >
-                  <div className="relative w-full h-full">
+                  <div className="relative w-full">
                     <img
                       src={displayUrl}
                       alt={image.caption || `Image ${index + 1}`}
-                      className="w-full h-full object-cover"
+                      className="w-full h-auto"
                       loading="lazy"
                     />
                     
@@ -460,7 +422,7 @@ export default function ClientGalleryView() {
                 </Card>
               );
             })}
-          </div>
+          </Masonry>
         )}
       </div>
 

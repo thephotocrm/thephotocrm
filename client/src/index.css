@@ -184,3 +184,9 @@
     box-sizing: border-box;
   }
 }
+
+/* Masonry grid styling */
+.masonry-column {
+  display: flex;
+  flex-direction: column;
+}
