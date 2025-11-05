@@ -1,7 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useParams } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import Masonry from 'react-masonry-css';
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -154,13 +153,29 @@ export default function ClientGalleryView() {
 
   const currentImage = displayedImages[currentImageIndex];
 
-  // Masonry breakpoint configuration
-  const breakpointColumnsObj = {
-    default: 4, // 4 columns on large desktop
-    1536: 3,    // 3 columns on desktop
-    1024: 3,    // 3 columns on tablet
-    640: 2      // 2 columns on mobile
-  };
+  // Calculate which horizontal images should span 2 columns
+  const imagesWithLayout = useMemo(() => {
+    let horizontalCount = 0;
+    
+    return displayedImages.map((img: any) => {
+      const width = img.width || 1;
+      const height = img.height || 1;
+      const aspectRatio = width / height;
+      const isHorizontal = aspectRatio > 1.1; // Landscape orientation
+      
+      let spanColumns = 1;
+      
+      if (isHorizontal) {
+        horizontalCount++;
+        // Every 6th horizontal photo spans 2 columns
+        if (horizontalCount % 6 === 0) {
+          spanColumns = 2;
+        }
+      }
+      
+      return { ...img, spanColumns };
+    });
+  }, [displayedImages]);
 
   // Keyboard navigation in lightbox
   useEffect(() => {
@@ -347,7 +362,7 @@ export default function ClientGalleryView() {
         </div>
       )}
 
-      {/* Image Grid */}
+      {/* Image Grid - CSS Grid with dense packing */}
       <div className="max-w-[1400px] mx-auto px-0 lg:px-8 xl:px-16 py-6">
         {displayedImages.length === 0 ? (
           <Card className="p-12 text-center mx-4">
@@ -362,20 +377,22 @@ export default function ClientGalleryView() {
             </p>
           </Card>
         ) : (
-          <Masonry
-            breakpointCols={breakpointColumnsObj}
-            className="flex gap-1 lg:gap-4"
-            columnClassName="masonry-column"
+          <div 
+            className="grid grid-cols-2 lg:grid-cols-3 gap-1 lg:gap-4" 
+            style={{ gridAutoFlow: 'dense', gridAutoRows: 'min-content' }}
           >
-            {displayedImages.map((image: any, index: number) => {
+            {imagesWithLayout.map((image: any, index: number) => {
               const isFavorited = favoriteIds.includes(image.id);
-              // Use webUrl with Cloudinary transformation for performance while maintaining aspect ratio
+              // Use webUrl with Cloudinary transformation for performance
               const displayUrl = image.webUrl?.replace('/upload/', '/upload/q_auto,f_auto,w_1200/') || image.thumbnailUrl;
+              
+              // Determine column span
+              const colSpanClass = image.spanColumns === 2 ? 'lg:col-span-2 col-span-1' : 'col-span-1';
               
               return (
                 <Card 
                   key={image.id}
-                  className="overflow-hidden group cursor-pointer hover:shadow-xl transition-all duration-300 rounded-none lg:rounded-lg mb-1 lg:mb-4"
+                  className={`overflow-hidden group cursor-pointer hover:shadow-xl transition-all duration-300 rounded-none ${colSpanClass}`}
                   onClick={() => openLightbox(index)}
                   data-testid={`image-card-${index}`}
                 >
@@ -422,7 +439,7 @@ export default function ClientGalleryView() {
                 </Card>
               );
             })}
-          </Masonry>
+          </div>
         )}
       </div>
 
