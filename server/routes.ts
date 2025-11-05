@@ -9335,34 +9335,60 @@ ${photographer.businessName}`
 
   // Client Gallery Viewing (CLIENT role)
 
-  // GET /api/galleries/:id/view - Get gallery for client viewing
-  app.get("/api/galleries/:id/view", authenticateToken, async (req, res) => {
+  // GET /api/galleries/:id/view - Get gallery for client viewing (public or authenticated)
+  app.get("/api/galleries/:id/view", async (req, res) => {
     try {
       const { id } = req.params;
-      const userId = req.user!.id;
-
+      
       const gallery = await storage.getGallery(id);
       
       if (!gallery) {
         return res.status(404).json({ message: "Gallery not found" });
       }
 
-      // Track view
-      await storage.trackGalleryView(id, userId);
+      // For private galleries, require authentication
+      if (!gallery.isPublic) {
+        // Check if user is authenticated
+        const token = req.cookies?.token;
+        if (!token) {
+          return res.status(403).json({ message: "This gallery is private" });
+        }
+        
+        try {
+          const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret') as any;
+          const user = await storage.getUser(decoded.userId);
+          
+          if (!user || user.role !== 'CLIENT') {
+            return res.status(403).json({ message: "Access denied" });
+          }
+          
+          // For authenticated client, track view with userId
+          await storage.trackGalleryView(id, user.id);
+        } catch (error) {
+          return res.status(403).json({ message: "Invalid authentication" });
+        }
+      } else {
+        // For public galleries, track view with anonymous session
+        let sessionId = req.cookies?.gallerySessionId;
+        if (!sessionId) {
+          sessionId = nanoid();
+          res.cookie('gallerySessionId', sessionId, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            maxAge: 365 * 24 * 60 * 60 * 1000 // 1 year
+          });
+        }
+        // Track view with session ID (we'll use it as a string identifier)
+        await storage.trackGalleryView(id, sessionId);
+      }
 
-      // Get images with favorite status for this user
+      // Get images
       const images = await storage.getGalleryImages(id);
-      const favorites = await storage.getFavorites(id, userId);
-      const favoriteImageIds = new Set(favorites.map(f => f.imageId));
-
-      const imagesWithFavorites = images.map(image => ({
-        ...image,
-        isFavorited: favoriteImageIds.has(image.id)
-      }));
 
       res.json({
         ...gallery,
-        images: imagesWithFavorites
+        images
       });
     } catch (error) {
       console.error('Failed to view gallery:', error);
