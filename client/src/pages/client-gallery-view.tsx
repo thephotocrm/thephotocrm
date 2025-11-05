@@ -335,7 +335,8 @@ export default function ClientGalleryView() {
                 My Favorites ({favoriteIds.length})
               </Button>
 
-              {gallery.allowDownloads && (
+              {/* Only show downloads for authorized clients */}
+              {gallery.isAuthorizedClient && (
                 <>
                   <Button
                     variant="outline"

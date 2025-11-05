@@ -1944,7 +1944,9 @@ export const galleries = pgTable("galleries", {
   logoUrl: text("logo_url"), // Custom logo for this gallery (overrides photographer's default)
   watermarkEnabled: boolean("watermark_enabled").default(true),
   watermarkText: text("watermark_text"), // Custom watermark text
+  watermarkImageUrl: text("watermark_image_url"), // Custom watermark image/logo
   watermarkPosition: text("watermark_position").default("bottom-right"), // bottom-right, bottom-left, center, etc.
+  watermarkOpacity: integer("watermark_opacity").default(60), // 0-100, controls transparency
   brandColorPrimary: text("brand_color_primary"), // Override photographer's brand colors
   brandColorSecondary: text("brand_color_secondary"),
   // Download Settings

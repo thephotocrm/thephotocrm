@@ -111,3 +111,89 @@ export function isCloudinaryConfigured(): boolean {
     process.env.CLOUDINARY_API_SECRET
   );
 }
+
+/**
+ * Apply watermark transformation to a Cloudinary image URL and sign it
+ * @param imageUrl - Original Cloudinary image URL
+ * @param watermarkOptions - Watermark configuration
+ * @param signUrl - Whether to generate a signed URL (prevents transformation stripping)
+ * @returns URL with watermark transformation applied (and optionally signed)
+ */
+export function applyWatermark(
+  imageUrl: string,
+  watermarkOptions: {
+    watermarkImageUrl?: string;
+    watermarkText?: string;
+    position?: string;
+    opacity?: number;
+  },
+  signUrl: boolean = false
+): string {
+  if (!imageUrl || (!watermarkOptions.watermarkImageUrl && !watermarkOptions.watermarkText)) {
+    return imageUrl;
+  }
+
+  const { watermarkImageUrl, watermarkText, position = 'bottom-right', opacity = 60 } = watermarkOptions;
+
+  // Map position to Cloudinary gravity
+  const gravityMap: Record<string, string> = {
+    'bottom-right': 'south_east',
+    'bottom-left': 'south_west',
+    'top-right': 'north_east',
+    'top-left': 'north_west',
+    'center': 'center',
+  };
+
+  const gravity = gravityMap[position] || 'south_east';
+  
+  // Build transformation string
+  let transformation = '';
+  
+  if (watermarkImageUrl) {
+    // Extract public ID from watermark image URL
+    const watermarkPublicId = extractPublicIdFromUrl(watermarkImageUrl);
+    if (watermarkPublicId) {
+      // Image overlay transformation
+      transformation = `l_${watermarkPublicId.replace(/\//g, ':')},g_${gravity},o_${opacity},w_150`;
+    }
+  } else if (watermarkText) {
+    // Text overlay transformation
+    const encodedText = encodeURIComponent(watermarkText).replace(/%20/g, '%2520');
+    transformation = `l_text:Arial_40:${encodedText},g_${gravity},o_${opacity},co_rgb:FFFFFF`;
+  }
+
+  if (!transformation) {
+    return imageUrl;
+  }
+
+  // If signing is required, use Cloudinary SDK to generate signed URL
+  if (signUrl) {
+    const publicId = extractPublicIdFromUrl(imageUrl);
+    if (publicId) {
+      // Generate signed URL that locks the transformation
+      return cloudinary.url(publicId, {
+        transformation: transformation,
+        sign_url: true,
+        type: 'upload'
+      });
+    }
+  }
+
+  // Otherwise, insert transformation into URL (not secure against URL manipulation)
+  // Cloudinary URL format: https://res.cloudinary.com/{cloud_name}/image/upload/{transformations}/{public_id}.{ext}
+  return imageUrl.replace('/upload/', `/upload/${transformation}/`);
+}
+
+/**
+ * Extract Cloudinary public ID from a full URL
+ * @param url - Cloudinary image URL
+ * @returns Public ID without extension
+ */
+function extractPublicIdFromUrl(url: string): string | null {
+  try {
+    const match = url.match(/\/upload\/(?:v\d+\/)?(.+?)(?:\.[^.]+)?$/);
+    return match ? match[1] : null;
+  } catch (error) {
+    return null;
+  }
+}

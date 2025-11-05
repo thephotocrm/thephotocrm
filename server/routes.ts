@@ -9346,27 +9346,43 @@ ${photographer.businessName}`
         return res.status(404).json({ message: "Gallery not found" });
       }
 
-      // For private galleries, require authentication
-      if (!gallery.isPublic) {
-        // Check if user is authenticated
-        const token = req.cookies?.token;
-        if (!token) {
-          return res.status(403).json({ message: "This gallery is private" });
-        }
-        
+      // Check if viewer is the authorized client for this project
+      let isAuthorizedClient = false;
+      let authenticatedContactId: string | null = null;
+      
+      const token = req.cookies?.token;
+      if (token) {
         try {
           const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret') as any;
           const user = await storage.getUser(decoded.userId);
           
-          if (!user || user.role !== 'CLIENT') {
-            return res.status(403).json({ message: "Access denied" });
+          if (user && user.role === 'CLIENT') {
+            const contact = await storage.getContactByUserId(user.id);
+            if (contact) {
+              authenticatedContactId = contact.id;
+              
+              // Check if this contact is linked to the project that owns this gallery
+              if (gallery.projectId) {
+                const project = await storage.getProject(gallery.projectId);
+                if (project && project.contactId === contact.id) {
+                  isAuthorizedClient = true;
+                }
+              }
+            }
           }
-          
-          // For authenticated client, track view with userId
-          await storage.trackGalleryView(id, user.id);
         } catch (error) {
-          return res.status(403).json({ message: "Invalid authentication" });
+          // Invalid token, treat as anonymous
         }
+      }
+
+      // For private galleries, require the authorized client
+      if (!gallery.isPublic && !isAuthorizedClient) {
+        return res.status(403).json({ message: "This gallery is private" });
+      }
+
+      // Track view
+      if (authenticatedContactId) {
+        await storage.trackGalleryView(id, authenticatedContactId);
       } else {
         // For public galleries, set up anonymous session for favorites
         let sessionId = req.cookies?.gallerySessionId;
@@ -9384,11 +9400,44 @@ ${photographer.businessName}`
       }
 
       // Get images
-      const images = await storage.getGalleryImages(id);
+      let images = await storage.getGalleryImages(id);
+
+      // For non-authorized viewers: apply watermarks and remove access to original URLs
+      if (!isAuthorizedClient) {
+        // Apply watermarks if enabled
+        if (gallery.watermarkEnabled) {
+          const watermarkOptions = {
+            watermarkImageUrl: gallery.watermarkImageUrl || undefined,
+            watermarkText: gallery.watermarkText || undefined,
+            position: gallery.watermarkPosition || 'bottom-right',
+            opacity: gallery.watermarkOpacity || 60
+          };
+          
+          // Only apply if there's a watermark image or text configured
+          if (watermarkOptions.watermarkImageUrl || watermarkOptions.watermarkText) {
+            const { applyWatermark } = await import('./services/cloudinary');
+            
+            // Use signed URLs to prevent transformation stripping
+            images = images.map((img: any) => ({
+              ...img,
+              webUrl: applyWatermark(img.webUrl, watermarkOptions, true), // Signed URL
+              thumbnailUrl: applyWatermark(img.thumbnailUrl, watermarkOptions, true) // Signed URL
+            }));
+          }
+        }
+        
+        // CRITICAL: Remove original URLs to prevent unauthorized downloads
+        images = images.map((img: any) => ({
+          ...img,
+          originalUrl: undefined, // Prevent direct access to high-res originals
+          cloudinaryPublicId: undefined // Prevent URL reconstruction
+        }));
+      }
 
       res.json({
         ...gallery,
-        images
+        images,
+        isAuthorizedClient // Frontend uses this to determine watermarks and download permissions
       });
     } catch (error) {
       console.error('Failed to view gallery:', error);
@@ -9472,7 +9521,7 @@ ${photographer.businessName}`
 
   // Download Management
 
-  // POST /api/galleries/:id/downloads - Request ZIP download
+  // POST /api/galleries/:id/downloads - Request ZIP download (CLIENT-ONLY)
   app.post("/api/galleries/:id/downloads", authenticateToken, async (req, res) => {
     try {
       const { id } = req.params;
@@ -9485,6 +9534,28 @@ ${photographer.businessName}`
         return res.status(404).json({ message: "Gallery not found" });
       }
 
+      // Verify user is CLIENT role and is the authorized client for this gallery's project
+      const user = await storage.getUser(userId);
+      if (!user || user.role !== 'CLIENT') {
+        return res.status(403).json({ message: "Downloads are only available to clients" });
+      }
+
+      const contact = await storage.getContactByUserId(userId);
+      if (!contact) {
+        return res.status(403).json({ message: "Contact not found" });
+      }
+
+      // Verify this contact is linked to the gallery's project
+      if (gallery.projectId) {
+        const project = await storage.getProject(gallery.projectId);
+        if (!project || project.contactId !== contact.id) {
+          return res.status(403).json({ message: "You do not have access to download from this gallery" });
+        }
+      } else {
+        // Standalone portfolio galleries don't allow downloads
+        return res.status(403).json({ message: "This gallery does not allow downloads" });
+      }
+
       if (!['ALL', 'FAVORITES'].includes(scope)) {
         return res.status(400).json({ message: "Scope must be 'ALL' or 'FAVORITES'" });
       }
@@ -9493,7 +9564,7 @@ ${photographer.businessName}`
       let publicIds: string[] = [];
       
       if (scope === 'FAVORITES') {
-        const favorites = await storage.getFavorites(id, userId);
+        const favorites = await storage.getFavorites(id, contact.id);
         const favoriteImageIds = favorites.map(f => f.imageId);
         const allImages = await storage.getGalleryImages(id);
         const favoriteImages = allImages.filter(img => favoriteImageIds.includes(img.id));
