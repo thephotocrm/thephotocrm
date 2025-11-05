@@ -283,8 +283,8 @@ export default function ClientGalleryView() {
                   />
                 </div>
 
-                {/* Title and branding below cover - with gradient background overlay */}
-                <div className="relative -mt-32 bg-gradient-to-t from-black/80 via-black/60 to-transparent pt-20 pb-8 px-6 text-center text-white">
+                {/* Title and branding below cover - solid background */}
+                <div className="bg-gradient-to-br from-gray-700 via-gray-800 to-gray-900 py-10 px-6 text-center text-white">
                   <h2 className="text-2xl sm:text-3xl font-semibold tracking-wide mb-2">
                     {gallery.title}
                   </h2>
@@ -303,7 +303,7 @@ export default function ClientGalleryView() {
 
       {/* Header with Favorites Bar - BELOW COVER PHOTO */}
       <header className="bg-white dark:bg-gray-950 border-b sticky top-0 z-10">
-        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 py-4">
+        <div className="max-w-[1600px] mx-auto px-2 lg:px-6 py-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
@@ -365,7 +365,7 @@ export default function ClientGalleryView() {
 
       {/* Gallery Description */}
       {gallery.description && (
-        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 py-4">
+        <div className="max-w-[1600px] mx-auto px-2 lg:px-6 py-4">
           <p className="text-muted-foreground">{gallery.description}</p>
         </div>
       )}
@@ -412,7 +412,7 @@ export default function ClientGalleryView() {
               return (
                 <Card 
                   key={image.id}
-                  className={`overflow-hidden group cursor-pointer hover:shadow-xl transition-all duration-300 ${getSpanClasses()}`}
+                  className={`overflow-hidden group cursor-pointer hover:shadow-xl transition-all duration-300 rounded-none lg:rounded-lg ${getSpanClasses()}`}
                   onClick={() => openLightbox(index)}
                   data-testid={`image-card-${index}`}
                 >
