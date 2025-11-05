@@ -371,9 +371,9 @@ export default function ClientGalleryView() {
       )}
 
       {/* Image Grid */}
-      <div className="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-16 py-6">
+      <div className="max-w-[1400px] mx-auto px-0 lg:px-8 xl:px-16 py-6">
         {displayedImages.length === 0 ? (
-          <Card className="p-12 text-center">
+          <Card className="p-12 text-center mx-4">
             <Heart className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
             <h3 className="text-lg font-semibold mb-2">
               {showFavoritesOnly ? "No favorites yet" : "No images in this gallery"}
@@ -385,7 +385,7 @@ export default function ClientGalleryView() {
             </p>
           </Card>
         ) : (
-          <div className="grid grid-cols-2 lg:grid-cols-3 auto-rows-[250px] gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-3 auto-rows-[180px] lg:auto-rows-[250px] gap-1 lg:gap-4">
             {imagesWithSizes.map((image: any, index: number) => {
               const isFavorited = favoriteIds.includes(image.id);
               // Use webUrl with Cloudinary transformation for performance while maintaining aspect ratio
