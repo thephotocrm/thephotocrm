@@ -224,58 +224,76 @@ export default function ClientGalleryView() {
         const coverImage = allImages.find((img: any) => img.id === gallery.coverImageId);
         if (coverImage) {
           return (
-            <div className="w-full py-16 bg-white dark:bg-gray-900">
-              <div className="mx-auto px-4 sm:px-6">
-                {/* Photographer Branding - Top Center */}
-                <div className="text-center mb-12">
-                  <h1 className="text-xl sm:text-2xl font-semibold tracking-wide uppercase">
-                    {gallery.photographer?.businessName || gallery.photographer?.photographerName || 'Gallery'}
-                  </h1>
-                  <p className="text-xs text-muted-foreground mt-2 tracking-wide">
-                    Photo & Video
-                  </p>
-                </div>
-
-                {/* Cover Image - Centered, with text on left and gallery info on right */}
-                <div className="flex justify-center items-center">
-                  {/* Cover Image with relative positioning for absolute children */}
-                  <div className="relative max-w-[700px] max-h-[500px] overflow-visible">
-                    <img
-                      src={coverImage.webUrl}
-                      alt={gallery.title}
-                      className="w-full h-auto max-h-[500px] object-cover"
-                      data-testid="cover-photo"
-                    />
-                    
-                    {/* "Photos by" - Vertical text positioned right next to left edge of photo */}
-                    <div className="hidden lg:block absolute right-[calc(100%+1.5rem)] top-1/2 -translate-y-1/2">
-                      <p className="text-xs tracking-wider uppercase text-muted-foreground" style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}>
-                        Photos by {gallery.photographer?.businessName || gallery.photographer?.photographerName || 'Photographer'}
-                      </p>
-                    </div>
-                    
-                    {/* Gallery Info - Positioned right next to right edge of photo */}
-                    <div className="hidden lg:block absolute left-[calc(100%+1.5rem)] top-1/2 -translate-y-1/2 text-left">
-                      <h2 className="text-3xl font-semibold tracking-wide mb-3 whitespace-nowrap">
-                        {gallery.title}
-                      </h2>
-                      <div className="w-16 h-px bg-foreground mb-3"></div>
-                      <p className="text-sm text-muted-foreground tracking-wide whitespace-nowrap">
-                        {format(new Date(gallery.createdAt), 'MMMM d, yyyy')}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Gallery Info - Below image on mobile/tablet */}
-                  <div className="lg:hidden text-center mt-10">
-                    <h2 className="text-3xl font-semibold tracking-wide mb-3">
-                      {gallery.title}
-                    </h2>
-                    <div className="w-16 h-px bg-foreground mx-auto mb-3"></div>
-                    <p className="text-sm text-muted-foreground tracking-wide">
-                      {format(new Date(gallery.createdAt), 'MMMM d, yyyy')}
+            <div className="w-full bg-white dark:bg-gray-900">
+              {/* Desktop: Branding at top with centered cover image */}
+              <div className="hidden lg:block py-16">
+                <div className="mx-auto px-4 sm:px-6">
+                  {/* Photographer Branding - Top Center */}
+                  <div className="text-center mb-12">
+                    <h1 className="text-xl sm:text-2xl font-semibold tracking-wide uppercase">
+                      {gallery.photographer?.businessName || gallery.photographer?.photographerName || 'Gallery'}
+                    </h1>
+                    <p className="text-xs text-muted-foreground mt-2 tracking-wide">
+                      Photo & Video
                     </p>
                   </div>
+
+                  {/* Cover Image - Centered, with text on left and gallery info on right */}
+                  <div className="flex justify-center items-center">
+                    {/* Cover Image with relative positioning for absolute children */}
+                    <div className="relative max-w-[700px] max-h-[500px] overflow-visible">
+                      <img
+                        src={coverImage.webUrl}
+                        alt={gallery.title}
+                        className="w-full h-auto max-h-[500px] object-cover"
+                        data-testid="cover-photo"
+                      />
+                      
+                      {/* "Photos by" - Vertical text positioned right next to left edge of photo */}
+                      <div className="absolute right-[calc(100%+1.5rem)] top-1/2 -translate-y-1/2">
+                        <p className="text-xs tracking-wider uppercase text-muted-foreground" style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}>
+                          Photos by {gallery.photographer?.businessName || gallery.photographer?.photographerName || 'Photographer'}
+                        </p>
+                      </div>
+                      
+                      {/* Gallery Info - Positioned right next to right edge of photo */}
+                      <div className="absolute left-[calc(100%+1.5rem)] top-1/2 -translate-y-1/2 text-left">
+                        <h2 className="text-3xl font-semibold tracking-wide mb-3 whitespace-nowrap">
+                          {gallery.title}
+                        </h2>
+                        <div className="w-16 h-px bg-foreground mb-3"></div>
+                        <p className="text-sm text-muted-foreground tracking-wide whitespace-nowrap">
+                          {format(new Date(gallery.createdAt), 'MMMM d, yyyy')}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Mobile: Full-width cover photo with title/branding below */}
+              <div className="lg:hidden">
+                {/* Full-width cover photo */}
+                <div className="w-full">
+                  <img
+                    src={coverImage.webUrl}
+                    alt={gallery.title}
+                    className="w-full h-auto object-cover"
+                    data-testid="cover-photo-mobile"
+                  />
+                </div>
+
+                {/* Title and branding below cover - with gradient background overlay */}
+                <div className="relative -mt-32 bg-gradient-to-t from-black/80 via-black/60 to-transparent pt-20 pb-8 px-6 text-center text-white">
+                  <h2 className="text-2xl sm:text-3xl font-semibold tracking-wide mb-2">
+                    {gallery.title}
+                  </h2>
+                  <h3 className="text-sm sm:text-base font-medium tracking-widest uppercase mb-1">
+                    {gallery.photographer?.businessName || gallery.photographer?.photographerName || 'Gallery'}
+                  </h3>
+                  <p className="text-xs text-white/80 tracking-wide">
+                    Photo & Video
+                  </p>
                 </div>
               </div>
             </div>
@@ -353,7 +371,7 @@ export default function ClientGalleryView() {
       )}
 
       {/* Image Grid */}
-      <div className="max-w-[1400px] mx-auto px-8 sm:px-12 lg:px-16 py-6">
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-16 py-6">
         {displayedImages.length === 0 ? (
           <Card className="p-12 text-center">
             <Heart className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
@@ -367,23 +385,27 @@ export default function ClientGalleryView() {
             </p>
           </Card>
         ) : (
-          <div className="grid grid-cols-3 auto-rows-[250px] gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-3 auto-rows-[250px] gap-4">
             {imagesWithSizes.map((image: any, index: number) => {
               const isFavorited = favoriteIds.includes(image.id);
               // Use webUrl with Cloudinary transformation for performance while maintaining aspect ratio
               const displayUrl = image.webUrl?.replace('/upload/', '/upload/q_auto,f_auto,w_1200/') || image.thumbnailUrl;
               
-              // Determine grid span based on size (3-column grid)
+              // Determine grid span based on size
               const getSpanClasses = () => {
                 switch (image.size) {
                   case 'extraWide':
-                    return 'col-span-3 row-span-1'; // 3x1 (full width)
+                    // Desktop: 3x1 (full width), Mobile: 1x1 (one column)
+                    return 'lg:col-span-3 col-span-1 row-span-1';
                   case 'wide':
-                    return 'col-span-2 row-span-1'; // 2x1 (double width)
+                    // Desktop: 2x1 (double width), Mobile: 1x1 (one column)
+                    return 'lg:col-span-2 col-span-1 row-span-1';
                   case 'tall':
-                    return 'col-span-1 row-span-2'; // 1x2 (vertical)
+                    // Both: 1x2 (vertical - one column, two rows)
+                    return 'col-span-1 row-span-2';
                   default:
-                    return 'col-span-1 row-span-1'; // 1x1 (standard)
+                    // Both: 1x1 (standard - one column, one row)
+                    return 'col-span-1 row-span-1';
                 }
               };
               
