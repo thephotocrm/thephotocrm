@@ -23,24 +23,22 @@ function useMasonryGrid(imageCount: number) {
     if (!grid) return;
 
     const ROW = 2; // matches auto-rows-[2px]
-    const getGap = () => {
-      const s = getComputedStyle(grid);
-      return parseFloat(s.rowGap || "0") || 0;
+    const getMargin = (el: HTMLElement) => {
+      const s = getComputedStyle(el);
+      return parseFloat(s.marginBottom || "0") || 0;
     };
-
-    let gap = getGap();
 
     const setSpan = (el: HTMLElement) => {
       // Reset gridRowEnd first to get accurate scrollHeight measurement
       el.style.gridRowEnd = "";
-      const h = el.scrollHeight;
+      const margin = getMargin(el);
+      const h = el.scrollHeight + margin; // Include margin in height
       if (!h) return;
-      const rows = Math.ceil((h + gap) / (ROW + gap));
+      const rows = Math.ceil(h / ROW);
       el.style.gridRowEnd = `span ${rows}`;
     };
 
     const refresh = () => {
-      gap = getGap();
       grid.querySelectorAll<HTMLElement>("[data-masonry-item]").forEach(setSpan);
     };
 
@@ -441,7 +439,7 @@ export default function ClientGalleryView() {
         ) : (
           <div 
             ref={gridRef}
-            className="grid grid-cols-2 lg:grid-cols-3 gap-1 lg:gap-4 auto-rows-[2px]" 
+            className="grid grid-cols-2 lg:grid-cols-3 gap-x-1 lg:gap-x-4 gap-y-0 auto-rows-[2px]" 
             style={{ gridAutoFlow: 'dense' }}
           >
             {imagesWithLayout.map((image: any, index: number) => {
@@ -455,7 +453,7 @@ export default function ClientGalleryView() {
               return (
                 <Card 
                   key={image.id}
-                  className={`border-0 overflow-hidden group cursor-pointer hover:shadow-xl transition-all duration-300 rounded-none ${colSpanClass}`}
+                  className={`border-0 overflow-hidden group cursor-pointer hover:shadow-xl transition-all duration-300 rounded-none mb-1 lg:mb-4 ${colSpanClass}`}
                   onClick={() => openLightbox(index)}
                   data-testid={`image-card-${index}`}
                   data-masonry-item
