@@ -1,0 +1,128 @@
+Situation
+
+You want: 3 cols (desktop) / 2 cols (mobile), horizontals = 1×1 except every 5th horizontal = 2×2, verticals = 1×2, and no gaps. You’re on CSS Grid with gridAutoRows:'min-content' causing gaps.
+
+Assumptions / Constraints
+
+Tailwind + React + shadcn cards.
+
+Cropping with object-cover is acceptable.
+
+You can run a small client-side layout script.
+
+Options / Trade-offs
+
+Stay on CSS Grid, switch to masonry-style row spans (tiny auto-rows + JS to set grid-row-end). Supports 1×1, 1×2, 2×2 and keeps order.
+
+Go back to react-masonry-css (no gaps, but no true 2×2 spanning).
+
+Recommendation
+
+Choose (1). Replace gridAutoRows:'min-content' with a small fixed track and compute row spans. Drive 2×2 selection by counting horizontals.
+
+Implementation (drop-in)
+1) Grid container
+<div
+  ref={gridRef}
+  className="grid grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-4 auto-rows-[8px]"
+  style={{ gridAutoFlow: 'dense' }}   // keep dense for better packing
+>
+  {laidOut.map((img) => (
+    <Card key={img.id}
+      className={`overflow-hidden rounded-none ${img.featured ? 'col-span-2' : 'col-span-1'}`}
+      data-masonry-item
+    >
+      <div className={img.shapeClass}>
+        <img src={img.url} alt={img.alt ?? ''} className="absolute inset-0 w-full h-full object-cover" loading="lazy" />
+      </div>
+    </Card>
+  ))}
+</div>
+
+2) Precompute which tiles are vertical / horizontal and “every 5th horizontal”
+// decide shapes before render
+function layoutImages(images: {id:string; url:string; w:number; h:number;}[]) {
+  let horizCount = 0;
+  return images.map(img => {
+    const isVertical = img.h > img.w * 1.2;
+    let featured = false;
+
+    if (!isVertical) {         // horizontal
+      horizCount += 1;
+      if (horizCount % 5 === 0) featured = true;  // every 5th horizontal => 2×2
+    }
+
+    return {
+      ...img,
+      isVertical,
+      featured,                                    // 2×2 when true
+      shapeClass: isVertical
+        ? "relative w-full aspect-[1/2]"           // 1×2
+        : "relative w-full aspect-square"          // 1×1 (or 2×2 when col-span-2)
+    };
+  });
+}
+
+
+Use it:
+
+const laidOut = layoutImages(imagesWithDimensions);
+
+3) Masonry row-span calculation (removes gaps)
+import { useEffect, useRef } from 'react';
+
+const ROW = 8;  // must match auto-rows-[8px]
+const GAP = 12; // must match gap-3 (12px). If lg:gap-4 is active, recalc on resize.
+
+function useMasonryGrid() {
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const grid = ref.current;
+    if (!grid) return;
+
+    const items = Array.from(grid.querySelectorAll<HTMLElement>('[data-masonry-item]'));
+
+    const setSpan = (el: HTMLElement) => {
+      const box = el.firstElementChild as HTMLElement; // the aspect wrapper
+      const h = box.getBoundingClientRect().height;
+      const rows = Math.ceil((h + GAP) / (ROW + GAP));
+      el.style.gridRowEnd = `span ${rows}`;
+    };
+
+    const resizeAll = () => items.forEach(setSpan);
+
+    // Recalc on container resize + image load
+    const ro = new ResizeObserver(resizeAll);
+    ro.observe(grid);
+
+    items.forEach(el => {
+      setSpan(el);
+      el.querySelectorAll('img').forEach(img => {
+        if (img.complete) setSpan(el);
+        else img.addEventListener('load', () => setSpan(el), { once: true });
+      });
+    });
+
+    // update GAP when lg:gap-4 kicks in
+    const mq = window.matchMedia('(min-width:1024px)');
+    const syncGap = () => { /* optional: set GAP=16 when mq.matches else 12, then resizeAll() */ };
+    mq.addEventListener?.('change', syncGap);
+
+    return () => { ro.disconnect(); mq.removeEventListener?.('change', syncGap); };
+  }, []);
+
+  return ref;
+}
+
+
+Use it:
+
+const gridRef = useMasonryGrid();
+
+
+Why this fixes gaps
+
+auto-rows-[8px] creates uniform tiny row units.
+
+Each tile’s wrapper enforces its shape (1×1 or 1×2), and JS sets grid-row-end: span N to match its real rendered height, so neighbors don’t inherit oversized rows.
