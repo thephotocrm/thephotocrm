@@ -107,7 +107,8 @@ export const photographers = pgTable("photographers", {
   brandSecondary: text("brand_secondary"),
   emailFromName: text("email_from_name"),
   emailFromAddr: text("email_from_addr"),
-  phone: text("phone"), // Photographer's phone for two-way SMS relay
+  phone: text("phone"), // Photographer's business phone for two-way SMS relay
+  personalPhone: text("personal_phone"), // Photographer's personal phone for test automations
   timezone: text("timezone").notNull().default("America/New_York"),
   // Widget Integration
   publicToken: varchar("public_token").unique().default(sql`gen_random_uuid()`),
