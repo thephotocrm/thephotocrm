@@ -1,0 +1,136 @@
+1️⃣ Instant Email (T = 0 min)
+
+Subject: Got your wedding inquiry 🎉 — let’s plan something beautiful
+
+Hi {{first_name}},
+
+Thank you so much for reaching out about your wedding!  
+I’m thrilled to hear from you and can’t wait to learn about your day, your venue, and the vision you have for your photos.
+
+Here’s the quickest next step — pick a time that works for you:  
+{{scheduler_link}}
+
+If you’d like a little inspiration, here’s a short highlight gallery from recent weddings:  
+{{smartfile_portfolio_link}}
+
+Talk soon,  
+{{photographer_name}}
+
+
+🧠 Sets warmth, professionalism, and instant credibility. Gives a visual and a clear action.
+
+2️⃣ Instant SMS (≈1 min after email)
+Hey {{first_name}}! This is {{business_name}} — thanks for reaching out about your wedding 🎉  
+Excited to hear what you’re planning!  
+You can grab a quick time to chat here: {{scheduler_link}}
+
+
+🧠 Confirms legitimacy and keeps you top-of-mind on mobile.
+
+3️⃣ Follow-Up Email (T = +6 hours)
+
+Subject: A little wedding inspiration for you 💐
+
+Hi {{first_name}},
+
+I pulled together a few of my favorite wedding stories — full of candid moments, beautiful details, and the kind of emotion that lasts a lifetime.
+
+Take a look here:  
+{{smartfile_portfolio_link}}
+
+Every wedding is different, and I’d love to hear what matters most to you.  
+You can pick a time here to chat about it:  
+{{scheduler_link}}
+
+– {{photographer_name}}
+
+
+🧠 Visual proof + emotional tone while the lead is still warm.
+
+4️⃣ Reminder Email (T = +24 hours)
+
+Subject: Still searching for the right wedding photographer?
+
+Hi {{first_name}},
+
+Just checking in in case my last note got buried — are you still looking for your wedding photographer?  
+I’d love to hear about your venue and what kind of photos feel “you.”
+
+Here’s my calendar again if it’s easier to grab a time:  
+{{scheduler_link}}
+
+– {{photographer_name}}
+
+
+🧠 Keeps the conversation alive without sounding pushy; focuses on their needs.
+
+5️⃣ Social Proof Email (T = +48 hours)
+
+Subject: What our couples say about working with us 💬
+
+Hi {{first_name}},
+
+I thought you’d enjoy hearing directly from our couples — how they felt, what they loved most, and what surprised them about their photos.
+
+You can see their stories and favorite images here:  
+{{smartfile_testimonials_link}}
+
+If you’d like, I can hold {{event_date}} on my calendar for a couple of days while we chat.  
+Just reply or book here: {{scheduler_link}}
+
+– {{photographer_name}}
+
+
+🧠 Validates you through others — builds trust before price ever comes up.
+
+6️⃣ Hold-Offer Email (T = +4 days)
+
+Subject: Want me to hold your wedding date?
+
+Hi {{first_name}},
+
+Popular weekends book up quickly, and I’d hate for you to miss your date if you’re still deciding.  
+I’m happy to place a **48-hour soft hold** on {{event_date}} while we talk details — no pressure at all.
+
+Just reply “Hold it” or grab a call here:  
+{{scheduler_link}}
+
+– {{photographer_name}}
+
+
+🧠 Creates gentle urgency; invites a micro-commitment (“Hold it”) that often leads to booking.
+
+7️⃣ Story Gallery Email (T = +7 days)
+
+Subject: Imagine your wedding photos like this ✨
+
+Hi {{first_name}},
+
+I just posted a new wedding gallery that captures exactly what most couples tell me they want — real emotion, relaxed moments, and timeless color.
+
+Take a look here:  
+{{smartfile_story_link}}
+
+If you’d like to chat through what your own story could look like, here’s my link:  
+{{scheduler_link}}
+
+– {{photographer_name}}
+
+
+🧠 Re-engages cold leads through emotion and visualization — “I want photos like that.”
+
+8️⃣ Final Check Email (T = +14 days)
+
+Subject: Should I keep {{event_date}} open for you?
+
+Hi {{first_name}},
+
+I don’t want to fill your inbox, but before I close out my calendar, I wanted to check — should I keep {{event_date}} open for you?
+
+If you’re still deciding, I’m happy to answer questions or customize coverage for your day.  
+Otherwise, I’ll release the hold so another couple can book it.
+
+Here’s my calendar one more time:  
+{{scheduler_link}}
+
+– {{photographer_name}}
