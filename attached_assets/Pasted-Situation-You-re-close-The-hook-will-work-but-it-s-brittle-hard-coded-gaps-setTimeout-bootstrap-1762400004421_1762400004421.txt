@@ -1,0 +1,172 @@
+Situation
+
+You’re close. The hook will work, but it’s brittle: hard-coded gaps, setTimeout bootstrap, window-resize only, and measuring the <img> (ignores card padding/borders).
+
+Assumptions / Constraints
+
+Tailwind: grid grid-cols-2 lg:grid-cols-3 auto-rows-[8px] gap-1 lg:gap-4.
+
+Cards can change (filters, infinite scroll).
+
+No cropping; images are w-full h-auto.
+
+Options / Trade-offs
+
+Keep your approach and add a few guards (quickest).
+
+Make it robust: read real gap from CSS, observe size changes, and handle DOM mutations.
+
+Recommendation
+
+Upgrade to a resilient, low-maintenance hook:
+
+Measure the tile (not the <img>), so padding/borders are included.
+
+Read the real gap from CSS via getComputedStyle (no magic numbers).
+
+ResizeObserver on the grid (and items) instead of window resize.
+
+MutationObserver so newly inserted items span correctly.
+
+rAF-throttled recalcs, no setTimeout bootstrap.
+
+Improved hook (drop-in)
+import { useLayoutEffect, useRef } from "react";
+
+export function useMasonryGrid(itemSelector = "[data-masonry-item]") {
+  const ref = useRef<HTMLDivElement>(null);
+
+  useLayoutEffect(() => {
+    const grid = ref.current;
+    if (!grid) return;
+
+    const autoRowPx = 8; // must match auto-rows-[8px]
+    const q = (root = grid) =>
+      Array.from(root.querySelectorAll<HTMLElement>(itemSelector));
+
+    const getGap = () => {
+      const s = getComputedStyle(grid);
+      // row-gap == column-gap in Tailwind's gap-* utilities
+      const g = parseFloat(s.rowGap || "0");
+      return Number.isFinite(g) ? g : 0;
+    };
+
+    let gap = getGap();
+    let frame = 0;
+
+    const spanOne = (el: HTMLElement) => {
+      // Measure the whole tile, not just the <img>
+      const h = el.getBoundingClientRect().height;
+      if (!h) return;
+      const rows = Math.ceil((h + gap) / (autoRowPx + gap));
+      el.style.gridRowEnd = `span ${rows}`;
+    };
+
+    const spanAll = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => {
+        gap = getGap();            // gap can change at breakpoints
+        q().forEach(spanOne);
+      });
+    };
+
+    // Recalc on grid resize (layout/screen/columns change)
+    const ro = new ResizeObserver(spanAll);
+    ro.observe(grid);
+
+    // Recalc when images load (per item)
+    const onImgLoad = (e: Event) => {
+      const el = (e.currentTarget as HTMLImageElement)?.closest(itemSelector) as HTMLElement | null;
+      if (el) spanOne(el);
+    };
+
+    // Attach load listeners to current imgs
+    const bindImgListeners = (root: ParentNode = grid) => {
+      const imgs = Array.from(root.querySelectorAll<HTMLImageElement>(`${itemSelector} img`));
+      imgs.forEach(img => {
+        if (img.complete) {
+          const tile = img.closest(itemSelector) as HTMLElement | null;
+          if (tile) spanOne(tile);
+        } else {
+          img.addEventListener("load", onImgLoad, { once: true });
+        }
+      });
+    };
+
+    bindImgListeners();
+    spanAll();
+
+    // Handle dynamic insert/remove (infinite scroll, filters)
+    const mo = new MutationObserver((mutations) => {
+      let changed = false;
+      for (const m of mutations) {
+        if (m.type === "childList") {
+          m.addedNodes.forEach(node => {
+            if (!(node instanceof HTMLElement)) return;
+            if (node.matches?.(itemSelector)) {
+              bindImgListeners(node);
+              changed = true;
+            } else if (node.querySelector?.(itemSelector)) {
+              bindImgListeners(node);
+              changed = true;
+            }
+          });
+        }
+      }
+      if (changed) spanAll();
+    });
+    mo.observe(grid, { childList: true, subtree: true });
+
+    return () => {
+      cancelAnimationFrame(frame);
+      ro.disconnect();
+      mo.disconnect();
+    };
+  }, [itemSelector]);
+
+  return ref;
+}
+
+
+Usage
+
+const gridRef = useMasonryGrid();
+
+<div
+  ref={gridRef}
+  className="grid grid-cols-2 lg:grid-cols-3 gap-1 lg:gap-4 auto-rows-[8px]"
+  style={{ gridAutoFlow: "dense" }}
+>
+  {imagesWithLayout.map(img => {
+    const isVertical = img.h > img.w * 1.2;
+    const isFeaturedHorizontal = !isVertical && img.featured; // every 5th rule below
+    const col = isFeaturedHorizontal ? "col-span-2" : "col-span-1";
+    return (
+      <Card key={img.id} className={`overflow-hidden rounded-none ${col}`} data-masonry-item>
+        <img src={img.url} alt={img.alt ?? ""} className="block w-full h-auto" loading="lazy" />
+      </Card>
+    );
+  })}
+</div>
+
+
+Every 5th horizontal = 2×2
+
+function markFeaturedHorizontals<T extends { w:number; h:number }>(arr: T[]) {
+  let count = 0;
+  return arr.map(it => {
+    const isVertical = it.h > it.w * 1.2;
+    const featured = !isVertical && (++count % 5 === 0);
+    return { ...it, featured };
+  });
+}
+
+Next Actions
+
+Replace your hook with the improved version (no hard-coded gaps, no setTimeout).
+
+Ensure container uses auto-rows-[8px] and Tailwind gaps; the hook reads the actual gap at each breakpoint.
+
+Apply the “every 5th horizontal” pre-pass and set col-span-2 when featured.
+
+Keep images w-full h-auto (no cropping).
