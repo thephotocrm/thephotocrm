@@ -6456,11 +6456,26 @@ ${photographer?.businessName || 'Your Photography Team'}`;
               continue;
             }
 
+            // Build template variables
+            const variables: Record<string, string> = {
+              first_name: testContact.name?.split(' ')[0] || testContact.name || '',
+              last_name: testContact.name?.split(' ').slice(1).join(' ') || '',
+              full_name: testContact.name || '',
+              business_name: photographer.businessName || '',
+              photographer_name: photographer.photographerName || photographer.businessName || '',
+              contact_email: testContact.email || '',
+              contact_phone: testContact.phone || '',
+              project_name: testProject.name || '',
+              event_date: testProject.eventDate || '',
+              scheduler_link: `https://${process.env.REPLIT_DEV_DOMAIN}/booking/${photographer.publicToken}`,
+              calendar_link: `https://${process.env.REPLIT_DEV_DOMAIN}/booking/${photographer.publicToken}`,
+            };
+
             let message: string;
             
             if (step.customSmsContent) {
               // Use custom SMS content
-              message = renderSmsTemplate(step.customSmsContent, testContact, testProject, photographer);
+              message = renderSmsTemplate(step.customSmsContent, variables);
             } else if (step.templateId) {
               // Use template
               const template = templates.find(t => t.id === step.templateId);
@@ -6468,7 +6483,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
                 errors.push(`Step ${step.id}: No template found`);
                 continue;
               }
-              message = renderSmsTemplate(template.textBody || '', testContact, testProject, photographer);
+              message = renderSmsTemplate(template.textBody || '', variables);
             } else {
               errors.push(`Step ${step.id}: No message content configured`);
               continue;
