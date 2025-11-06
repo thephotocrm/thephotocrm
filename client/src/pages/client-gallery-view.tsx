@@ -70,14 +70,19 @@ function useMasonryGrid(imageCount: number) {
           }
         });
 
-        // Only set up observers if browser supports them
-        let ro: ResizeObserver | null = null;
-        if (typeof ResizeObserver !== 'undefined') {
-          ro = new ResizeObserver(refresh);
-          ro.observe(grid);
-        }
+        // Debounced resize handler - waits for user to finish resizing
+        let resizeTimer: ReturnType<typeof setTimeout> | null = null;
+        const handleResize = () => {
+          if (resizeTimer) clearTimeout(resizeTimer);
+          resizeTimer = setTimeout(() => {
+            GAP = window?.matchMedia?.('(min-width:1024px)')?.matches ? GAP_LG : GAP_SM;
+            refresh();
+          }, 150); // Wait 150ms after resize stops
+        };
 
-        // Media query listener
+        window.addEventListener('resize', handleResize);
+
+        // Media query listener for breakpoint changes
         let mq: MediaQueryList | null = null;
         let mqHandler: (() => void) | null = null;
         if (window.matchMedia) {
@@ -90,7 +95,8 @@ function useMasonryGrid(imageCount: number) {
         }
 
         return () => {
-          ro?.disconnect();
+          if (resizeTimer) clearTimeout(resizeTimer);
+          window.removeEventListener('resize', handleResize);
           if (mq && mqHandler) {
             mq.removeEventListener?.('change', mqHandler);
           }
