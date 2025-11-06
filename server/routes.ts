@@ -6339,6 +6339,171 @@ ${photographer?.businessName || 'Your Photography Team'}`;
     }
   });
 
+  // Test automation - sends immediately to photographer's own contact info
+  app.post("/api/automations/:id/test", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
+    try {
+      // Verify automation belongs to this photographer
+      const automations = await storage.getAutomationsByPhotographer(req.user!.photographerId!);
+      const automation = automations.find(a => a.id === req.params.id);
+      
+      if (!automation) {
+        return res.status(404).json({ message: "Automation not found" });
+      }
+
+      // Get photographer info
+      const photographer = await storage.getPhotographer(req.user!.photographerId!);
+      if (!photographer) {
+        return res.status(404).json({ message: "Photographer not found" });
+      }
+
+      // Get automation steps
+      const steps = await storage.getAutomationSteps(req.params.id);
+      
+      if (steps.length === 0) {
+        return res.status(400).json({ message: "No steps configured for this automation" });
+      }
+
+      const { sendEmail, renderTemplate } = await import('./services/email.js');
+      const { sendSms, renderSmsTemplate } = await import('./services/sms.js');
+
+      // Prepare test contact data (using photographer's own info)
+      const testContact = {
+        id: 'test-contact-id',
+        photographerId: photographer.id,
+        name: photographer.photographerName || photographer.businessName || 'Test Contact',
+        email: photographer.email || '',
+        phone: photographer.phone || '',
+        source: 'TEST',
+        stage: 'TEST',
+        projectType: 'WEDDING',
+        eventDate: new Date().toISOString(),
+        budget: 5000,
+        notes: 'This is a test automation message',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+
+      // Test project data
+      const testProject = {
+        id: 'test-project-id',
+        photographerId: photographer.id,
+        contactId: testContact.id,
+        name: 'Test Wedding Project',
+        email: photographer.email || '',
+        phone: photographer.phone || '',
+        stageId: automation.stageId || '',
+        projectType: 'WEDDING',
+        eventDate: new Date().toISOString(),
+        status: 'ACTIVE',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+
+      let sentCount = 0;
+      const errors: string[] = [];
+
+      // Send test for each step (ignoring delays)
+      for (const step of steps) {
+        try {
+          if (automation.channel === 'EMAIL') {
+            // Get template
+            const template = step.templateId ? await storage.getTemplate(step.templateId) : null;
+            
+            if (!template) {
+              errors.push(`Step ${step.id}: No template found`);
+              continue;
+            }
+
+            // Validate recipient email
+            if (!photographer.email) {
+              errors.push(`Step ${step.id}: Photographer email not configured`);
+              continue;
+            }
+
+            // Render template with test data
+            const { subject, htmlBody, textBody } = renderTemplate(template, testContact, testProject, photographer);
+
+            // Send email
+            const fromEmail = process.env.SENDGRID_FROM_EMAIL || 'notifications@scoop.photo';
+            const fromName = photographer.emailFromName || photographer.businessName || 'Scoop Photography';
+            const replyToEmail = photographer.emailFromAddr || process.env.SENDGRID_REPLY_TO || fromEmail;
+
+            const success = await sendEmail({
+              to: photographer.email,
+              from: `${fromName} <${fromEmail}>`,
+              replyTo: `${fromName} <${replyToEmail}>`,
+              subject: `[TEST] ${subject}`,
+              text: textBody,
+              html: htmlBody
+            });
+
+            if (success) {
+              sentCount++;
+            } else {
+              errors.push(`Step ${step.id}: Failed to send email`);
+            }
+
+          } else if (automation.channel === 'SMS') {
+            // Validate recipient phone
+            if (!photographer.phone) {
+              errors.push(`Step ${step.id}: Photographer phone number not configured`);
+              continue;
+            }
+
+            let message: string;
+            
+            if (step.customSmsContent) {
+              // Use custom SMS content
+              message = renderSmsTemplate(step.customSmsContent, testContact, testProject, photographer);
+            } else if (step.templateId) {
+              // Use template
+              const template = await storage.getTemplate(step.templateId);
+              if (!template) {
+                errors.push(`Step ${step.id}: No template found`);
+                continue;
+              }
+              message = renderSmsTemplate(template.textBody || '', testContact, testProject, photographer);
+            } else {
+              errors.push(`Step ${step.id}: No message content configured`);
+              continue;
+            }
+
+            // Add [TEST] prefix
+            message = `[TEST] ${message}`;
+
+            // Send SMS
+            const success = await sendSms(photographer.phone, message);
+
+            if (success) {
+              sentCount++;
+            } else {
+              errors.push(`Step ${step.id}: Failed to send SMS`);
+            }
+          }
+        } catch (stepError: any) {
+          console.error(`Error sending test for step ${step.id}:`, stepError);
+          errors.push(`Step ${step.id}: ${stepError.message}`);
+        }
+      }
+
+      const response: any = {
+        message: `Test automation completed. Sent ${sentCount} out of ${steps.length} messages.`,
+        sentCount,
+        totalSteps: steps.length,
+        recipient: automation.channel === 'EMAIL' ? photographer.email : photographer.phone
+      };
+
+      if (errors.length > 0) {
+        response.errors = errors;
+      }
+
+      res.json(response);
+    } catch (error) {
+      console.error('Test automation error:', error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   // Setup default Wedding inquiry automations
   app.post("/api/automations/setup-wedding-inquiry-defaults", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
