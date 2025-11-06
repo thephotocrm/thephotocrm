@@ -455,7 +455,7 @@ export default function ClientGalleryView() {
               return (
                 <Card 
                   key={image.id}
-                  className={`overflow-hidden group cursor-pointer hover:shadow-xl transition-all duration-300 rounded-none ${colSpanClass}`}
+                  className={`border-0 overflow-hidden group cursor-pointer hover:shadow-xl transition-all duration-300 rounded-none ${colSpanClass}`}
                   onClick={() => openLightbox(index)}
                   data-testid={`image-card-${index}`}
                   data-masonry-item
