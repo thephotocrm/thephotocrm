@@ -6367,12 +6367,13 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       const { sendSms, renderSmsTemplate } = await import('./services/sms.js');
 
       // Prepare test contact data (using photographer's own info)
+      // Use personalPhone for SMS tests (dedicated test number), regular email for email tests
       const testContact = {
         id: 'test-contact-id',
         photographerId: photographer.id,
         name: photographer.photographerName || photographer.businessName || 'Test Contact',
         email: photographer.email || '',
-        phone: photographer.phone || '',
+        phone: photographer.personalPhone || photographer.phone || '',
         source: 'TEST',
         stage: 'TEST',
         projectType: 'WEDDING',
@@ -6390,7 +6391,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
         contactId: testContact.id,
         name: 'Test Wedding Project',
         email: photographer.email || '',
-        phone: photographer.phone || '',
+        phone: photographer.personalPhone || photographer.phone || '',
         stageId: automation.stageId || '',
         projectType: 'WEDDING',
         eventDate: new Date().toISOString(),
@@ -6444,9 +6445,10 @@ ${photographer?.businessName || 'Your Photography Team'}`;
             }
 
           } else if (automation.channel === 'SMS') {
-            // Validate recipient phone
-            if (!photographer.phone) {
-              errors.push(`Step ${step.id}: Photographer phone number not configured`);
+            // Validate recipient phone - use personalPhone if available, fall back to business phone
+            const recipientPhone = photographer.personalPhone || photographer.phone;
+            if (!recipientPhone) {
+              errors.push(`Step ${step.id}: Personal phone number not configured in settings`);
               continue;
             }
 
@@ -6472,7 +6474,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
             message = `[TEST] ${message}`;
 
             // Send SMS
-            const success = await sendSms(photographer.phone, message);
+            const success = await sendSms(recipientPhone, message);
 
             if (success) {
               sentCount++;
@@ -6490,7 +6492,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
         message: `Test automation completed. Sent ${sentCount} out of ${steps.length} messages.`,
         sentCount,
         totalSteps: steps.length,
-        recipient: automation.channel === 'EMAIL' ? photographer.email : photographer.phone
+        recipient: automation.channel === 'EMAIL' ? photographer.email : (photographer.personalPhone || photographer.phone)
       };
 
       if (errors.length > 0) {
