@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useLayoutEffect, useMemo, useRef } from "react";
 import { useParams } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
@@ -13,73 +13,78 @@ import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { format } from "date-fns";
 
-// Masonry grid hook - calculates row spans based on actual card heights
-// Simple approach that works: measure card after images load, debounced resize
+// Masonry grid hook - sets grid row spans from actual card heights (no cropping)
 function useMasonryGrid(imageCount: number) {
   const ref = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    // Skip if no images
-    if (imageCount === 0) return;
-    
-    const timeoutId = setTimeout(() => {
-      const grid = ref.current;
-      if (!grid) return;
+  useLayoutEffect(() => {
+    if (!imageCount) return;
+    const grid = ref.current;
+    if (!grid) return;
 
-      const ROW = 8; // matches auto-rows-[8px]
-      
-      // Read actual gap from CSS (ChatGPT's fix)
-      const getGap = () => {
-        const s = getComputedStyle(grid);
-        const g = parseFloat(s.rowGap || "0");
-        return Number.isFinite(g) ? g : 0;
-      };
+    const AUTO_ROW = 8; // must match `auto-rows-[8px]`
 
-      let GAP = getGap();
+    const getGap = () => {
+      const s = getComputedStyle(grid);
+      const g = parseFloat(s.rowGap || "0"); // Tailwind gap-* sets row==col
+      return Number.isFinite(g) ? g : 0;
+    };
 
-      const setSpan = (el: HTMLElement) => {
-        // Measure the image height, but set span on the card
-        const img = el.querySelector('img');
-        if (!img) return;
-        const h = img.getBoundingClientRect().height;
-        if (h === 0) return;
-        const rows = Math.ceil((h + GAP) / (ROW + GAP));
-        el.style.gridRowEnd = `span ${rows}`;
-      };
+    let gap = getGap();
 
-      const refresh = () => {
-        GAP = getGap(); // Re-read gap in case it changed
-        const items = Array.from(grid.querySelectorAll<HTMLElement>('[data-masonry-item]'));
-        items.forEach(setSpan);
-      };
+    const setSpan = (tile: HTMLElement) => {
+      // Measure the whole card, not just the <img>
+      const h = tile.getBoundingClientRect().height;
+      if (!h) return;
+      const rows = Math.ceil((h + gap) / (AUTO_ROW + gap));
+      tile.style.gridRowEnd = `span ${rows}`;
+    };
 
-      // Initial setup
-      const items = Array.from(grid.querySelectorAll('[data-masonry-item]'));
-      items.forEach((el) => {
-        const img = (el as HTMLElement).querySelector('img');
-        if (!img) return;
-        if (img.complete) {
-          setSpan(el as HTMLElement);
-        } else {
-          img.addEventListener('load', () => setSpan(el as HTMLElement), { once: true });
-        }
+    const tiles = () =>
+      Array.from(grid.querySelectorAll<HTMLElement>("[data-masonry-item]"));
+
+    const refreshAll = () => {
+      gap = getGap();
+      tiles().forEach(setSpan);
+    };
+
+    // When images load, recalc just their tile
+    const onImgLoad = (e: Event) => {
+      const el = (e.currentTarget as HTMLImageElement).closest(
+        "[data-masonry-item]"
+      ) as HTMLElement | null;
+      if (el) setSpan(el);
+    };
+
+    // Attach to current images
+    const bindImgListeners = () => {
+      tiles().forEach((tile) => {
+        tile.querySelectorAll<HTMLImageElement>("img").forEach((img) => {
+          if (img.complete) setSpan(tile);
+          else img.addEventListener("load", onImgLoad, { once: true });
+        });
       });
+    };
 
-      // Debounced resize
-      let resizeTimer: ReturnType<typeof setTimeout> | null = null;
-      const handleResize = () => {
-        if (resizeTimer) clearTimeout(resizeTimer);
-        resizeTimer = setTimeout(refresh, 150);
-      };
-      window.addEventListener('resize', handleResize);
+    bindImgListeners();
+    refreshAll();
 
-      return () => {
-        if (resizeTimer) clearTimeout(resizeTimer);
-        window.removeEventListener('resize', handleResize);
-      };
-    }, 50);
+    // Observe container size / breakpoint gap changes
+    const ro = new ResizeObserver(() => refreshAll());
+    ro.observe(grid);
 
-    return () => clearTimeout(timeoutId);
+    // Debounced window resize as a fallback (optional)
+    let t: number | null = null;
+    const onResize = () => {
+      if (t) cancelAnimationFrame(t);
+      t = requestAnimationFrame(refreshAll);
+    };
+    window.addEventListener("resize", onResize);
+
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", onResize);
+    };
   }, [imageCount]);
 
   return ref;
