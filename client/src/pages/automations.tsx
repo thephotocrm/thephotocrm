@@ -163,10 +163,22 @@ function AutomationStepManager({ automation, onDelete }: { automation: any, onDe
       return apiRequest("POST", `/api/automations/${automation.id}/test`, {});
     },
     onSuccess: (data: any) => {
-      toast({ 
-        title: "Test sent successfully", 
-        description: `${data.sentCount} message(s) sent to ${data.recipient}. Check your ${automation.channel === 'EMAIL' ? 'email' : 'phone'}.`
-      });
+      // Check if there were any errors
+      if (data.errors && data.errors.length > 0) {
+        // Partial or complete failure
+        const failedCount = data.totalSteps - data.sentCount;
+        toast({ 
+          title: failedCount === data.totalSteps ? "Test failed" : "Test partially completed", 
+          description: `${data.sentCount} of ${data.totalSteps} message(s) sent. ${failedCount} failed: ${data.errors.join(', ')}`,
+          variant: "destructive"
+        });
+      } else {
+        // Complete success
+        toast({ 
+          title: "Test sent successfully", 
+          description: `${data.sentCount} message(s) sent to ${data.recipient}. Check your ${automation.channel === 'EMAIL' ? 'email' : 'phone'}.`
+        });
+      }
     },
     onError: (error: any) => {
       toast({ 
