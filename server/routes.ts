@@ -10,7 +10,7 @@ import { db } from "./db";
 import { authenticateToken, requirePhotographer, requireRole, requireAdmin, requireActiveSubscription, requireGalleryPlan } from "./middleware/auth";
 import { hashPassword, authenticateUser, generateToken } from "./services/auth";
 import { sendEmail, fetchIncomingGmailMessage } from "./services/email";
-import { sendSms } from "./services/sms";
+import { sendSms, renderSmsTemplate } from "./services/sms";
 import { generateDripCampaign, regenerateEmail } from "./services/openai";
 import { uploadImageToCloudinary } from "./services/cloudinary";
 import { tusServer } from "./services/tus-upload";
