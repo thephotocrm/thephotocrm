@@ -6368,11 +6368,12 @@ ${photographer?.businessName || 'Your Photography Team'}`;
 
       // Prepare test contact data (using photographer's own info)
       // Use personalPhone for SMS tests (dedicated test number), regular email for email tests
+      const photographerEmail = photographer.googleEmail || photographer.emailFromAddr || '';
       const testContact = {
         id: 'test-contact-id',
         photographerId: photographer.id,
         name: photographer.photographerName || photographer.businessName || 'Test Contact',
-        email: photographer.email || '',
+        email: photographerEmail,
         phone: photographer.personalPhone || photographer.phone || '',
         source: 'TEST',
         stage: 'TEST',
@@ -6390,7 +6391,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
         photographerId: photographer.id,
         contactId: testContact.id,
         name: 'Test Wedding Project',
-        email: photographer.email || '',
+        email: photographerEmail,
         phone: photographer.personalPhone || photographer.phone || '',
         stageId: automation.stageId || '',
         projectType: 'WEDDING',
@@ -6419,7 +6420,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
             }
 
             // Validate recipient email
-            if (!photographer.email) {
+            if (!photographerEmail) {
               errors.push(`Step ${step.id}: Photographer email not configured`);
               continue;
             }
@@ -6433,7 +6434,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
             const replyToEmail = photographer.emailFromAddr || process.env.SENDGRID_REPLY_TO || fromEmail;
 
             const success = await sendEmail({
-              to: photographer.email,
+              to: photographerEmail,
               from: `${fromName} <${fromEmail}>`,
               replyTo: `${fromName} <${replyToEmail}>`,
               subject: `[TEST] ${subject}`,
@@ -6495,7 +6496,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
         message: `Test automation completed. Sent ${sentCount} out of ${steps.length} messages.`,
         sentCount,
         totalSteps: steps.length,
-        recipient: automation.channel === 'EMAIL' ? photographer.email : (photographer.personalPhone || photographer.phone)
+        recipient: automation.channel === 'EMAIL' ? photographerEmail : (photographer.personalPhone || photographer.phone)
       };
 
       if (errors.length > 0) {
