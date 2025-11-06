@@ -38,8 +38,10 @@ function useMasonryGrid(imageCount: number) {
       let GAP = getGap();
 
       const setSpan = (el: HTMLElement) => {
-        // Measure the entire card, not just the image (ChatGPT's fix)
-        const h = el.getBoundingClientRect().height;
+        // Measure the image height, but set span on the card
+        const img = el.querySelector('img');
+        if (!img) return;
+        const h = img.getBoundingClientRect().height;
         if (h === 0) return;
         const rows = Math.ceil((h + GAP) / (ROW + GAP));
         el.style.gridRowEnd = `span ${rows}`;
