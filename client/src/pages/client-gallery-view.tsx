@@ -22,7 +22,7 @@ function useMasonryGrid(imageCount: number) {
     const grid = ref.current;
     if (!grid) return;
 
-    const ROW = 8; // matches auto-rows-[8px]
+    const ROW = 2; // matches auto-rows-[2px]
     const getGap = () => {
       const s = getComputedStyle(grid);
       return parseFloat(s.rowGap || "0") || 0;
@@ -441,7 +441,7 @@ export default function ClientGalleryView() {
         ) : (
           <div 
             ref={gridRef}
-            className="grid grid-cols-2 lg:grid-cols-3 gap-1 lg:gap-4 auto-rows-[8px]" 
+            className="grid grid-cols-2 lg:grid-cols-3 gap-1 lg:gap-4 auto-rows-[2px]" 
             style={{ gridAutoFlow: 'dense' }}
           >
             {imagesWithLayout.map((image: any, index: number) => {
@@ -549,11 +549,11 @@ export default function ClientGalleryView() {
 
             {/* Main Image */}
             {currentImage && (
-              <div className="w-full h-full flex flex-col items-center justify-center px-12 pt-12 pb-32">
+              <div className="w-full h-full flex flex-col items-center justify-center px-12 py-6">
                 <img
                   src={currentImage.webUrl}
                   alt={currentImage.caption || 'Gallery image'}
-                  className="max-w-full max-h-full object-contain"
+                  className="max-w-full max-h-[calc(90vh-120px)] object-contain"
                   data-testid="lightbox-image"
                 />
                 
