@@ -6519,12 +6519,12 @@ ${photographer?.businessName || 'Your Photography Team'}`;
             message = `[TEST] ${message}`;
 
             // Send SMS
-            const success = await sendSms(recipientPhone, message);
+            const result = await sendSms({ to: recipientPhone, body: message });
 
-            if (success) {
+            if (result.success) {
               sentCount++;
             } else {
-              errors.push(`Step ${step.id}: Failed to send SMS`);
+              errors.push(`Step ${step.id}: Failed to send SMS - ${result.error || 'Unknown error'}`);
             }
           }
         } catch (stepError: any) {
