@@ -18,82 +18,91 @@ function useMasonryGrid(imageCount: number) {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    try {
-      const grid = ref.current;
-      if (!grid || imageCount === 0) return;
+    // Skip if no images to layout
+    if (imageCount === 0) return;
+    
+    // Use a small delay to ensure DOM is ready
+    const timeoutId = setTimeout(() => {
+      try {
+        const grid = ref.current;
+        if (!grid) return;
 
-      const ROW = 8; // matches auto-rows-[8px]
-      const GAP_SM = 4; // gap-1 = 4px
-      const GAP_LG = 16; // lg:gap-4 = 16px
+        const ROW = 8;
+        const GAP_SM = 4;
+        const GAP_LG = 16;
 
-      let GAP = window.matchMedia('(min-width:1024px)').matches ? GAP_LG : GAP_SM;
+        let GAP = window?.matchMedia?.('(min-width:1024px)')?.matches ? GAP_LG : GAP_SM;
 
-      const setSpan = (el: HTMLElement) => {
-        try {
-          const img = el.querySelector('img') as HTMLImageElement | null;
+        const setSpan = (el: HTMLElement) => {
+          try {
+            const img = el.querySelector('img');
+            if (!img) return;
+            const h = img.getBoundingClientRect?.().height || 0;
+            if (h === 0) return;
+            const rows = Math.ceil((h + GAP) / (ROW + GAP));
+            if (el.style) {
+              el.style.gridRowEnd = `span ${rows}`;
+            }
+          } catch (e) {
+            // Silently skip errors on individual items
+          }
+        };
+
+        const refresh = () => {
+          try {
+            if (!ref.current) return;
+            const items = Array.from(ref.current.querySelectorAll('[data-masonry-item]'));
+            items.forEach((el) => setSpan(el as HTMLElement));
+          } catch (e) {
+            // Silently skip refresh errors
+          }
+        };
+
+        // Initial setup
+        const items = Array.from(grid.querySelectorAll('[data-masonry-item]'));
+        items.forEach((el) => {
+          const img = (el as HTMLElement).querySelector('img');
           if (!img) return;
-          const h = img.getBoundingClientRect().height;
-          if (h === 0) return; // Skip if image hasn't rendered yet
-          const rows = Math.ceil((h + GAP) / (ROW + GAP));
-          el.style.gridRowEnd = `span ${rows}`;
-        } catch (error) {
-          console.error('Error setting masonry span:', error);
+          if (img.complete) {
+            setSpan(el as HTMLElement);
+          } else {
+            img.addEventListener('load', () => setSpan(el as HTMLElement), { once: true });
+          }
+        });
+
+        // Only set up observers if browser supports them
+        let ro: ResizeObserver | null = null;
+        if (typeof ResizeObserver !== 'undefined') {
+          ro = new ResizeObserver(refresh);
+          ro.observe(grid);
         }
-      };
 
-      const refresh = () => {
-        try {
-          if (!grid) return;
-          // Re-query items each time to catch newly rendered images
-          const items = Array.from(grid.querySelectorAll<HTMLElement>('[data-masonry-item]'));
-          items.forEach(setSpan);
-        } catch (error) {
-          console.error('Error refreshing masonry:', error);
+        // Media query listener
+        let mq: MediaQueryList | null = null;
+        let mqHandler: (() => void) | null = null;
+        if (window.matchMedia) {
+          mq = window.matchMedia('(min-width:1024px)');
+          mqHandler = () => {
+            GAP = mq?.matches ? GAP_LG : GAP_SM;
+            refresh();
+          };
+          mq.addEventListener?.('change', mqHandler);
         }
-      };
 
-      // Initial setup - wait for images to load
-      const items = Array.from(grid.querySelectorAll<HTMLElement>('[data-masonry-item]'));
-      items.forEach(el => {
-        const img = el.querySelector('img') as HTMLImageElement | null;
-        if (!img) return;
-        if (img.complete) setSpan(el);
-        else img.addEventListener('load', () => setSpan(el), { once: true });
-      });
-
-      // Recalc on container resize
-      const ro = new ResizeObserver(refresh);
-      ro.observe(grid);
-
-      // Update gap on breakpoint change
-      const mq = window.matchMedia('(min-width:1024px)');
-      const onMQ = () => { 
-        GAP = mq.matches ? GAP_LG : GAP_SM; 
-        refresh(); 
-      };
-      if (mq.addEventListener) {
-        mq.addEventListener('change', onMQ);
+        return () => {
+          ro?.disconnect();
+          if (mq && mqHandler) {
+            mq.removeEventListener?.('change', mqHandler);
+          }
+        };
+      } catch (error) {
+        // Silently handle initialization errors
+        console.error('Masonry init error:', error);
       }
+    }, 50); // Small delay to ensure DOM is ready
 
-      // Handle window resize (throttled)
-      let timeoutId: ReturnType<typeof setTimeout> | undefined;
-      const onResize = () => { 
-        if (timeoutId) clearTimeout(timeoutId); 
-        timeoutId = setTimeout(refresh, 100); 
-      };
-      window.addEventListener('resize', onResize);
-
-      return () => {
-        ro.disconnect();
-        if (mq.removeEventListener) {
-          mq.removeEventListener('change', onMQ);
-        }
-        window.removeEventListener('resize', onResize);
-      };
-    } catch (error) {
-      console.error('Error initializing masonry grid:', error);
-    }
-  }, [imageCount]); // Re-run when image count changes
+    return () => clearTimeout(timeoutId);
+  }, [imageCount]);
 
   return ref;
 }
@@ -264,9 +273,7 @@ export default function ClientGalleryView() {
   }, [displayedImages]);
 
   // Use masonry grid hook for gap-free layout (re-runs when image count changes)
-  // Temporarily disabled to debug error
-  const gridRef = useRef<HTMLDivElement>(null);
-  // const gridRef = useMasonryGrid(displayedImages.length > 0 ? displayedImages.length : 0);
+  const gridRef = useMasonryGrid(displayedImages.length);
 
   // Keyboard navigation in lightbox
   useEffect(() => {
