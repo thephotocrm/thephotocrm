@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useParams } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
@@ -12,6 +12,73 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { format } from "date-fns";
+
+// Masonry grid hook - calculates row spans based on actual image heights
+function useMasonryGrid(imageCount: number) {
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const grid = ref.current;
+    if (!grid || imageCount === 0) return;
+
+    const ROW = 8; // matches auto-rows-[8px]
+    const GAP_SM = 4; // gap-1 = 4px
+    const GAP_LG = 16; // lg:gap-4 = 16px
+
+    let GAP = window.matchMedia('(min-width:1024px)').matches ? GAP_LG : GAP_SM;
+
+    const setSpan = (el: HTMLElement) => {
+      const img = el.querySelector('img') as HTMLImageElement | null;
+      if (!img) return;
+      const h = img.getBoundingClientRect().height;
+      const rows = Math.ceil((h + GAP) / (ROW + GAP));
+      el.style.gridRowEnd = `span ${rows}`;
+    };
+
+    const refresh = () => {
+      // Re-query items each time to catch newly rendered images
+      const items = Array.from(grid.querySelectorAll<HTMLElement>('[data-masonry-item]'));
+      items.forEach(setSpan);
+    };
+
+    // Initial setup - wait for images to load
+    const items = Array.from(grid.querySelectorAll<HTMLElement>('[data-masonry-item]'));
+    items.forEach(el => {
+      const img = el.querySelector('img') as HTMLImageElement | null;
+      if (!img) return;
+      if (img.complete) setSpan(el);
+      else img.addEventListener('load', () => setSpan(el), { once: true });
+    });
+
+    // Recalc on container resize
+    const ro = new ResizeObserver(refresh);
+    ro.observe(grid);
+
+    // Update gap on breakpoint change
+    const mq = window.matchMedia('(min-width:1024px)');
+    const onMQ = () => { 
+      GAP = mq.matches ? GAP_LG : GAP_SM; 
+      refresh(); 
+    };
+    mq.addEventListener?.('change', onMQ);
+
+    // Handle window resize (throttled)
+    let t: number | undefined;
+    const onResize = () => { 
+      clearTimeout(t); 
+      t = window.setTimeout(refresh, 100) as unknown as number; 
+    };
+    window.addEventListener('resize', onResize);
+
+    return () => {
+      ro.disconnect();
+      mq.removeEventListener?.('change', onMQ);
+      window.removeEventListener('resize', onResize);
+    };
+  }, [imageCount]); // Re-run when image count changes
+
+  return ref;
+}
 
 export default function ClientGalleryView() {
   const { galleryId } = useParams();
@@ -153,7 +220,7 @@ export default function ClientGalleryView() {
 
   const currentImage = displayedImages[currentImageIndex];
 
-  // Calculate which horizontal images should span 2 columns
+  // Calculate which horizontal images should span 2 columns (featured)
   const imagesWithLayout = useMemo(() => {
     let horizontalCount = 0;
     
@@ -161,21 +228,25 @@ export default function ClientGalleryView() {
       const width = img.width || 1;
       const height = img.height || 1;
       const aspectRatio = width / height;
+      const isVertical = height > width * 1.2; // Portrait orientation
       const isHorizontal = aspectRatio > 1.1; // Landscape orientation
       
-      let spanColumns = 1;
+      let featured = false;
       
       if (isHorizontal) {
         horizontalCount++;
-        // Every 6th horizontal photo spans 2 columns
-        if (horizontalCount % 6 === 0) {
-          spanColumns = 2;
+        // Every 5th horizontal photo is featured (2x width)
+        if (horizontalCount % 5 === 0) {
+          featured = true;
         }
       }
       
-      return { ...img, spanColumns };
+      return { ...img, isVertical, isHorizontal, featured };
     });
   }, [displayedImages]);
+
+  // Use masonry grid hook for gap-free layout (re-runs when image count changes)
+  const gridRef = useMasonryGrid(displayedImages.length);
 
   // Keyboard navigation in lightbox
   useEffect(() => {
@@ -362,7 +433,7 @@ export default function ClientGalleryView() {
         </div>
       )}
 
-      {/* Image Grid - CSS Grid with dense packing */}
+      {/* Image Grid - Masonry with measured row spans (no gaps, no cropping) */}
       <div className="max-w-[1400px] mx-auto px-0 lg:px-8 xl:px-16 py-6">
         {displayedImages.length === 0 ? (
           <Card className="p-12 text-center mx-4">
@@ -378,16 +449,17 @@ export default function ClientGalleryView() {
           </Card>
         ) : (
           <div 
-            className="grid grid-cols-2 lg:grid-cols-3 gap-1 lg:gap-4" 
-            style={{ gridAutoFlow: 'dense', gridAutoRows: 'min-content' }}
+            ref={gridRef}
+            className="grid grid-cols-2 lg:grid-cols-3 gap-1 lg:gap-4 auto-rows-[8px]" 
+            style={{ gridAutoFlow: 'dense' }}
           >
             {imagesWithLayout.map((image: any, index: number) => {
               const isFavorited = favoriteIds.includes(image.id);
               // Use webUrl with Cloudinary transformation for performance
               const displayUrl = image.webUrl?.replace('/upload/', '/upload/q_auto,f_auto,w_1200/') || image.thumbnailUrl;
               
-              // Determine column span
-              const colSpanClass = image.spanColumns === 2 ? 'lg:col-span-2 col-span-1' : 'col-span-1';
+              // Featured horizontals span 2 columns on desktop
+              const colSpanClass = image.featured ? 'lg:col-span-2 col-span-1' : 'col-span-1';
               
               return (
                 <Card 
@@ -395,12 +467,13 @@ export default function ClientGalleryView() {
                   className={`overflow-hidden group cursor-pointer hover:shadow-xl transition-all duration-300 rounded-none ${colSpanClass}`}
                   onClick={() => openLightbox(index)}
                   data-testid={`image-card-${index}`}
+                  data-masonry-item
                 >
                   <div className="relative w-full">
                     <img
                       src={displayUrl}
                       alt={image.caption || `Image ${index + 1}`}
-                      className="w-full h-auto"
+                      className="block w-full h-auto"
                       loading="lazy"
                     />
                     
