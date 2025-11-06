@@ -6403,12 +6403,15 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       let sentCount = 0;
       const errors: string[] = [];
 
+      // Get all templates for this photographer (needed for both EMAIL and SMS)
+      const templates = await storage.getTemplatesByPhotographer(req.user!.photographerId!);
+
       // Send test for each step (ignoring delays)
       for (const step of steps) {
         try {
           if (automation.channel === 'EMAIL') {
             // Get template
-            const template = step.templateId ? await storage.getTemplate(step.templateId) : null;
+            const template = step.templateId ? templates.find(t => t.id === step.templateId) : null;
             
             if (!template) {
               errors.push(`Step ${step.id}: No template found`);
@@ -6459,7 +6462,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
               message = renderSmsTemplate(step.customSmsContent, testContact, testProject, photographer);
             } else if (step.templateId) {
               // Use template
-              const template = await storage.getTemplate(step.templateId);
+              const template = templates.find(t => t.id === step.templateId);
               if (!template) {
                 errors.push(`Step ${step.id}: No template found`);
                 continue;
