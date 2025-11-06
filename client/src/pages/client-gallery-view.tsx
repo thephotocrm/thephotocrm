@@ -264,8 +264,9 @@ export default function ClientGalleryView() {
   }, [displayedImages]);
 
   // Use masonry grid hook for gap-free layout (re-runs when image count changes)
-  // Only run hook if we have images
-  const gridRef = useMasonryGrid(displayedImages.length > 0 ? displayedImages.length : 0);
+  // Temporarily disabled to debug error
+  const gridRef = useRef<HTMLDivElement>(null);
+  // const gridRef = useMasonryGrid(displayedImages.length > 0 ? displayedImages.length : 0);
 
   // Keyboard navigation in lightbox
   useEffect(() => {
