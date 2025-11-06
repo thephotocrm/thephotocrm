@@ -6425,8 +6425,25 @@ ${photographer?.businessName || 'Your Photography Team'}`;
               continue;
             }
 
+            // Build template variables
+            const variables: Record<string, string> = {
+              first_name: testContact.name?.split(' ')[0] || testContact.name || '',
+              last_name: testContact.name?.split(' ').slice(1).join(' ') || '',
+              full_name: testContact.name || '',
+              business_name: photographer.businessName || '',
+              photographer_name: photographer.photographerName || photographer.businessName || '',
+              contact_email: testContact.email || '',
+              contact_phone: testContact.phone || '',
+              project_name: testProject.name || '',
+              event_date: testProject.eventDate || '',
+              scheduler_link: `https://${process.env.REPLIT_DEV_DOMAIN}/booking/${photographer.publicToken}`,
+              calendar_link: `https://${process.env.REPLIT_DEV_DOMAIN}/booking/${photographer.publicToken}`,
+            };
+
             // Render template with test data
-            const { subject, htmlBody, textBody } = renderTemplate(template, testContact, testProject, photographer);
+            const subject = renderTemplate(template.subject || '', variables);
+            const htmlBody = renderTemplate(template.htmlBody || '', variables);
+            const textBody = renderTemplate(template.textBody || '', variables);
 
             // Send email
             const fromEmail = process.env.SENDGRID_FROM_EMAIL || 'notifications@scoop.photo';
