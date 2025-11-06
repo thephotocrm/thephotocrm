@@ -50,7 +50,13 @@ function AutomationStepManager({ automation, onDelete }: { automation: any, onDe
     subject: string;
     htmlBody: string;
     textBody: string;
+    contentBlocks: ContentBlock[];
+    includeHeader: boolean;
+    headerStyle: string;
+    includeSignature: boolean;
+    signatureStyle: string;
   } | null>(null);
+  const [templateEditDialogOpen, setTemplateEditDialogOpen] = useState(false);
 
   const { data: steps = [], isLoading } = useQuery<any[]>({
     queryKey: ["/api/automations", automation.id, "steps"],
@@ -139,11 +145,26 @@ function AutomationStepManager({ automation, onDelete }: { automation: any, onDe
 
   // Update template mutation
   const updateTemplateMutation = useMutation({
-    mutationFn: async (templateData: { id: string; subject?: string; htmlBody?: string; textBody?: string }) => {
+    mutationFn: async (templateData: { 
+      id: string; 
+      subject?: string; 
+      htmlBody?: string; 
+      textBody?: string;
+      contentBlocks?: ContentBlock[];
+      includeHeader?: boolean;
+      headerStyle?: string;
+      includeSignature?: boolean;
+      signatureStyle?: string;
+    }) => {
       return apiRequest("PUT", `/api/templates/${templateData.id}`, {
         subject: templateData.subject,
         htmlBody: templateData.htmlBody,
-        textBody: templateData.textBody
+        textBody: templateData.textBody,
+        contentBlocks: templateData.contentBlocks,
+        includeHeader: templateData.includeHeader,
+        headerStyle: templateData.headerStyle,
+        includeSignature: templateData.includeSignature,
+        signatureStyle: templateData.signatureStyle
       });
     },
     onSuccess: () => {
@@ -151,6 +172,7 @@ function AutomationStepManager({ automation, onDelete }: { automation: any, onDe
       queryClient.invalidateQueries({ queryKey: ["/api/templates"] });
       queryClient.invalidateQueries({ queryKey: ["/api/automations", automation.id, "steps"] });
       setEditingTemplate(null);
+      setTemplateEditDialogOpen(false);
     },
     onError: () => {
       toast({ title: "Failed to update email template", variant: "destructive" });
@@ -534,84 +556,49 @@ function AutomationStepManager({ automation, onDelete }: { automation: any, onDe
                             
                             {/* Template Info or Custom Message */}
                             {template && !isSmartFile ? (
-                              editingTemplate?.id === template.id ? (
-                                // EDIT MODE - Show editable fields
-                                <div className="bg-muted/50 rounded-md p-3 space-y-2">
-                                  <div>
-                                    <Label htmlFor={`edit-subject-${template.id}`} className="text-xs">Subject</Label>
-                                    <Input
-                                      id={`edit-subject-${template.id}`}
-                                      value={editingTemplate.subject}
-                                      onChange={(e) => setEditingTemplate({...editingTemplate, subject: e.target.value})}
-                                      placeholder="Email subject"
-                                      className="text-xs h-8 mt-1"
-                                      data-testid={`input-template-subject-${template.id}`}
-                                    />
-                                  </div>
-                                  <div>
-                                    <Label htmlFor={`edit-body-${template.id}`} className="text-xs">Message Body</Label>
-                                    <Textarea
-                                      id={`edit-body-${template.id}`}
-                                      value={editingTemplate.textBody}
-                                      onChange={(e) => setEditingTemplate({...editingTemplate, textBody: e.target.value})}
-                                      placeholder="Email message"
-                                      className="text-xs min-h-[100px] mt-1 font-mono"
-                                      data-testid={`textarea-template-body-${template.id}`}
-                                    />
-                                  </div>
-                                  <div className="flex gap-1 pt-1">
-                                    <Button
-                                      size="sm"
-                                      variant="default"
-                                      onClick={() => updateTemplateMutation.mutate(editingTemplate)}
-                                      disabled={updateTemplateMutation.isPending}
-                                      className="h-7 text-xs"
-                                      data-testid={`button-save-template-${template.id}`}
-                                    >
-                                      {updateTemplateMutation.isPending ? "Saving..." : "Save"}
-                                    </Button>
-                                    <Button
-                                      size="sm"
-                                      variant="outline"
-                                      onClick={() => setEditingTemplate(null)}
-                                      disabled={updateTemplateMutation.isPending}
-                                      className="h-7 text-xs"
-                                      data-testid={`button-cancel-template-${template.id}`}
-                                    >
-                                      Cancel
-                                    </Button>
-                                  </div>
-                                </div>
-                              ) : (
-                                // VIEW MODE - Show with edit button
-                                <div className="bg-muted/50 rounded-md p-2 text-xs space-y-1">
-                                  <div className="flex items-center justify-between">
-                                    <p className="font-medium">{template.name}</p>
-                                    <Button
-                                      size="sm"
-                                      variant="ghost"
-                                      onClick={() => setEditingTemplate({
+                              // VIEW MODE - Show with edit button
+                              <div className="bg-muted/50 rounded-md p-2 text-xs space-y-1">
+                                <div className="flex items-center justify-between">
+                                  <p className="font-medium">{template.name}</p>
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => {
+                                      // Initialize contentBlocks from template or create default
+                                      const blocks = template.contentBlocks || (template.textBody ? [{
+                                        id: '1',
+                                        type: 'TEXT' as const,
+                                        content: { text: template.textBody }
+                                      }] : []);
+                                      
+                                      setEditingTemplate({
                                         id: template.id,
                                         subject: template.subject || '',
                                         htmlBody: template.htmlBody || '',
-                                        textBody: template.textBody || ''
-                                      })}
-                                      className="h-6 w-6 p-0"
-                                      data-testid={`button-edit-template-${template.id}`}
-                                    >
-                                      <Edit2 className="w-3 h-3" />
-                                    </Button>
-                                  </div>
-                                  {template.subject && (
-                                    <p className="text-muted-foreground">
-                                      <span className="font-medium">Subject:</span> {template.subject}
-                                    </p>
-                                  )}
-                                  <p className="text-muted-foreground line-clamp-2">
-                                    {template.textBody || 'No message content'}
-                                  </p>
+                                        textBody: template.textBody || '',
+                                        contentBlocks: blocks as ContentBlock[],
+                                        includeHeader: template.includeHeader ?? false,
+                                        headerStyle: template.headerStyle || 'professional',
+                                        includeSignature: template.includeSignature ?? true,
+                                        signatureStyle: template.signatureStyle || 'professional'
+                                      });
+                                      setTemplateEditDialogOpen(true);
+                                    }}
+                                    className="h-6 w-6 p-0"
+                                    data-testid={`button-edit-template-${template.id}`}
+                                  >
+                                    <Edit2 className="w-3 h-3" />
+                                  </Button>
                                 </div>
-                              )
+                                {template.subject && (
+                                  <p className="text-muted-foreground">
+                                    <span className="font-medium">Subject:</span> {template.subject}
+                                  </p>
+                                )}
+                                <p className="text-muted-foreground line-clamp-2">
+                                  {template.textBody || 'No message content'}
+                                </p>
+                              </div>
                             ) : step.customSmsContent && !isSmartFile ? (
                               <div className="bg-muted/50 rounded-md p-2 text-xs space-y-1">
                                 <p className="font-medium text-primary">Custom Message</p>
@@ -684,6 +671,90 @@ function AutomationStepManager({ automation, onDelete }: { automation: any, onDe
               </Button>
             </div>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Email Template Edit Dialog */}
+      <Dialog open={templateEditDialogOpen} onOpenChange={setTemplateEditDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Edit Email Template</DialogTitle>
+            <DialogDescription>
+              Use the visual email builder to customize your automation email
+            </DialogDescription>
+          </DialogHeader>
+          {editingTemplate && (
+            <div className="space-y-4">
+              {/* Subject Line */}
+              <div className="space-y-2">
+                <Label htmlFor="template-subject">Email Subject</Label>
+                <Input
+                  id="template-subject"
+                  value={editingTemplate.subject}
+                  onChange={(e) => setEditingTemplate({...editingTemplate, subject: e.target.value})}
+                  placeholder="Email subject line..."
+                  data-testid="input-template-subject-edit"
+                />
+              </div>
+
+              {/* Email Builder and Preview */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <div>
+                  <Label className="mb-2 block">Email Content</Label>
+                  <EmailTemplateBuilder
+                    blocks={editingTemplate.contentBlocks}
+                    onBlocksChange={(blocks) => setEditingTemplate({...editingTemplate, contentBlocks: blocks})}
+                    includeHeader={editingTemplate.includeHeader}
+                    headerStyle={editingTemplate.headerStyle}
+                    includeSignature={editingTemplate.includeSignature}
+                    signatureStyle={editingTemplate.signatureStyle}
+                    onBrandingChange={(branding) => {
+                      setEditingTemplate({
+                        ...editingTemplate,
+                        includeHeader: branding.includeHeader,
+                        headerStyle: branding.headerStyle,
+                        includeSignature: branding.includeSignature,
+                        signatureStyle: branding.signatureStyle
+                      });
+                    }}
+                  />
+                </div>
+                <div>
+                  <Label className="mb-2 block">Preview</Label>
+                  <EmailPreview
+                    subject={editingTemplate.subject}
+                    blocks={editingTemplate.contentBlocks}
+                    includeHeader={editingTemplate.includeHeader}
+                    headerStyle={editingTemplate.headerStyle}
+                    includeSignature={editingTemplate.includeSignature}
+                    signatureStyle={editingTemplate.signatureStyle}
+                  />
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex justify-end gap-2 pt-4 border-t">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setEditingTemplate(null);
+                    setTemplateEditDialogOpen(false);
+                  }}
+                  disabled={updateTemplateMutation.isPending}
+                  data-testid="button-cancel-template-edit"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={() => updateTemplateMutation.mutate(editingTemplate)}
+                  disabled={updateTemplateMutation.isPending}
+                  data-testid="button-save-template-edit"
+                >
+                  {updateTemplateMutation.isPending ? "Saving..." : "Save Template"}
+                </Button>
+              </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>
