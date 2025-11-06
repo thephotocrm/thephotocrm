@@ -43,6 +43,14 @@ function AutomationStepManager({ automation, onDelete }: { automation: any, onDe
     channel: automation.channel,
     enabled: automation.enabled
   });
+  
+  // State for editing template content
+  const [editingTemplate, setEditingTemplate] = useState<{
+    id: string;
+    subject: string;
+    htmlBody: string;
+    textBody: string;
+  } | null>(null);
 
   const { data: steps = [], isLoading } = useQuery<any[]>({
     queryKey: ["/api/automations", automation.id, "steps"],
@@ -126,6 +134,26 @@ function AutomationStepManager({ automation, onDelete }: { automation: any, onDe
     },
     onError: () => {
       toast({ title: "Failed to update automation", variant: "destructive" });
+    }
+  });
+
+  // Update template mutation
+  const updateTemplateMutation = useMutation({
+    mutationFn: async (templateData: { id: string; subject?: string; htmlBody?: string; textBody?: string }) => {
+      return apiRequest("PUT", `/api/templates/${templateData.id}`, {
+        subject: templateData.subject,
+        htmlBody: templateData.htmlBody,
+        textBody: templateData.textBody
+      });
+    },
+    onSuccess: () => {
+      toast({ title: "Email template updated successfully" });
+      queryClient.invalidateQueries({ queryKey: ["/api/templates"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/automations", automation.id, "steps"] });
+      setEditingTemplate(null);
+    },
+    onError: () => {
+      toast({ title: "Failed to update email template", variant: "destructive" });
     }
   });
 
@@ -463,17 +491,84 @@ function AutomationStepManager({ automation, onDelete }: { automation: any, onDe
                             
                             {/* Template Info or Custom Message */}
                             {template && !isSmartFile ? (
-                              <div className="bg-muted/50 rounded-md p-2 text-xs space-y-1">
-                                <p className="font-medium">{template.name}</p>
-                                {template.subject && (
-                                  <p className="text-muted-foreground">
-                                    <span className="font-medium">Subject:</span> {template.subject}
+                              editingTemplate?.id === template.id ? (
+                                // EDIT MODE - Show editable fields
+                                <div className="bg-muted/50 rounded-md p-3 space-y-2">
+                                  <div>
+                                    <Label htmlFor={`edit-subject-${template.id}`} className="text-xs">Subject</Label>
+                                    <Input
+                                      id={`edit-subject-${template.id}`}
+                                      value={editingTemplate.subject}
+                                      onChange={(e) => setEditingTemplate({...editingTemplate, subject: e.target.value})}
+                                      placeholder="Email subject"
+                                      className="text-xs h-8 mt-1"
+                                      data-testid={`input-template-subject-${template.id}`}
+                                    />
+                                  </div>
+                                  <div>
+                                    <Label htmlFor={`edit-body-${template.id}`} className="text-xs">Message Body</Label>
+                                    <Textarea
+                                      id={`edit-body-${template.id}`}
+                                      value={editingTemplate.textBody}
+                                      onChange={(e) => setEditingTemplate({...editingTemplate, textBody: e.target.value})}
+                                      placeholder="Email message"
+                                      className="text-xs min-h-[100px] mt-1 font-mono"
+                                      data-testid={`textarea-template-body-${template.id}`}
+                                    />
+                                  </div>
+                                  <div className="flex gap-1 pt-1">
+                                    <Button
+                                      size="sm"
+                                      variant="default"
+                                      onClick={() => updateTemplateMutation.mutate(editingTemplate)}
+                                      disabled={updateTemplateMutation.isPending}
+                                      className="h-7 text-xs"
+                                      data-testid={`button-save-template-${template.id}`}
+                                    >
+                                      {updateTemplateMutation.isPending ? "Saving..." : "Save"}
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={() => setEditingTemplate(null)}
+                                      disabled={updateTemplateMutation.isPending}
+                                      className="h-7 text-xs"
+                                      data-testid={`button-cancel-template-${template.id}`}
+                                    >
+                                      Cancel
+                                    </Button>
+                                  </div>
+                                </div>
+                              ) : (
+                                // VIEW MODE - Show with edit button
+                                <div className="bg-muted/50 rounded-md p-2 text-xs space-y-1">
+                                  <div className="flex items-center justify-between">
+                                    <p className="font-medium">{template.name}</p>
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      onClick={() => setEditingTemplate({
+                                        id: template.id,
+                                        subject: template.subject || '',
+                                        htmlBody: template.htmlBody || '',
+                                        textBody: template.textBody || ''
+                                      })}
+                                      className="h-6 w-6 p-0"
+                                      data-testid={`button-edit-template-${template.id}`}
+                                    >
+                                      <Edit2 className="w-3 h-3" />
+                                    </Button>
+                                  </div>
+                                  {template.subject && (
+                                    <p className="text-muted-foreground">
+                                      <span className="font-medium">Subject:</span> {template.subject}
+                                    </p>
+                                  )}
+                                  <p className="text-muted-foreground line-clamp-2">
+                                    {template.textBody || 'No message content'}
                                   </p>
-                                )}
-                                <p className="text-muted-foreground line-clamp-2">
-                                  {template.textBody || 'No message content'}
-                                </p>
-                              </div>
+                                </div>
+                              )
                             ) : step.customSmsContent && !isSmartFile ? (
                               <div className="bg-muted/50 rounded-md p-2 text-xs space-y-1">
                                 <p className="font-medium text-primary">Custom Message</p>
