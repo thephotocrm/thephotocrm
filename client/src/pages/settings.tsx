@@ -428,6 +428,7 @@ export default function Settings() {
   // ALL useState hooks MUST be called before any conditional returns
   const [businessName, setBusinessName] = useState("");
   const [photographerName, setPhotographerName] = useState("");
+  const [personalPhone, setPersonalPhone] = useState("");
   const [logoUrl, setLogoUrl] = useState("");
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string>("");
@@ -456,6 +457,7 @@ export default function Settings() {
       const p = photographer as any;
       setBusinessName(p.businessName || "");
       setPhotographerName(p.photographerName || "");
+      setPersonalPhone(p.personalPhone || "");
       setLogoUrl(p.logoUrl || "");
       setLogoPreview(p.logoUrl || "");
       setBrandPrimary(p.brandPrimary || "#3b82f6");
@@ -553,6 +555,7 @@ export default function Settings() {
     updatePhotographerMutation.mutate({
       businessName,
       photographerName: photographerName || undefined,
+      personalPhone: personalPhone || undefined,
       logoUrl: finalLogoUrl || undefined,
       emailFromName: emailFromName || undefined,
       emailFromAddr: emailFromAddr || undefined,
@@ -752,6 +755,20 @@ export default function Settings() {
                         Used in {'{{BUSINESS_NAME}}'} placeholders
                       </p>
                     </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="personalPhone">Personal Phone Number</Label>
+                    <Input
+                      id="personalPhone"
+                      value={personalPhone}
+                      onChange={(e) => setPersonalPhone(e.target.value)}
+                      placeholder="e.g., (555) 123-4567"
+                      data-testid="input-personal-phone"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Used for test automation messages (separate from business phone)
+                    </p>
                   </div>
                   
                   <div className="space-y-2">
