@@ -31,7 +31,9 @@ function useMasonryGrid(imageCount: number) {
     let gap = getGap();
 
     const setSpan = (el: HTMLElement) => {
-      const h = el.getBoundingClientRect().height;
+      // Reset gridRowEnd first to get accurate scrollHeight measurement
+      el.style.gridRowEnd = "";
+      const h = el.scrollHeight;
       if (!h) return;
       const rows = Math.ceil((h + gap) / (ROW + gap));
       el.style.gridRowEnd = `span ${rows}`;
