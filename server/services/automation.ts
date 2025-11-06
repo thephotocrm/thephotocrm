@@ -880,6 +880,13 @@ async function processAutomationStep(contact: any, step: any, automation: any): 
     }
   };
 
+  // Get photographer's public galleries for demo links
+  const publicGalleries = await storage.getPublicGalleries(contact.photographerId);
+  const demoGallery = publicGalleries.find(g => g.id); // Get first available public gallery
+  const demoGalleryLink = demoGallery 
+    ? `${baseUrl}/client/gallery/${demoGallery.publicToken}`
+    : `${baseUrl}/galleries`;
+
   // Prepare variables for template rendering
   const variables = {
     // CamelCase versions
@@ -902,6 +909,9 @@ async function processAutomationStep(contact: any, step: any, automation: any): 
     wedding_date: formatEventDate(contact.eventDate),
     scheduling_link: schedulingLink,
     scheduler_link: schedulingLink, // Alternative spelling
+    gallery_link: demoGalleryLink,
+    demo_gallery_link: demoGalleryLink,
+    testimonials_link: `${baseUrl}/testimonials`, // Placeholder for future feature
     // Uppercase versions for AI-generated placeholders
     SCHEDULING_LINK: schedulingLink,
     PHOTOGRAPHER_NAME: photographer?.photographerName || photographer?.businessName || 'Your Photographer',
