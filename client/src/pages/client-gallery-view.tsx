@@ -13,121 +13,72 @@ import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { format } from "date-fns";
 
-// Masonry grid hook - hybrid approach combining best of both worlds
-// - Measures entire card (not just image) to include padding/borders
-// - Reads actual CSS gaps (no hard-coded values)
-// - Properly waits for images to load before measuring
-// - Uses ResizeObserver and MutationObserver for dynamic updates
-function useMasonryGrid(itemSelector = "[data-masonry-item]") {
+// Masonry grid hook - calculates row spans based on actual card heights
+// Simple approach that works: measure card after images load, debounced resize
+function useMasonryGrid(imageCount: number) {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Small delay to ensure DOM is fully ready
+    // Skip if no images
+    if (imageCount === 0) return;
+    
     const timeoutId = setTimeout(() => {
       const grid = ref.current;
       if (!grid) return;
 
-      const autoRowPx = 8; // must match auto-rows-[8px]
-
+      const ROW = 8; // matches auto-rows-[8px]
+      
+      // Read actual gap from CSS (ChatGPT's fix)
       const getGap = () => {
         const s = getComputedStyle(grid);
         const g = parseFloat(s.rowGap || "0");
         return Number.isFinite(g) ? g : 0;
       };
 
-      let gap = getGap();
-      let frame = 0;
+      let GAP = getGap();
 
-      const spanOne = (el: HTMLElement) => {
-        // Measure the whole card/tile, not just the <img>
+      const setSpan = (el: HTMLElement) => {
+        // Measure the entire card, not just the image (ChatGPT's fix)
         const h = el.getBoundingClientRect().height;
-        if (!h) return;
-        const rows = Math.ceil((h + gap) / (autoRowPx + gap));
+        if (h === 0) return;
+        const rows = Math.ceil((h + GAP) / (ROW + GAP));
         el.style.gridRowEnd = `span ${rows}`;
       };
 
-      const spanAll = () => {
-        cancelAnimationFrame(frame);
-        frame = requestAnimationFrame(() => {
-          gap = getGap(); // gap can change at breakpoints
-          const items = Array.from(grid.querySelectorAll<HTMLElement>(itemSelector));
-          items.forEach(spanOne);
-        });
-      };
-
-      // Recalc when images load (per item)
-      const onImgLoad = (e: Event) => {
-        const el = (e.currentTarget as HTMLImageElement)?.closest(itemSelector) as HTMLElement | null;
-        if (el) {
-          // Small delay to ensure card has settled after image load
-          requestAnimationFrame(() => spanOne(el));
-        }
-      };
-
-      // Attach load listeners to images
-      const bindImgListeners = (root: ParentNode = grid) => {
-        const imgs = Array.from(root.querySelectorAll<HTMLImageElement>(`${itemSelector} img`));
-        imgs.forEach(img => {
-          if (img.complete) {
-            const tile = img.closest(itemSelector) as HTMLElement | null;
-            if (tile) spanOne(tile);
-          } else {
-            img.addEventListener("load", onImgLoad, { once: true });
-          }
-        });
+      const refresh = () => {
+        GAP = getGap(); // Re-read gap in case it changed
+        const items = Array.from(grid.querySelectorAll<HTMLElement>('[data-masonry-item]'));
+        items.forEach(setSpan);
       };
 
       // Initial setup
-      bindImgListeners();
-      spanAll();
+      const items = Array.from(grid.querySelectorAll('[data-masonry-item]'));
+      items.forEach((el) => {
+        const img = (el as HTMLElement).querySelector('img');
+        if (!img) return;
+        if (img.complete) {
+          setSpan(el as HTMLElement);
+        } else {
+          img.addEventListener('load', () => setSpan(el as HTMLElement), { once: true });
+        }
+      });
 
-      // Recalc on grid resize (layout/screen/columns change)
-      const ro = new ResizeObserver(spanAll);
-      ro.observe(grid);
-
-      // Debounced window resize for breakpoint changes
+      // Debounced resize
       let resizeTimer: ReturnType<typeof setTimeout> | null = null;
       const handleResize = () => {
         if (resizeTimer) clearTimeout(resizeTimer);
-        resizeTimer = setTimeout(() => {
-          gap = getGap();
-          spanAll();
-        }, 150);
+        resizeTimer = setTimeout(refresh, 150);
       };
       window.addEventListener('resize', handleResize);
 
-      // Handle dynamic insert/remove (infinite scroll, filters)
-      const mo = new MutationObserver((mutations) => {
-        let changed = false;
-        for (const m of mutations) {
-          if (m.type === "childList") {
-            m.addedNodes.forEach(node => {
-              if (!(node instanceof HTMLElement)) return;
-              if (node.matches?.(itemSelector)) {
-                bindImgListeners(node);
-                changed = true;
-              } else if (node.querySelector?.(itemSelector)) {
-                bindImgListeners(node);
-                changed = true;
-              }
-            });
-          }
-        }
-        if (changed) spanAll();
-      });
-      mo.observe(grid, { childList: true, subtree: true });
-
       return () => {
-        cancelAnimationFrame(frame);
         if (resizeTimer) clearTimeout(resizeTimer);
         window.removeEventListener('resize', handleResize);
-        ro.disconnect();
-        mo.disconnect();
       };
-    }, 50); // Small delay for DOM stability
+    }, 50);
 
     return () => clearTimeout(timeoutId);
-  }, [itemSelector]);
+  }, [imageCount]);
 
   return ref;
 }
@@ -298,7 +249,7 @@ export default function ClientGalleryView() {
   }, [displayedImages]);
 
   // Use masonry grid hook for gap-free layout
-  const gridRef = useMasonryGrid();
+  const gridRef = useMasonryGrid(displayedImages.length);
 
   // Keyboard navigation in lightbox
   useEffect(() => {
