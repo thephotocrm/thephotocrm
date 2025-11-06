@@ -6450,7 +6450,7 @@ I'm thrilled to hear from you and can't wait to learn about your day, your venue
       await storage.createAutomationStep({
         automationId: instantSmsAutomation.id,
         stepIndex: 0,
-        delayMinutes: 1,
+        delayMinutes: 1, // 1 minute delay after email
         actionType: "SMS",
         customSmsContent: "Hey {{first_name}}! This is {{business_name}} — thanks for reaching out about your wedding 🎉 Excited to hear what you're planning! You can grab a quick time to chat here: {{scheduler_link}}",
         enabled: true
