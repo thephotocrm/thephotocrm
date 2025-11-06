@@ -6490,9 +6490,15 @@ ${photographer?.businessName || 'Your Photography Team'}`;
 
             let message: string;
             
+            console.log('🔍 Debug SMS Test - Step:', step);
+            console.log('🔍 Debug SMS Test - Has customSmsContent:', !!step.customSmsContent);
+            console.log('🔍 Debug SMS Test - Has templateId:', !!step.templateId);
+            
             if (step.customSmsContent) {
               // Use custom SMS content
+              console.log('🔍 Debug SMS Test - Using custom SMS content:', step.customSmsContent);
               message = renderSmsTemplate(step.customSmsContent, variables);
+              console.log('🔍 Debug SMS Test - Rendered message:', message);
             } else if (step.templateId) {
               // Use template
               const template = templates.find(t => t.id === step.templateId);
@@ -6500,7 +6506,10 @@ ${photographer?.businessName || 'Your Photography Team'}`;
                 errors.push(`Step ${step.id}: No template found`);
                 continue;
               }
+              console.log('🔍 Debug SMS Test - Using template:', template.name);
+              console.log('🔍 Debug SMS Test - Template textBody:', template.textBody);
               message = renderSmsTemplate(template.textBody || '', variables);
+              console.log('🔍 Debug SMS Test - Rendered message:', message);
             } else {
               errors.push(`Step ${step.id}: No message content configured`);
               continue;
