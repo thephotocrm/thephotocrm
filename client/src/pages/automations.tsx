@@ -157,6 +157,26 @@ function AutomationStepManager({ automation, onDelete }: { automation: any, onDe
     }
   });
 
+  // Test automation mutation
+  const testAutomationMutation = useMutation({
+    mutationFn: async () => {
+      return apiRequest("POST", `/api/automations/${automation.id}/test`, {});
+    },
+    onSuccess: (data: any) => {
+      toast({ 
+        title: "Test sent successfully", 
+        description: `${data.sentCount} message(s) sent to ${data.recipient}. Check your ${automation.channel === 'EMAIL' ? 'email' : 'phone'}.`
+      });
+    },
+    onError: (error: any) => {
+      toast({ 
+        title: "Test failed", 
+        description: error.message || "Failed to send test message",
+        variant: "destructive" 
+      });
+    }
+  });
+
   const handleToggleAutomation = (enabled: boolean) => {
     toggleAutomationMutation.mutate(enabled);
   };
@@ -185,6 +205,16 @@ function AutomationStepManager({ automation, onDelete }: { automation: any, onDe
       <div className="bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white py-2 px-4 flex items-center justify-between">
         <h3 className="text-lg font-bold flex-1">{automation.name}</h3>
         <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className="bg-green-600 text-white hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-800"
+            data-testid={`button-test-automation-${automation.id}`}
+            onClick={() => testAutomationMutation.mutate()}
+            disabled={testAutomationMutation.isPending}
+          >
+            {testAutomationMutation.isPending ? "Sending..." : "Test"}
+          </Button>
           <Button
             variant="outline"
             size="sm"
