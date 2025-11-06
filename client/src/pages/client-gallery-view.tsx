@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useLayoutEffect, useMemo, useRef } from "react";
 import { useParams } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
@@ -13,102 +13,99 @@ import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { format } from "date-fns";
 
-// Masonry grid hook - calculates row spans based on actual image heights
-function useMasonryGrid(imageCount: number) {
+// Masonry grid hook - calculates row spans based on actual card heights
+// Improved version: measures entire card (not just image), reads actual CSS gaps,
+// uses ResizeObserver/MutationObserver for reliability
+function useMasonryGrid(itemSelector = "[data-masonry-item]") {
   const ref = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    // Skip if no images to layout
-    if (imageCount === 0) return;
-    
-    // Use a small delay to ensure DOM is ready
-    const timeoutId = setTimeout(() => {
-      try {
-        const grid = ref.current;
-        if (!grid) return;
+  useLayoutEffect(() => {
+    const grid = ref.current;
+    if (!grid) return;
 
-        const ROW = 8;
-        const GAP_SM = 4;
-        const GAP_LG = 16;
+    const autoRowPx = 8; // must match auto-rows-[8px]
+    const q = (root: ParentNode = grid) =>
+      Array.from(root.querySelectorAll<HTMLElement>(itemSelector));
 
-        let GAP = window?.matchMedia?.('(min-width:1024px)')?.matches ? GAP_LG : GAP_SM;
+    const getGap = () => {
+      const s = getComputedStyle(grid);
+      // row-gap == column-gap in Tailwind's gap-* utilities
+      const g = parseFloat(s.rowGap || "0");
+      return Number.isFinite(g) ? g : 0;
+    };
 
-        const setSpan = (el: HTMLElement) => {
-          try {
-            const img = el.querySelector('img');
-            if (!img) return;
-            const h = img.getBoundingClientRect?.().height || 0;
-            if (h === 0) return;
-            const rows = Math.ceil((h + GAP) / (ROW + GAP));
-            if (el.style) {
-              el.style.gridRowEnd = `span ${rows}`;
-            }
-          } catch (e) {
-            // Silently skip errors on individual items
-          }
-        };
+    let gap = getGap();
+    let frame = 0;
 
-        const refresh = () => {
-          try {
-            if (!ref.current) return;
-            const items = Array.from(ref.current.querySelectorAll('[data-masonry-item]'));
-            items.forEach((el) => setSpan(el as HTMLElement));
-          } catch (e) {
-            // Silently skip refresh errors
-          }
-        };
+    const spanOne = (el: HTMLElement) => {
+      // Measure the whole tile/card, not just the <img>
+      const h = el.getBoundingClientRect().height;
+      if (!h) return;
+      const rows = Math.ceil((h + gap) / (autoRowPx + gap));
+      el.style.gridRowEnd = `span ${rows}`;
+    };
 
-        // Initial setup
-        const items = Array.from(grid.querySelectorAll('[data-masonry-item]'));
-        items.forEach((el) => {
-          const img = (el as HTMLElement).querySelector('img');
-          if (!img) return;
-          if (img.complete) {
-            setSpan(el as HTMLElement);
-          } else {
-            img.addEventListener('load', () => setSpan(el as HTMLElement), { once: true });
-          }
-        });
+    const spanAll = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => {
+        gap = getGap(); // gap can change at breakpoints
+        q().forEach(spanOne);
+      });
+    };
 
-        // Debounced resize handler - waits for user to finish resizing
-        let resizeTimer: ReturnType<typeof setTimeout> | null = null;
-        const handleResize = () => {
-          if (resizeTimer) clearTimeout(resizeTimer);
-          resizeTimer = setTimeout(() => {
-            GAP = window?.matchMedia?.('(min-width:1024px)')?.matches ? GAP_LG : GAP_SM;
-            refresh();
-          }, 150); // Wait 150ms after resize stops
-        };
+    // Recalc on grid resize (layout/screen/columns change)
+    const ro = new ResizeObserver(spanAll);
+    ro.observe(grid);
 
-        window.addEventListener('resize', handleResize);
+    // Recalc when images load (per item)
+    const onImgLoad = (e: Event) => {
+      const el = (e.currentTarget as HTMLImageElement)?.closest(itemSelector) as HTMLElement | null;
+      if (el) spanOne(el);
+    };
 
-        // Media query listener for breakpoint changes
-        let mq: MediaQueryList | null = null;
-        let mqHandler: (() => void) | null = null;
-        if (window.matchMedia) {
-          mq = window.matchMedia('(min-width:1024px)');
-          mqHandler = () => {
-            GAP = mq?.matches ? GAP_LG : GAP_SM;
-            refresh();
-          };
-          mq.addEventListener?.('change', mqHandler);
+    // Attach load listeners to current imgs
+    const bindImgListeners = (root: ParentNode = grid) => {
+      const imgs = Array.from(root.querySelectorAll<HTMLImageElement>(`${itemSelector} img`));
+      imgs.forEach(img => {
+        if (img.complete) {
+          const tile = img.closest(itemSelector) as HTMLElement | null;
+          if (tile) spanOne(tile);
+        } else {
+          img.addEventListener("load", onImgLoad, { once: true });
         }
+      });
+    };
 
-        return () => {
-          if (resizeTimer) clearTimeout(resizeTimer);
-          window.removeEventListener('resize', handleResize);
-          if (mq && mqHandler) {
-            mq.removeEventListener?.('change', mqHandler);
-          }
-        };
-      } catch (error) {
-        // Silently handle initialization errors
-        console.error('Masonry init error:', error);
+    bindImgListeners();
+    spanAll();
+
+    // Handle dynamic insert/remove (infinite scroll, filters)
+    const mo = new MutationObserver((mutations) => {
+      let changed = false;
+      for (const m of mutations) {
+        if (m.type === "childList") {
+          m.addedNodes.forEach(node => {
+            if (!(node instanceof HTMLElement)) return;
+            if (node.matches?.(itemSelector)) {
+              bindImgListeners(node);
+              changed = true;
+            } else if (node.querySelector?.(itemSelector)) {
+              bindImgListeners(node);
+              changed = true;
+            }
+          });
+        }
       }
-    }, 50); // Small delay to ensure DOM is ready
+      if (changed) spanAll();
+    });
+    mo.observe(grid, { childList: true, subtree: true });
 
-    return () => clearTimeout(timeoutId);
-  }, [imageCount]);
+    return () => {
+      cancelAnimationFrame(frame);
+      ro.disconnect();
+      mo.disconnect();
+    };
+  }, [itemSelector]);
 
   return ref;
 }
@@ -278,8 +275,8 @@ export default function ClientGalleryView() {
     });
   }, [displayedImages]);
 
-  // Use masonry grid hook for gap-free layout (re-runs when image count changes)
-  const gridRef = useMasonryGrid(displayedImages.length);
+  // Use masonry grid hook for gap-free layout
+  const gridRef = useMasonryGrid();
 
   // Keyboard navigation in lightbox
   useEffect(() => {
