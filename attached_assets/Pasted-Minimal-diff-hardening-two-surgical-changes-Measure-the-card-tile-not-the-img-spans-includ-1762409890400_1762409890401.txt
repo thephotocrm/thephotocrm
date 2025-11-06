@@ -1,0 +1,109 @@
+Minimal-diff hardening + two surgical changes:
+
+Measure the card (tile) not the <img> → spans include padding/borders and any overlays.
+
+Use ResizeObserver on the grid (captures breakpoint and container changes) and drop the setTimeout bootstrap.
+
+Next Actions
+
+Use this drop-in (same API, small changes, no cropping):
+
+// Masonry grid hook - sets grid row spans from actual card heights (no cropping)
+import { useLayoutEffect, useRef } from "react";
+
+export function useMasonryGrid(imageCount: number) {
+  const ref = useRef<HTMLDivElement>(null);
+
+  useLayoutEffect(() => {
+    if (!imageCount) return;
+    const grid = ref.current;
+    if (!grid) return;
+
+    const AUTO_ROW = 8; // must match `auto-rows-[8px]`
+
+    const getGap = () => {
+      const s = getComputedStyle(grid);
+      const g = parseFloat(s.rowGap || "0"); // Tailwind gap-* sets row==col
+      return Number.isFinite(g) ? g : 0;
+    };
+
+    let gap = getGap();
+
+    const setSpan = (tile: HTMLElement) => {
+      // Measure the whole card, not just the <img>
+      const h = tile.getBoundingClientRect().height;
+      if (!h) return;
+      const rows = Math.ceil((h + gap) / (AUTO_ROW + gap));
+      tile.style.gridRowEnd = `span ${rows}`;
+    };
+
+    const tiles = () =>
+      Array.from(grid.querySelectorAll<HTMLElement>("[data-masonry-item]"));
+
+    const refreshAll = () => {
+      gap = getGap();
+      tiles().forEach(setSpan);
+    };
+
+    // When images load, recalc just their tile
+    const onImgLoad = (e: Event) => {
+      const el = (e.currentTarget as HTMLImageElement).closest(
+        "[data-masonry-item]"
+      ) as HTMLElement | null;
+      if (el) setSpan(el);
+    };
+
+    // Attach to current images
+    const bindImgListeners = () => {
+      tiles().forEach((tile) => {
+        tile.querySelectorAll<HTMLImageElement>("img").forEach((img) => {
+          if (img.complete) setSpan(tile);
+          else img.addEventListener("load", onImgLoad, { once: true });
+        });
+      });
+    };
+
+    bindImgListeners();
+    refreshAll();
+
+    // Observe container size / breakpoint gap changes
+    const ro = new ResizeObserver(() => refreshAll());
+    ro.observe(grid);
+
+    // Debounced window resize as a fallback (optional)
+    let t: number | null = null;
+    const onResize = () => {
+      if (t) cancelAnimationFrame(t);
+      t = requestAnimationFrame(refreshAll);
+    };
+    window.addEventListener("resize", onResize);
+
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", onResize);
+    };
+  }, [imageCount]);
+
+  return ref;
+}
+
+
+Usage stays the same:
+
+const gridRef = useMasonryGrid(images.length);
+
+<div
+  ref={gridRef}
+  className="grid grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-4 auto-rows-[8px]"
+  style={{ gridAutoFlow: "dense" }}
+>
+  {laidOut.map((img) => (
+    <Card
+      key={img.id}
+      data-masonry-item
+      className={`overflow-hidden rounded-none ${img.featured ? "col-span-2" : "col-span-1"}`}
+    >
+      <img src={img.url} alt="" className="block w-full h-auto" loading="lazy" />
+    </Card>
+  ))}
+</div>
