@@ -6403,6 +6403,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
 
       let sentCount = 0;
       const errors: string[] = [];
+      const messageDetails: Array<{ stepId: string; content: string; success: boolean }> = [];
 
       // Get all templates for this photographer (needed for both EMAIL and SMS)
       const templates = await storage.getTemplatesByPhotographer(req.user!.photographerId!);
@@ -6459,6 +6460,12 @@ ${photographer?.businessName || 'Your Photography Team'}`;
               html: htmlBody
             });
 
+            messageDetails.push({
+              stepId: step.id,
+              content: textBody,
+              success
+            });
+
             if (success) {
               sentCount++;
             } else {
@@ -6490,15 +6497,9 @@ ${photographer?.businessName || 'Your Photography Team'}`;
 
             let message: string;
             
-            console.log('🔍 Debug SMS Test - Step:', step);
-            console.log('🔍 Debug SMS Test - Has customSmsContent:', !!step.customSmsContent);
-            console.log('🔍 Debug SMS Test - Has templateId:', !!step.templateId);
-            
             if (step.customSmsContent) {
               // Use custom SMS content
-              console.log('🔍 Debug SMS Test - Using custom SMS content:', step.customSmsContent);
               message = renderSmsTemplate(step.customSmsContent, variables);
-              console.log('🔍 Debug SMS Test - Rendered message:', message);
             } else if (step.templateId) {
               // Use template
               const template = templates.find(t => t.id === step.templateId);
@@ -6506,10 +6507,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
                 errors.push(`Step ${step.id}: No template found`);
                 continue;
               }
-              console.log('🔍 Debug SMS Test - Using template:', template.name);
-              console.log('🔍 Debug SMS Test - Template textBody:', template.textBody);
               message = renderSmsTemplate(template.textBody || '', variables);
-              console.log('🔍 Debug SMS Test - Rendered message:', message);
             } else {
               errors.push(`Step ${step.id}: No message content configured`);
               continue;
@@ -6520,6 +6518,12 @@ ${photographer?.businessName || 'Your Photography Team'}`;
 
             // Send SMS
             const result = await sendSms({ to: recipientPhone, body: message });
+
+            messageDetails.push({
+              stepId: step.id,
+              content: message,
+              success: result.success
+            });
 
             if (result.success) {
               sentCount++;
@@ -6537,7 +6541,9 @@ ${photographer?.businessName || 'Your Photography Team'}`;
         message: `Test automation completed. Sent ${sentCount} out of ${steps.length} messages.`,
         sentCount,
         totalSteps: steps.length,
-        recipient: automation.channel === 'EMAIL' ? photographerEmail : (photographer.personalPhone || photographer.phone)
+        recipient: automation.channel === 'EMAIL' ? photographerEmail : (photographer.personalPhone || photographer.phone),
+        messagePreview: messageDetails.length > 0 ? messageDetails[0].content : undefined,
+        messageDetails
       };
 
       if (errors.length > 0) {

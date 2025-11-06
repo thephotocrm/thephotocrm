@@ -173,10 +173,11 @@ function AutomationStepManager({ automation, onDelete }: { automation: any, onDe
           variant: "destructive"
         });
       } else {
-        // Complete success
+        // Complete success - show message preview if available
+        const preview = data.messagePreview ? `\n\nMessage: "${data.messagePreview.substring(0, 100)}${data.messagePreview.length > 100 ? '...' : ''}"` : '';
         toast({ 
           title: "Test sent successfully", 
-          description: `${data.sentCount} message(s) sent to ${data.recipient}. Check your ${automation.channel === 'EMAIL' ? 'email' : 'phone'}.`
+          description: `${data.sentCount} message(s) sent to ${data.recipient}. Check your ${automation.channel === 'EMAIL' ? 'email' : 'phone'}.${preview}`
         });
       }
     },
