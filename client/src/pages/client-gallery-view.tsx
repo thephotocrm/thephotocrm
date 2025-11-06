@@ -18,63 +18,81 @@ function useMasonryGrid(imageCount: number) {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const grid = ref.current;
-    if (!grid || imageCount === 0) return;
+    try {
+      const grid = ref.current;
+      if (!grid || imageCount === 0) return;
 
-    const ROW = 8; // matches auto-rows-[8px]
-    const GAP_SM = 4; // gap-1 = 4px
-    const GAP_LG = 16; // lg:gap-4 = 16px
+      const ROW = 8; // matches auto-rows-[8px]
+      const GAP_SM = 4; // gap-1 = 4px
+      const GAP_LG = 16; // lg:gap-4 = 16px
 
-    let GAP = window.matchMedia('(min-width:1024px)').matches ? GAP_LG : GAP_SM;
+      let GAP = window.matchMedia('(min-width:1024px)').matches ? GAP_LG : GAP_SM;
 
-    const setSpan = (el: HTMLElement) => {
-      const img = el.querySelector('img') as HTMLImageElement | null;
-      if (!img) return;
-      const h = img.getBoundingClientRect().height;
-      const rows = Math.ceil((h + GAP) / (ROW + GAP));
-      el.style.gridRowEnd = `span ${rows}`;
-    };
+      const setSpan = (el: HTMLElement) => {
+        try {
+          const img = el.querySelector('img') as HTMLImageElement | null;
+          if (!img) return;
+          const h = img.getBoundingClientRect().height;
+          if (h === 0) return; // Skip if image hasn't rendered yet
+          const rows = Math.ceil((h + GAP) / (ROW + GAP));
+          el.style.gridRowEnd = `span ${rows}`;
+        } catch (error) {
+          console.error('Error setting masonry span:', error);
+        }
+      };
 
-    const refresh = () => {
-      // Re-query items each time to catch newly rendered images
+      const refresh = () => {
+        try {
+          if (!grid) return;
+          // Re-query items each time to catch newly rendered images
+          const items = Array.from(grid.querySelectorAll<HTMLElement>('[data-masonry-item]'));
+          items.forEach(setSpan);
+        } catch (error) {
+          console.error('Error refreshing masonry:', error);
+        }
+      };
+
+      // Initial setup - wait for images to load
       const items = Array.from(grid.querySelectorAll<HTMLElement>('[data-masonry-item]'));
-      items.forEach(setSpan);
-    };
+      items.forEach(el => {
+        const img = el.querySelector('img') as HTMLImageElement | null;
+        if (!img) return;
+        if (img.complete) setSpan(el);
+        else img.addEventListener('load', () => setSpan(el), { once: true });
+      });
 
-    // Initial setup - wait for images to load
-    const items = Array.from(grid.querySelectorAll<HTMLElement>('[data-masonry-item]'));
-    items.forEach(el => {
-      const img = el.querySelector('img') as HTMLImageElement | null;
-      if (!img) return;
-      if (img.complete) setSpan(el);
-      else img.addEventListener('load', () => setSpan(el), { once: true });
-    });
+      // Recalc on container resize
+      const ro = new ResizeObserver(refresh);
+      ro.observe(grid);
 
-    // Recalc on container resize
-    const ro = new ResizeObserver(refresh);
-    ro.observe(grid);
+      // Update gap on breakpoint change
+      const mq = window.matchMedia('(min-width:1024px)');
+      const onMQ = () => { 
+        GAP = mq.matches ? GAP_LG : GAP_SM; 
+        refresh(); 
+      };
+      if (mq.addEventListener) {
+        mq.addEventListener('change', onMQ);
+      }
 
-    // Update gap on breakpoint change
-    const mq = window.matchMedia('(min-width:1024px)');
-    const onMQ = () => { 
-      GAP = mq.matches ? GAP_LG : GAP_SM; 
-      refresh(); 
-    };
-    mq.addEventListener?.('change', onMQ);
+      // Handle window resize (throttled)
+      let timeoutId: ReturnType<typeof setTimeout> | undefined;
+      const onResize = () => { 
+        if (timeoutId) clearTimeout(timeoutId); 
+        timeoutId = setTimeout(refresh, 100); 
+      };
+      window.addEventListener('resize', onResize);
 
-    // Handle window resize (throttled)
-    let t: number | undefined;
-    const onResize = () => { 
-      clearTimeout(t); 
-      t = window.setTimeout(refresh, 100) as unknown as number; 
-    };
-    window.addEventListener('resize', onResize);
-
-    return () => {
-      ro.disconnect();
-      mq.removeEventListener?.('change', onMQ);
-      window.removeEventListener('resize', onResize);
-    };
+      return () => {
+        ro.disconnect();
+        if (mq.removeEventListener) {
+          mq.removeEventListener('change', onMQ);
+        }
+        window.removeEventListener('resize', onResize);
+      };
+    } catch (error) {
+      console.error('Error initializing masonry grid:', error);
+    }
   }, [imageCount]); // Re-run when image count changes
 
   return ref;
