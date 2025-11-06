@@ -22,68 +22,47 @@ function useMasonryGrid(imageCount: number) {
     const grid = ref.current;
     if (!grid) return;
 
-    const AUTO_ROW = 8; // must match `auto-rows-[8px]`
-
+    const ROW = 8; // matches auto-rows-[8px]
     const getGap = () => {
       const s = getComputedStyle(grid);
-      const g = parseFloat(s.rowGap || "0"); // Tailwind gap-* sets row==col
-      return Number.isFinite(g) ? g : 0;
+      return parseFloat(s.rowGap || "0") || 0;
     };
 
     let gap = getGap();
 
-    const setSpan = (tile: HTMLElement) => {
-      // Measure the whole card, not just the <img>
-      const h = tile.getBoundingClientRect().height;
+    const setSpan = (el: HTMLElement) => {
+      const h = el.getBoundingClientRect().height;
       if (!h) return;
-      const rows = Math.ceil((h + gap) / (AUTO_ROW + gap));
-      tile.style.gridRowEnd = `span ${rows}`;
+      const rows = Math.ceil((h + gap) / (ROW + gap));
+      el.style.gridRowEnd = `span ${rows}`;
     };
 
-    const tiles = () =>
-      Array.from(grid.querySelectorAll<HTMLElement>("[data-masonry-item]"));
-
-    const refreshAll = () => {
+    const refresh = () => {
       gap = getGap();
-      tiles().forEach(setSpan);
+      grid.querySelectorAll<HTMLElement>("[data-masonry-item]").forEach(setSpan);
     };
 
-    // When images load, recalc just their tile
-    const onImgLoad = (e: Event) => {
-      const el = (e.currentTarget as HTMLImageElement).closest(
-        "[data-masonry-item]"
-      ) as HTMLElement | null;
-      if (el) setSpan(el);
+    // Bind image load listeners
+    grid.querySelectorAll<HTMLElement>("[data-masonry-item]").forEach((el) => {
+      const img = el.querySelector("img");
+      if (!img) return;
+      if (img.complete) setSpan(el);
+      else img.addEventListener("load", () => setSpan(el), { once: true });
+    });
+
+    refresh();
+
+    // Debounced resize
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    const handleResize = () => {
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(refresh, 150);
     };
-
-    // Attach to current images
-    const bindImgListeners = () => {
-      tiles().forEach((tile) => {
-        tile.querySelectorAll<HTMLImageElement>("img").forEach((img) => {
-          if (img.complete) setSpan(tile);
-          else img.addEventListener("load", onImgLoad, { once: true });
-        });
-      });
-    };
-
-    bindImgListeners();
-    refreshAll();
-
-    // Observe container size / breakpoint gap changes
-    const ro = new ResizeObserver(() => refreshAll());
-    ro.observe(grid);
-
-    // Debounced window resize as a fallback (optional)
-    let t: number | null = null;
-    const onResize = () => {
-      if (t) cancelAnimationFrame(t);
-      t = requestAnimationFrame(refreshAll);
-    };
-    window.addEventListener("resize", onResize);
+    window.addEventListener("resize", handleResize);
 
     return () => {
-      ro.disconnect();
-      window.removeEventListener("resize", onResize);
+      if (timer) clearTimeout(timer);
+      window.removeEventListener("resize", handleResize);
     };
   }, [imageCount]);
 
