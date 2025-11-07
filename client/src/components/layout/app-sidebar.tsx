@@ -36,7 +36,8 @@ import {
   Info,
   GraduationCap,
   Images,
-  Send
+  Send,
+  Star
 } from "lucide-react";
 import { SiFacebook, SiGoogle, SiInstagram, SiPinterest, SiTiktok } from "react-icons/si";
 import {
@@ -126,6 +127,7 @@ export function AppSidebar() {
         { name: "Templates", href: "/templates", icon: MessageSquare },
         { name: "Email Branding", href: "/settings?email_branding=true", icon: Send },
         { name: "Lead Forms", href: "/lead-forms", icon: FileText },
+        { name: "Testimonials", href: "/testimonials", icon: Star },
       ]
     },
     {
