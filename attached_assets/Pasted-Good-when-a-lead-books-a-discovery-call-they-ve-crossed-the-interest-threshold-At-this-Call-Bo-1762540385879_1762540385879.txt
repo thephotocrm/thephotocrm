@@ -1,0 +1,123 @@
+Good — when a lead books a discovery call, they’ve crossed the “interest” threshold.
+At this Call Booked stage, your automations should do three things:
+
+⸻
+
+🎯 Stage Goal
+
+Move the couple from “curious” → “ready and excited” before the call, then into decision mode right after it.
+
+The focus isn’t persuasion anymore — it’s framing value, building trust, and setting expectations.
+
+⸻
+
+💍 “CALL BOOKED” AUTOMATIONS
+
+1️⃣ Call Confirmation Email (instant)
+
+Subject: Excited to chat about your wedding!
+
+Hi {{first_name}},
+
+I’m looking forward to our call on {{call_date}} at {{call_time}}!  
+We’ll go over your wedding plans, what kind of photography experience you want, and I’ll walk you through options that fit your day.
+
+Here’s the meeting link: {{call_link}}  
+If you’d like, take a quick peek at some of my favorite wedding stories before we chat:  
+{{smartfile_portfolio_link}}
+
+Talk soon,  
+{{photographer_name}}
+
+🧠 Purpose: Confirms details, keeps excitement high, starts building visual trust immediately.
+
+⸻
+
+2️⃣ Call Confirmation SMS (instant or within 15 min)
+
+Hey {{first_name}}! This is {{business_name}} — excited to chat on {{call_date}} at {{call_time}} 💍  
+You’ll get a link right before we start, but here’s a quick look at some recent weddings in the meantime: {{smartfile_portfolio_link}}
+
+🧠 Purpose: Friendly mobile confirmation; reinforces professionalism and excitement.
+
+⸻
+
+3️⃣ Pre-Call Prep Email (T = 24 hours before call)
+
+Subject: Can’t wait to meet you tomorrow ✨
+
+Hi {{first_name}},
+
+I can’t wait to connect tomorrow and hear about your wedding!  
+To make the most of our time together, here are a few things you can think about:
+
+1. What kind of moments matter most to you (e.g., candid, editorial, emotional)?  
+2. What’s your venue and timeline looking like?  
+3. Do you want coverage for engagement, rehearsal, or just the wedding day?
+
+Here’s the link again for tomorrow: {{call_link}}
+
+If you haven’t seen it yet, here’s my **Wedding Style & Pricing Guide**:  
+{{smartfile_pricing_link}}
+
+Talk soon!  
+{{photographer_name}}
+
+🧠 Purpose: Prepares them mentally for the call, positions you as organized and helpful, and gets them viewing your pricing Smart File ahead of time (so you’re not starting cold).
+
+⸻
+
+4️⃣ Same-Day Reminder SMS (T = 1 hour before call)
+
+Hey {{first_name}}! Just a quick reminder — our call is at {{call_time}} 🕒  
+Here’s the link: {{call_link}}  
+Can’t wait to hear about your wedding plans!
+
+🧠 Purpose: Reduces no-shows dramatically (highest ROI message in the sequence).
+
+⸻
+
+5️⃣ Post-Call Thank-You Email (T = 1–2 hours after call)
+
+Subject: Loved hearing about your wedding ❤️
+
+Hi {{first_name}},
+
+It was so great talking with you today and hearing all about your wedding at {{venue}}!  
+I’m already picturing how beautiful it’s going to be.
+
+Here’s a quick recap of what we discussed:
+• Coverage: {{coverage_summary}}  
+• Date: {{event_date}}  
+• Next step: I’ll send a proposal your way shortly
+
+If you’d like to browse a few more galleries similar to what we discussed, here’s a link:  
+{{smartfile_story_link}}
+
+Talk soon,  
+{{photographer_name}}
+
+🧠 Purpose: Immediate follow-through; demonstrates reliability and re-sells vision right after call.
+
+⸻
+
+6️⃣ Proposal Smart File Automation (T = same day as post-call)
+	•	Triggered automatically once you move the client to “Proposal Sent.”
+	•	Sends Smart File proposal link (packages, retainers, and e-signature).
+
+⸻
+
+📅 Recommended Flow Overview
+
+Step	Automation	Channel	Timing	Smart File	Purpose
+1	Call Confirmation	Email	0 min	Portfolio	Confirm + excite
+2	Confirmation SMS	SMS	+15 min	Portfolio	Mobile reminder
+3	Pre-Call Prep	Email	−24 h	Pricing	Prepare + pre-sell
+4	Same-Day Reminder	SMS	−1 h	—	Prevent no-show
+5	Post-Call Thank-You	Email	+1–2 h	Story Gallery	Re-affirm + nurture
+6	Proposal Send	Smart File	After call	Proposal	Transition to decision
+
+
+⸻
+
+Would you like me to write out the full Smart File content and wording for the Wedding Style & Pricing Guide and Proposal Smart File next? Those are the two key conversion pieces that follow this stage.
