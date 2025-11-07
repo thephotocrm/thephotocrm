@@ -63,6 +63,8 @@ import AdminDashboard from "@/pages/admin-dashboard";
 import AdminSetup from "@/pages/admin-setup";
 import LeadFormDemo from "@/pages/lead-form-demo";
 import NotFound from "@/pages/not-found";
+import PublicReviewSubmit from "@/pages/public-review-submit";
+import Testimonials from "@/pages/testimonials";
 
 const Checkout = lazy(() => import("@/pages/checkout"));
 
@@ -150,6 +152,7 @@ function ProtectedRoutes() {
             <Route path="/tiktok-ads" component={TikTokAds} />
             <Route path="/settings" component={Settings} />
             <Route path="/tutorials" component={Tutorials} />
+            <Route path="/testimonials" component={Testimonials} />
             <Route component={NotFound} />
           </Switch>
         </SidebarInset>
@@ -202,6 +205,7 @@ function Router() {
       <Route path="/booking/confirmation" component={BookingConfirmation} />
       <Route path="/admin/setup" component={AdminSetup} />
       <Route path="/lead-form" component={LeadFormDemo} />
+      <Route path="/reviews/submit/:photographerId" component={PublicReviewSubmit} />
       
       {/* Protected app routes - match specific paths */}
       <Route path="/dashboard"><ProtectedRoutes /></Route>
@@ -237,6 +241,7 @@ function Router() {
       <Route path="/tiktok-ads"><ProtectedRoutes /></Route>
       <Route path="/settings"><ProtectedRoutes /></Route>
       <Route path="/tutorials"><ProtectedRoutes /></Route>
+      <Route path="/testimonials"><ProtectedRoutes /></Route>
       
       {/* Landing page - must be last so other routes match first */}
       <Route path="/" component={Landing} />
