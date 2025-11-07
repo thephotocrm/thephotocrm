@@ -1,0 +1,105 @@
+💍 STAGE 3 — PROPOSAL SENT
+1️⃣ Instant Email (T = 0 min)
+
+Subject: Your wedding photography proposal is ready 🎉
+
+Hi {{first_name}},
+
+Here’s your personalized wedding photography proposal:  
+{{smartfile_proposal_link}}
+
+Inside, you’ll find:
+• Your selected coverage & package details  
+• Optional add-ons (like engagement or rehearsal coverage)  
+• Easy online contract & deposit checkout
+
+Everything’s digital — you can review, sign, and secure your date in just a few clicks.
+
+If any questions come up, just reply or text me directly — I’m here to help!
+
+– {{photographer_name}}
+
+
+🧠 Purpose: Instant delivery + clarity; no friction or confusion on next steps.
+
+2️⃣ Same-Day SMS (T = +30 min)
+Hey {{first_name}}! Just sent your wedding photography proposal — check your inbox (and spam, just in case).  
+You can review + secure your date online here: {{smartfile_proposal_link}}
+
+
+🧠 Purpose: Ensures visibility and gives a direct mobile path.
+
+3️⃣ Next-Day Check-In Email (T = +24 h)
+
+Subject: Any questions about your proposal?
+
+Hi {{first_name}},
+
+Just checking in to see if you had a chance to review your wedding proposal.  
+Sometimes couples want to tweak coverage hours or album options — totally normal!
+
+Would you like me to hold {{event_date}} while you decide?  
+If so, just reply “Hold it” and I’ll reserve it for 48 hours.
+
+– {{photographer_name}}
+
+
+🧠 Purpose: Keeps conversation open and offers a micro-commitment.
+
+4️⃣ Social Proof / Reassurance Email (T = +3 days)
+
+Subject: Why couples love choosing us ❤️
+
+Hi {{first_name}},
+
+I know choosing your wedding photographer is a big decision — and it matters.  
+Here’s what a few of our couples said after booking:  
+{{smartfile_testimonials_link}}
+
+Their experience is what I aim to deliver for every couple I work with.  
+If you’re leaning our way, now’s a perfect time to lock in your date:  
+{{smartfile_proposal_link}}
+
+– {{photographer_name}}
+
+
+🧠 Purpose: Reduces decision anxiety; validates quality through others.
+
+5️⃣ Final Reminder Email (T = +6 days)
+
+Subject: Quick note before I release {{event_date}} 📅
+
+Hi {{first_name}},
+
+I wanted to check in before I open {{event_date}} back up.  
+If you’re still deciding, I’m happy to keep it on hold for one more day.
+
+After that, I’ll mark it as available again for new inquiries.  
+If you’re ready to move forward, you can confirm here:  
+{{smartfile_proposal_link}}
+
+– {{photographer_name}}
+
+
+🧠 Purpose: Creates gentle urgency without pressure; clean close.
+
+6️⃣ Post-Booking Automation (Trigger: Proposal Signed)
+
+Actions:
+
+Move to “Booked / Onboarding” stage
+
+Stop remaining follow-ups
+
+Send instant “Welcome to the Family” email with onboarding Smart File (timeline tips, engagement session prep, etc.)
+
+📅 Overview
+Step	Name	Channel	Timing	Smart File	Primary Goal
+1	Proposal Delivery	Email	0 min	Proposal	Deliver + clarify
+2	Delivery Confirmation	SMS	+30 min	Proposal	Visibility
+3	Check-In	Email	+1 day	—	Prompt engagement
+4	Social Proof	Email	+3 days	Testimonials	Reduce hesitation
+5	Final Reminder	Email	+6 days	Proposal	Close loop
+6	Post-Booking	Auto	On sign	Onboarding	Transition to booked
+
+Would you like me to write the “Welcome to the Family / Onboarding” automation sequence next (stage 4)? It sets tone for long-term client experience and retention.
