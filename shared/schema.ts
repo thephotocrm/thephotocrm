@@ -2183,3 +2183,60 @@ export type GalleryImageWithFavorites = GalleryImage & {
   favoriteCount?: number;
 };
 
+// Testimonials / Reviews
+export const testimonialStatusEnum = {
+  PENDING: "PENDING",
+  APPROVED: "APPROVED",
+  REJECTED: "REJECTED"
+} as const;
+
+export const testimonials = pgTable("testimonials", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  photographerId: varchar("photographer_id").notNull().references(() => photographers.id, { onDelete: "cascade" }),
+  projectId: varchar("project_id").references(() => projects.id, { onDelete: "set null" }),
+  contactId: varchar("contact_id").references(() => contacts.id, { onDelete: "set null" }),
+  clientName: text("client_name").notNull(),
+  clientEmail: text("client_email"),
+  rating: integer("rating").notNull(), // 1-5 stars
+  testimonialText: text("testimonial_text").notNull(),
+  status: text("status").notNull().default("PENDING"), // PENDING, APPROVED, REJECTED
+  isFeatured: boolean("is_featured").default(false).notNull(),
+  eventDate: timestamp("event_date"), // Wedding/event date for context
+  eventType: text("event_type"), // Wedding, Engagement, etc.
+  createdAt: timestamp("created_at").defaultNow(),
+  approvedAt: timestamp("approved_at"),
+  approvedBy: varchar("approved_by").references(() => users.id)
+}, (table) => ({
+  photographerIdIdx: index("testimonials_photographer_id_idx").on(table.photographerId),
+  statusIdx: index("testimonials_status_idx").on(table.status),
+  isFeaturedIdx: index("testimonials_is_featured_idx").on(table.isFeatured)
+}));
+
+// Relations
+export const testimonialsRelations = relations(testimonials, ({ one }) => ({
+  photographer: one(photographers, {
+    fields: [testimonials.photographerId],
+    references: [photographers.id]
+  }),
+  project: one(projects, {
+    fields: [testimonials.projectId],
+    references: [projects.id]
+  }),
+  contact: one(contacts, {
+    fields: [testimonials.contactId],
+    references: [contacts.id]
+  })
+}));
+
+// Insert schema
+export const insertTestimonialSchema = createInsertSchema(testimonials).omit({
+  id: true,
+  createdAt: true,
+  approvedAt: true,
+  approvedBy: true
+});
+
+// Types
+export type Testimonial = typeof testimonials.$inferSelect;
+export type InsertTestimonial = z.infer<typeof insertTestimonialSchema>;
+
