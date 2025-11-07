@@ -12,6 +12,7 @@ import {
   smartFiles, smartFilePages, projectSmartFiles,
   adCampaigns, adPaymentMethods, adPerformance, adBillingTransactions,
   galleries, galleryImages, galleryFavorites, galleryDownloads, galleryViews,
+  testimonials,
   type User, type InsertUser, type Photographer, type InsertPhotographer,
   type LinkingRequest, type InsertLinkingRequest,
   type AdminActivityLog, type InsertAdminActivityLog,
@@ -46,7 +47,8 @@ import {
   type Gallery, type InsertGallery, type GalleryWithImages,
   type GalleryImage, type InsertGalleryImage, type GalleryImageWithFavorites,
   type GalleryFavorite, type InsertGalleryFavorite,
-  type GalleryDownload, type InsertGalleryDownload
+  type GalleryDownload, type InsertGalleryDownload,
+  type Testimonial, type InsertTestimonial
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, inArray, gte, lte, gt, sql, isNotNull, isNull } from "drizzle-orm";
@@ -425,6 +427,17 @@ export interface IStorage {
   
   // Gallery Views (analytics)
   trackGalleryView(galleryId: string, contactId: string | null, ipAddress?: string, userAgent?: string): Promise<void>;
+  
+  // Testimonials
+  getTestimonialsByPhotographer(photographerId: string, status?: string): Promise<Testimonial[]>;
+  getTestimonial(id: string): Promise<Testimonial | undefined>;
+  createTestimonial(testimonial: InsertTestimonial): Promise<Testimonial>;
+  updateTestimonial(id: string, testimonial: Partial<Testimonial>): Promise<Testimonial>;
+  deleteTestimonial(id: string): Promise<void>;
+  approveTestimonial(id: string, approvedBy: string): Promise<Testimonial>;
+  rejectTestimonial(id: string): Promise<Testimonial>;
+  toggleFeaturedTestimonial(id: string): Promise<Testimonial>;
+  getApprovedTestimonials(photographerId: string, featuredOnly?: boolean): Promise<Testimonial[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -4119,6 +4132,98 @@ export class DatabaseStorage implements IStorage {
     }
 
     return { allowed: true };
+  }
+
+  // Testimonials
+  async getTestimonialsByPhotographer(photographerId: string, status?: string): Promise<Testimonial[]> {
+    const conditions = [eq(testimonials.photographerId, photographerId)];
+    if (status) {
+      conditions.push(eq(testimonials.status, status));
+    }
+    
+    return await db.select()
+      .from(testimonials)
+      .where(and(...conditions))
+      .orderBy(desc(testimonials.createdAt));
+  }
+
+  async getTestimonial(id: string): Promise<Testimonial | undefined> {
+    const [testimonial] = await db.select()
+      .from(testimonials)
+      .where(eq(testimonials.id, id));
+    return testimonial || undefined;
+  }
+
+  async createTestimonial(testimonial: InsertTestimonial): Promise<Testimonial> {
+    const [created] = await db.insert(testimonials)
+      .values(testimonial)
+      .returning();
+    return created;
+  }
+
+  async updateTestimonial(id: string, testimonial: Partial<Testimonial>): Promise<Testimonial> {
+    const [updated] = await db.update(testimonials)
+      .set(testimonial)
+      .where(eq(testimonials.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteTestimonial(id: string): Promise<void> {
+    await db.delete(testimonials)
+      .where(eq(testimonials.id, id));
+  }
+
+  async approveTestimonial(id: string, approvedBy: string): Promise<Testimonial> {
+    const [updated] = await db.update(testimonials)
+      .set({
+        status: 'APPROVED',
+        approvedAt: new Date(),
+        approvedBy
+      })
+      .where(eq(testimonials.id, id))
+      .returning();
+    return updated;
+  }
+
+  async rejectTestimonial(id: string): Promise<Testimonial> {
+    const [updated] = await db.update(testimonials)
+      .set({ status: 'REJECTED' })
+      .where(eq(testimonials.id, id))
+      .returning();
+    return updated;
+  }
+
+  async toggleFeaturedTestimonial(id: string): Promise<Testimonial> {
+    const testimonial = await this.getTestimonial(id);
+    if (!testimonial) {
+      throw new Error('Testimonial not found');
+    }
+    
+    const [updated] = await db.update(testimonials)
+      .set({ isFeatured: !testimonial.isFeatured })
+      .where(eq(testimonials.id, id))
+      .returning();
+    return updated;
+  }
+
+  async getApprovedTestimonials(photographerId: string, featuredOnly?: boolean): Promise<Testimonial[]> {
+    const conditions = [
+      eq(testimonials.photographerId, photographerId),
+      eq(testimonials.status, 'APPROVED')
+    ];
+    
+    if (featuredOnly) {
+      conditions.push(eq(testimonials.isFeatured, true));
+    }
+    
+    return await db.select()
+      .from(testimonials)
+      .where(and(...conditions))
+      .orderBy(
+        desc(testimonials.isFeatured),
+        desc(testimonials.createdAt)
+      );
   }
 }
 
