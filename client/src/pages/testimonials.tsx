@@ -60,9 +60,7 @@ export default function Testimonials() {
 
   const approveMutation = useMutation({
     mutationFn: async (id: string) => {
-      return await apiRequest(`/api/testimonials/${id}/approve`, {
-        method: 'POST',
-      });
+      return await apiRequest('POST', `/api/testimonials/${id}/approve`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/testimonials'] });
@@ -82,9 +80,7 @@ export default function Testimonials() {
 
   const rejectMutation = useMutation({
     mutationFn: async (id: string) => {
-      return await apiRequest(`/api/testimonials/${id}/reject`, {
-        method: 'POST',
-      });
+      return await apiRequest('POST', `/api/testimonials/${id}/reject`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/testimonials'] });
@@ -104,9 +100,7 @@ export default function Testimonials() {
 
   const toggleFeaturedMutation = useMutation({
     mutationFn: async (id: string) => {
-      return await apiRequest(`/api/testimonials/${id}/toggle-featured`, {
-        method: 'POST',
-      });
+      return await apiRequest('POST', `/api/testimonials/${id}/toggle-featured`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/testimonials'] });
@@ -125,9 +119,7 @@ export default function Testimonials() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      return await apiRequest(`/api/testimonials/${id}`, {
-        method: 'DELETE',
-      });
+      return await apiRequest('DELETE', `/api/testimonials/${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/testimonials'] });

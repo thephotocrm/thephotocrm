@@ -59,15 +59,12 @@ export default function PublicReviewSubmit() {
 
   const onSubmit = async (data: ReviewFormData) => {
     try {
-      await apiRequest("/api/testimonials/submit", {
-        method: "POST",
-        body: JSON.stringify({
-          photographerId,
-          ...data,
-          clientEmail: data.clientEmail || null,
-          eventDate: data.eventDate || null,
-          eventType: data.eventType || null,
-        }),
+      await apiRequest("POST", "/api/testimonials/submit", {
+        photographerId,
+        ...data,
+        clientEmail: data.clientEmail || null,
+        eventDate: data.eventDate || null,
+        eventType: data.eventType || null,
       });
 
       setSubmitted(true);
