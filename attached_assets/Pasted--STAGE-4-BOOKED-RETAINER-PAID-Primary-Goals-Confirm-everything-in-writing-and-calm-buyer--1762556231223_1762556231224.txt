@@ -1,0 +1,118 @@
+💍 STAGE 4 — BOOKED / RETAINER PAID
+🎯 Primary Goals
+
+Confirm everything in writing and calm “buyer’s anxiety.”
+
+Set expectations and outline next milestones.
+
+Begin gathering key wedding details.
+
+Keep excitement and communication alive until planning phase.
+
+1️⃣ Instant Confirmation Email (0 min)
+
+Subject: You’re officially on my calendar! 🎉
+
+Hi {{first_name}},
+
+It’s official — your wedding date {{event_date}} is reserved!  
+Thank you so much for trusting me with your memories. 💍  
+
+Here’s what happens next:
+1. You’ll receive a short Welcome Guide that walks through what to expect.  
+2. A simple planning form will follow so I can start learning about your day.  
+3. About a month before the wedding we’ll confirm your final photo timeline together.
+
+In the meantime, here’s your Welcome Guide:  
+{{smartfile_welcome_guide_link}}
+
+I’m genuinely honored to capture this chapter of your story.  
+– {{photographer_name}}
+
+
+🧠 Purpose: Immediate reassurance + clear next steps. Prevents “post-purchase” doubt.
+
+2️⃣ Same-Day SMS (+10 min)
+Hey {{first_name}}! Your wedding date {{event_date}} is officially booked 🎉  
+Check your inbox for your Welcome Guide —it has everything about what happens next!  
+– {{photographer_name}}
+
+
+🧠 Purpose: Quick mobile confirmation to reinforce excitement.
+
+3️⃣ Welcome Guide Smart File (+2 h trigger)
+
+Contents outline:
+
+“What to Expect” timeline (from now → gallery delivery)
+
+How communication works (email / text / turnaround times)
+
+Vendor collaboration etiquette
+
+Payment schedule (if applicable)
+
+Tips for getting the most from photos
+
+FAQ section
+
+Direct contact info
+
+🧠 Purpose: Sets expectations + positions you as organized and professional.
+
+4️⃣ Wedding Details Questionnaire (+3 days)
+
+Subject: Let’s start planning your photo timeline 💕
+
+Hi {{first_name}},
+
+Now that everything’s confirmed, could you share a few details about your wedding?  
+This helps me plan your coverage and ensure nothing important gets missed.
+
+Here’s the link: {{smartfile_questionnaire_link}}
+
+It only takes a few minutes and helps us create a seamless experience on {{event_date}}.  
+– {{photographer_name}}
+
+
+🧠 Purpose: Collect logistics while enthusiasm is still high.
+
+5️⃣ 60-Day Check-In (+60 days before wedding)
+
+Subject: 60 days out — ready to start your photo timeline? 📅
+
+Hi {{first_name}},
+
+We’re about {{days_until_wedding}} days away — can you believe it?  
+Now’s a great time to start shaping your wedding-day photo timeline.  
+
+If you already have a planner or coordinator, I’m happy to work directly with them.  
+Let’s jump on a quick planning call to make sure everything flows smoothly:  
+{{scheduler_link}}
+
+– {{photographer_name}}
+
+
+🧠 Purpose: Re-engage before the final planning phase begins.
+
+6️⃣ Final Details Email (+14 days before wedding)
+
+Subject: Final details before your big day 💍
+
+Hi {{first_name}},
+
+Your wedding is almost here — I’m so excited! 🎉  
+Let’s double-check a few details so everything runs perfectly:
+
+• Getting-ready locations  
+• Ceremony & reception addresses  
+• Family photo list  
+• Photography start & end times  
+
+You can update everything here: {{smartfile_final_details_link}}
+
+Thank you again for trusting me — it’s almost showtime!  
+– {{photographer_name}}
+
+
+🧠 Purpose: Smooth logistics handoff into the Pre-Event Planning stage.
