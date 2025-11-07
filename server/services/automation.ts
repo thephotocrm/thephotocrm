@@ -422,7 +422,8 @@ async function processEmailBuilderAutomation(automation: any, photographerId: st
         photographer_name: photographer?.photographerName || photographer?.businessName || 'Your Photographer',
         event_date: formatEventDate(project.eventDate),
         wedding_date: formatEventDate(project.eventDate),
-        smart_file_link: smartFileToken ? `${baseUrl}/smart-file/${smartFileToken}` : ''
+        smart_file_link: smartFileToken ? `${baseUrl}/smart-file/${smartFileToken}` : '',
+        testimonials_link: `${baseUrl}/reviews/submit/${photographerId}`
       };
       
       // Render variables in HTML
@@ -911,7 +912,7 @@ async function processAutomationStep(contact: any, step: any, automation: any): 
     scheduler_link: schedulingLink, // Alternative spelling
     gallery_link: demoGalleryLink,
     demo_gallery_link: demoGalleryLink,
-    testimonials_link: `${baseUrl}/testimonials`, // Placeholder for future feature
+    testimonials_link: `${baseUrl}/reviews/submit/${contact.photographerId}`,
     // Uppercase versions for AI-generated placeholders
     SCHEDULING_LINK: schedulingLink,
     PHOTOGRAPHER_NAME: photographer?.photographerName || photographer?.businessName || 'Your Photographer',
@@ -1621,6 +1622,7 @@ async function sendCountdownMessage(project: any, automation: any, photographerI
     daysRemaining: daysRemaining.toString(),
     daysBefore: automation.daysBefore.toString(),
     scheduling_link: schedulingLink,
+    testimonials_link: `${baseUrl}/reviews/submit/${photographerId}`,
     // Uppercase versions for AI-generated placeholders
     SCHEDULING_LINK: schedulingLink,
     PHOTOGRAPHER_NAME: photographer?.photographerName || photographer?.businessName || 'Your Photographer',
@@ -2085,6 +2087,7 @@ async function processSubscriptionEmail(subscription: any, campaign: any, projec
     photographerName: photographer?.photographerName || photographer?.businessName || 'Your Photographer',
     eventDate: project.eventDate ? new Date(project.eventDate).toLocaleDateString() : 'Not set',
     scheduling_link: schedulingLink,
+    testimonials_link: `${baseUrl}/reviews/submit/${photographerId}`,
     // Uppercase versions for AI-generated placeholders
     SCHEDULING_LINK: schedulingLink,
     PHOTOGRAPHER_NAME: photographer?.photographerName || photographer?.businessName || 'Your Photographer',
