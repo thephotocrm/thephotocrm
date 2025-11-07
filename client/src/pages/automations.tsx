@@ -4494,6 +4494,7 @@ export default function Automations() {
                                   // Exclude trigger-based automations
                                   if (a.businessTriggers && a.businessTriggers.length > 0) return false;
                                   if (a.automationType === 'STAGE_CHANGE') return false; // Stage change automations are trigger-based
+                                  if (a.automationType === 'COUNTDOWN') return false; // Countdown automations go in time-based section
                                   
                                   // For custom email builder automations (no steps yet)
                                   if (a.useEmailBuilder && a.emailBlocks && a.emailBlocks.length > 0) {
@@ -4509,11 +4510,25 @@ export default function Automations() {
                                   // Exclude trigger-based automations
                                   if (a.businessTriggers && a.businessTriggers.length > 0) return false;
                                   if (a.automationType === 'STAGE_CHANGE') return false; // Stage change automations are trigger-based
+                                  
+                                  // Include countdown/date-based automations
+                                  if (a.automationType === 'COUNTDOWN') return true;
+                                  
                                   // For communication automations, check first step delay
                                   const firstStep = a.steps?.[0];
                                   return firstStep && firstStep.delayMinutes > 0;
                                 }).sort((a: any, b: any) => {
-                                  // Sort by delay minutes (shortest to longest)
+                                  // Sort countdown automations by days before (furthest to nearest)
+                                  if (a.automationType === 'COUNTDOWN' && b.automationType === 'COUNTDOWN') {
+                                    const daysA = a.daysBefore || 0;
+                                    const daysB = b.daysBefore || 0;
+                                    return daysB - daysA; // Reverse sort: furthest first
+                                  }
+                                  // Put countdown automations after communication automations
+                                  if (a.automationType === 'COUNTDOWN') return 1;
+                                  if (b.automationType === 'COUNTDOWN') return -1;
+                                  
+                                  // Sort communication automations by delay minutes (shortest to longest)
                                   const delayA = a.steps?.[0]?.delayMinutes || 0;
                                   const delayB = b.steps?.[0]?.delayMinutes || 0;
                                   return delayA - delayB;
