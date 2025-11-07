@@ -12025,6 +12025,173 @@ ${photographer.businessName}
     }
   });
 
+  // Testimonials / Reviews
+  // Public endpoint to submit a review
+  app.post("/api/testimonials/submit", async (req, res) => {
+    try {
+      const { photographerId, clientName, clientEmail, rating, testimonialText, projectId, contactId, eventDate, eventType } = req.body;
+      
+      if (!photographerId || !clientName || !rating || !testimonialText) {
+        return res.status(400).json({ message: "Missing required fields" });
+      }
+      
+      if (rating < 1 || rating > 5) {
+        return res.status(400).json({ message: "Rating must be between 1 and 5" });
+      }
+      
+      const testimonial = await storage.createTestimonial({
+        photographerId,
+        projectId: projectId || null,
+        contactId: contactId || null,
+        clientName,
+        clientEmail: clientEmail || null,
+        rating,
+        testimonialText,
+        eventDate: eventDate ? new Date(eventDate) : null,
+        eventType: eventType || null,
+        status: 'PENDING'
+      });
+      
+      res.status(201).json({ 
+        success: true,
+        message: "Thank you for your review! It will be visible once approved.",
+        testimonial 
+      });
+    } catch (error: any) {
+      console.error('Submit testimonial error:', error);
+      res.status(500).json({ message: error.message || "Failed to submit testimonial" });
+    }
+  });
+
+  // Get all testimonials for a photographer (photographer dashboard)
+  app.get("/api/testimonials", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      const photographerId = req.user!.photographerId!;
+      const { status } = req.query;
+      
+      const testimonials = await storage.getTestimonialsByPhotographer(
+        photographerId, 
+        status as string | undefined
+      );
+      
+      res.json(testimonials);
+    } catch (error: any) {
+      console.error('Get testimonials error:', error);
+      res.status(500).json({ message: error.message || "Failed to fetch testimonials" });
+    }
+  });
+
+  // Get approved testimonials for public display
+  app.get("/api/testimonials/public/:photographerId", async (req, res) => {
+    try {
+      const { photographerId } = req.params;
+      const { featured } = req.query;
+      
+      const testimonials = await storage.getApprovedTestimonials(
+        photographerId,
+        featured === 'true'
+      );
+      
+      res.json(testimonials);
+    } catch (error: any) {
+      console.error('Get public testimonials error:', error);
+      res.status(500).json({ message: error.message || "Failed to fetch testimonials" });
+    }
+  });
+
+  // Approve a testimonial
+  app.post("/api/testimonials/:id/approve", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const userId = req.user!.userId!;
+      const photographerId = req.user!.photographerId!;
+      
+      // Verify testimonial belongs to photographer
+      const testimonial = await storage.getTestimonial(id);
+      if (!testimonial) {
+        return res.status(404).json({ message: "Testimonial not found" });
+      }
+      if (testimonial.photographerId !== photographerId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      const updated = await storage.approveTestimonial(id, userId);
+      res.json(updated);
+    } catch (error: any) {
+      console.error('Approve testimonial error:', error);
+      res.status(500).json({ message: error.message || "Failed to approve testimonial" });
+    }
+  });
+
+  // Reject a testimonial
+  app.post("/api/testimonials/:id/reject", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const photographerId = req.user!.photographerId!;
+      
+      // Verify testimonial belongs to photographer
+      const testimonial = await storage.getTestimonial(id);
+      if (!testimonial) {
+        return res.status(404).json({ message: "Testimonial not found" });
+      }
+      if (testimonial.photographerId !== photographerId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      const updated = await storage.rejectTestimonial(id);
+      res.json(updated);
+    } catch (error: any) {
+      console.error('Reject testimonial error:', error);
+      res.status(500).json({ message: error.message || "Failed to reject testimonial" });
+    }
+  });
+
+  // Toggle featured status
+  app.post("/api/testimonials/:id/toggle-featured", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const photographerId = req.user!.photographerId!;
+      
+      // Verify testimonial belongs to photographer
+      const testimonial = await storage.getTestimonial(id);
+      if (!testimonial) {
+        return res.status(404).json({ message: "Testimonial not found" });
+      }
+      if (testimonial.photographerId !== photographerId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      const updated = await storage.toggleFeaturedTestimonial(id);
+      res.json(updated);
+    } catch (error: any) {
+      console.error('Toggle featured testimonial error:', error);
+      res.status(500).json({ message: error.message || "Failed to toggle featured status" });
+    }
+  });
+
+  // Delete a testimonial
+  app.delete("/api/testimonials/:id", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const photographerId = req.user!.photographerId!;
+      
+      // Verify testimonial belongs to photographer
+      const testimonial = await storage.getTestimonial(id);
+      if (!testimonial) {
+        return res.status(404).json({ message: "Testimonial not found" });
+      }
+      if (testimonial.photographerId !== photographerId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      await storage.deleteTestimonial(id);
+      res.json({ message: "Testimonial deleted successfully" });
+    } catch (error: any) {
+      console.error('Delete testimonial error:', error);
+      res.status(500).json({ message: error.message || "Failed to delete testimonial" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
