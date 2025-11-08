@@ -274,7 +274,13 @@ function AutomationStepManager({ automation, onDelete }: { automation: any, onDe
           <div className="flex items-center gap-2">
             {/* Type Badge: Immediate, Time-Based, or Trigger-Based */}
             <span className="text-sm text-muted-foreground font-medium">Trigger:</span>
-            {automation.businessTriggers && automation.businessTriggers.length > 0 ? (
+            {automation.automationType === 'COUNTDOWN' ? (
+              // Countdown automation (date-based)
+              <Badge variant="default" className="bg-blue-500 dark:bg-blue-600 text-white text-xs">
+                <Clock className="w-3 h-3 mr-1" />
+                {automation.daysBefore} day{automation.daysBefore !== 1 ? 's' : ''} {automation.triggerTiming === 'AFTER' ? 'after' : 'before'} event
+              </Badge>
+            ) : automation.businessTriggers && automation.businessTriggers.length > 0 ? (
               // Trigger-based automation
               <Badge variant="default" className="bg-purple-500 dark:bg-purple-600 text-white text-xs">
                 <Target className="w-3 h-3 mr-1" />
@@ -309,12 +315,22 @@ function AutomationStepManager({ automation, onDelete }: { automation: any, onDe
           {/* Action badges */}
           <div className="flex items-center gap-2">
             <span className="text-sm text-muted-foreground font-medium">Action:</span>
-            {automation.channel === 'EMAIL' && (
+            {automation.automationType === 'COUNTDOWN' && automation.useEmailBuilder ? (
+              <Badge variant="outline" className="bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800 text-xs">
+                📧 Email
+              </Badge>
+            ) : null}
+            {automation.automationType === 'COUNTDOWN' && steps.length > 0 && steps[0].actionType === 'SMS' ? (
+              <Badge variant="outline" className="bg-teal-50 dark:bg-teal-950 text-teal-700 dark:text-teal-300 border-teal-200 dark:border-teal-800 text-xs">
+                📱 SMS
+              </Badge>
+            ) : null}
+            {automation.channel === 'EMAIL' && automation.automationType !== 'COUNTDOWN' && (
               <Badge variant="outline" className="bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800 text-xs">
                 📧 Email
               </Badge>
             )}
-            {automation.channel === 'SMS' && (
+            {automation.channel === 'SMS' && automation.automationType !== 'COUNTDOWN' && (
               <Badge variant="outline" className="bg-teal-50 dark:bg-teal-950 text-teal-700 dark:text-teal-300 border-teal-200 dark:border-teal-800 text-xs">
                 📱 SMS
               </Badge>
@@ -4556,11 +4572,23 @@ export default function Automations() {
                                   const delay = Number(firstStep?.delayMinutes ?? 0); // Treat nullish as 0
                                   return delay > 0; // Only show if delay > 0
                                 }).sort((a: any, b: any) => {
-                                  // Sort countdown automations by days before (furthest to nearest)
+                                  // Sort countdown automations by days before/after
                                   if (a.automationType === 'COUNTDOWN' && b.automationType === 'COUNTDOWN') {
                                     const daysA = a.daysBefore || 0;
                                     const daysB = b.daysBefore || 0;
-                                    return daysB - daysA; // Reverse sort: furthest first
+                                    
+                                    // For AFTER timing: nearest first (1d, 4d, 14d, 21d)
+                                    if (a.triggerTiming === 'AFTER' && b.triggerTiming === 'AFTER') {
+                                      return daysA - daysB; // Ascending: 1, 4, 14, 21
+                                    }
+                                    // For BEFORE timing: furthest first (30d, 21d, 7d, 2d)
+                                    if (a.triggerTiming === 'BEFORE' && b.triggerTiming === 'BEFORE') {
+                                      return daysB - daysA; // Descending: 30, 21, 7, 2
+                                    }
+                                    // Mixed timing: BEFORE first, then AFTER
+                                    if (a.triggerTiming === 'BEFORE') return -1;
+                                    if (b.triggerTiming === 'BEFORE') return 1;
+                                    return daysA - daysB;
                                   }
                                   // Put countdown automations after communication automations
                                   if (a.automationType === 'COUNTDOWN') return 1;
