@@ -351,17 +351,15 @@ function AutomationStepManager({ automation, onDelete }: { automation: any, onDe
           
           {isLoading ? (
             <p className="text-sm text-muted-foreground">Loading steps...</p>
-          ) : steps.length === 0 && !automation.emailBlocks ? (
-            <p className="text-sm text-muted-foreground">No steps configured</p>
-          ) : steps.length === 0 && automation.emailBlocks ? (
-            // Show email content preview for automations using email builder
+          ) : automation.useEmailBuilder && automation.emailBlocks && Array.isArray(automation.emailBlocks) && automation.emailBlocks.length > 0 ? (
+            // Show email builder content for automations using email builder (even with steps)
             <div className="bg-muted/50 border rounded-md p-3 text-sm">
               <p className="font-semibold mb-2">Email Message:</p>
               {automation.emailSubject && (
                 <p className="font-medium mb-2 text-muted-foreground">Subject: {automation.emailSubject}</p>
               )}
               <div className="text-muted-foreground space-y-2">
-                {automation.emailBlocks && Array.isArray(automation.emailBlocks) && automation.emailBlocks.map((block: any, idx: number) => {
+                {automation.emailBlocks.map((block: any, idx: number) => {
                   if (block.type === 'HEADING') {
                     return <p key={idx} className="font-bold text-base">{block.content}</p>;
                   } else if (block.type === 'TEXT') {
@@ -375,6 +373,8 @@ function AutomationStepManager({ automation, onDelete }: { automation: any, onDe
                 })}
               </div>
             </div>
+          ) : steps.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No steps configured</p>
           ) : (
             steps.map((step: any, index: number) => {
             const template = templates?.find(t => t.id === step.templateId);
@@ -393,7 +393,31 @@ function AutomationStepManager({ automation, onDelete }: { automation: any, onDe
                   </div>
                 )}
                 
-                {/* Message Preview */}
+                {/* Email Builder Content (for EMAIL steps with no template) */}
+                {!template && !isSmartFile && step.actionType === 'EMAIL' && automation.useEmailBuilder && automation.emailBlocks && (
+                  <div className="bg-muted/50 border rounded-md p-3 text-sm">
+                    <p className="font-semibold mb-2">Email Message:</p>
+                    {automation.emailSubject && (
+                      <p className="font-medium mb-2 text-muted-foreground">Subject: {automation.emailSubject}</p>
+                    )}
+                    <div className="text-muted-foreground space-y-2">
+                      {automation.emailBlocks.map((block: any, idx: number) => {
+                        if (block.type === 'HEADING') {
+                          return <p key={idx} className="font-bold text-base">{block.content}</p>;
+                        } else if (block.type === 'TEXT') {
+                          return <p key={idx} className="whitespace-pre-wrap">{block.content}</p>;
+                        } else if (block.type === 'BUTTON') {
+                          return <p key={idx} className="text-blue-600 dark:text-blue-400">🔘 Button: {block.content}</p>;
+                        } else if (block.type === 'SPACER') {
+                          return <div key={idx} className="h-4" />;
+                        }
+                        return null;
+                      })}
+                    </div>
+                  </div>
+                )}
+                
+                {/* Template-based Message Preview */}
                 {template && !isSmartFile && (
                   <div className="bg-muted/50 border rounded-md p-3 text-sm">
                     <p className="font-semibold mb-2">
@@ -404,6 +428,16 @@ function AutomationStepManager({ automation, onDelete }: { automation: any, onDe
                     )}
                     <p className="text-muted-foreground whitespace-pre-wrap">
                       {template.textBody || 'No message content'}
+                    </p>
+                  </div>
+                )}
+                
+                {/* Custom SMS Content */}
+                {!template && !isSmartFile && step.customSmsContent && step.actionType === 'SMS' && (
+                  <div className="bg-muted/50 border rounded-md p-3 text-sm">
+                    <p className="font-semibold mb-2">Text Message:</p>
+                    <p className="text-muted-foreground whitespace-pre-wrap">
+                      {step.customSmsContent}
                     </p>
                   </div>
                 )}
