@@ -4540,23 +4540,26 @@ export default function Automations() {
                               {stageAutomations.length > 0 ? (() => {
                                 const group = { stage: selectedStage, automations: stageAutomations };
                                 // Separate automations by timing and triggers
+                                // Time-based threshold: 1 day (1440 minutes)
+                                const TIME_BASED_THRESHOLD = 1440;
+                                
                                 const immediateAutomations = group.automations.filter((a: any) => {
                                   // Exclude trigger-based automations
                                   if (a.businessTriggers && a.businessTriggers.length > 0) return false;
                                   if (a.automationType === 'STAGE_CHANGE') return false; // Stage change automations are trigger-based
                                   if (a.automationType === 'COUNTDOWN') return false; // Countdown automations go in time-based section
                                   
-                                  // For custom email builder automations (only if they don't have steps or have immediate step)
+                                  // For custom email builder automations (only if they don't have steps or have short delay)
                                   if (a.useEmailBuilder && a.emailBlocks && a.emailBlocks.length > 0) {
                                     const firstStep = a.steps?.[0];
                                     const delay = Number(firstStep?.delayMinutes ?? 0); // Treat nullish as 0
-                                    return delay === 0; // Missing steps or delay=0 default to immediate
+                                    return delay < TIME_BASED_THRESHOLD; // Less than 1 day = immediate
                                   }
                                   
                                   // For communication automations, check first step delay
                                   const firstStep = a.steps?.[0];
                                   const delay = Number(firstStep?.delayMinutes ?? 0); // Treat nullish as 0
-                                  return delay === 0; // Missing steps default to immediate
+                                  return delay < TIME_BASED_THRESHOLD; // Less than 1 day = immediate
                                 });
                                 
                                 const timeBasedAutomations = group.automations.filter((a: any) => {
@@ -4567,10 +4570,10 @@ export default function Automations() {
                                   // Include countdown/date-based automations
                                   if (a.automationType === 'COUNTDOWN') return true;
                                   
-                                  // For communication automations, check first step delay
+                                  // For communication automations, check first step delay (>= 1 day)
                                   const firstStep = a.steps?.[0];
                                   const delay = Number(firstStep?.delayMinutes ?? 0); // Treat nullish as 0
-                                  return delay > 0; // Only show if delay > 0
+                                  return delay >= TIME_BASED_THRESHOLD; // 1 day or more = time-based
                                 }).sort((a: any, b: any) => {
                                   // Sort countdown automations by days before/after
                                   if (a.automationType === 'COUNTDOWN' && b.automationType === 'COUNTDOWN') {
