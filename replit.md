@@ -41,6 +41,7 @@ Preferred communication style: Simple, everyday language.
 *   **Onboarding System:** Multi-step wizard for new photographers (Profile, Branding, Google, Stripe, First Project) with persistent progress tracking and celebratory completion.
 *   **Magic Link Portal System:** Passwordless client authentication for one-click project access via secure, time-limited email links.
 *   **Terminology Refactor:** System-wide change from "Clients" to "Contacts."
+*   **Gallery Delivery System:** Automated touchpoint system triggered when photographers mark galleries as ready. Features include gallery expiration settings (3/6/12/24 months), gallery linking UI in project details, and 4 automated communications: instant welcome email with gallery link, +15 minute SMS reminder, +3 day print upsell email with promo code, and +14 day expiration reminder. All automations use COMMUNICATION type with delayed automation steps for precise timing. Supports template variables: {{gallery_link}}, {{gallery_expiration}}, {{expiration_date}}, {{promo_code}}. The "Gallery Ready" button triggers POST /api/projects/:id/galleries/ready endpoint which atomically updates gallery status, moves project to "Gallery Delivered" stage, and triggers all automations.
 
 **System Design Choices:**
 *   **Backend:** Node.js with Express.js, Drizzle ORM for PostgreSQL, JWT tokens in httpOnly cookies, bcrypt for password hashing, and RESTful API with role-based access control.

@@ -77,7 +77,7 @@ async function setupGalleryDeliveredAutomations() {
 
     console.log(`1️⃣  Instant Email (Gallery Welcome) - CREATED`);
 
-    // 2️⃣ SMS Reminder (+15 min)
+    // 2️⃣ SMS Reminder (+15 min) - COMMUNICATION automation with delay
     const a2 = await storage.createAutomation({
       photographerId,
       name: "Gallery Delivery - 15min SMS Reminder",
@@ -100,7 +100,7 @@ async function setupGalleryDeliveredAutomations() {
 
     console.log(`2️⃣  SMS Reminder (T=15min) - CREATED`);
 
-    // 3️⃣ Print Upsell Email (+3 days)
+    // 3️⃣ Print Upsell Email (+3 days) - COMMUNICATION automation with delay
     const a3 = await storage.createAutomation({
       photographerId,
       name: "Gallery Delivery - 3 Day Print Upsell",
@@ -139,9 +139,17 @@ async function setupGalleryDeliveredAutomations() {
       ]
     });
 
+    await storage.createAutomationStep({
+      automationId: a3.id,
+      stepIndex: 0,
+      delayMinutes: 4320, // 3 days = 3 * 24 * 60
+      actionType: "EMAIL",
+      enabled: true
+    });
+
     console.log(`3️⃣  Print Upsell Email (T=3 days) - CREATED`);
 
-    // 4️⃣ Expiration Reminder Email (+14 days)
+    // 4️⃣ Expiration Reminder Email (+14 days) - COMMUNICATION automation with delay
     const a4 = await storage.createAutomation({
       photographerId,
       name: "Gallery Delivery - 14 Day Expiration Reminder",
@@ -178,6 +186,14 @@ async function setupGalleryDeliveredAutomations() {
           content: "And if you haven't ordered your album yet, now's the perfect time to start!<br><br>– {{photographer_name}}"
         }
       ]
+    });
+
+    await storage.createAutomationStep({
+      automationId: a4.id,
+      stepIndex: 0,
+      delayMinutes: 20160, // 14 days = 14 * 24 * 60
+      actionType: "EMAIL",
+      enabled: true
     });
 
     console.log(`4️⃣  Expiration Reminder Email (T=14 days) - CREATED`);
