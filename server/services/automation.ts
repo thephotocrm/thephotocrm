@@ -17,6 +17,58 @@ async function getParticipantEmailsForBCC(projectId: string): Promise<string[]> 
   }
 }
 
+// Helper to fetch gallery variables for a project
+async function getGalleryVariables(projectId: string, photographerId: string, stageEnteredAt: Date | null): Promise<Record<string, string>> {
+  try {
+    const baseUrl = process.env.REPLIT_DEV_DOMAIN 
+      ? `https://${process.env.REPLIT_DEV_DOMAIN}`
+      : 'https://thephotocrm.com';
+    
+    // Fetch linked gallery for this project
+    const [linkedGallery] = await db
+      .select()
+      .from(galleries)
+      .where(eq(galleries.projectId, projectId))
+      .limit(1);
+    
+    // Fetch photographer for expiration settings
+    const [photographer] = await db
+      .select()
+      .from(photographers)
+      .where(eq(photographers.id, photographerId))
+      .limit(1);
+    
+    const galleryExpirationMonths = photographer?.galleryExpirationMonths || 6;
+    
+    // Calculate expiration date if stageEnteredAt is available
+    let expirationDateStr = '';
+    if (stageEnteredAt) {
+      const expirationDate = new Date(stageEnteredAt);
+      expirationDate.setMonth(expirationDate.getMonth() + galleryExpirationMonths);
+      expirationDateStr = expirationDate.toLocaleDateString('en-US', { 
+        month: 'long', 
+        day: 'numeric', 
+        year: 'numeric' 
+      });
+    }
+    
+    return {
+      gallery_link: linkedGallery ? `${baseUrl}/client/galleries/${linkedGallery.id}` : '',
+      gallery_expiration: `${galleryExpirationMonths} months`,
+      expiration_date: expirationDateStr,
+      promo_code: 'ALBUM10'
+    };
+  } catch (error) {
+    console.error(`Error fetching gallery variables for project ${projectId}:`, error);
+    return {
+      gallery_link: '',
+      gallery_expiration: '6 months',
+      expiration_date: '',
+      promo_code: 'ALBUM10'
+    };
+  }
+}
+
 // Bulletproof automation execution tracking with reservation pattern
 async function reserveAutomationExecution(
   projectId: string, 
@@ -405,6 +457,9 @@ async function processEmailBuilderAutomation(automation: any, photographerId: st
         }
       };
       
+      // Fetch gallery variables
+      const galleryVars = await getGalleryVariables(project.id, project.photographerId, project.stageEnteredAt);
+      
       const variables = {
         firstName: project.firstName,
         lastName: project.lastName,
@@ -423,7 +478,8 @@ async function processEmailBuilderAutomation(automation: any, photographerId: st
         event_date: formatEventDate(project.eventDate),
         wedding_date: formatEventDate(project.eventDate),
         smart_file_link: smartFileToken ? `${baseUrl}/smart-file/${smartFileToken}` : '',
-        testimonials_link: `${baseUrl}/reviews/submit/${photographerId}`
+        testimonials_link: `${baseUrl}/reviews/submit/${photographerId}`,
+        ...galleryVars
       };
       
       // Render variables in HTML
@@ -888,6 +944,9 @@ async function processAutomationStep(contact: any, step: any, automation: any): 
     ? `${baseUrl}/client/gallery/${demoGallery.publicToken}`
     : `${baseUrl}/galleries`;
 
+  // Fetch gallery variables
+  const galleryVars = await getGalleryVariables(contact.id, contact.photographerId, contact.stageEnteredAt);
+  
   // Prepare variables for template rendering
   const variables = {
     // CamelCase versions
@@ -913,6 +972,7 @@ async function processAutomationStep(contact: any, step: any, automation: any): 
     gallery_link: demoGalleryLink,
     demo_gallery_link: demoGalleryLink,
     testimonials_link: `${baseUrl}/reviews/submit/${contact.photographerId}`,
+    ...galleryVars,
     // Uppercase versions for AI-generated placeholders
     SCHEDULING_LINK: schedulingLink,
     PHOTOGRAPHER_NAME: photographer?.photographerName || photographer?.businessName || 'Your Photographer',
@@ -1608,6 +1668,9 @@ async function sendCountdownMessage(project: any, automation: any, photographerI
     year: 'numeric' 
   });
 
+  // Fetch gallery variables
+  const galleryVars = await getGalleryVariables(project.id, photographerId, project.stageEnteredAt);
+  
   // Prepare variables for template rendering
   const variables = {
     firstName: project.firstName,
@@ -1623,6 +1686,7 @@ async function sendCountdownMessage(project: any, automation: any, photographerI
     daysBefore: automation.daysBefore.toString(),
     scheduling_link: schedulingLink,
     testimonials_link: `${baseUrl}/reviews/submit/${photographerId}`,
+    ...galleryVars,
     // Uppercase versions for AI-generated placeholders
     SCHEDULING_LINK: schedulingLink,
     PHOTOGRAPHER_NAME: photographer?.photographerName || photographer?.businessName || 'Your Photographer',
@@ -2076,6 +2140,9 @@ async function processSubscriptionEmail(subscription: any, campaign: any, projec
     }
   }
 
+  // Fetch gallery variables
+  const galleryVars = await getGalleryVariables(project.id, photographerId, subscription.startedAt);
+  
   // Prepare variables for template rendering
   const variables = {
     firstName: contact.firstName,
@@ -2088,6 +2155,7 @@ async function processSubscriptionEmail(subscription: any, campaign: any, projec
     eventDate: project.eventDate ? new Date(project.eventDate).toLocaleDateString() : 'Not set',
     scheduling_link: schedulingLink,
     testimonials_link: `${baseUrl}/reviews/submit/${photographerId}`,
+    ...galleryVars,
     // Uppercase versions for AI-generated placeholders
     SCHEDULING_LINK: schedulingLink,
     PHOTOGRAPHER_NAME: photographer?.photographerName || photographer?.businessName || 'Your Photographer',

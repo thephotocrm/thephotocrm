@@ -162,6 +162,7 @@ export const photographers = pgTable("photographers", {
   // Native Gallery Storage Tracking
   galleryStorageBytes: text("gallery_storage_bytes").default("0").notNull(), // Bytes used for native gallery storage (stored as text for bigint support)
   galleryPlanId: varchar("gallery_plan_id"), // Current gallery subscription plan
+  galleryExpirationMonths: integer("gallery_expiration_months").default(6), // How many months galleries remain accessible (default: 6 months)
   // Onboarding tracking
   onboardingVersion: integer("onboarding_version").default(1),
   onboardingCompletedAt: timestamp("onboarding_completed_at"),

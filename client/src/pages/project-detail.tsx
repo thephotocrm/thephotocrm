@@ -325,6 +325,7 @@ export default function ProjectDetail() {
   const [manualGalleryUrl, setManualGalleryUrl] = useState("");
   const [isEditingGalleryUrl, setIsEditingGalleryUrl] = useState(false);
   const [includePortalLinks, setIncludePortalLinks] = useState(true);
+  const [selectedGalleryId, setSelectedGalleryId] = useState<string>("");
 
   const { data: project, isLoading} = useQuery<Project>({
     queryKey: ["/api/projects", id],
@@ -355,6 +356,15 @@ export default function ProjectDetail() {
     queryKey: ["/api/smart-files"],
     enabled: !!user && (attachSmartFileOpen || sendFileDialogOpen)
   });
+
+  // Query to fetch photographer's galleries
+  const { data: galleries } = useQuery<Array<{ id: string; title: string; status: string; projectId: string | null }>>({
+    queryKey: ["/api/galleries"],
+    enabled: !!user && !!id
+  });
+
+  // Find gallery linked to this project
+  const linkedGallery = galleries?.find(g => g.projectId === id);
 
   // Initialize includePortalLinks from project data
   useEffect(() => {
@@ -733,6 +743,74 @@ export default function ProjectDetail() {
     onError: (error: any) => {
       toast({
         title: "Failed to update gallery URL",
+        description: error.message || "An error occurred",
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Link gallery to project mutation
+  const linkGalleryMutation = useMutation({
+    mutationFn: async (galleryId: string) => {
+      return await apiRequest("PUT", `/api/galleries/${galleryId}`, { projectId: id });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/galleries"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/projects", id] });
+      toast({
+        title: "Gallery linked",
+        description: "Gallery has been linked to this project."
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to link gallery",
+        description: error.message || "An error occurred",
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Unlink gallery from project mutation
+  const unlinkGalleryMutation = useMutation({
+    mutationFn: async (galleryId: string) => {
+      return await apiRequest("PUT", `/api/galleries/${galleryId}`, { projectId: null });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/galleries"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/projects", id] });
+      toast({
+        title: "Gallery unlinked",
+        description: "Gallery has been unlinked from this project."
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to unlink gallery",
+        description: error.message || "An error occurred",
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Mark gallery as ready and move project to "Gallery Delivered" stage
+  const markGalleryReadyMutation = useMutation({
+    mutationFn: async (galleryId: string) => {
+      // Use the dedicated endpoint that handles gallery status + stage change + automation trigger
+      return await apiRequest("POST", `/api/projects/${id}/galleries/ready`, { galleryId });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/galleries"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/projects", id] });
+      queryClient.invalidateQueries({ queryKey: ["/api/projects", id, "history"] });
+      toast({
+        title: "Gallery ready",
+        description: "Gallery has been marked as ready and project moved to Gallery Delivered."
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to mark gallery as ready",
         description: error.message || "An error occurred",
         variant: "destructive"
       });
@@ -1783,9 +1861,103 @@ export default function ProjectDetail() {
 
             <TabsContent value="gallery" className="m-0">
               <div className="space-y-4">
+                {/* Native Gallery Linking Section */}
                 <Card>
                   <CardHeader>
-                    <CardTitle>Client Gallery</CardTitle>
+                    <CardTitle>Native Gallery</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {linkedGallery ? (
+                      <div className="space-y-4">
+                        <div className="p-4 bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded-lg">
+                          <div className="flex items-start justify-between">
+                            <div className="flex items-start gap-3">
+                              <Camera className="w-5 h-5 text-green-600 mt-0.5" />
+                              <div>
+                                <p className="font-medium text-green-800 dark:text-green-200">{linkedGallery.title}</p>
+                                <p className="text-sm text-green-700 dark:text-green-300 mt-1">
+                                  Status: {linkedGallery.status}
+                                </p>
+                              </div>
+                            </div>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => unlinkGalleryMutation.mutate(linkedGallery.id)}
+                              disabled={unlinkGalleryMutation.isPending}
+                              data-testid="button-unlink-gallery"
+                            >
+                              {unlinkGalleryMutation.isPending ? "Unlinking..." : "Unlink"}
+                            </Button>
+                          </div>
+                        </div>
+
+                        {linkedGallery.status !== 'READY' && (
+                          <div className="flex items-center justify-between p-4 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg">
+                            <div>
+                              <p className="font-medium text-blue-800 dark:text-blue-200">Ready to deliver?</p>
+                              <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
+                                Mark gallery as ready to move project to "Gallery Delivered" stage
+                              </p>
+                            </div>
+                            <Button
+                              onClick={() => markGalleryReadyMutation.mutate(linkedGallery.id)}
+                              disabled={markGalleryReadyMutation.isPending}
+                              data-testid="button-gallery-ready"
+                            >
+                              {markGalleryReadyMutation.isPending ? "Processing..." : "Gallery Ready"}
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        <div className="text-center py-4">
+                          <Camera className="w-10 h-10 mx-auto text-muted-foreground mb-3" />
+                          <h3 className="font-medium mb-2">No Native Gallery Linked</h3>
+                          <p className="text-sm text-muted-foreground mb-4">
+                            Link a native gallery to this project
+                          </p>
+                        </div>
+                        
+                        <div className="flex gap-2">
+                          <Select value={selectedGalleryId} onValueChange={setSelectedGalleryId}>
+                            <SelectTrigger className="flex-1" data-testid="select-gallery">
+                              <SelectValue placeholder="Select a gallery..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {galleries?.filter(g => !g.projectId).map(gallery => (
+                                <SelectItem key={gallery.id} value={gallery.id}>
+                                  {gallery.title} ({gallery.status})
+                                </SelectItem>
+                              ))}
+                              {galleries?.filter(g => !g.projectId).length === 0 && (
+                                <SelectItem value="none" disabled>No available galleries</SelectItem>
+                              )}
+                            </SelectContent>
+                          </Select>
+                          <Button
+                            onClick={() => {
+                              if (selectedGalleryId) {
+                                linkGalleryMutation.mutate(selectedGalleryId);
+                                setSelectedGalleryId("");
+                              }
+                            }}
+                            disabled={!selectedGalleryId || linkGalleryMutation.isPending}
+                            data-testid="button-link-gallery"
+                          >
+                            {linkGalleryMutation.isPending ? "Linking..." : "Link Gallery"}
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* External Gallery Platform Section */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>External Gallery Platform</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     {(project as any)?.galleryUrl ? (

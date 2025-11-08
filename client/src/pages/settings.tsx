@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Settings as SettingsIcon, User, Palette, Mail, Clock, Shield, Calendar, CheckCircle, XCircle, ExternalLink, CreditCard, AlertCircle, Edit, Upload } from "lucide-react";
+import { Settings as SettingsIcon, User, Palette, Mail, Clock, Shield, Calendar, CheckCircle, XCircle, ExternalLink, CreditCard, AlertCircle, Edit, Upload, Image } from "lucide-react";
 import { EmailBrandingModal } from "@/components/email-branding-modal";
 import {
   Select,
@@ -446,6 +446,7 @@ export default function Settings() {
   const [emailSignatureStyle, setEmailSignatureStyle] = useState<string | null>(null);
   const [website, setWebsite] = useState("");
   const [businessAddress, setBusinessAddress] = useState("");
+  const [galleryExpirationMonths, setGalleryExpirationMonths] = useState(6);
   const [facebook, setFacebook] = useState("");
   const [instagram, setInstagram] = useState("");
   const [twitter, setTwitter] = useState("");
@@ -478,6 +479,9 @@ export default function Settings() {
       setInstagram(socialLinks.instagram || "");
       setTwitter(socialLinks.twitter || "");
       setLinkedin(socialLinks.linkedin || "");
+      
+      // Gallery Settings
+      setGalleryExpirationMonths(p.galleryExpirationMonths || 6);
     }
   }, [photographer]);
 
@@ -634,7 +638,7 @@ export default function Settings() {
         <div className="p-3 sm:p-6">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
             {/* Desktop tabs */}
-            <TabsList className="hidden md:grid w-full grid-cols-7">
+            <TabsList className="hidden md:grid w-full grid-cols-8">
               <TabsTrigger value="profile" className="flex items-center">
                 <User className="w-4 h-4 mr-2" />
                 Profile
@@ -650,6 +654,10 @@ export default function Settings() {
               <TabsTrigger value="automation" className="flex items-center">
                 <Clock className="w-4 h-4 mr-2" />
                 Automation
+              </TabsTrigger>
+              <TabsTrigger value="gallery" className="flex items-center">
+                <Image className="w-4 h-4 mr-2" />
+                Gallery
               </TabsTrigger>
               <TabsTrigger value="security" className="flex items-center">
                 <Shield className="w-4 h-4 mr-2" />
@@ -696,6 +704,12 @@ export default function Settings() {
                     <div className="flex items-center">
                       <Clock className="w-4 h-4 mr-2" />
                       Automation
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="gallery">
+                    <div className="flex items-center">
+                      <Image className="w-4 h-4 mr-2" />
+                      Gallery
                     </div>
                   </SelectItem>
                   <SelectItem value="security">
@@ -1479,6 +1493,49 @@ export default function Settings() {
                 </CardHeader>
                 <CardContent>
                   <p className="text-muted-foreground">Automation settings coming soon...</p>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="gallery">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Gallery Settings</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="galleryExpiration">Gallery Expiration Period</Label>
+                      <Select
+                        value={galleryExpirationMonths.toString()}
+                        onValueChange={(value) => setGalleryExpirationMonths(parseInt(value))}
+                      >
+                        <SelectTrigger id="galleryExpiration" data-testid="select-gallery-expiration">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="3">3 months</SelectItem>
+                          <SelectItem value="6">6 months</SelectItem>
+                          <SelectItem value="12">12 months</SelectItem>
+                          <SelectItem value="24">24 months</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <p className="text-xs text-muted-foreground">
+                        How long galleries remain accessible to clients after delivery. This expiration period is used in automated reminder emails.
+                      </p>
+                    </div>
+                    <Button
+                      onClick={() => {
+                        updatePhotographerMutation.mutate({
+                          galleryExpirationMonths
+                        });
+                      }}
+                      disabled={updatePhotographerMutation.isPending}
+                      data-testid="button-save-gallery-settings"
+                    >
+                      {updatePhotographerMutation.isPending ? "Saving..." : "Save Gallery Settings"}
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             </TabsContent>
