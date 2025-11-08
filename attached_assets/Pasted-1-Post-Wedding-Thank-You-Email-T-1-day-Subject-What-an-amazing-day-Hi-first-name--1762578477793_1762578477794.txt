@@ -1,0 +1,79 @@
+1️⃣ Post-Wedding Thank You Email (T = +1 day)
+
+Subject: What an amazing day! 🎉
+
+Hi {{first_name}},
+
+Wow — what an incredible day!  
+Thank you for letting me be part of such a beautiful celebration.  
+
+I’m backing up all your photos now to make sure everything is safe and sound.  
+Next up: the editing process. It usually takes about {{editing_timeline}} weeks.  
+
+You’ll get:
+• A sneak peek soon 👀  
+• Your full gallery once everything is perfected  
+• A chance to order prints or albums after delivery  
+
+I’ll keep you posted along the way.  
+– {{photographer_name}}
+
+
+🧠 Purpose: Immediate reassurance + sets expectations clearly.
+
+2️⃣ Sneak Peek Delivery (T = +3–5 days)
+
+Subject: Sneak peek from your wedding day ❤️
+
+Hi {{first_name}},
+
+I couldn’t resist sharing a few favorites from your wedding day — you two looked incredible!  
+{{smartfile_sneak_peek_link}}
+
+These are just a glimpse of what’s coming. The full gallery will be ready soon, but I wanted you to have something to enjoy and share right away.
+
+– {{photographer_name}}
+
+
+🧠 Purpose: Emotional re-engagement + shareable social moment (drives referrals).
+
+3️⃣ Editing Progress Update (T = +2 weeks)
+
+Subject: Your photos are coming along beautifully ✨
+
+Hi {{first_name}},
+
+I’m deep into your wedding edits — and they’re turning out gorgeous.  
+You can expect your full gallery right around {{delivery_estimate_date}}.  
+
+Once everything is ready, you’ll get:
+• A private online gallery link  
+• Easy download + sharing options  
+• Print and album upgrade options  
+
+Can’t wait for you to see them!  
+– {{photographer_name}}
+
+
+🧠 Purpose: Keeps trust high during the wait; prevents “just checking in” emails.
+
+4️⃣ Optional Behind-the-Scenes Social File (T = +3 weeks)
+
+Subject: A little behind the scenes from your wedding 💕
+
+Hi {{first_name}},
+
+While I’ve been editing, I couldn’t help but smile at some of these behind-the-scenes shots — thought you’d love them too!  
+{{smartfile_bts_gallery_link}}
+
+Your full gallery is almost ready.  
+– {{photographer_name}}
+
+
+🧠 Purpose: Keeps excitement alive; gives extra deliverable touchpoint.
+
+5️⃣ Gallery Ready Notification Trigger (system event)
+
+When the gallery is uploaded or marked ready:
+→ Automatically move to “Gallery Delivered” stage
+→ Triggers delivery automations (next stage).
