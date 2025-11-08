@@ -1,0 +1,73 @@
+1️⃣ Timeline Confirmation Email (≈30 days before wedding)
+
+Subject: Let’s finalize your wedding photo timeline 📸
+
+Hi {{first_name}},
+
+We’re officially a month out from your big day — how exciting! 🎉  
+Let’s lock in your photography timeline so everything runs smoothly.
+
+Here’s a quick form where you can share final times, locations, and key moments:  
+{{smartfile_timeline_form_link}}
+
+If you prefer to talk it through, here’s my scheduling link:  
+{{scheduler_link}}
+
+Once this is set, you’ll be able to relax knowing everything is covered.
+
+– {{photographer_name}}
+
+
+🧠 Purpose: Moves from “planning ideas” → confirmed structure.
+
+2️⃣ 21-Day Check-In Email (T = −21 days)
+
+Subject: 3 weeks out — anything new I should know? 💕
+
+Hi {{first_name}},
+
+Just checking in as we get closer!  
+If there have been any changes — getting-ready addresses, planner contacts, or vendor updates — you can update them here:  
+{{smartfile_timeline_form_link}}
+
+Otherwise, you’re all set and I can’t wait to capture your day!
+
+– {{photographer_name}}
+
+
+🧠 Purpose: Quick touchpoint to catch small changes before crunch time.
+
+3️⃣ Final Coordination Email (T = −7 days)
+
+Subject: One week away! Here’s what to expect ✨
+
+Hi {{first_name}},
+
+Your wedding week is here — I can’t wait!  
+Here’s what to expect on my end:
+• I’ll arrive {{arrival_time}} and coordinate with {{planner_name}}.  
+• You don’t need to worry about family photo organization — I’ve got it handled.  
+• If you’d like, you can send me the final family photo list here:  
+{{smartfile_final_shotlist_link}}
+
+Relax, celebrate, and know that everything is ready.  
+See you soon!  
+– {{photographer_name}}
+
+
+🧠 Purpose: Calms nerves, confirms readiness, reinforces professionalism.
+
+4️⃣ SMS Reminder (T = −2 days)
+Hey {{first_name}}! Just a quick note — can’t wait for the big day 🎉  
+Everything looks perfect on my end.  
+If anything last-minute pops up, just text me here.  
+– {{photographer_name}}
+
+
+🧠 Purpose: Human reassurance; last safe check-in.
+
+5️⃣ Stage Move Trigger
+
+When: Event date passes or marked “Event Completed”
+Action: Move → Event Completed / Editing
+Result: Starts editing workflow automations (sneak peek, editing ETA, delivery prep).
