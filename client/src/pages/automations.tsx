@@ -422,7 +422,8 @@ function AutomationStepManager({ automation, onDelete }: { automation: any, onDe
                     const textContent = typeof block.content === 'object' ? block.content.text : block.content;
                     return <p key={idx} className="whitespace-pre-wrap">{textContent}</p>;
                   } else if (block.type === 'BUTTON') {
-                    return <p key={idx} className="text-blue-600 dark:text-blue-400">🔘 Button: {block.content}</p>;
+                    const buttonText = typeof block.content === 'object' ? block.content.text : block.content;
+                    return <p key={idx} className="text-blue-600 dark:text-blue-400">🔘 Button: {buttonText}</p>;
                   } else if (block.type === 'SPACER') {
                     return <div key={idx} className="h-4" />;
                   } else if (block.type === 'HEADER') {
@@ -470,7 +471,8 @@ function AutomationStepManager({ automation, onDelete }: { automation: any, onDe
                           const textContent = typeof block.content === 'object' ? block.content.text : block.content;
                           return <p key={idx} className="whitespace-pre-wrap">{textContent}</p>;
                         } else if (block.type === 'BUTTON') {
-                          return <p key={idx} className="text-blue-600 dark:text-blue-400">🔘 Button: {block.content}</p>;
+                          const buttonText = typeof block.content === 'object' ? block.content.text : block.content;
+                          return <p key={idx} className="text-blue-600 dark:text-blue-400">🔘 Button: {buttonText}</p>;
                         } else if (block.type === 'SPACER') {
                           return <div key={idx} className="h-4" />;
                         } else if (block.type === 'HEADER') {
