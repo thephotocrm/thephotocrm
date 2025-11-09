@@ -1903,6 +1903,13 @@ export default function Automations() {
   const [wizardStep, setWizardStep] = useState(1);
   const totalSteps = 5;
   
+  // Fetch photographer settings for email branding (must be before useEffects that use it)
+  const { data: photographer } = useQuery<any>({
+    queryKey: ["/api/photographer"],
+    queryFn: () => fetch(`/api/photographer`).then(res => res.json()),
+    enabled: !!user
+  });
+  
   // Redirect to login if not authenticated
   useEffect(() => {
     if (!loading && !user) {
@@ -1910,7 +1917,7 @@ export default function Automations() {
     }
   }, [loading, user, setLocation]);
 
-  // Reset modal state when dialog opens
+  // Reset modal state when dialog opens (basic reset only)
   useEffect(() => {
     if (createDialogOpen) {
       // Reset wizard step to beginning
@@ -1922,12 +1929,26 @@ export default function Automations() {
       // Reset email builder states
       setEmailBuilderMode('select');
       setCustomEmailSubject('');
-      
+      setCustomEmailBlocks([]); // Will be populated by next useEffect if photographer data available
+      setSaveAsTemplate(false);
+      setNewTemplateName('');
+      setIncludeHeroImage(false);
+      setHeroImageUrl('');
+      setIncludeHeader(false);
+      setHeaderStyle('professional');
+      setIncludeSignature(true);
+      setSignatureStyle('professional');
+    }
+  }, [createDialogOpen]);
+
+  // Auto-populate email blocks when dialog opens AND photographer data is available
+  useEffect(() => {
+    if (createDialogOpen && photographer) {
       // Auto-populate email blocks with HEADER and SIGNATURE based on photographer settings
       const initialBlocks: any[] = [];
       
       // Add HEADER block if photographer has header enabled
-      if (photographer?.emailIncludeHeader) {
+      if (photographer.emailIncludeHeader) {
         initialBlocks.push({
           id: `header-${Date.now()}`,
           type: 'HEADER',
@@ -1936,7 +1957,7 @@ export default function Automations() {
       }
       
       // Add SIGNATURE block if photographer has signature enabled (default true)
-      if (photographer?.emailIncludeSignature !== false) {
+      if (photographer.emailIncludeSignature !== false) {
         initialBlocks.push({
           id: `signature-${Date.now()}`,
           type: 'SIGNATURE',
@@ -1944,15 +1965,16 @@ export default function Automations() {
         });
       }
       
-      setCustomEmailBlocks(initialBlocks);
-      setSaveAsTemplate(false);
-      setNewTemplateName('');
-      setIncludeHeroImage(false);
-      setHeroImageUrl('');
-      setIncludeHeader(photographer?.emailIncludeHeader || false);
-      setHeaderStyle(photographer?.emailHeaderStyle || 'professional');
-      setIncludeSignature(photographer?.emailIncludeSignature !== false);
-      setSignatureStyle(photographer?.emailSignatureStyle || 'professional');
+      // Update blocks if any were created
+      if (initialBlocks.length > 0) {
+        setCustomEmailBlocks(initialBlocks);
+      }
+      
+      // Always update branding states to respect photographer settings (even if no blocks added)
+      setIncludeHeader(photographer.emailIncludeHeader || false);
+      setHeaderStyle(photographer.emailHeaderStyle || 'professional');
+      setIncludeSignature(photographer.emailIncludeSignature !== false);
+      setSignatureStyle(photographer.emailSignatureStyle || 'professional');
     }
   }, [createDialogOpen, photographer]);
 
@@ -2277,13 +2299,6 @@ export default function Automations() {
   const { data: smartFiles = [] } = useQuery<any[]>({
     queryKey: ["/api/smart-files"],
     queryFn: () => fetch(`/api/smart-files`).then(res => res.json()),
-    enabled: !!user
-  });
-
-  // Fetch photographer settings for email branding
-  const { data: photographer } = useQuery<any>({
-    queryKey: ["/api/photographer"],
-    queryFn: () => fetch(`/api/photographer`).then(res => res.json()),
     enabled: !!user
   });
 
