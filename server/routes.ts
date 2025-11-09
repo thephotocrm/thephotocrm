@@ -5592,6 +5592,34 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       });
       
       const automation = await storage.createAutomation(automationData);
+      
+      // For email builder automations with COMMUNICATION type, create an automation step
+      if (automation.useEmailBuilder && automation.automationType === 'COMMUNICATION') {
+        // Calculate delay based on validated automation data
+        // Coerce to numbers since form data might send strings
+        const delayDays = Number(automationData.delayDays || 0);
+        const delayHours = Number(automationData.delayHours || 0);
+        const delayMinutesValue = Number(automationData.delayMinutes || 0);
+        const delayMinutes = delayDays * 24 * 60 + delayHours * 60 + delayMinutesValue;
+        
+        // Prepare step data
+        const stepData: any = {
+          automationId: automation.id,
+          stepIndex: 0,
+          delayMinutes,
+          actionType: automation.channel === 'EMAIL' ? 'EMAIL' : 'SMS',
+          enabled: true
+        };
+        
+        // For SMS automations, include custom content if provided
+        if (automation.channel === 'SMS' && automationData.customSmsContent) {
+          stepData.customSmsContent = automationData.customSmsContent;
+        }
+        
+        // Create automation step (email content is stored at automation level in emailBlocks/emailSubject)
+        await storage.createAutomationStep(stepData);
+      }
+      
       res.status(201).json(automation);
     } catch (error: any) {
       console.error('Create automation error:', error);
