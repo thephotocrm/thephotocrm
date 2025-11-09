@@ -2270,11 +2270,14 @@ export default function Automations() {
         
         setCustomEmailBlocks(blocks);
         
-        // Set branding states from automation
-        setIncludeHeader(auto.includeHeader || false);
-        setHeaderStyle(auto.headerStyle || 'professional');
-        setIncludeSignature(auto.includeSignature !== false);
-        setSignatureStyle(auto.signatureStyle || 'professional');
+        // Set branding states by scanning the actual blocks (not legacy fields)
+        const headerBlock = blocks.find((b: any) => b.type === 'HEADER');
+        const signatureBlock = blocks.find((b: any) => b.type === 'SIGNATURE');
+        
+        setIncludeHeader(!!headerBlock);
+        setHeaderStyle(headerBlock?.style || headerBlock?.content?.style || 'professional');
+        setIncludeSignature(!!signatureBlock);
+        setSignatureStyle(signatureBlock?.style || signatureBlock?.content?.style || 'professional');
       }
       
       // Set timing mode based on steps (will be handled separately)

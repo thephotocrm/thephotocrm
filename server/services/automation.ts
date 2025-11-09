@@ -435,31 +435,29 @@ async function processEmailBuilderAutomation(automation: any, photographerId: st
       }
       
       // Import utilities
-      const { contentBlocksToHtml, renderTemplate: renderTemplateFn } = await import('@shared/template-utils');
-      const { wrapEmailContent } = await import('./email-branding');
+      const { renderTemplate: renderTemplateFn, generateEmailFromBlocks } = await import('@shared/email-branding-shared');
       
-      // Prepare branding data for HEADER and SIGNATURE blocks
-      const brandingData = {
-        businessName: photographer.businessName || undefined,
-        photographerName: photographer.photographerName || undefined,
-        logoUrl: photographer.logoUrl || undefined,
-        headshotUrl: photographer.headshotUrl || undefined,
-        brandPrimary: photographer.brandPrimary || undefined,
-        brandSecondary: photographer.brandSecondary || undefined,
-        phone: photographer.phone || undefined,
-        email: photographer.email || undefined,
-        website: photographer.website || undefined,
-        businessAddress: photographer.businessAddress || undefined,
-        socialLinks: (photographer.socialLinksJson as any) || undefined
-      };
+      // Auto-migrate legacy automations: add missing HEADER/SIGNATURE blocks based on flags
+      const hasHeaderBlock = emailBlocks.some((b: any) => b.type === 'HEADER');
+      const hasSignatureBlock = emailBlocks.some((b: any) => b.type === 'SIGNATURE');
       
-      // Build HTML from blocks with Smart File context
-      const blocksHtml = contentBlocksToHtml(emailBlocks as any[], {
-        smartFileToken,
-        baseUrl,
-        includeWrapper: false, // Don't include wrapper, branding will add it
-        brandingData
-      });
+      // Prepend HEADER block if flag is set but block doesn't exist
+      if (!hasHeaderBlock && automation.includeHeader) {
+        emailBlocks.unshift({
+          id: `header-${Date.now()}`,
+          type: 'HEADER',
+          style: automation.headerStyle || photographer.emailHeaderStyle || 'professional'
+        });
+      }
+      
+      // Append SIGNATURE block if flag is set but block doesn't exist
+      if (!hasSignatureBlock && automation.includeSignature !== false) {
+        emailBlocks.push({
+          id: `signature-${Date.now()}`,
+          type: 'SIGNATURE',
+          style: automation.signatureStyle || photographer.emailSignatureStyle || 'professional'
+        });
+      }
       
       // Prepare variables for template rendering
       const formatEventDate = (dateValue: any): string => {
@@ -498,20 +496,16 @@ async function processEmailBuilderAutomation(automation: any, photographerId: st
         ...galleryVars
       };
       
-      // Render variables in HTML
-      let renderedHtml = renderTemplateFn(blocksHtml, variables);
+      // Generate email from blocks (handles HEADER/SIGNATURE blocks internally)
+      const { htmlBody, textBody } = generateEmailFromBlocks(
+        emailBlocks as any,
+        variables,
+        photographer
+      );
       
       // Render subject line
       const subject = automation.emailSubject || 'New Message';
       const renderedSubject = renderTemplateFn(subject, variables);
-      
-      // Apply email branding (header/signature)
-      const brandedHtml = wrapEmailContent(
-        renderedHtml,
-        automation.includeHeader ? (automation.headerStyle || 'minimal') : null,
-        automation.includeSignature !== false ? (automation.signatureStyle || 'professional') : null,
-        brandingData
-      );
       
       // Send email with verified sender address
       const fromEmail = process.env.SENDGRID_FROM_EMAIL || 'scoop@missionscoopable.com';
@@ -524,7 +518,7 @@ async function processEmailBuilderAutomation(automation: any, photographerId: st
           from: `${fromName} <${fromEmail}>`,
           replyTo: `${fromName} <${replyToEmail}>`,
           subject: renderedSubject,
-          html: brandedHtml,
+          html: htmlBody,
           photographerId: photographer.id,
           clientId: project.contactId,
           projectId: project.id,
