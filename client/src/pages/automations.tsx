@@ -23,6 +23,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { EmailTemplateBuilder, type ContentBlock } from "@/components/email-template-builder";
 import { EmailPreview } from "@/components/email-preview";
+import { DelayTimingEditor, type DelayTimingValue } from "@/components/delay-timing-editor";
 
 // Create form schema based on insertAutomationSchema but without photographerId (auto-added by backend)
 const createAutomationFormSchema = insertAutomationSchema.omit({ photographerId: true });
@@ -114,6 +115,17 @@ function AutomationStepManager({ automation, onDelete }: { automation: any, onDe
     content: string;
   } | null>(null);
   const [smsEditDialogOpen, setSmsEditDialogOpen] = useState(false);
+
+  // State for editing step timing
+  const [editingStepTiming, setEditingStepTiming] = useState<{
+    stepId: string;
+    delayDays: number;
+    delayHours: number;
+    delayMinutes: number;
+    sendAtHour?: number;
+    sendAtMinute?: number;
+  } | null>(null);
+  const [timingEditDialogOpen, setTimingEditDialogOpen] = useState(false);
 
   const { data: steps = [], isLoading } = useQuery<any[]>({
     queryKey: ["/api/automations", automation.id, "steps"],
@@ -282,6 +294,33 @@ function AutomationStepManager({ automation, onDelete }: { automation: any, onDe
     },
     onError: () => {
       toast({ title: "Failed to update SMS message", variant: "destructive" });
+    }
+  });
+
+  // Update step timing mutation
+  const updateStepTimingMutation = useMutation({
+    mutationFn: async (timingData: DelayTimingValue & { stepId: string }) => {
+      // Calculate total delayMinutes for exact delays
+      // For day-based delays (delayDays >= 1), delayMinutes should be 0
+      const totalMinutes = timingData.delayDays >= 1 
+        ? 0
+        : (timingData.delayHours * 60) + timingData.delayMinutes;
+      
+      return apiRequest("PATCH", `/api/automation-steps/${timingData.stepId}`, {
+        delayDays: timingData.delayDays,
+        delayMinutes: totalMinutes,
+        sendAtHour: timingData.sendAtHour,
+        sendAtMinute: timingData.sendAtMinute
+      });
+    },
+    onSuccess: () => {
+      toast({ title: "Step timing updated successfully" });
+      queryClient.invalidateQueries({ queryKey: ["/api/automations", automation.id, "steps"] });
+      setEditingStepTiming(null);
+      setTimingEditDialogOpen(false);
+    },
+    onError: () => {
+      toast({ title: "Failed to update step timing", variant: "destructive" });
     }
   });
 
@@ -695,6 +734,30 @@ function AutomationStepManager({ automation, onDelete }: { automation: any, onDe
                                 <Clock className="w-3 h-3 mr-1" />
                                 {formatStepTiming(step)}
                               </Badge>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => {
+                                  // Convert step data to DelayTimingValue format
+                                  const totalMinutes = step.delayMinutes || 0;
+                                  const hours = Math.floor(totalMinutes / 60);
+                                  const minutes = totalMinutes % 60;
+                                  
+                                  setEditingStepTiming({
+                                    stepId: step.id,
+                                    delayDays: step.delayDays || 0,
+                                    delayHours: step.delayDays >= 1 ? 0 : hours, // Only use hours/minutes for exact delays
+                                    delayMinutes: step.delayDays >= 1 ? 0 : minutes,
+                                    sendAtHour: step.sendAtHour,
+                                    sendAtMinute: step.sendAtMinute
+                                  });
+                                  setTimingEditDialogOpen(true);
+                                }}
+                                className="h-6 w-6 p-0"
+                                data-testid={`button-edit-timing-${step.id}`}
+                              >
+                                <Edit2 className="w-3 h-3" />
+                              </Button>
                               <span className="text-xs text-muted-foreground">→</span>
                               <span className="text-xs font-medium">
                                 {isSmartFile ? '📄 Send Smart File' : automation.channel === 'EMAIL' ? '📧 Send Email' : '📱 Send SMS'}
@@ -1151,6 +1214,61 @@ function AutomationStepManager({ automation, onDelete }: { automation: any, onDe
                   data-testid="button-save-sms-edit"
                 >
                   {updateSmsStepMutation.isPending ? "Saving..." : "Save Changes"}
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Step Timing Edit Dialog */}
+      <Dialog open={timingEditDialogOpen} onOpenChange={setTimingEditDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit Step Timing</DialogTitle>
+            <DialogDescription>
+              Adjust when this automation step should send
+            </DialogDescription>
+          </DialogHeader>
+          {editingStepTiming && (
+            <div className="space-y-4">
+              <DelayTimingEditor
+                value={{
+                  delayDays: editingStepTiming.delayDays,
+                  delayHours: editingStepTiming.delayHours,
+                  delayMinutes: editingStepTiming.delayMinutes,
+                  sendAtHour: editingStepTiming.sendAtHour,
+                  sendAtMinute: editingStepTiming.sendAtMinute
+                }}
+                onChange={(newValue) => {
+                  setEditingStepTiming({
+                    ...editingStepTiming,
+                    ...newValue
+                  });
+                }}
+                allowImmediate={true}
+                disabled={updateStepTimingMutation.isPending}
+              />
+
+              {/* Action Buttons */}
+              <div className="flex justify-end gap-2 pt-4 border-t">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setEditingStepTiming(null);
+                    setTimingEditDialogOpen(false);
+                  }}
+                  disabled={updateStepTimingMutation.isPending}
+                  data-testid="button-cancel-timing-edit"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={() => updateStepTimingMutation.mutate(editingStepTiming)}
+                  disabled={updateStepTimingMutation.isPending}
+                  data-testid="button-save-timing-edit"
+                >
+                  {updateStepTimingMutation.isPending ? "Saving..." : "Save Changes"}
                 </Button>
               </div>
             </div>
