@@ -918,7 +918,7 @@ function AutomationStepManager({ automation, onDelete }: { automation: any, onDe
 
       {/* Email Builder Edit Dialog */}
       <Dialog open={emailBuilderEditDialogOpen} onOpenChange={setEmailBuilderEditDialogOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-7xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Edit Email Builder Message</DialogTitle>
             <DialogDescription>
