@@ -612,7 +612,7 @@ function AutomationStepManager({ automation, onDelete }: { automation: any, onDe
                               </div>
                             )}
                             
-                            {/* Template Info or Custom Message */}
+                            {/* Template Info or Custom Message or Email Builder Content */}
                             {template && !isSmartFile ? (
                               // VIEW MODE - Show with edit button
                               <div className="bg-muted/50 rounded-md p-2 text-xs space-y-1">
@@ -657,6 +657,38 @@ function AutomationStepManager({ automation, onDelete }: { automation: any, onDe
                                   {template.textBody || 'No message content'}
                                 </p>
                               </div>
+                            ) : automation.useEmailBuilder && automation.emailBlocks && !isSmartFile ? (
+                              // Email Builder Content
+                              <div className="bg-muted/50 rounded-md p-2 text-xs space-y-1">
+                                <p className="font-medium text-primary">Email Builder Message</p>
+                                {automation.emailSubject && (
+                                  <p className="text-muted-foreground">
+                                    <span className="font-medium">Subject:</span> {automation.emailSubject}
+                                  </p>
+                                )}
+                                <div className="text-muted-foreground space-y-1">
+                                  {automation.emailBlocks.slice(0, 3).map((block: any, idx: number) => {
+                                    if (block.type === 'TEXT') {
+                                      const textContent = typeof block.content === 'object' ? block.content.text : block.content;
+                                      return (
+                                        <p key={idx} className="line-clamp-2 text-xs">
+                                          {textContent}
+                                        </p>
+                                      );
+                                    } else if (block.type === 'HEADER') {
+                                      return <p key={idx} className="text-xs">📧 Header: {block.style}</p>;
+                                    } else if (block.type === 'SIGNATURE') {
+                                      return <p key={idx} className="text-xs">✍️ Signature: {block.style}</p>;
+                                    }
+                                    return null;
+                                  })}
+                                  {automation.emailBlocks.length > 3 && (
+                                    <p className="text-xs text-muted-foreground italic">
+                                      +{automation.emailBlocks.length - 3} more blocks...
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
                             ) : step.customSmsContent && !isSmartFile ? (
                               <div className="bg-muted/50 rounded-md p-2 text-xs space-y-1">
                                 <p className="font-medium text-primary">Custom Message</p>
@@ -664,7 +696,7 @@ function AutomationStepManager({ automation, onDelete }: { automation: any, onDe
                                   {step.customSmsContent}
                                 </p>
                               </div>
-                            ) : !isSmartFile && !template && !step.customSmsContent ? (
+                            ) : !isSmartFile && !template && !step.customSmsContent && !automation.useEmailBuilder ? (
                               <p className="text-xs text-muted-foreground italic">No message configured</p>
                             ) : null}
                           </div>

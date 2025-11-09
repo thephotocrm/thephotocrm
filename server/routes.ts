@@ -6626,9 +6626,12 @@ ${photographer?.businessName || 'Your Photography Team'}`;
               photographer
             );
 
-            // Generate subject from first heading block or use a default
-            const subjectBlock = automation.emailBlocks?.find((b: any) => b.type === 'HEADING');
-            const subject = subjectBlock ? renderTemplate(subjectBlock.content, variables) : automation.name;
+            // Use automation subject, or first heading block, or automation name
+            const subject = automation.emailSubject 
+              ? renderTemplate(automation.emailSubject, variables)
+              : automation.emailBlocks?.find((b: any) => b.type === 'HEADING')?.content
+              ? renderTemplate(automation.emailBlocks.find((b: any) => b.type === 'HEADING').content, variables)
+              : automation.name;
 
             // Send email
             const fromEmail = process.env.SENDGRID_FROM_EMAIL || 'notifications@scoop.photo';
@@ -6714,9 +6717,12 @@ ${photographer?.businessName || 'Your Photography Team'}`;
               photographer
             );
 
-            // Generate subject from first heading block or use a default
-            const subjectBlock = automation.emailBlocks?.find((b: any) => b.type === 'HEADING');
-            const subject = subjectBlock ? renderTemplate(subjectBlock.content, variables) : automation.name;
+            // Use automation subject, or first heading block, or automation name
+            const subject = automation.emailSubject 
+              ? renderTemplate(automation.emailSubject, variables)
+              : automation.emailBlocks?.find((b: any) => b.type === 'HEADING')?.content
+              ? renderTemplate(automation.emailBlocks.find((b: any) => b.type === 'HEADING').content, variables)
+              : automation.name;
 
             // Send email
             const fromEmail = process.env.SENDGRID_FROM_EMAIL || 'notifications@scoop.photo';
