@@ -286,12 +286,6 @@ function AutomationStepManager({ automation, onDelete }: { automation: any, onDe
                 <Target className="w-3 h-3 mr-1" />
                 {automation.businessTriggers[0].triggerType.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, (l: string) => l.toUpperCase())}
               </Badge>
-            ) : automation.stageId && (automation.useEmailBuilder || automation.emailBlocks) ? (
-              // Stage-based automation with direct email content (no steps)
-              <Badge variant="default" className="bg-amber-500 dark:bg-amber-600 text-white text-xs">
-                <Zap className="w-3 h-3 mr-1" />
-                Immediately
-              </Badge>
             ) : steps.length > 0 && steps[0].delayMinutes > 0 ? (
               // Time-based automation (has delay)
               <Badge variant="default" className="bg-blue-500 dark:bg-blue-600 text-white text-xs">
