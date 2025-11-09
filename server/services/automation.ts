@@ -438,11 +438,27 @@ async function processEmailBuilderAutomation(automation: any, photographerId: st
       const { contentBlocksToHtml, renderTemplate: renderTemplateFn } = await import('@shared/template-utils');
       const { wrapEmailContent } = await import('./email-branding');
       
+      // Prepare branding data for HEADER and SIGNATURE blocks
+      const brandingData = {
+        businessName: photographer.businessName || undefined,
+        photographerName: photographer.photographerName || undefined,
+        logoUrl: photographer.logoUrl || undefined,
+        headshotUrl: photographer.headshotUrl || undefined,
+        brandPrimary: photographer.brandPrimary || undefined,
+        brandSecondary: photographer.brandSecondary || undefined,
+        phone: photographer.phone || undefined,
+        email: photographer.email || undefined,
+        website: photographer.website || undefined,
+        businessAddress: photographer.businessAddress || undefined,
+        socialLinks: (photographer.socialLinksJson as any) || undefined
+      };
+      
       // Build HTML from blocks with Smart File context
       const blocksHtml = contentBlocksToHtml(emailBlocks as any[], {
         smartFileToken,
         baseUrl,
-        includeWrapper: false // Don't include wrapper, branding will add it
+        includeWrapper: false, // Don't include wrapper, branding will add it
+        brandingData
       });
       
       // Prepare variables for template rendering
@@ -488,21 +504,6 @@ async function processEmailBuilderAutomation(automation: any, photographerId: st
       // Render subject line
       const subject = automation.emailSubject || 'New Message';
       const renderedSubject = renderTemplateFn(subject, variables);
-      
-      // Prepare branding data
-      const brandingData = {
-        businessName: photographer.businessName || undefined,
-        photographerName: photographer.photographerName || undefined,
-        logoUrl: photographer.logoUrl || undefined,
-        headshotUrl: photographer.headshotUrl || undefined,
-        brandPrimary: photographer.brandPrimary || undefined,
-        brandSecondary: photographer.brandSecondary || undefined,
-        phone: photographer.phone || undefined,
-        email: photographer.email || undefined,
-        website: photographer.website || undefined,
-        businessAddress: photographer.businessAddress || undefined,
-        socialLinks: (photographer.socialLinksJson as any) || undefined
-      };
       
       // Apply email branding (header/signature)
       const brandedHtml = wrapEmailContent(
@@ -1710,14 +1711,30 @@ async function sendCountdownMessage(project: any, automation: any, photographerI
       // Render subject with variables
       subject = renderTemplateFn(automation.emailSubject || '', variables);
       
+      // Prepare photographer branding data for HEADER and SIGNATURE blocks
+      const photographerBrandingData = {
+        businessName: photographer?.businessName || undefined,
+        photographerName: photographer?.photographerName || undefined,
+        logoUrl: photographer?.logoUrl || undefined,
+        headshotUrl: photographer?.headshotUrl || undefined,
+        brandPrimary: photographer?.brandPrimary || undefined,
+        brandSecondary: photographer?.brandSecondary || undefined,
+        phone: photographer?.phone || undefined,
+        email: photographer?.email || undefined,
+        website: photographer?.website || undefined,
+        businessAddress: photographer?.businessAddress || undefined,
+        socialLinks: (photographer?.socialLinksJson as any) || undefined
+      };
+      
       // Render email blocks to HTML
       const blocksHtml = contentBlocksToHtml(automation.emailBlocks as any[], {
         baseUrl: process.env.REPLIT_DEV_DOMAIN 
           ? `https://${process.env.REPLIT_DEV_DOMAIN}`
-          : 'https://thephotocrm.com'
+          : 'https://thephotocrm.com',
+        brandingData: photographerBrandingData
       });
       
-      // Apply branding (headers and signatures)
+      // Apply branding (headers and signatures) for legacy automations
       const brandingData = {
         includeHeroImage: automation.includeHeroImage || false,
         heroImageUrl: automation.heroImageUrl || undefined,
@@ -2197,7 +2214,8 @@ async function processSubscriptionEmail(subscription: any, campaign: any, projec
           ? `https://${process.env.REPLIT_DEV_DOMAIN}`
           : 'https://thephotocrm.com',
         photographerToken: photographer?.publicToken,
-        includeWrapper: false // No grey container, just the clean block markup
+        includeWrapper: false, // No grey container, just the clean block markup
+        brandingData // For HEADER and SIGNATURE blocks
       });
       
       console.log('📧 Email builder content (no wrapper), length:', rawBlocksHtml.length);

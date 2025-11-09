@@ -3421,7 +3421,9 @@ ${photographer?.businessName || 'Your Photography Team'}`;
           };
           
           // Generate content blocks HTML
-          let bodyHtml = contentBlocksToHtml(templateData.contentBlocks as any);
+          let bodyHtml = contentBlocksToHtml(templateData.contentBlocks as any, {
+            brandingData
+          });
           
           // Wrap with hero image, header, and signature if enabled
           let finalHtml = bodyHtml;
@@ -3459,7 +3461,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
 </body>
 </html>`;
           
-          templateData.textBody = contentBlocksToText(templateData.contentBlocks as any);
+          templateData.textBody = contentBlocksToText(templateData.contentBlocks as any, brandingData);
         } else if (templateData.textBody) {
           // Fallback for legacy text-only templates
           templateData.htmlBody = textToHtml(templateData.textBody);
@@ -3511,7 +3513,9 @@ ${photographer?.businessName || 'Your Photography Team'}`;
           };
           
           // Generate content blocks HTML
-          let bodyHtml = contentBlocksToHtml(updates.contentBlocks as any);
+          let bodyHtml = contentBlocksToHtml(updates.contentBlocks as any, {
+            brandingData
+          });
           
           // Wrap with hero image, header, and signature if enabled
           let finalHtml = bodyHtml;
@@ -3557,7 +3561,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
 </body>
 </html>`;
           
-          updates.textBody = contentBlocksToText(updates.contentBlocks as any);
+          updates.textBody = contentBlocksToText(updates.contentBlocks as any, brandingData);
         } else if (updates.textBody) {
           // Fallback for legacy text-only templates
           updates.htmlBody = textToHtml(updates.textBody);
