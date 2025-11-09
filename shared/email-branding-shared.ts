@@ -261,3 +261,125 @@ export function generateEmailSignature(style: string | null | undefined, data: B
       return '';
   }
 }
+
+/**
+ * Simple template variable replacement
+ * Matches {{variable}}, {{ variable }}, {{first_name}}, etc.
+ */
+function renderTemplate(template: string, variables: Record<string, any>): string {
+  return template.replace(/\{\{\s*([\w.]+)\s*\}\}/g, (match, key) => {
+    const trimmedKey = key.trim();
+    return variables[trimmedKey] !== undefined ? String(variables[trimmedKey]) : match;
+  });
+}
+
+/**
+ * Generate email HTML and text from email blocks
+ */
+export function generateEmailFromBlocks(
+  blocks: any[],
+  variables: Record<string, any>,
+  photographer: any
+): { htmlBody: string; textBody: string } {
+  const brandingData: BrandingData = {
+    businessName: photographer?.businessName || undefined,
+    photographerName: photographer?.photographerName || undefined,
+    logoUrl: photographer?.logoUrl || undefined,
+    headshotUrl: photographer?.headshotUrl || undefined,
+    brandPrimary: photographer?.brandPrimary || undefined,
+    brandSecondary: photographer?.brandSecondary || undefined,
+    phone: photographer?.phone || undefined,
+    email: photographer?.emailFromAddr || photographer?.googleEmail || undefined,
+    website: photographer?.website || undefined,
+    businessAddress: photographer?.businessAddress || undefined,
+    socialLinks: photographer?.socialLinksJson || undefined
+  };
+
+  let htmlParts: string[] = [];
+  let textParts: string[] = [];
+
+  for (const block of blocks) {
+    const blockType = block.type;
+
+    switch (blockType) {
+      case 'HEADER':
+        const headerStyle = block.style || block.content?.style || 'professional';
+        htmlParts.push(generateEmailHeader(headerStyle, brandingData));
+        break;
+
+      case 'HEADING':
+        const headingText = renderTemplate(block.content?.text || '', variables);
+        htmlParts.push(`<h2 style="font-size: 24px; font-weight: 600; margin: 20px 0 10px 0; color: #000000;">${headingText}</h2>`);
+        textParts.push(`\n${headingText}\n${'='.repeat(headingText.length)}\n`);
+        break;
+
+      case 'TEXT':
+        const textContent = renderTemplate(block.content?.text || '', variables);
+        htmlParts.push(`<p style="font-size: 16px; line-height: 1.6; margin: 10px 0; color: #333333;">${textContent.replace(/\n/g, '<br>')}</p>`);
+        textParts.push(textContent + '\n');
+        break;
+
+      case 'BUTTON':
+        const buttonText = renderTemplate(block.content?.text || 'Click Here', variables);
+        const buttonUrl = renderTemplate(block.content?.url || '#', variables);
+        const buttonColor = block.content?.color || brandingData.brandPrimary || '#007bff';
+        htmlParts.push(`
+          <div style="margin: 20px 0; text-align: center;">
+            <a href="${buttonUrl}" style="display: inline-block; padding: 12px 30px; background-color: ${buttonColor}; color: #ffffff; text-decoration: none; border-radius: 5px; font-weight: 600; font-size: 16px;">${buttonText}</a>
+          </div>
+        `);
+        textParts.push(`\n${buttonText}: ${buttonUrl}\n`);
+        break;
+
+      case 'IMAGE':
+        const imageUrl = toAbsoluteUrl(block.content?.url);
+        if (imageUrl) {
+          const imageAlt = block.content?.alt || 'Image';
+          htmlParts.push(`
+            <div style="margin: 20px 0; text-align: center;">
+              <img src="${imageUrl}" alt="${imageAlt}" style="max-width: 100%; height: auto; border-radius: 8px;" />
+            </div>
+          `);
+          textParts.push(`[Image: ${imageAlt}]\n`);
+        }
+        break;
+
+      case 'SPACER':
+        const height = block.content?.height || 20;
+        htmlParts.push(`<div style="height: ${height}px;"></div>`);
+        textParts.push('\n');
+        break;
+
+      case 'SIGNATURE':
+        const signatureStyle = block.style || block.content?.style || 'professional';
+        htmlParts.push(generateEmailSignature(signatureStyle, brandingData));
+        textParts.push(`\n---\n${brandingData.photographerName || brandingData.businessName || ''}\n`);
+        if (brandingData.phone) textParts.push(`Phone: ${brandingData.phone}\n`);
+        if (brandingData.email) textParts.push(`Email: ${brandingData.email}\n`);
+        if (brandingData.website) textParts.push(`Web: ${brandingData.website}\n`);
+        break;
+
+      default:
+        break;
+    }
+  }
+
+  const htmlBody = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
+      <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+        ${htmlParts.join('\n')}
+      </div>
+    </body>
+    </html>
+  `;
+
+  const textBody = textParts.join('\n').trim();
+
+  return { htmlBody, textBody };
+}
