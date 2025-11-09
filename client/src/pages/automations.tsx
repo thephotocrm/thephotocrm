@@ -319,12 +319,14 @@ function AutomationStepManager({ automation, onDelete }: { automation: any, onDe
                 📱 SMS
               </Badge>
             ) : null}
-            {automation.channel === 'EMAIL' && automation.automationType !== 'COUNTDOWN' && (
+            {/* Check channel OR step action type for EMAIL */}
+            {(automation.channel === 'EMAIL' || (steps.length > 0 && steps[0].actionType === 'EMAIL')) && automation.automationType !== 'COUNTDOWN' && (
               <Badge variant="outline" className="bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800 text-xs">
                 📧 Email
               </Badge>
             )}
-            {automation.channel === 'SMS' && automation.automationType !== 'COUNTDOWN' && (
+            {/* Check channel OR step action type for SMS */}
+            {(automation.channel === 'SMS' || (steps.length > 0 && steps[0].actionType === 'SMS')) && automation.automationType !== 'COUNTDOWN' && (
               <Badge variant="outline" className="bg-teal-50 dark:bg-teal-950 text-teal-700 dark:text-teal-300 border-teal-200 dark:border-teal-800 text-xs">
                 📱 SMS
               </Badge>
