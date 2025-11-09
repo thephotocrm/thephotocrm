@@ -805,14 +805,37 @@ function AutomationStepManager({ automation, onDelete }: { automation: any, onDe
                                   )}
                                 </div>
                               </div>
-                            ) : step.customSmsContent && !isSmartFile ? (
+                            ) : step.actionType === 'SMS' && !isSmartFile && !template ? (
                               <div className="bg-muted/50 rounded-md p-2 text-xs space-y-1">
-                                <p className="font-medium text-primary">Custom Message</p>
-                                <p className="text-muted-foreground line-clamp-3">
-                                  {step.customSmsContent}
-                                </p>
+                                <div className="flex items-center justify-between">
+                                  <p className="font-medium text-primary">SMS Message</p>
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => {
+                                      setEditingSmsStep({
+                                        stepId: step.id,
+                                        content: step.customSmsContent || ''
+                                      });
+                                      setSmsEditDialogOpen(true);
+                                    }}
+                                    className="h-6 w-6 p-0"
+                                    data-testid={`button-edit-sms-${step.id}`}
+                                  >
+                                    <Edit2 className="w-3 h-3" />
+                                  </Button>
+                                </div>
+                                {step.customSmsContent ? (
+                                  <p className="text-muted-foreground line-clamp-3">
+                                    {step.customSmsContent}
+                                  </p>
+                                ) : (
+                                  <p className="text-muted-foreground/60 italic">
+                                    No message set - click edit to add content
+                                  </p>
+                                )}
                               </div>
-                            ) : !isSmartFile && !template && !step.customSmsContent && !automation.useEmailBuilder ? (
+                            ) : !isSmartFile && !template && !automation.useEmailBuilder && step.actionType !== 'SMS' ? (
                               <p className="text-xs text-muted-foreground italic">No message configured</p>
                             ) : null}
                           </div>
