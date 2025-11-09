@@ -375,11 +375,17 @@ function AutomationStepManager({ automation, onDelete }: { automation: any, onDe
                   if (block.type === 'HEADING') {
                     return <p key={idx} className="font-bold text-base">{block.content}</p>;
                   } else if (block.type === 'TEXT') {
-                    return <p key={idx} className="whitespace-pre-wrap">{block.content}</p>;
+                    // Handle both old format (string) and new format (object with text property)
+                    const textContent = typeof block.content === 'object' ? block.content.text : block.content;
+                    return <p key={idx} className="whitespace-pre-wrap">{textContent}</p>;
                   } else if (block.type === 'BUTTON') {
                     return <p key={idx} className="text-blue-600 dark:text-blue-400">🔘 Button: {block.content}</p>;
                   } else if (block.type === 'SPACER') {
                     return <div key={idx} className="h-4" />;
+                  } else if (block.type === 'HEADER') {
+                    return <p key={idx} className="text-sm text-muted-foreground">📧 Header: {block.style}</p>;
+                  } else if (block.type === 'SIGNATURE') {
+                    return <p key={idx} className="text-sm text-muted-foreground">✍️ Signature: {block.style}</p>;
                   }
                   return null;
                 })}
@@ -417,11 +423,17 @@ function AutomationStepManager({ automation, onDelete }: { automation: any, onDe
                         if (block.type === 'HEADING') {
                           return <p key={idx} className="font-bold text-base">{block.content}</p>;
                         } else if (block.type === 'TEXT') {
-                          return <p key={idx} className="whitespace-pre-wrap">{block.content}</p>;
+                          // Handle both old format (string) and new format (object with text property)
+                          const textContent = typeof block.content === 'object' ? block.content.text : block.content;
+                          return <p key={idx} className="whitespace-pre-wrap">{textContent}</p>;
                         } else if (block.type === 'BUTTON') {
                           return <p key={idx} className="text-blue-600 dark:text-blue-400">🔘 Button: {block.content}</p>;
                         } else if (block.type === 'SPACER') {
                           return <div key={idx} className="h-4" />;
+                        } else if (block.type === 'HEADER') {
+                          return <p key={idx} className="text-sm text-muted-foreground">📧 Header: {block.style}</p>;
+                        } else if (block.type === 'SIGNATURE') {
+                          return <p key={idx} className="text-sm text-muted-foreground">✍️ Signature: {block.style}</p>;
                         }
                         return null;
                       })}
