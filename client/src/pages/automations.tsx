@@ -1922,17 +1922,39 @@ export default function Automations() {
       // Reset email builder states
       setEmailBuilderMode('select');
       setCustomEmailSubject('');
-      setCustomEmailBlocks([]);
+      
+      // Auto-populate email blocks with HEADER and SIGNATURE based on photographer settings
+      const initialBlocks: any[] = [];
+      
+      // Add HEADER block if photographer has header enabled
+      if (photographer?.emailIncludeHeader) {
+        initialBlocks.push({
+          id: `header-${Date.now()}`,
+          type: 'HEADER',
+          style: photographer.emailHeaderStyle || 'professional'
+        });
+      }
+      
+      // Add SIGNATURE block if photographer has signature enabled (default true)
+      if (photographer?.emailIncludeSignature !== false) {
+        initialBlocks.push({
+          id: `signature-${Date.now()}`,
+          type: 'SIGNATURE',
+          style: photographer.emailSignatureStyle || 'professional'
+        });
+      }
+      
+      setCustomEmailBlocks(initialBlocks);
       setSaveAsTemplate(false);
       setNewTemplateName('');
       setIncludeHeroImage(false);
       setHeroImageUrl('');
-      setIncludeHeader(false);
-      setHeaderStyle('professional');
-      setIncludeSignature(true);
-      setSignatureStyle('professional');
+      setIncludeHeader(photographer?.emailIncludeHeader || false);
+      setHeaderStyle(photographer?.emailHeaderStyle || 'professional');
+      setIncludeSignature(photographer?.emailIncludeSignature !== false);
+      setSignatureStyle(photographer?.emailSignatureStyle || 'professional');
     }
-  }, [createDialogOpen]);
+  }, [createDialogOpen, photographer]);
 
   // Unified form schema that supports all three automation types with optional sections
   const unifiedFormSchema = createAutomationFormSchema.extend({
@@ -2255,6 +2277,13 @@ export default function Automations() {
   const { data: smartFiles = [] } = useQuery<any[]>({
     queryKey: ["/api/smart-files"],
     queryFn: () => fetch(`/api/smart-files`).then(res => res.json()),
+    enabled: !!user
+  });
+
+  // Fetch photographer settings for email branding
+  const { data: photographer } = useQuery<any>({
+    queryKey: ["/api/photographer"],
+    queryFn: () => fetch(`/api/photographer`).then(res => res.json()),
     enabled: !!user
   });
 
