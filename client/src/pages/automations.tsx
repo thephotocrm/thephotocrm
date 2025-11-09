@@ -58,6 +58,18 @@ function AutomationStepManager({ automation, onDelete }: { automation: any, onDe
   } | null>(null);
   const [templateEditDialogOpen, setTemplateEditDialogOpen] = useState(false);
 
+  // State for editing email builder content
+  const [editingEmailBuilder, setEditingEmailBuilder] = useState<{
+    automationId: string;
+    subject: string;
+    blocks: ContentBlock[];
+    includeHeader: boolean;
+    headerStyle: string;
+    includeSignature: boolean;
+    signatureStyle: string;
+  } | null>(null);
+  const [emailBuilderEditDialogOpen, setEmailBuilderEditDialogOpen] = useState(false);
+
   const { data: steps = [], isLoading } = useQuery<any[]>({
     queryKey: ["/api/automations", automation.id, "steps"],
     enabled: !!automation.id
@@ -176,6 +188,37 @@ function AutomationStepManager({ automation, onDelete }: { automation: any, onDe
     },
     onError: () => {
       toast({ title: "Failed to update email template", variant: "destructive" });
+    }
+  });
+
+  // Update email builder mutation
+  const updateEmailBuilderMutation = useMutation({
+    mutationFn: async (builderData: { 
+      automationId: string;
+      subject: string; 
+      blocks: ContentBlock[];
+      includeHeader: boolean;
+      headerStyle: string;
+      includeSignature: boolean;
+      signatureStyle: string;
+    }) => {
+      return apiRequest("PUT", `/api/automations/${builderData.automationId}`, {
+        emailSubject: builderData.subject,
+        emailBlocks: builderData.blocks,
+        includeHeader: builderData.includeHeader,
+        headerStyle: builderData.headerStyle,
+        includeSignature: builderData.includeSignature,
+        signatureStyle: builderData.signatureStyle
+      });
+    },
+    onSuccess: () => {
+      toast({ title: "Email builder message updated successfully" });
+      queryClient.invalidateQueries({ queryKey: ["/api/automations"] });
+      setEditingEmailBuilder(null);
+      setEmailBuilderEditDialogOpen(false);
+    },
+    onError: () => {
+      toast({ title: "Failed to update email builder message", variant: "destructive" });
     }
   });
 
@@ -660,7 +703,30 @@ function AutomationStepManager({ automation, onDelete }: { automation: any, onDe
                             ) : automation.useEmailBuilder && automation.emailBlocks && !isSmartFile ? (
                               // Email Builder Content
                               <div className="bg-muted/50 rounded-md p-2 text-xs space-y-1">
-                                <p className="font-medium text-primary">Email Builder Message</p>
+                                <div className="flex items-start justify-between">
+                                  <p className="font-medium text-primary">Email Builder Message</p>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => {
+                                      // Ensure proper defaults for all branding fields (handles both null and undefined)
+                                      setEditingEmailBuilder({
+                                        automationId: automation.id,
+                                        subject: automation.emailSubject || '',
+                                        blocks: (automation.emailBlocks || []) as ContentBlock[],
+                                        includeHeader: automation.includeHeader ?? false,
+                                        headerStyle: automation.headerStyle || 'professional',
+                                        includeSignature: automation.includeSignature ?? true,
+                                        signatureStyle: automation.signatureStyle || 'professional'
+                                      });
+                                      setEmailBuilderEditDialogOpen(true);
+                                    }}
+                                    className="h-6 w-6 p-0"
+                                    data-testid={`button-edit-email-builder-${automation.id}`}
+                                  >
+                                    <Edit2 className="w-3 h-3" />
+                                  </Button>
+                                </div>
                                 {automation.emailSubject && (
                                   <p className="text-muted-foreground">
                                     <span className="font-medium">Subject:</span> {automation.emailSubject}
@@ -841,6 +907,90 @@ function AutomationStepManager({ automation, onDelete }: { automation: any, onDe
                   data-testid="button-save-template-edit"
                 >
                   {updateTemplateMutation.isPending ? "Saving..." : "Save Template"}
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Email Builder Edit Dialog */}
+      <Dialog open={emailBuilderEditDialogOpen} onOpenChange={setEmailBuilderEditDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Edit Email Builder Message</DialogTitle>
+            <DialogDescription>
+              Use the visual email builder to customize your automation email
+            </DialogDescription>
+          </DialogHeader>
+          {editingEmailBuilder && (
+            <div className="space-y-4">
+              {/* Subject Line */}
+              <div className="space-y-2">
+                <Label htmlFor="email-builder-subject">Email Subject</Label>
+                <Input
+                  id="email-builder-subject"
+                  value={editingEmailBuilder.subject}
+                  onChange={(e) => setEditingEmailBuilder({...editingEmailBuilder, subject: e.target.value})}
+                  placeholder="Email subject line..."
+                  data-testid="input-email-builder-subject-edit"
+                />
+              </div>
+
+              {/* Email Builder and Preview */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <div>
+                  <Label className="mb-2 block">Email Content</Label>
+                  <EmailTemplateBuilder
+                    blocks={editingEmailBuilder.blocks}
+                    onBlocksChange={(blocks) => setEditingEmailBuilder({...editingEmailBuilder, blocks})}
+                    includeHeader={editingEmailBuilder.includeHeader}
+                    headerStyle={editingEmailBuilder.headerStyle}
+                    includeSignature={editingEmailBuilder.includeSignature}
+                    signatureStyle={editingEmailBuilder.signatureStyle}
+                    onBrandingChange={(branding) => {
+                      setEditingEmailBuilder({
+                        ...editingEmailBuilder,
+                        includeHeader: branding.includeHeader,
+                        headerStyle: branding.headerStyle,
+                        includeSignature: branding.includeSignature,
+                        signatureStyle: branding.signatureStyle
+                      });
+                    }}
+                  />
+                </div>
+                <div>
+                  <Label className="mb-2 block">Preview</Label>
+                  <EmailPreview
+                    subject={editingEmailBuilder.subject}
+                    blocks={editingEmailBuilder.blocks}
+                    includeHeader={editingEmailBuilder.includeHeader}
+                    headerStyle={editingEmailBuilder.headerStyle}
+                    includeSignature={editingEmailBuilder.includeSignature}
+                    signatureStyle={editingEmailBuilder.signatureStyle}
+                  />
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex justify-end gap-2 pt-4 border-t">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setEditingEmailBuilder(null);
+                    setEmailBuilderEditDialogOpen(false);
+                  }}
+                  disabled={updateEmailBuilderMutation.isPending}
+                  data-testid="button-cancel-email-builder-edit"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={() => updateEmailBuilderMutation.mutate(editingEmailBuilder)}
+                  disabled={updateEmailBuilderMutation.isPending}
+                  data-testid="button-save-email-builder-edit"
+                >
+                  {updateEmailBuilderMutation.isPending ? "Saving..." : "Save Changes"}
                 </Button>
               </div>
             </div>
