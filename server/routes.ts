@@ -6363,10 +6363,11 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       // Get automation steps
       const steps = await storage.getAutomationSteps(req.params.id);
       
-      // For COUNTDOWN automations, check if they use email builder instead of steps
+      // Check if this automation uses email builder
       const isCountdownWithEmailBuilder = automation.automationType === 'COUNTDOWN' && automation.useEmailBuilder && automation.emailBlocks;
+      const isCommunicationWithEmailBuilder = automation.automationType === 'COMMUNICATION' && automation.useEmailBuilder && automation.emailBlocks;
       
-      if (steps.length === 0 && !isCountdownWithEmailBuilder) {
+      if (steps.length === 0 && !isCountdownWithEmailBuilder && !isCommunicationWithEmailBuilder) {
         return res.status(400).json({ message: "No steps configured for this automation" });
       }
 
@@ -6610,12 +6611,77 @@ ${photographer?.businessName || 'Your Photography Team'}`;
         }
       }
 
-      const totalCount = steps.length + (isCountdownWithEmailBuilder ? 1 : 0);
+      // Handle COMMUNICATION automations with email builder (no steps)
+      if (isCommunicationWithEmailBuilder) {
+        try {
+          // Validate recipient email
+          if (!photographerEmail) {
+            errors.push('Photographer email not configured');
+          } else {
+            // Build template variables
+            const variables: Record<string, string> = {
+              first_name: testContact.name?.split(' ')[0] || testContact.name || '',
+              last_name: testContact.name?.split(' ').slice(1).join(' ') || '',
+              full_name: testContact.name || '',
+              business_name: photographer.businessName || '',
+              photographer_name: photographer.photographerName || photographer.businessName || '',
+              contact_email: testContact.email || '',
+              contact_phone: testContact.phone || '',
+              project_name: testProject.name || '',
+              event_date: testProject.eventDate || '',
+              scheduler_link: `https://${process.env.REPLIT_DEV_DOMAIN}/booking/${photographer.publicToken}`,
+              calendar_link: `https://${process.env.REPLIT_DEV_DOMAIN}/booking/${photographer.publicToken}`,
+            };
+
+            // Generate email from blocks
+            const { htmlBody, textBody } = generateEmailFromBlocks(
+              automation.emailBlocks as any,
+              variables,
+              photographer
+            );
+
+            // Generate subject from first heading block or use a default
+            const subjectBlock = automation.emailBlocks?.find((b: any) => b.type === 'HEADING');
+            const subject = subjectBlock ? renderTemplate(subjectBlock.content, variables) : automation.name;
+
+            // Send email
+            const fromEmail = process.env.SENDGRID_FROM_EMAIL || 'notifications@scoop.photo';
+            const fromName = photographer.emailFromName || photographer.businessName || 'Scoop Photography';
+            const replyToEmail = photographer.emailFromAddr || process.env.SENDGRID_REPLY_TO || fromEmail;
+
+            const success = await sendEmail({
+              to: photographerEmail,
+              from: `${fromName} <${fromEmail}>`,
+              replyTo: `${fromName} <${replyToEmail}>`,
+              subject: `[TEST] ${subject}`,
+              text: textBody,
+              html: htmlBody
+            });
+
+            messageDetails.push({
+              stepId: 'email-builder',
+              content: textBody,
+              success
+            });
+
+            if (success) {
+              sentCount++;
+            } else {
+              errors.push('Failed to send email');
+            }
+          }
+        } catch (emailError: any) {
+          console.error('Error sending test for COMMUNICATION email builder:', emailError);
+          errors.push(`Email builder: ${emailError.message}`);
+        }
+      }
+
+      const totalCount = steps.length + (isCountdownWithEmailBuilder ? 1 : 0) + (isCommunicationWithEmailBuilder ? 1 : 0);
       const response: any = {
         message: `Test automation completed. Sent ${sentCount} out of ${totalCount} messages.`,
         sentCount,
         totalSteps: totalCount,
-        recipient: automation.channel === 'EMAIL' || isCountdownWithEmailBuilder ? photographerEmail : (photographer.personalPhone || photographer.phone),
+        recipient: automation.channel === 'EMAIL' || isCountdownWithEmailBuilder || isCommunicationWithEmailBuilder ? photographerEmail : (photographer.personalPhone || photographer.phone),
         messagePreview: messageDetails.length > 0 ? messageDetails[0].content : undefined,
         messageDetails
       };
