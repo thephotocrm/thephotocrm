@@ -32,6 +32,44 @@ type CreateAutomationFormData = z.infer<typeof createAutomationFormSchema>;
 const createBusinessTriggerFormSchema = insertAutomationBusinessTriggerSchema.omit({ automationId: true });
 type CreateBusinessTriggerFormData = z.infer<typeof createBusinessTriggerFormSchema>;
 
+// Unified timing formatter for automation steps
+function formatStepTiming(step: { delayDays?: number | null; sendAtHour?: number | null; sendAtMinute?: number | null; delayMinutes: number }): string {
+  // Day-based delay with specific send time
+  if (step.delayDays && step.delayDays >= 1 && (step.sendAtHour !== null && step.sendAtHour !== undefined)) {
+    const hour = step.sendAtHour;
+    const minute = step.sendAtMinute || 0;
+    const period = hour >= 12 ? 'PM' : 'AM';
+    const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+    const displayMinute = String(minute).padStart(2, '0');
+    const dayText = step.delayDays === 1 ? 'day' : 'days';
+    return `In ${step.delayDays} ${dayText} at ${displayHour}:${displayMinute} ${period}`;
+  }
+  
+  // Exact delay (minutes-based)
+  if (step.delayMinutes === 0) return 'Immediately';
+  
+  const totalMinutes = step.delayMinutes;
+  if (totalMinutes < 60) return `After ${totalMinutes} minute${totalMinutes !== 1 ? 's' : ''}`;
+  
+  const hours = Math.floor(totalMinutes / 60);
+  const mins = totalMinutes % 60;
+  
+  if (hours < 24) {
+    if (mins > 0) {
+      return `After ${hours} hour${hours !== 1 ? 's' : ''} ${mins} minute${mins !== 1 ? 's' : ''}`;
+    }
+    return `After ${hours} hour${hours !== 1 ? 's' : ''}`;
+  }
+  
+  const days = Math.floor(hours / 24);
+  const remainingHours = hours % 24;
+  
+  if (remainingHours > 0) {
+    return `After ${days} day${days !== 1 ? 's' : ''} ${remainingHours} hour${remainingHours !== 1 ? 's' : ''}`;
+  }
+  return `After ${days} day${days !== 1 ? 's' : ''}`;
+}
+
 // AutomationStepManager Component
 function AutomationStepManager({ automation, onDelete }: { automation: any, onDelete: (id: string) => void }) {
   const { toast } = useToast();
@@ -354,18 +392,13 @@ function AutomationStepManager({ automation, onDelete }: { automation: any, onDe
                 <Target className="w-3 h-3 mr-1" />
                 {automation.businessTriggers[0].triggerType.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, (l: string) => l.toUpperCase())}
               </Badge>
-            ) : steps.length > 0 && steps[0].delayMinutes > 0 ? (
+            ) : steps.length > 0 && (steps[0].delayMinutes > 0 || (steps[0].delayDays && steps[0].delayDays >= 1)) ? (
               // Time-based automation (has delay)
               <Badge variant="default" className="bg-blue-500 dark:bg-blue-600 text-white text-xs">
                 <Clock className="w-3 h-3 mr-1" />
-                Delay: {steps[0].delayMinutes < 60 
-                  ? `${steps[0].delayMinutes} minute${steps[0].delayMinutes !== 1 ? 's' : ''}`
-                  : steps[0].delayMinutes < 1440
-                  ? `${Math.floor(steps[0].delayMinutes / 60)} hour${Math.floor(steps[0].delayMinutes / 60) !== 1 ? 's' : ''}`
-                  : `${Math.floor(steps[0].delayMinutes / 1440)} day${Math.floor(steps[0].delayMinutes / 1440) !== 1 ? 's' : ''}`
-                }
+                {formatStepTiming(steps[0])}
               </Badge>
-            ) : steps.length > 0 && steps[0].delayMinutes === 0 ? (
+            ) : steps.length > 0 && steps[0].delayMinutes === 0 && !steps[0].delayDays ? (
               // Immediate automation (delay is 0)
               <Badge variant="default" className="bg-amber-500 dark:bg-amber-600 text-white text-xs">
                 <Zap className="w-3 h-3 mr-1" />
@@ -660,7 +693,7 @@ function AutomationStepManager({ automation, onDelete }: { automation: any, onDe
                             <div className="flex items-center gap-2">
                               <Badge variant="secondary" className="text-xs">
                                 <Clock className="w-3 h-3 mr-1" />
-                                {step.delayMinutes === 0 ? 'Immediately' : `After ${step.delayMinutes} min`}
+                                {formatStepTiming(step)}
                               </Badge>
                               <span className="text-xs text-muted-foreground">→</span>
                               <span className="text-xs font-medium">
@@ -1407,19 +1440,6 @@ function EditAutomationDetails({ automationId, automation }: { automationId: str
     enabled: !!automationId
   });
 
-  const formatDelay = (minutes: number) => {
-    if (minutes === 0) return 'Immediately';
-    if (minutes < 60) return `${minutes} minute${minutes !== 1 ? 's' : ''}`;
-    const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
-    if (hours < 24) {
-      return mins > 0 ? `${hours}h ${mins}m` : `${hours} hour${hours !== 1 ? 's' : ''}`;
-    }
-    const days = Math.floor(hours / 24);
-    const remainingHours = hours % 24;
-    return remainingHours > 0 ? `${days}d ${remainingHours}h` : `${days} day${days !== 1 ? 's' : ''}`;
-  };
-
   // Find trigger stage if this is a stage-based automation
   const triggerStage = automation.stageId && Array.isArray(stages) ? stages.find(s => s.id === automation.stageId) : null;
 
@@ -1533,7 +1553,7 @@ function EditAutomationDetails({ automationId, automation }: { automationId: str
                     </span>
                     <div className="flex items-center space-x-2 text-sm">
                       <Clock className="w-3.5 h-3.5 text-muted-foreground" />
-                      <span className="font-medium">{formatDelay(step.delayMinutes)}</span>
+                      <span className="font-medium">{formatStepTiming(step)}</span>
                       <span className="text-muted-foreground">→</span>
                       <span>
                         {isSmartFile ? '📄 Smart File' : automation.channel === 'EMAIL' ? '📧 Email' : '📱 SMS'}
@@ -1613,19 +1633,6 @@ function AutomationStepsDisplay({ automationId, channel }: { automationId: strin
     enabled: !!automationId
   });
 
-  const formatDelay = (minutes: number) => {
-    if (minutes === 0) return 'Immediately';
-    if (minutes < 60) return `${minutes} minute${minutes !== 1 ? 's' : ''}`;
-    const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
-    if (hours < 24) {
-      return mins > 0 ? `${hours}h ${mins}m` : `${hours} hour${hours !== 1 ? 's' : ''}`;
-    }
-    const days = Math.floor(hours / 24);
-    const remainingHours = hours % 24;
-    return remainingHours > 0 ? `${days}d ${remainingHours}h` : `${days} day${days !== 1 ? 's' : ''}`;
-  };
-
   if (isLoading) {
     return (
       <div className="border-t p-4 bg-accent/5">
@@ -1656,7 +1663,7 @@ function AutomationStepsDisplay({ automationId, channel }: { automationId: strin
               </span>
               <div className="flex items-center space-x-2 text-sm">
                 <Clock className="w-3.5 h-3.5 text-muted-foreground" />
-                <span className="font-medium">{formatDelay(step.delayMinutes)}</span>
+                <span className="font-medium">{formatStepTiming(step)}</span>
                 <span className="text-muted-foreground">→</span>
                 <span>
                   {channel === 'EMAIL' ? '📧 Email' : '📱 SMS'}
