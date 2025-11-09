@@ -1,0 +1,100 @@
+1️⃣ Instant Email (0 min)
+
+Subject: Thank you for reaching out about your wedding photos! 💍
+
+Hi {{first_name}},
+
+Thank you for reaching out — I’m so excited to hear about your wedding plans!  
+Every couple’s story is different, and I’d love to learn what you’re envisioning.  
+
+Here’s a quick link to schedule a short chat so we can talk through ideas, pricing, and availability:  
+{{scheduler_link}}
+
+You’ll also get a peek at a few real wedding galleries and what working together looks like.  
+
+Can’t wait to connect!  
+– {{photographer_name}}
+
+
+🧠 Purpose: Immediate response that feels warm, not templated. Opens with curiosity and drives them to the scheduler.
+
+2️⃣ Instant SMS (+1 min)
+Hey {{first_name}}! This is {{business_name}} — just got your wedding inquiry 🎉  
+Would love to learn more about your day.  
+You can grab a time to chat here: {{scheduler_link}}
+
+
+🧠 Purpose: Mobile-first reassurance. Quick, human, and conversational.
+
+3️⃣ 24-Hour Follow-Up Email (T = +1 day)
+
+Subject: Still thinking about your wedding photos? 📷
+
+Hi {{first_name}},
+
+Just wanted to follow up in case you missed my earlier note.  
+I’d love to reserve a few minutes to talk about your wedding and share how I approach storytelling through photography.  
+
+You can grab a time that works best here: {{scheduler_link}}  
+
+Talk soon,  
+– {{photographer_name}}
+
+
+🧠 Purpose: Gentle reminder + subtle authority; keeps momentum going.
+
+4️⃣ 48-Hour Email (Social Proof) (T = +2 days)
+
+Subject: A few favorite wedding moments 💕
+
+Hi {{first_name}},
+
+I thought you’d enjoy seeing a few real weddings I’ve photographed recently:  
+{{smartfile_gallery_link}}
+
+Every couple’s day is different — my goal is to capture yours authentically and beautifully.  
+When you’re ready, book a short discovery call so we can chat about your vision:  
+{{scheduler_link}}
+
+– {{photographer_name}}
+
+
+🧠 Purpose: Builds trust; lets visuals do the convincing.
+
+5️⃣ 72-Hour Email (Friendly Nudge) (T = +3 days)
+
+Subject: Quick question before I close your file ⏰
+
+Hi {{first_name}},
+
+Just checking in one last time in case you’re still looking for a photographer for {{event_date}}.  
+Would you like me to keep your date open for another couple of days, or release it?  
+
+Either way, just hit reply — I’d love to hear from you!  
+– {{photographer_name}}
+
+
+🧠 Purpose: Creates light urgency and elicits a direct yes/no response.
+
+6️⃣ Re-Engagement Email (T = +7 days)
+
+Subject: A new wedding gallery you might love 💫
+
+Hi {{first_name}},
+
+We just shared a new wedding gallery that perfectly captures the kind of authentic, emotional storytelling we specialize in.  
+You can check it out here: {{smartfile_gallery_link}}  
+
+If you’d like, I can hold {{event_date}} while we chat about what your coverage could look like.  
+{{scheduler_link}}
+
+– {{photographer_name}}
+
+
+🧠 Purpose: Re-engages quietly interested leads and adds value through inspiration.
+
+7️⃣ Stage Move Trigger
+
+Trigger: Discovery call booked via {{scheduler_link}}
+Action: Automatically move to “Discovery Call Scheduled”
+Effect: Stops New Inquiry automations and starts call confirmation sequence.
