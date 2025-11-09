@@ -683,35 +683,109 @@ async function processAutomationStep(contact: any, step: any, automation: any): 
   // Calculate the target send date/time
   let shouldSendAt: Date;
   
-  if (step.scheduledHour !== null && step.scheduledHour !== undefined) {
-    // If scheduled time is specified, calculate days from delay and set exact time
+  // Helper: Get full date/time components in photographer's timezone
+  const getDateTimeInTimezone = (date: Date, timezone: string) => {
+    const formatter = new Intl.DateTimeFormat('en-US', {
+      timeZone: timezone,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false
+    });
+    const parts = formatter.formatToParts(date);
+    return {
+      year: parseInt(parts.find(p => p.type === 'year')!.value),
+      month: parseInt(parts.find(p => p.type === 'month')!.value) - 1, // 0-indexed
+      day: parseInt(parts.find(p => p.type === 'day')!.value),
+      hour: parseInt(parts.find(p => p.type === 'hour')!.value),
+      minute: parseInt(parts.find(p => p.type === 'minute')!.value)
+    };
+  };
+  
+  // Helper: Create UTC Date from local date/time components
+  const createUTCFromLocal = (year: number, month: number, day: number, hour: number, minute: number, timezone: string): Date => {
+    // Create a date string in ISO format
+    const monthStr = String(month + 1).padStart(2, '0');
+    const dayStr = String(day).padStart(2, '0');
+    const hourStr = String(hour).padStart(2, '0');
+    const minStr = String(minute).padStart(2, '0');
+    
+    // This creates a date in UTC
+    const dateStr = `${year}-${monthStr}-${dayStr}T${hourStr}:${minStr}:00`;
+    const utcDate = new Date(dateStr + 'Z'); // Z means UTC
+    
+    // Get what time this would be in the target timezone
+    const tzComponents = getDateTimeInTimezone(utcDate, timezone);
+    
+    // Calculate offset: how many milliseconds do we need to adjust?
+    const targetMs = new Date(year, month, day, hour, minute, 0).getTime();
+    const tzMs = new Date(tzComponents.year, tzComponents.month, tzComponents.day, tzComponents.hour, tzComponents.minute, 0).getTime();
+    const offsetMs = targetMs - tzMs;
+    
+    // Apply offset to get correct UTC time
+    return new Date(utcDate.getTime() + offsetMs);
+  };
+  
+  // MODE 1: Day-based scheduling with specific send time (e.g., "1 day @ 9:00 AM")
+  if (step.delayDays && step.delayDays >= 1 && (step.sendAtHour !== null && step.sendAtHour !== undefined)) {
+    const photographerTimezone = photographer.timezone || 'America/New_York';
+    
+    // Get trigger date/time in photographer's timezone
+    const triggerInTz = getDateTimeInTimezone(stageEnteredAt, photographerTimezone);
+    
+    // Add delay days to get target date
+    const targetDate = new Date(triggerInTz.year, triggerInTz.month, triggerInTz.day);
+    targetDate.setDate(targetDate.getDate() + step.delayDays);
+    
+    // Create UTC timestamp for target day at specified send time
+    shouldSendAt = createUTCFromLocal(
+      targetDate.getFullYear(),
+      targetDate.getMonth(),
+      targetDate.getDate(),
+      step.sendAtHour,
+      step.sendAtMinute || 0,
+      photographerTimezone
+    );
+    
+    console.log(`📅 Day-based scheduling: ${step.delayDays} day(s) @ ${step.sendAtHour}:${String(step.sendAtMinute || 0).padStart(2, '0')} in ${photographerTimezone}`);
+    console.log(`   Trigger: ${stageEnteredAt.toISOString()} → Target: ${shouldSendAt.toISOString()}`);
+    
+    // Edge case: If calculated time is in the past, advance by 1 day
+    if (shouldSendAt.getTime() < now.getTime()) {
+      console.log(`⚠️ Calculated send time is in the past, advancing by 1 day`);
+      targetDate.setDate(targetDate.getDate() + 1);
+      shouldSendAt = createUTCFromLocal(
+        targetDate.getFullYear(),
+        targetDate.getMonth(),
+        targetDate.getDate(),
+        step.sendAtHour,
+        step.sendAtMinute || 0,
+        photographerTimezone
+      );
+    }
+  }
+  // MODE 2: Exact delay (e.g., "2 hours 30 minutes")
+  else if (!step.delayDays || step.delayDays === 0) {
+    // Pure offset from trigger time
+    const delayMs = step.delayMinutes * 60 * 1000;
+    shouldSendAt = new Date(stageEnteredAt.getTime() + delayMs);
+  }
+  // LEGACY: Backward compatibility for old scheduledHour usage
+  else if (step.scheduledHour !== null && step.scheduledHour !== undefined) {
     const delayDays = Math.floor(step.delayMinutes / (24 * 60));
-    const delayHours = Math.floor((step.delayMinutes % (24 * 60)) / 60);
-    const delayMins = step.delayMinutes % 60;
-    
-    // Start with stage entered date
     shouldSendAt = new Date(stageEnteredAt);
-    
-    // Add the delay days
     shouldSendAt.setDate(shouldSendAt.getDate() + delayDays);
-    
-    // Set to the scheduled time on that day
     shouldSendAt.setHours(step.scheduledHour, step.scheduledMinute || 0, 0, 0);
     
-    // If there's also hour/minute delay (in addition to days), add it
-    if (delayHours > 0 || delayMins > 0) {
-      shouldSendAt.setHours(shouldSendAt.getHours() + delayHours);
-      shouldSendAt.setMinutes(shouldSendAt.getMinutes() + delayMins);
-    }
-    
-    // CRITICAL: For same-day scenarios (0 delay days), if scheduled time has passed, bump to next day
-    // Example: entered 9pm, delay 0 days, scheduled 6pm → should send next day at 6pm (next occurrence)
-    // Multi-day delays (e.g., "2 days at 6pm") should NOT bump - they're meant for that specific target day
     if (delayDays === 0 && shouldSendAt.getTime() < stageEnteredAt.getTime()) {
       shouldSendAt.setDate(shouldSendAt.getDate() + 1);
     }
-  } else {
-    // No scheduled time, just use the delay
+  }
+  // FALLBACK: Just use delay minutes
+  else {
     const delayMs = step.delayMinutes * 60 * 1000;
     shouldSendAt = new Date(stageEnteredAt.getTime() + delayMs);
   }

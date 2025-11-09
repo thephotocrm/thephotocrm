@@ -2325,6 +2325,8 @@ export default function Automations() {
     delayMinutes: z.coerce.number().min(0).default(0),
     delayHours: z.coerce.number().min(0).default(0),
     delayDays: z.coerce.number().min(0).default(0),
+    sendAtHour: z.coerce.number().min(0).max(23).optional(),
+    sendAtMinute: z.coerce.number().min(0).max(59).optional(),
     questionnaireTemplateId: z.string().optional(),
     // Pipeline automation fields (simplified - only target stage)
     targetStageId: z.string().optional(),
@@ -2767,8 +2769,17 @@ export default function Automations() {
           const hasCustomSms = data.customSmsContent && data.customSmsContent.length > 0;
           
           if (hasTemplate || hasSmartFile || hasQuestionnaire || hasCustomSms) {
-            const totalDelayMinutes = timingMode === 'immediate' ? 0 : 
-              (data.delayDays * 24 * 60) + (data.delayHours * 60) + data.delayMinutes;
+            // Calculate delay based on scheduling mode
+            let totalDelayMinutes;
+            if (timingMode === 'immediate') {
+              totalDelayMinutes = 0;
+            } else if (data.delayDays >= 1) {
+              // Day-based scheduling: delayMinutes stores the day count for backward compatibility
+              totalDelayMinutes = data.delayDays * 24 * 60;
+            } else {
+              // Exact delays: calculate total minutes
+              totalDelayMinutes = (data.delayHours * 60) + data.delayMinutes;
+            }
             
             const stepData: any = {
               stepIndex: 0,
@@ -2776,6 +2787,13 @@ export default function Automations() {
               enabled: true,
               actionType: data.channel // EMAIL, SMS, or SMART_FILE
             };
+            
+            // Add day-based scheduling fields when using day delays
+            if (data.delayDays >= 1) {
+              stepData.delayDays = data.delayDays;
+              stepData.sendAtHour = data.sendAtHour ?? 9; // Default to 9 AM if not set
+              stepData.sendAtMinute = data.sendAtMinute ?? 0;
+            }
             
             // Add templateId for EMAIL/SMS or smartFileTemplateId for SMART_FILE
             if (hasTemplate) {
@@ -4206,69 +4224,153 @@ export default function Automations() {
                     </div>
 
                     {timingMode === 'delayed' && (
-                      <div className="space-y-2 p-3 border rounded-lg bg-blue-50/50 dark:bg-blue-950/20">
-                        <p className="text-xs text-muted-foreground">Set the delay before sending the message</p>
-                        <div className="grid grid-cols-3 gap-2">
-                          <FormField
-                            control={form.control}
-                            name="delayDays"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel className="text-xs">Days</FormLabel>
-                                <FormControl>
-                                  <Input
-                                    type="number"
-                                    min="0"
-                                    placeholder="0"
-                                    data-testid="input-delay-days"
-                                    {...field}
-                                    onChange={e => field.onChange(parseInt(e.target.value) || 0)}
-                                  />
-                                </FormControl>
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={form.control}
-                            name="delayHours"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel className="text-xs">Hours</FormLabel>
-                                <FormControl>
-                                  <Input
-                                    type="number"
-                                    min="0"
-                                    max="23"
-                                    placeholder="0"
-                                    data-testid="input-delay-hours"
-                                    {...field}
-                                    onChange={e => field.onChange(parseInt(e.target.value) || 0)}
-                                  />
-                                </FormControl>
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={form.control}
-                            name="delayMinutes"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel className="text-xs">Minutes</FormLabel>
-                                <FormControl>
-                                  <Input
-                                    type="number"
-                                    min="0"
-                                    max="59"
-                                    placeholder="0"
-                                    data-testid="input-delay-minutes"
-                                    {...field}
-                                    onChange={e => field.onChange(parseInt(e.target.value) || 0)}
-                                  />
-                                </FormControl>
-                              </FormItem>
-                            )}
-                          />
-                        </div>
+                      <div className="space-y-3 p-3 border rounded-lg bg-blue-50/50 dark:bg-blue-950/20">
+                        {/* Days Input - Always shown for delayed timing */}
+                        <FormField
+                          control={form.control}
+                          name="delayDays"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-xs">Delay (Days)</FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="number"
+                                  min="0"
+                                  placeholder="0"
+                                  data-testid="input-delay-days"
+                                  {...field}
+                                  onChange={e => {
+                                    const days = parseInt(e.target.value) || 0;
+                                    field.onChange(days);
+                                    
+                                    if (days >= 1) {
+                                      // Switching to day-based scheduling: clear exact delays, set time defaults
+                                      form.setValue('delayHours', 0);
+                                      form.setValue('delayMinutes', 0);
+                                      form.setValue('sendAtHour', 9); // Default 9 AM
+                                      form.setValue('sendAtMinute', 0);
+                                    } else {
+                                      // Switching to exact delays: clear time-of-day fields
+                                      form.setValue('sendAtHour', undefined);
+                                      form.setValue('sendAtMinute', undefined);
+                                    }
+                                  }}
+                                />
+                              </FormControl>
+                              <p className="text-xs text-muted-foreground">
+                                {form.watch('delayDays') >= 1 
+                                  ? 'Sends on the next calendar day at a specific time'
+                                  : 'Use hours/minutes for exact delays under 1 day'}
+                              </p>
+                            </FormItem>
+                          )}
+                        />
+
+                        {/* Conditional: Time Picker (when days >= 1) */}
+                        {form.watch('delayDays') >= 1 && (
+                          <div className="space-y-2">
+                            <FormLabel className="text-xs">Send At (Time of Day)</FormLabel>
+                            <div className="grid grid-cols-2 gap-2">
+                              <FormField
+                                control={form.control}
+                                name="sendAtHour"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel className="text-xs">Hour (0-23)</FormLabel>
+                                    <FormControl>
+                                      <Input
+                                        type="number"
+                                        min="0"
+                                        max="23"
+                                        placeholder="9"
+                                        data-testid="input-send-at-hour"
+                                        {...field}
+                                        value={field.value ?? 9}
+                                        onChange={e => field.onChange(parseInt(e.target.value))}
+                                      />
+                                    </FormControl>
+                                  </FormItem>
+                                )}
+                              />
+                              <FormField
+                                control={form.control}
+                                name="sendAtMinute"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel className="text-xs">Minute (0-59)</FormLabel>
+                                    <FormControl>
+                                      <Input
+                                        type="number"
+                                        min="0"
+                                        max="59"
+                                        placeholder="0"
+                                        data-testid="input-send-at-minute"
+                                        {...field}
+                                        value={field.value ?? 0}
+                                        onChange={e => field.onChange(parseInt(e.target.value))}
+                                      />
+                                    </FormControl>
+                                  </FormItem>
+                                )}
+                              />
+                            </div>
+                            <p className="text-xs text-muted-foreground">
+                              Example: "1 day @ 9:00 AM" sends the next day at 9:00 AM
+                            </p>
+                          </div>
+                        )}
+
+                        {/* Conditional: Hours/Minutes (when days = 0) */}
+                        {form.watch('delayDays') === 0 && (
+                          <div className="space-y-2">
+                            <p className="text-xs text-muted-foreground">Exact delay time</p>
+                            <div className="grid grid-cols-2 gap-2">
+                              <FormField
+                                control={form.control}
+                                name="delayHours"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel className="text-xs">Hours</FormLabel>
+                                    <FormControl>
+                                      <Input
+                                        type="number"
+                                        min="0"
+                                        max="23"
+                                        placeholder="0"
+                                        data-testid="input-delay-hours"
+                                        {...field}
+                                        onChange={e => field.onChange(parseInt(e.target.value) || 0)}
+                                      />
+                                    </FormControl>
+                                  </FormItem>
+                                )}
+                              />
+                              <FormField
+                                control={form.control}
+                                name="delayMinutes"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel className="text-xs">Minutes</FormLabel>
+                                    <FormControl>
+                                      <Input
+                                        type="number"
+                                        min="0"
+                                        max="59"
+                                        placeholder="0"
+                                        data-testid="input-delay-minutes"
+                                        {...field}
+                                        onChange={e => field.onChange(parseInt(e.target.value) || 0)}
+                                      />
+                                    </FormControl>
+                                  </FormItem>
+                                )}
+                              />
+                            </div>
+                            <p className="text-xs text-muted-foreground">
+                              Sends exactly this amount of time after the trigger
+                            </p>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>

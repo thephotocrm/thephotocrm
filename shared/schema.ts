@@ -415,7 +415,11 @@ export const automationSteps = pgTable("automation_steps", {
   quietHoursEnd: integer("quiet_hours_end"),
   // Time-based scheduling (e.g., "2 days from now at 6pm")
   scheduledHour: integer("scheduled_hour"), // Hour of day (0-23) to send, null = send immediately after delay
-  scheduledMinute: integer("scheduled_minute").default(0) // Minute (0-59) to send
+  scheduledMinute: integer("scheduled_minute").default(0), // Minute (0-59) to send
+  // Day-based scheduling with specific send time (e.g., "1 day @ 9:00 AM")
+  delayDays: integer("delay_days").default(0), // Number of whole days to delay
+  sendAtHour: integer("send_at_hour"), // Hour (0-23) to send when using day-based delays
+  sendAtMinute: integer("send_at_minute") // Minute (0-59) to send when using day-based delays
 });
 
 export const emailLogs = pgTable("email_logs", {
