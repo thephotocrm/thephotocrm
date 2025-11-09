@@ -6568,9 +6568,32 @@ ${photographer?.businessName || 'Your Photography Team'}`;
               calendar_link: `https://${process.env.REPLIT_DEV_DOMAIN}/booking/${photographer.publicToken}`,
             };
 
+            // Auto-migrate legacy automations: add missing HEADER/SIGNATURE blocks based on flags
+            let emailBlocks = [...(automation.emailBlocks || [])];
+            const hasHeaderBlock = emailBlocks.some((b: any) => b.type === 'HEADER');
+            const hasSignatureBlock = emailBlocks.some((b: any) => b.type === 'SIGNATURE');
+            
+            // Prepend HEADER block if flag is set but block doesn't exist
+            if (!hasHeaderBlock && automation.includeHeader) {
+              emailBlocks.unshift({
+                id: `header-${Date.now()}`,
+                type: 'HEADER',
+                style: automation.headerStyle || photographer.emailHeaderStyle || 'professional'
+              });
+            }
+            
+            // Append SIGNATURE block if flag is set but block doesn't exist
+            if (!hasSignatureBlock && automation.includeSignature !== false) {
+              emailBlocks.push({
+                id: `signature-${Date.now()}`,
+                type: 'SIGNATURE',
+                style: automation.signatureStyle || photographer.emailSignatureStyle || 'professional'
+              });
+            }
+
             // Generate email from blocks
             const { htmlBody, textBody } = generateEmailFromBlocks(
-              automation.emailBlocks as any,
+              emailBlocks as any,
               variables,
               photographer
             );
@@ -6633,9 +6656,32 @@ ${photographer?.businessName || 'Your Photography Team'}`;
               calendar_link: `https://${process.env.REPLIT_DEV_DOMAIN}/booking/${photographer.publicToken}`,
             };
 
+            // Auto-migrate legacy automations: add missing HEADER/SIGNATURE blocks based on flags
+            let emailBlocks = [...(automation.emailBlocks || [])];
+            const hasHeaderBlock = emailBlocks.some((b: any) => b.type === 'HEADER');
+            const hasSignatureBlock = emailBlocks.some((b: any) => b.type === 'SIGNATURE');
+            
+            // Prepend HEADER block if flag is set but block doesn't exist
+            if (!hasHeaderBlock && automation.includeHeader) {
+              emailBlocks.unshift({
+                id: `header-${Date.now()}`,
+                type: 'HEADER',
+                style: automation.headerStyle || photographer.emailHeaderStyle || 'professional'
+              });
+            }
+            
+            // Append SIGNATURE block if flag is set but block doesn't exist
+            if (!hasSignatureBlock && automation.includeSignature !== false) {
+              emailBlocks.push({
+                id: `signature-${Date.now()}`,
+                type: 'SIGNATURE',
+                style: automation.signatureStyle || photographer.emailSignatureStyle || 'professional'
+              });
+            }
+
             // Generate email from blocks
             const { htmlBody, textBody } = generateEmailFromBlocks(
-              automation.emailBlocks as any,
+              emailBlocks as any,
               variables,
               photographer
             );
