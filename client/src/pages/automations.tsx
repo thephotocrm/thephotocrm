@@ -70,6 +70,13 @@ function AutomationStepManager({ automation, onDelete }: { automation: any, onDe
   } | null>(null);
   const [emailBuilderEditDialogOpen, setEmailBuilderEditDialogOpen] = useState(false);
 
+  // State for editing SMS step content
+  const [editingSmsStep, setEditingSmsStep] = useState<{
+    stepId: string;
+    content: string;
+  } | null>(null);
+  const [smsEditDialogOpen, setSmsEditDialogOpen] = useState(false);
+
   const { data: steps = [], isLoading } = useQuery<any[]>({
     queryKey: ["/api/automations", automation.id, "steps"],
     enabled: !!automation.id
@@ -219,6 +226,24 @@ function AutomationStepManager({ automation, onDelete }: { automation: any, onDe
     },
     onError: () => {
       toast({ title: "Failed to update email builder message", variant: "destructive" });
+    }
+  });
+
+  // Update SMS step mutation
+  const updateSmsStepMutation = useMutation({
+    mutationFn: async (smsData: { stepId: string; content: string }) => {
+      return apiRequest("PATCH", `/api/automation-steps/${smsData.stepId}`, {
+        customSmsContent: smsData.content
+      });
+    },
+    onSuccess: () => {
+      toast({ title: "SMS message updated successfully" });
+      queryClient.invalidateQueries({ queryKey: ["/api/automations", automation.id, "steps"] });
+      setEditingSmsStep(null);
+      setSmsEditDialogOpen(false);
+    },
+    onError: () => {
+      toast({ title: "Failed to update SMS message", variant: "destructive" });
     }
   });
 
@@ -504,7 +529,24 @@ function AutomationStepManager({ automation, onDelete }: { automation: any, onDe
                 {/* Custom SMS Content */}
                 {!template && !isSmartFile && step.customSmsContent && step.actionType === 'SMS' && (
                   <div className="bg-muted/50 border rounded-md p-3 text-sm">
-                    <p className="font-semibold mb-2">Text Message:</p>
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="font-semibold">Text Message:</p>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => {
+                          setEditingSmsStep({
+                            stepId: step.id,
+                            content: step.customSmsContent
+                          });
+                          setSmsEditDialogOpen(true);
+                        }}
+                        className="h-6 w-6 p-0"
+                        data-testid={`button-edit-sms-${step.id}`}
+                      >
+                        <Edit2 className="w-3 h-3" />
+                      </Button>
+                    </div>
                     <p className="text-muted-foreground whitespace-pre-wrap">
                       {step.customSmsContent}
                     </p>
@@ -993,6 +1035,60 @@ function AutomationStepManager({ automation, onDelete }: { automation: any, onDe
                   data-testid="button-save-email-builder-edit"
                 >
                   {updateEmailBuilderMutation.isPending ? "Saving..." : "Save Changes"}
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* SMS Edit Dialog */}
+      <Dialog open={smsEditDialogOpen} onOpenChange={setSmsEditDialogOpen}>
+        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Edit SMS Message</DialogTitle>
+            <DialogDescription>
+              Update the text message content for this automation
+            </DialogDescription>
+          </DialogHeader>
+          {editingSmsStep && (
+            <div className="space-y-4">
+              {/* SMS Content Textarea */}
+              <div className="space-y-2">
+                <Label htmlFor="sms-content">Message Content</Label>
+                <Textarea
+                  id="sms-content"
+                  value={editingSmsStep.content}
+                  onChange={(e) => setEditingSmsStep({...editingSmsStep, content: e.target.value})}
+                  placeholder="Enter your SMS message..."
+                  rows={8}
+                  className="resize-none"
+                  data-testid="textarea-sms-content-edit"
+                />
+                <p className="text-xs text-muted-foreground">
+                  You can use variables like {`{{first_name}}`}, {`{{event_date}}`}, {`{{scheduler_link}}`}, etc.
+                </p>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex justify-end gap-2 pt-4 border-t">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setEditingSmsStep(null);
+                    setSmsEditDialogOpen(false);
+                  }}
+                  disabled={updateSmsStepMutation.isPending}
+                  data-testid="button-cancel-sms-edit"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={() => updateSmsStepMutation.mutate(editingSmsStep)}
+                  disabled={updateSmsStepMutation.isPending}
+                  data-testid="button-save-sms-edit"
+                >
+                  {updateSmsStepMutation.isPending ? "Saving..." : "Save Changes"}
                 </Button>
               </div>
             </div>
