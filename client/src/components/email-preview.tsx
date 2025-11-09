@@ -49,6 +49,16 @@ export function EmailPreview({
   };
   const renderBlock = (block: ContentBlock) => {
     switch (block.type) {
+      case 'HEADER':
+        return brandingData ? (
+          <div dangerouslySetInnerHTML={{ __html: generateEmailHeader(block.content?.style || 'professional', brandingData) }} />
+        ) : null;
+      
+      case 'SIGNATURE':
+        return brandingData ? (
+          <div dangerouslySetInnerHTML={{ __html: generateEmailSignature(block.content?.style || 'professional', brandingData) }} />
+        ) : null;
+      
       case 'HEADING':
         return (
           <h2 className="text-2xl font-bold text-gray-900 mb-4">
@@ -119,6 +129,15 @@ export function EmailPreview({
     }
   };
 
+  // Check if header/signature already exist as blocks (new WYSIWYG approach)
+  const hasHeaderBlock = blocks.some(b => b.type === 'HEADER');
+  const hasSignatureBlock = blocks.some(b => b.type === 'SIGNATURE');
+  
+  // Separate blocks into full-width (header/signature) and content blocks
+  const contentBlocks = blocks.filter(b => b.type !== 'HEADER' && b.type !== 'SIGNATURE');
+  const headerBlocks = blocks.filter(b => b.type === 'HEADER');
+  const signatureBlocks = blocks.filter(b => b.type === 'SIGNATURE');
+
   const emailContent = (
     <div className="bg-white rounded-lg border max-w-2xl mx-auto overflow-hidden" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
       {/* Hero Image */}
@@ -128,20 +147,31 @@ export function EmailPreview({
         </div>
       )}
       
-      {/* Header */}
-      {includeHeader && headerStyle && (
+      {/* Header Blocks (from email builder) */}
+      {headerBlocks.map((block) => (
+        <div key={block.id}>
+          {renderBlock(block)}
+        </div>
+      ))}
+      
+      {/* Legacy Header (only if no HEADER block exists) */}
+      {!hasHeaderBlock && includeHeader && headerStyle && (
         <div dangerouslySetInnerHTML={{ __html: generateEmailHeader(headerStyle, brandingData) }} />
       )}
       
-      {/* Content */}
+      {/* Content Blocks (with padding) */}
       <div className="p-8">
         {blocks.length === 0 ? (
           <div className="text-center text-muted-foreground py-12">
             <p>No content blocks to preview</p>
             <p className="text-sm mt-2">Add blocks to see them here</p>
           </div>
+        ) : contentBlocks.length === 0 ? (
+          <div className="text-center text-muted-foreground py-12">
+            <p>Add content blocks to see them here</p>
+          </div>
         ) : (
-          blocks.map((block) => (
+          contentBlocks.map((block) => (
             <div key={block.id}>
               {renderBlock(block)}
             </div>
@@ -149,8 +179,15 @@ export function EmailPreview({
         )}
       </div>
       
-      {/* Signature */}
-      {includeSignature && signatureStyle && (
+      {/* Signature Blocks (from email builder) */}
+      {signatureBlocks.map((block) => (
+        <div key={block.id}>
+          {renderBlock(block)}
+        </div>
+      ))}
+      
+      {/* Legacy Signature (only if no SIGNATURE block exists) */}
+      {!hasSignatureBlock && includeSignature && signatureStyle && (
         <div dangerouslySetInnerHTML={{ __html: generateEmailSignature(signatureStyle, brandingData) }} />
       )}
     </div>

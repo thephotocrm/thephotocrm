@@ -35,7 +35,9 @@ import {
   Trash2,
   Plus,
   ChevronDown,
-  Edit
+  Edit,
+  Crown,
+  PenLine
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
@@ -43,7 +45,7 @@ import { generateEmailHeader, generateEmailSignature } from "@shared/email-brand
 
 export type ContentBlock = {
   id: string;
-  type: 'HEADING' | 'TEXT' | 'BUTTON' | 'IMAGE' | 'SPACER';
+  type: 'HEADING' | 'TEXT' | 'BUTTON' | 'IMAGE' | 'SPACER' | 'HEADER' | 'SIGNATURE';
   content: any;
 };
 
@@ -54,7 +56,9 @@ const BLOCK_TYPES = {
   TEXT: { icon: AlignLeft, label: 'Text' },
   BUTTON: { icon: MousePointerClick, label: 'Button' },
   IMAGE: { icon: ImageIcon, label: 'Image' },
-  SPACER: { icon: MoveVertical, label: 'Spacer' }
+  SPACER: { icon: MoveVertical, label: 'Spacer' },
+  HEADER: { icon: Crown, label: 'Email Header' },
+  SIGNATURE: { icon: PenLine, label: 'Email Signature' }
 } as const;
 
 const VARIABLES = [
@@ -68,6 +72,118 @@ const VARIABLES = [
   { value: '{{business_name}}', label: 'Business Name' },
   { value: '{{photographer_name}}', label: 'Photographer Name' },
 ];
+
+const HEADER_STYLES = [
+  { value: 'simple', label: 'Simple', description: 'Clean text-based header' },
+  { value: 'professional', label: 'Professional', description: 'Logo with business name' },
+  { value: 'bold', label: 'Bold', description: 'Large logo with brand colors' },
+];
+
+const SIGNATURE_STYLES = [
+  { value: 'simple', label: 'Simple', description: 'Clean text-based signature' },
+  { value: 'professional', label: 'Professional', description: 'Includes headshot and social icons' },
+  { value: 'minimal', label: 'Minimal', description: 'Just name and contact info' },
+];
+
+function HeaderBlockEditor({ style, onStyleChange }: { style: string; onStyleChange: (style: string) => void }) {
+  const { data: photographer } = useQuery({
+    queryKey: ['/api/photographers/me']
+  });
+
+  const brandingData = photographer ? {
+    businessName: photographer.businessName,
+    photographerName: photographer.photographerName,
+    logoUrl: photographer.logoUrl,
+    headshotUrl: photographer.headshotUrl,
+    brandPrimary: photographer.brandPrimary,
+    brandSecondary: photographer.brandSecondary,
+    phone: photographer.phone,
+    email: photographer.email,
+    website: photographer.website,
+    businessAddress: photographer.businessAddress,
+    socialLinks: photographer.socialLinks
+  } : undefined;
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center gap-2">
+        <Label className="text-xs">Header Style</Label>
+        <Select value={style} onValueChange={onStyleChange}>
+          <SelectTrigger className="w-48">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {HEADER_STYLES.map((s) => (
+              <SelectItem key={s.value} value={s.value}>
+                {s.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      
+      {brandingData && (
+        <div className="border rounded-md overflow-hidden bg-muted/30">
+          <div dangerouslySetInnerHTML={{ __html: generateEmailHeader(style, brandingData) }} />
+        </div>
+      )}
+      
+      <p className="text-xs text-muted-foreground">
+        Header pulls from your Email Settings. Edit your logo and branding there.
+      </p>
+    </div>
+  );
+}
+
+function SignatureBlockEditor({ style, onStyleChange }: { style: string; onStyleChange: (style: string) => void }) {
+  const { data: photographer } = useQuery({
+    queryKey: ['/api/photographers/me']
+  });
+
+  const brandingData = photographer ? {
+    businessName: photographer.businessName,
+    photographerName: photographer.photographerName,
+    logoUrl: photographer.logoUrl,
+    headshotUrl: photographer.headshotUrl,
+    brandPrimary: photographer.brandPrimary,
+    brandSecondary: photographer.brandSecondary,
+    phone: photographer.phone,
+    email: photographer.email,
+    website: photographer.website,
+    businessAddress: photographer.businessAddress,
+    socialLinks: photographer.socialLinks
+  } : undefined;
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center gap-2">
+        <Label className="text-xs">Signature Style</Label>
+        <Select value={style} onValueChange={onStyleChange}>
+          <SelectTrigger className="w-48">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {SIGNATURE_STYLES.map((s) => (
+              <SelectItem key={s.value} value={s.value}>
+                {s.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      
+      {brandingData && (
+        <div className="border rounded-md overflow-hidden bg-muted/30">
+          <div dangerouslySetInnerHTML={{ __html: generateEmailSignature(style, brandingData) }} />
+        </div>
+      )}
+      
+      <p className="text-xs text-muted-foreground">
+        Signature pulls from your Email Settings. Edit your contact info and photo there.
+      </p>
+    </div>
+  );
+}
 
 function BlockEditor({
   block,
@@ -420,6 +536,28 @@ function BlockEditor({
                   </Select>
                 </div>
               )}
+
+              {block.type === 'HEADER' && (
+                <HeaderBlockEditor
+                  style={localContent?.style || 'professional'}
+                  onStyleChange={(style) => {
+                    const updated = { ...localContent, style };
+                    setLocalContent(updated);
+                    onUpdate(updated);
+                  }}
+                />
+              )}
+
+              {block.type === 'SIGNATURE' && (
+                <SignatureBlockEditor
+                  style={localContent?.style || 'professional'}
+                  onStyleChange={(style) => {
+                    const updated = { ...localContent, style };
+                    setLocalContent(updated);
+                    onUpdate(updated);
+                  }}
+                />
+              )}
             </div>
 
             <Button
@@ -490,10 +628,24 @@ export function EmailTemplateBuilder({
   };
 
   const addBlock = (type: ContentBlock['type']) => {
+    let content: any;
+    
+    if (type === 'SPACER') {
+      content = { size: 'medium', height: 40 };
+    } else if (type === 'BUTTON') {
+      content = { text: '', linkType: 'CUSTOM', linkValue: '', variant: 'default' };
+    } else if (type === 'HEADER') {
+      content = { style: 'professional' };
+    } else if (type === 'SIGNATURE') {
+      content = { style: 'professional' };
+    } else {
+      content = { text: '' };
+    }
+    
     const newBlock: ContentBlock = {
       id: `block-${Date.now()}-${Math.random()}`,
       type,
-      content: type === 'SPACER' ? { size: 'medium', height: 40 } : type === 'BUTTON' ? { text: '', linkType: 'CUSTOM', linkValue: '', variant: 'default' } : { text: '' }
+      content
     };
     onBlocksChange([...blocks, newBlock]);
   };

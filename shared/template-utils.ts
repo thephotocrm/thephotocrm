@@ -3,6 +3,8 @@
  * Fixes the critical bug where single-brace tokens were replaced before double-brace tokens
  */
 
+import { generateEmailHeader, generateEmailSignature, type BrandingData } from './email-branding-shared.js';
+
 /**
  * Escapes special regex characters in a string
  */
@@ -43,7 +45,7 @@ export function renderTemplate(template: string, variables: Record<string, strin
  */
 export type ContentBlock = {
   id: string;
-  type: 'HEADING' | 'TEXT' | 'BUTTON' | 'IMAGE' | 'SPACER';
+  type: 'HEADING' | 'TEXT' | 'BUTTON' | 'IMAGE' | 'SPACER' | 'HEADER' | 'SIGNATURE';
   content: any;
 };
 
@@ -56,6 +58,7 @@ export function contentBlocksToHtml(blocks: ContentBlock[], context?: {
   photographerToken?: string;
   baseUrl?: string;
   includeWrapper?: boolean; // If false, returns just the raw block markup without grey container
+  brandingData?: BrandingData; // For HEADER and SIGNATURE blocks
 }): string {
   if (!blocks || blocks.length === 0) {
     return '';
@@ -65,6 +68,14 @@ export function contentBlocksToHtml(blocks: ContentBlock[], context?: {
 
   const htmlBlocks = blocks.map(block => {
     switch (block.type) {
+      case 'HEADER':
+        if (!context?.brandingData) return '';
+        return generateEmailHeader(block.content?.style || 'professional', context.brandingData);
+      
+      case 'SIGNATURE':
+        if (!context?.brandingData) return '';
+        return generateEmailSignature(block.content?.style || 'professional', context.brandingData);
+      
       case 'HEADING':
         return `<h2 style="font-size: 24px; font-weight: bold; color: #1a1a1a; margin: 0 0 16px 0;">${escapeHtml(block.content?.text || 'Heading')}</h2>`;
       
@@ -148,13 +159,24 @@ export function contentBlocksToHtml(blocks: ContentBlock[], context?: {
 /**
  * Converts content blocks to plain text for email sending
  */
-export function contentBlocksToText(blocks: ContentBlock[]): string {
+export function contentBlocksToText(blocks: ContentBlock[], brandingData?: BrandingData): string {
   if (!blocks || blocks.length === 0) {
     return '';
   }
 
   return blocks.map(block => {
     switch (block.type) {
+      case 'HEADER':
+        return brandingData?.businessName ? `\n${brandingData.businessName}\n${'='.repeat(brandingData.businessName.length)}\n` : '';
+      
+      case 'SIGNATURE':
+        const sig = [];
+        if (brandingData?.photographerName) sig.push(brandingData.photographerName);
+        if (brandingData?.phone) sig.push(`Phone: ${brandingData.phone}`);
+        if (brandingData?.email) sig.push(`Email: ${brandingData.email}`);
+        if (brandingData?.website) sig.push(`Web: ${brandingData.website}`);
+        return sig.length > 0 ? `\n---\n${sig.join('\n')}\n` : '';
+      
       case 'HEADING':
         return `\n${block.content?.text || 'Heading'}\n${'='.repeat((block.content?.text || 'Heading').length)}\n`;
       
