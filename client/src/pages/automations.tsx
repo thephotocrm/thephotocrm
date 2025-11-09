@@ -527,7 +527,7 @@ function AutomationStepManager({ automation, onDelete }: { automation: any, onDe
                 )}
                 
                 {/* Custom SMS Content */}
-                {!template && !isSmartFile && step.customSmsContent && step.actionType === 'SMS' && (
+                {!template && !isSmartFile && step.actionType === 'SMS' && (
                   <div className="bg-muted/50 border rounded-md p-3 text-sm">
                     <div className="flex items-center justify-between mb-2">
                       <p className="font-semibold">Text Message:</p>
@@ -537,7 +537,7 @@ function AutomationStepManager({ automation, onDelete }: { automation: any, onDe
                         onClick={() => {
                           setEditingSmsStep({
                             stepId: step.id,
-                            content: step.customSmsContent
+                            content: step.customSmsContent || ''
                           });
                           setSmsEditDialogOpen(true);
                         }}
@@ -547,9 +547,15 @@ function AutomationStepManager({ automation, onDelete }: { automation: any, onDe
                         <Edit2 className="w-3 h-3" />
                       </Button>
                     </div>
-                    <p className="text-muted-foreground whitespace-pre-wrap">
-                      {step.customSmsContent}
-                    </p>
+                    {step.customSmsContent ? (
+                      <p className="text-muted-foreground whitespace-pre-wrap">
+                        {step.customSmsContent}
+                      </p>
+                    ) : (
+                      <p className="text-muted-foreground/60 italic text-xs">
+                        No message set - click edit to add message content
+                      </p>
+                    )}
                   </div>
                 )}
               </div>
