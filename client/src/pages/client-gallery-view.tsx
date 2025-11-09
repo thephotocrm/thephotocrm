@@ -13,61 +13,6 @@ import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { format } from "date-fns";
 
-// Masonry grid hook - sets grid row spans from actual card heights (no cropping)
-function useMasonryGrid(imageCount: number) {
-  const ref = useRef<HTMLDivElement>(null);
-
-  useLayoutEffect(() => {
-    if (!imageCount) return;
-    const grid = ref.current;
-    if (!grid) return;
-
-    const ROW = 2; // matches auto-rows-[2px]
-    const getMargin = (el: HTMLElement) => {
-      const s = getComputedStyle(el);
-      return parseFloat(s.marginBottom || "0") || 0;
-    };
-
-    const setSpan = (el: HTMLElement) => {
-      // Reset gridRowEnd first to get accurate scrollHeight measurement
-      el.style.gridRowEnd = "";
-      const margin = getMargin(el);
-      const h = el.scrollHeight + margin; // Include margin in height
-      if (!h) return;
-      const rows = Math.ceil(h / ROW);
-      el.style.gridRowEnd = `span ${rows}`;
-    };
-
-    const refresh = () => {
-      grid.querySelectorAll<HTMLElement>("[data-masonry-item]").forEach(setSpan);
-    };
-
-    // Bind image load listeners
-    grid.querySelectorAll<HTMLElement>("[data-masonry-item]").forEach((el) => {
-      const img = el.querySelector("img");
-      if (!img) return;
-      if (img.complete) setSpan(el);
-      else img.addEventListener("load", () => setSpan(el), { once: true });
-    });
-
-    refresh();
-
-    // Debounced resize
-    let timer: ReturnType<typeof setTimeout> | null = null;
-    const handleResize = () => {
-      if (timer) clearTimeout(timer);
-      timer = setTimeout(refresh, 150);
-    };
-    window.addEventListener("resize", handleResize);
-
-    return () => {
-      if (timer) clearTimeout(timer);
-      window.removeEventListener("resize", handleResize);
-    };
-  }, [imageCount]);
-
-  return ref;
-}
 
 export default function ClientGalleryView() {
   const { galleryId } = useParams();
@@ -209,33 +154,51 @@ export default function ClientGalleryView() {
 
   const currentImage = displayedImages[currentImageIndex];
 
-  // Calculate which horizontal images should span 2 columns (featured)
+  // Calculate grid spans based on orientation (CSS Grid dense layout)
   const imagesWithLayout = useMemo(() => {
-    let horizontalCount = 0;
+    let landscapeCount = 0;
     
     return displayedImages.map((img: any) => {
       const width = img.width || 1;
       const height = img.height || 1;
-      const aspectRatio = width / height;
-      const isVertical = height > width * 1.2; // Portrait orientation
-      const isHorizontal = aspectRatio > 1.1; // Landscape orientation
+      const isPortrait = height > width; // Portrait: taller than wide
+      const isLandscape = width > height; // Landscape: wider than tall
       
-      let featured = false;
-      
-      if (isHorizontal) {
-        horizontalCount++;
-        // Every 5th horizontal photo is featured (2x width)
-        if (horizontalCount % 5 === 0) {
-          featured = true;
+      // Determine if this landscape image should be featured (enlarged to 2x2)
+      let isFeatured = false;
+      if (isLandscape) {
+        landscapeCount++;
+        // Every 8th landscape photo is featured (2 cols × 2 rows)
+        if (landscapeCount % 8 === 0) {
+          isFeatured = true;
         }
       }
       
-      return { ...img, isVertical, isHorizontal, featured };
+      // Assign CSS Grid span classes
+      let colSpan = 'col-span-1';
+      let rowSpan = 'row-span-1';
+      
+      if (isPortrait) {
+        // Portrait photos: 1 column × 2 rows (tall)
+        colSpan = 'col-span-1';
+        rowSpan = 'row-span-2';
+      } else if (isFeatured) {
+        // Featured landscape: 2 columns × 2 rows (large)
+        colSpan = 'col-span-2';
+        rowSpan = 'row-span-2';
+      }
+      // Regular landscape: already default 1×1
+      
+      return { 
+        ...img, 
+        isPortrait, 
+        isLandscape, 
+        isFeatured, 
+        colSpan, 
+        rowSpan 
+      };
     });
   }, [displayedImages]);
-
-  // Use masonry grid hook for gap-free layout
-  const gridRef = useMasonryGrid(displayedImages.length);
 
   // Keyboard navigation in lightbox
   useEffect(() => {
@@ -422,7 +385,7 @@ export default function ClientGalleryView() {
         </div>
       )}
 
-      {/* Image Grid - Masonry with measured row spans (no gaps, no cropping) */}
+      {/* Image Grid - CSS Grid dense layout with fixed row heights */}
       <div className="max-w-[1400px] mx-auto px-0 lg:px-8 xl:px-16 py-6">
         {displayedImages.length === 0 ? (
           <Card className="p-12 text-center mx-4">
@@ -438,31 +401,29 @@ export default function ClientGalleryView() {
           </Card>
         ) : (
           <div 
-            ref={gridRef}
-            className="grid grid-cols-2 lg:grid-cols-3 gap-x-1 lg:gap-x-4 gap-y-0 auto-rows-[2px]" 
-            style={{ gridAutoFlow: 'dense' }}
+            className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 lg:gap-4" 
+            style={{ 
+              gridAutoFlow: 'dense',
+              gridAutoRows: 'clamp(160px, 18vw, 220px)'
+            }}
           >
             {imagesWithLayout.map((image: any, index: number) => {
               const isFavorited = favoriteIds.includes(image.id);
               // Use webUrl with Cloudinary transformation for performance
               const displayUrl = image.webUrl?.replace('/upload/', '/upload/q_auto,f_auto,w_1200/') || image.thumbnailUrl;
               
-              // Featured horizontals span 2 columns on desktop
-              const colSpanClass = image.featured ? 'lg:col-span-2 col-span-1' : 'col-span-1';
-              
               return (
                 <Card 
                   key={image.id}
-                  className={`border-0 overflow-hidden group cursor-pointer hover:shadow-xl transition-all duration-300 rounded-none mb-1 lg:mb-4 ${colSpanClass}`}
+                  className={`border-0 overflow-hidden group cursor-pointer hover:shadow-xl transition-all duration-300 rounded-none ${image.colSpan} ${image.rowSpan}`}
                   onClick={() => openLightbox(index)}
                   data-testid={`image-card-${index}`}
-                  data-masonry-item
                 >
-                  <div className="relative w-full">
+                  <div className="relative w-full h-full">
                     <img
                       src={displayUrl}
                       alt={image.caption || `Image ${index + 1}`}
-                      className="block w-full h-auto"
+                      className="w-full h-full object-cover"
                       loading="lazy"
                     />
                     
