@@ -2234,10 +2234,53 @@ export default function Automations() {
         targetStageId: typeof auto.targetStage === 'string' ? auto.targetStage : (auto.targetStage?.id ?? "")
       });
       
+      // Load email builder state if this automation uses email builder
+      if (auto.useEmailBuilder && auto.emailBlocks) {
+        // Parse email blocks
+        const blocks = typeof auto.emailBlocks === 'string' 
+          ? JSON.parse(auto.emailBlocks) 
+          : auto.emailBlocks;
+        
+        setCustomEmailBlocks(blocks);
+        setCustomEmailSubject(auto.emailSubject || '');
+        setEmailBuilderMode('custom');
+        
+        // Migrate legacy automations: if no HEADER/SIGNATURE blocks exist but includeHeader/includeSignature flags are true,
+        // add the blocks to match the visual representation
+        const hasHeaderBlock = blocks.some((b: any) => b.type === 'HEADER');
+        const hasSignatureBlock = blocks.some((b: any) => b.type === 'SIGNATURE');
+        
+        // Auto-migrate: prepend HEADER block if flag is set but block doesn't exist
+        if (!hasHeaderBlock && auto.includeHeader && photographer) {
+          blocks.unshift({
+            id: `header-${Date.now()}`,
+            type: 'HEADER',
+            style: auto.headerStyle || photographer.emailHeaderStyle || 'professional'
+          });
+        }
+        
+        // Auto-migrate: append SIGNATURE block if flag is set but block doesn't exist
+        if (!hasSignatureBlock && auto.includeSignature !== false && photographer) {
+          blocks.push({
+            id: `signature-${Date.now()}`,
+            type: 'SIGNATURE',
+            style: auto.signatureStyle || photographer.emailSignatureStyle || 'professional'
+          });
+        }
+        
+        setCustomEmailBlocks(blocks);
+        
+        // Set branding states from automation
+        setIncludeHeader(auto.includeHeader || false);
+        setHeaderStyle(auto.headerStyle || 'professional');
+        setIncludeSignature(auto.includeSignature !== false);
+        setSignatureStyle(auto.signatureStyle || 'professional');
+      }
+      
       // Set timing mode based on steps (will be handled separately)
       setEditTimingMode('immediate');
     }
-  }, [editingAutomation, editDialogOpen, editForm]);
+  }, [editingAutomation, editDialogOpen, editForm, photographer]);
 
   // Update edit form when edit enable flags change
   useEffect(() => {
