@@ -159,8 +159,7 @@ export default function ClientGalleryView() {
 
   // Configure masonry breakpoints
   const breakpointColumnsObj = {
-    default: 4,  // 4 columns on large desktop
-    1400: 3,     // 3 columns on desktop/tablet
+    default: 3,  // 3 columns on desktop
     900: 2,      // 2 columns on mobile
   };
 
