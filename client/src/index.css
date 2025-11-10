@@ -184,32 +184,3 @@
     box-sizing: border-box;
   }
 }
-
-/* Masonry grid styling */
-.masonry-column {
-  display: flex;
-  flex-direction: column;
-}
-
-/* react-masonry-css gallery layout */
-.gallery-masonry-grid {
-  display: flex;
-  margin-left: -8px; /* gutter size offset for mobile */
-  width: auto;
-}
-
-.gallery-masonry-grid_column {
-  padding-left: 8px; /* gutter size for mobile */
-  background-clip: padding-box;
-}
-
-/* Larger gutter on desktop */
-@media (min-width: 1024px) {
-  .gallery-masonry-grid {
-    margin-left: -16px; /* larger gutter offset for desktop */
-  }
-  
-  .gallery-masonry-grid_column {
-    padding-left: 16px; /* larger gutter for desktop */
-  }
-}
