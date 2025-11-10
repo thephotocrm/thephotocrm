@@ -1,7 +1,6 @@
 import { useState, useEffect, useLayoutEffect, useMemo, useRef } from "react";
 import { useParams } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import Masonry from "react-masonry-css";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -157,22 +156,30 @@ export default function ClientGalleryView() {
 
   const currentImage = displayedImages[currentImageIndex];
 
-  // Configure masonry breakpoints
-  const breakpointColumnsObj = {
-    default: 3,  // 3 columns on desktop
-    900: 2,      // 2 columns on mobile
-  };
-
-  // Prepare images with aspect ratios for masonry
+  // Prepare images with aspect ratios and CSS Grid span classes
   const imagesWithLayout = useMemo(() => {
     return displayedImages.map((img: any) => {
       const width = img.width || 1;
       const height = img.height || 1;
       const aspectRatio = width / height;
       
+      // Determine span classes based on aspect ratio
+      // Landscape images (width > height) span 2x2
+      // Portrait/Square images span 1x2
+      let colSpan = 'col-span-1';
+      let rowSpan = 'row-span-2';
+      
+      if (aspectRatio > 1) {
+        // Landscape: 2 columns x 2 rows
+        colSpan = 'col-span-1 md:col-span-2';
+        rowSpan = 'row-span-2';
+      }
+      
       return { 
         ...img, 
-        aspectRatio 
+        aspectRatio,
+        colSpan,
+        rowSpan
       };
     });
   }, [displayedImages]);
@@ -362,7 +369,7 @@ export default function ClientGalleryView() {
         </div>
       )}
 
-      {/* Image Grid - Masonry layout for natural Pinterest-style flow */}
+      {/* Image Grid - CSS Grid with intelligent spanning */}
       <div className="max-w-[1400px] mx-auto px-0 lg:px-8 xl:px-16 py-6">
         {displayedImages.length === 0 ? (
           <Card className="p-12 text-center mx-4">
@@ -377,11 +384,7 @@ export default function ClientGalleryView() {
             </p>
           </Card>
         ) : (
-          <Masonry
-            breakpointCols={breakpointColumnsObj}
-            className="gallery-masonry-grid"
-            columnClassName="gallery-masonry-grid_column"
-          >
+          <div className="grid grid-cols-2 md:grid-cols-3 auto-rows-[minmax(200px,auto)] gap-2 lg:gap-4" style={{ gridAutoFlow: 'dense' }}>
             {imagesWithLayout.map((image: any, index: number) => {
               const isFavorited = favoriteIds.includes(image.id);
               const isLoaded = loadedImages.has(image.id);
@@ -403,7 +406,7 @@ export default function ClientGalleryView() {
               return (
                 <Card 
                   key={image.id}
-                  className="border-0 overflow-hidden group cursor-pointer hover:shadow-xl transition-all duration-300 rounded-none mb-2 lg:mb-4"
+                  className={`border-0 overflow-hidden group cursor-pointer hover:shadow-xl transition-all duration-300 rounded-none ${image.colSpan} ${image.rowSpan}`}
                   onClick={() => !hasError && openLightbox(index)}
                   data-testid={`image-card-${index}`}
                 >
@@ -469,7 +472,7 @@ export default function ClientGalleryView() {
                 </Card>
               );
             })}
-          </Masonry>
+          </div>
         )}
       </div>
 
