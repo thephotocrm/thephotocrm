@@ -5,6 +5,7 @@ import Masonry from "react-masonry-css";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { 
   Heart, Download, X, ChevronLeft, ChevronRight, 
@@ -22,6 +23,7 @@ export default function ClientGalleryView() {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
+  const [loadedImages, setLoadedImages] = useState<Set<string>>(new Set());
 
   // Fetch gallery (public endpoint)
   const { data: gallery, isLoading } = useQuery<any>({
@@ -383,42 +385,73 @@ export default function ClientGalleryView() {
           >
             {imagesWithLayout.map((image: any, index: number) => {
               const isFavorited = favoriteIds.includes(image.id);
+              const isLoaded = loadedImages.has(image.id);
+              const hasError = loadedImages.has(`error-${image.id}`);
               // Use webUrl with Cloudinary transformation for performance
               const displayUrl = image.webUrl?.replace('/upload/', '/upload/q_auto,f_auto,w_1200/') || image.thumbnailUrl;
+              
+              const handleImageLoad = () => {
+                setLoadedImages(prev => new Set(prev).add(image.id));
+              };
+              
+              const handleImageError = () => {
+                setLoadedImages(prev => new Set(prev).add(`error-${image.id}`));
+              };
+              
+              // Calculate paddingTop percentage to reserve space based on aspect ratio
+              const paddingTop = `${(1 / image.aspectRatio) * 100}%`;
               
               return (
                 <Card 
                   key={image.id}
                   className="border-0 overflow-hidden group cursor-pointer hover:shadow-xl transition-all duration-300 rounded-none mb-2 lg:mb-4"
-                  onClick={() => openLightbox(index)}
+                  onClick={() => !hasError && openLightbox(index)}
                   data-testid={`image-card-${index}`}
                 >
-                  <div className="relative w-full">
-                    <img
-                      src={displayUrl}
-                      alt={image.caption || `Image ${index + 1}`}
-                      className="w-full h-auto object-cover"
-                      style={{ aspectRatio: image.aspectRatio }}
-                      loading="lazy"
-                    />
+                  <div className="relative w-full" style={{ paddingTop }}>
+                    {/* Skeleton placeholder while loading - positioned absolutely in the padded container */}
+                    {!isLoaded && !hasError && (
+                      <Skeleton className="absolute inset-0 w-full h-full" />
+                    )}
                     
-                    {/* Overlay on hover */}
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100">
-                      <Button
-                        variant="secondary"
-                        size="icon"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleFavoriteMutation.mutate(image.id);
-                        }}
-                        data-testid={`button-favorite-${index}`}
-                      >
-                        <Heart className={`w-5 h-5 ${isFavorited ? 'fill-red-500 text-red-500' : ''}`} />
-                      </Button>
-                    </div>
+                    {/* Image - positioned absolutely to fill the reserved space */}
+                    {!hasError && (
+                      <img
+                        src={displayUrl}
+                        alt={image.caption || `Image ${index + 1}`}
+                        className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
+                        loading="lazy"
+                        onLoad={handleImageLoad}
+                        onError={handleImageError}
+                      />
+                    )}
+                    
+                    {/* Error state - show placeholder for failed images */}
+                    {hasError && (
+                      <div className="absolute inset-0 w-full h-full bg-muted flex items-center justify-center">
+                        <p className="text-sm text-muted-foreground">Failed to load</p>
+                      </div>
+                    )}
+                    
+                    {/* Overlay on hover - only show when loaded */}
+                    {isLoaded && !hasError && (
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100">
+                        <Button
+                          variant="secondary"
+                          size="icon"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleFavoriteMutation.mutate(image.id);
+                          }}
+                          data-testid={`button-favorite-${index}`}
+                        >
+                          <Heart className={`w-5 h-5 ${isFavorited ? 'fill-red-500 text-red-500' : ''}`} />
+                        </Button>
+                      </div>
+                    )}
 
-                    {/* Favorite badge */}
-                    {isFavorited && (
+                    {/* Favorite badge - only show when loaded */}
+                    {isLoaded && !hasError && isFavorited && (
                       <div className="absolute top-2 right-2">
                         <Badge className="bg-red-500 text-white">
                           <Heart className="w-3 h-3 fill-current" />
