@@ -4,7 +4,6 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { 
   Heart, Download, X, ChevronLeft, ChevronRight, 
@@ -22,7 +21,6 @@ export default function ClientGalleryView() {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
-  const [loadedImages, setLoadedImages] = useState<Set<string>>(new Set());
 
   // Fetch gallery (public endpoint)
   const { data: gallery, isLoading } = useQuery<any>({
@@ -156,41 +154,48 @@ export default function ClientGalleryView() {
 
   const currentImage = displayedImages[currentImageIndex];
 
-  // Prepare images with aspect ratios and CSS Grid span classes
+  // Calculate grid spans based on orientation (CSS Grid dense layout)
   const imagesWithLayout = useMemo(() => {
-    let horizontalCount = 0; // Track horizontal images
+    let landscapeCount = 0;
     
     return displayedImages.map((img: any) => {
       const width = img.width || 1;
       const height = img.height || 1;
-      const aspectRatio = width / height;
+      const isPortrait = height > width; // Portrait: taller than wide
+      const isLandscape = width > height; // Landscape: wider than tall
       
-      // Determine span classes based on aspect ratio
-      // Only every 5th horizontal image gets featured (2x2)
-      // Portrait/Square images always span 1x2
-      let colSpan = 'col-span-1';
-      let rowSpan = 'row-span-2';
+      // Determine if this landscape image should be featured (enlarged to 2x2)
       let isFeatured = false;
-      
-      if (aspectRatio > 1) {
-        // This is a horizontal/landscape image
-        horizontalCount++;
-        
-        if (horizontalCount % 5 === 0) {
-          // Every 5th horizontal: 2 columns x 2 rows (featured)
-          colSpan = 'col-span-1 md:col-span-2';
-          rowSpan = 'row-span-2';
+      if (isLandscape) {
+        landscapeCount++;
+        // Every 8th landscape photo is featured (2 cols × 2 rows)
+        if (landscapeCount % 8 === 0) {
           isFeatured = true;
         }
-        // Other horizontals stay at 1x2 (default)
       }
+      
+      // Assign CSS Grid span classes
+      let colSpan = 'col-span-1';
+      let rowSpan = 'row-span-1';
+      
+      if (isPortrait) {
+        // Portrait photos: 1 column × 2 rows (tall)
+        colSpan = 'col-span-1';
+        rowSpan = 'row-span-2';
+      } else if (isFeatured) {
+        // Featured landscape: 2 columns × 2 rows (large)
+        colSpan = 'col-span-2';
+        rowSpan = 'row-span-2';
+      }
+      // Regular landscape: already default 1×1
       
       return { 
         ...img, 
-        aspectRatio,
-        colSpan,
-        rowSpan,
-        isFeatured
+        isPortrait, 
+        isLandscape, 
+        isFeatured, 
+        colSpan, 
+        rowSpan 
       };
     });
   }, [displayedImages]);
@@ -380,7 +385,7 @@ export default function ClientGalleryView() {
         </div>
       )}
 
-      {/* Image Grid - CSS Grid with intelligent spanning */}
+      {/* Image Grid - CSS Grid dense layout with fixed row heights */}
       <div className="max-w-[1400px] mx-auto px-0 lg:px-8 xl:px-16 py-6">
         {displayedImages.length === 0 ? (
           <Card className="p-12 text-center mx-4">
@@ -395,75 +400,50 @@ export default function ClientGalleryView() {
             </p>
           </Card>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 auto-rows-[minmax(200px,auto)] gap-2 lg:gap-4" style={{ gridAutoFlow: 'dense' }}>
+          <div 
+            className="grid grid-cols-2 md:grid-cols-3 gap-2 lg:gap-4" 
+            style={{ 
+              gridAutoFlow: 'dense',
+              gridAutoRows: 'clamp(160px, 18vw, 220px)'
+            }}
+          >
             {imagesWithLayout.map((image: any, index: number) => {
               const isFavorited = favoriteIds.includes(image.id);
-              const isLoaded = loadedImages.has(image.id);
-              const hasError = loadedImages.has(`error-${image.id}`);
               // Use webUrl with Cloudinary transformation for performance
               const displayUrl = image.webUrl?.replace('/upload/', '/upload/q_auto,f_auto,w_1200/') || image.thumbnailUrl;
-              
-              const handleImageLoad = () => {
-                setLoadedImages(prev => new Set(prev).add(image.id));
-              };
-              
-              const handleImageError = () => {
-                setLoadedImages(prev => new Set(prev).add(`error-${image.id}`));
-              };
               
               return (
                 <Card 
                   key={image.id}
                   className={`border-0 overflow-hidden group cursor-pointer hover:shadow-xl transition-all duration-300 rounded-none ${image.colSpan} ${image.rowSpan}`}
-                  onClick={() => !hasError && openLightbox(index)}
+                  onClick={() => openLightbox(index)}
                   data-testid={`image-card-${index}`}
                 >
-                  {/* Featured images (2x2): Use 100% height, let grid handle sizing */}
-                  {/* Regular images (1x2): Use padding-top technique for aspect ratio */}
-                  <div className="relative w-full" style={image.isFeatured ? { height: '100%' } : { paddingTop: `${(1 / image.aspectRatio) * 100}%` }}>
-                    {/* Skeleton placeholder while loading */}
-                    {!isLoaded && !hasError && (
-                      <Skeleton className="absolute inset-0 w-full h-full" />
-                    )}
+                  <div className="relative w-full h-full">
+                    <img
+                      src={displayUrl}
+                      alt={image.caption || `Image ${index + 1}`}
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                    />
                     
-                    {/* Image - positioned absolutely to fill the reserved space */}
-                    {!hasError && (
-                      <img
-                        src={displayUrl}
-                        alt={image.caption || `Image ${index + 1}`}
-                        className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
-                        loading="lazy"
-                        onLoad={handleImageLoad}
-                        onError={handleImageError}
-                      />
-                    )}
-                    
-                    {/* Error state - show placeholder for failed images */}
-                    {hasError && (
-                      <div className="absolute inset-0 w-full h-full bg-muted flex items-center justify-center">
-                        <p className="text-sm text-muted-foreground">Failed to load</p>
-                      </div>
-                    )}
-                    
-                    {/* Overlay on hover - only show when loaded */}
-                    {isLoaded && !hasError && (
-                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100">
-                        <Button
-                          variant="secondary"
-                          size="icon"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            toggleFavoriteMutation.mutate(image.id);
-                          }}
-                          data-testid={`button-favorite-${index}`}
-                        >
-                          <Heart className={`w-5 h-5 ${isFavorited ? 'fill-red-500 text-red-500' : ''}`} />
-                        </Button>
-                      </div>
-                    )}
+                    {/* Overlay on hover */}
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100">
+                      <Button
+                        variant="secondary"
+                        size="icon"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleFavoriteMutation.mutate(image.id);
+                        }}
+                        data-testid={`button-favorite-${index}`}
+                      >
+                        <Heart className={`w-5 h-5 ${isFavorited ? 'fill-red-500 text-red-500' : ''}`} />
+                      </Button>
+                    </div>
 
-                    {/* Favorite badge - only show when loaded */}
-                    {isLoaded && !hasError && isFavorited && (
+                    {/* Favorite badge */}
+                    {isFavorited && (
                       <div className="absolute top-2 right-2">
                         <Badge className="bg-red-500 text-white">
                           <Heart className="w-3 h-3 fill-current" />
