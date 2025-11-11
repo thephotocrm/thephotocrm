@@ -265,7 +265,7 @@ export default function ClientGalleryView() {
                       
                       {/* "Photos by" - Vertical text positioned right next to left edge of photo */}
                       <div className="absolute right-[calc(100%+1.5rem)] top-1/2 -translate-y-1/2">
-                        <p className="text-xs tracking-wider uppercase text-muted-foreground" style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}>
+                        <p className="text-xs tracking-wider uppercase text-muted-foreground [writing-mode:vertical-rl] rotate-180">
                           Photos by {gallery.photographer?.businessName || gallery.photographer?.photographerName || 'Photographer'}
                         </p>
                       </div>
