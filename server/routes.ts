@@ -2414,7 +2414,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
           contactId: contact.id,
           projectId: activeProject?.id,
           source: 'MANUAL' as const
-        }) : Promise.resolve(false),
+        }) : Promise.resolve({ success: false, error: 'No email address' }),
         
         // Send SMS
         contact.phone ? sendSms({
@@ -2425,9 +2425,11 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       
       // Process email result
       if (results[0].status === 'fulfilled') {
-        emailSent = results[0].value as boolean;
+        const emailResult = results[0].value as { success: boolean; error?: string };
+        emailSent = emailResult.success;
         if (!emailSent && contact.email) {
-          emailError = 'Email service unavailable';
+          emailError = emailResult.error || 'Email service unavailable';
+          console.error('Email send failed:', emailError);
         }
       } else {
         emailError = results[0].reason?.message || 'Email failed';
@@ -2492,13 +2494,19 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       
       res.json(response);
     } catch (error: any) {
-      console.error('Send login link error:', error);
+      console.error('=== SEND LOGIN LINK ERROR ===');
+      console.error('Error:', error);
       console.error('Error details:', { 
         name: error?.name, 
         message: error?.message, 
         stack: error?.stack 
       });
-      res.status(500).json({ message: "Internal server error" });
+      
+      const errorMessage = process.env.NODE_ENV === 'development' 
+        ? `Internal server error: ${error?.message || 'Unknown error'}`
+        : 'Internal server error';
+      
+      res.status(500).json({ message: errorMessage });
     }
   });
 
