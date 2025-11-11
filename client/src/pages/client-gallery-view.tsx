@@ -239,9 +239,9 @@ export default function ClientGalleryView() {
         if (coverImage) {
           return (
             <div className="w-full bg-white dark:bg-gray-900">
-              {/* Desktop: Branding at top with centered cover image */}
-              <div className="hidden lg:block py-16">
-                <div className="mx-auto px-4 sm:px-6">
+              {/* Desktop: Full-height cover photo with branding */}
+              <div className="hidden lg:flex lg:flex-col lg:min-h-screen lg:justify-center lg:items-center lg:py-16">
+                <div className="w-full px-4 sm:px-6">
                   {/* Photographer Branding - Top Center */}
                   <div className="text-center mb-12">
                     <h1 className="text-xl sm:text-2xl font-semibold tracking-wide uppercase">
@@ -255,11 +255,11 @@ export default function ClientGalleryView() {
                   {/* Cover Image - Centered, with text on left and gallery info on right */}
                   <div className="flex justify-center items-center">
                     {/* Cover Image with relative positioning for absolute children */}
-                    <div className="relative max-w-[700px] max-h-[500px] overflow-visible">
+                    <div className="relative max-w-[900px] w-full overflow-visible">
                       <img
                         src={coverImage.webUrl}
                         alt={gallery.title}
-                        className="w-full h-auto max-h-[500px] object-cover"
+                        className="w-full h-auto max-h-[75vh] object-contain"
                         data-testid="cover-photo"
                       />
                       
@@ -285,29 +285,29 @@ export default function ClientGalleryView() {
                 </div>
               </div>
 
-              {/* Mobile: Full-width cover photo with title/branding below */}
-              <div className="lg:hidden">
-                {/* Full-width cover photo */}
-                <div className="w-full">
+              {/* Mobile: Full-height cover photo with title/branding overlay */}
+              <div className="lg:hidden min-h-screen flex flex-col">
+                {/* Full-height cover photo */}
+                <div className="relative flex-1 min-h-screen flex items-center justify-center bg-black">
                   <img
                     src={coverImage.webUrl}
                     alt={gallery.title}
-                    className="w-full h-auto object-cover"
+                    className="w-full h-full object-contain"
                     data-testid="cover-photo-mobile"
                   />
-                </div>
-
-                {/* Title and branding below cover - solid background */}
-                <div className="bg-gradient-to-br from-gray-700 via-gray-800 to-gray-900 py-10 px-6 text-center text-white">
-                  <h2 className="text-2xl sm:text-3xl font-semibold tracking-wide mb-2">
-                    {gallery.title}
-                  </h2>
-                  <h3 className="text-sm sm:text-base font-medium tracking-widest uppercase mb-1">
-                    {gallery.photographer?.businessName || gallery.photographer?.photographerName || 'Gallery'}
-                  </h3>
-                  <p className="text-xs text-white/80 tracking-wide">
-                    Photo & Video
-                  </p>
+                  
+                  {/* Title and branding overlay at bottom */}
+                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/70 to-transparent py-12 px-6 text-center text-white">
+                    <h2 className="text-2xl sm:text-3xl font-semibold tracking-wide mb-2">
+                      {gallery.title}
+                    </h2>
+                    <h3 className="text-sm sm:text-base font-medium tracking-widest uppercase mb-1">
+                      {gallery.photographer?.businessName || gallery.photographer?.photographerName || 'Gallery'}
+                    </h3>
+                    <p className="text-xs text-white/80 tracking-wide">
+                      Photo & Video
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
