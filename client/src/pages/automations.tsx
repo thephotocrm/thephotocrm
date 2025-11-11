@@ -729,14 +729,20 @@ function AutomationStepManager({ automation, onDelete }: { automation: any, onDe
                           
                           <div className="space-y-1.5">
                             {/* Timing */}
-                            <div className="flex items-center gap-2">
-                              <Badge variant="secondary" className="text-xs">
-                                <Clock className="w-3 h-3 mr-1" />
-                                {formatStepTiming(step)}
-                              </Badge>
+                            <div className="flex flex-col gap-2">
+                              <div className="flex items-center gap-2">
+                                <Badge variant="secondary" className="text-xs">
+                                  <Clock className="w-3 h-3 mr-1" />
+                                  {formatStepTiming(step)}
+                                </Badge>
+                                <span className="text-xs text-muted-foreground">→</span>
+                                <span className="text-xs font-medium">
+                                  {isSmartFile ? '📄 Send Smart File' : automation.channel === 'EMAIL' ? '📧 Send Email' : '📱 Send SMS'}
+                                </span>
+                              </div>
                               <Button
                                 size="sm"
-                                variant="ghost"
+                                variant="outline"
                                 onClick={() => {
                                   // Convert step data to DelayTimingValue format
                                   const totalMinutes = step.delayMinutes || 0;
@@ -753,15 +759,11 @@ function AutomationStepManager({ automation, onDelete }: { automation: any, onDe
                                   });
                                   setTimingEditDialogOpen(true);
                                 }}
-                                className="h-6 w-6 p-0"
+                                className="h-7 text-xs"
                                 data-testid={`button-edit-timing-${step.id}`}
                               >
-                                <Edit2 className="w-3 h-3" />
+                                Edit Delay
                               </Button>
-                              <span className="text-xs text-muted-foreground">→</span>
-                              <span className="text-xs font-medium">
-                                {isSmartFile ? '📄 Send Smart File' : automation.channel === 'EMAIL' ? '📧 Send Email' : '📱 Send SMS'}
-                              </span>
                             </div>
                             
                             {/* Smart File Template Selector */}
