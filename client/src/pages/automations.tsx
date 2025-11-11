@@ -5071,17 +5071,6 @@ export default function Automations() {
                           <span className="sm:hidden">AI Chat</span>
                         </Button>
                         <Button
-                          onClick={() => setAiDialogOpen(true)}
-                          variant="outline"
-                          size="sm"
-                          data-testid="button-create-ai-automation"
-                          className="flex-1 sm:flex-auto"
-                        >
-                          <Sparkles className="w-4 h-4 mr-2" />
-                          <span className="hidden sm:inline">Quick Create</span>
-                          <span className="sm:hidden">Quick AI</span>
-                        </Button>
-                        <Button
                           onClick={() => setCreateDialogOpen(true)}
                           size="sm"
                           data-testid="button-create-automation"
