@@ -158,28 +158,39 @@ export default function ClientGalleryView() {
 
   // Prepare images with aspect ratios and CSS Grid span classes
   const imagesWithLayout = useMemo(() => {
+    let horizontalCount = 0; // Track horizontal images
+    
     return displayedImages.map((img: any) => {
       const width = img.width || 1;
       const height = img.height || 1;
       const aspectRatio = width / height;
       
       // Determine span classes based on aspect ratio
-      // Landscape images (width > height) span 2x2
-      // Portrait/Square images span 1x2
+      // Only every 5th horizontal image gets featured (2x2)
+      // Portrait/Square images always span 1x2
       let colSpan = 'col-span-1';
       let rowSpan = 'row-span-2';
+      let isFeatured = false;
       
       if (aspectRatio > 1) {
-        // Landscape: 2 columns x 2 rows
-        colSpan = 'col-span-1 md:col-span-2';
-        rowSpan = 'row-span-2';
+        // This is a horizontal/landscape image
+        horizontalCount++;
+        
+        if (horizontalCount % 5 === 0) {
+          // Every 5th horizontal: 2 columns x 2 rows (featured)
+          colSpan = 'col-span-1 md:col-span-2';
+          rowSpan = 'row-span-2';
+          isFeatured = true;
+        }
+        // Other horizontals stay at 1x2 (default)
       }
       
       return { 
         ...img, 
         aspectRatio,
         colSpan,
-        rowSpan
+        rowSpan,
+        isFeatured
       };
     });
   }, [displayedImages]);
@@ -400,9 +411,6 @@ export default function ClientGalleryView() {
                 setLoadedImages(prev => new Set(prev).add(`error-${image.id}`));
               };
               
-              // Calculate paddingTop percentage to reserve space based on aspect ratio
-              const paddingTop = `${(1 / image.aspectRatio) * 100}%`;
-              
               return (
                 <Card 
                   key={image.id}
@@ -410,8 +418,10 @@ export default function ClientGalleryView() {
                   onClick={() => !hasError && openLightbox(index)}
                   data-testid={`image-card-${index}`}
                 >
-                  <div className="relative w-full" style={{ paddingTop }}>
-                    {/* Skeleton placeholder while loading - positioned absolutely in the padded container */}
+                  {/* Featured images (2x2): Use 100% height, let grid handle sizing */}
+                  {/* Regular images (1x2): Use padding-top technique for aspect ratio */}
+                  <div className="relative w-full" style={image.isFeatured ? { height: '100%' } : { paddingTop: `${(1 / image.aspectRatio) * 100}%` }}>
+                    {/* Skeleton placeholder while loading */}
                     {!isLoaded && !hasError && (
                       <Skeleton className="absolute inset-0 w-full h-full" />
                     )}
