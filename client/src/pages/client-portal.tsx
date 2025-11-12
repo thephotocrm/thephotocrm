@@ -93,7 +93,7 @@ interface ClientPortalData {
 }
 
 export default function ClientPortal() {
-  const { user, loading, refreshUser } = useAuth();
+  const { user, loading, refetchUser } = useAuth();
   const [, setLocation] = useLocation();
   const [tokenStatus, setTokenStatus] = useState<"idle" | "validating" | "success" | "error">("idle");
   const [tokenError, setTokenError] = useState("");
@@ -126,7 +126,7 @@ export default function ClientPortal() {
           window.history.replaceState({}, '', '/client-portal');
           
           // Refresh user auth state
-          await refreshUser();
+          await refetchUser();
           
           // Smart routing based on token type and project count
           // Use setTimeout to ensure navigation happens after state update

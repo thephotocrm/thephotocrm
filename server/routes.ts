@@ -1445,7 +1445,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       } else {
         // Generic CLIENT token - return list of projects for smart routing
-        const allProjects = await storage.getProjectsByContact(contact.id);
+        const allProjects = await storage.getProjectsByClient(contact.id);
         
         // SECURITY: Filter projects to only those from the contact's photographer
         const filteredProjects = allProjects.filter(p => p.photographerId === contact.photographerId);
@@ -2523,7 +2523,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const loginUrl = `${process.env.FRONTEND_URL || 'http://localhost:5000'}/client-portal?token=${token}`;
       
       // Get contact's active projects for email tracking
-      const contactProjects = await storage.getProjectsByContact(contact.id);
+      const contactProjects = await storage.getProjectsByClient(contact.id);
       const activeProject = contactProjects.find(p => p.status === 'ACTIVE') || contactProjects[0];
       
       console.log('=== ATTEMPTING TO SEND EMAIL & SMS ===');
