@@ -2520,7 +2520,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Send email and SMS with login link
       const photographer = await storage.getPhotographer(contact.photographerId);
-      const loginUrl = `${process.env.FRONTEND_URL || 'http://localhost:5000'}/client-portal?token=${token}`;
+      
+      // Get base URL - use REPLIT_DOMAINS for production, FRONTEND_URL for custom domains, localhost for dev
+      let baseUrl = 'http://localhost:5000';
+      if (process.env.REPLIT_DOMAINS) {
+        // Use the first domain from REPLIT_DOMAINS
+        const domains = process.env.REPLIT_DOMAINS.split(',');
+        baseUrl = `https://${domains[0]}`;
+      } else if (process.env.FRONTEND_URL) {
+        baseUrl = process.env.FRONTEND_URL;
+      }
+      
+      const loginUrl = `${baseUrl}/client-portal?token=${token}`;
       
       // Get contact's active projects for email tracking
       const contactProjects = await storage.getProjectsByClient(contact.id);
