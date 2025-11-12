@@ -1340,6 +1340,84 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Public endpoint to validate client portal token and auto-login client
+  app.get("/api/client-portal/validate/:token", async (req, res) => {
+    try {
+      const { token } = req.params;
+      console.log("🔑 Client portal token validation request for token:", token.substring(0, 10) + "...");
+
+      const portalToken = await storage.validateClientPortalToken(token);
+      if (!portalToken) {
+        console.log("❌ Client portal token validation failed: Invalid or expired token");
+        return res.status(401).json({ message: "Invalid or expired token" });
+      }
+
+      console.log("✅ Client portal token validated successfully for client:", portalToken.clientId);
+
+      // Get the client/contact
+      const contact = await storage.getContact(portalToken.clientId);
+      if (!contact) {
+        return res.status(404).json({ message: "Client not found" });
+      }
+
+      // Check if user exists for this contact
+      let user = await storage.getUserByEmail(contact.email);
+      
+      // If no user exists, create one with a random password (they can reset it later)
+      if (!user) {
+        const randomPassword = crypto.randomBytes(16).toString('hex');
+        const hashedPassword = await bcrypt.hash(randomPassword, 10);
+        
+        user = await storage.createUser({
+          email: contact.email,
+          passwordHash: hashedPassword,
+          role: "CLIENT",
+          photographerId: contact.photographerId
+        });
+        
+        console.log("👤 Created new user account for client:", user.email);
+      }
+
+      // Generate JWT token for the client
+      const jwtToken = jwt.sign(
+        { 
+          userId: user.id, 
+          email: user.email, 
+          role: user.role,
+          photographerId: user.photographerId 
+        },
+        process.env.JWT_SECRET!,
+        { expiresIn: '7d' }
+      );
+
+      // Set HTTP-only cookie
+      res.cookie('token', jwtToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+      });
+
+      console.log("🍪 Auth cookie set for client:", user.email);
+
+      // Return user info
+      res.json({
+        user: {
+          id: user.id,
+          email: user.email,
+          role: user.role,
+          photographerId: user.photographerId
+        },
+        message: "Successfully logged in"
+      });
+      
+      console.log("✅ Client portal validation complete for:", user.email);
+    } catch (error) {
+      console.error("Client portal token validation error:", error);
+      res.status(500).json({ message: "Failed to validate client portal token" });
+    }
+  });
+
   // Password Reset Flow
   app.post("/api/auth/request-password-reset", async (req, res) => {
     try {
@@ -2323,7 +2401,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Rate limiting check - max 100 tokens per hour per contact (increased for testing)
       const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
-      const recentTokens = await storage.getContactPortalTokensByContact(contact.id, oneHourAgo);
+      const recentTokens = await storage.getClientPortalTokensByClient(contact.id, oneHourAgo);
       
       if (recentTokens.length >= 100) {
         return res.status(429).json({ message: "Too many login link requests. Please wait before requesting another." });
@@ -2338,8 +2416,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Store token in database
       const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
-      await storage.createContactPortalToken({
-        contactId: contact.id,
+      await storage.createClientPortalToken({
+        clientId: contact.id,
         token,
         expiresAt
       });

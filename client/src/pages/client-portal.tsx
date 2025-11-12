@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { useLocation } from "wouter";
@@ -18,7 +18,9 @@ import {
   Users,
   MapPin,
   Phone,
-  Mail
+  Mail,
+  Loader2,
+  XCircle
 } from "lucide-react";
 
 interface ClientPortalData {
@@ -91,8 +93,49 @@ interface ClientPortalData {
 }
 
 export default function ClientPortal() {
-  const { user, loading } = useAuth();
+  const { user, loading, refreshUser } = useAuth();
   const [, setLocation] = useLocation();
+  const [tokenStatus, setTokenStatus] = useState<"idle" | "validating" | "success" | "error">("idle");
+  const [tokenError, setTokenError] = useState("");
+
+  // Check for magic link token in URL
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('token');
+
+    if (token && !user) {
+      const validateToken = async () => {
+        setTokenStatus("validating");
+        try {
+          const response = await fetch(`/api/client-portal/validate/${token}`, {
+            method: "GET",
+            credentials: "include"
+          });
+
+          if (!response.ok) {
+            const data = await response.json();
+            setTokenStatus("error");
+            setTokenError(data.message || "Invalid or expired link");
+            return;
+          }
+
+          setTokenStatus("success");
+          
+          // Remove token from URL
+          window.history.replaceState({}, '', '/client-portal');
+          
+          // Refresh user auth state
+          await refreshUser();
+        } catch (error) {
+          console.error("Token validation error:", error);
+          setTokenStatus("error");
+          setTokenError("Failed to validate access link");
+        }
+      };
+
+      validateToken();
+    }
+  }, [user, refreshUser]);
 
   // Fetch client portal data from API
   const { data: portalData, isLoading: portalLoading } = useQuery<ClientPortalData>({
@@ -100,9 +143,52 @@ export default function ClientPortal() {
     enabled: !!user
   });
 
-  // For demo purposes, we'll assume this is accessed by a client user
-  // In reality, you'd need proper client authentication
-  if (!loading && !user) {
+  // Show token validation state
+  if (tokenStatus === "validating") {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
+        <Card className="w-full max-w-md" data-testid="card-validating-token">
+          <CardContent className="pt-6">
+            <div className="flex flex-col items-center space-y-4 py-8">
+              <Loader2 className="w-12 h-12 text-blue-600 animate-spin" data-testid="icon-loading" />
+              <div className="text-center">
+                <h2 className="text-xl font-semibold mb-2">Verifying your access...</h2>
+                <p className="text-sm text-muted-foreground">
+                  Please wait while we log you in
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (tokenStatus === "error") {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-50 to-orange-100">
+        <Card className="w-full max-w-md" data-testid="card-token-error">
+          <CardContent className="pt-6">
+            <div className="flex flex-col items-center space-y-4 py-8">
+              <XCircle className="w-12 h-12 text-red-600" data-testid="icon-error" />
+              <div className="text-center">
+                <h2 className="text-xl font-semibold mb-2">Access Link Invalid</h2>
+                <p className="text-sm text-muted-foreground mb-4">
+                  {tokenError}
+                </p>
+                <Button onClick={() => setLocation("/login")} data-testid="button-go-to-login">
+                  Go to Login
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // For client portal access, redirect to login if not authenticated
+  if (!loading && !user && tokenStatus !== "validating") {
     setLocation("/login");
     return null;
   }
