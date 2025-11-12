@@ -655,6 +655,46 @@ export default function ProjectDetail() {
     }
   });
 
+  const sendLoginLinkMutation = useMutation({
+    mutationFn: async () => {
+      // Only use the primary client (project.client), not participants or other contacts
+      const primaryClient = project?.client;
+      
+      if (!primaryClient || !primaryClient.id) {
+        throw new Error("Project must have a primary client assigned");
+      }
+      if (!primaryClient.email) {
+        throw new Error("Primary client email is required to send login link");
+      }
+      
+      return await apiRequest("POST", `/api/contacts/${primaryClient.id}/send-login-link`, {
+        projectId: id
+      });
+    },
+    onSuccess: (data: any) => {
+      let title = "Login link sent";
+      let description = "Client will receive an email with direct access to this project.";
+      
+      // Handle development mode responses
+      if (data?.loginUrl) {
+        title = "Login link generated";
+        description = data.message || "Project-specific login link created successfully.";
+      }
+      
+      toast({
+        title,
+        description
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to send login link",
+        description: error.message || "An error occurred",
+        variant: "destructive"
+      });
+    }
+  });
+
   const createBookingMutation = useMutation({
     mutationFn: async (data: { 
       title: string;
@@ -1012,6 +1052,20 @@ export default function ProjectDetail() {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => sendLoginLinkMutation.mutate()}
+              disabled={isLoading || sendLoginLinkMutation.isPending || !project?.client?.id || !project?.client?.email}
+              data-testid="button-send-login-link"
+              className="h-8 md:h-9"
+              aria-label="Send Login Link"
+              title={!project?.client?.email && !isLoading ? "Primary client email required" : !project?.client?.id && !isLoading ? "Primary client required" : "Send project access link to primary client"}
+            >
+              <LinkIcon className="w-3 h-3 md:w-4 md:h-4 md:mr-2" />
+              <span className="hidden md:inline">{sendLoginLinkMutation.isPending ? "Sending..." : "Send Login Link"}</span>
+              <span className="md:hidden">{sendLoginLinkMutation.isPending ? "..." : "Link"}</span>
+            </Button>
           </div>
           <div className="flex gap-2">
             <Button 
