@@ -1353,6 +1353,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       console.log("✅ Client portal token validated successfully for client:", portalToken.clientId);
+      console.log("Token type:", portalToken.tokenType, "Project ID:", portalToken.projectId);
 
       // Get the client/contact
       const contact = await storage.getContact(portalToken.clientId);
@@ -1400,18 +1401,74 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log("🍪 Auth cookie set for client:", user.email);
 
-      // Return user info
-      res.json({
-        user: {
-          id: user.id,
-          email: user.email,
-          role: user.role,
-          photographerId: user.photographerId
-        },
-        message: "Successfully logged in"
-      });
-      
-      console.log("✅ Client portal validation complete for:", user.email);
+      // Prepare response based on token type
+      if (portalToken.tokenType === 'PROJECT' && portalToken.projectId) {
+        // Project-specific token - redirect to that project
+        const project = await storage.getProject(portalToken.projectId);
+        if (!project) {
+          return res.status(404).json({ message: "Project not found" });
+        }
+        
+        // SECURITY: Verify project belongs to the same photographer as the contact
+        if (project.photographerId !== contact.photographerId) {
+          console.error("❌ SECURITY: Project photographer mismatch!", {
+            projectPhotographerId: project.photographerId,
+            contactPhotographerId: contact.photographerId
+          });
+          return res.status(403).json({ message: "Access denied: Invalid token" });
+        }
+        
+        // SECURITY: Verify contact is on this project
+        const isOnProject = project.clientId === contact.id;
+        const participants = await storage.getProjectParticipants(portalToken.projectId);
+        const isParticipant = participants.some(p => p.clientId === contact.id);
+        
+        if (!isOnProject && !isParticipant) {
+          console.error("❌ SECURITY: Contact not on project!", {
+            contactId: contact.id,
+            projectId: portalToken.projectId
+          });
+          return res.status(403).json({ message: "Access denied: Invalid token" });
+        }
+        
+        console.log("✅ PROJECT token validated - redirecting to project:", portalToken.projectId);
+        return res.json({
+          user: {
+            id: user.id,
+            email: user.email,
+            role: user.role,
+            photographerId: user.photographerId
+          },
+          loginMode: 'PROJECT',
+          projectId: portalToken.projectId,
+          message: "Successfully logged in"
+        });
+      } else {
+        // Generic CLIENT token - return list of projects for smart routing
+        const allProjects = await storage.getProjectsByContact(contact.id);
+        
+        // SECURITY: Filter projects to only those from the contact's photographer
+        const filteredProjects = allProjects.filter(p => p.photographerId === contact.photographerId);
+        
+        console.log("✅ CLIENT token validated - client has", filteredProjects.length, "projects for this photographer");
+        return res.json({
+          user: {
+            id: user.id,
+            email: user.email,
+            role: user.role,
+            photographerId: user.photographerId
+          },
+          loginMode: 'CLIENT',
+          projects: filteredProjects.map(p => ({
+            id: p.id,
+            title: p.title,
+            projectType: p.projectType,
+            status: p.status,
+            eventDate: p.eventDate
+          })),
+          message: "Successfully logged in"
+        });
+      }
     } catch (error) {
       console.error("Client portal token validation error:", error);
       res.status(500).json({ message: "Failed to validate client portal token" });
@@ -2389,7 +2446,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     console.log('=== SEND LOGIN LINK REQUEST RECEIVED ===');
     console.log('Contact ID:', req.params.id);
     console.log('User:', req.user);
+    console.log('Request body:', req.body);
+    
     try {
+      // Validate request body
+      const bodySchema = z.object({
+        projectId: z.string().optional()
+      });
+      
+      const parsed = bodySchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ message: "Invalid request body", errors: parsed.error });
+      }
+      
+      const { projectId } = parsed.data;
+      
       const contact = await storage.getContact(req.params.id);
       if (!contact || contact.photographerId !== req.user!.photographerId!) {
         return res.status(404).json({ message: "Contact not found" });
@@ -2399,7 +2470,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Contact has no email address" });
       }
 
-      // Rate limiting check - max 100 tokens per hour per contact (increased for testing)
+      // If projectId provided, validate access with strict security checks
+      if (projectId) {
+        const project = await storage.getProject(projectId);
+        
+        // Strict security: Verify project exists AND belongs to THIS photographer
+        if (!project) {
+          return res.status(404).json({ message: "Project not found" });
+        }
+        
+        if (project.photographerId !== req.user!.photographerId!) {
+          return res.status(403).json({ message: "Access denied: Project does not belong to your account" });
+        }
+        
+        // Verify client is on this project (either as primary client or participant)
+        const isOnProject = project.clientId === contact.id;
+        const participants = await storage.getProjectParticipants(projectId);
+        const isParticipant = participants.some(p => p.clientId === contact.id);
+        
+        if (!isOnProject && !isParticipant) {
+          return res.status(403).json({ message: "Contact is not associated with this project" });
+        }
+      }
+
+      // Rate limiting check - max 100 tokens per hour per contact
       const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
       const recentTokens = await storage.getClientPortalTokensByClient(contact.id, oneHourAgo);
       
@@ -2418,6 +2512,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
       await storage.createClientPortalToken({
         clientId: contact.id,
+        projectId: projectId || null,
+        tokenType: projectId ? 'PROJECT' : 'CLIENT',
         token,
         expiresAt
       });
@@ -10523,6 +10619,56 @@ ${photographer.businessName}`
     } catch (error) {
       console.error('Failed to delete questionnaire assignment:', error);
       res.status(500).json({ error: 'Failed to delete assignment' });
+    }
+  });
+
+  // Get client's projects for selection page
+  app.get("/api/client-portal/projects", authenticateToken, async (req, res) => {
+    try {
+      // Get the contact ID from the authenticated user
+      const user = req.user!;
+      
+      // Find the contact associated with this user email
+      const contact = await storage.getContactByEmail(user.email, user.photographerId!);
+      if (!contact) {
+        return res.status(404).json({ message: "Contact not found" });
+      }
+      
+      // Get client's own projects
+      const ownProjects = await storage.getProjectsByClient(contact.id);
+      
+      // Get projects where user is a participant
+      const participantProjects = await storage.getProjectsByParticipant(contact.id);
+      
+      // Combine all projects
+      const allProjects = [
+        ...ownProjects.map(p => ({ ...p, role: 'PRIMARY' as const })),
+        ...participantProjects.map(p => ({ ...p, role: 'PARTICIPANT' as const }))
+      ];
+      
+      // SECURITY: Filter to only projects from the contact's photographer
+      const filteredProjects = allProjects.filter(p => p.photographerId === contact.photographerId);
+      
+      // Format projects for display
+      const formattedProjects = filteredProjects.map(p => ({
+        id: p.id,
+        title: p.title,
+        projectType: p.projectType,
+        eventDate: p.eventDate,
+        status: p.status,
+        role: p.role,
+        stage: p.stage ? { name: p.stage.name } : undefined,
+        primaryClient: {
+          firstName: p.contact.firstName,
+          lastName: p.contact.lastName,
+          email: p.contact.email
+        }
+      }));
+      
+      res.json({ projects: formattedProjects });
+    } catch (error) {
+      console.error("Get client projects error:", error);
+      res.status(500).json({ message: "Failed to fetch projects" });
     }
   });
 

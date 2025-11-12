@@ -1009,6 +1009,7 @@ export const clientPortalTokens = pgTable("client_portal_tokens", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   clientId: varchar("client_id").notNull().references(() => contacts.id),
   projectId: varchar("project_id").references(() => projects.id),
+  tokenType: text("token_type").notNull().default("CLIENT"), // CLIENT or PROJECT
   token: text("token").notNull().unique(),
   expiresAt: timestamp("expires_at").notNull(),
   usedAt: timestamp("used_at"),

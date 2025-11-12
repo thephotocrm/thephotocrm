@@ -52,6 +52,7 @@ import InstagramAds from "@/pages/instagram-ads";
 import PinterestAds from "@/pages/pinterest-ads";
 import TikTokAds from "@/pages/tiktok-ads";
 import ClientPortal from "@/pages/client-portal";
+import SelectProject from "@/pages/select-project";
 import Portal from "@/pages/portal";
 import PublicSmartFile from "@/pages/public-smart-file";
 import SmartFileSuccess from "@/pages/smart-file-success";
@@ -195,6 +196,7 @@ function Router() {
         </Suspense>
       </Route>
       <Route path="/client-portal" component={ClientPortal} />
+      <Route path="/client-portal/select-project" component={SelectProject} />
       <Route path="/portal/:token" component={Portal} />
       <Route path="/smart-file/:token/success" component={SmartFileSuccess} />
       <Route path="/smart-file/:token" component={PublicSmartFile} />
