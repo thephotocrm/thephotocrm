@@ -160,7 +160,7 @@ export default function ClientPortal() {
 
       validateToken();
     }
-  }, [user, refreshUser, setLocation]);
+  }, [user, refetchUser, setLocation]);
 
   // Fetch client portal data from API
   const { data: portalData, isLoading: portalLoading } = useQuery<ClientPortalData>({
