@@ -1931,61 +1931,156 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.put("/api/photographer", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
+    const photographerId = req.user!.photographerId!;
+    const requestTimestamp = new Date().toISOString();
+    
+    console.log(`[Photographer Update] ======================================`);
+    console.log(`[Photographer Update] Request received at ${requestTimestamp}`);
+    console.log(`[Photographer Update] Photographer ID: ${photographerId}`);
+    console.log(`[Photographer Update] Update fields:`, Object.keys(req.body));
+    console.log(`[Photographer Update] Has portalSlug in payload:`, 'portalSlug' in req.body);
+    if ('portalSlug' in req.body) {
+      console.log(`[Photographer Update] New portalSlug value:`, req.body.portalSlug || '(REMOVING SLUG)');
+    }
+    console.log(`[Photographer Update] ======================================`);
+
     try {
       // Get current photographer data to detect slug changes
-      const currentPhotographer = await storage.getPhotographer(req.user!.photographerId!);
+      console.log(`[Photographer Update] Step 1: Fetching current photographer data...`);
+      const currentPhotographer = await storage.getPhotographer(photographerId);
+      
+      if (!currentPhotographer) {
+        console.error(`[Photographer Update] ✗ Photographer not found: ${photographerId}`);
+        return res.status(404).json({ message: "Photographer not found" });
+      }
+      
       const oldSlug = currentPhotographer?.portalSlug;
+      console.log(`[Photographer Update] Current portalSlug:`, oldSlug || '(NO SLUG SET)');
 
       // Update photographer in database
-      const updated = await storage.updatePhotographer(req.user!.photographerId!, req.body);
+      console.log(`[Photographer Update] Step 2: Updating photographer in database...`);
+      const updated = await storage.updatePhotographer(photographerId, req.body);
+      console.log(`[Photographer Update] ✓ Database update successful`);
       
       // Get the actual persisted slug value (not from req.body which may be partial)
       const newSlug = updated.portalSlug;
+      console.log(`[Photographer Update] Updated portalSlug:`, newSlug || '(NO SLUG SET)');
+      
+      // DNS decision logging
+      console.log(`[Photographer Update] DNS Processing Decision:`, {
+        portalSlugInPayload: 'portalSlug' in req.body,
+        oldSlug: oldSlug || 'none',
+        newSlug: newSlug || 'none',
+        slugsMatch: oldSlug === newSlug,
+        willProcessDNS: ('portalSlug' in req.body && oldSlug !== newSlug)
+      });
       
       // Handle DNS management asynchronously (don't block response)
       // Only process DNS if portalSlug was actually in the update payload
       if ('portalSlug' in req.body && oldSlug !== newSlug) {
+        console.log(`[Photographer Update] Step 3: Triggering DNS operations...`);
+        
         import('./utils/cloudflare-dns').then(async ({ createPortalDNS, deletePortalDNS, updatePortalDNS }) => {
+          console.log(`[DNS Integration] DNS utility loaded for photographer ${photographerId}`);
+          
           try {
             if (!oldSlug && newSlug) {
               // New slug - create DNS
-              console.log(`[DNS] Creating DNS for new slug: ${newSlug}`);
+              console.log(`[DNS Integration] Operation: CREATE (new slug)`);
+              console.log(`[DNS Integration] Photographer: ${photographerId}`);
+              console.log(`[DNS Integration] Creating DNS for: ${newSlug}`);
+              
               const result = await createPortalDNS(newSlug);
+              
               if (result.success) {
-                console.log(`[DNS] ✓ Successfully created DNS for ${newSlug}`);
+                console.log(`[DNS Integration] ✓✓✓ CREATE SUCCESS for ${photographerId}`, {
+                  slug: newSlug,
+                  recordId: result.recordId,
+                  domain: `${newSlug}.tpcportal.co`
+                });
               } else {
-                console.error(`[DNS] ✗ Failed to create DNS for ${newSlug}:`, result.error);
+                console.error(`[DNS Integration] ✗✗✗ CREATE FAILED for ${photographerId}`, {
+                  slug: newSlug,
+                  error: result.error,
+                  timestamp: new Date().toISOString()
+                });
               }
             } else if (oldSlug && !newSlug) {
               // Slug removed - delete DNS
-              console.log(`[DNS] Deleting DNS for removed slug: ${oldSlug}`);
+              console.log(`[DNS Integration] Operation: DELETE (slug removed)`);
+              console.log(`[DNS Integration] Photographer: ${photographerId}`);
+              console.log(`[DNS Integration] Deleting DNS for: ${oldSlug}`);
+              
               const result = await deletePortalDNS(oldSlug);
+              
               if (result.success) {
-                console.log(`[DNS] ✓ Successfully deleted DNS for ${oldSlug}`);
+                console.log(`[DNS Integration] ✓✓✓ DELETE SUCCESS for ${photographerId}`, {
+                  slug: oldSlug,
+                  domain: `${oldSlug}.tpcportal.co`
+                });
               } else {
-                console.error(`[DNS] ✗ Failed to delete DNS for ${oldSlug}:`, result.error);
+                console.error(`[DNS Integration] ✗✗✗ DELETE FAILED for ${photographerId}`, {
+                  slug: oldSlug,
+                  error: result.error,
+                  timestamp: new Date().toISOString()
+                });
               }
             } else if (oldSlug && newSlug && oldSlug !== newSlug) {
               // Slug changed - update DNS
-              console.log(`[DNS] Updating DNS: ${oldSlug} → ${newSlug}`);
+              console.log(`[DNS Integration] Operation: UPDATE (slug changed)`);
+              console.log(`[DNS Integration] Photographer: ${photographerId}`);
+              console.log(`[DNS Integration] Updating DNS: ${oldSlug} → ${newSlug}`);
+              
               const result = await updatePortalDNS(oldSlug, newSlug);
+              
               if (result.success) {
-                console.log(`[DNS] ✓ Successfully updated DNS from ${oldSlug} to ${newSlug}`);
+                console.log(`[DNS Integration] ✓✓✓ UPDATE SUCCESS for ${photographerId}`, {
+                  oldSlug,
+                  newSlug,
+                  oldDomain: `${oldSlug}.tpcportal.co`,
+                  newDomain: `${newSlug}.tpcportal.co`
+                });
               } else {
-                console.error(`[DNS] ✗ Failed to update DNS from ${oldSlug} to ${newSlug}:`, result.error);
+                console.error(`[DNS Integration] ✗✗✗ UPDATE FAILED for ${photographerId}`, {
+                  oldSlug,
+                  newSlug,
+                  error: result.error,
+                  timestamp: new Date().toISOString()
+                });
               }
             }
           } catch (dnsError) {
             // Log DNS errors but don't fail the request
-            console.error('[DNS] Exception during DNS operation:', dnsError);
+            console.error(`[DNS Integration] ✗✗✗ EXCEPTION during DNS operation for ${photographerId}:`, {
+              error: dnsError instanceof Error ? dnsError.message : String(dnsError),
+              stack: dnsError instanceof Error ? dnsError.stack : null,
+              oldSlug,
+              newSlug,
+              timestamp: new Date().toISOString()
+            });
           }
         }).catch(err => {
-          console.error('[DNS] Failed to load DNS utility:', err);
+          console.error(`[DNS Integration] ✗✗✗ CRITICAL: Failed to load DNS utility for ${photographerId}:`, {
+            error: err instanceof Error ? err.message : String(err),
+            stack: err instanceof Error ? err.stack : null,
+            timestamp: new Date().toISOString()
+          });
         });
+      } else {
+        console.log(`[Photographer Update] Step 3: Skipping DNS operations (no slug changes)`);
       }
 
+      console.log(`[Photographer Update] ✓ Request completed successfully for ${photographerId}`);
+      console.log(`[Photographer Update] ======================================`);
+      
       res.json(updated);
     } catch (error) {
+      console.error(`[Photographer Update] ✗✗✗ REQUEST FAILED for ${photographerId}:`, {
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : null,
+        timestamp: new Date().toISOString()
+      });
+      console.log(`[Photographer Update] ======================================`);
       res.status(500).json({ message: "Internal server error" });
     }
   });
