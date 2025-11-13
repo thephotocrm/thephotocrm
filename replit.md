@@ -1,5 +1,5 @@
 ### Overview
-thePhotoCrm is a comprehensive multi-tenant CRM system designed for wedding photographers. It aims to streamline workflows from initial inquiry to project completion by offering contact pipeline management, automated communication, a Smart Files proposal/invoice builder, payment processing, and scheduling. The project's goal is to deliver a production-ready MVP that significantly enhances efficiency for photographers, with strong potential for growth within the photography industry.
+thePhotoCrm is a comprehensive multi-tenant CRM system designed for wedding photographers featuring a dual-domain architecture where photographers use thephotocrm.com while clients access custom-branded portals at {photographer-slug}.tpcportal.co. The system streamlines workflows from initial inquiry to project completion by offering contact pipeline management, automated communication, a Smart Files proposal/invoice builder, payment processing, and scheduling, with smart magic link authentication delivering secure one-click client portal access.
 
 ### User Preferences
 Preferred communication style: Simple, everyday language.
