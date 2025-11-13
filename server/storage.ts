@@ -108,6 +108,9 @@ export interface IStorage {
   createClientPortalToken(token: InsertClientPortalToken): Promise<ClientPortalToken>;
   validateClientPortalToken(token: string): Promise<ClientPortalToken | undefined>;
   
+  // Client Portal Project Data
+  getClientPortalProject(projectId: string, contactId: string, photographerId: string): Promise<any | null>;
+  
   // Portal Tokens (Project-specific magic links)
   createPortalToken(token: InsertPortalToken): Promise<PortalToken>;
   validatePortalToken(tokenString: string): Promise<PortalToken | undefined>;
@@ -1411,6 +1414,155 @@ export class DatabaseStorage implements IStorage {
       ))
       .limit(1);
     return portalToken;
+  }
+
+  async getClientPortalProject(projectId: string, contactId: string, photographerId: string): Promise<any | null> {
+    // First, fetch the project and verify it belongs to the photographer (tenant isolation)
+    const [project] = await db.select({
+      id: projects.id,
+      title: projects.title,
+      projectType: projects.projectType,
+      eventDate: projects.eventDate,
+      status: projects.status,
+      clientId: projects.clientId,
+      photographerId: projects.photographerId,
+      stageId: projects.stageId,
+    })
+    .from(projects)
+    .where(and(
+      eq(projects.id, projectId),
+      eq(projects.photographerId, photographerId)
+    ))
+    .limit(1);
+
+    if (!project) {
+      return null;
+    }
+    
+    // Verify the contact belongs to the same photographer
+    const [contact] = await db.select()
+      .from(contacts)
+      .where(and(
+        eq(contacts.id, contactId),
+        eq(contacts.photographerId, photographerId)
+      ))
+      .limit(1);
+    
+    if (!contact) {
+      return null;
+    }
+
+    // Check if contact is the primary client
+    const isPrimaryClient = project.clientId === contactId;
+
+    // Check if contact is a participant
+    const [participant] = await db.select()
+      .from(projectParticipants)
+      .where(and(
+        eq(projectParticipants.projectId, projectId),
+        eq(projectParticipants.clientId, contactId)
+      ))
+      .limit(1);
+
+    const isParticipant = !!participant;
+
+    // If contact is neither primary client nor participant, deny access
+    if (!isPrimaryClient && !isParticipant) {
+      return null;
+    }
+
+    // Determine role
+    const role = isPrimaryClient ? 'PRIMARY' : 'PARTICIPANT';
+
+    // Fetch related data in parallel
+    const [client, photographer, stage, smartFilesList, checklistItemsList, galleriesList, projectNotesList, activitiesList] = await Promise.all([
+      // Fetch client info
+      db.select().from(contacts).where(eq(contacts.id, project.clientId)).limit(1).then(r => r[0]),
+      
+      // Fetch photographer info
+      db.select().from(photographers).where(eq(photographers.id, project.photographerId)).limit(1).then(r => r[0]),
+      
+      // Fetch stage info
+      project.stageId 
+        ? db.select().from(stages).where(eq(stages.id, project.stageId)).limit(1).then(r => r[0])
+        : Promise.resolve(null),
+      
+      // Fetch smart files for this project
+      db.select({
+        id: smartFiles.id,
+        title: smartFiles.title,
+        status: smartFiles.status,
+        totalCents: smartFiles.totalCents,
+        token: smartFiles.token,
+        createdAt: smartFiles.createdAt,
+      })
+      .from(smartFiles)
+      .where(eq(smartFiles.projectId, projectId))
+      .orderBy(desc(smartFiles.createdAt)),
+      
+      // Fetch checklist items
+      db.select()
+        .from(projectChecklistItems)
+        .where(eq(projectChecklistItems.projectId, projectId))
+        .orderBy(projectChecklistItems.orderIndex),
+      
+      // Fetch galleries linked to this project
+      db.select({
+        id: galleries.id,
+        title: galleries.title,
+        imageCount: sql<number>`COALESCE((SELECT COUNT(*) FROM ${galleryImages} WHERE ${galleryImages.galleryId} = ${galleries.id}), 0)`,
+        isPublic: galleries.isPublic,
+        createdAt: galleries.createdAt,
+      })
+      .from(galleries)
+      .where(eq(galleries.projectId, projectId))
+      .orderBy(desc(galleries.createdAt)),
+      
+      // Fetch project notes
+      db.select()
+        .from(projectNotes)
+        .where(eq(projectNotes.projectId, projectId))
+        .orderBy(desc(projectNotes.createdAt)),
+      
+      // Fetch project activities (from project history)
+      db.select()
+        .from(projectHistory)
+        .where(eq(projectHistory.projectId, projectId))
+        .orderBy(desc(projectHistory.createdAt))
+        .limit(50), // Limit to recent 50 activities
+    ]);
+
+    // Build the client portal project response
+    return {
+      id: project.id,
+      title: project.title,
+      projectType: project.projectType,
+      eventDate: project.eventDate,
+      status: project.status,
+      role,
+      stage: stage ? { name: stage.name } : null,
+      client: client ? {
+        firstName: client.firstName,
+        lastName: client.lastName,
+        email: client.email,
+        phone: client.phone,
+      } : null,
+      photographer: photographer ? {
+        businessName: photographer.businessName,
+        logoUrl: photographer.logoUrl,
+      } : null,
+      smartFiles: smartFilesList,
+      checklistItems: checklistItemsList,
+      galleries: galleriesList,
+      notes: projectNotesList,
+      activities: activitiesList.map(activity => ({
+        id: activity.id,
+        type: activity.activityType,
+        title: activity.title,
+        description: activity.description,
+        createdAt: activity.createdAt,
+      })),
+    };
   }
 
   async createPortalToken(tokenData: InsertPortalToken): Promise<PortalToken> {

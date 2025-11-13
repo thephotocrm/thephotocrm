@@ -10683,6 +10683,45 @@ ${photographer.businessName}`
     }
   });
 
+  // Get single project for client portal
+  app.get("/api/client-portal/projects/:id", authenticateToken, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const user = req.user!;
+      
+      // Verify user has photographerId in JWT (required for client portal access)
+      if (!user.photographerId) {
+        return res.status(403).json({ message: "Access denied - invalid client context" });
+      }
+      
+      // Get the contact for this authenticated user, scoped to their photographer
+      // This ensures we only look up contacts within the correct tenant
+      const contact = await storage.getContactByEmail(user.email, user.photographerId);
+      
+      if (!contact) {
+        return res.status(403).json({ message: "Access denied - contact not found for this photographer" });
+      }
+      
+      // Additional security: verify contact's photographer matches JWT photographer
+      if (contact.photographerId !== user.photographerId) {
+        return res.status(403).json({ message: "Access denied - photographer mismatch" });
+      }
+      
+      // Fetch project data with full multi-tenant security validation
+      // Storage method will verify: 1) project belongs to photographer, 2) contact has access
+      const projectData = await storage.getClientPortalProject(id, contact.id, user.photographerId);
+      
+      if (!projectData) {
+        return res.status(403).json({ message: "Access denied - project not found or you are not associated with it" });
+      }
+      
+      res.json(projectData);
+    } catch (error) {
+      console.error("Get client portal project error:", error);
+      res.status(500).json({ message: "Failed to fetch project" });
+    }
+  });
+
   // Client Portal Data
   app.get("/api/client-portal", authenticateToken, async (req, res) => {
     try {
