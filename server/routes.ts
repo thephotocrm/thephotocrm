@@ -1932,7 +1932,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.put("/api/photographer", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
+      // Get current photographer data to detect slug changes
+      const currentPhotographer = await storage.getPhotographer(req.user!.photographerId!);
+      const oldSlug = currentPhotographer?.portalSlug;
+
+      // Update photographer in database
       const updated = await storage.updatePhotographer(req.user!.photographerId!, req.body);
+      
+      // Get the actual persisted slug value (not from req.body which may be partial)
+      const newSlug = updated.portalSlug;
+      
+      // Handle DNS management asynchronously (don't block response)
+      // Only process DNS if portalSlug was actually in the update payload
+      if ('portalSlug' in req.body && oldSlug !== newSlug) {
+        import('./utils/cloudflare-dns').then(async ({ createPortalDNS, deletePortalDNS, updatePortalDNS }) => {
+          try {
+            if (!oldSlug && newSlug) {
+              // New slug - create DNS
+              console.log(`[DNS] Creating DNS for new slug: ${newSlug}`);
+              const result = await createPortalDNS(newSlug);
+              if (result.success) {
+                console.log(`[DNS] ✓ Successfully created DNS for ${newSlug}`);
+              } else {
+                console.error(`[DNS] ✗ Failed to create DNS for ${newSlug}:`, result.error);
+              }
+            } else if (oldSlug && !newSlug) {
+              // Slug removed - delete DNS
+              console.log(`[DNS] Deleting DNS for removed slug: ${oldSlug}`);
+              const result = await deletePortalDNS(oldSlug);
+              if (result.success) {
+                console.log(`[DNS] ✓ Successfully deleted DNS for ${oldSlug}`);
+              } else {
+                console.error(`[DNS] ✗ Failed to delete DNS for ${oldSlug}:`, result.error);
+              }
+            } else if (oldSlug && newSlug && oldSlug !== newSlug) {
+              // Slug changed - update DNS
+              console.log(`[DNS] Updating DNS: ${oldSlug} → ${newSlug}`);
+              const result = await updatePortalDNS(oldSlug, newSlug);
+              if (result.success) {
+                console.log(`[DNS] ✓ Successfully updated DNS from ${oldSlug} to ${newSlug}`);
+              } else {
+                console.error(`[DNS] ✗ Failed to update DNS from ${oldSlug} to ${newSlug}:`, result.error);
+              }
+            }
+          } catch (dnsError) {
+            // Log DNS errors but don't fail the request
+            console.error('[DNS] Exception during DNS operation:', dnsError);
+          }
+        }).catch(err => {
+          console.error('[DNS] Failed to load DNS utility:', err);
+        });
+      }
+
       res.json(updated);
     } catch (error) {
       res.status(500).json({ message: "Internal server error" });
