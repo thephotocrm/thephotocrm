@@ -199,7 +199,7 @@ export async function createPortalDNS(slug: string): Promise<{ success: boolean;
       name: fullDomain,
       content: dnsTarget,
       ttl: 1, // Auto TTL
-      proxied: false, // DNS-only (gray cloud) - required for Replit SSL
+      proxied: false, // DNS-only (gray cloud) - Replit doesn't support Cloudflare proxy for SSL
       comment: `Auto-created for photographer portal: ${slug}`
     };
     
@@ -377,4 +377,64 @@ export async function updatePortalDNS(
   });
   console.log(`[Cloudflare DNS] ========================================`);
   return { success: true };
+}
+
+/**
+ * Update an existing DNS record to use proxied mode (orange cloud)
+ * Used to backfill existing records that were created with DNS-only mode
+ * 
+ * @param slug - Photographer's portal slug
+ * @returns Success status
+ */
+export async function updateRecordToProxied(slug: string): Promise<{ success: boolean; error?: string }> {
+  console.log(`[Cloudflare DNS] ========================================`);
+  console.log(`[Cloudflare DNS] UPDATE TO PROXIED MODE OPERATION STARTED`);
+  console.log(`[Cloudflare DNS] Slug: ${slug}`);
+  console.log(`[Cloudflare DNS] ========================================`);
+
+  const { zoneId } = getCloudflareConfig();
+  const fullDomain = `${slug}.tpcportal.co`;
+
+  try {
+    // Find the existing record
+    console.log(`[Cloudflare DNS] Step 1: Finding existing DNS record...`);
+    const record = await findDNSRecord(slug);
+    if (!record) {
+      console.log(`[Cloudflare DNS] ⚠ No DNS record found for ${slug}`);
+      return { success: false, error: 'Record not found' };
+    }
+
+    // Check if already proxied
+    if (record.proxied) {
+      console.log(`[Cloudflare DNS] ✓ Record already proxied, no update needed`);
+      return { success: true };
+    }
+
+    // Update to proxied mode
+    console.log(`[Cloudflare DNS] Step 2: Updating to proxied mode...`);
+    const response = await cloudflareRequest(
+      `/zones/${zoneId}/dns_records/${record.id}`,
+      'PATCH',
+      { proxied: true }
+    );
+
+    if (response.success) {
+      console.log(`[Cloudflare DNS] ✓✓✓ SUCCESS! Record updated to proxied mode:`, {
+        recordId: record.id,
+        name: record.name,
+        proxied: true
+      });
+      console.log(`[Cloudflare DNS] ========================================`);
+      return { success: true };
+    } else {
+      const error = response.errors?.[0]?.message || 'Unknown error';
+      console.error(`[Cloudflare DNS] ✗✗✗ FAILED to update record:`, error);
+      console.log(`[Cloudflare DNS] ========================================`);
+      return { success: false, error };
+    }
+  } catch (error) {
+    console.error(`[Cloudflare DNS] ✗✗✗ EXCEPTION during update:`, error);
+    console.log(`[Cloudflare DNS] ========================================`);
+    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+  }
 }
