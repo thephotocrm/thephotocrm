@@ -85,6 +85,9 @@ export function detectDomain(req: Request, res: Response, next: NextFunction) {
 /**
  * Middleware to load photographer info based on subdomain slug
  * Should be used after detectDomain and authenticateToken
+ * 
+ * IMPORTANT: Only applies photographer lookup to API routes.
+ * Frontend routes (HTML/assets) pass through so React can load and handle errors in UI.
  */
 export async function loadPhotographerFromSubdomain(req: Request, res: Response, next: NextFunction) {
   // Only apply to client portal subdomains
@@ -93,11 +96,19 @@ export async function loadPhotographerFromSubdomain(req: Request, res: Response,
     return;
   }
   
+  // CRITICAL: Skip frontend routes - let Vite/React handle these
+  // Only validate photographer for API requests
+  if (!req.path.startsWith('/api/')) {
+    console.log(`  → Skipping photographer lookup for frontend route: ${req.path}`);
+    next();
+    return;
+  }
+  
   try {
     const { storage } = await import('../storage');
     const slug = req.domain.photographerSlug;
     
-    console.log(`🔍 Looking up photographer by slug: ${slug}`);
+    console.log(`🔍 Looking up photographer by slug: ${slug} for API route: ${req.path}`);
     
     // Find photographer by portal slug
     const photographer = await storage.getPhotographerByPortalSlug(slug);
