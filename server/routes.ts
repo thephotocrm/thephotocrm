@@ -10649,7 +10649,7 @@ ${photographer.businessName}`
       const ownProjects = await storage.getProjectsByClient(contact.id);
       
       // Get projects where user is a participant
-      const participantProjects = await storage.getProjectsByParticipant(contact.id);
+      const participantProjects = await storage.getParticipantProjects(contact.id);
       
       // Combine all projects
       const allProjects = [
@@ -10725,14 +10725,24 @@ ${photographer.businessName}`
   // Client Portal Data
   app.get("/api/client-portal", authenticateToken, async (req, res) => {
     try {
-      // For now, assume user is a client - in production you'd have proper client auth
-      const clientId = req.user!.id; // This should be the client ID in a real implementation
+      const user = req.user!;
+      
+      // Verify user has photographerId in JWT (required for client portal access)
+      if (!user.photographerId) {
+        return res.status(403).json({ message: "Access denied - invalid client context" });
+      }
+      
+      // Get the contact for this authenticated user, scoped to their photographer
+      const contact = await storage.getContactByEmail(user.email, user.photographerId);
+      if (!contact) {
+        return res.status(404).json({ message: "Contact not found" });
+      }
       
       // Get client's own projects
-      const ownProjects = await storage.getProjectsByClient(clientId);
+      const ownProjects = await storage.getProjectsByClient(contact.id);
       
       // Get projects where user is a participant
-      const participantProjects = await storage.getProjectsByParticipant(clientId);
+      const participantProjects = await storage.getParticipantProjects(contact.id);
       
       // Combine all projects
       const allProjects = [
@@ -10748,7 +10758,7 @@ ${photographer.businessName}`
       const project = allProjects[0];
       
       // Get questionnaires for this client's projects
-      const questionnaires = await storage.getQuestionnairesByClient(clientId);
+      const questionnaires = await storage.getQuestionnairesByClient(contact.id);
       
       // Format questionnaires for client portal
       const formattedQuestionnaires = questionnaires.map(q => ({
