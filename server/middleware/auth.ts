@@ -1,10 +1,12 @@
 import { Request, Response, NextFunction } from 'express';
 import { verifyToken, JwtPayload } from '../services/auth';
+import { getAuthToken } from '../cookie-auth';
 
 declare global {
   namespace Express {
     interface Request {
       user?: JwtPayload;
+      authSource?: string;
     }
   }
 }
@@ -20,19 +22,29 @@ export function authenticateToken(req: Request, res: Response, next: NextFunctio
   console.log('Origin:', req.headers.origin);
   console.log('Host:', req.headers.host);
   
-  // Try to get token from cookie first
-  let token = req.cookies?.token;
+  // Try to get token from cookies first (checks all cookie types in priority order)
+  let token: string | null = null;
+  let authSource = 'none';
+  
+  const cookieAuth = getAuthToken(req);
+  if (cookieAuth) {
+    token = cookieAuth.token;
+    authSource = cookieAuth.source;
+    console.log('Token from cookie:', authSource);
+  }
   
   // If no cookie, try Authorization header
   if (!token && req.headers.authorization) {
     const authHeader = req.headers.authorization;
     if (authHeader.startsWith('Bearer ')) {
       token = authHeader.substring(7);
+      authSource = 'header';
       console.log('Token from Authorization header');
     }
   }
   
   console.log('Token exists:', !!token);
+  console.log('Auth source:', authSource);
 
   if (!token) {
     console.log('No token found, returning 401');
@@ -48,6 +60,7 @@ export function authenticateToken(req: Request, res: Response, next: NextFunctio
 
   console.log('Authentication successful, continuing to route');
   req.user = payload;
+  req.authSource = authSource;
   next();
 }
 

@@ -102,6 +102,7 @@ export const photographers = pgTable("photographers", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   businessName: text("business_name").notNull(),
   photographerName: text("photographer_name"),
+  portalSlug: text("portal_slug").unique(), // Custom subdomain for client portal (e.g., "johnsphotography" for johnsphotography.tpcportal.co)
   logoUrl: text("logo_url"),
   brandPrimary: text("brand_primary"),
   brandSecondary: text("brand_secondary"),

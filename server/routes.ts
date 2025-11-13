@@ -8,7 +8,9 @@ import { eq, sql, inArray } from "drizzle-orm";
 import { storage } from "./storage";
 import { db } from "./db";
 import { authenticateToken, requirePhotographer, requireRole, requireAdmin, requireActiveSubscription, requireGalleryPlan } from "./middleware/auth";
+import { detectDomain, loadPhotographerFromSubdomain, enforceSubdomainTenantAuth } from "./middleware/domain-routing";
 import { hashPassword, authenticateUser, generateToken } from "./services/auth";
+import { setAuthCookie, clearAuthCookies } from './cookie-auth';
 import { sendEmail, fetchIncomingGmailMessage } from "./services/email";
 import { sendSms, renderSmsTemplate } from "./services/sms";
 import { generateDripCampaign, regenerateEmail } from "./services/openai";
@@ -155,6 +157,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const cookieSecret = process.env.SESSION_SECRET || process.env.REPL_ID || 'default-cookie-secret-change-in-production';
   app.use(cookieParser(cookieSecret));
   console.log('✅ Cookie-parser middleware initialized');
+  
+  // SECURITY: Domain routing and tenant isolation
+  app.use(detectDomain);
+  app.use(loadPhotographerFromSubdomain);
+  console.log('✅ Domain detection and tenant isolation middleware initialized');
   
   // Simple chunked upload for gallery images using Multer + Cloudinary
   const uploadStorage = multer.memoryStorage();
@@ -779,12 +786,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       // Set cookie
-      res.cookie('token', token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
-      });
+      setAuthCookie(res, token, 'ADMIN');
 
       res.json({
         message: "Admin user created successfully",
@@ -949,12 +951,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Set HTTP-only cookie
-      res.cookie('token', result.token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
-      });
+      setAuthCookie(res, result.token, result.user.role);
 
       res.json({ 
         user: {
@@ -971,7 +968,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.post("/api/auth/logout", (req, res) => {
-    res.clearCookie('token');
+    clearAuthCookies(res);
     res.json({ message: "Logged out successfully" });
   });
 
@@ -1139,12 +1136,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       // Set HTTP-only cookie (same as email/password login)
-      res.cookie('token', token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
-      });
+      setAuthCookie(res, token, user.role);
 
       // Redirect to dashboard
       res.redirect('/dashboard');
@@ -1197,12 +1189,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       // Set HTTP-only cookie
-      res.cookie('token', authToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
-      });
+      setAuthCookie(res, authToken, user.role);
 
       res.json({ 
         success: true,
@@ -1313,12 +1300,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       );
 
       // Set HTTP-only cookie
-      res.cookie('token', jwtToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
-      });
+      setAuthCookie(res, jwtToken, 'CLIENT');
 
       console.log("🍪 Auth cookie set for user:", user.email);
 
@@ -1377,6 +1359,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
         
         console.log("👤 Created new user account for client:", user.email);
+      } else {
+        // SECURITY: Ensure existing user has photographerId set from contact
+        if (!user.photographerId || user.photographerId !== contact.photographerId) {
+          console.log(`⚠️ Updating user ${user.email} photographerId from ${user.photographerId} to ${contact.photographerId}`);
+          
+          // Reject if user belongs to different photographer (cross-tenant attempt)
+          if (user.photographerId && user.photographerId !== contact.photographerId) {
+            console.error(`❌ SECURITY: User ${user.email} belongs to photographer ${user.photographerId}, cannot access ${contact.photographerId}`);
+            return res.status(403).json({ message: "Access denied - account conflict" });
+          }
+          
+          // Backfill photographerId for legacy users
+          user = await storage.updateUser(user.id, {
+            photographerId: contact.photographerId
+          });
+          
+          console.log(`✅ Updated user ${user.email} with photographerId ${contact.photographerId}`);
+        }
+      }
+      
+      // SECURITY: Validate photographerId exists before creating JWT
+      if (!user.photographerId) {
+        console.error(`❌ CRITICAL: User ${user.email} has no photographerId after validation`);
+        return res.status(500).json({ message: "Internal server error - invalid user state" });
       }
 
       // Generate JWT token for the client
@@ -1392,12 +1398,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       );
 
       // Set HTTP-only cookie
-      res.cookie('token', jwtToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
-      });
+      setAuthCookie(res, jwtToken, 'CLIENT');
 
       console.log("🍪 Auth cookie set for client:", user.email);
 
@@ -1726,12 +1727,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       // Set impersonation cookie
-      res.cookie('token', impersonationToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        maxAge: 2 * 60 * 60 * 1000 // 2 hours for impersonation
-      });
+      setAuthCookie(res, impersonationToken, 'PHOTOGRAPHER');
 
       res.json({
         message: "Impersonation started",
@@ -1777,12 +1773,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       // Set admin cookie
-      res.cookie('token', adminToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
-      });
+      setAuthCookie(res, adminToken, 'ADMIN');
 
       res.json({ message: "Exited impersonation mode" });
     } catch (error) {
@@ -10634,7 +10625,7 @@ ${photographer.businessName}`
   });
 
   // Get client's projects for selection page
-  app.get("/api/client-portal/projects", authenticateToken, async (req, res) => {
+  app.get("/api/client-portal/projects", authenticateToken, enforceSubdomainTenantAuth, async (req, res) => {
     try {
       // Get the contact ID from the authenticated user
       const user = req.user!;
@@ -10684,7 +10675,7 @@ ${photographer.businessName}`
   });
 
   // Get single project for client portal
-  app.get("/api/client-portal/projects/:id", authenticateToken, async (req, res) => {
+  app.get("/api/client-portal/projects/:id", authenticateToken, enforceSubdomainTenantAuth, async (req, res) => {
     try {
       const { id } = req.params;
       const user = req.user!;
@@ -10723,7 +10714,7 @@ ${photographer.businessName}`
   });
 
   // Client Portal Data
-  app.get("/api/client-portal", authenticateToken, async (req, res) => {
+  app.get("/api/client-portal", authenticateToken, enforceSubdomainTenantAuth, async (req, res) => {
     try {
       const user = req.user!;
       
