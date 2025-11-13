@@ -1,0 +1,1001 @@
+2025-11-13T22:40:03.183686599Z [inf]  Processing automations for photographer: 6251dceb-2a62-41c1-a4d1-7c1ad3b7c6b1
+2025-11-13T22:40:03.270994820Z [inf]  Found 0 enabled automations
+2025-11-13T22:40:03.271000840Z [inf]  Processing automations for photographer: 6251dceb-2a62-41c1-a4d1-7c1ad3b7c6b1
+2025-11-13T22:40:03.288132485Z [inf]  Found 0 enabled automations
+2025-11-13T22:40:03.288142736Z [inf]  Processing automations for photographer: d22dedf7-28f0-428f-8d84-55bfd134c3dc
+2025-11-13T22:40:03.366647950Z [inf]  Found 0 enabled automations
+2025-11-13T22:40:03.366655020Z [inf]  Processing automations for photographer: d22dedf7-28f0-428f-8d84-55bfd134c3dc
+2025-11-13T22:40:03.392388880Z [inf]  Found 0 enabled automations
+2025-11-13T22:40:03.392393571Z [inf]  Processing automations for photographer: 509e2fe3-270f-4414-b75f-5518a6095749
+2025-11-13T22:40:03.758916768Z [inf]  Found 0 enabled automations
+2025-11-13T22:40:03.758923083Z [inf]  Processing automations for photographer: 509e2fe3-270f-4414-b75f-5518a6095749
+2025-11-13T22:40:03.758928535Z [inf]  Found 0 enabled automations
+2025-11-13T22:40:03.758936363Z [inf]  Processing automations for photographer: 21858155-3a7e-4d45-a09c-045e41cf86d7
+2025-11-13T22:40:03.758942502Z [inf]  Found 0 enabled automations
+2025-11-13T22:40:03.758948061Z [inf]  Processing automations for photographer: 21858155-3a7e-4d45-a09c-045e41cf86d7
+2025-11-13T22:40:03.758953418Z [inf]  Found 0 enabled automations
+2025-11-13T22:40:03.758958810Z [inf]  Processing automations for photographer: e1d9497c-2ac4-4fc5-8a1b-84130da4f45b
+2025-11-13T22:40:03.758964022Z [inf]  Found 0 enabled automations
+2025-11-13T22:40:03.758969234Z [inf]  Processing automations for photographer: e1d9497c-2ac4-4fc5-8a1b-84130da4f45b
+2025-11-13T22:40:03.758974453Z [inf]  Found 0 enabled automations
+2025-11-13T22:40:03.758980618Z [inf]  Processing automations for photographer: c3d5fcd5-cc7e-4326-8f77-e2b1a7d9e04e
+2025-11-13T22:40:03.768098358Z [inf]  Found 0 enabled automations
+2025-11-13T22:40:03.768103059Z [inf]  Processing automations for photographer: c3d5fcd5-cc7e-4326-8f77-e2b1a7d9e04e
+2025-11-13T22:40:03.814849034Z [inf]  Found 0 enabled automations
+2025-11-13T22:40:03.814854468Z [inf]  Processing automations for photographer: 6f99ec47-005e-4a2f-b9bc-8b1efd89a52d
+2025-11-13T22:40:03.894244472Z [inf]  Found 0 enabled automations
+2025-11-13T22:40:03.894248867Z [inf]  Processing automations for photographer: 6f99ec47-005e-4a2f-b9bc-8b1efd89a52d
+2025-11-13T22:40:03.916839696Z [inf]  Found 0 enabled automations
+2025-11-13T22:40:03.916846771Z [inf]  Processing automations for photographer: 14a7c70f-84ce-4f65-919e-5f6c4d94c95a
+2025-11-13T22:40:03.981440138Z [inf]  Found 0 enabled automations
+2025-11-13T22:40:03.981446047Z [inf]  Processing automations for photographer: 14a7c70f-84ce-4f65-919e-5f6c4d94c95a
+2025-11-13T22:40:04.017184172Z [inf]  Found 0 enabled automations
+2025-11-13T22:40:04.017190421Z [inf]  Processing automations for photographer: fa4f24a5-8503-4f7d-9c18-a1d1b35c5d47
+2025-11-13T22:40:04.089571760Z [inf]  Found 0 enabled automations
+2025-11-13T22:40:04.089582160Z [inf]  Processing automations for photographer: fa4f24a5-8503-4f7d-9c18-a1d1b35c5d47
+2025-11-13T22:40:04.123391313Z [inf]  Found 0 enabled automations
+2025-11-13T22:40:04.123398933Z [inf]  Processing automations for photographer: af9e86a7-5eee-4f1c-a376-a0079d8e95b3
+2025-11-13T22:40:04.209561449Z [inf]  Found 0 enabled automations
+2025-11-13T22:40:04.209567386Z [inf]  Processing automations for photographer: af9e86a7-5eee-4f1c-a376-a0079d8e95b3
+2025-11-13T22:40:04.227485052Z [inf]  Found 0 enabled automations
+2025-11-13T22:40:04.227491180Z [inf]  Processing automations for photographer: 5e1a69c7-5169-4605-9dab-04f9c17c9e0e
+2025-11-13T22:40:04.299458752Z [inf]  Found 0 enabled automations
+2025-11-13T22:40:04.299464738Z [inf]  Processing automations for photographer: 5e1a69c7-5169-4605-9dab-04f9c17c9e0e
+2025-11-13T22:40:04.344699397Z [inf]  Found 0 enabled automations
+2025-11-13T22:40:04.344703762Z [inf]  Processing automations for photographer: 48980e76-cee3-45ff-8409-6e9a120cebb7
+2025-11-13T22:40:04.816114911Z [inf]  Processing automations for photographer: test-photographer-email-flow
+2025-11-13T22:40:04.816127041Z [inf]  Found 0 enabled automations
+2025-11-13T22:40:04.816134134Z [inf]  Processing automations for photographer: photog-test-id
+2025-11-13T22:40:04.816140926Z [inf]  Found 0 enabled automations
+2025-11-13T22:40:04.816149662Z [inf]  Processing automations for photographer: photog-test-id
+2025-11-13T22:40:04.816158416Z [inf]  Found 0 enabled automations
+2025-11-13T22:40:04.816165388Z [inf]  Processing automations for photographer: afad1b6b-c885-41e8-a3de-d46284c46a43
+2025-11-13T22:40:04.816189413Z [inf]  Found 0 enabled automations
+2025-11-13T22:40:04.816193675Z [inf]  Processing automations for photographer: 48980e76-cee3-45ff-8409-6e9a120cebb7
+2025-11-13T22:40:04.816197832Z [inf]  Found 0 enabled automations
+2025-11-13T22:40:04.816201848Z [inf]  Processing automations for photographer: eb654a3d-7a97-46e2-915a-a71d79c8a079
+2025-11-13T22:40:04.816206594Z [inf]  Found 0 enabled automations
+2025-11-13T22:40:04.816214611Z [inf]  Processing automations for photographer: eb654a3d-7a97-46e2-915a-a71d79c8a079
+2025-11-13T22:40:04.816219144Z [inf]  Found 0 enabled automations
+2025-11-13T22:40:04.816223437Z [inf]  Processing automations for photographer: test-photographer-email-flow
+2025-11-13T22:40:04.816227696Z [inf]  Found 0 enabled automations
+2025-11-13T22:40:04.831525415Z [inf]  Found 0 enabled automations
+2025-11-13T22:40:04.831530159Z [inf]  Processing automations for photographer: afad1b6b-c885-41e8-a3de-d46284c46a43
+2025-11-13T22:40:04.852867815Z [inf]  Found 0 enabled automations
+2025-11-13T22:40:04.852878847Z [inf]  Processing automations for photographer: ab06c25c-95ad-479e-af6c-e44104f1a1a7
+2025-11-13T22:40:04.952512389Z [inf]  Found 0 enabled automations
+2025-11-13T22:40:04.952521484Z [inf]  Processing automations for photographer: ab06c25c-95ad-479e-af6c-e44104f1a1a7
+2025-11-13T22:40:04.952527950Z [inf]  Found 0 enabled automations
+2025-11-13T22:40:04.952534053Z [inf]  Processing automations for photographer: 3208b269-a837-44f6-a509-50436d2aecca
+2025-11-13T22:40:05.041454730Z [inf]  Found 0 enabled automations
+2025-11-13T22:40:05.041465848Z [inf]  Processing automations for photographer: 3208b269-a837-44f6-a509-50436d2aecca
+2025-11-13T22:40:05.055118305Z [inf]  Found 6 enabled automations
+2025-11-13T22:40:05.055124636Z [inf]  Processing automation: Wedding Drip Campaign Automation (type: NURTURE)
+2025-11-13T22:40:05.055131403Z [inf]  Processing nurture automation: Wedding Drip Campaign Automation
+2025-11-13T22:40:05.150914666Z [inf]  Found 6 enabled automations
+2025-11-13T22:40:05.150920435Z [inf]  Processing automation: Wedding Drip Campaign Automation (type: NURTURE)
+2025-11-13T22:40:05.150928146Z [inf]  Processing nurture automation: Wedding Drip Campaign Automation
+2025-11-13T22:40:05.158850591Z [inf]  Found 0 active drip campaigns for project type WEDDING
+2025-11-13T22:40:05.158854766Z [inf]  Processing automation: dwdwdw (type: COMMUNICATION)
+2025-11-13T22:40:05.265454593Z [inf]  Found 0 active drip campaigns for project type WEDDING
+2025-11-13T22:40:05.265461401Z [inf]  Processing automation: dwdwdw (type: COMMUNICATION)
+2025-11-13T22:40:05.365790095Z [inf]  Communication automation "dwdwdw" (b3740752-9e06-405f-8e19-b66b9d157bd2) - found 1 projects in stage
+2025-11-13T22:40:05.367780480Z [inf]  Processing step for contact Austin  (austinpacholek2014@gmail.com)
+2025-11-13T22:40:05.810428664Z [inf]  Processing questionnaire assignment for Austin  (automation: dwdwdw)
+2025-11-13T22:40:05.810434125Z [inf]  Communication automation "dwdwdw" (b3740752-9e06-405f-8e19-b66b9d157bd2) - found 1 projects in stage
+2025-11-13T22:40:05.810438375Z [inf]  Processing step for contact Austin  (austinpacholek2014@gmail.com)
+2025-11-13T22:40:05.810443350Z [inf]  ❌ Template channel mismatch for automation dwdwdw: template=SMS, action=EMAIL, skipping (no reservation)
+2025-11-13T22:40:05.810448690Z [inf]  Processing questionnaire assignment for Austin  (automation: dwdwdw)
+2025-11-13T22:40:05.810452171Z [inf]  🚫 Questionnaire already assigned to Austin  for this template
+2025-11-13T22:40:05.810453809Z [inf]  ❌ Template channel mismatch for automation dwdwdw: template=SMS, action=EMAIL, skipping (no reservation)
+2025-11-13T22:40:05.810459359Z [inf]  Processing questionnaire assignment for Austin  (automation: dwdwdw)
+2025-11-13T22:40:05.810461720Z [inf]  Processing automation: dwdwdw (type: COMMUNICATION)
+2025-11-13T22:40:05.810464809Z [inf]  🚫 Questionnaire already assigned to Austin  for this template
+2025-11-13T22:40:05.810470805Z [inf]  Processing automation: dwdwdw (type: COMMUNICATION)
+2025-11-13T22:40:05.810471475Z [inf]  Communication automation "dwdwdw" (cdc800f1-532b-4c85-96b4-c992e9fc8f16) - found 1 projects in stage
+2025-11-13T22:40:05.810478273Z [inf]  Processing step for contact Austin  (austinpacholek2014@gmail.com)
+2025-11-13T22:40:05.810484560Z [inf]  📝 No template ID for Austin , skipping (no reservation)
+2025-11-13T22:40:05.886748832Z [inf]  🚫 Questionnaire already assigned to Austin  for this template
+2025-11-13T22:40:05.886757159Z [inf]  Processing automation: big peen (type: STAGE_CHANGE)
+2025-11-13T22:40:05.886763248Z [inf]  Processing stage change automation: big peen
+2025-11-13T22:40:05.888870362Z [inf]  Communication automation "dwdwdw" (cdc800f1-532b-4c85-96b4-c992e9fc8f16) - found 1 projects in stage
+2025-11-13T22:40:05.888876475Z [inf]  Processing step for contact Austin  (austinpacholek2014@gmail.com)
+2025-11-13T22:40:05.888882665Z [inf]  📝 No template ID for Austin , skipping (no reservation)
+2025-11-13T22:40:05.888886834Z [inf]  Processing questionnaire assignment for Austin  (automation: dwdwdw)
+2025-11-13T22:40:05.994075480Z [inf]  Found 1 enabled business triggers for automation: APPOINTMENT_BOOKED
+2025-11-13T22:40:05.997046897Z [inf]  🚫 Questionnaire already assigned to Austin  for this template
+2025-11-13T22:40:05.997053794Z [inf]  Processing automation: big peen (type: STAGE_CHANGE)
+2025-11-13T22:40:05.997058651Z [inf]  Processing stage change automation: big peen
+2025-11-13T22:40:06.103717617Z [inf]  Found 2 active projects to check for business triggers
+2025-11-13T22:40:06.103726617Z [inf]  Checking trigger condition: APPOINTMENT_BOOKED for project 00bceb13-93ab-4a97-aba6-fb2e4f75b551
+2025-11-13T22:40:06.103732883Z [inf]  Found 1 enabled business triggers for automation: APPOINTMENT_BOOKED
+2025-11-13T22:40:06.198018340Z [inf]  Checking trigger condition: APPOINTMENT_BOOKED for project 5808a813-65d5-4fc8-91c6-9d3675096b3e
+2025-11-13T22:40:06.211809964Z [inf]  Found 2 active projects to check for business triggers
+2025-11-13T22:40:06.211813916Z [inf]  Checking trigger condition: APPOINTMENT_BOOKED for project 00bceb13-93ab-4a97-aba6-fb2e4f75b551
+2025-11-13T22:40:06.312932013Z [inf]  Checking trigger condition: APPOINTMENT_BOOKED for project 5808a813-65d5-4fc8-91c6-9d3675096b3e
+2025-11-13T22:40:06.411723478Z [inf]  🚫 Automation execution already reserved/completed (bulletproof prevention): STAGE_CHANGE for project 5808a813-65d5-4fc8-91c6-9d3675096b3e
+2025-11-13T22:40:06.411727647Z [inf]  🔒 Stage change automation already reserved/executed for project 5808a813-65d5-4fc8-91c6-9d3675096b3e (trigger: APPOINTMENT_BOOKED), prevented duplicate
+2025-11-13T22:40:06.411732077Z [inf]  Processing automation: test scgedule (type: COMMUNICATION)
+2025-11-13T22:40:06.786018119Z [inf]  🚫 Automation execution already reserved/completed (bulletproof prevention): STAGE_CHANGE for project 5808a813-65d5-4fc8-91c6-9d3675096b3e
+2025-11-13T22:40:06.786027245Z [inf]  🔒 Stage change automation already reserved/executed for project 5808a813-65d5-4fc8-91c6-9d3675096b3e (trigger: APPOINTMENT_BOOKED), prevented duplicate
+2025-11-13T22:40:06.786033043Z [inf]  Processing automation: test scgedule (type: COMMUNICATION)
+2025-11-13T22:40:06.934698954Z [inf]  Communication automation "test scgedule" (08b69fb3-d3ef-451f-9bc9-a30c210d5869) - found 1 projects in stage
+2025-11-13T22:40:06.934704574Z [inf]  Processing step for contact Austin  (austinpacholek2014@gmail.com)
+2025-11-13T22:40:06.934710395Z [inf]  📱 SMS opt-in missing for Austin , skipping (no reservation)
+2025-11-13T22:40:06.934715741Z [inf]  Processing automation: Send Scheduler (type: COMMUNICATION)
+2025-11-13T22:40:07.041271205Z [inf]  Communication automation "test scgedule" (08b69fb3-d3ef-451f-9bc9-a30c210d5869) - found 1 projects in stage
+2025-11-13T22:40:07.041277427Z [inf]  Processing step for contact Austin  (austinpacholek2014@gmail.com)
+2025-11-13T22:40:07.041283094Z [inf]  📱 SMS opt-in missing for Austin , skipping (no reservation)
+2025-11-13T22:40:07.041289050Z [inf]  Processing automation: Send Scheduler (type: COMMUNICATION)
+2025-11-13T22:40:07.138336293Z [inf]  Communication automation "Send Scheduler" (48ac467d-aa90-45f7-a84a-bdae20670aa3) - found 1 projects in stage
+2025-11-13T22:40:07.138340137Z [inf]  Processing step for contact Austin  (austinpacholek2014@gmail.com)
+2025-11-13T22:40:07.250216810Z [inf]  Communication automation "Send Scheduler" (48ac467d-aa90-45f7-a84a-bdae20670aa3) - found 1 projects in stage
+2025-11-13T22:40:07.250222283Z [inf]  Processing step for contact Austin  (austinpacholek2014@gmail.com)
+2025-11-13T22:40:07.326648460Z [inf]  🚫 Automation execution already reserved/completed (bulletproof prevention): COMMUNICATION for project 00bceb13-93ab-4a97-aba6-fb2e4f75b551
+2025-11-13T22:40:07.326659235Z [inf]  🔒 Automation already reserved/executed for Austin , prevented duplicate (bulletproof reservation)
+2025-11-13T22:40:07.326666421Z [inf]  Processing automations for photographer: fb02eb77-2692-4686-b00a-83af54a3dcf9
+2025-11-13T22:40:07.756163141Z [inf]  🚫 Automation execution already reserved/completed (bulletproof prevention): COMMUNICATION for project 00bceb13-93ab-4a97-aba6-fb2e4f75b551
+2025-11-13T22:40:07.756168743Z [inf]  🔒 Automation already reserved/executed for Austin , prevented duplicate (bulletproof reservation)
+2025-11-13T22:40:07.756175313Z [inf]  Processing automations for photographer: fb02eb77-2692-4686-b00a-83af54a3dcf9
+2025-11-13T22:40:07.759287477Z [inf]  Found 0 enabled automations
+2025-11-13T22:40:07.759295583Z [inf]  Processing automations for photographer: e9097539-3fdb-44c7-b4b8-a45998d0d579
+2025-11-13T22:40:07.862582119Z [inf]  Found 0 enabled automations
+2025-11-13T22:40:07.862592107Z [inf]  Processing automations for photographer: b03cc772-a4a1-4132-8cb0-4098cff9a3b7
+2025-11-13T22:40:07.869940435Z [inf]  Found 0 enabled automations
+2025-11-13T22:40:07.869948859Z [inf]  Processing automations for photographer: e9097539-3fdb-44c7-b4b8-a45998d0d579
+2025-11-13T22:40:07.969006825Z [inf]  Found 2 enabled automations
+2025-11-13T22:40:07.969015009Z [inf]  Processing automation: Test Email Automation (type: COMMUNICATION)
+2025-11-13T22:40:07.976367886Z [inf]  Found 0 enabled automations
+2025-11-13T22:40:07.976373423Z [inf]  Processing automations for photographer: b03cc772-a4a1-4132-8cb0-4098cff9a3b7
+2025-11-13T22:40:08.078557047Z [inf]  Found 2 enabled automations
+2025-11-13T22:40:08.078564707Z [inf]  Processing automation: Test Email Automation (type: COMMUNICATION)
+2025-11-13T22:40:08.193532010Z [inf]  Communication automation "Test Email Automation" (a3f515c9-9096-424b-9934-4a21b8388f85) - found 0 projects in stage
+2025-11-13T22:40:08.193539209Z [inf]  Processing automation: Wedding Drip Campaign Automation (type: NURTURE)
+2025-11-13T22:40:08.193543769Z [inf]  Processing nurture automation: Wedding Drip Campaign Automation
+2025-11-13T22:40:08.281895374Z [inf]  Found 0 active drip campaigns for project type WEDDING
+2025-11-13T22:40:08.281902013Z [inf]  Processing automations for photographer: c2221d44-e71a-49af-96b2-51fa1c35778c
+2025-11-13T22:40:08.288939586Z [inf]  Communication automation "Test Email Automation" (a3f515c9-9096-424b-9934-4a21b8388f85) - found 0 projects in stage
+2025-11-13T22:40:08.288947396Z [inf]  Processing automation: Wedding Drip Campaign Automation (type: NURTURE)
+2025-11-13T22:40:08.288953179Z [inf]  Processing nurture automation: Wedding Drip Campaign Automation
+2025-11-13T22:40:08.383734324Z [inf]  Found 0 enabled automations
+2025-11-13T22:40:08.383739074Z [inf]  Processing automations for photographer: test-photog-legal-123
+2025-11-13T22:40:08.395335834Z [inf]  Found 0 active drip campaigns for project type WEDDING
+2025-11-13T22:40:08.395344559Z [inf]  Processing automations for photographer: c2221d44-e71a-49af-96b2-51fa1c35778c
+2025-11-13T22:40:08.773832118Z [inf]  Found 0 enabled automations
+2025-11-13T22:40:08.773841474Z [inf]  Processing automations for photographer: test-forms-photographer-123
+2025-11-13T22:40:08.773870940Z [inf]  Found 0 enabled automations
+2025-11-13T22:40:08.773876818Z [inf]  Processing automations for photographer: test-photog-legal-456
+2025-11-13T22:40:08.773881973Z [inf]  Found 0 enabled automations
+2025-11-13T22:40:08.773888849Z [inf]  Processing automations for photographer: test-photog-legal-123
+2025-11-13T22:40:08.773894264Z [inf]  Found 0 enabled automations
+2025-11-13T22:40:08.773900764Z [inf]  Processing automations for photographer: test-forms-photographer-123
+2025-11-13T22:40:08.773909343Z [inf]  Found 0 enabled automations
+2025-11-13T22:40:08.773915470Z [inf]  Processing automations for photographer: test-photog-legal-456
+2025-11-13T22:40:08.773923486Z [inf]  Found 0 enabled automations
+2025-11-13T22:40:08.773933976Z [inf]  Processing automations for photographer: f779f013-e39f-4f60-bed2-5f7ff60223e1
+2025-11-13T22:40:08.803313368Z [inf]  Found 0 enabled automations
+2025-11-13T22:40:08.803321983Z [inf]  Processing automations for photographer: e82f4daa-5a98-4839-9545-bfe539c4be93
+2025-11-13T22:40:08.818092661Z [inf]  Found 0 enabled automations
+2025-11-13T22:40:08.818097948Z [inf]  Processing automations for photographer: f779f013-e39f-4f60-bed2-5f7ff60223e1
+2025-11-13T22:40:08.908478141Z [inf]  Found 0 enabled automations
+2025-11-13T22:40:08.908492002Z [inf]  Processing automations for photographer: test-photog-smart-file-001
+2025-11-13T22:40:08.923013339Z [inf]  Found 0 enabled automations
+2025-11-13T22:40:08.923022728Z [inf]  Processing automations for photographer: e82f4daa-5a98-4839-9545-bfe539c4be93
+2025-11-13T22:40:09.006712882Z [inf]  Found 0 enabled automations
+2025-11-13T22:40:09.006717718Z [inf]  Processing automations for photographer: fa21a84d-d75a-487c-9ddf-f30b46f6c41f
+2025-11-13T22:40:09.027554895Z [inf]  Found 0 enabled automations
+2025-11-13T22:40:09.027560172Z [inf]  Processing automations for photographer: test-photog-smart-file-001
+2025-11-13T22:40:09.110821614Z [inf]  Found 0 enabled automations
+2025-11-13T22:40:09.110828171Z [inf]  Processing automations for photographer: 5c92e31b-a882-4195-bd10-0c4284678ffb
+2025-11-13T22:40:09.139231042Z [inf]  Found 0 enabled automations
+2025-11-13T22:40:09.139238396Z [inf]  Processing automations for photographer: fa21a84d-d75a-487c-9ddf-f30b46f6c41f
+2025-11-13T22:40:09.218284090Z [inf]  Found 0 enabled automations
+2025-11-13T22:40:09.218294459Z [inf]  Processing automations for photographer: 42d4588f-add6-47f4-bfc4-a0932220e4ef
+2025-11-13T22:40:09.235345155Z [inf]  Found 0 enabled automations
+2025-11-13T22:40:09.235350849Z [inf]  Processing automations for photographer: 5c92e31b-a882-4195-bd10-0c4284678ffb
+2025-11-13T22:40:09.321624802Z [inf]  Found 0 enabled automations
+2025-11-13T22:40:09.321629414Z [inf]  Processing automations for photographer: 668943ce-af58-4adb-b2a6-bcfc1b2b84d6
+2025-11-13T22:40:09.343951041Z [inf]  Found 0 enabled automations
+2025-11-13T22:40:09.343958490Z [inf]  Processing automations for photographer: 42d4588f-add6-47f4-bfc4-a0932220e4ef
+2025-11-13T22:40:09.424324109Z [inf]  Found 1 enabled automations
+2025-11-13T22:40:09.424330536Z [inf]  Processing automation: Immediate Inquiry Thank You Email (type: COMMUNICATION)
+2025-11-13T22:40:09.781955498Z [inf]  Found 0 enabled automations
+2025-11-13T22:40:09.781967592Z [inf]  Processing automations for photographer: e69c53c2-a470-4dbf-b529-c7746e9b9ff1
+2025-11-13T22:40:09.781975184Z [inf]  Communication automation "Immediate Inquiry Thank You Email" (7739bc77-4767-4752-a134-ce8be40d192e) - found 0 projects in stage
+2025-11-13T22:40:09.781982231Z [inf]  Processing automations for photographer: c447e8b4-ee2e-492a-81eb-5ae5c6cb65cb
+2025-11-13T22:40:09.782015266Z [inf]  Found 0 enabled automations
+2025-11-13T22:40:09.782020555Z [inf]  Processing automations for photographer: 668943ce-af58-4adb-b2a6-bcfc1b2b84d6
+2025-11-13T22:40:09.782026381Z [inf]  Found 1 enabled automations
+2025-11-13T22:40:09.782032181Z [inf]  Processing automation: Immediate Inquiry Thank You Email (type: COMMUNICATION)
+2025-11-13T22:40:09.782038528Z [inf]  Communication automation "Immediate Inquiry Thank You Email" (7739bc77-4767-4752-a134-ce8be40d192e) - found 0 projects in stage
+2025-11-13T22:40:09.782044474Z [inf]  Processing automations for photographer: c447e8b4-ee2e-492a-81eb-5ae5c6cb65cb
+2025-11-13T22:40:09.845821975Z [inf]  Found 0 enabled automations
+2025-11-13T22:40:09.845827036Z [inf]  Processing automations for photographer: 42028d9c-efec-42b2-b223-a96a7afc5f71
+2025-11-13T22:40:09.871332831Z [inf]  Found 0 enabled automations
+2025-11-13T22:40:09.871339630Z [inf]  Processing automations for photographer: e69c53c2-a470-4dbf-b529-c7746e9b9ff1
+2025-11-13T22:40:09.965622885Z [inf]  Found 0 enabled automations
+2025-11-13T22:40:09.965630396Z [inf]  Processing automations for photographer: c915adf1-020f-4ac0-951b-f726738447f2
+2025-11-13T22:40:09.967169657Z [inf]  Found 0 enabled automations
+2025-11-13T22:40:09.967175296Z [inf]  Processing automations for photographer: 42028d9c-efec-42b2-b223-a96a7afc5f71
+2025-11-13T22:40:10.051073597Z [inf]  Found 8 enabled automations
+2025-11-13T22:40:10.051080707Z [inf]  Processing automation: wddwdwd (type: COMMUNICATION)
+2025-11-13T22:40:10.097778150Z [inf]  Found 0 enabled automations
+2025-11-13T22:40:10.097783379Z [inf]  Processing automations for photographer: c915adf1-020f-4ac0-951b-f726738447f2
+2025-11-13T22:40:10.194474425Z [inf]  Found 8 enabled automations
+2025-11-13T22:40:10.194481182Z [inf]  Processing automation: wddwdwd (type: COMMUNICATION)
+2025-11-13T22:40:10.363813619Z [inf]  Communication automation "wddwdwd" (6a825dbd-a17b-4267-ae93-9cb39ed44b01) - found 15 projects in stage
+2025-11-13T22:40:10.363822923Z [inf]  Processing automation: wddwdwd (type: COMMUNICATION)
+2025-11-13T22:40:10.403498489Z [inf]  Communication automation "wddwdwd" (6a825dbd-a17b-4267-ae93-9cb39ed44b01) - found 15 projects in stage
+2025-11-13T22:40:10.403505774Z [inf]  Processing automation: wddwdwd (type: COMMUNICATION)
+2025-11-13T22:40:10.785917293Z [inf]  Processing step for contact tim Pacholek (austinpacholek2014@gmail.com)
+2025-11-13T22:40:10.785928375Z [inf]  ⏸️ Contact entered stage before automation was created (entered: 2025-09-22T20:31:31.088Z, effective: 2025-10-02T06:16:21.470Z), skipping
+2025-11-13T22:40:10.785946401Z [inf]  Processing automation: wdwd (type: COMMUNICATION)
+2025-11-13T22:40:10.785955520Z [inf]  Communication automation "wddwdwd" (f7cdd380-3e0b-4aa9-b5ec-eb2b5fa1e70b) - found 15 projects in stage
+2025-11-13T22:40:10.785962035Z [inf]  Processing automation: wdwd (type: COMMUNICATION)
+2025-11-13T22:40:10.785968174Z [inf]  Communication automation "wdwd" (23dc8e3e-6b37-4fbd-8203-f7b2a88e6161) - found 15 projects in stage
+2025-11-13T22:40:10.785974398Z [inf]  Processing step for contact John Doe (john.doe@example.com)
+2025-11-13T22:40:10.785981676Z [inf]  ⏸️ Contact entered stage before automation was created (entered: 2025-09-16T21:40:57.299Z, effective: 2025-10-02T06:16:21.470Z), skipping
+2025-11-13T22:40:10.785988183Z [inf]  Processing step for contact tim  peen (austinpacholek2014@gmail.com)
+2025-11-13T22:40:10.785991795Z [inf]  Communication automation "wddwdwd" (f7cdd380-3e0b-4aa9-b5ec-eb2b5fa1e70b) - found 15 projects in stage
+2025-11-13T22:40:10.785997370Z [inf]  ⏸️ Contact entered stage before automation was created (entered: 2025-09-16T21:46:01.034Z, effective: 2025-10-02T06:16:21.470Z), skipping
+2025-11-13T22:40:10.786003126Z [inf]  Processing step for contact tim sheeny (austinpacholek2014@gmail.com)
+2025-11-13T22:40:10.786008844Z [inf]  ⏸️ Contact entered stage before automation was created (entered: 2025-09-16T22:43:33.166Z, effective: 2025-10-02T06:16:21.470Z), skipping
+2025-11-13T22:40:10.786014410Z [inf]  Processing step for contact Test User (test@example.com)
+2025-11-13T22:40:10.786020240Z [inf]  ⏸️ Contact entered stage before automation was created (entered: 2025-09-20T08:18:14.277Z, effective: 2025-10-02T06:16:21.470Z), skipping
+2025-11-13T22:40:10.787187493Z [inf]  Processing step for contact tim Pacholek (austinpacholek2014@gmail.com)
+2025-11-13T22:40:10.787194905Z [inf]  ⏸️ Contact entered stage before automation was created (entered: 2025-09-22T20:38:28.718Z, effective: 2025-10-02T06:16:21.470Z), skipping
+2025-11-13T22:40:10.787201266Z [inf]  Processing step for contact Test SMS User (test@example.com)
+2025-11-13T22:40:10.787206831Z [inf]  ⏸️ Contact entered stage before automation was created (entered: 2025-09-22T22:32:29.100Z, effective: 2025-10-02T06:16:21.470Z), skipping
+2025-11-13T22:40:10.787212481Z [inf]  Processing step for contact Austin Pacholek (austinpacholek2014@gmail.com)
+2025-11-13T22:40:10.787218458Z [inf]  ⏸️ Contact entered stage before automation was created (entered: 2025-09-27T05:32:47.579Z, effective: 2025-10-02T06:16:21.470Z), skipping
+2025-11-13T22:40:10.787224095Z [inf]  Processing step for contact Test SMSUser (testsms@example.com)
+2025-11-13T22:40:10.787229675Z [inf]  ⏸️ Contact entered stage before automation was created (entered: 2025-09-27T05:42:44.863Z, effective: 2025-10-02T06:16:21.470Z), skipping
+2025-11-13T22:40:10.787234049Z [inf]  Processing step for contact SMS Test2 (smstest2@example.com)
+2025-11-13T22:40:10.787238144Z [inf]  ⏸️ Contact entered stage before automation was created (entered: 2025-09-27T05:43:14.292Z, effective: 2025-10-02T06:16:21.470Z), skipping
+2025-11-13T22:40:10.787242316Z [inf]  Processing step for contact Debug SMS (debugsms@example.com)
+2025-11-13T22:40:10.787246413Z [inf]  ⏸️ Contact entered stage before automation was created (entered: 2025-09-27T05:43:36.102Z, effective: 2025-10-02T06:16:21.470Z), skipping
+2025-11-13T22:40:10.787250573Z [inf]  Processing step for contact Final Test (finaltest@example.com)
+2025-11-13T22:40:10.787254270Z [inf]  ⏸️ Contact entered stage before automation was created (entered: 2025-09-27T05:44:35.162Z, effective: 2025-10-02T06:16:21.470Z), skipping
+2025-11-13T22:40:10.788722493Z [inf]  Processing step for contact E2E TestUser (e2etest@example.com)
+2025-11-13T22:40:10.788730206Z [inf]  ⏸️ Contact entered stage before automation was created (entered: 2025-09-27T05:45:59.907Z, effective: 2025-10-02T06:16:21.470Z), skipping
+2025-11-13T22:40:10.788734311Z [inf]  Processing step for contact SMS LogTest (smslogtest@example.com)
+2025-11-13T22:40:10.788738468Z [inf]  ⏸️ Contact entered stage before automation was created (entered: 2025-09-27T06:15:04.311Z, effective: 2025-10-02T06:16:21.470Z), skipping
+2025-11-13T22:40:10.788742321Z [inf]  Processing step for contact sheen peeen (austinpacholek2014@gmail.com)
+2025-11-13T22:40:10.788746561Z [inf]  ❌ No stageEnteredAt date for contact sheen peeen, skipping
+2025-11-13T22:40:10.788750629Z [inf]  Processing automation:  (type: COMMUNICATION)
+2025-11-13T22:40:10.834850150Z [inf]  Processing step for contact Test User (test@example.com)
+2025-11-13T22:40:10.834853531Z [inf]  Communication automation "wdwd" (23dc8e3e-6b37-4fbd-8203-f7b2a88e6161) - found 15 projects in stage
+2025-11-13T22:40:10.834861163Z [inf]  ⏸️ Contact entered stage before automation was created (entered: 2025-09-20T08:18:14.277Z, effective: 2025-10-02T06:16:21.470Z), skipping
+2025-11-13T22:40:10.834867705Z [inf]  Processing step for contact John Doe (john.doe@example.com)
+2025-11-13T22:40:10.834868787Z [inf]  Processing step for contact tim Pacholek (austinpacholek2014@gmail.com)
+2025-11-13T22:40:10.834874761Z [inf]  ⏸️ Contact entered stage before automation was created (entered: 2025-09-22T20:31:31.088Z, effective: 2025-10-02T06:16:21.470Z), skipping
+2025-11-13T22:40:10.834877376Z [inf]  ⏸️ Contact entered stage before automation was created (entered: 2025-09-16T21:40:57.299Z, effective: 2025-10-02T06:16:21.470Z), skipping
+2025-11-13T22:40:10.834884023Z [inf]  Processing step for contact tim Pacholek (austinpacholek2014@gmail.com)
+2025-11-13T22:40:10.834885702Z [inf]  Processing step for contact tim  peen (austinpacholek2014@gmail.com)
+2025-11-13T22:40:10.834891234Z [inf]  ⏸️ Contact entered stage before automation was created (entered: 2025-09-22T20:38:28.718Z, effective: 2025-10-02T06:16:21.470Z), skipping
+2025-11-13T22:40:10.834895600Z [inf]  ⏸️ Contact entered stage before automation was created (entered: 2025-09-16T21:46:01.034Z, effective: 2025-10-02T06:16:21.470Z), skipping
+2025-11-13T22:40:10.834897721Z [inf]  Processing step for contact Test SMS User (test@example.com)
+2025-11-13T22:40:10.834904191Z [inf]  ⏸️ Contact entered stage before automation was created (entered: 2025-09-22T22:32:29.100Z, effective: 2025-10-02T06:16:21.470Z), skipping
+2025-11-13T22:40:10.834904964Z [inf]  Processing step for contact tim sheeny (austinpacholek2014@gmail.com)
+2025-11-13T22:40:10.834911980Z [inf]  ⏸️ Contact entered stage before automation was created (entered: 2025-09-16T22:43:33.166Z, effective: 2025-10-02T06:16:21.470Z), skipping
+2025-11-13T22:40:10.837299046Z [inf]  Processing step for contact Austin Pacholek (austinpacholek2014@gmail.com)
+2025-11-13T22:40:10.837309827Z [inf]  ⏸️ Contact entered stage before automation was created (entered: 2025-09-27T05:32:47.579Z, effective: 2025-10-02T06:16:21.470Z), skipping
+2025-11-13T22:40:10.837316330Z [inf]  Processing step for contact Test SMSUser (testsms@example.com)
+2025-11-13T22:40:10.837324325Z [inf]  ⏸️ Contact entered stage before automation was created (entered: 2025-09-27T05:42:44.863Z, effective: 2025-10-02T06:16:21.470Z), skipping
+2025-11-13T22:40:10.837329875Z [inf]  Processing step for contact SMS Test2 (smstest2@example.com)
+2025-11-13T22:40:10.837339769Z [inf]  ⏸️ Contact entered stage before automation was created (entered: 2025-09-27T05:43:14.292Z, effective: 2025-10-02T06:16:21.470Z), skipping
+2025-11-13T22:40:10.837345774Z [inf]  Processing step for contact Debug SMS (debugsms@example.com)
+2025-11-13T22:40:10.837351461Z [inf]  ⏸️ Contact entered stage before automation was created (entered: 2025-09-27T05:43:36.102Z, effective: 2025-10-02T06:16:21.470Z), skipping
+2025-11-13T22:40:10.837357208Z [inf]  Processing step for contact Final Test (finaltest@example.com)
+2025-11-13T22:40:10.837362942Z [inf]  ⏸️ Contact entered stage before automation was created (entered: 2025-09-27T05:44:35.162Z, effective: 2025-10-02T06:16:21.470Z), skipping
+2025-11-13T22:40:10.837368717Z [inf]  Processing step for contact E2E TestUser (e2etest@example.com)
+2025-11-13T22:40:10.837375026Z [inf]  ⏸️ Contact entered stage before automation was created (entered: 2025-09-27T05:45:59.907Z, effective: 2025-10-02T06:16:21.470Z), skipping
+2025-11-13T22:40:10.837388078Z [inf]  Processing step for contact SMS LogTest (smslogtest@example.com)
+2025-11-13T22:40:10.837394966Z [inf]  ⏸️ Contact entered stage before automation was created (entered: 2025-09-27T06:15:04.311Z, effective: 2025-10-02T06:16:21.470Z), skipping
+2025-11-13T22:40:10.838338083Z [inf]  Processing step for contact sheen peeen (austinpacholek2014@gmail.com)
+2025-11-13T22:40:10.838346309Z [inf]  ❌ No stageEnteredAt date for contact sheen peeen, skipping
+2025-11-13T22:40:10.838352521Z [inf]  Processing automation:  (type: COMMUNICATION)
+2025-11-13T22:40:10.979834633Z [inf]  Communication automation "" (076b3cb7-6f7c-49d6-8491-b7e7716cd62d) - found 15 projects in stage
+2025-11-13T22:40:10.979843960Z [inf]  Processing questionnaire assignment for John Doe (automation: )
+2025-11-13T22:40:11.030887066Z [inf]  Communication automation "" (076b3cb7-6f7c-49d6-8491-b7e7716cd62d) - found 15 projects in stage
+2025-11-13T22:40:11.030895366Z [inf]  Processing questionnaire assignment for John Doe (automation: )
+2025-11-13T22:40:11.142910377Z [inf]  🚫 Questionnaire already assigned to John Doe for this template
+2025-11-13T22:40:11.142919203Z [inf]  Processing questionnaire assignment for tim  peen (automation: )
+2025-11-13T22:40:11.249994321Z [inf]  🚫 Questionnaire already assigned to tim  peen for this template
+2025-11-13T22:40:11.250003317Z [inf]  Processing questionnaire assignment for tim sheeny (automation: )
+2025-11-13T22:40:11.343681444Z [inf]  🚫 Questionnaire already assigned to tim sheeny for this template
+2025-11-13T22:40:11.343689143Z [inf]  Processing questionnaire assignment for Test User (automation: )
+2025-11-13T22:40:11.407026256Z [inf]  🚫 Questionnaire already assigned to John Doe for this template
+2025-11-13T22:40:11.407030338Z [inf]  Processing questionnaire assignment for tim  peen (automation: )
+2025-11-13T22:40:11.833199221Z [inf]  🚫 Questionnaire already assigned to Test User for this template
+2025-11-13T22:40:11.833207670Z [inf]  Processing questionnaire assignment for tim Pacholek (automation: )
+2025-11-13T22:40:11.833218820Z [inf]  🚫 Questionnaire already assigned to tim  peen for this template
+2025-11-13T22:40:11.833225903Z [inf]  Processing questionnaire assignment for tim sheeny (automation: )
+2025-11-13T22:40:11.833232326Z [inf]  🚫 Questionnaire already assigned to tim Pacholek for this template
+2025-11-13T22:40:11.833239197Z [inf]  Processing questionnaire assignment for tim Pacholek (automation: )
+2025-11-13T22:40:11.833245048Z [inf]  🚫 Questionnaire already assigned to tim sheeny for this template
+2025-11-13T22:40:11.833260006Z [inf]  Processing questionnaire assignment for Test User (automation: )
+2025-11-13T22:40:11.833268885Z [inf]  🚫 Questionnaire already assigned to tim Pacholek for this template
+2025-11-13T22:40:11.833276107Z [inf]  Processing questionnaire assignment for Test SMS User (automation: )
+2025-11-13T22:40:11.833282207Z [inf]  🚫 Questionnaire already assigned to Test User for this template
+2025-11-13T22:40:11.833290154Z [inf]  Processing questionnaire assignment for tim Pacholek (automation: )
+2025-11-13T22:40:11.833296997Z [inf]  🚫 Questionnaire already assigned to Test SMS User for this template
+2025-11-13T22:40:11.833303399Z [inf]  Processing questionnaire assignment for Austin Pacholek (automation: )
+2025-11-13T22:40:11.833310236Z [inf]  🚫 Questionnaire already assigned to tim Pacholek for this template
+2025-11-13T22:40:11.833314732Z [inf]  Processing questionnaire assignment for tim Pacholek (automation: )
+2025-11-13T22:40:11.866526474Z [inf]  🚫 Questionnaire already assigned to Austin Pacholek for this template
+2025-11-13T22:40:11.866541340Z [inf]  Processing questionnaire assignment for Test SMSUser (automation: )
+2025-11-13T22:40:11.914866077Z [inf]  🚫 Questionnaire already assigned to tim Pacholek for this template
+2025-11-13T22:40:11.914870524Z [inf]  Processing questionnaire assignment for Test SMS User (automation: )
+2025-11-13T22:40:11.970054048Z [inf]  🚫 Questionnaire already assigned to Test SMSUser for this template
+2025-11-13T22:40:11.970060587Z [inf]  Processing questionnaire assignment for SMS Test2 (automation: )
+2025-11-13T22:40:12.012157759Z [inf]  🚫 Questionnaire already assigned to Test SMS User for this template
+2025-11-13T22:40:12.012166418Z [inf]  Processing questionnaire assignment for Austin Pacholek (automation: )
+2025-11-13T22:40:12.076973157Z [inf]  🚫 Questionnaire already assigned to SMS Test2 for this template
+2025-11-13T22:40:12.076980084Z [inf]  Processing questionnaire assignment for Debug SMS (automation: )
+2025-11-13T22:40:12.117907945Z [inf]  🚫 Questionnaire already assigned to Austin Pacholek for this template
+2025-11-13T22:40:12.117919449Z [inf]  Processing questionnaire assignment for Test SMSUser (automation: )
+2025-11-13T22:40:12.196289776Z [inf]  🚫 Questionnaire already assigned to Debug SMS for this template
+2025-11-13T22:40:12.196294013Z [inf]  Processing questionnaire assignment for Final Test (automation: )
+2025-11-13T22:40:12.221361159Z [inf]  🚫 Questionnaire already assigned to Test SMSUser for this template
+2025-11-13T22:40:12.221367266Z [inf]  Processing questionnaire assignment for SMS Test2 (automation: )
+2025-11-13T22:40:12.283097188Z [inf]  🚫 Questionnaire already assigned to Final Test for this template
+2025-11-13T22:40:12.283103074Z [inf]  Processing questionnaire assignment for E2E TestUser (automation: )
+2025-11-13T22:40:12.339659152Z [inf]  🚫 Questionnaire already assigned to SMS Test2 for this template
+2025-11-13T22:40:12.339664713Z [inf]  Processing questionnaire assignment for Debug SMS (automation: )
+2025-11-13T22:40:12.387628335Z [inf]  🚫 Questionnaire already assigned to E2E TestUser for this template
+2025-11-13T22:40:12.387634390Z [inf]  Processing questionnaire assignment for SMS LogTest (automation: )
+2025-11-13T22:40:12.433982266Z [inf]  🚫 Questionnaire already assigned to Debug SMS for this template
+2025-11-13T22:40:12.433988475Z [inf]  Processing questionnaire assignment for Final Test (automation: )
+2025-11-13T22:40:12.882750668Z [inf]  🚫 Questionnaire already assigned to Final Test for this template
+2025-11-13T22:40:12.882764233Z [inf]  Processing questionnaire assignment for E2E TestUser (automation: )
+2025-11-13T22:40:12.882772019Z [inf]  🚫 Questionnaire already assigned to E2E TestUser for this template
+2025-11-13T22:40:12.882778375Z [inf]  Processing questionnaire assignment for SMS LogTest (automation: )
+2025-11-13T22:40:12.882783673Z [inf]  Communication automation "grgrg" (af2915e9-a9ac-4471-98e2-cc1a08aec8ee) - found 15 projects in stage
+2025-11-13T22:40:12.882790749Z [inf]  Processing questionnaire assignment for John Doe (automation: grgrg)
+2025-11-13T22:40:12.882796413Z [inf]  🚫 Questionnaire already assigned to SMS LogTest for this template
+2025-11-13T22:40:12.882801032Z [inf]  Processing questionnaire assignment for sheen peeen (automation: )
+2025-11-13T22:40:12.882807017Z [inf]  ❌ No stageEnteredAt date for project e278ed96-4ed0-416a-9f07-678b171b14a7, skipping questionnaire assignment
+2025-11-13T22:40:12.882814184Z [inf]  Processing automation: grgrg (type: COMMUNICATION)
+2025-11-13T22:40:12.882822012Z [inf]  🚫 Questionnaire already assigned to John Doe for this template
+2025-11-13T22:40:12.882828518Z [inf]  Processing questionnaire assignment for tim  peen (automation: grgrg)
+2025-11-13T22:40:12.882995205Z [inf]  🚫 Questionnaire already assigned to SMS LogTest for this template
+2025-11-13T22:40:12.882999232Z [inf]  Processing questionnaire assignment for sheen peeen (automation: )
+2025-11-13T22:40:12.883003476Z [inf]  ❌ No stageEnteredAt date for project e278ed96-4ed0-416a-9f07-678b171b14a7, skipping questionnaire assignment
+2025-11-13T22:40:12.883007469Z [inf]  Processing automation: grgrg (type: COMMUNICATION)
+2025-11-13T22:40:12.932832883Z [inf]  🚫 Questionnaire already assigned to tim  peen for this template
+2025-11-13T22:40:12.932842594Z [inf]  Processing questionnaire assignment for tim sheeny (automation: grgrg)
+2025-11-13T22:40:12.950089588Z [inf]  Communication automation "grgrg" (af2915e9-a9ac-4471-98e2-cc1a08aec8ee) - found 15 projects in stage
+2025-11-13T22:40:12.950099480Z [inf]  Processing questionnaire assignment for John Doe (automation: grgrg)
+2025-11-13T22:40:13.026357753Z [inf]  🚫 Questionnaire already assigned to tim sheeny for this template
+2025-11-13T22:40:13.026363806Z [inf]  Processing questionnaire assignment for Test User (automation: grgrg)
+2025-11-13T22:40:13.053139230Z [inf]  🚫 Questionnaire already assigned to John Doe for this template
+2025-11-13T22:40:13.053149258Z [inf]  Processing questionnaire assignment for tim  peen (automation: grgrg)
+2025-11-13T22:40:13.134023146Z [inf]  🚫 Questionnaire already assigned to Test User for this template
+2025-11-13T22:40:13.134030784Z [inf]  Processing questionnaire assignment for tim Pacholek (automation: grgrg)
+2025-11-13T22:40:13.160477030Z [inf]  🚫 Questionnaire already assigned to tim  peen for this template
+2025-11-13T22:40:13.160483022Z [inf]  Processing questionnaire assignment for tim sheeny (automation: grgrg)
+2025-11-13T22:40:13.222237868Z [inf]  🚫 Questionnaire already assigned to tim Pacholek for this template
+2025-11-13T22:40:13.222242077Z [inf]  Processing questionnaire assignment for tim Pacholek (automation: grgrg)
+2025-11-13T22:40:13.262368873Z [inf]  🚫 Questionnaire already assigned to tim sheeny for this template
+2025-11-13T22:40:13.262373356Z [inf]  Processing questionnaire assignment for Test User (automation: grgrg)
+2025-11-13T22:40:13.326882877Z [inf]  🚫 Questionnaire already assigned to tim Pacholek for this template
+2025-11-13T22:40:13.326892372Z [inf]  Processing questionnaire assignment for Test SMS User (automation: grgrg)
+2025-11-13T22:40:13.358463810Z [inf]  🚫 Questionnaire already assigned to Test User for this template
+2025-11-13T22:40:13.358472338Z [inf]  Processing questionnaire assignment for tim Pacholek (automation: grgrg)
+2025-11-13T22:40:13.431173285Z [inf]  🚫 Questionnaire already assigned to Test SMS User for this template
+2025-11-13T22:40:13.431179709Z [inf]  Processing questionnaire assignment for Austin Pacholek (automation: grgrg)
+2025-11-13T22:40:13.827978136Z [inf]  🚫 Questionnaire already assigned to tim Pacholek for this template
+2025-11-13T22:40:13.827988141Z [inf]  Processing questionnaire assignment for tim Pacholek (automation: grgrg)
+2025-11-13T22:40:13.828001009Z [inf]  🚫 Questionnaire already assigned to Austin Pacholek for this template
+2025-11-13T22:40:13.828013829Z [inf]  Processing questionnaire assignment for Test SMSUser (automation: grgrg)
+2025-11-13T22:40:13.828020533Z [inf]  🚫 Questionnaire already assigned to tim Pacholek for this template
+2025-11-13T22:40:13.828028038Z [inf]  Processing questionnaire assignment for Test SMS User (automation: grgrg)
+2025-11-13T22:40:13.828033161Z [inf]  🚫 Questionnaire already assigned to Test SMSUser for this template
+2025-11-13T22:40:13.828038842Z [inf]  Processing questionnaire assignment for SMS Test2 (automation: grgrg)
+2025-11-13T22:40:13.828044669Z [inf]  🚫 Questionnaire already assigned to Test SMS User for this template
+2025-11-13T22:40:13.828050702Z [inf]  Processing questionnaire assignment for Austin Pacholek (automation: grgrg)
+2025-11-13T22:40:13.828055824Z [inf]  🚫 Questionnaire already assigned to SMS Test2 for this template
+2025-11-13T22:40:13.828060815Z [inf]  Processing questionnaire assignment for Debug SMS (automation: grgrg)
+2025-11-13T22:40:13.828069185Z [inf]  🚫 Questionnaire already assigned to Austin Pacholek for this template
+2025-11-13T22:40:13.828074467Z [inf]  Processing questionnaire assignment for Test SMSUser (automation: grgrg)
+2025-11-13T22:40:13.845335644Z [inf]  🚫 Questionnaire already assigned to Debug SMS for this template
+2025-11-13T22:40:13.845342659Z [inf]  Processing questionnaire assignment for Final Test (automation: grgrg)
+2025-11-13T22:40:13.873595254Z [inf]  🚫 Questionnaire already assigned to Test SMSUser for this template
+2025-11-13T22:40:13.873603690Z [inf]  Processing questionnaire assignment for SMS Test2 (automation: grgrg)
+2025-11-13T22:40:13.961656863Z [inf]  🚫 Questionnaire already assigned to Final Test for this template
+2025-11-13T22:40:13.961665184Z [inf]  Processing questionnaire assignment for E2E TestUser (automation: grgrg)
+2025-11-13T22:40:13.977584820Z [inf]  🚫 Questionnaire already assigned to SMS Test2 for this template
+2025-11-13T22:40:13.977591053Z [inf]  Processing questionnaire assignment for Debug SMS (automation: grgrg)
+2025-11-13T22:40:14.054433882Z [inf]  🚫 Questionnaire already assigned to E2E TestUser for this template
+2025-11-13T22:40:14.054440295Z [inf]  Processing questionnaire assignment for SMS LogTest (automation: grgrg)
+2025-11-13T22:40:14.080744159Z [inf]  🚫 Questionnaire already assigned to Debug SMS for this template
+2025-11-13T22:40:14.080750778Z [inf]  Processing questionnaire assignment for Final Test (automation: grgrg)
+2025-11-13T22:40:14.160311519Z [inf]  🚫 Questionnaire already assigned to SMS LogTest for this template
+2025-11-13T22:40:14.160316756Z [inf]  Processing questionnaire assignment for sheen peeen (automation: grgrg)
+2025-11-13T22:40:14.160321248Z [inf]  ❌ No stageEnteredAt date for project e278ed96-4ed0-416a-9f07-678b171b14a7, skipping questionnaire assignment
+2025-11-13T22:40:14.160325022Z [inf]  Processing automation: Wedding Nurture Campaign (type: NURTURE)
+2025-11-13T22:40:14.160330727Z [inf]  Processing nurture automation: Wedding Nurture Campaign
+2025-11-13T22:40:14.185698578Z [inf]  🚫 Questionnaire already assigned to Final Test for this template
+2025-11-13T22:40:14.185705244Z [inf]  Processing questionnaire assignment for E2E TestUser (automation: grgrg)
+2025-11-13T22:40:14.276163344Z [inf]  Found 0 active drip campaigns for project type WEDDING
+2025-11-13T22:40:14.276169826Z [inf]  Processing automation: grgrg (type: COMMUNICATION)
+2025-11-13T22:40:14.290802308Z [inf]  🚫 Questionnaire already assigned to E2E TestUser for this template
+2025-11-13T22:40:14.290811033Z [inf]  Processing questionnaire assignment for SMS LogTest (automation: grgrg)
+2025-11-13T22:40:14.439894301Z [inf]  🚫 Questionnaire already assigned to SMS LogTest for this template
+2025-11-13T22:40:14.439900754Z [inf]  Processing questionnaire assignment for sheen peeen (automation: grgrg)
+2025-11-13T22:40:14.439906530Z [inf]  ❌ No stageEnteredAt date for project e278ed96-4ed0-416a-9f07-678b171b14a7, skipping questionnaire assignment
+2025-11-13T22:40:14.439912474Z [inf]  Processing automation: Wedding Nurture Campaign (type: NURTURE)
+2025-11-13T22:40:14.439918052Z [inf]  Processing nurture automation: Wedding Nurture Campaign
+2025-11-13T22:40:14.859955008Z [inf]  Processing automation: grgrg (type: COMMUNICATION)
+2025-11-13T22:40:14.859964564Z [inf]  Found 15 enabled automations
+2025-11-13T22:40:14.859970039Z [inf]  Processing automation: Consultation Stage SMS with Scheduling Link (type: COMMUNICATION)
+2025-11-13T22:40:14.860048867Z [inf]  Communication automation "grgrg" (9ff7ab5e-892f-4b34-99f8-e81004a871a5) - found 15 projects in stage
+2025-11-13T22:40:14.860053550Z [inf]  Processing automation: grgrg (type: COMMUNICATION)
+2025-11-13T22:40:14.860058660Z [inf]  Found 0 active drip campaigns for project type WEDDING
+2025-11-13T22:40:14.860063234Z [inf]  Processing automation: grgrg (type: COMMUNICATION)
+2025-11-13T22:40:14.860067339Z [inf]  Communication automation "grgrg" (bcee55b7-3461-4d04-b18d-d901dddafa16) - found 15 projects in stage
+2025-11-13T22:40:14.860072121Z [inf]  Processing automations for photographer: demo-photographer-123
+2025-11-13T22:40:14.860076359Z [inf]  Communication automation "grgrg" (9ff7ab5e-892f-4b34-99f8-e81004a871a5) - found 15 projects in stage
+2025-11-13T22:40:14.914790096Z [inf]  Communication automation "grgrg" (bcee55b7-3461-4d04-b18d-d901dddafa16) - found 15 projects in stage
+2025-11-13T22:40:14.914800000Z [inf]  Processing automations for photographer: demo-photographer-123
+2025-11-13T22:40:14.997940088Z [inf]  Communication automation "Consultation Stage SMS with Scheduling Link" (7e0de467-ecad-409d-bda3-1a11cab7e57a) - found 0 projects in stage
+2025-11-13T22:40:14.997943848Z [inf]  Processing automation: SMART_FILE automation - Global (type: COMMUNICATION)
+2025-11-13T22:40:15.017445396Z [inf]  Found 15 enabled automations
+2025-11-13T22:40:15.017451795Z [inf]  Processing automation: Consultation Stage SMS with Scheduling Link (type: COMMUNICATION)
+2025-11-13T22:40:15.201997583Z [inf]  Communication automation "SMART_FILE automation - Global" (59e5a2b0-0912-48e8-a0bf-0bb8d6c9fa2f) - found 0 projects in stage
+2025-11-13T22:40:15.202008952Z [inf]  Processing automation: Send email 72 hours after entering New Inquiry (type: COMMUNICATION)
+2025-11-13T22:40:15.227610532Z [inf]  Communication automation "Consultation Stage SMS with Scheduling Link" (7e0de467-ecad-409d-bda3-1a11cab7e57a) - found 0 projects in stage
+2025-11-13T22:40:15.227622201Z [inf]  Processing automation: SMART_FILE automation - Global (type: COMMUNICATION)
+2025-11-13T22:40:15.422377605Z [inf]  Communication automation "Send email 72 hours after entering New Inquiry" (4baa2f27-6a39-4ebd-bd6a-cf5172c01e87) - found 10 projects in stage
+2025-11-13T22:40:15.422385334Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:15.422392390Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:15.422399367Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:15.422405352Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:15.422411168Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:15.422417053Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:15.422422945Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:15.422430036Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:15.422437358Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:15.422443218Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:15.422448875Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:15.422454559Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:15.422460014Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:15.422467193Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:15.422474193Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:15.429468958Z [inf]  Communication automation "SMART_FILE automation - Global" (59e5a2b0-0912-48e8-a0bf-0bb8d6c9fa2f) - found 0 projects in stage
+2025-11-13T22:40:15.429474626Z [inf]  Processing automation: Send email 72 hours after entering New Inquiry (type: COMMUNICATION)
+2025-11-13T22:40:15.944423055Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:15.944425222Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:15.944430935Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:15.944434429Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:15.944436729Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:15.944441486Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:15.944442763Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:15.944457177Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:15.944463061Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:15.944468920Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:15.944476856Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:15.944497961Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:15.944509548Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:15.944514472Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:15.944624960Z [inf]  🚫 Automation execution already reserved/completed (bulletproof prevention): COMMUNICATION for project 2a6f1cd1-1b99-46f6-9d6f-9b57e71d7a0b
+2025-11-13T22:40:15.944632884Z [inf]  🔒 Automation already reserved/executed for Test Contact, prevented duplicate (bulletproof reservation)
+2025-11-13T22:40:15.944640767Z [inf]  Processing step for contact Test Contact (7ws-MF@test.com)
+2025-11-13T22:40:15.944650464Z [inf]  Communication automation "Send email 72 hours after entering New Inquiry" (4baa2f27-6a39-4ebd-bd6a-cf5172c01e87) - found 10 projects in stage
+2025-11-13T22:40:15.947381415Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:15.947386180Z [inf]  🚫 Automation execution already reserved/completed (bulletproof prevention): COMMUNICATION for project 2a6f1cd1-1b99-46f6-9d6f-9b57e71d7a0b
+2025-11-13T22:40:15.947391476Z [inf]  🔒 Automation already reserved/executed for Test Contact, prevented duplicate (bulletproof reservation)
+2025-11-13T22:40:15.947395786Z [inf]  Processing step for contact Test Contact (7ws-MF@test.com)
+2025-11-13T22:40:16.173214267Z [inf]  🚫 Automation execution already reserved/completed (bulletproof prevention): COMMUNICATION for project fbcf7cdc-f99d-4939-bfb3-056628055823
+2025-11-13T22:40:16.173223543Z [inf]  🔒 Automation already reserved/executed for Test Contact, prevented duplicate (bulletproof reservation)
+2025-11-13T22:40:16.173230252Z [inf]  Processing step for contact Austin  (austinpacholek2014@gmail.com)
+2025-11-13T22:40:16.369287541Z [inf]  🚫 Automation execution already reserved/completed (bulletproof prevention): COMMUNICATION for project fbcf7cdc-f99d-4939-bfb3-056628055823
+2025-11-13T22:40:16.369293209Z [inf]  🔒 Automation already reserved/executed for Test Contact, prevented duplicate (bulletproof reservation)
+2025-11-13T22:40:16.369301177Z [inf]  Processing step for contact Austin  (austinpacholek2014@gmail.com)
+2025-11-13T22:40:16.853937148Z [inf]  🚫 Automation execution already reserved/completed (bulletproof prevention): COMMUNICATION for project e3889dc3-45c3-47a0-9594-86129fd44993
+2025-11-13T22:40:16.853942812Z [inf]  🔒 Automation already reserved/executed for Austin , prevented duplicate (bulletproof reservation)
+2025-11-13T22:40:16.853948040Z [inf]  Processing automation: Stage Change: APPOINTMENT_BOOKED → Consultation (type: STAGE_CHANGE)
+2025-11-13T22:40:16.853952204Z [inf]  Processing stage change automation: Stage Change: APPOINTMENT_BOOKED → Consultation
+2025-11-13T22:40:16.870879571Z [inf]  Processing stage change automation: Stage Change: APPOINTMENT_BOOKED → Consultation
+2025-11-13T22:40:16.870891175Z [inf]  🚫 Automation execution already reserved/completed (bulletproof prevention): COMMUNICATION for project e3889dc3-45c3-47a0-9594-86129fd44993
+2025-11-13T22:40:16.870896697Z [inf]  🔒 Automation already reserved/executed for Austin , prevented duplicate (bulletproof reservation)
+2025-11-13T22:40:16.870901501Z [inf]  Processing automation: Stage Change: APPOINTMENT_BOOKED → Consultation (type: STAGE_CHANGE)
+2025-11-13T22:40:17.168092975Z [inf]  No enabled business triggers found for automation Stage Change: APPOINTMENT_BOOKED → Consultation, skipping
+2025-11-13T22:40:17.168099381Z [inf]  Processing automation: Stage Change: APPOINTMENT_BOOKED → Consultation (type: STAGE_CHANGE)
+2025-11-13T22:40:17.168106154Z [inf]  Processing stage change automation: Stage Change: APPOINTMENT_BOOKED → Consultation
+2025-11-13T22:40:17.272124735Z [inf]  No enabled business triggers found for automation Stage Change: APPOINTMENT_BOOKED → Consultation, skipping
+2025-11-13T22:40:17.272133011Z [inf]  Processing automation: Stage Change: APPOINTMENT_BOOKED → Consultation (type: STAGE_CHANGE)
+2025-11-13T22:40:17.272139640Z [inf]  Processing stage change automation: Stage Change: APPOINTMENT_BOOKED → Consultation
+2025-11-13T22:40:17.305366900Z [inf]  No enabled business triggers found for automation Stage Change: APPOINTMENT_BOOKED → Consultation, skipping
+2025-11-13T22:40:17.305375248Z [inf]  Processing automation: Stage Change: APPOINTMENT_BOOKED → Consultation (type: STAGE_CHANGE)
+2025-11-13T22:40:17.305383725Z [inf]  Processing stage change automation: Stage Change: APPOINTMENT_BOOKED → Consultation
+2025-11-13T22:40:17.379528853Z [inf]  Found 1 enabled business triggers for automation: APPOINTMENT_BOOKED
+2025-11-13T22:40:17.409314414Z [inf]  No enabled business triggers found for automation Stage Change: APPOINTMENT_BOOKED → Consultation, skipping
+2025-11-13T22:40:17.409324179Z [inf]  Processing automation: Stage Change: APPOINTMENT_BOOKED → Consultation (type: STAGE_CHANGE)
+2025-11-13T22:40:17.409330261Z [inf]  Processing stage change automation: Stage Change: APPOINTMENT_BOOKED → Consultation
+2025-11-13T22:40:17.787836625Z [inf]  Checking trigger condition: APPOINTMENT_BOOKED for project fbcf7cdc-f99d-4939-bfb3-056628055823
+2025-11-13T22:40:17.787850321Z [inf]  Found 8 active projects to check for business triggers
+2025-11-13T22:40:17.787860000Z [inf]  Checking trigger condition: APPOINTMENT_BOOKED for project 2a6f1cd1-1b99-46f6-9d6f-9b57e71d7a0b
+2025-11-13T22:40:17.787950169Z [inf]  Found 1 enabled business triggers for automation: APPOINTMENT_BOOKED
+2025-11-13T22:40:17.787957020Z [inf]  Found 8 active projects to check for business triggers
+2025-11-13T22:40:17.787964192Z [inf]  Checking trigger condition: APPOINTMENT_BOOKED for project 2a6f1cd1-1b99-46f6-9d6f-9b57e71d7a0b
+2025-11-13T22:40:17.811698902Z [inf]  Checking trigger condition: APPOINTMENT_BOOKED for project gallery-sample-1
+2025-11-13T22:40:17.835324609Z [inf]  Checking trigger condition: APPOINTMENT_BOOKED for project fbcf7cdc-f99d-4939-bfb3-056628055823
+2025-11-13T22:40:17.919656526Z [inf]  Checking trigger condition: APPOINTMENT_BOOKED for project gallery-sample-3
+2025-11-13T22:40:17.941133373Z [inf]  Checking trigger condition: APPOINTMENT_BOOKED for project gallery-sample-1
+2025-11-13T22:40:18.029847886Z [inf]  Checking trigger condition: APPOINTMENT_BOOKED for project gallery-sample-5
+2025-11-13T22:40:18.047786859Z [inf]  Checking trigger condition: APPOINTMENT_BOOKED for project gallery-sample-3
+2025-11-13T22:40:18.134390473Z [inf]  Checking trigger condition: APPOINTMENT_BOOKED for project gallery-sample-6
+2025-11-13T22:40:18.152969753Z [inf]  Checking trigger condition: APPOINTMENT_BOOKED for project gallery-sample-5
+2025-11-13T22:40:18.243460363Z [inf]  Checking trigger condition: APPOINTMENT_BOOKED for project gallery-sample-7
+2025-11-13T22:40:18.257957746Z [inf]  Checking trigger condition: APPOINTMENT_BOOKED for project gallery-sample-6
+2025-11-13T22:40:18.354627768Z [inf]  Checking trigger condition: APPOINTMENT_BOOKED for project e3889dc3-45c3-47a0-9594-86129fd44993
+2025-11-13T22:40:18.365075409Z [inf]  Checking trigger condition: APPOINTMENT_BOOKED for project gallery-sample-7
+2025-11-13T22:40:18.463318322Z [inf]  Processing automation: Move to Consultation when appointment booked (type: STAGE_CHANGE)
+2025-11-13T22:40:18.463330116Z [inf]  Processing stage change automation: Move to Consultation when appointment booked
+2025-11-13T22:40:18.468461964Z [inf]  Checking trigger condition: APPOINTMENT_BOOKED for project e3889dc3-45c3-47a0-9594-86129fd44993
+2025-11-13T22:40:18.876436669Z [inf]  Found 1 enabled business triggers for automation: APPOINTMENT_BOOKED
+2025-11-13T22:40:18.876447329Z [inf]  Found 8 active projects to check for business triggers
+2025-11-13T22:40:18.876454346Z [inf]  Processing automation: Send email immediately when contact enters New Inquiry (type: COMMUNICATION)
+2025-11-13T22:40:18.876490812Z [inf]  Processing stage change automation: Move to Consultation when appointment booked
+2025-11-13T22:40:18.876500713Z [inf]  Found 8 active projects to check for business triggers
+2025-11-13T22:40:18.876509848Z [inf]  Processing automation: Send email immediately when contact enters New Inquiry (type: COMMUNICATION)
+2025-11-13T22:40:18.876532108Z [inf]  Found 1 enabled business triggers for automation: APPOINTMENT_BOOKED
+2025-11-13T22:40:18.876538076Z [inf]  Processing automation: Move to Consultation when appointment booked (type: STAGE_CHANGE)
+2025-11-13T22:40:18.889522358Z [inf]  Communication automation "Send email immediately when contact enters New Inquiry" (64256b0b-0824-4b11-8e22-8cdc0aaafebc) - found 10 projects in stage
+2025-11-13T22:40:18.889529109Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:18.889533609Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:18.889537507Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:18.889541666Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:18.889546993Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:18.889553702Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:18.889559358Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:18.889566085Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:18.889573058Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:18.889579253Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:18.889584627Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:18.889588538Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:18.889592647Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:18.889596704Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:18.889601271Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:18.998059536Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:18.998067088Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:18.998073732Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:18.998080375Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:18.998087288Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:18.998091041Z [inf]  Communication automation "Send email immediately when contact enters New Inquiry" (64256b0b-0824-4b11-8e22-8cdc0aaafebc) - found 10 projects in stage
+2025-11-13T22:40:18.998095225Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:18.998102950Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:18.998104160Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:18.998113046Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:18.998113699Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:18.998124469Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:18.998124588Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:18.998133765Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:18.998140054Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:18.998148543Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:19.104724262Z [inf]  🚫 Automation execution already reserved/completed (bulletproof prevention): COMMUNICATION for project 2a6f1cd1-1b99-46f6-9d6f-9b57e71d7a0b
+2025-11-13T22:40:19.104731259Z [inf]  🔒 Automation already reserved/executed for Test Contact, prevented duplicate (bulletproof reservation)
+2025-11-13T22:40:19.104737430Z [inf]  Processing step for contact Test Contact (7ws-MF@test.com)
+2025-11-13T22:40:19.213189033Z [inf]  🚫 Automation execution already reserved/completed (bulletproof prevention): COMMUNICATION for project 2a6f1cd1-1b99-46f6-9d6f-9b57e71d7a0b
+2025-11-13T22:40:19.213196051Z [inf]  🔒 Automation already reserved/executed for Test Contact, prevented duplicate (bulletproof reservation)
+2025-11-13T22:40:19.213201498Z [inf]  Processing step for contact Test Contact (7ws-MF@test.com)
+2025-11-13T22:40:19.900462486Z [inf]  🚫 Automation execution already reserved/completed (bulletproof prevention): COMMUNICATION for project fbcf7cdc-f99d-4939-bfb3-056628055823
+2025-11-13T22:40:19.900467501Z [inf]  🔒 Automation already reserved/executed for Test Contact, prevented duplicate (bulletproof reservation)
+2025-11-13T22:40:19.900472293Z [inf]  Processing step for contact Austin  (austinpacholek2014@gmail.com)
+2025-11-13T22:40:19.900477785Z [inf]  🚫 Automation execution already reserved/completed (bulletproof prevention): COMMUNICATION for project fbcf7cdc-f99d-4939-bfb3-056628055823
+2025-11-13T22:40:19.900485148Z [inf]  🔒 Automation already reserved/executed for Test Contact, prevented duplicate (bulletproof reservation)
+2025-11-13T22:40:19.900489907Z [inf]  Processing step for contact Austin  (austinpacholek2014@gmail.com)
+2025-11-13T22:40:20.152130746Z [inf]  Processing automation: Send text immediately when contact enters New Inquiry (type: COMMUNICATION)
+2025-11-13T22:40:20.152143084Z [inf]  🚫 Automation execution already reserved/completed (bulletproof prevention): COMMUNICATION for project e3889dc3-45c3-47a0-9594-86129fd44993
+2025-11-13T22:40:20.152157613Z [inf]  🔒 Automation already reserved/executed for Austin , prevented duplicate (bulletproof reservation)
+2025-11-13T22:40:20.239096636Z [inf]  🚫 Automation execution already reserved/completed (bulletproof prevention): COMMUNICATION for project e3889dc3-45c3-47a0-9594-86129fd44993
+2025-11-13T22:40:20.239101076Z [inf]  🔒 Automation already reserved/executed for Austin , prevented duplicate (bulletproof reservation)
+2025-11-13T22:40:20.239105014Z [inf]  Processing automation: Send text immediately when contact enters New Inquiry (type: COMMUNICATION)
+2025-11-13T22:40:20.866557664Z [inf]  Processing step for contact Test Contact (7ws-MF@test.com)
+2025-11-13T22:40:20.866572199Z [inf]  📱 SMS opt-in missing for Test Contact, skipping (no reservation)
+2025-11-13T22:40:20.866591755Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:20.866592934Z [inf]  Communication automation "Send text immediately when contact enters New Inquiry" (0ecca1d4-549c-40ed-8227-d4949e56c03e) - found 10 projects in stage
+2025-11-13T22:40:20.866597580Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:20.866602298Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:20.866609103Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:20.866616910Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:20.866626214Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:20.866633915Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:20.866642858Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:20.866651683Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:20.866658927Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:20.866665781Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:20.866675748Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:20.866683459Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:20.866689772Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:20.866699666Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:20.866708151Z [inf]  📱 SMS opt-in missing for Test Contact, skipping (no reservation)
+2025-11-13T22:40:20.868735812Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:20.868744074Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:20.868745137Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:20.868752603Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:20.868756257Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:20.868760372Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:20.868764153Z [inf]  Processing step for contact Austin  (austinpacholek2014@gmail.com)
+2025-11-13T22:40:20.868764536Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:20.868776713Z [inf]  📱 SMS opt-in missing for Austin , skipping (no reservation)
+2025-11-13T22:40:20.868783294Z [inf]  Processing automation: Send email 24 hours after entering New Inquiry (type: COMMUNICATION)
+2025-11-13T22:40:20.868789003Z [inf]  Communication automation "Send text immediately when contact enters New Inquiry" (0ecca1d4-549c-40ed-8227-d4949e56c03e) - found 10 projects in stage
+2025-11-13T22:40:20.868796755Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:20.868801629Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:20.868806749Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:20.868810786Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:20.868816454Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:20.868822295Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:20.868828222Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:20.868833750Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:20.870623928Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:20.870626959Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:20.870632869Z [inf]  Processing automation: Send email 24 hours after entering New Inquiry (type: COMMUNICATION)
+2025-11-13T22:40:20.870635072Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:20.870637070Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:20.870642277Z [inf]  Communication automation "Send email 24 hours after entering New Inquiry" (2916fb19-3e42-4f37-a7b6-70fc809f95fa) - found 10 projects in stage
+2025-11-13T22:40:20.870643084Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:20.870645141Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:20.870650019Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:20.870651613Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:20.870653573Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:20.870658073Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:20.870662626Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:20.870666823Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:20.870747384Z [inf]  📱 SMS opt-in missing for Test Contact, skipping (no reservation)
+2025-11-13T22:40:20.870759931Z [inf]  Processing step for contact Test Contact (7ws-MF@test.com)
+2025-11-13T22:40:20.870767980Z [inf]  📱 SMS opt-in missing for Test Contact, skipping (no reservation)
+2025-11-13T22:40:20.870775253Z [inf]  Processing step for contact Austin  (austinpacholek2014@gmail.com)
+2025-11-13T22:40:20.870785059Z [inf]  📱 SMS opt-in missing for Austin , skipping (no reservation)
+2025-11-13T22:40:20.872825899Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:20.872834794Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:20.872866008Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:20.948457292Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:20.948462747Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:20.948468789Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:20.948475787Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:20.948479535Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:20.948481319Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:20.948486239Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:20.948490002Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:20.948492580Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:20.948496468Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:20.948511419Z [inf]  Communication automation "Send email 24 hours after entering New Inquiry" (2916fb19-3e42-4f37-a7b6-70fc809f95fa) - found 10 projects in stage
+2025-11-13T22:40:20.948517400Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:20.948522534Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:20.948527381Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:20.948533588Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:20.948539010Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:21.040405116Z [inf]  🚫 Automation execution already reserved/completed (bulletproof prevention): COMMUNICATION for project 2a6f1cd1-1b99-46f6-9d6f-9b57e71d7a0b
+2025-11-13T22:40:21.040413540Z [inf]  🔒 Automation already reserved/executed for Test Contact, prevented duplicate (bulletproof reservation)
+2025-11-13T22:40:21.040419269Z [inf]  Processing step for contact Test Contact (7ws-MF@test.com)
+2025-11-13T22:40:21.154826814Z [inf]  🚫 Automation execution already reserved/completed (bulletproof prevention): COMMUNICATION for project 2a6f1cd1-1b99-46f6-9d6f-9b57e71d7a0b
+2025-11-13T22:40:21.154831574Z [inf]  🔒 Automation already reserved/executed for Test Contact, prevented duplicate (bulletproof reservation)
+2025-11-13T22:40:21.154836578Z [inf]  Processing step for contact Test Contact (7ws-MF@test.com)
+2025-11-13T22:40:21.830583545Z [inf]  🚫 Automation execution already reserved/completed (bulletproof prevention): COMMUNICATION for project fbcf7cdc-f99d-4939-bfb3-056628055823
+2025-11-13T22:40:21.830592472Z [inf]  🔒 Automation already reserved/executed for Test Contact, prevented duplicate (bulletproof reservation)
+2025-11-13T22:40:21.830600325Z [inf]  Processing step for contact Austin  (austinpacholek2014@gmail.com)
+2025-11-13T22:40:21.830601216Z [inf]  🚫 Automation execution already reserved/completed (bulletproof prevention): COMMUNICATION for project fbcf7cdc-f99d-4939-bfb3-056628055823
+2025-11-13T22:40:21.830608039Z [inf]  🔒 Automation already reserved/executed for Test Contact, prevented duplicate (bulletproof reservation)
+2025-11-13T22:40:21.830613468Z [inf]  Processing step for contact Austin  (austinpacholek2014@gmail.com)
+2025-11-13T22:40:22.036752946Z [inf]  🚫 Automation execution already reserved/completed (bulletproof prevention): COMMUNICATION for project e3889dc3-45c3-47a0-9594-86129fd44993
+2025-11-13T22:40:22.036763076Z [inf]  🔒 Automation already reserved/executed for Austin , prevented duplicate (bulletproof reservation)
+2025-11-13T22:40:22.036772606Z [inf]  Processing automation: Send text 24 hours after entering New Inquiry (type: COMMUNICATION)
+2025-11-13T22:40:22.208782719Z [inf]  🚫 Automation execution already reserved/completed (bulletproof prevention): COMMUNICATION for project e3889dc3-45c3-47a0-9594-86129fd44993
+2025-11-13T22:40:22.208790430Z [inf]  🔒 Automation already reserved/executed for Austin , prevented duplicate (bulletproof reservation)
+2025-11-13T22:40:22.208796255Z [inf]  Processing automation: Send text 24 hours after entering New Inquiry (type: COMMUNICATION)
+2025-11-13T22:40:22.999781401Z [inf]  📱 SMS opt-in missing for Test Contact, skipping (no reservation)
+2025-11-13T22:40:22.999822504Z [inf]  Communication automation "Send text 24 hours after entering New Inquiry" (afc8347c-19f7-484c-ac89-0b85f8f85678) - found 10 projects in stage
+2025-11-13T22:40:22.999829640Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:22.999838187Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:22.999848028Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:22.999849805Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:22.999861336Z [inf]  📱 SMS opt-in missing for Test Contact, skipping (no reservation)
+2025-11-13T22:40:22.999866454Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:22.999892432Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:22.999906056Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:22.999914179Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:22.999922671Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:22.999923097Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:22.999930945Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:22.999933581Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:22.999938554Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:22.999941941Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:22.999950623Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:22.999967493Z [inf]  Processing step for contact Test Contact (7ws-MF@test.com)
+2025-11-13T22:40:23.003581004Z [inf]  Processing step for contact Austin  (austinpacholek2014@gmail.com)
+2025-11-13T22:40:23.003586145Z [inf]  📱 SMS opt-in missing for Austin , skipping (no reservation)
+2025-11-13T22:40:23.003591408Z [inf]  Processing automation: Send email 48 hours after entering New Inquiry (type: COMMUNICATION)
+2025-11-13T22:40:23.003596796Z [inf]  Communication automation "Send text 24 hours after entering New Inquiry" (afc8347c-19f7-484c-ac89-0b85f8f85678) - found 10 projects in stage
+2025-11-13T22:40:23.003603309Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:23.003609129Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:23.003614713Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:23.003621120Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:23.003626855Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:23.003632164Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:23.003637211Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:23.003642197Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:23.003647945Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:23.003653242Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:23.003660460Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:23.003666812Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:23.003673421Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:23.003680098Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:23.003689022Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:23.006174466Z [inf]  📱 SMS opt-in missing for Test Contact, skipping (no reservation)
+2025-11-13T22:40:23.006178429Z [inf]  Processing step for contact Test Contact (7ws-MF@test.com)
+2025-11-13T22:40:23.006182888Z [inf]  📱 SMS opt-in missing for Test Contact, skipping (no reservation)
+2025-11-13T22:40:23.006187163Z [inf]  Processing step for contact Austin  (austinpacholek2014@gmail.com)
+2025-11-13T22:40:23.006193168Z [inf]  📱 SMS opt-in missing for Austin , skipping (no reservation)
+2025-11-13T22:40:23.006199132Z [inf]  Processing automation: Send email 48 hours after entering New Inquiry (type: COMMUNICATION)
+2025-11-13T22:40:23.006204561Z [inf]  Communication automation "Send email 48 hours after entering New Inquiry" (c4be0619-92fa-4679-a99e-4c93d85343fc) - found 10 projects in stage
+2025-11-13T22:40:23.006210573Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:23.006217089Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:23.006222837Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:23.006228855Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:23.006237897Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:23.006244058Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:23.006249841Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:23.006255428Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:23.006262564Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:23.006268135Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:23.006273158Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:23.006289353Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:23.007700663Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:23.007716586Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:23.007722596Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:23.039076793Z [inf]  🚫 Automation execution already reserved/completed (bulletproof prevention): COMMUNICATION for project 2a6f1cd1-1b99-46f6-9d6f-9b57e71d7a0b
+2025-11-13T22:40:23.039082644Z [inf]  🔒 Automation already reserved/executed for Test Contact, prevented duplicate (bulletproof reservation)
+2025-11-13T22:40:23.039086796Z [inf]  Processing step for contact Test Contact (7ws-MF@test.com)
+2025-11-13T22:40:23.043497099Z [inf]  Communication automation "Send email 48 hours after entering New Inquiry" (c4be0619-92fa-4679-a99e-4c93d85343fc) - found 10 projects in stage
+2025-11-13T22:40:23.043503028Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:23.043507341Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:23.043510950Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:23.043514540Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:23.043518693Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:23.043524393Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:23.043528921Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:23.043533196Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:23.043537180Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:23.043542931Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:23.043547221Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:23.043551970Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:23.043556013Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:23.043559598Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:23.043563662Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:23.251034796Z [inf]  🚫 Automation execution already reserved/completed (bulletproof prevention): COMMUNICATION for project 2a6f1cd1-1b99-46f6-9d6f-9b57e71d7a0b
+2025-11-13T22:40:23.251041346Z [inf]  🔒 Automation already reserved/executed for Test Contact, prevented duplicate (bulletproof reservation)
+2025-11-13T22:40:23.251047058Z [inf]  Processing step for contact Test Contact (7ws-MF@test.com)
+2025-11-13T22:40:23.999299158Z [inf]  Processing step for contact Austin  (austinpacholek2014@gmail.com)
+2025-11-13T22:40:23.999319687Z [inf]  🔒 Automation already reserved/executed for Test Contact, prevented duplicate (bulletproof reservation)
+2025-11-13T22:40:23.999328542Z [inf]  🚫 Automation execution already reserved/completed (bulletproof prevention): COMMUNICATION for project fbcf7cdc-f99d-4939-bfb3-056628055823
+2025-11-13T22:40:23.999329464Z [inf]  Processing step for contact Austin  (austinpacholek2014@gmail.com)
+2025-11-13T22:40:23.999336757Z [inf]  🚫 Automation execution already reserved/completed (bulletproof prevention): COMMUNICATION for project fbcf7cdc-f99d-4939-bfb3-056628055823
+2025-11-13T22:40:23.999343085Z [inf]  🔒 Automation already reserved/executed for Test Contact, prevented duplicate (bulletproof reservation)
+2025-11-13T22:40:24.096514944Z [inf]  🚫 Automation execution already reserved/completed (bulletproof prevention): COMMUNICATION for project e3889dc3-45c3-47a0-9594-86129fd44993
+2025-11-13T22:40:24.096533200Z [inf]  🔒 Automation already reserved/executed for Austin , prevented duplicate (bulletproof reservation)
+2025-11-13T22:40:24.096543993Z [inf]  Processing automation: Send email 7 days after entering New Inquiry (type: COMMUNICATION)
+2025-11-13T22:40:24.316910571Z [inf]  🚫 Automation execution already reserved/completed (bulletproof prevention): COMMUNICATION for project e3889dc3-45c3-47a0-9594-86129fd44993
+2025-11-13T22:40:24.316916831Z [inf]  🔒 Automation already reserved/executed for Austin , prevented duplicate (bulletproof reservation)
+2025-11-13T22:40:24.316921633Z [inf]  Processing automation: Send email 7 days after entering New Inquiry (type: COMMUNICATION)
+2025-11-13T22:40:24.996985297Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:24.996990336Z [inf]  🔒 Automation already reserved/executed for Test Contact, prevented duplicate (bulletproof reservation)
+2025-11-13T22:40:24.996994182Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:24.997001415Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:24.997008275Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:24.997009151Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:24.997015971Z [inf]  🚫 Automation execution already reserved/completed (bulletproof prevention): COMMUNICATION for project 2a6f1cd1-1b99-46f6-9d6f-9b57e71d7a0b
+2025-11-13T22:40:24.997019475Z [inf]  Communication automation "Send email 7 days after entering New Inquiry" (685216f4-243f-4403-9707-57e1fcf720cb) - found 10 projects in stage
+2025-11-13T22:40:24.997023352Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:24.997029891Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:24.997036501Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:24.997042148Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:24.997045810Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:24.997057524Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:24.997059091Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:24.997060858Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:24.997064856Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:24.997068627Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:24.999835140Z [inf]  Processing step for contact Test Contact (7ws-MF@test.com)
+2025-11-13T22:40:24.999839562Z [inf]  Communication automation "Send email 7 days after entering New Inquiry" (685216f4-243f-4403-9707-57e1fcf720cb) - found 10 projects in stage
+2025-11-13T22:40:24.999843814Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:24.999848150Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:24.999852723Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:24.999856557Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:24.999860778Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:24.999864887Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:24.999869000Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:24.999887231Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:24.999892336Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:24.999896489Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:24.999901581Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:24.999905715Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:24.999909200Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:24.999912792Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:24.999916711Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:25.152285033Z [inf]  🚫 Automation execution already reserved/completed (bulletproof prevention): COMMUNICATION for project 2a6f1cd1-1b99-46f6-9d6f-9b57e71d7a0b
+2025-11-13T22:40:25.152291185Z [inf]  🔒 Automation already reserved/executed for Test Contact, prevented duplicate (bulletproof reservation)
+2025-11-13T22:40:25.152298688Z [inf]  Processing step for contact Test Contact (7ws-MF@test.com)
+2025-11-13T22:40:25.420378012Z [inf]  🚫 Automation execution already reserved/completed (bulletproof prevention): COMMUNICATION for project fbcf7cdc-f99d-4939-bfb3-056628055823
+2025-11-13T22:40:25.420384599Z [inf]  🔒 Automation already reserved/executed for Test Contact, prevented duplicate (bulletproof reservation)
+2025-11-13T22:40:25.420388935Z [inf]  Processing step for contact Austin  (austinpacholek2014@gmail.com)
+2025-11-13T22:40:26.066506952Z [inf]  🚫 Automation execution already reserved/completed (bulletproof prevention): COMMUNICATION for project e3889dc3-45c3-47a0-9594-86129fd44993
+2025-11-13T22:40:26.066518954Z [inf]  🔒 Automation already reserved/executed for Austin , prevented duplicate (bulletproof reservation)
+2025-11-13T22:40:26.066526909Z [inf]  Processing automation: Send email 14 days after entering New Inquiry (type: COMMUNICATION)
+2025-11-13T22:40:26.066604940Z [inf]  🚫 Automation execution already reserved/completed (bulletproof prevention): COMMUNICATION for project fbcf7cdc-f99d-4939-bfb3-056628055823
+2025-11-13T22:40:26.066610457Z [inf]  🔒 Automation already reserved/executed for Test Contact, prevented duplicate (bulletproof reservation)
+2025-11-13T22:40:26.066617980Z [inf]  Processing step for contact Austin  (austinpacholek2014@gmail.com)
+2025-11-13T22:40:26.140780341Z [inf]  🚫 Automation execution already reserved/completed (bulletproof prevention): COMMUNICATION for project e3889dc3-45c3-47a0-9594-86129fd44993
+2025-11-13T22:40:26.140785459Z [inf]  🔒 Automation already reserved/executed for Austin , prevented duplicate (bulletproof reservation)
+2025-11-13T22:40:26.140790292Z [inf]  Processing automation: Send email 14 days after entering New Inquiry (type: COMMUNICATION)
+2025-11-13T22:40:26.930673820Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:26.930679236Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:26.930683846Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:26.930688466Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:26.930692997Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:26.930702786Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:26.930703547Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:26.930709858Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:26.930713212Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:26.930715127Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:26.930720297Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:26.930722823Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:26.930725898Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:26.930730601Z [inf]  Communication automation "Send email 14 days after entering New Inquiry" (8a90ca45-3cbd-443b-9dcf-742a59429713) - found 10 projects in stage
+2025-11-13T22:40:26.930736705Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:26.930750147Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:26.930776287Z [inf]  Communication automation "Send email 14 days after entering New Inquiry" (8a90ca45-3cbd-443b-9dcf-742a59429713) - found 10 projects in stage
+2025-11-13T22:40:26.930798332Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:26.930807460Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:26.932238587Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:26.932244924Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:26.932251965Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:26.932253534Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:26.932258346Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:26.932263695Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:26.932273928Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:26.932282153Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:26.932290195Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:26.932293855Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:26.932299122Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:26.932338473Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:26.933164568Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:26.933172845Z [inf]  🚫 Automation execution already reserved/completed (bulletproof prevention): COMMUNICATION for project 2a6f1cd1-1b99-46f6-9d6f-9b57e71d7a0b
+2025-11-13T22:40:26.933178003Z [inf]  🔒 Automation already reserved/executed for Test Contact, prevented duplicate (bulletproof reservation)
+2025-11-13T22:40:26.933183473Z [inf]  Processing step for contact Test Contact (7ws-MF@test.com)
+2025-11-13T22:40:26.977149421Z [inf]  🚫 Automation execution already reserved/completed (bulletproof prevention): COMMUNICATION for project 2a6f1cd1-1b99-46f6-9d6f-9b57e71d7a0b
+2025-11-13T22:40:26.977157228Z [inf]  🔒 Automation already reserved/executed for Test Contact, prevented duplicate (bulletproof reservation)
+2025-11-13T22:40:26.977163007Z [inf]  Processing step for contact Test Contact (7ws-MF@test.com)
+2025-11-13T22:40:27.283157515Z [inf]  🚫 Automation execution already reserved/completed (bulletproof prevention): COMMUNICATION for project fbcf7cdc-f99d-4939-bfb3-056628055823
+2025-11-13T22:40:27.283168719Z [inf]  🔒 Automation already reserved/executed for Test Contact, prevented duplicate (bulletproof reservation)
+2025-11-13T22:40:27.283175800Z [inf]  Processing step for contact Austin  (austinpacholek2014@gmail.com)
+2025-11-13T22:40:27.479783347Z [inf]  🚫 Automation execution already reserved/completed (bulletproof prevention): COMMUNICATION for project fbcf7cdc-f99d-4939-bfb3-056628055823
+2025-11-13T22:40:27.479789823Z [inf]  🔒 Automation already reserved/executed for Test Contact, prevented duplicate (bulletproof reservation)
+2025-11-13T22:40:27.479801265Z [inf]  Processing step for contact Austin  (austinpacholek2014@gmail.com)
+2025-11-13T22:40:28.036044130Z [inf]  🚫 Automation execution already reserved/completed (bulletproof prevention): COMMUNICATION for project e3889dc3-45c3-47a0-9594-86129fd44993
+2025-11-13T22:40:28.036048067Z [inf]  🔒 Automation already reserved/executed for Austin , prevented duplicate (bulletproof reservation)
+2025-11-13T22:40:28.036051901Z [inf]  Processing automation: Send email 21 days after entering New Inquiry (type: COMMUNICATION)
+2025-11-13T22:40:28.036055482Z [inf]  🚫 Automation execution already reserved/completed (bulletproof prevention): COMMUNICATION for project e3889dc3-45c3-47a0-9594-86129fd44993
+2025-11-13T22:40:28.036059526Z [inf]  🔒 Automation already reserved/executed for Austin , prevented duplicate (bulletproof reservation)
+2025-11-13T22:40:28.036064466Z [inf]  Processing automation: Send email 21 days after entering New Inquiry (type: COMMUNICATION)
+2025-11-13T22:40:28.447763605Z [inf]  Communication automation "Send email 21 days after entering New Inquiry" (38149def-65d1-45ec-ac86-aede7b88eddc) - found 10 projects in stage
+2025-11-13T22:40:28.447770185Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:28.447781171Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:28.447787103Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:28.447793517Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:28.447799630Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:28.447805695Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:28.447813007Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:28.447823898Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:28.447829948Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:28.447835327Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:28.447841191Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:28.447847397Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:28.447852820Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:28.447858248Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:28.447864149Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:28.912459597Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:28.912470666Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:28.912477903Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:28.912485675Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:28.912489002Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:28.912494947Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:28.912497302Z [inf]  🚫 Automation execution already reserved/completed (bulletproof prevention): COMMUNICATION for project 2a6f1cd1-1b99-46f6-9d6f-9b57e71d7a0b
+2025-11-13T22:40:28.912502538Z [inf]  🔒 Automation already reserved/executed for Test Contact, prevented duplicate (bulletproof reservation)
+2025-11-13T22:40:28.912556590Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:28.912570511Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:28.912575509Z [inf]  Communication automation "Send email 21 days after entering New Inquiry" (38149def-65d1-45ec-ac86-aede7b88eddc) - found 10 projects in stage
+2025-11-13T22:40:28.912587628Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:28.912591595Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:28.912598437Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:28.912605961Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:28.912613255Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:28.912619736Z [inf]  ❌ No stageEnteredAt date for contact Test Contact, skipping
+2025-11-13T22:40:28.912627019Z [inf]  Processing step for contact Test Contact (zrL4bS@test.com)
+2025-11-13T22:40:28.915203433Z [inf]  Processing step for contact Test Contact (7ws-MF@test.com)
+2025-11-13T22:40:28.915207448Z [inf]  🚫 Automation execution already reserved/completed (bulletproof prevention): COMMUNICATION for project 2a6f1cd1-1b99-46f6-9d6f-9b57e71d7a0b
+2025-11-13T22:40:28.915211897Z [inf]  🔒 Automation already reserved/executed for Test Contact, prevented duplicate (bulletproof reservation)
+2025-11-13T22:40:28.915215978Z [inf]  Processing step for contact Test Contact (7ws-MF@test.com)
+2025-11-13T22:40:29.196958238Z [inf]  🚫 Automation execution already reserved/completed (bulletproof prevention): COMMUNICATION for project fbcf7cdc-f99d-4939-bfb3-056628055823
+2025-11-13T22:40:29.196964490Z [inf]  🔒 Automation already reserved/executed for Test Contact, prevented duplicate (bulletproof reservation)
+2025-11-13T22:40:29.196969346Z [inf]  Processing step for contact Austin  (austinpacholek2014@gmail.com)
+2025-11-13T22:40:29.401895268Z [inf]  🚫 Automation execution already reserved/completed (bulletproof prevention): COMMUNICATION for project fbcf7cdc-f99d-4939-bfb3-056628055823
+2025-11-13T22:40:29.401905195Z [inf]  🔒 Automation already reserved/executed for Test Contact, prevented duplicate (bulletproof reservation)
+2025-11-13T22:40:29.401912181Z [inf]  Processing step for contact Austin  (austinpacholek2014@gmail.com)
+2025-11-13T22:40:29.927062662Z [inf]  🚫 Automation execution already reserved/completed (bulletproof prevention): COMMUNICATION for project e3889dc3-45c3-47a0-9594-86129fd44993
+2025-11-13T22:40:29.927066514Z [inf]  🔒 Automation already reserved/executed for Austin , prevented duplicate (bulletproof reservation)
+2025-11-13T22:40:29.927072789Z [inf]  Processing automations for photographer: 54f84fe2-d1c4-40e8-944d-177ef1d80c41
+2025-11-13T22:40:29.927078152Z [inf]  🚫 Automation execution already reserved/completed (bulletproof prevention): COMMUNICATION for project e3889dc3-45c3-47a0-9594-86129fd44993
+2025-11-13T22:40:29.927083768Z [inf]  🔒 Automation already reserved/executed for Austin , prevented duplicate (bulletproof reservation)
+2025-11-13T22:40:29.929048170Z [inf]  Processing automations for photographer: 54f84fe2-d1c4-40e8-944d-177ef1d80c41
+2025-11-13T22:40:30.129849885Z [inf]  Found 0 enabled automations
+2025-11-13T22:40:30.129856509Z [inf]  Processing automations for photographer: test-drip-photog-2025
+2025-11-13T22:40:30.222655668Z [inf]  Found 0 enabled automations
+2025-11-13T22:40:30.222663490Z [inf]  Processing automations for photographer: fe170d59-1738-41d0-8d26-50721d65be09
+2025-11-13T22:40:30.308303297Z [inf]  Found 0 enabled automations
+2025-11-13T22:40:30.308307814Z [inf]  Processing automations for photographer: test-drip-photog-2025
+2025-11-13T22:40:30.319825296Z [inf]  Found 0 enabled automations
+2025-11-13T22:40:30.319831612Z [inf]  Processing automations for photographer: demo-photog-test-2025
+2025-11-13T22:40:30.415273481Z [inf]  Found 0 enabled automations
+2025-11-13T22:40:30.415280084Z [inf]  Processing automations for photographer: fe170d59-1738-41d0-8d26-50721d65be09
+2025-11-13T22:40:30.422259452Z [inf]  Found 2 enabled automations
+2025-11-13T22:40:30.422268192Z [inf]  Processing automation: Instant Connection – Text Confirmation (type: COMMUNICATION)
+2025-11-13T22:40:30.893217266Z [inf]  Found 0 enabled automations
+2025-11-13T22:40:30.893222947Z [inf]  Processing automations for photographer: demo-photog-test-2025
+2025-11-13T22:40:30.893228548Z [inf]  Found 2 enabled automations
+2025-11-13T22:40:30.893234921Z [inf]  Processing automation: Instant Connection – Text Confirmation (type: COMMUNICATION)
+2025-11-13T22:40:30.893240401Z [inf]  Communication automation "Instant Connection – Text Confirmation" (237c645b-833b-43a3-953c-e6beecca5134) - found 0 projects in stage
+2025-11-13T22:40:30.893246115Z [inf]  Processing automation: Instant Connection – Email Welcome (type: COMMUNICATION)
+2025-11-13T22:40:30.893251953Z [inf]  📧 Processing email builder automation: Instant Connection – Email Welcome
+2025-11-13T22:40:30.893257974Z [inf]  Email builder automation "Instant Connection – Email Welcome" (00674768-27c7-4ec6-820b-acb703ee367e) - found 0 projects in stage
+2025-11-13T22:40:30.893263413Z [inf]  Processing automations for photographer: c17c7a0d-860a-4c37-b2a0-7725ee7fbbb7
+2025-11-13T22:40:30.893269774Z [inf]  Found 0 enabled automations
+2025-11-13T22:40:30.893275234Z [inf]  Processing automations for photographer: 7334680b-954b-44e0-99d9-c2106c97feb1
+2025-11-13T22:40:30.893280971Z [inf]  Communication automation "Instant Connection – Text Confirmation" (237c645b-833b-43a3-953c-e6beecca5134) - found 0 projects in stage
+2025-11-13T22:40:30.893286777Z [inf]  Processing automation: Instant Connection – Email Welcome (type: COMMUNICATION)
+2025-11-13T22:40:30.893292118Z [inf]  📧 Processing email builder automation: Instant Connection – Email Welcome
+2025-11-13T22:40:30.927659503Z [inf]  Found 0 enabled automations
+2025-11-13T22:40:30.927666687Z [inf]  Processing automations for photographer: a73c3da5-f8af-432f-a5b5-aa333bb9ad0e
+2025-11-13T22:40:30.934664127Z [inf]  Email builder automation "Instant Connection – Email Welcome" (00674768-27c7-4ec6-820b-acb703ee367e) - found 0 projects in stage
+2025-11-13T22:40:30.934670046Z [inf]  Processing automations for photographer: c17c7a0d-860a-4c37-b2a0-7725ee7fbbb7
+2025-11-13T22:40:31.025567138Z [inf]  Found 0 enabled automations
+2025-11-13T22:40:31.025582611Z [inf]  Processing automations for photographer: a6b764f9-076e-4aef-8394-dd30a7fad6b2
+2025-11-13T22:40:31.040002592Z [inf]  Found 0 enabled automations
+2025-11-13T22:40:31.040008998Z [inf]  Processing automations for photographer: 7334680b-954b-44e0-99d9-c2106c97feb1
+2025-11-13T22:40:31.132176344Z [inf]  Found 0 enabled automations
+2025-11-13T22:40:31.132185579Z [inf]  Processing automations for photographer: f0950aea-eba0-49d3-8ca2-dcd738b885da
+2025-11-13T22:40:31.144891480Z [inf]  Found 0 enabled automations
+2025-11-13T22:40:31.144898413Z [inf]  Processing automations for photographer: a73c3da5-f8af-432f-a5b5-aa333bb9ad0e
+2025-11-13T22:40:31.228991750Z [inf]  Found 0 enabled automations
+2025-11-13T22:40:31.228996488Z [inf]  Processing automations for photographer: a723f80c-0a06-401d-9729-82b0b2352c0f
+2025-11-13T22:40:31.246398938Z [inf]  Found 0 enabled automations
+2025-11-13T22:40:31.246405224Z [inf]  Processing automations for photographer: a6b764f9-076e-4aef-8394-dd30a7fad6b2
+2025-11-13T22:40:31.330958599Z [inf]  Found 0 enabled automations
+2025-11-13T22:40:31.330963793Z [inf]  Processing automations for photographer: 2f4cf8e7-d181-4356-8536-dd295e8e4588
+2025-11-13T22:40:31.354049809Z [inf]  Found 0 enabled automations
+2025-11-13T22:40:31.354054567Z [inf]  Processing automations for photographer: f0950aea-eba0-49d3-8ca2-dcd738b885da
+2025-11-13T22:40:31.444592334Z [inf]  Found 0 enabled automations
+2025-11-13T22:40:31.444597492Z [inf]  Processing automations for photographer: fd01f218-9f13-4bfd-9975-2ff56245b59d
+2025-11-13T22:40:31.450991803Z [inf]  Found 0 enabled automations
+2025-11-13T22:40:31.450998578Z [inf]  Processing automations for photographer: a723f80c-0a06-401d-9729-82b0b2352c0f
+2025-11-13T22:40:31.918997974Z [inf]  Processing automations for photographer: 1649acb5-071b-4e6c-9f21-f37a2409e1a2
+2025-11-13T22:40:31.919046863Z [inf]  Found 0 enabled automations
+2025-11-13T22:40:31.919052820Z [inf]  Processing automations for photographer: 2f4cf8e7-d181-4356-8536-dd295e8e4588
+2025-11-13T22:40:31.919055607Z [inf]  Processing automations for photographer: 8a24932a-918f-472a-b177-c2b2a7d8874b
+2025-11-13T22:40:31.919060043Z [inf]  Found 0 enabled automations
+2025-11-13T22:40:31.919062079Z [inf]  Found 0 enabled automations
+2025-11-13T22:40:31.919066811Z [inf]  Found 0 enabled automations
+2025-11-13T22:40:31.919070397Z [inf]  Processing automations for photographer: fd01f218-9f13-4bfd-9975-2ff56245b59d
+2025-11-13T22:40:31.919072488Z [inf]  Processing automations for photographer: 1649acb5-071b-4e6c-9f21-f37a2409e1a2
+2025-11-13T22:40:31.919075914Z [inf]  Found 0 enabled automations
+2025-11-13T22:40:31.919076359Z [inf]  Processing automations for photographer: 8a24932a-918f-472a-b177-c2b2a7d8874b
+2025-11-13T22:40:31.919077393Z [inf]  Found 0 enabled automations
+2025-11-13T22:40:31.919085717Z [inf]  Found 0 enabled automations
+2025-11-13T22:40:31.919088594Z [inf]  Processing automations for photographer: 3a937f27-c468-4413-88e9-0a43f04054f4
+2025-11-13T22:40:31.919093869Z [inf]  Found 0 enabled automations
+2025-11-13T22:40:31.973213524Z [inf]  Found 0 enabled automations
+2025-11-13T22:40:31.973218030Z [inf]  Processing automations for photographer: 3a937f27-c468-4413-88e9-0a43f04054f4
+2025-11-13T22:40:32.072938160Z [inf]  Found 0 enabled automations

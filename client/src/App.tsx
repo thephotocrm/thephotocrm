@@ -5,6 +5,8 @@ import { QueryClientProvider, useQuery } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, useAuth } from "./hooks/use-auth";
+import { DomainProvider } from "./hooks/use-domain";
+import { DomainRouter } from "./components/domain-router";
 import { MobileHeader } from "@/components/layout/mobile-header";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/layout/app-sidebar";
@@ -256,12 +258,16 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Router />
-        </TooltipProvider>
-      </AuthProvider>
+      <DomainProvider>
+        <AuthProvider>
+          <TooltipProvider>
+            <Toaster />
+            <DomainRouter>
+              <Router />
+            </DomainRouter>
+          </TooltipProvider>
+        </AuthProvider>
+      </DomainProvider>
     </QueryClientProvider>
   );
 }

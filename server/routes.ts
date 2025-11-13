@@ -164,6 +164,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use(loadPhotographerFromSubdomain);
   console.log('✅ Domain detection and tenant isolation middleware initialized');
   
+  // Domain information endpoint for frontend routing
+  app.get("/api/domain", (req, res) => {
+    // SECURITY: If domain detection failed, return error instead of defaulting to 'dev'
+    if (!req.domain) {
+      console.error('⚠️ Domain detection failed - req.domain is not set');
+      return res.status(500).json({ 
+        error: 'DOMAIN_DETECTION_FAILED',
+        message: 'Domain information not available' 
+      });
+    }
+    
+    res.json({
+      type: req.domain.type,
+      photographerSlug: req.domain.photographerSlug,
+      isCustomSubdomain: req.domain.isCustomSubdomain
+    });
+  });
+  
   // Simple chunked upload for gallery images using Multer + Cloudinary
   const uploadStorage = multer.memoryStorage();
   const upload = multer({

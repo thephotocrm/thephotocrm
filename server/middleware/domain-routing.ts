@@ -74,11 +74,20 @@ export function detectDomain(req: Request, res: Response, next: NextFunction) {
     return;
   }
   
-  // Unknown domain - default to dev for now
-  req.domain = {
-    type: 'dev'
-  };
-  console.log('  → Unknown domain, defaulting to dev mode');
+  // SECURITY: Unknown domain - do not default to 'dev' to prevent unauthorized access
+  console.warn(`⚠️ Unknown domain detected: ${hostname} - blocking access`);
+  console.warn('  → Only thephotocrm.com, *.tpcportal.co, and *.replit.dev are supported');
+  
+  // Don't set req.domain for unknown domains - this will cause /api/domain to return 500
+  // EXCEPTION: Allow /api/domain through so frontend can detect unknown domain and show error
+  if (req.path.startsWith('/api/') && req.path !== '/api/domain') {
+    return res.status(404).json({ 
+      error: 'UNSUPPORTED_DOMAIN',
+      message: 'This domain is not configured. Please use thephotocrm.com or your photographer portal link.'
+    });
+  }
+  
+  // For frontend requests and /api/domain, let them through so React can load and show error
   next();
 }
 
