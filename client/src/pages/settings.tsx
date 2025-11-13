@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Settings as SettingsIcon, User, Palette, Mail, Clock, Shield, Calendar, CheckCircle, XCircle, ExternalLink, CreditCard, AlertCircle, Edit, Upload, Image } from "lucide-react";
+import { Settings as SettingsIcon, User, Palette, Mail, Clock, Shield, Calendar, CheckCircle, XCircle, ExternalLink, CreditCard, AlertCircle, Edit, Upload, Image, Check } from "lucide-react";
 import { EmailBrandingModal } from "@/components/email-branding-modal";
 import {
   Select,
@@ -451,6 +451,13 @@ export default function Settings() {
   const [instagram, setInstagram] = useState("");
   const [twitter, setTwitter] = useState("");
   const [linkedin, setLinkedin] = useState("");
+  
+  // Portal Slug state
+  const [portalSlug, setPortalSlug] = useState("");
+  const [originalSlug, setOriginalSlug] = useState("");
+  const [slugError, setSlugError] = useState("");
+  const [slugAvailable, setSlugAvailable] = useState(false);
+  const [isCheckingSlug, setIsCheckingSlug] = useState(false);
 
   // Update state when photographer data loads
   useEffect(() => {
@@ -482,6 +489,11 @@ export default function Settings() {
       
       // Gallery Settings
       setGalleryExpirationMonths(p.galleryExpirationMonths || 6);
+      
+      // Portal Slug
+      setPortalSlug(p.portalSlug || "");
+      setOriginalSlug(p.portalSlug || "");
+      setSlugAvailable(!!p.portalSlug); // If they have a slug, it's valid
     }
   }, [photographer]);
 
@@ -504,6 +516,122 @@ export default function Settings() {
       </div>
     );
   }
+
+  // Portal Slug helper functions
+  const generateSlugFromBusinessName = (businessName: string): string => {
+    return businessName
+      .toLowerCase()
+      .trim()
+      .replace(/['']/g, '')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .substring(0, 63);
+  };
+
+  const validateSlugFormat = (slug: string): { valid: boolean; error?: string } => {
+    if (!slug || slug.trim() === '') {
+      return { valid: false, error: 'Slug cannot be empty' };
+    }
+    
+    const normalized = slug.toLowerCase().trim();
+    
+    if (normalized.length < 3) {
+      return { valid: false, error: 'Slug must be at least 3 characters long' };
+    }
+    
+    if (normalized.length > 63) {
+      return { valid: false, error: 'Slug must be 63 characters or less' };
+    }
+    
+    if (!/^[a-z0-9-]+$/.test(normalized)) {
+      return { valid: false, error: 'Slug can only contain lowercase letters, numbers, and hyphens' };
+    }
+    
+    if (normalized.startsWith('-') || normalized.endsWith('-')) {
+      return { valid: false, error: 'Slug cannot start or end with a hyphen' };
+    }
+    
+    const reservedSlugs = ['www', 'api', 'admin', 'app', 'mail', 'ftp', 'smtp', 'portal', 'client', 'dashboard', 'login', 'signup', 'help', 'support', 'docs', 'blog', 'status'];
+    if (reservedSlugs.includes(normalized)) {
+      return { valid: false, error: 'This slug is reserved and cannot be used' };
+    }
+    
+    return { valid: true };
+  };
+
+  const handleGenerateSlug = () => {
+    if (!businessName) {
+      toast({
+        title: "Business name required",
+        description: "Please enter your business name first",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    const generated = generateSlugFromBusinessName(businessName);
+    setPortalSlug(generated);
+    setSlugError("");
+    
+    // Immediately check uniqueness
+    handleCheckSlugUniqueness(generated);
+  };
+
+  const handleCheckSlugUniqueness = async (slug: string): Promise<boolean> => {
+    const validation = validateSlugFormat(slug);
+    if (!validation.valid) {
+      setSlugError(validation.error || "Invalid slug");
+      setSlugAvailable(false);
+      return false;
+    }
+    
+    setIsCheckingSlug(true);
+    setSlugError("");
+    
+    try {
+      const response = await fetch(`/api/portal-slug/check?slug=${encodeURIComponent(slug)}`, {
+        credentials: 'include'
+      });
+      
+      const data = await response.json();
+      
+      // Handle 400 validation errors from backend
+      if (response.status === 400 && data.error) {
+        setSlugError(data.error);
+        setSlugAvailable(false);
+        return false;
+      }
+      
+      if (!data.available) {
+        setSlugError("This portal URL is already taken");
+        setSlugAvailable(false);
+        return false;
+      }
+      
+      // Success - slug is available
+      setSlugAvailable(true);
+      return true;
+    } catch (error) {
+      console.error('Slug check error:', error);
+      setSlugError("Could not verify slug availability. Please try again.");
+      setSlugAvailable(false);
+      return false;
+    } finally {
+      setIsCheckingSlug(false);
+    }
+  };
+
+  const handleSlugChange = (value: string) => {
+    setPortalSlug(value.toLowerCase());
+    setSlugError("");
+    setSlugAvailable(false); // Reset availability on change
+  };
+
+  const handleSlugBlur = () => {
+    if (portalSlug) {
+      handleCheckSlugUniqueness(portalSlug);
+    }
+  };
 
   // Handler functions
   const handleLogoFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -556,6 +684,35 @@ export default function Settings() {
       }
     }
 
+    // Validate and warn about portal slug changes
+    if (portalSlug) {
+      // Re-validate slug availability before saving
+      const isAvailable = await handleCheckSlugUniqueness(portalSlug);
+      if (!isAvailable) {
+        toast({
+          title: "Portal URL Error",
+          description: slugError || "Please fix the portal URL before saving",
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      // Warn if slug is changing and they have an existing slug
+      if (originalSlug && portalSlug !== originalSlug) {
+        const confirmed = window.confirm(
+          `⚠️ Warning: Changing your portal URL will invalidate all previously sent magic links.\n\n` +
+          `Old URL: ${originalSlug}.tpcportal.co\n` +
+          `New URL: ${portalSlug}.tpcportal.co\n\n` +
+          `You will need to re-send magic links to your clients after this change.\n\n` +
+          `Do you want to continue?`
+        );
+        
+        if (!confirmed) {
+          return;
+        }
+      }
+    }
+
     updatePhotographerMutation.mutate({
       businessName,
       photographerName: photographerName || undefined,
@@ -565,7 +722,8 @@ export default function Settings() {
       emailFromAddr: emailFromAddr || undefined,
       timezone,
       defaultEmailOptIn,
-      defaultSmsOptIn
+      defaultSmsOptIn,
+      portalSlug: portalSlug || undefined
     });
   };
 
@@ -782,6 +940,58 @@ export default function Settings() {
                     />
                     <p className="text-xs text-muted-foreground">
                       Used for test automation messages (separate from business phone)
+                    </p>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="portalSlug">Custom Portal URL</Label>
+                    <div className="flex gap-2">
+                      <div className="flex-1">
+                        <div className="flex items-center">
+                          <Input
+                            id="portalSlug"
+                            value={portalSlug}
+                            onChange={(e) => handleSlugChange(e.target.value)}
+                            onBlur={handleSlugBlur}
+                            placeholder="e.g., johns-photography"
+                            data-testid="input-portal-slug"
+                            className={slugError ? "border-destructive" : ""}
+                          />
+                          <span className="ml-2 text-sm text-muted-foreground whitespace-nowrap">.tpcportal.co</span>
+                        </div>
+                        {portalSlug && (
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Clients will access: <span className="font-medium">{portalSlug}.tpcportal.co</span>
+                          </p>
+                        )}
+                        {slugError && (
+                          <p className="text-xs text-destructive mt-1 flex items-center gap-1">
+                            <AlertCircle className="w-3 h-3" />
+                            {slugError}
+                          </p>
+                        )}
+                        {!slugError && !isCheckingSlug && slugAvailable && portalSlug && (
+                          <p className="text-xs text-green-600 mt-1 flex items-center gap-1">
+                            <Check className="w-3 h-3" />
+                            Portal URL available
+                          </p>
+                        )}
+                        {isCheckingSlug && (
+                          <p className="text-xs text-muted-foreground mt-1">Checking availability...</p>
+                        )}
+                      </div>
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        onClick={handleGenerateSlug}
+                        disabled={!businessName}
+                        data-testid="button-generate-slug"
+                      >
+                        Auto-Generate
+                      </Button>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Your custom-branded client portal URL for magic links and client access
                     </p>
                   </div>
                   

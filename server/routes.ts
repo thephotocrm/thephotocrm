@@ -11,6 +11,7 @@ import { authenticateToken, requirePhotographer, requireRole, requireAdmin, requ
 import { detectDomain, loadPhotographerFromSubdomain, enforceSubdomainTenantAuth } from "./middleware/domain-routing";
 import { hashPassword, authenticateUser, generateToken } from "./services/auth";
 import { setAuthCookie, clearAuthCookies } from './cookie-auth';
+import { validatePortalSlug, normalizeSlug } from "./utils/slug-validation";
 import { sendEmail, fetchIncomingGmailMessage } from "./services/email";
 import { sendSms, renderSmsTemplate } from "./services/sms";
 import { generateDripCampaign, regenerateEmail } from "./services/openai";
@@ -1938,6 +1939,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Check portal slug uniqueness
+  app.get("/api/portal-slug/check", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      const slug = req.query.slug as string;
+      
+      if (!slug) {
+        return res.status(400).json({ error: 'Slug parameter is required' });
+      }
+      
+      // Normalize and validate the slug
+      const normalized = normalizeSlug(slug);
+      const validation = validatePortalSlug(normalized);
+      
+      if (!validation.valid) {
+        return res.status(400).json({ error: validation.error });
+      }
+      
+      // Check if a photographer already uses this slug
+      const existingPhotographer = await storage.getPhotographerByPortalSlug(normalized);
+      
+      // If no one uses it, or if the current photographer owns it, it's available
+      const available = !existingPhotographer || existingPhotographer.id === req.user!.photographerId;
+      
+      res.json({ available });
+    } catch (error) {
+      console.error('Slug check error:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+
   // Onboarding routes (alias for /api/photographer endpoints)
   app.get("/api/photographers/me", authenticateToken, requirePhotographer, async (req, res) => {
     try {
@@ -2512,14 +2543,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Send email and SMS with login link
       const photographer = await storage.getPhotographer(contact.photographerId);
       
-      // Get base URL - use REPLIT_DOMAINS for production, FRONTEND_URL for custom domains, localhost for dev
+      // DUAL-DOMAIN: Priority order for base URL
+      // 1. Custom domain (FRONTEND_URL) - highest priority if configured
+      // 2. Photographer's custom subdomain if no custom domain
+      // 3. Primary Replit domain as fallback
+      // 4. Localhost for development
       let baseUrl = 'http://localhost:5000';
-      if (process.env.REPLIT_DOMAINS) {
-        // Use the first domain from REPLIT_DOMAINS
+      
+      if (process.env.FRONTEND_URL) {
+        // Prefer custom domain when configured (e.g., custom apex domain)
+        baseUrl = process.env.FRONTEND_URL;
+      } else if (photographer?.portalSlug) {
+        // Use custom-branded subdomain for client portal
+        baseUrl = `https://${photographer.portalSlug}.tpcportal.co`;
+      } else if (process.env.REPLIT_DOMAINS) {
+        // Fallback to primary domain
         const domains = process.env.REPLIT_DOMAINS.split(',');
         baseUrl = `https://${domains[0]}`;
-      } else if (process.env.FRONTEND_URL) {
-        baseUrl = process.env.FRONTEND_URL;
       }
       
       const loginUrl = `${baseUrl}/client-portal?token=${token}`;
