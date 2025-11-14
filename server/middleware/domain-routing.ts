@@ -25,8 +25,8 @@ export function detectDomain(req: Request, res: Response, next: NextFunction) {
   
   console.log('🌐 Domain detection:', hostname);
   
-  // Check if it's a dev/replit domain
-  if (DEV_DOMAIN_PATTERN.test(hostname)) {
+  // Check if it's a dev/replit domain or localhost
+  if (DEV_DOMAIN_PATTERN.test(hostname) || hostname === 'localhost' || hostname === '127.0.0.1') {
     req.domain = {
       type: 'dev'
     };
