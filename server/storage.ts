@@ -1247,7 +1247,7 @@ export class DatabaseStorage implements IStorage {
 
   async getClientHistory(clientId: string): Promise<TimelineEvent[]> {
     // Parallelize all queries for better performance
-    const [activityLogs, emailLogEntries, smsLogEntries, messageHistory] = await Promise.all([
+    const [activityLogs, emailLogEntries, smsLogEntries] = await Promise.all([
       // Get activity log entries for all projects belonging to this client
       db.select({
         id: projectActivityLog.id,
@@ -1303,11 +1303,7 @@ export class DatabaseStorage implements IStorage {
         .leftJoin(automationSteps, eq(smsLogs.automationStepId, automationSteps.id))
         .leftJoin(templates, eq(automationSteps.templateId, templates.id))
         .leftJoin(automations, eq(automationSteps.automationId, automations.id))
-        .where(eq(smsLogs.clientId, clientId)),
-      
-      // Get messages for this client
-      db.select().from(messages)
-        .where(eq(messages.clientId, clientId))
+        .where(eq(smsLogs.clientId, clientId))
     ]);
 
     // Combine all history into unified timeline with proper typing
@@ -1382,16 +1378,7 @@ export class DatabaseStorage implements IStorage {
           templatePreview,
           automationName: sms.automationName || undefined
         };
-      }),
-      ...messageHistory.map(message => ({
-        type: 'message' as const,
-        id: message.id,
-        title: message.sentByPhotographer ? 'Message sent to client' : 'Message received from client',
-        description: message.content,
-        channel: message.channel,
-        sentByPhotographer: message.sentByPhotographer,
-        createdAt: message.createdAt || new Date()
-      }))
+      })
     ];
 
     // Global sort by createdAt descending (most recent first)
