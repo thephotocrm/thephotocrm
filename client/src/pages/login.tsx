@@ -6,15 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Camera, Eye, EyeOff, Mail } from "lucide-react";
+import { Camera, Eye, EyeOff, Mail, Sparkles } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import weddingPhoto from "@assets/stock_images/professional_wedding_67201dd8.jpg";
-import bridePhoto from "@assets/stock_images/elegant_bride_portra_230e6331.jpg";
-import couplePhoto from "@assets/stock_images/romantic_couple_wedd_59a9d3f2.jpg";
-import celebrationPhoto from "@assets/stock_images/wedding_celebration__be8a7c2c.jpg";
-import groomPhoto from "@assets/stock_images/groom_portrait_weddi_fd40303a.jpg";
 
 export default function Login() {
   const [, setLocation] = useLocation();
@@ -101,37 +97,47 @@ export default function Login() {
     }
   };
 
+  // Get photographer brand colors with fallbacks
+  const brandPrimary = domain?.photographer?.brandPrimary || '#3b82f6';
+  const brandSecondary = domain?.photographer?.brandSecondary || '#8b5cf6';
+
   return (
     <>
       {/* Mobile View - Full Screen */}
-      <div className="md:hidden w-full flex flex-col" style={{ backgroundColor: '#F5F1E8', minHeight: '100dvh' }}>
+      <div className="md:hidden w-full flex flex-col" style={{ 
+        backgroundColor: isClientPortal ? '#ffffff' : '#F5F1E8', 
+        minHeight: '100dvh' 
+      }}>
         {/* Main Content */}
         <div className="flex-1 px-6 flex flex-col justify-between pb-8 pt-16">
           <div>
             {/* Photographer Branding - Client Portal Only */}
             {isClientPortal && domain?.photographer && (
-              <div className="text-center mb-8">
+              <div className="text-center mb-10">
                 {domain.photographer.logoUrl && (
-                  <div className="mb-4 flex justify-center">
+                  <div className="mb-6 flex justify-center">
                     <img 
                       src={domain.photographer.logoUrl} 
                       alt={domain.photographer.businessName}
-                      className="h-16 w-auto object-contain"
+                      className="h-20 w-auto object-contain"
                       data-testid="img-photographer-logo"
                     />
                   </div>
                 )}
-                <h2 className="text-xl font-semibold text-gray-800 mb-1" data-testid="text-photographer-name">
+                <h2 className="text-2xl font-semibold mb-1" style={{ color: brandPrimary }} data-testid="text-photographer-name">
                   {domain.photographer.businessName}
                 </h2>
-                <p className="text-sm text-gray-600">Client Portal</p>
+                <p className="text-sm text-gray-500">Client Portal</p>
+                <div className="mt-4 w-16 h-0.5 mx-auto" style={{ backgroundColor: brandSecondary, opacity: 0.3 }} />
               </div>
             )}
             
             {/* Heading */}
             <div className="text-center mb-8">
-              <h1 className="text-3xl font-bold mb-1">Welcome back</h1>
-              <p className="text-lg font-medium">
+              <h1 className="text-3xl font-bold mb-1" style={{ color: isClientPortal ? '#111827' : undefined }}>
+                Welcome back
+              </h1>
+              <p className="text-lg font-medium text-gray-600">
                 {isClientPortal ? "Sign in to your client portal" : "to thePhotoCrm"}
               </p>
             </div>
@@ -139,7 +145,7 @@ export default function Login() {
             {/* Form */}
             <form onSubmit={handleSubmit} className="space-y-5 max-w-md mx-auto">
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-xs text-gray-600 font-normal">
+                <Label htmlFor="email" className="text-sm text-gray-700 font-medium">
                   Email
                 </Label>
                 <div className="relative">
@@ -148,9 +154,15 @@ export default function Login() {
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="example@email.com"
+                    placeholder="your@email.com"
                     required
-                    className="bg-gray-50 border-gray-200 h-14 rounded-2xl pl-4 pr-12"
+                    className={isClientPortal 
+                      ? "bg-white border-gray-300 h-12 rounded-lg pl-4 pr-12 focus:ring-2 transition-all"
+                      : "bg-gray-50 border-gray-200 h-14 rounded-2xl pl-4 pr-12"
+                    }
+                    style={isClientPortal ? { 
+                      focusVisible: { ringColor: brandSecondary, borderColor: brandSecondary }
+                    } : undefined}
                     data-testid="input-email"
                   />
                   <Mail className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -158,7 +170,7 @@ export default function Login() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password" className="text-xs text-gray-600 font-normal">
+                <Label htmlFor="password" className="text-sm text-gray-700 font-medium">
                   Password
                 </Label>
                 <div className="relative">
@@ -167,15 +179,18 @@ export default function Login() {
                     type={showPassword ? "text" : "password"}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••"
+                    placeholder="••••••••"
                     required
-                    className="bg-gray-50 border-gray-200 h-14 rounded-2xl pl-4 pr-12"
+                    className={isClientPortal 
+                      ? "bg-white border-gray-300 h-12 rounded-lg pl-4 pr-12 focus:ring-2 transition-all"
+                      : "bg-gray-50 border-gray-200 h-14 rounded-2xl pl-4 pr-12"
+                    }
                     data-testid="input-password"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500"
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
                     data-testid="button-toggle-password"
                   >
                     {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
@@ -185,7 +200,8 @@ export default function Login() {
                   <button
                     type="button"
                     onClick={() => setLocation("/forgot-password")}
-                    className="text-xs text-gray-600 hover:text-gray-900"
+                    className="text-sm hover:underline transition-colors"
+                    style={{ color: isClientPortal ? brandSecondary : undefined }}
                     data-testid="link-forgot-password"
                   >
                     Forgot password?
@@ -195,11 +211,15 @@ export default function Login() {
 
               <Button
                 type="submit"
-                className="w-full h-14 rounded-2xl text-white font-semibold text-base bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 hover:opacity-90 transition-opacity mt-6"
+                className={isClientPortal 
+                  ? "w-full h-12 rounded-lg text-white font-semibold text-base hover:opacity-90 transition-opacity mt-6"
+                  : "w-full h-14 rounded-2xl text-white font-semibold text-base bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 hover:opacity-90 transition-opacity mt-6"
+                }
+                style={isClientPortal ? { backgroundColor: brandPrimary } : undefined}
                 disabled={loading}
                 data-testid="button-login"
               >
-                {loading ? "SIGNING IN..." : "LOGIN"}
+                {loading ? "Signing in..." : "Sign in"}
               </Button>
             </form>
 
@@ -235,22 +255,28 @@ export default function Login() {
             {/* Magic Link Option - Client Portal Only */}
             {isClientPortal && (
               <div className="mt-5 max-w-md mx-auto">
-                <div className="relative my-5">
+                <div className="relative my-6">
                   <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-gray-300"></div>
+                    <div className="w-full border-t border-gray-200"></div>
                   </div>
                   <div className="relative flex justify-center text-sm">
-                    <span className="px-4 bg-[#F5F1E8] text-gray-500">Or</span>
+                    <span className="px-4 bg-white text-gray-500">Or</span>
                   </div>
                 </div>
                 
                 <Button
                   type="button"
                   variant="outline"
-                  className="w-full h-14 rounded-2xl border-2 border-blue-600 text-blue-600 hover:bg-blue-50 font-semibold"
+                  className="w-full h-12 rounded-lg font-semibold hover:bg-gray-50 transition-colors"
+                  style={{ 
+                    borderColor: brandSecondary, 
+                    color: brandPrimary,
+                    borderWidth: '2px'
+                  }}
                   data-testid="button-request-magic-link"
                   onClick={() => setMagicLinkModalOpen(true)}
                 >
+                  <Mail className="w-4 h-4 mr-2" />
                   Email me a login link
                 </Button>
               </div>
@@ -281,29 +307,34 @@ export default function Login() {
       </div>
 
       {/* Desktop View - Split Screen */}
-      <div className="hidden md:flex min-h-screen w-full items-center justify-center p-4 md:p-8" style={{ backgroundColor: '#9CA3AF' }}>
+      <div className="hidden md:flex min-h-screen w-full items-center justify-center p-4 md:p-8" style={{ 
+        backgroundColor: isClientPortal ? '#f3f4f6' : '#9CA3AF' 
+      }}>
         {/* Main Container with rounded corners and shadow */}
         <div className="w-full max-w-6xl bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row min-h-[600px]">
           
           {/* Left Side - Login Form */}
-          <div className="w-full md:w-2/5 p-8 md:p-12 flex flex-col" style={{ backgroundColor: '#F5F1E8' }}>
+          <div className="w-full md:w-2/5 p-8 md:p-12 flex flex-col" style={{ 
+            backgroundColor: isClientPortal ? '#ffffff' : '#F5F1E8' 
+          }}>
             {/* Photographer Branding - Client Portal Only */}
             {isClientPortal && domain?.photographer ? (
-              <div className="mb-8">
+              <div className="text-center mb-12">
                 {domain.photographer.logoUrl && (
-                  <div className="mb-4">
+                  <div className="mb-6 flex justify-center">
                     <img 
                       src={domain.photographer.logoUrl} 
                       alt={domain.photographer.businessName}
-                      className="h-16 w-auto object-contain"
+                      className="h-20 w-auto object-contain"
                       data-testid="img-photographer-logo-desktop"
                     />
                   </div>
                 )}
-                <h2 className="text-xl font-semibold text-gray-800 mb-1" data-testid="text-photographer-name-desktop">
+                <h2 className="text-2xl font-semibold mb-1" style={{ color: brandPrimary }} data-testid="text-photographer-name-desktop">
                   {domain.photographer.businessName}
                 </h2>
-                <p className="text-sm text-gray-600">Client Portal</p>
+                <p className="text-sm text-gray-500">Client Portal</p>
+                <div className="mt-4 w-16 h-0.5 mx-auto" style={{ backgroundColor: brandSecondary, opacity: 0.3 }} />
               </div>
             ) : !isClientPortal && (
               /* Logo - Only show for photographer domain */
@@ -317,15 +348,17 @@ export default function Login() {
             )}
 
             {/* Form Content */}
-            <div className="flex-1 flex flex-col justify-center max-w-sm">
-              <div className="mb-8">
-                <h1 className="text-3xl md:text-4xl font-bold mb-2">Welcome back</h1>
+            <div className="flex-1 flex flex-col justify-center max-w-sm mx-auto w-full">
+              <div className="mb-8 text-center">
+                <h1 className="text-3xl md:text-4xl font-bold mb-2" style={{ color: isClientPortal ? '#111827' : undefined }}>
+                  Welcome back
+                </h1>
                 <p className="text-gray-600">
                   {isClientPortal ? "Sign in to your client portal" : "Sign in to your account"}
                 </p>
               </div>
 
-              <form onSubmit={handleSubmit} className="space-y-6">
+              <form onSubmit={handleSubmit} className="space-y-5">
                 <div className="space-y-2">
                   <Label htmlFor="email-desktop" className="text-sm font-medium text-gray-700">
                     Email
@@ -335,9 +368,12 @@ export default function Login() {
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="your.email@example.com"
+                    placeholder="your@email.com"
                     required
-                    className="bg-white border-gray-300 h-12 rounded-xl"
+                    className={isClientPortal 
+                      ? "bg-white border-gray-300 h-12 rounded-lg focus:ring-2 transition-all"
+                      : "bg-white border-gray-300 h-12 rounded-xl"
+                    }
                     data-testid="input-email-desktop"
                   />
                 </div>
@@ -354,7 +390,10 @@ export default function Login() {
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="••••••••••••••••"
                       required
-                      className="bg-white border-gray-300 h-12 rounded-xl pr-12"
+                      className={isClientPortal 
+                        ? "bg-white border-gray-300 h-12 rounded-lg pr-12 focus:ring-2 transition-all"
+                        : "bg-white border-gray-300 h-12 rounded-xl pr-12"
+                      }
                       data-testid="input-password-desktop"
                     />
                     <button
@@ -370,7 +409,8 @@ export default function Login() {
                     <button
                       type="button"
                       onClick={() => setLocation("/forgot-password")}
-                      className="text-sm text-gray-600 hover:text-gray-900"
+                      className="text-sm hover:underline transition-colors"
+                      style={{ color: isClientPortal ? brandSecondary : undefined }}
                       data-testid="link-forgot-password-desktop"
                     >
                       Forgot password?
@@ -380,7 +420,11 @@ export default function Login() {
 
                 <Button
                   type="submit"
-                  className="w-full h-12 rounded-xl text-white font-semibold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 hover:opacity-90 transition-opacity"
+                  className={isClientPortal 
+                    ? "w-full h-12 rounded-lg text-white font-semibold hover:opacity-90 transition-opacity"
+                    : "w-full h-12 rounded-xl text-white font-semibold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 hover:opacity-90 transition-opacity"
+                  }
+                  style={isClientPortal ? { backgroundColor: brandPrimary } : undefined}
                   disabled={loading}
                   data-testid="button-login-desktop"
                 >
@@ -436,20 +480,26 @@ export default function Login() {
                 <div className="mt-6">
                   <div className="relative my-6">
                     <div className="absolute inset-0 flex items-center">
-                      <div className="w-full border-t border-gray-300"></div>
+                      <div className="w-full border-t border-gray-200"></div>
                     </div>
                     <div className="relative flex justify-center text-sm">
-                      <span className="px-4 bg-[#F5F1E8] text-gray-500">Or</span>
+                      <span className="px-4 bg-white text-gray-500">Or</span>
                     </div>
                   </div>
                   
                   <Button
                     type="button"
                     variant="outline"
-                    className="w-full h-12 rounded-xl border-2 border-blue-600 text-blue-600 hover:bg-blue-50 font-semibold"
+                    className="w-full h-12 rounded-lg font-semibold hover:bg-gray-50 transition-colors"
+                    style={{ 
+                      borderColor: brandSecondary, 
+                      color: brandPrimary,
+                      borderWidth: '2px'
+                    }}
                     data-testid="button-request-magic-link-desktop"
                     onClick={() => setMagicLinkModalOpen(true)}
                   >
+                    <Mail className="w-4 h-4 mr-2" />
                     Email me a login link
                   </Button>
                 </div>
@@ -457,30 +507,64 @@ export default function Login() {
             </div>
 
             {/* Footer Links */}
-            <div className="mt-auto pt-8 flex justify-center gap-6 text-xs text-gray-500">
-              <button className="hover:text-gray-700 underline">Terms & Conditions</button>
-            </div>
+            {isClientPortal && (
+              <div className="mt-auto pt-8 text-center text-xs text-gray-400">
+                Powered by thePhotoCrm
+              </div>
+            )}
+            {!isClientPortal && (
+              <div className="mt-auto pt-8 flex justify-center gap-6 text-xs text-gray-500">
+                <button className="hover:text-gray-700 underline">Terms & Conditions</button>
+              </div>
+            )}
           </div>
 
-          {/* Right Side - Photography Background */}
-          <div className="hidden md:block md:w-3/5 relative overflow-hidden">
-            {/* Background Image */}
-            <div 
-              className="absolute inset-0 bg-cover bg-center"
-              style={{ 
-                backgroundImage: `url(${weddingPhoto})`,
-              }}
-            />
-            
-            {/* Gradient Overlay for better contrast */}
-            <div className="absolute inset-0 bg-gradient-to-br from-black/20 via-transparent to-black/30" />
-            
-            {/* Floating Mockup Elements - Similar to reference */}
-            <div className="absolute inset-0 flex items-center justify-center p-12">
-              {/* You can add floating UI mockups here similar to the reference image */}
-              {/* For now, keeping it clean with just the photo */}
+          {/* Right Side - Photography Background (only for client portal) */}
+          {isClientPortal && (
+            <div className="hidden md:block md:w-3/5 relative overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100">
+              {/* Background Image with overlay */}
+              <div 
+                className="absolute inset-0 bg-cover bg-center opacity-40"
+                style={{ 
+                  backgroundImage: `url(${weddingPhoto})`,
+                }}
+              />
+              
+              {/* Gradient Overlay */}
+              <div className="absolute inset-0" style={{
+                background: `linear-gradient(135deg, ${brandPrimary}15 0%, ${brandSecondary}10 100%)`
+              }} />
+              
+              {/* Centered Branding Message */}
+              <div className="absolute inset-0 flex items-center justify-center p-12">
+                <div className="text-center max-w-md">
+                  <Sparkles className="w-16 h-16 mx-auto mb-6" style={{ color: brandPrimary, opacity: 0.8 }} />
+                  <h3 className="text-3xl font-bold mb-4" style={{ color: brandPrimary }}>
+                    Your photos await
+                  </h3>
+                  <p className="text-lg text-gray-600">
+                    Access your galleries, contracts, and project details all in one place
+                  </p>
+                </div>
+              </div>
             </div>
-          </div>
+          )}
+          
+          {/* Right Side - Photography Background (only for photographer login) */}
+          {!isClientPortal && (
+            <div className="hidden md:block md:w-3/5 relative overflow-hidden">
+              {/* Background Image */}
+              <div 
+                className="absolute inset-0 bg-cover bg-center"
+                style={{ 
+                  backgroundImage: `url(${weddingPhoto})`,
+                }}
+              />
+              
+              {/* Gradient Overlay for better contrast */}
+              <div className="absolute inset-0 bg-gradient-to-br from-black/20 via-transparent to-black/30" />
+            </div>
+          )}
         </div>
       </div>
 
