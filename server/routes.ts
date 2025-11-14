@@ -1326,9 +1326,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Request magic link for client portal login
   app.post("/api/client-portal/request-magic-link", async (req, res) => {
+    console.log("🔗 Magic link request received");
+    console.log("  → Domain:", req.get('host'));
+    console.log("  → Email:", req.body.email);
+    
     try {
       // Validate domain context
       if (!req.domain || req.domain.type !== 'client_portal' || !req.domain.photographerSlug) {
+        console.log("  ❌ Invalid domain context");
         return res.status(400).json({ message: "This endpoint is only available on client portal subdomains" });
       }
 
@@ -1336,6 +1341,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const bodySchema = z.object({ email: z.string().email() });
       const validation = bodySchema.safeParse(req.body);
       if (!validation.success) {
+        console.log("  ❌ Invalid email format");
         return res.status(400).json({ message: "Invalid email address" });
       }
 
@@ -1343,8 +1349,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const photographerId = req.photographerFromSubdomain?.id;
 
       if (!photographerId) {
+        console.log("  ❌ No photographer ID from subdomain");
         return res.status(400).json({ message: "Invalid photographer context" });
       }
+      
+      console.log("  → Photographer ID:", photographerId);
 
       // Rate limiting
       const rateLimitKey = `${photographerId}:${email.toLowerCase()}`;
@@ -1369,23 +1378,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Generic success response to prevent email enumeration
       if (!contact) {
-        console.log(`Magic link request for non-existent email: ${email} (photographer: ${photographerId})`);
+        console.log(`  ℹ️  No contact found for email (anti-enumeration response): ${email}`);
         return res.json({ success: true });
       }
 
+      console.log("  → Found contact:", contact.id);
+
       // Create magic link token
       const portalToken = await storage.createMagicLinkToken(contact.id, photographerId);
+      console.log("  → Created magic link token:", portalToken.token.substring(0, 10) + "...");
 
       // Generate login URL
       const protocol = getOAuthProtocol(req);
       const host = req.get('host');
       const loginUrl = `${protocol}://${host}/api/portal/${portalToken.token}`;
+      console.log("  → Login URL:", loginUrl);
 
       // Get photographer details
       const photographer = await storage.getPhotographer(photographerId);
       if (!photographer) {
+        console.log("  ❌ Photographer not found");
         return res.status(500).json({ message: "Photographer not found" });
       }
+
+      console.log("  → Photographer:", photographer.businessName);
 
       // Render email template
       const emailContent = renderMagicLinkEmail({
@@ -1401,8 +1417,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         loginUrl
       });
 
+      console.log("  → Email template rendered");
+      console.log("  → Attempting to send email to:", contact.email);
+
       // Send email
-      await sendEmail({
+      const emailResult = await sendEmail({
         to: contact.email,
         subject: emailContent.subject,
         text: emailContent.text,
@@ -1412,11 +1431,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         source: 'MANUAL'
       });
 
-      console.log(`✅ Magic link sent to ${email} for photographer ${photographerId}`);
+      // Check if email was actually sent
+      if (!emailResult.success) {
+        console.error(`❌ Failed to send magic link email: ${emailResult.error}`);
+        console.error("  → This usually means email service is not configured");
+        console.error("  → Configure Gmail OAuth or add SENDGRID_API_KEY to environment");
+        // Still return success to prevent email enumeration, but log the issue
+      } else {
+        console.log(`✅ Magic link email sent successfully to ${email}`);
+      }
 
       res.json({ success: true });
     } catch (error) {
-      console.error("Magic link request error:", error);
+      console.error("❌ Magic link request error:", error);
+      console.error("  → Error stack:", error instanceof Error ? error.stack : 'No stack trace');
       // Return success even on error to prevent enumeration
       res.json({ success: true });
     }
