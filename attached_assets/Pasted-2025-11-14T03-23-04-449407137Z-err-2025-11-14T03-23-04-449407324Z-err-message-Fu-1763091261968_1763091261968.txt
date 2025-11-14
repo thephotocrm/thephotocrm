@@ -1,0 +1,1001 @@
+2025-11-14T03:23:04.449407137Z [err]    },
+2025-11-14T03:23:04.449407324Z [err]        message: [Function],
+2025-11-14T03:23:04.449407595Z [err]      _bufferedAmount: 0,
+2025-11-14T03:23:04.449415987Z [err]      _isServer: false,
+2025-11-14T03:23:04.449418166Z [err]        close: [Function],
+2025-11-14T03:23:04.449418844Z [err]    [Symbol(kMessage)]: ''
+2025-11-14T03:23:04.449427574Z [err]      _redirects: 0,
+2025-11-14T03:23:04.449427907Z [err]        open: [Function]
+2025-11-14T03:23:04.449429267Z [err]  }
+2025-11-14T03:23:04.449436691Z [err]      },
+2025-11-14T03:23:04.449438368Z [err]      _autoPong: true,
+2025-11-14T03:23:04.449444989Z [err]      _url: 'wss://postgres.railway.internal/v2',
+2025-11-14T03:23:04.449445725Z [err]      _eventsCount: 4,
+2025-11-14T03:23:04.449452760Z [err]      _req: null,
+2025-11-14T03:23:04.449455799Z [err]      _maxListeners: undefined,
+2025-11-14T03:23:04.449460152Z [err]      [Symbol(shapeMode)]: false,
+2025-11-14T03:23:04.449464508Z [err]      _binaryType: 'arraybuffer',
+2025-11-14T03:23:04.449471519Z [err]      _closeCode: 1006,
+2025-11-14T03:23:04.449478655Z [err]      _closeFrameReceived: false,
+2025-11-14T03:23:04.449484645Z [err]      _closeFrameSent: false,
+2025-11-14T03:23:04.449490553Z [err]      _closeMessage: <Buffer >,
+2025-11-14T03:23:04.449496270Z [err]      _closeTimer: null,
+2025-11-14T03:23:04.449503301Z [err]      _errorEmitted: true,
+2025-11-14T03:24:06.456974742Z [err]      _readyState: 3,
+2025-11-14T03:24:06.456994738Z [err]      _receiver: null,
+2025-11-14T03:24:06.457005123Z [err]      _sender: null,
+2025-11-14T03:24:06.457014688Z [err]      _socket: null,
+2025-11-14T03:24:06.457025564Z [err]      _bufferedAmount: 0,
+2025-11-14T03:24:06.457037175Z [err]      _isServer: false,
+2025-11-14T03:24:06.457048847Z [err]  Cron job error: ErrorEvent {
+2025-11-14T03:24:06.457050030Z [err]      _redirects: 0,
+2025-11-14T03:24:06.457057373Z [err]    [Symbol(kTarget)]: WebSocket {
+2025-11-14T03:24:06.457065618Z [err]      _autoPong: true,
+2025-11-14T03:24:06.457067011Z [err]      _events: [Object: null prototype] {
+2025-11-14T03:24:06.457074571Z [err]        error: [Function],
+2025-11-14T03:24:06.457081714Z [err]      _url: 'wss://postgres.railway.internal/v2',
+2025-11-14T03:24:06.457083049Z [err]        message: [Function],
+2025-11-14T03:24:06.457091668Z [err]        close: [Function],
+2025-11-14T03:24:06.457097891Z [err]      _req: null,
+2025-11-14T03:24:06.457101510Z [err]        open: [Function]
+2025-11-14T03:24:06.457108232Z [err]      },
+2025-11-14T03:24:06.457114413Z [err]      _eventsCount: 4,
+2025-11-14T03:24:06.457119510Z [err]      _maxListeners: undefined,
+2025-11-14T03:24:06.457125085Z [err]      _binaryType: 'arraybuffer',
+2025-11-14T03:24:06.457131583Z [err]      _closeCode: 1006,
+2025-11-14T03:24:06.457137700Z [err]      _closeFrameReceived: false,
+2025-11-14T03:24:06.457143841Z [err]      _closeFrameSent: false,
+2025-11-14T03:24:06.457148735Z [err]      _closeMessage: <Buffer >,
+2025-11-14T03:24:06.457153627Z [err]      _closeTimer: null,
+2025-11-14T03:24:06.457159965Z [err]      _errorEmitted: true,
+2025-11-14T03:24:06.457166122Z [err]      _extensions: {},
+2025-11-14T03:24:06.457172740Z [err]      _paused: false,
+2025-11-14T03:24:06.457180178Z [err]      _protocol: '',
+2025-11-14T03:24:06.463044857Z [err]      [Symbol(shapeMode)]: false,
+2025-11-14T03:24:06.463062985Z [err]      [Symbol(kCapture)]: false
+2025-11-14T03:24:06.463071889Z [err]    },
+2025-11-14T03:24:06.463079768Z [err]    [Symbol(kType)]: 'error',
+2025-11-14T03:24:06.463086692Z [err]    [Symbol(kError)]: AggregateError [ECONNREFUSED]: 
+2025-11-14T03:24:06.463093766Z [err]        at internalConnectMultiple (node:net:1134:18)
+2025-11-14T03:24:06.463102579Z [err]        at afterConnectMultiple (node:net:1715:7) {
+2025-11-14T03:24:06.463108022Z [err]      code: 'ECONNREFUSED',
+2025-11-14T03:24:06.463114155Z [err]      [errors]: [ [Error], [Error] ]
+2025-11-14T03:24:06.463120506Z [err]    },
+2025-11-14T03:24:06.463127208Z [err]    [Symbol(kMessage)]: ''
+2025-11-14T03:24:06.463136133Z [err]  }
+2025-11-14T03:24:06.463143252Z [err]  Cron job error: ErrorEvent {
+2025-11-14T03:24:06.463150588Z [err]    [Symbol(kTarget)]: WebSocket {
+2025-11-14T03:24:06.463158676Z [err]      _events: [Object: null prototype] {
+2025-11-14T03:24:06.463166257Z [err]        error: [Function],
+2025-11-14T03:24:06.463174039Z [err]        message: [Function],
+2025-11-14T03:24:06.463181811Z [err]        close: [Function],
+2025-11-14T03:24:06.463188318Z [err]        open: [Function]
+2025-11-14T03:24:06.463195158Z [err]      },
+2025-11-14T03:24:06.463200668Z [err]      _eventsCount: 4,
+2025-11-14T03:24:06.463205612Z [err]      _maxListeners: undefined,
+2025-11-14T03:24:06.463210106Z [err]      _binaryType: 'arraybuffer',
+2025-11-14T03:24:06.463216233Z [err]      _closeCode: 1006,
+2025-11-14T03:24:06.463222097Z [err]      _closeFrameReceived: false,
+2025-11-14T03:24:06.463227840Z [err]      _closeFrameSent: false,
+2025-11-14T03:24:06.463232615Z [err]      _closeMessage: <Buffer >,
+2025-11-14T03:24:06.463237651Z [err]      _closeTimer: null,
+2025-11-14T03:24:06.463243707Z [err]      _errorEmitted: true,
+2025-11-14T03:24:06.463250248Z [err]      _extensions: {},
+2025-11-14T03:24:06.463257165Z [err]      _paused: false,
+2025-11-14T03:24:06.463262728Z [err]      _protocol: '',
+2025-11-14T03:24:06.463267901Z [err]      _readyState: 3,
+2025-11-14T03:24:06.463274173Z [err]      _receiver: null,
+2025-11-14T03:24:06.463279770Z [err]      _sender: null,
+2025-11-14T03:24:06.463284985Z [err]      _socket: null,
+2025-11-14T03:24:06.463291743Z [err]      _bufferedAmount: 0,
+2025-11-14T03:24:06.463297841Z [err]      _isServer: false,
+2025-11-14T03:24:06.463304466Z [err]      _redirects: 0,
+2025-11-14T03:24:06.463310647Z [err]      _autoPong: true,
+2025-11-14T03:24:06.463317522Z [err]      _url: 'wss://postgres.railway.internal/v2',
+2025-11-14T03:24:06.463322868Z [err]      _req: null,
+2025-11-14T03:24:06.463327676Z [err]      [Symbol(shapeMode)]: false,
+2025-11-14T03:24:06.463334327Z [err]      [Symbol(kCapture)]: false
+2025-11-14T03:24:06.463340287Z [err]    },
+2025-11-14T03:24:06.463345648Z [err]    [Symbol(kType)]: 'error',
+2025-11-14T03:24:06.463351214Z [err]    [Symbol(kError)]: AggregateError [ECONNREFUSED]: 
+2025-11-14T03:24:06.463356709Z [err]        at internalConnectMultiple (node:net:1134:18)
+2025-11-14T03:24:06.463361747Z [err]        at afterConnectMultiple (node:net:1715:7) {
+2025-11-14T03:24:06.463368191Z [err]      code: 'ECONNREFUSED',
+2025-11-14T03:24:06.463373730Z [err]      [errors]: [ [Error], [Error] ]
+2025-11-14T03:24:06.463379553Z [err]    },
+2025-11-14T03:24:06.463385286Z [err]    [Symbol(kMessage)]: ''
+2025-11-14T03:24:06.463391265Z [err]  }
+2025-11-14T03:25:08.516936732Z [err]      _eventsCount: 4,
+2025-11-14T03:25:08.516952881Z [err]  Cron job error: ErrorEvent {
+2025-11-14T03:25:08.516957168Z [err]      _maxListeners: undefined,
+2025-11-14T03:25:08.516966487Z [err]    [Symbol(kTarget)]: WebSocket {
+2025-11-14T03:25:08.516971918Z [err]      _binaryType: 'arraybuffer',
+2025-11-14T03:25:08.516980290Z [err]      _events: [Object: null prototype] {
+2025-11-14T03:25:08.516980871Z [err]      _closeFrameSent: false,
+2025-11-14T03:25:08.516988103Z [err]      _closeCode: 1006,
+2025-11-14T03:25:08.516993321Z [err]        error: [Function],
+2025-11-14T03:25:08.517003941Z [err]      _closeFrameReceived: false,
+2025-11-14T03:25:08.517006389Z [err]        message: [Function],
+2025-11-14T03:25:08.517006458Z [err]      _closeMessage: <Buffer >,
+2025-11-14T03:25:08.517018064Z [err]        close: [Function],
+2025-11-14T03:25:08.517020829Z [err]      _closeTimer: null,
+2025-11-14T03:25:08.517028575Z [err]        open: [Function]
+2025-11-14T03:25:08.517031749Z [err]      _errorEmitted: true,
+2025-11-14T03:25:08.517038877Z [err]      },
+2025-11-14T03:25:08.517040740Z [err]      _extensions: {},
+2025-11-14T03:25:08.517048379Z [err]      _paused: false,
+2025-11-14T03:25:08.517056954Z [err]      _protocol: '',
+2025-11-14T03:25:08.517063922Z [err]      _readyState: 3,
+2025-11-14T03:25:08.517070972Z [err]      _receiver: null,
+2025-11-14T03:25:08.517078888Z [err]      _sender: null,
+2025-11-14T03:25:08.517088509Z [err]      _socket: null,
+2025-11-14T03:25:08.517094618Z [err]      _bufferedAmount: 0,
+2025-11-14T03:25:08.517101816Z [err]      _isServer: false,
+2025-11-14T03:25:08.517108925Z [err]      _redirects: 0,
+2025-11-14T03:25:08.517116755Z [err]      _autoPong: true,
+2025-11-14T03:25:08.517123680Z [err]      _url: 'wss://postgres.railway.internal/v2',
+2025-11-14T03:25:08.517130887Z [err]      _req: null,
+2025-11-14T03:25:08.522091077Z [err]      [Symbol(shapeMode)]: false,
+2025-11-14T03:25:08.522099555Z [err]      [Symbol(kCapture)]: false
+2025-11-14T03:25:08.522107944Z [err]    },
+2025-11-14T03:25:08.522116275Z [err]    [Symbol(kType)]: 'error',
+2025-11-14T03:25:08.522125426Z [err]    [Symbol(kError)]: AggregateError [ECONNREFUSED]: 
+2025-11-14T03:25:08.522134119Z [err]        at internalConnectMultiple (node:net:1134:18)
+2025-11-14T03:25:08.522141503Z [err]        at afterConnectMultiple (node:net:1715:7) {
+2025-11-14T03:25:08.522149542Z [err]      code: 'ECONNREFUSED',
+2025-11-14T03:25:08.522156500Z [err]      [errors]: [ [Error], [Error] ]
+2025-11-14T03:25:08.522165666Z [err]    },
+2025-11-14T03:25:08.522173770Z [err]    [Symbol(kMessage)]: ''
+2025-11-14T03:25:08.522180289Z [err]  }
+2025-11-14T03:25:08.522187736Z [err]  Cron job error: ErrorEvent {
+2025-11-14T03:25:08.522194829Z [err]    [Symbol(kTarget)]: WebSocket {
+2025-11-14T03:25:08.522202062Z [err]      _events: [Object: null prototype] {
+2025-11-14T03:25:08.522210577Z [err]        error: [Function],
+2025-11-14T03:25:08.522217246Z [err]        message: [Function],
+2025-11-14T03:25:08.522225109Z [err]        close: [Function],
+2025-11-14T03:25:08.522232508Z [err]        open: [Function]
+2025-11-14T03:25:08.522239267Z [err]      },
+2025-11-14T03:25:08.522247081Z [err]      _eventsCount: 4,
+2025-11-14T03:25:08.522254309Z [err]      _maxListeners: undefined,
+2025-11-14T03:25:08.522260992Z [err]      _binaryType: 'arraybuffer',
+2025-11-14T03:25:08.522268201Z [err]      _closeCode: 1006,
+2025-11-14T03:25:08.522275086Z [err]      _closeFrameReceived: false,
+2025-11-14T03:25:08.522281915Z [err]      _closeFrameSent: false,
+2025-11-14T03:25:08.522319688Z [err]      _closeMessage: <Buffer >,
+2025-11-14T03:25:08.522328917Z [err]      _closeTimer: null,
+2025-11-14T03:25:08.522340830Z [err]      _errorEmitted: true,
+2025-11-14T03:25:08.526166372Z [err]      _extensions: {},
+2025-11-14T03:25:08.526175517Z [err]      [errors]: [ [Error], [Error] ]
+2025-11-14T03:25:08.526181089Z [err]      _paused: false,
+2025-11-14T03:25:08.526190592Z [err]    },
+2025-11-14T03:25:08.526192611Z [err]      _protocol: '',
+2025-11-14T03:25:08.526200177Z [err]    [Symbol(kMessage)]: ''
+2025-11-14T03:25:08.526204203Z [err]      _readyState: 3,
+2025-11-14T03:25:08.526208893Z [err]  }
+2025-11-14T03:25:08.526213993Z [err]      _receiver: null,
+2025-11-14T03:25:08.526223710Z [err]      _sender: null,
+2025-11-14T03:25:08.526231091Z [err]      _isServer: false,
+2025-11-14T03:25:08.526233716Z [err]      _socket: null,
+2025-11-14T03:25:08.526241736Z [err]      _redirects: 0,
+2025-11-14T03:25:08.526250014Z [err]      _autoPong: true,
+2025-11-14T03:25:08.526252828Z [err]      _bufferedAmount: 0,
+2025-11-14T03:25:08.526258435Z [err]      _url: 'wss://postgres.railway.internal/v2',
+2025-11-14T03:25:08.526265474Z [err]      _req: null,
+2025-11-14T03:25:08.526274328Z [err]      [Symbol(shapeMode)]: false,
+2025-11-14T03:25:08.526282113Z [err]      [Symbol(kCapture)]: false
+2025-11-14T03:25:08.526289749Z [err]    },
+2025-11-14T03:25:08.526296714Z [err]    [Symbol(kType)]: 'error',
+2025-11-14T03:25:08.526305940Z [err]    [Symbol(kError)]: AggregateError [ECONNREFUSED]: 
+2025-11-14T03:25:08.526315301Z [err]        at internalConnectMultiple (node:net:1134:18)
+2025-11-14T03:25:08.526323202Z [err]        at afterConnectMultiple (node:net:1715:7) {
+2025-11-14T03:25:08.526332539Z [err]      code: 'ECONNREFUSED',
+2025-11-14T03:25:38.779512243Z [inf]  📥 INCOMING REQUEST: GET /assets/index-Df7YYNJ9.js
+2025-11-14T03:25:38.779514000Z [inf]    → Client portal base domain detected (no photographer slug)
+2025-11-14T03:25:38.779525452Z [inf]     Headers: undefined
+2025-11-14T03:25:38.779532738Z [inf]  === AUTHENTICATE TOKEN MIDDLEWARE ===
+2025-11-14T03:25:38.779534827Z [inf]  🌐 Domain detection: tpcportal.co
+2025-11-14T03:25:38.779544616Z [inf]  Request method: GET
+2025-11-14T03:25:38.779546035Z [inf]    → Client portal base domain detected (no photographer slug)
+2025-11-14T03:25:38.779550133Z [inf]  Cookie header: undefined
+2025-11-14T03:25:38.779556172Z [inf]  📥 INCOMING REQUEST: GET /assets/index-DBY5T6Fo.css
+2025-11-14T03:25:38.779565087Z [inf]  Has cookies object: true
+2025-11-14T03:25:38.779566782Z [inf]  Has Authorization header: false
+2025-11-14T03:25:38.779567426Z [inf]  Request URL: /api/auth/me
+2025-11-14T03:25:38.779576397Z [inf]  All cookies: {}
+2025-11-14T03:25:38.779576929Z [inf]  📥 INCOMING REQUEST: GET /
+2025-11-14T03:25:38.779585194Z [inf]     Headers: undefined
+2025-11-14T03:25:38.779590505Z [inf]  🌐 Domain detection: tpcportal.co
+2025-11-14T03:25:38.779595594Z [inf]    → Client portal base domain detected (no photographer slug)
+2025-11-14T03:25:38.779609876Z [inf]     Headers: undefined
+2025-11-14T03:25:38.779617798Z [inf]  🌐 Domain detection: tpcportal.co
+2025-11-14T03:25:38.779626283Z [inf]    → Client portal base domain detected (no photographer slug)
+2025-11-14T03:25:38.779635816Z [inf]  📥 INCOMING REQUEST: GET /api/auth/me
+2025-11-14T03:25:38.779644362Z [inf]     Headers: undefined
+2025-11-14T03:25:38.779652587Z [inf]  🌐 Domain detection: tpcportal.co
+2025-11-14T03:25:38.780050347Z [inf]  Origin: undefined
+2025-11-14T03:25:38.780059347Z [inf]  Host: tpcportal.co
+2025-11-14T03:25:38.780062533Z [inf]  Auth source: none
+2025-11-14T03:25:38.780064896Z [inf]  Token exists: false
+2025-11-14T03:25:38.782899615Z [inf]  No token found, returning 401
+2025-11-14T03:25:38.782907417Z [inf]  3:25:37 AM [express] GET /api/auth/me 401 in 1ms :: {"message":"Access token required"}
+2025-11-14T03:25:38.782913343Z [inf]  📥 INCOMING REQUEST: GET /api/domain
+2025-11-14T03:25:38.782919822Z [inf]     Headers: undefined
+2025-11-14T03:25:38.782926152Z [inf]  🌐 Domain detection: tpcportal.co
+2025-11-14T03:25:38.782932473Z [inf]    → Client portal base domain detected (no photographer slug)
+2025-11-14T03:25:38.782939073Z [inf]  3:25:37 AM [express] GET /api/domain 200 in 1ms :: {"type":"client_portal","isCustomSubdomain":false}
+2025-11-14T03:26:09.384213493Z [err]      _errorEmitted: true,
+2025-11-14T03:26:09.384227178Z [err]      _extensions: {},
+2025-11-14T03:26:09.384227518Z [err]      _eventsCount: 4,
+2025-11-14T03:26:09.384237664Z [err]      _paused: false,
+2025-11-14T03:26:09.384246203Z [err]      _maxListeners: undefined,
+2025-11-14T03:26:09.384250399Z [err]      _protocol: '',
+2025-11-14T03:26:09.384258526Z [err]      _binaryType: 'arraybuffer',
+2025-11-14T03:26:09.384263029Z [err]      _readyState: 3,
+2025-11-14T03:26:09.384264506Z [err]      _req: null,
+2025-11-14T03:26:09.384271982Z [err]      _closeCode: 1006,
+2025-11-14T03:26:09.384277051Z [err]      _receiver: null,
+2025-11-14T03:26:09.384284237Z [err]  Cron job error: ErrorEvent {
+2025-11-14T03:26:09.384289928Z [err]      _sender: null,
+2025-11-14T03:26:09.384290636Z [err]      _closeFrameReceived: false,
+2025-11-14T03:26:09.384297753Z [err]      _socket: null,
+2025-11-14T03:26:09.384297774Z [err]    [Symbol(kTarget)]: WebSocket {
+2025-11-14T03:26:09.384311002Z [err]      _closeFrameSent: false,
+2025-11-14T03:26:09.384312779Z [err]      _events: [Object: null prototype] {
+2025-11-14T03:26:09.384318839Z [err]      _bufferedAmount: 0,
+2025-11-14T03:26:09.384327045Z [err]      _closeMessage: <Buffer >,
+2025-11-14T03:26:09.384328794Z [err]        error: [Function],
+2025-11-14T03:26:09.384333143Z [err]      _isServer: false,
+2025-11-14T03:26:09.384339578Z [err]      _closeTimer: null,
+2025-11-14T03:26:09.384343892Z [err]        message: [Function],
+2025-11-14T03:26:09.384347175Z [err]      _redirects: 0,
+2025-11-14T03:26:09.384356908Z [err]        close: [Function],
+2025-11-14T03:26:09.384361148Z [err]      _autoPong: true,
+2025-11-14T03:26:09.384368897Z [err]        open: [Function]
+2025-11-14T03:26:09.384377376Z [err]      _url: 'wss://postgres.railway.internal/v2',
+2025-11-14T03:26:09.384382768Z [err]      },
+2025-11-14T03:26:09.385569066Z [err]      [Symbol(shapeMode)]: false,
+2025-11-14T03:26:09.385573442Z [err]      [Symbol(kCapture)]: false
+2025-11-14T03:26:09.385578251Z [err]    },
+2025-11-14T03:26:09.385583126Z [err]    [Symbol(kType)]: 'error',
+2025-11-14T03:26:09.385587762Z [err]    [Symbol(kError)]: AggregateError [ECONNREFUSED]: 
+2025-11-14T03:26:09.385595357Z [err]        at internalConnectMultiple (node:net:1134:18)
+2025-11-14T03:26:09.385600920Z [err]        at afterConnectMultiple (node:net:1715:7) {
+2025-11-14T03:26:09.385607647Z [err]      code: 'ECONNREFUSED',
+2025-11-14T03:26:09.385612153Z [err]      [errors]: [ [Error], [Error] ]
+2025-11-14T03:26:09.385617239Z [err]    },
+2025-11-14T03:26:09.385622938Z [err]    [Symbol(kMessage)]: ''
+2025-11-14T03:26:09.385627937Z [err]  }
+2025-11-14T03:26:09.385634021Z [err]  Cron job error: ErrorEvent {
+2025-11-14T03:26:09.385638476Z [err]    [Symbol(kTarget)]: WebSocket {
+2025-11-14T03:26:09.385643105Z [err]      _events: [Object: null prototype] {
+2025-11-14T03:26:09.385648882Z [err]        error: [Function],
+2025-11-14T03:26:09.385653979Z [err]        message: [Function],
+2025-11-14T03:26:09.385658358Z [err]        close: [Function],
+2025-11-14T03:26:09.385662180Z [err]        open: [Function]
+2025-11-14T03:26:09.385666680Z [err]      },
+2025-11-14T03:26:09.385672345Z [err]      _eventsCount: 4,
+2025-11-14T03:26:09.385678200Z [err]      _maxListeners: undefined,
+2025-11-14T03:26:09.385682787Z [err]      _binaryType: 'arraybuffer',
+2025-11-14T03:26:09.385687192Z [err]      _closeCode: 1006,
+2025-11-14T03:26:09.385692299Z [err]      _closeFrameReceived: false,
+2025-11-14T03:26:09.385697783Z [err]      _closeFrameSent: false,
+2025-11-14T03:26:09.385705679Z [err]      _closeMessage: <Buffer >,
+2025-11-14T03:26:09.385710221Z [err]      _closeTimer: null,
+2025-11-14T03:26:09.385714821Z [err]      _errorEmitted: true,
+2025-11-14T03:26:09.387366032Z [err]      _extensions: {},
+2025-11-14T03:26:09.387374362Z [err]      _paused: false,
+2025-11-14T03:26:09.387379991Z [err]      _protocol: '',
+2025-11-14T03:26:09.387391143Z [err]      _readyState: 3,
+2025-11-14T03:26:09.387396479Z [err]      _receiver: null,
+2025-11-14T03:26:09.387404537Z [err]      _sender: null,
+2025-11-14T03:26:09.387409600Z [err]      _socket: null,
+2025-11-14T03:26:09.387417279Z [err]      _bufferedAmount: 0,
+2025-11-14T03:26:09.387423126Z [err]      _isServer: false,
+2025-11-14T03:26:09.387428564Z [err]      _redirects: 0,
+2025-11-14T03:26:09.387434385Z [err]      _autoPong: true,
+2025-11-14T03:26:09.387442532Z [err]      _url: 'wss://postgres.railway.internal/v2',
+2025-11-14T03:26:09.387448461Z [err]      _req: null,
+2025-11-14T03:26:09.387453873Z [err]      [Symbol(shapeMode)]: false,
+2025-11-14T03:26:09.387469747Z [err]      [Symbol(kCapture)]: false
+2025-11-14T03:26:09.387475678Z [err]    },
+2025-11-14T03:26:09.387481549Z [err]    [Symbol(kType)]: 'error',
+2025-11-14T03:26:09.387487894Z [err]    [Symbol(kError)]: AggregateError [ECONNREFUSED]: 
+2025-11-14T03:26:09.387493773Z [err]        at internalConnectMultiple (node:net:1134:18)
+2025-11-14T03:26:09.387500405Z [err]        at afterConnectMultiple (node:net:1715:7) {
+2025-11-14T03:26:09.387505523Z [err]      code: 'ECONNREFUSED',
+2025-11-14T03:26:09.387511729Z [err]      [errors]: [ [Error], [Error] ]
+2025-11-14T03:26:09.387527811Z [err]    },
+2025-11-14T03:26:09.387534021Z [err]    [Symbol(kMessage)]: ''
+2025-11-14T03:26:09.387539937Z [err]  }
+2025-11-14T03:26:51.272661526Z [inf]  📥 INCOMING REQUEST: GET /sw.js
+2025-11-14T03:26:51.272668109Z [inf]     Headers: undefined
+2025-11-14T03:26:51.272684065Z [inf]  🌐 Domain detection: thephotocrm.com
+2025-11-14T03:26:51.272691697Z [inf]    → Photographer domain detected
+2025-11-14T03:27:10.560159046Z [err]      _closeCode: 1006,
+2025-11-14T03:27:10.560195630Z [err]  Cron job error: ErrorEvent {
+2025-11-14T03:27:10.560203177Z [err]    [Symbol(kTarget)]: WebSocket {
+2025-11-14T03:27:10.560210892Z [err]      _events: [Object: null prototype] {
+2025-11-14T03:27:10.560218464Z [err]        error: [Function],
+2025-11-14T03:27:10.560227348Z [err]        message: [Function],
+2025-11-14T03:27:10.560234514Z [err]        close: [Function],
+2025-11-14T03:27:10.560241862Z [err]        open: [Function]
+2025-11-14T03:27:10.560249836Z [err]      },
+2025-11-14T03:27:10.560257248Z [err]      _eventsCount: 4,
+2025-11-14T03:27:10.560264602Z [err]      _maxListeners: undefined,
+2025-11-14T03:27:10.560272779Z [err]      _binaryType: 'arraybuffer',
+2025-11-14T03:27:10.560280163Z [err]      _closeCode: 1006,
+2025-11-14T03:27:10.560287847Z [err]      _closeFrameReceived: false,
+2025-11-14T03:27:10.560296362Z [err]      _closeFrameSent: false,
+2025-11-14T03:27:10.560303102Z [err]      _closeMessage: <Buffer >,
+2025-11-14T03:27:10.560312237Z [err]      _closeTimer: null,
+2025-11-14T03:27:10.560318335Z [err]      _closeFrameReceived: false,
+2025-11-14T03:27:10.560323351Z [err]      _errorEmitted: true,
+2025-11-14T03:27:10.560331180Z [err]      _extensions: {},
+2025-11-14T03:27:10.560339131Z [err]      _paused: false,
+2025-11-14T03:27:10.560347096Z [err]      _protocol: '',
+2025-11-14T03:27:10.560354197Z [err]      _readyState: 3,
+2025-11-14T03:27:10.560360762Z [err]      _receiver: null,
+2025-11-14T03:27:10.560368445Z [err]      _sender: null,
+2025-11-14T03:27:10.560377839Z [err]      _closeFrameSent: false,
+2025-11-14T03:27:10.560380683Z [err]      _socket: null,
+2025-11-14T03:27:10.560389888Z [err]      _bufferedAmount: 0,
+2025-11-14T03:27:10.560397241Z [err]      _isServer: false,
+2025-11-14T03:27:10.560406837Z [err]      _closeMessage: <Buffer >,
+2025-11-14T03:27:10.560407779Z [err]      _redirects: 0,
+2025-11-14T03:27:10.560420958Z [err]      _autoPong: true,
+2025-11-14T03:27:10.560428208Z [err]      _url: 'wss://postgres.railway.internal/v2',
+2025-11-14T03:27:10.560435768Z [err]      _req: null,
+2025-11-14T03:27:10.560441456Z [err]      _closeTimer: null,
+2025-11-14T03:27:10.560447309Z [err]      _errorEmitted: true,
+2025-11-14T03:27:10.560788492Z [err]      [Symbol(shapeMode)]: false,
+2025-11-14T03:27:10.560795460Z [err]      [Symbol(kCapture)]: false
+2025-11-14T03:27:10.560802875Z [err]    },
+2025-11-14T03:27:10.560818154Z [err]    [Symbol(kType)]: 'error',
+2025-11-14T03:27:10.560827660Z [err]      _extensions: {},
+2025-11-14T03:27:10.560832060Z [err]    [Symbol(kError)]: AggregateError [ECONNREFUSED]: 
+2025-11-14T03:27:10.560838662Z [err]      _paused: false,
+2025-11-14T03:27:10.560846252Z [err]        at internalConnectMultiple (node:net:1134:18)
+2025-11-14T03:27:10.560850185Z [err]      _protocol: '',
+2025-11-14T03:27:10.560860263Z [err]        at afterConnectMultiple (node:net:1715:7) {
+2025-11-14T03:27:10.560861200Z [err]      _readyState: 3,
+2025-11-14T03:27:10.560870833Z [err]      _receiver: null,
+2025-11-14T03:27:10.560874396Z [err]      code: 'ECONNREFUSED',
+2025-11-14T03:27:10.560880790Z [err]      _sender: null,
+2025-11-14T03:27:10.560888118Z [err]      [errors]: [ [Error], [Error] ]
+2025-11-14T03:27:10.560897201Z [err]    },
+2025-11-14T03:27:10.560904917Z [err]    [Symbol(kMessage)]: ''
+2025-11-14T03:27:10.560912004Z [err]  }
+2025-11-14T03:27:10.560919401Z [err]  Cron job error: ErrorEvent {
+2025-11-14T03:27:10.560926449Z [err]    [Symbol(kTarget)]: WebSocket {
+2025-11-14T03:27:10.560933919Z [err]      _events: [Object: null prototype] {
+2025-11-14T03:27:10.560944283Z [err]        error: [Function],
+2025-11-14T03:27:10.560951103Z [err]        message: [Function],
+2025-11-14T03:27:10.560965583Z [err]      _socket: null,
+2025-11-14T03:27:10.560972109Z [err]      _bufferedAmount: 0,
+2025-11-14T03:27:10.560978761Z [err]        close: [Function],
+2025-11-14T03:27:10.560980071Z [err]      _isServer: false,
+2025-11-14T03:27:10.560989697Z [err]      _redirects: 0,
+2025-11-14T03:27:10.560993400Z [err]        open: [Function]
+2025-11-14T03:27:10.560998922Z [err]      _autoPong: true,
+2025-11-14T03:27:10.561007520Z [err]      },
+2025-11-14T03:27:10.561008438Z [err]      _url: 'wss://postgres.railway.internal/v2',
+2025-11-14T03:27:10.561016546Z [err]      _req: null,
+2025-11-14T03:27:10.561022603Z [err]      [Symbol(shapeMode)]: false,
+2025-11-14T03:27:10.561027683Z [err]      [Symbol(kCapture)]: false
+2025-11-14T03:27:10.561031869Z [err]    },
+2025-11-14T03:27:10.561038459Z [err]    [Symbol(kType)]: 'error',
+2025-11-14T03:27:10.561043703Z [err]    [Symbol(kError)]: AggregateError [ECONNREFUSED]: 
+2025-11-14T03:27:10.561053421Z [err]        at internalConnectMultiple (node:net:1134:18)
+2025-11-14T03:27:10.561061203Z [err]        at afterConnectMultiple (node:net:1715:7) {
+2025-11-14T03:27:10.561066487Z [err]      code: 'ECONNREFUSED',
+2025-11-14T03:27:10.561075300Z [err]      _eventsCount: 4,
+2025-11-14T03:27:10.561075545Z [err]      [errors]: [ [Error], [Error] ]
+2025-11-14T03:27:10.561088525Z [err]      _maxListeners: undefined,
+2025-11-14T03:27:10.561093199Z [err]    },
+2025-11-14T03:27:10.561105610Z [err]    [Symbol(kMessage)]: ''
+2025-11-14T03:27:10.561105726Z [err]      _binaryType: 'arraybuffer',
+2025-11-14T03:27:10.561114450Z [err]  }
+2025-11-14T03:28:02.497934712Z [err]        error: [Function],
+2025-11-14T03:28:02.497951643Z [err]        message: [Function],
+2025-11-14T03:28:02.497963273Z [err]        close: [Function],
+2025-11-14T03:28:02.497970404Z [err]      _readyState: 3,
+2025-11-14T03:28:02.497976736Z [err]        open: [Function]
+2025-11-14T03:28:02.497989078Z [err]      _url: 'wss://postgres.railway.internal/v2',
+2025-11-14T03:28:02.497991481Z [err]      _receiver: null,
+2025-11-14T03:28:02.497992311Z [err]      },
+2025-11-14T03:28:02.498005314Z [err]      _eventsCount: 4,
+2025-11-14T03:28:02.498008489Z [err]      _sender: null,
+2025-11-14T03:28:02.498010457Z [err]      _req: null,
+2025-11-14T03:28:02.498019023Z [err]      _maxListeners: undefined,
+2025-11-14T03:28:02.498023141Z [err]      _socket: null,
+2025-11-14T03:28:02.498035413Z [err]      _binaryType: 'arraybuffer',
+2025-11-14T03:28:02.498036037Z [err]      _bufferedAmount: 0,
+2025-11-14T03:28:02.498050183Z [err]      _closeCode: 1006,
+2025-11-14T03:28:02.498054954Z [err]      _isServer: false,
+2025-11-14T03:28:02.498059351Z [err]      _closeFrameReceived: false,
+2025-11-14T03:28:02.498062990Z [err]  Cron job error: ErrorEvent {
+2025-11-14T03:28:02.498066829Z [err]      _redirects: 0,
+2025-11-14T03:28:02.498076069Z [err]      _closeFrameSent: false,
+2025-11-14T03:28:02.498079917Z [err]    [Symbol(kTarget)]: WebSocket {
+2025-11-14T03:28:02.498079963Z [err]      _autoPong: true,
+2025-11-14T03:28:02.498088327Z [err]      _closeMessage: <Buffer >,
+2025-11-14T03:28:02.498095531Z [err]      _events: [Object: null prototype] {
+2025-11-14T03:28:02.498102795Z [err]      _closeTimer: null,
+2025-11-14T03:28:02.498111791Z [err]      _errorEmitted: true,
+2025-11-14T03:28:02.498122015Z [err]      _extensions: {},
+2025-11-14T03:28:02.498131634Z [err]      _paused: false,
+2025-11-14T03:28:02.498141061Z [err]      _protocol: '',
+2025-11-14T03:28:02.518921778Z [err]      [Symbol(shapeMode)]: false,
+2025-11-14T03:28:02.519024985Z [err]      [Symbol(kCapture)]: false
+2025-11-14T03:28:02.519033619Z [err]    },
+2025-11-14T03:28:02.519038414Z [err]    [Symbol(kType)]: 'error',
+2025-11-14T03:28:02.519045460Z [err]    [Symbol(kError)]: AggregateError [ECONNREFUSED]: 
+2025-11-14T03:28:02.519051782Z [err]        at internalConnectMultiple (node:net:1134:18)
+2025-11-14T03:28:02.519062805Z [err]        at afterConnectMultiple (node:net:1715:7) {
+2025-11-14T03:28:02.519068749Z [err]      code: 'ECONNREFUSED',
+2025-11-14T03:28:02.519075116Z [err]      [errors]: [ [Error], [Error] ]
+2025-11-14T03:28:02.519083165Z [err]    },
+2025-11-14T03:28:02.519090794Z [err]    [Symbol(kMessage)]: ''
+2025-11-14T03:28:02.519096953Z [err]  }
+2025-11-14T03:28:02.519102013Z [err]  Cron job error: ErrorEvent {
+2025-11-14T03:28:02.519107601Z [err]    [Symbol(kTarget)]: WebSocket {
+2025-11-14T03:28:02.519113860Z [err]      _events: [Object: null prototype] {
+2025-11-14T03:28:02.519119111Z [err]        error: [Function],
+2025-11-14T03:28:02.519126754Z [err]        message: [Function],
+2025-11-14T03:28:02.519131266Z [err]        close: [Function],
+2025-11-14T03:28:02.519136477Z [err]        open: [Function]
+2025-11-14T03:28:02.519141247Z [err]      },
+2025-11-14T03:28:02.519146104Z [err]      _eventsCount: 4,
+2025-11-14T03:28:02.519150802Z [err]      _maxListeners: undefined,
+2025-11-14T03:28:02.519157670Z [err]      _binaryType: 'arraybuffer',
+2025-11-14T03:28:02.519166260Z [err]      _closeCode: 1006,
+2025-11-14T03:28:02.519172071Z [err]      _closeFrameReceived: false,
+2025-11-14T03:28:02.519176873Z [err]      _closeFrameSent: false,
+2025-11-14T03:28:02.519181277Z [err]      _closeMessage: <Buffer >,
+2025-11-14T03:28:02.519187748Z [err]      _closeTimer: null,
+2025-11-14T03:28:02.519194181Z [err]      _errorEmitted: true,
+2025-11-14T03:28:02.519235419Z [err]      _extensions: {},
+2025-11-14T03:28:02.519241172Z [err]      _paused: false,
+2025-11-14T03:28:02.519249113Z [err]      _protocol: '',
+2025-11-14T03:28:02.519260651Z [err]      _readyState: 3,
+2025-11-14T03:28:02.519266105Z [err]      _receiver: null,
+2025-11-14T03:28:02.519271819Z [err]      _sender: null,
+2025-11-14T03:28:02.519277489Z [err]      _socket: null,
+2025-11-14T03:28:02.519284611Z [err]      _bufferedAmount: 0,
+2025-11-14T03:28:02.519291818Z [err]      _isServer: false,
+2025-11-14T03:28:02.519302975Z [err]      _redirects: 0,
+2025-11-14T03:28:02.519308926Z [err]      _autoPong: true,
+2025-11-14T03:28:02.519314906Z [err]      _url: 'wss://postgres.railway.internal/v2',
+2025-11-14T03:28:02.519320843Z [err]      _req: null,
+2025-11-14T03:28:02.519327156Z [err]      [Symbol(shapeMode)]: false,
+2025-11-14T03:28:02.519339776Z [err]      [Symbol(kCapture)]: false
+2025-11-14T03:28:02.519346096Z [err]    },
+2025-11-14T03:28:02.519354655Z [err]    [Symbol(kType)]: 'error',
+2025-11-14T03:28:02.519361345Z [err]    [Symbol(kError)]: AggregateError [ECONNREFUSED]: 
+2025-11-14T03:28:02.519368053Z [err]        at internalConnectMultiple (node:net:1134:18)
+2025-11-14T03:28:02.519374017Z [err]        at afterConnectMultiple (node:net:1715:7) {
+2025-11-14T03:28:02.519378466Z [err]      code: 'ECONNREFUSED',
+2025-11-14T03:28:02.519382640Z [err]      [errors]: [ [Error], [Error] ]
+2025-11-14T03:28:02.519388458Z [err]    },
+2025-11-14T03:28:02.519395201Z [err]    [Symbol(kMessage)]: ''
+2025-11-14T03:28:02.519399879Z [err]  }
+2025-11-14T03:29:04.507483691Z [err]      _readyState: 3,
+2025-11-14T03:29:04.507495224Z [err]      _receiver: null,
+2025-11-14T03:29:04.507505845Z [err]      _sender: null,
+2025-11-14T03:29:04.507505955Z [err]        error: [Function],
+2025-11-14T03:29:04.507513406Z [err]      _socket: null,
+2025-11-14T03:29:04.507522885Z [err]      _bufferedAmount: 0,
+2025-11-14T03:29:04.507529353Z [err]      _isServer: false,
+2025-11-14T03:29:04.507536228Z [err]        message: [Function],
+2025-11-14T03:29:04.507546134Z [err]        close: [Function],
+2025-11-14T03:29:04.507548427Z [err]  Cron job error: ErrorEvent {
+2025-11-14T03:29:04.507548922Z [err]      _closeMessage: <Buffer >,
+2025-11-14T03:29:04.507556206Z [err]        open: [Function]
+2025-11-14T03:29:04.507561365Z [err]    [Symbol(kTarget)]: WebSocket {
+2025-11-14T03:29:04.507566656Z [err]      _redirects: 0,
+2025-11-14T03:29:04.507567014Z [err]      _closeTimer: null,
+2025-11-14T03:29:04.507570030Z [err]      },
+2025-11-14T03:29:04.507574110Z [err]      _events: [Object: null prototype] {
+2025-11-14T03:29:04.507579433Z [err]      _errorEmitted: true,
+2025-11-14T03:29:04.507583295Z [err]      _autoPong: true,
+2025-11-14T03:29:04.507589386Z [err]      _extensions: {},
+2025-11-14T03:29:04.507597484Z [err]      _url: 'wss://postgres.railway.internal/v2',
+2025-11-14T03:29:04.507600333Z [err]      _paused: false,
+2025-11-14T03:29:04.507610169Z [err]      _protocol: '',
+2025-11-14T03:29:04.507612127Z [err]      _req: null,
+2025-11-14T03:29:04.507649794Z [err]      _eventsCount: 4,
+2025-11-14T03:29:04.507664009Z [err]      _maxListeners: undefined,
+2025-11-14T03:29:04.507682109Z [err]      _binaryType: 'arraybuffer',
+2025-11-14T03:29:04.507691322Z [err]      _closeCode: 1006,
+2025-11-14T03:29:04.507703628Z [err]      _closeFrameReceived: false,
+2025-11-14T03:29:04.507711626Z [err]      _closeFrameSent: false,
+2025-11-14T03:29:04.511518564Z [err]      [Symbol(shapeMode)]: false,
+2025-11-14T03:29:04.511525570Z [err]      [Symbol(kCapture)]: false
+2025-11-14T03:29:04.511532739Z [err]    },
+2025-11-14T03:29:04.511539612Z [err]    [Symbol(kType)]: 'error',
+2025-11-14T03:29:04.511556903Z [err]    [Symbol(kError)]: AggregateError [ECONNREFUSED]: 
+2025-11-14T03:29:04.511563509Z [err]        at internalConnectMultiple (node:net:1134:18)
+2025-11-14T03:29:04.511570077Z [err]        at afterConnectMultiple (node:net:1715:7) {
+2025-11-14T03:29:04.511576186Z [err]      code: 'ECONNREFUSED',
+2025-11-14T03:29:04.511583123Z [err]      [errors]: [ [Error], [Error] ]
+2025-11-14T03:29:04.511589424Z [err]    },
+2025-11-14T03:29:04.511595789Z [err]    [Symbol(kMessage)]: ''
+2025-11-14T03:29:04.511601450Z [err]  }
+2025-11-14T03:29:04.511606632Z [err]  Cron job error: ErrorEvent {
+2025-11-14T03:29:04.511611805Z [err]    [Symbol(kTarget)]: WebSocket {
+2025-11-14T03:29:04.511622020Z [err]      _events: [Object: null prototype] {
+2025-11-14T03:29:04.511629107Z [err]        error: [Function],
+2025-11-14T03:29:04.511634558Z [err]        message: [Function],
+2025-11-14T03:29:04.511639976Z [err]        close: [Function],
+2025-11-14T03:29:04.511645197Z [err]        open: [Function]
+2025-11-14T03:29:04.511650665Z [err]      },
+2025-11-14T03:29:04.511657786Z [err]      _eventsCount: 4,
+2025-11-14T03:29:04.511663974Z [err]      _maxListeners: undefined,
+2025-11-14T03:29:04.511669518Z [err]      _binaryType: 'arraybuffer',
+2025-11-14T03:29:04.511674284Z [err]      _closeCode: 1006,
+2025-11-14T03:29:04.511679313Z [err]      _closeFrameReceived: false,
+2025-11-14T03:29:04.511703105Z [err]      _closeFrameSent: false,
+2025-11-14T03:29:04.511708891Z [err]      _closeMessage: <Buffer >,
+2025-11-14T03:29:04.511713662Z [err]      _closeTimer: null,
+2025-11-14T03:29:04.511719856Z [err]      _errorEmitted: true,
+2025-11-14T03:29:04.511807937Z [err]      _extensions: {},
+2025-11-14T03:29:04.511813437Z [err]      _paused: false,
+2025-11-14T03:29:04.511818271Z [err]      _protocol: '',
+2025-11-14T03:29:04.511823257Z [err]      _readyState: 3,
+2025-11-14T03:29:04.511827864Z [err]      _receiver: null,
+2025-11-14T03:29:04.511831683Z [err]      _sender: null,
+2025-11-14T03:29:04.511852309Z [err]      _socket: null,
+2025-11-14T03:29:04.511859442Z [err]      _bufferedAmount: 0,
+2025-11-14T03:29:04.511865290Z [err]      _isServer: false,
+2025-11-14T03:29:04.511871802Z [err]      _redirects: 0,
+2025-11-14T03:29:04.511877145Z [err]      _autoPong: true,
+2025-11-14T03:29:04.511882849Z [err]      _url: 'wss://postgres.railway.internal/v2',
+2025-11-14T03:29:04.511890090Z [err]      _req: null,
+2025-11-14T03:29:04.511896944Z [err]      [Symbol(shapeMode)]: false,
+2025-11-14T03:29:04.511903694Z [err]      [Symbol(kCapture)]: false
+2025-11-14T03:29:04.511909391Z [err]    },
+2025-11-14T03:29:04.511919000Z [err]    [Symbol(kType)]: 'error',
+2025-11-14T03:29:04.511924343Z [err]    [Symbol(kError)]: AggregateError [ECONNREFUSED]: 
+2025-11-14T03:29:04.511929118Z [err]        at internalConnectMultiple (node:net:1134:18)
+2025-11-14T03:29:04.511935043Z [err]        at afterConnectMultiple (node:net:1715:7) {
+2025-11-14T03:29:04.511940814Z [err]      code: 'ECONNREFUSED',
+2025-11-14T03:29:04.511946803Z [err]      [errors]: [ [Error], [Error] ]
+2025-11-14T03:29:04.511952114Z [err]    },
+2025-11-14T03:29:04.511957244Z [err]    [Symbol(kMessage)]: ''
+2025-11-14T03:29:04.511964149Z [err]  }
+2025-11-14T03:30:05.400956034Z [err]      },
+2025-11-14T03:30:05.400970308Z [err]      _eventsCount: 4,
+2025-11-14T03:30:05.400980201Z [err]      _maxListeners: undefined,
+2025-11-14T03:30:05.400987190Z [err]      _binaryType: 'arraybuffer',
+2025-11-14T03:30:05.400994411Z [err]      _closeCode: 1006,
+2025-11-14T03:30:05.401002697Z [err]      _closeFrameReceived: false,
+2025-11-14T03:30:05.401008915Z [err]      _closeFrameSent: false,
+2025-11-14T03:30:05.401015751Z [err]      _closeMessage: <Buffer >,
+2025-11-14T03:30:05.401023181Z [err]  Cron job error: ErrorEvent {
+2025-11-14T03:30:05.401028105Z [err]      _closeTimer: null,
+2025-11-14T03:30:05.401034707Z [err]    [Symbol(kTarget)]: WebSocket {
+2025-11-14T03:30:05.401040915Z [err]      _errorEmitted: true,
+2025-11-14T03:30:05.401047814Z [err]      _extensions: {},
+2025-11-14T03:30:05.401054683Z [err]      _paused: false,
+2025-11-14T03:30:05.401059143Z [err]      [Symbol(shapeMode)]: false,
+2025-11-14T03:30:05.401060513Z [err]      _events: [Object: null prototype] {
+2025-11-14T03:30:05.401064975Z [err]      _protocol: '',
+2025-11-14T03:30:05.401073703Z [err]      [Symbol(kCapture)]: false
+2025-11-14T03:30:05.401076300Z [err]        error: [Function],
+2025-11-14T03:30:05.401077894Z [err]      _readyState: 3,
+2025-11-14T03:30:05.401087461Z [err]      _receiver: null,
+2025-11-14T03:30:05.401089361Z [err]        message: [Function],
+2025-11-14T03:30:05.401095630Z [err]      _sender: null,
+2025-11-14T03:30:05.401099257Z [err]        close: [Function],
+2025-11-14T03:30:05.401106796Z [err]      _socket: null,
+2025-11-14T03:30:05.401110874Z [err]    },
+2025-11-14T03:30:05.401119078Z [err]        open: [Function]
+2025-11-14T03:30:05.401119774Z [err]      _bufferedAmount: 0,
+2025-11-14T03:30:05.401126268Z [err]    [Symbol(kType)]: 'error',
+2025-11-14T03:30:05.401133069Z [err]      _isServer: false,
+2025-11-14T03:30:05.401137352Z [err]    [Symbol(kError)]: AggregateError [ECONNREFUSED]: 
+2025-11-14T03:30:05.401140708Z [err]      _closeTimer: null,
+2025-11-14T03:30:05.401146238Z [err]        at internalConnectMultiple (node:net:1134:18)
+2025-11-14T03:30:05.401147449Z [err]      _redirects: 0,
+2025-11-14T03:30:05.401157832Z [err]      _errorEmitted: true,
+2025-11-14T03:30:05.401158697Z [err]      _autoPong: true,
+2025-11-14T03:30:05.401159627Z [err]        at afterConnectMultiple (node:net:1715:7) {
+2025-11-14T03:30:05.401171661Z [err]      _url: 'wss://postgres.railway.internal/v2',
+2025-11-14T03:30:05.401174644Z [err]      code: 'ECONNREFUSED',
+2025-11-14T03:30:05.401184546Z [err]      [errors]: [ [Error], [Error] ]
+2025-11-14T03:30:05.401187915Z [err]      _req: null,
+2025-11-14T03:30:05.401192101Z [err]    },
+2025-11-14T03:30:05.401199595Z [err]    [Symbol(kMessage)]: ''
+2025-11-14T03:30:05.401209685Z [err]  }
+2025-11-14T03:30:05.401217001Z [err]  Cron job error: ErrorEvent {
+2025-11-14T03:30:05.401222825Z [err]    [Symbol(kTarget)]: WebSocket {
+2025-11-14T03:30:05.401228451Z [err]      _events: [Object: null prototype] {
+2025-11-14T03:30:05.401234703Z [err]        error: [Function],
+2025-11-14T03:30:05.401241235Z [err]        message: [Function],
+2025-11-14T03:30:05.401252067Z [err]        close: [Function],
+2025-11-14T03:30:05.401261210Z [err]        open: [Function]
+2025-11-14T03:30:05.401267110Z [err]      },
+2025-11-14T03:30:05.401272333Z [err]      _eventsCount: 4,
+2025-11-14T03:30:05.401278227Z [err]      _maxListeners: undefined,
+2025-11-14T03:30:05.401284060Z [err]      _binaryType: 'arraybuffer',
+2025-11-14T03:30:05.401291128Z [err]      _closeCode: 1006,
+2025-11-14T03:30:05.401298113Z [err]      _closeFrameReceived: false,
+2025-11-14T03:30:05.401305267Z [err]      _closeFrameSent: false,
+2025-11-14T03:30:05.401312010Z [err]      _closeMessage: <Buffer >,
+2025-11-14T03:30:05.405894290Z [err]      _extensions: {},
+2025-11-14T03:30:05.405906049Z [err]      _paused: false,
+2025-11-14T03:30:05.405913028Z [err]      _protocol: '',
+2025-11-14T03:30:05.405919256Z [err]      _readyState: 3,
+2025-11-14T03:30:05.405926379Z [err]      _receiver: null,
+2025-11-14T03:30:05.405932992Z [err]      _sender: null,
+2025-11-14T03:30:05.405939151Z [err]      _socket: null,
+2025-11-14T03:30:05.405947859Z [err]      _bufferedAmount: 0,
+2025-11-14T03:30:05.405953947Z [err]      _isServer: false,
+2025-11-14T03:30:05.405962833Z [err]      _redirects: 0,
+2025-11-14T03:30:05.405968869Z [err]      _autoPong: true,
+2025-11-14T03:30:05.405980152Z [err]      _url: 'wss://postgres.railway.internal/v2',
+2025-11-14T03:30:05.405985820Z [err]      _req: null,
+2025-11-14T03:30:05.405991418Z [err]      [Symbol(shapeMode)]: false,
+2025-11-14T03:30:05.405997157Z [err]      [Symbol(kCapture)]: false
+2025-11-14T03:30:05.406002954Z [err]    },
+2025-11-14T03:30:05.406008427Z [err]    [Symbol(kType)]: 'error',
+2025-11-14T03:30:05.406015539Z [err]    [Symbol(kError)]: AggregateError [ECONNREFUSED]: 
+2025-11-14T03:30:05.406023763Z [err]        at internalConnectMultiple (node:net:1134:18)
+2025-11-14T03:30:05.406031690Z [err]        at afterConnectMultiple (node:net:1715:7) {
+2025-11-14T03:30:05.406039109Z [err]      code: 'ECONNREFUSED',
+2025-11-14T03:30:05.406051331Z [err]      [errors]: [ [Error], [Error] ]
+2025-11-14T03:30:05.406058789Z [err]    },
+2025-11-14T03:30:05.406066372Z [err]    [Symbol(kMessage)]: ''
+2025-11-14T03:30:05.406071621Z [err]  }
+2025-11-14T03:30:25.881036110Z [inf]    → Client portal base domain detected (no photographer slug)
+2025-11-14T03:30:25.881050340Z [inf]  📥 INCOMING REQUEST: GET /favicon.png
+2025-11-14T03:30:25.881057362Z [inf]     Headers: undefined
+2025-11-14T03:30:25.881062919Z [inf]  🌐 Domain detection: tpcportal.co
+2025-11-14T03:30:25.881069044Z [inf]    → Client portal base domain detected (no photographer slug)
+2025-11-14T03:30:25.881089840Z [inf]  📥 INCOMING REQUEST: GET /
+2025-11-14T03:30:25.881094628Z [inf]     Headers: undefined
+2025-11-14T03:30:25.881100094Z [inf]  🌐 Domain detection: tpcportal.co
+2025-11-14T03:30:25.881105653Z [inf]    → Client portal base domain detected (no photographer slug)
+2025-11-14T03:30:25.881110441Z [inf]  📥 INCOMING REQUEST: GET /favicon.ico
+2025-11-14T03:30:25.881115402Z [inf]     Headers: undefined
+2025-11-14T03:30:25.881119910Z [inf]  🌐 Domain detection: tpcportal.co
+2025-11-14T03:31:06.641688961Z [err]      _closeFrameSent: false,
+2025-11-14T03:31:06.641697624Z [err]  Cron job error: ErrorEvent {
+2025-11-14T03:31:06.641708979Z [err]      _closeMessage: <Buffer >,
+2025-11-14T03:31:06.641710634Z [err]    [Symbol(kTarget)]: WebSocket {
+2025-11-14T03:31:06.641723399Z [err]      _closeTimer: null,
+2025-11-14T03:31:06.641728910Z [err]      _events: [Object: null prototype] {
+2025-11-14T03:31:06.641736938Z [err]      _errorEmitted: true,
+2025-11-14T03:31:06.641744006Z [err]        error: [Function],
+2025-11-14T03:31:06.641751356Z [err]      _extensions: {},
+2025-11-14T03:31:06.641758762Z [err]        message: [Function],
+2025-11-14T03:31:06.641769425Z [err]      _paused: false,
+2025-11-14T03:31:06.641769640Z [err]        close: [Function],
+2025-11-14T03:31:06.641777708Z [err]        open: [Function]
+2025-11-14T03:31:06.641785996Z [err]      _protocol: '',
+2025-11-14T03:31:06.641791733Z [err]      },
+2025-11-14T03:31:06.641801417Z [err]      _eventsCount: 4,
+2025-11-14T03:31:06.641802335Z [err]      _readyState: 3,
+2025-11-14T03:31:06.641809386Z [err]      _maxListeners: undefined,
+2025-11-14T03:31:06.641815619Z [err]      _binaryType: 'arraybuffer',
+2025-11-14T03:31:06.641822370Z [err]      _receiver: null,
+2025-11-14T03:31:06.641825234Z [err]      _closeCode: 1006,
+2025-11-14T03:31:06.641834225Z [err]      _closeFrameReceived: false,
+2025-11-14T03:31:06.641839214Z [err]      _sender: null,
+2025-11-14T03:31:06.641848802Z [err]      _socket: null,
+2025-11-14T03:31:06.641858533Z [err]      _bufferedAmount: 0,
+2025-11-14T03:31:06.641871854Z [err]      _isServer: false,
+2025-11-14T03:31:06.641881697Z [err]      _redirects: 0,
+2025-11-14T03:31:06.641896798Z [err]      _autoPong: true,
+2025-11-14T03:31:06.641911067Z [err]      _url: 'wss://postgres.railway.internal/v2',
+2025-11-14T03:31:06.641927323Z [err]      _req: null,
+2025-11-14T03:31:06.643177032Z [err]      [Symbol(shapeMode)]: false,
+2025-11-14T03:31:06.643186596Z [err]      [Symbol(kCapture)]: false
+2025-11-14T03:31:06.643193561Z [err]    },
+2025-11-14T03:31:06.643198675Z [err]    [Symbol(kType)]: 'error',
+2025-11-14T03:31:06.643203819Z [err]    [Symbol(kError)]: AggregateError [ECONNREFUSED]: 
+2025-11-14T03:31:06.643208888Z [err]        at internalConnectMultiple (node:net:1134:18)
+2025-11-14T03:31:06.643213822Z [err]        at afterConnectMultiple (node:net:1715:7) {
+2025-11-14T03:31:06.643217974Z [err]      code: 'ECONNREFUSED',
+2025-11-14T03:31:06.643224187Z [err]      [errors]: [ [Error], [Error] ]
+2025-11-14T03:31:06.643231316Z [err]    },
+2025-11-14T03:31:06.643240740Z [err]    [Symbol(kMessage)]: ''
+2025-11-14T03:31:06.643247315Z [err]  }
+2025-11-14T03:31:06.643253559Z [err]  Cron job error: ErrorEvent {
+2025-11-14T03:31:06.643258986Z [err]    [Symbol(kTarget)]: WebSocket {
+2025-11-14T03:31:06.643264128Z [err]      _events: [Object: null prototype] {
+2025-11-14T03:31:06.643269204Z [err]        error: [Function],
+2025-11-14T03:31:06.643275060Z [err]        message: [Function],
+2025-11-14T03:31:06.643285020Z [err]        close: [Function],
+2025-11-14T03:31:06.643291022Z [err]        open: [Function]
+2025-11-14T03:31:06.643295832Z [err]      },
+2025-11-14T03:31:06.643300193Z [err]      _eventsCount: 4,
+2025-11-14T03:31:06.643304468Z [err]      _maxListeners: undefined,
+2025-11-14T03:31:06.643346162Z [err]      _binaryType: 'arraybuffer',
+2025-11-14T03:31:06.643354933Z [err]      _closeCode: 1006,
+2025-11-14T03:31:06.643365466Z [err]      _closeFrameReceived: false,
+2025-11-14T03:31:06.643372615Z [err]      _closeFrameSent: false,
+2025-11-14T03:31:06.643379542Z [err]      _closeMessage: <Buffer >,
+2025-11-14T03:31:06.643386431Z [err]      _closeTimer: null,
+2025-11-14T03:31:06.643392938Z [err]      _errorEmitted: true,
+2025-11-14T03:31:06.645132139Z [err]      _extensions: {},
+2025-11-14T03:31:06.645135125Z [err]    [Symbol(kMessage)]: ''
+2025-11-14T03:31:06.645149390Z [err]      _paused: false,
+2025-11-14T03:31:06.645154997Z [err]  }
+2025-11-14T03:31:06.645165324Z [err]      _protocol: '',
+2025-11-14T03:31:06.645174713Z [err]      _readyState: 3,
+2025-11-14T03:31:06.645181880Z [err]      _receiver: null,
+2025-11-14T03:31:06.645188722Z [err]      _sender: null,
+2025-11-14T03:31:06.645200860Z [err]      _socket: null,
+2025-11-14T03:31:06.645211230Z [err]      _bufferedAmount: 0,
+2025-11-14T03:31:06.645223143Z [err]      _isServer: false,
+2025-11-14T03:31:06.645232991Z [err]      _redirects: 0,
+2025-11-14T03:31:06.645241100Z [err]      _autoPong: true,
+2025-11-14T03:31:06.645248874Z [err]      _url: 'wss://postgres.railway.internal/v2',
+2025-11-14T03:31:06.645255263Z [err]      _req: null,
+2025-11-14T03:31:06.645262651Z [err]      [Symbol(shapeMode)]: false,
+2025-11-14T03:31:06.645270702Z [err]      [Symbol(kCapture)]: false
+2025-11-14T03:31:06.645277866Z [err]    },
+2025-11-14T03:31:06.645285484Z [err]    [Symbol(kType)]: 'error',
+2025-11-14T03:31:06.645294089Z [err]    [Symbol(kError)]: AggregateError [ECONNREFUSED]: 
+2025-11-14T03:31:06.645301849Z [err]        at internalConnectMultiple (node:net:1134:18)
+2025-11-14T03:31:06.645310176Z [err]        at afterConnectMultiple (node:net:1715:7) {
+2025-11-14T03:31:06.645317957Z [err]      code: 'ECONNREFUSED',
+2025-11-14T03:31:06.645326268Z [err]      [errors]: [ [Error], [Error] ]
+2025-11-14T03:31:06.645334616Z [err]    },
+2025-11-14T03:32:08.529917249Z [err]      _binaryType: 'arraybuffer',
+2025-11-14T03:32:08.529932600Z [err]      _closeCode: 1006,
+2025-11-14T03:32:08.529940688Z [err]      _closeFrameReceived: false,
+2025-11-14T03:32:08.529947702Z [err]      _closeFrameSent: false,
+2025-11-14T03:32:08.529953826Z [err]  Cron job error: ErrorEvent {
+2025-11-14T03:32:08.529956443Z [err]      _closeMessage: <Buffer >,
+2025-11-14T03:32:08.529959768Z [err]    [Symbol(kTarget)]: WebSocket {
+2025-11-14T03:32:08.529964636Z [err]      _closeTimer: null,
+2025-11-14T03:32:08.529966638Z [err]      _events: [Object: null prototype] {
+2025-11-14T03:32:08.529972560Z [err]        error: [Function],
+2025-11-14T03:32:08.529974241Z [err]      _errorEmitted: true,
+2025-11-14T03:32:08.529980135Z [err]        message: [Function],
+2025-11-14T03:32:08.529982605Z [err]      _extensions: {},
+2025-11-14T03:32:08.529987623Z [err]        close: [Function],
+2025-11-14T03:32:08.529993792Z [err]        open: [Function]
+2025-11-14T03:32:08.529996168Z [err]      _paused: false,
+2025-11-14T03:32:08.530000350Z [err]      },
+2025-11-14T03:32:08.530005820Z [err]      _protocol: '',
+2025-11-14T03:32:08.530008534Z [err]      _eventsCount: 4,
+2025-11-14T03:32:08.530013217Z [err]      _readyState: 3,
+2025-11-14T03:32:08.530016326Z [err]      _maxListeners: undefined,
+2025-11-14T03:32:08.530020852Z [err]      _receiver: null,
+2025-11-14T03:32:08.530029791Z [err]      _sender: null,
+2025-11-14T03:32:08.530036189Z [err]      _socket: null,
+2025-11-14T03:32:08.530042770Z [err]      _bufferedAmount: 0,
+2025-11-14T03:32:08.530051582Z [err]      _isServer: false,
+2025-11-14T03:32:08.530058119Z [err]      _redirects: 0,
+2025-11-14T03:32:08.530066113Z [err]      _autoPong: true,
+2025-11-14T03:32:08.530072298Z [err]      _url: 'wss://postgres.railway.internal/v2',
+2025-11-14T03:32:08.530078624Z [err]      _req: null,
+2025-11-14T03:32:08.531333555Z [err]  }
+2025-11-14T03:32:08.531353840Z [err]  Cron job error: ErrorEvent {
+2025-11-14T03:32:08.531362988Z [err]    [Symbol(kTarget)]: WebSocket {
+2025-11-14T03:32:08.531370373Z [err]      _events: [Object: null prototype] {
+2025-11-14T03:32:08.531373592Z [err]      [Symbol(shapeMode)]: false,
+2025-11-14T03:32:08.531378327Z [err]        error: [Function],
+2025-11-14T03:32:08.531381136Z [err]      [Symbol(kCapture)]: false
+2025-11-14T03:32:08.531386761Z [err]        message: [Function],
+2025-11-14T03:32:08.531389112Z [err]    },
+2025-11-14T03:32:08.531397641Z [err]    [Symbol(kType)]: 'error',
+2025-11-14T03:32:08.531400245Z [err]        close: [Function],
+2025-11-14T03:32:08.531403405Z [err]    [Symbol(kError)]: AggregateError [ECONNREFUSED]: 
+2025-11-14T03:32:08.531408668Z [err]        at internalConnectMultiple (node:net:1134:18)
+2025-11-14T03:32:08.531409702Z [err]        open: [Function]
+2025-11-14T03:32:08.531414635Z [err]        at afterConnectMultiple (node:net:1715:7) {
+2025-11-14T03:32:08.531418368Z [err]      },
+2025-11-14T03:32:08.531422664Z [err]      code: 'ECONNREFUSED',
+2025-11-14T03:32:08.531427176Z [err]      _eventsCount: 4,
+2025-11-14T03:32:08.531428733Z [err]      [errors]: [ [Error], [Error] ]
+2025-11-14T03:32:08.531435760Z [err]      _maxListeners: undefined,
+2025-11-14T03:32:08.531435848Z [err]    },
+2025-11-14T03:32:08.531443743Z [err]      _binaryType: 'arraybuffer',
+2025-11-14T03:32:08.531443858Z [err]    [Symbol(kMessage)]: ''
+2025-11-14T03:32:08.531456245Z [err]      _closeCode: 1006,
+2025-11-14T03:32:08.531463222Z [err]      _closeFrameReceived: false,
+2025-11-14T03:32:08.531470097Z [err]      _closeFrameSent: false,
+2025-11-14T03:32:08.531475126Z [err]      _closeMessage: <Buffer >,
+2025-11-14T03:32:08.531480336Z [err]      _closeTimer: null,
+2025-11-14T03:32:08.531487061Z [err]      _errorEmitted: true,
+2025-11-14T03:32:08.534313424Z [err]      _extensions: {},
+2025-11-14T03:32:08.534315681Z [err]    },
+2025-11-14T03:32:08.534321859Z [err]      _paused: false,
+2025-11-14T03:32:08.534326804Z [err]    [Symbol(kMessage)]: ''
+2025-11-14T03:32:08.534329269Z [err]      _protocol: '',
+2025-11-14T03:32:08.534334492Z [err]  }
+2025-11-14T03:32:08.534337239Z [err]      _readyState: 3,
+2025-11-14T03:32:08.534343059Z [err]      _receiver: null,
+2025-11-14T03:32:08.534349175Z [err]      _sender: null,
+2025-11-14T03:32:08.534353799Z [err]      _socket: null,
+2025-11-14T03:32:08.534358617Z [err]      _bufferedAmount: 0,
+2025-11-14T03:32:08.534366389Z [err]      _isServer: false,
+2025-11-14T03:32:08.534371691Z [err]      _redirects: 0,
+2025-11-14T03:32:08.534377305Z [err]      _autoPong: true,
+2025-11-14T03:32:08.534383689Z [err]      _url: 'wss://postgres.railway.internal/v2',
+2025-11-14T03:32:08.534388969Z [err]      _req: null,
+2025-11-14T03:32:08.534393885Z [err]      [Symbol(shapeMode)]: false,
+2025-11-14T03:32:08.534399511Z [err]      [Symbol(kCapture)]: false
+2025-11-14T03:32:08.534405346Z [err]    },
+2025-11-14T03:32:08.534414547Z [err]    [Symbol(kType)]: 'error',
+2025-11-14T03:32:08.534419937Z [err]    [Symbol(kError)]: AggregateError [ECONNREFUSED]: 
+2025-11-14T03:32:08.534425451Z [err]        at internalConnectMultiple (node:net:1134:18)
+2025-11-14T03:32:08.534432956Z [err]        at afterConnectMultiple (node:net:1715:7) {
+2025-11-14T03:32:08.534439292Z [err]      code: 'ECONNREFUSED',
+2025-11-14T03:32:08.534444745Z [err]      [errors]: [ [Error], [Error] ]
+2025-11-14T03:32:12.435998292Z [inf]  📥 INCOMING REQUEST: GET /sw.js
+2025-11-14T03:32:12.436005147Z [inf]     Headers: undefined
+2025-11-14T03:32:12.436012034Z [inf]  🌐 Domain detection: thephotocrm.com
+2025-11-14T03:32:12.436018211Z [inf]    → Photographer domain detected
+2025-11-14T03:33:04.128417647Z [err]      _protocol: '',
+2025-11-14T03:33:04.128433965Z [err]      _readyState: 3,
+2025-11-14T03:33:04.128443287Z [err]      _receiver: null,
+2025-11-14T03:33:04.128451771Z [err]      _sender: null,
+2025-11-14T03:33:04.128459654Z [err]      _socket: null,
+2025-11-14T03:33:04.128503569Z [err]      _bufferedAmount: 0,
+2025-11-14T03:33:04.128513916Z [err]      _isServer: false,
+2025-11-14T03:33:04.128525238Z [err]      _redirects: 0,
+2025-11-14T03:33:04.128529984Z [err]      _binaryType: 'arraybuffer',
+2025-11-14T03:33:04.128540491Z [err]      _autoPong: true,
+2025-11-14T03:33:04.128560290Z [err]      _closeCode: 1006,
+2025-11-14T03:33:04.128565629Z [err]      _url: 'wss://postgres.railway.internal/v2',
+2025-11-14T03:33:04.128566164Z [err]      [Symbol(shapeMode)]: false,
+2025-11-14T03:33:04.128576392Z [err]    [Symbol(kError)]: AggregateError [ECONNREFUSED]: 
+2025-11-14T03:33:04.128578595Z [err]      _closeFrameReceived: false,
+2025-11-14T03:33:04.128578811Z [err]      _req: null,
+2025-11-14T03:33:04.128579960Z [err]  Cron job error: ErrorEvent {
+2025-11-14T03:33:04.128590124Z [err]      [Symbol(kCapture)]: false
+2025-11-14T03:33:04.128592090Z [err]    [Symbol(kTarget)]: WebSocket {
+2025-11-14T03:33:04.128593723Z [err]      _closeFrameSent: false,
+2025-11-14T03:33:04.128603009Z [err]    [Symbol(kType)]: 'error',
+2025-11-14T03:33:04.128607511Z [err]    },
+2025-11-14T03:33:04.128608422Z [err]      _closeMessage: <Buffer >,
+2025-11-14T03:33:04.128608535Z [err]      _events: [Object: null prototype] {
+2025-11-14T03:33:04.128609118Z [err]    },
+2025-11-14T03:33:04.128616457Z [err]        error: [Function],
+2025-11-14T03:33:04.128623784Z [err]      code: 'ECONNREFUSED',
+2025-11-14T03:33:04.128630339Z [err]      _closeTimer: null,
+2025-11-14T03:33:04.128634166Z [err]        message: [Function],
+2025-11-14T03:33:04.128645525Z [err]      [errors]: [ [Error], [Error] ]
+2025-11-14T03:33:04.128646550Z [err]      _errorEmitted: true,
+2025-11-14T03:33:04.128648288Z [err]        close: [Function],
+2025-11-14T03:33:04.128648454Z [err]      },
+2025-11-14T03:33:04.128648579Z [err]        error: [Function],
+2025-11-14T03:33:04.128664206Z [err]      _extensions: {},
+2025-11-14T03:33:04.128664688Z [err]        open: [Function]
+2025-11-14T03:33:04.128664755Z [err]    [Symbol(kMessage)]: ''
+2025-11-14T03:33:04.128664873Z [err]        message: [Function],
+2025-11-14T03:33:04.128666555Z [err]      _eventsCount: 4,
+2025-11-14T03:33:04.128668853Z [err]        at internalConnectMultiple (node:net:1134:18)
+2025-11-14T03:33:04.128679249Z [err]      },
+2025-11-14T03:33:04.128679634Z [err]      _paused: false,
+2025-11-14T03:33:04.128679831Z [err]  }
+2025-11-14T03:33:04.128680633Z [err]      _closeFrameReceived: false,
+2025-11-14T03:33:04.128687781Z [err]      _maxListeners: undefined,
+2025-11-14T03:33:04.128689561Z [err]  Cron job error: ErrorEvent {
+2025-11-14T03:33:04.128690574Z [err]        at afterConnectMultiple (node:net:1715:7) {
+2025-11-14T03:33:04.128694525Z [err]      _eventsCount: 4,
+2025-11-14T03:33:04.128697608Z [err]      _closeFrameSent: false,
+2025-11-14T03:33:04.128701274Z [err]      _errorEmitted: true,
+2025-11-14T03:33:04.128703994Z [err]    [Symbol(kTarget)]: WebSocket {
+2025-11-14T03:33:04.128705202Z [err]      _maxListeners: undefined,
+2025-11-14T03:33:04.128705398Z [err]        close: [Function],
+2025-11-14T03:33:04.128709855Z [err]      _binaryType: 'arraybuffer',
+2025-11-14T03:33:04.128715627Z [err]      _events: [Object: null prototype] {
+2025-11-14T03:33:04.128724843Z [err]      _closeCode: 1006,
+2025-11-14T03:33:04.128732356Z [err]      _paused: false,
+2025-11-14T03:33:04.128733900Z [err]      _extensions: {},
+2025-11-14T03:33:04.128736749Z [err]        open: [Function]
+2025-11-14T03:33:04.128742733Z [err]      _readyState: 3,
+2025-11-14T03:33:04.128752071Z [err]      _closeMessage: <Buffer >,
+2025-11-14T03:33:04.128753570Z [err]      _protocol: '',
+2025-11-14T03:33:04.128766744Z [err]      _receiver: null,
+2025-11-14T03:33:04.128770564Z [err]      _closeTimer: null,
+2025-11-14T03:33:04.130352277Z [err]      _sender: null,
+2025-11-14T03:33:04.130366850Z [err]      _socket: null,
+2025-11-14T03:33:04.130374266Z [err]      _bufferedAmount: 0,
+2025-11-14T03:33:04.130380538Z [err]      _isServer: false,
+2025-11-14T03:33:04.130388343Z [err]      _redirects: 0,
+2025-11-14T03:33:04.134374148Z [err]      _autoPong: true,
+2025-11-14T03:33:04.134384802Z [err]      _url: 'wss://postgres.railway.internal/v2',
+2025-11-14T03:33:04.134391050Z [err]      _req: null,
+2025-11-14T03:33:04.134397409Z [err]      [Symbol(shapeMode)]: false,
+2025-11-14T03:33:04.134406769Z [err]      [Symbol(kCapture)]: false
+2025-11-14T03:33:04.134412021Z [err]    },
+2025-11-14T03:33:04.134420564Z [err]    [Symbol(kType)]: 'error',
+2025-11-14T03:33:04.134424984Z [err]    [Symbol(kError)]: AggregateError [ECONNREFUSED]: 
+2025-11-14T03:33:04.134430231Z [err]        at internalConnectMultiple (node:net:1134:18)
+2025-11-14T03:33:04.134435572Z [err]        at afterConnectMultiple (node:net:1715:7) {
+2025-11-14T03:33:04.134442255Z [err]      code: 'ECONNREFUSED',
+2025-11-14T03:33:04.134447502Z [err]      [errors]: [ [Error], [Error] ]
+2025-11-14T03:33:04.134453831Z [err]    },
+2025-11-14T03:33:04.134459813Z [err]    [Symbol(kMessage)]: ''
+2025-11-14T03:33:04.134466489Z [err]  }
+2025-11-14T03:34:06.164850109Z [err]  Cron job error: ErrorEvent {
+2025-11-14T03:34:06.164857436Z [err]    [Symbol(kTarget)]: WebSocket {
+2025-11-14T03:34:06.164863480Z [err]      _events: [Object: null prototype] {
+2025-11-14T03:34:06.164870668Z [err]      _sender: null,
+2025-11-14T03:34:06.164874454Z [err]        error: [Function],
+2025-11-14T03:34:06.164886132Z [err]        message: [Function],
+2025-11-14T03:34:06.164889481Z [err]      _socket: null,
+2025-11-14T03:34:06.164894372Z [err]        close: [Function],
+2025-11-14T03:34:06.164900800Z [err]      _bufferedAmount: 0,
+2025-11-14T03:34:06.164906996Z [err]        open: [Function]
+2025-11-14T03:34:06.164910741Z [err]      _isServer: false,
+2025-11-14T03:34:06.164917811Z [err]      },
+2025-11-14T03:34:06.164920736Z [err]      _redirects: 0,
+2025-11-14T03:34:06.164926229Z [err]      _eventsCount: 4,
+2025-11-14T03:34:06.164930702Z [err]      _autoPong: true,
+2025-11-14T03:34:06.164939477Z [err]      _maxListeners: undefined,
+2025-11-14T03:34:06.164941760Z [err]      _url: 'wss://postgres.railway.internal/v2',
+2025-11-14T03:34:06.164950800Z [err]      _req: null,
+2025-11-14T03:34:06.164951307Z [err]      _binaryType: 'arraybuffer',
+2025-11-14T03:34:06.164958121Z [err]      _closeCode: 1006,
+2025-11-14T03:34:06.164964291Z [err]      _closeFrameReceived: false,
+2025-11-14T03:34:06.164971630Z [err]      _closeFrameSent: false,
+2025-11-14T03:34:06.164977267Z [err]      _closeMessage: <Buffer >,
+2025-11-14T03:34:06.164982725Z [err]      _closeTimer: null,
+2025-11-14T03:34:06.164988046Z [err]      _errorEmitted: true,
+2025-11-14T03:34:06.164994514Z [err]      _extensions: {},
+2025-11-14T03:34:06.164999725Z [err]      _paused: false,
+2025-11-14T03:34:06.165004833Z [err]      _protocol: '',
+2025-11-14T03:34:06.165009517Z [err]      _readyState: 3,
+2025-11-14T03:34:06.165015349Z [err]      _receiver: null,
+2025-11-14T03:34:06.169154014Z [err]      [Symbol(shapeMode)]: false,
+2025-11-14T03:34:06.169166150Z [err]      [Symbol(kCapture)]: false
+2025-11-14T03:34:06.169178147Z [err]    },
+2025-11-14T03:34:06.169184814Z [err]    [Symbol(kType)]: 'error',
+2025-11-14T03:34:06.169192931Z [err]    [Symbol(kError)]: AggregateError [ECONNREFUSED]: 
+2025-11-14T03:34:06.169207194Z [err]        at internalConnectMultiple (node:net:1134:18)
+2025-11-14T03:34:06.169216398Z [err]        at afterConnectMultiple (node:net:1715:7) {
+2025-11-14T03:34:06.169220729Z [err]      code: 'ECONNREFUSED',
+2025-11-14T03:34:06.169226638Z [err]      [errors]: [ [Error], [Error] ]
+2025-11-14T03:34:06.169233328Z [err]    },
+2025-11-14T03:34:06.169313026Z [err]    [Symbol(kMessage)]: ''
+2025-11-14T03:34:06.169322532Z [err]  }
+2025-11-14T03:34:06.169329387Z [err]  Cron job error: ErrorEvent {
+2025-11-14T03:34:06.169336133Z [err]    [Symbol(kTarget)]: WebSocket {
+2025-11-14T03:34:06.169344248Z [err]      _events: [Object: null prototype] {
+2025-11-14T03:34:06.169376211Z [err]        error: [Function],
+2025-11-14T03:34:06.169384625Z [err]        message: [Function],
+2025-11-14T03:34:06.169414645Z [err]        close: [Function],
+2025-11-14T03:34:06.169428177Z [err]        open: [Function]
+2025-11-14T03:34:06.169433744Z [err]      },
+2025-11-14T03:34:06.169438806Z [err]      _eventsCount: 4,
+2025-11-14T03:34:06.169444007Z [err]      _maxListeners: undefined,
+2025-11-14T03:34:06.169449594Z [err]      _binaryType: 'arraybuffer',
+2025-11-14T03:34:06.169456798Z [err]      _closeCode: 1006,
+2025-11-14T03:34:06.169461791Z [err]      _closeFrameReceived: false,
+2025-11-14T03:34:06.169467241Z [err]      _closeFrameSent: false,
+2025-11-14T03:34:06.169473409Z [err]      _closeMessage: <Buffer >,
+2025-11-14T03:34:06.169478593Z [err]      _closeTimer: null,
+2025-11-14T03:34:06.169483772Z [err]      _errorEmitted: true,
+2025-11-14T03:34:06.169522261Z [err]      _extensions: {},
+2025-11-14T03:34:06.169572209Z [err]      _paused: false,
+2025-11-14T03:34:06.169577160Z [err]      _protocol: '',
+2025-11-14T03:34:06.169581528Z [err]      _readyState: 3,
+2025-11-14T03:34:06.169588564Z [err]      _receiver: null,
+2025-11-14T03:34:06.169593764Z [err]      _sender: null,
+2025-11-14T03:34:06.169599155Z [err]      _socket: null,
+2025-11-14T03:34:06.169604696Z [err]      _bufferedAmount: 0,
+2025-11-14T03:34:06.169609420Z [err]      _isServer: false,
+2025-11-14T03:34:06.169622287Z [err]      _redirects: 0,
+2025-11-14T03:34:06.169627215Z [err]      _autoPong: true,
+2025-11-14T03:34:06.169633725Z [err]      _url: 'wss://postgres.railway.internal/v2',
+2025-11-14T03:34:06.169652842Z [err]      _req: null,
+2025-11-14T03:34:06.169657146Z [err]      [Symbol(shapeMode)]: false,
+2025-11-14T03:34:06.169662494Z [err]      [Symbol(kCapture)]: false
+2025-11-14T03:34:06.169667988Z [err]    },
+2025-11-14T03:34:06.169672744Z [err]    [Symbol(kType)]: 'error',
+2025-11-14T03:34:06.169678878Z [err]    [Symbol(kError)]: AggregateError [ECONNREFUSED]: 
+2025-11-14T03:34:06.169685887Z [err]        at internalConnectMultiple (node:net:1134:18)
+2025-11-14T03:34:06.169698591Z [err]        at afterConnectMultiple (node:net:1715:7) {
+2025-11-14T03:34:06.169704318Z [err]      code: 'ECONNREFUSED',
+2025-11-14T03:34:06.169710927Z [err]      [errors]: [ [Error], [Error] ]
+2025-11-14T03:34:06.169731867Z [err]    },
+2025-11-14T03:34:06.169827761Z [err]    [Symbol(kMessage)]: ''
+2025-11-14T03:34:06.169837816Z [err]  }
