@@ -675,6 +675,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return next();
     }
     
+    // CRITICAL: Skip all asset requests - only intercept HTML page requests
+    // This prevents breaking JavaScript modules, CSS, images, fonts, etc.
+    const assetExtensions = [
+      '.js', '.mjs', '.jsx', '.ts', '.tsx',  // JavaScript/TypeScript modules
+      '.css', '.scss', '.sass',              // Stylesheets
+      '.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp', '.ico', // Images
+      '.woff', '.woff2', '.ttf', '.eot',     // Fonts
+      '.json', '.xml',                       // Data files
+      '.map'                                 // Source maps
+    ];
+    
+    const pathLower = req.path.toLowerCase();
+    if (assetExtensions.some(ext => pathLower.endsWith(ext))) {
+      return next();
+    }
+    
+    // Skip Vite special paths (HMR, virtual modules, etc.)
+    if (req.path.startsWith('/src/') || 
+        req.path.startsWith('/@fs/') || 
+        req.path.startsWith('/@vite/') || 
+        req.path.startsWith('/@id/') ||
+        req.path.startsWith('/node_modules/')) {
+      return next();
+    }
+    
     // In development, we still need to handle invalid subdomains to show error pages
     // But for valid subdomains, we can skip meta tag injection to let Vite handle HMR
     // This allows us to test the error flow while keeping fast refresh for development

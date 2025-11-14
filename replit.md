@@ -42,6 +42,7 @@ Preferred communication style: Simple, everyday language.
 *   **Terminology Refactor:** System-wide change from "Clients" to "Contacts."
 *   **Gallery Delivery System:** Automated touchpoint system triggered when galleries are marked ready, including expiration settings and automated communications (email, SMS reminders, upsell).
 *   **Domain-Aware Routing System:** Production-grade dual-domain routing infrastructure supporting split deployment (Replit for CRM, Railway for client portals). Features server-side domain detection, domain-specific routing security, and a frontend DomainProvider hook with error handling.
+*   **Client Portal Meta Tag Injection:** Server-side Open Graph meta tag injection for client portal subdomains enabling branded social media previews (iMessage, Facebook, Twitter). Catch-all middleware injects photographer's logo, business name, and description before React loads. Includes invalid subdomain detection with 404 error pages. CRITICAL: Must skip asset requests (.js, .css, .png, etc.) and Vite paths (/src/, /@fs/, /node_modules/) to prevent breaking module loading.
 
 **System Design Choices:**
 *   **Backend:** Node.js with Express.js, Drizzle ORM for PostgreSQL, JWT tokens in httpOnly cookies, bcrypt for password hashing, and RESTful API with role-based access control.
