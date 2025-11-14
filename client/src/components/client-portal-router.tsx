@@ -55,7 +55,8 @@ export function ClientPortalRouter() {
           </ClientPortalGuard>
         </Route>
         
-        {/* Public magic link portal entry */}
+        {/* Magic link validation routes - token-based, no auth required */}
+        <Route path="/client-portal/validate/:token" component={Portal} />
         <Route path="/portal/:token" component={Portal} />
         
         {/* Public Smart File routes - token-based, no auth required */}

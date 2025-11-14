@@ -2670,7 +2670,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         baseUrl = `https://${domains[0]}`;
       }
       
-      const loginUrl = `${baseUrl}/client-portal?token=${token}`;
+      const loginUrl = `${baseUrl}/client-portal/validate/${token}`;
       
       // Get contact's active projects for email tracking
       const contactProjects = await storage.getProjectsByClient(contact.id);

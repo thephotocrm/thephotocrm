@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
+import { useDomain } from "@/hooks/use-domain";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,11 +16,14 @@ import groomPhoto from "@assets/stock_images/groom_portrait_weddi_fd40303a.jpg";
 export default function Login() {
   const [, setLocation] = useLocation();
   const { login, user } = useAuth();
+  const { domain } = useDomain();
   const { toast } = useToast();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  
+  const isClientPortal = domain?.type === 'client_portal' && domain.isCustomSubdomain;
 
   // Redirect if already logged in
   if (user) {
@@ -59,7 +63,9 @@ export default function Login() {
             {/* Heading */}
             <div className="text-center mb-8">
               <h1 className="text-3xl font-bold mb-1">Welcome back</h1>
-              <p className="text-lg font-medium">to thePhotoCrm</p>
+              <p className="text-lg font-medium">
+                {isClientPortal ? "Sign in to your client portal" : "to thePhotoCrm"}
+              </p>
             </div>
 
             {/* Form */}
@@ -156,23 +162,25 @@ export default function Login() {
           </div>
 
           {/* Bottom Section */}
-          <div className="text-center mt-8">
-            <div className="flex justify-center items-center mb-3">
-              <div className="w-14 h-14 rounded-full bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 flex items-center justify-center shadow-lg">
-                <Camera className="w-7 h-7 text-white" />
+          {!isClientPortal && (
+            <div className="text-center mt-8">
+              <div className="flex justify-center items-center mb-3">
+                <div className="w-14 h-14 rounded-full bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 flex items-center justify-center shadow-lg">
+                  <Camera className="w-7 h-7 text-white" />
+                </div>
               </div>
+              <p className="text-sm text-gray-600">
+                New to thePhotoCrm?{" "}
+                <button
+                  onClick={() => setLocation("/register")}
+                  className="font-semibold text-gray-900 underline"
+                  data-testid="link-register"
+                >
+                  Signup
+                </button>
+              </p>
             </div>
-            <p className="text-sm text-gray-600">
-              New to thePhotoCrm?{" "}
-              <button
-                onClick={() => setLocation("/register")}
-                className="font-semibold text-gray-900 underline"
-                data-testid="link-register"
-              >
-                Signup
-              </button>
-            </p>
-          </div>
+          )}
         </div>
       </div>
 
@@ -183,20 +191,24 @@ export default function Login() {
           
           {/* Left Side - Login Form */}
           <div className="w-full md:w-2/5 p-8 md:p-12 flex flex-col" style={{ backgroundColor: '#F5F1E8' }}>
-            {/* Logo */}
-            <div className="mb-8">
-              <div className="inline-flex items-center gap-2 px-4 py-2 border-2 border-gray-800 rounded-full">
-                <Camera className="w-5 h-5" />
-                <span className="font-semibold text-lg">thePhotoCrm</span>
+            {/* Logo - Only show for photographer domain */}
+            {!isClientPortal && (
+              <div className="mb-8">
+                <div className="inline-flex items-center gap-2 px-4 py-2 border-2 border-gray-800 rounded-full">
+                  <Camera className="w-5 h-5" />
+                  <span className="font-semibold text-lg">thePhotoCrm</span>
+                </div>
+                <p className="text-sm text-gray-600 mt-3 ml-1">CRM for Wedding Photographers</p>
               </div>
-              <p className="text-sm text-gray-600 mt-3 ml-1">CRM for Wedding Photographers</p>
-            </div>
+            )}
 
             {/* Form Content */}
             <div className="flex-1 flex flex-col justify-center max-w-sm">
               <div className="mb-8">
                 <h1 className="text-3xl md:text-4xl font-bold mb-2">Welcome back</h1>
-                <p className="text-gray-600">Sign in to your account</p>
+                <p className="text-gray-600">
+                  {isClientPortal ? "Sign in to your client portal" : "Sign in to your account"}
+                </p>
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-6">
@@ -287,18 +299,20 @@ export default function Login() {
                 Continue with Google
               </a>
 
-              <div className="mt-8 text-center">
-                <p className="text-sm text-gray-600">
-                  Don't have an account?{" "}
-                  <button
-                    onClick={() => setLocation("/register")}
-                    className="font-semibold text-gray-900 hover:underline"
-                    data-testid="link-register-desktop"
-                  >
-                    Sign up
-                  </button>
-                </p>
-              </div>
+              {!isClientPortal && (
+                <div className="mt-8 text-center">
+                  <p className="text-sm text-gray-600">
+                    Don't have an account?{" "}
+                    <button
+                      onClick={() => setLocation("/register")}
+                      className="font-semibold text-gray-900 hover:underline"
+                      data-testid="link-register-desktop"
+                    >
+                      Sign up
+                    </button>
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* Footer Links */}

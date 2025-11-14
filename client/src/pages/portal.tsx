@@ -19,7 +19,20 @@ export default function Portal() {
       }
 
       try {
-        const response = await fetch(`/api/portal/${token}`, {
+        // Determine which API endpoint to call based on the actual pathname
+        const isClientPortalValidate = window.location.pathname.startsWith('/client-portal/validate/');
+        const apiEndpoint = isClientPortalValidate 
+          ? `/api/client-portal/validate/${token}`
+          : `/api/portal/${token}`;
+
+        console.log('🔍 Portal validation:', {
+          pathname: window.location.pathname,
+          isClientPortalValidate,
+          apiEndpoint,
+          token: token.substring(0, 10) + '...'
+        });
+
+        const response = await fetch(apiEndpoint, {
           method: "GET",
           credentials: "include"
         });
@@ -34,10 +47,23 @@ export default function Portal() {
         const data = await response.json();
         setStatus("success");
 
-        // Redirect to the project after a short delay
-        setTimeout(() => {
-          navigate(`/projects/${data.projectId}`);
-        }, 1500);
+        // Redirect based on response type
+        if (data.redirect) {
+          // Client portal tokens may include redirect URL
+          setTimeout(() => {
+            navigate(data.redirect);
+          }, 1500);
+        } else if (data.projectId) {
+          // Project-specific token
+          setTimeout(() => {
+            navigate(`/client-portal/projects/${data.projectId}`);
+          }, 1500);
+        } else {
+          // Generic client token - go to project selection or overview
+          setTimeout(() => {
+            navigate('/client-portal');
+          }, 1500);
+        }
       } catch (error) {
         console.error("Portal token validation error:", error);
         setStatus("error");
