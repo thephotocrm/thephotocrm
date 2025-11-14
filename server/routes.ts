@@ -675,10 +675,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return next();
     }
     
-    // Skip in development - let Vite/React handle it
-    if (app.get("env") === "development") {
-      return next();
-    }
+    // In development, we still need to handle invalid subdomains to show error pages
+    // But for valid subdomains, we can skip meta tag injection to let Vite handle HMR
+    // This allows us to test the error flow while keeping fast refresh for development
+    const isDevelopment = app.get("env") === "development";
+    
+    // If in development AND the slug is valid, skip meta tag injection for HMR
+    // But we'll only know if it's valid after fetching, so we need to check that below
     
     // Helper function to escape HTML content (attributes and text nodes)
     const escapeHtml = (text: string) => {
@@ -710,8 +713,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const photographer = await storage.getPhotographerByPortalSlug(photographerSlug);
       
       // INVALID SUBDOMAIN: Photographer not found - return 404 with error meta tags
+      // This ALWAYS happens regardless of environment to prevent invalid subdomains from loading
       if (!photographer) {
-        console.log(`❌ Invalid photographer subdomain: ${photographerSlug} - returning 404 error page`);
+        console.log(`❌ Invalid photographer subdomain: ${photographerSlug} - returning 404 error page (env: ${isDevelopment ? 'dev' : 'prod'})`);
         
         const errorTitle = escapeHtml('Client Portal Not Found - thePhotoCrm');
         const errorDescription = escapeHtml('This photographer portal does not exist. Please check your link or contact your photographer.');
@@ -730,7 +734,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return await injectMetaTags(errorMetaTags, 404);
       }
       
-      // VALID SUBDOMAIN: Inject photographer branding into meta tags
+      // VALID SUBDOMAIN: Check if we should inject meta tags or skip for development
+      if (isDevelopment) {
+        console.log(`⏭️ Valid photographer subdomain in development: ${photographerSlug} (${photographer.businessName}) - skipping meta tags for HMR`);
+        return next();
+      }
+      
+      // PRODUCTION: Inject photographer branding into meta tags
       console.log(`✅ Valid photographer subdomain: ${photographerSlug} (${photographer.businessName}) - injecting branded meta tags`);
 
       // Build the meta tags with proper escaping
