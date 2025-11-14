@@ -173,7 +173,7 @@ export const photographers = pgTable("photographers", {
 
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  email: text("email").notNull().unique(),
+  email: text("email").notNull(),
   passwordHash: text("password_hash"), // Optional for OAuth users
   role: text("role").notNull(),
   photographerId: varchar("photographer_id").references(() => photographers.id),
@@ -185,7 +185,11 @@ export const users = pgTable("users", {
   resetTokenExpiry: timestamp("reset_token_expiry"),
   resetTokenUsed: boolean("reset_token_used").default(false),
   createdAt: timestamp("created_at").defaultNow()
-});
+}, (table) => ({
+  // Composite unique constraint: same email can exist for different (role, photographerId) combinations
+  // Example: sarah@example.com can be PHOTOGRAPHER (her own account) AND CLIENT (for photographer A) AND CLIENT (for photographer B)
+  emailRolePhotographerUnique: unique("users_email_role_photographer_unique").on(table.email, table.role, table.photographerId)
+}));
 
 // Account linking requests for Google OAuth
 export const linkingRequests = pgTable("linking_requests", {
