@@ -97,6 +97,11 @@ export const adCampaignStatusEnum = {
   COMPLETED: "COMPLETED"
 } as const;
 
+export const tokenTypeEnum = {
+  PORTAL_ACCESS: "PORTAL_ACCESS",  // 90-day project access tokens
+  MAGIC_LINK: "MAGIC_LINK"          // 30-minute login tokens
+} as const;
+
 // Tables
 export const photographers = pgTable("photographers", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -317,10 +322,11 @@ export const projectParticipants = pgTable("project_participants", {
 export const portalTokens = pgTable("portal_tokens", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   token: text("token").notNull().unique(), // Secure random token for magic link
-  projectId: varchar("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
+  tokenType: text("token_type").notNull().default("PORTAL_ACCESS"), // PORTAL_ACCESS (90-day) or MAGIC_LINK (30-minute)
+  projectId: varchar("project_id").references(() => projects.id, { onDelete: "cascade" }), // Nullable for magic links without project context
   clientId: varchar("client_id").notNull().references(() => contacts.id, { onDelete: "cascade" }),
   photographerId: varchar("photographer_id").notNull().references(() => photographers.id),
-  expiresAt: timestamp("expires_at").notNull(), // Tokens expire after 90 days
+  expiresAt: timestamp("expires_at").notNull(), // Expiration: 90 days for portal access, 30 minutes for magic links
   lastUsedAt: timestamp("last_used_at"), // Track when the client last clicked the link
   createdAt: timestamp("created_at").defaultNow()
 }, (table) => ({

@@ -116,6 +116,7 @@ export interface IStorage {
   
   // Portal Tokens (Project-specific magic links)
   createPortalToken(token: InsertPortalToken): Promise<PortalToken>;
+  createMagicLinkToken(clientId: string, photographerId: string): Promise<PortalToken>;
   validatePortalToken(tokenString: string): Promise<PortalToken | undefined>;
   updatePortalTokenLastUsed(id: string): Promise<void>;
   
@@ -1589,6 +1590,22 @@ export class DatabaseStorage implements IStorage {
   async createPortalToken(tokenData: InsertPortalToken): Promise<PortalToken> {
     const [token] = await db.insert(portalTokens).values(tokenData).returning();
     return token;
+  }
+
+  async createMagicLinkToken(clientId: string, photographerId: string): Promise<PortalToken> {
+    const crypto = await import('crypto');
+    const token = crypto.randomBytes(32).toString('hex');
+    const expiresAt = new Date();
+    expiresAt.setMinutes(expiresAt.getMinutes() + 30); // 30-minute expiry
+
+    return this.createPortalToken({
+      token,
+      tokenType: 'MAGIC_LINK',
+      projectId: null,
+      clientId,
+      photographerId,
+      expiresAt
+    });
   }
 
   async validatePortalToken(tokenString: string): Promise<PortalToken | undefined> {

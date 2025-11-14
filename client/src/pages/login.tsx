@@ -7,6 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Camera, Eye, EyeOff, Mail } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useMutation } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 import weddingPhoto from "@assets/stock_images/professional_wedding_67201dd8.jpg";
 import bridePhoto from "@assets/stock_images/elegant_bride_portra_230e6331.jpg";
 import couplePhoto from "@assets/stock_images/romantic_couple_wedd_59a9d3f2.jpg";
@@ -22,8 +25,35 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [magicLinkModalOpen, setMagicLinkModalOpen] = useState(false);
+  const [magicLinkEmail, setMagicLinkEmail] = useState("");
   
   const isClientPortal = domain?.type === 'client_portal' && domain.isCustomSubdomain;
+  
+  // Magic link request mutation
+  const requestMagicLinkMutation = useMutation({
+    mutationFn: async (email: string) => {
+      return await apiRequest("/api/client-portal/request-magic-link", {
+        method: "POST",
+        body: { email }
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Check your email",
+        description: "We've sent you a secure login link",
+      });
+      setMagicLinkModalOpen(false);
+      setMagicLinkEmail("");
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to send magic link",
+        variant: "destructive",
+      });
+    }
+  });
 
   // Redirect if already logged in
   if (user) {
@@ -219,12 +249,7 @@ export default function Login() {
                   variant="outline"
                   className="w-full h-14 rounded-2xl border-2 border-blue-600 text-blue-600 hover:bg-blue-50 font-semibold"
                   data-testid="button-request-magic-link"
-                  onClick={() => {
-                    toast({
-                      title: "Coming Soon",
-                      description: "Magic link feature will be available soon",
-                    });
-                  }}
+                  onClick={() => setMagicLinkModalOpen(true)}
                 >
                   Email me a login link
                 </Button>
@@ -423,12 +448,7 @@ export default function Login() {
                     variant="outline"
                     className="w-full h-12 rounded-xl border-2 border-blue-600 text-blue-600 hover:bg-blue-50 font-semibold"
                     data-testid="button-request-magic-link-desktop"
-                    onClick={() => {
-                      toast({
-                        title: "Coming Soon",
-                        description: "Magic link feature will be available soon",
-                      });
-                    }}
+                    onClick={() => setMagicLinkModalOpen(true)}
                   >
                     Email me a login link
                   </Button>
@@ -463,6 +483,39 @@ export default function Login() {
           </div>
         </div>
       </div>
+
+      {/* Magic Link Request Modal */}
+      <Dialog open={magicLinkModalOpen} onOpenChange={setMagicLinkModalOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Request Login Link</DialogTitle>
+            <DialogDescription>
+              We'll send a secure login link to your email address
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="magic-link-email">Email Address</Label>
+              <Input
+                id="magic-link-email"
+                type="email"
+                placeholder="your@email.com"
+                value={magicLinkEmail}
+                onChange={(e) => setMagicLinkEmail(e.target.value)}
+                data-testid="input-magic-link-email"
+              />
+            </div>
+            <Button
+              className="w-full"
+              onClick={() => requestMagicLinkMutation.mutate(magicLinkEmail)}
+              disabled={!magicLinkEmail || requestMagicLinkMutation.isPending}
+              data-testid="button-send-magic-link"
+            >
+              {requestMagicLinkMutation.isPending ? "Sending..." : "Send Login Link"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
