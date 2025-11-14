@@ -3,6 +3,7 @@ import { OAuth2Client } from 'google-auth-library';
 import { storage } from '../storage';
 import { nanoid } from 'nanoid';
 import * as crypto from 'crypto';
+import { getGoogleRedirectUri } from '../utils/oauthRedirect';
 
 // Types for calendar events
 export interface CalendarEventDetails {
@@ -47,8 +48,7 @@ export class GoogleCalendarService {
     'https://www.googleapis.com/auth/gmail.readonly'
   ];
 
-  private static readonly REDIRECT_URI = process.env.GOOGLE_REDIRECT_URI || 
-    GoogleCalendarService.getDefaultRedirectURI();
+  private static readonly REDIRECT_URI = getGoogleRedirectUri('/api/auth/google-calendar/callback');
 
   private clientId: string | null;
   private clientSecret: string | null;
@@ -57,30 +57,6 @@ export class GoogleCalendarService {
   private static readonly HMAC_ALGORITHM = 'sha256';
   private static readonly STATE_SEPARATOR = '.';
 
-  /**
-   * Get default redirect URI that works with both Replit and local development
-   */
-  private static getDefaultRedirectURI(): string {
-    // Check for dev environment first (only exists in development)
-    if (process.env.REPLIT_DEV_DOMAIN) {
-      return `https://${process.env.REPLIT_DEV_DOMAIN}/api/auth/google-calendar/callback`;
-    }
-    
-    // Check for current domain (production)
-    if (process.env.REPLIT_DOMAINS) {
-      // Use the first domain from REPLIT_DOMAINS (this is the actual current domain)
-      const domains = process.env.REPLIT_DOMAINS.split(',');
-      return `https://${domains[0]}/api/auth/google-calendar/callback`;
-    }
-    
-    // Check if running on Replit (fallback to legacy format)
-    if (process.env.REPL_SLUG && process.env.REPL_OWNER) {
-      return `https://${process.env.REPL_SLUG}--${process.env.REPL_OWNER}.repl.co/api/auth/google-calendar/callback`;
-    }
-    
-    // Fallback to localhost for local development
-    return `${process.env.NODE_ENV === 'production' ? 'https' : 'http'}://localhost:5000/api/auth/google-calendar/callback`;
-  }
 
   constructor() {
     this.clientId = process.env.GOOGLE_CLIENT_ID || null;

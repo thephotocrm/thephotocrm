@@ -20,6 +20,7 @@ import { tusServer } from "./services/tus-upload";
 import { createPaymentIntent, createCheckoutSession, createConnectCheckoutSession, createConnectPaymentIntent, calculatePlatformFee, handleWebhook, stripe } from "./services/stripe";
 import { googleCalendarService, createBookingCalendarEvent } from "./services/calendar";
 import { slotGenerationService } from "./services/slotGeneration";
+import { getGoogleRedirectUri } from "./utils/oauthRedirect";
 import { insertUserSchema, insertPhotographerSchema, insertContactSchema, insertStageSchema, 
          insertTemplateSchema, insertAutomationSchema, validateAutomationSchema, insertAutomationStepSchema, insertAutomationBusinessTriggerSchema, insertPackageSchema, insertAddOnSchema, insertLeadFormSchema,
          insertBookingSchema, updateBookingSchema, 
@@ -1008,9 +1009,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         signed: true // Use signed cookies for tampering protection
       });
       
-      // Use environment-aware protocol (HTTPS on Replit, HTTP on localhost)
-      const protocol = getOAuthProtocol(req);
-      const redirectUri = `${protocol}://${req.get('host')}/api/auth/google/callback`;
+      // Use shared redirect URI utility for consistent behavior across Railway/Replit
+      const redirectUri = getGoogleRedirectUri('/api/auth/google/callback');
       
       const authUrl = await getGoogleAuthUrl(redirectUri, state);
       res.redirect(authUrl);
@@ -1059,9 +1059,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.clearCookie('oauth_state');
 
       const { exchangeCodeForClaims } = await import('./services/googleAuth');
-      // Use environment-aware protocol (HTTPS on Replit, HTTP on localhost)
-      const protocol = getOAuthProtocol(req);
-      const redirectUri = `${protocol}://${req.get('host')}/api/auth/google/callback`;
+      // Use shared redirect URI utility for consistent behavior across Railway/Replit
+      const redirectUri = getGoogleRedirectUri('/api/auth/google/callback');
       
       // Exchange code for user claims
       const claims = await exchangeCodeForClaims(code, redirectUri);
@@ -9118,9 +9117,8 @@ ${photographer.businessName}`
       const photographerId = req.user!.photographerId!;
       const returnUrl = req.query.returnUrl as string | undefined;
       
-      // Build dynamic redirect URI based on current request's host (dev or prod)
-      // Always use HTTPS for OAuth redirects (Replit domains use HTTPS)
-      const redirectUri = `https://${req.get('host')}/api/auth/google-calendar/callback`;
+      // Use shared redirect URI utility for consistent behavior across Railway/Replit
+      const redirectUri = getGoogleRedirectUri('/api/auth/google-calendar/callback');
       
       const authResult = await googleCalendarService.getAuthUrl(photographerId, returnUrl, redirectUri);
       
@@ -9166,8 +9164,8 @@ ${photographer.businessName}`
       const photographerId = stateValidation.photographerId;
       const returnUrl = stateValidation.returnUrl;
       
-      // Use the same redirect URI for token exchange as we used for auth URL
-      const redirectUri = `https://${req.get('host')}/api/auth/google-calendar/callback`;
+      // Use shared redirect URI utility for consistent behavior across Railway/Replit
+      const redirectUri = getGoogleRedirectUri('/api/auth/google-calendar/callback');
       const result = await googleCalendarService.exchangeCodeForTokens(code as string, photographerId, redirectUri);
       
       if (result.success) {

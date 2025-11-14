@@ -65,7 +65,9 @@ Preferred communication style: Simple, everyday language.
 
 **Development & Deployment:**
 *   **Replit:** Development environment and deployment.
+*   **Railway:** Production deployment platform with automatic wildcard SSL support for client portal subdomains.
 *   **Vite:** Frontend build tool.
+*   **OAuth Redirect URIs:** Shared utility (`server/utils/oauthRedirect.ts`) provides consistent Google OAuth redirect URI detection across Railway (RAILWAY_PUBLIC_DOMAIN), Replit (REPLIT_DEV_DOMAIN, REPLIT_DOMAINS), and localhost environments. Prevents photographers from losing Google Calendar/Gmail integration after Railway deployments.
 
 **UI & Design System:**
 *   **Radix UI:** Unstyled, accessible component primitives.
