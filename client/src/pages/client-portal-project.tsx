@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { 
   Camera,
   ChevronDown,
@@ -15,17 +16,15 @@ import {
   FileText,
   CreditCard,
   StickyNote,
-  Settings,
   LogOut,
   Calendar,
-  Heart,
-  MapPin,
-  Phone,
   Mail,
+  Phone,
   Loader2,
   Image as ImageIcon,
-  Download,
   Eye,
+  Users,
+  MapPin,
   Clock
 } from "lucide-react";
 import {
@@ -90,7 +89,7 @@ interface ClientProject {
   }>;
 }
 
-type TabType = 'overview' | 'activity' | 'tasks' | 'files' | 'payments' | 'notes';
+type TabType = 'overview' | 'activity' | 'files' | 'payments' | 'notes';
 
 export default function ClientPortalProject() {
   const { user, loading: authLoading, logout } = useAuth();
@@ -99,19 +98,16 @@ export default function ClientPortalProject() {
   const [activeTab, setActiveTab] = useState<TabType>('overview');
   const projectId = params?.id;
 
-  // Fetch project data
   const { data: project, isLoading } = useQuery<ClientProject>({
     queryKey: ["/api/client-portal/projects", projectId],
     enabled: !!projectId && !!user
   });
 
-  // Fetch client's other projects for switcher
   const { data: allProjects } = useQuery<ClientProject[]>({
     queryKey: ["/api/client-portal/projects"],
     enabled: !!user
   });
 
-  // Redirect to login if not authenticated
   if (!authLoading && !user) {
     setLocation("/login");
     return null;
@@ -119,7 +115,7 @@ export default function ClientPortalProject() {
 
   if (isLoading || authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
@@ -127,7 +123,7 @@ export default function ClientPortalProject() {
 
   if (!project) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <Card className="w-full max-w-md">
           <CardContent className="pt-6">
             <div className="text-center py-8">
@@ -135,7 +131,7 @@ export default function ClientPortalProject() {
               <p className="text-sm text-muted-foreground mb-4">
                 You don't have access to this project.
               </p>
-              <Button onClick={() => setLocation("/client-portal")}>
+              <Button onClick={() => setLocation("/client-portal")} data-testid="button-back-portal">
                 Back to Portal
               </Button>
             </div>
@@ -177,35 +173,49 @@ export default function ClientPortalProject() {
   const navItems = [
     { id: 'overview' as TabType, label: 'Overview', icon: LayoutDashboard },
     { id: 'activity' as TabType, label: 'Activity', icon: Activity },
-    { id: 'tasks' as TabType, label: 'Tasks', icon: CheckSquare },
     { id: 'files' as TabType, label: 'Files', icon: FileText },
     { id: 'payments' as TabType, label: 'Payments', icon: CreditCard },
     { id: 'notes' as TabType, label: 'Notes', icon: StickyNote },
   ];
 
+  const getInitials = (firstName: string, lastName: string) => {
+    return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+  };
+
   return (
-    <div className="flex h-screen overflow-hidden bg-background">
+    <div className="flex h-screen overflow-hidden bg-gray-50">
       {/* Left Sidebar */}
-      <div className="w-64 border-r border-border bg-card flex flex-col">
-        {/* Header with Project Switcher */}
-        <div className="p-4 border-b border-border">
+      <div className="w-64 bg-white border-r border-gray-200 flex flex-col">
+        {/* Logo & Business Name */}
+        <div className="p-6 border-b border-gray-200">
           <div className="flex items-center space-x-3 mb-4">
-            <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center flex-shrink-0">
-              <Camera className="w-6 h-6 text-primary-foreground" />
-            </div>
+            {project.photographer.logoUrl ? (
+              <img 
+                src={project.photographer.logoUrl} 
+                alt={project.photographer.businessName}
+                className="w-10 h-10 rounded-lg object-cover"
+                data-testid="img-photographer-logo"
+              />
+            ) : (
+              <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
+                <Camera className="w-6 h-6 text-white" />
+              </div>
+            )}
             <div className="flex-1 min-w-0">
-              <h1 className="text-sm font-semibold truncate">{project.photographer.businessName}</h1>
-              <p className="text-xs text-muted-foreground">Client Portal</p>
+              <h1 className="text-sm font-semibold text-gray-900 truncate" data-testid="text-business-name">
+                {project.photographer.businessName}
+              </h1>
+              <p className="text-xs text-gray-500">Client Portal</p>
             </div>
           </div>
 
-          {/* Project Switcher - Only show if multiple projects */}
+          {/* Project Switcher */}
           {allProjects && allProjects.length > 1 && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button 
                   variant="outline" 
-                  className="w-full justify-between"
+                  className="w-full justify-between text-sm"
                   data-testid="button-project-switcher"
                 >
                   <span className="truncate">{project.title}</span>
@@ -220,8 +230,8 @@ export default function ClientPortalProject() {
                     data-testid={`project-option-${proj.id}`}
                   >
                     <div className="flex-1">
-                      <p className="font-medium">{proj.title}</p>
-                      <p className="text-xs text-muted-foreground">{proj.projectType}</p>
+                      <p className="font-medium text-sm">{proj.title}</p>
+                      <p className="text-xs text-gray-500">{proj.projectType}</p>
                     </div>
                   </DropdownMenuItem>
                 ))}
@@ -230,7 +240,7 @@ export default function ClientPortalProject() {
           )}
         </div>
 
-        {/* Navigation Tabs */}
+        {/* Navigation */}
         <nav className="flex-1 p-3 space-y-1">
           {navItems.map((item) => {
             const Icon = item.icon;
@@ -239,142 +249,257 @@ export default function ClientPortalProject() {
               <button
                 key={item.id}
                 onClick={() => setActiveTab(item.id)}
-                className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${
+                className={`w-full flex items-center space-x-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                   isActive 
-                    ? 'bg-primary text-primary-foreground' 
-                    : 'hover:bg-accent text-foreground'
+                    ? 'bg-primary text-white' 
+                    : 'text-gray-700 hover:bg-gray-100'
                 }`}
                 data-testid={`nav-tab-${item.id}`}
               >
                 <Icon className="w-5 h-5 flex-shrink-0" />
-                <span className="font-medium">{item.label}</span>
+                <span>{item.label}</span>
               </button>
             );
           })}
         </nav>
 
-        {/* Bottom Actions */}
-        <div className="p-3 border-t border-border space-y-1">
-          <button
-            onClick={() => setActiveTab('overview')}
-            className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-accent text-foreground transition-colors"
-            data-testid="button-settings"
-          >
-            <Settings className="w-5 h-5" />
-            <span className="font-medium">Settings</span>
-          </button>
+        {/* Logout */}
+        <div className="p-3 border-t border-gray-200">
           <button
             onClick={handleLogout}
-            className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-accent text-foreground transition-colors"
+            className="w-full flex items-center space-x-3 px-4 py-2.5 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors"
             data-testid="button-logout"
           >
             <LogOut className="w-5 h-5" />
-            <span className="font-medium">Log out</span>
+            <span>Log out</span>
           </button>
         </div>
       </div>
 
-      {/* Main Content Area */}
-      <div className="flex-1 overflow-y-auto">
-        <div className="max-w-5xl mx-auto p-8">
+      {/* Main Content */}
+      <div className="flex-1 overflow-y-auto bg-gray-50">
+        {/* Hero Banner */}
+        <div 
+          className="h-64 bg-gradient-to-br from-primary/90 to-primary relative"
+          data-testid="hero-banner"
+        >
+          <div className="absolute inset-0 bg-black/10"></div>
+          <div className="relative h-full flex items-end p-8">
+            <div className="text-white">
+              <h1 className="text-4xl font-bold mb-2" data-testid="text-project-title">
+                {project.title}
+              </h1>
+              <div className="flex items-center space-x-4 text-white/90">
+                {project.eventDate && (
+                  <div className="flex items-center" data-testid="text-event-date">
+                    <Calendar className="w-4 h-4 mr-2" />
+                    <span className="text-sm">
+                      {new Date(project.eventDate).toLocaleDateString('en-US', {
+                        month: 'long',
+                        day: 'numeric',
+                        year: 'numeric'
+                      })}
+                    </span>
+                  </div>
+                )}
+                {project.stage && (
+                  <Badge variant="secondary" className="bg-white/20 text-white border-white/30" data-testid="badge-stage">
+                    {project.stage.name}
+                  </Badge>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Participant Bar */}
+        <div className="bg-white border-b border-gray-200 px-8 py-4">
+          <div className="flex items-center space-x-2">
+            <Users className="w-5 h-5 text-gray-500" />
+            <span className="text-sm font-medium text-gray-700 mr-4">Project Team</span>
+            <div className="flex items-center space-x-2">
+              <Avatar className="w-8 h-8 border-2 border-white" data-testid="avatar-client">
+                <AvatarFallback className="bg-primary text-white text-xs">
+                  {getInitials(project.client.firstName, project.client.lastName)}
+                </AvatarFallback>
+              </Avatar>
+              <span className="text-sm text-gray-700" data-testid="text-client-name">
+                {project.client.firstName} {project.client.lastName}
+              </span>
+              <Badge variant="outline" className="text-xs" data-testid="badge-client-role">
+                {project.role === 'PRIMARY' ? 'Lead' : 'Participant'}
+              </Badge>
+            </div>
+          </div>
+        </div>
+
+        {/* Tab Content */}
+        <div className="p-8">
           {/* Overview Tab */}
           {activeTab === 'overview' && (
-            <div className="space-y-6">
-              <div>
-                <h1 className="text-3xl font-bold mb-2">{project.title}</h1>
-                <div className="flex items-center space-x-4 text-muted-foreground">
-                  {project.eventDate && (
-                    <div className="flex items-center">
-                      <Calendar className="w-4 h-4 mr-2" />
-                      <span>{new Date(project.eventDate).toLocaleDateString()}</span>
+            <div className="space-y-6 max-w-6xl">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* Quick Stats Cards */}
+                <Card className="bg-white border-gray-200" data-testid="card-tasks-stat">
+                  <CardContent className="pt-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-gray-500 mb-1">Tasks</p>
+                        <p className="text-3xl font-bold text-gray-900">
+                          {project.checklistItems?.filter(i => i.completedAt).length || 0}/
+                          {project.checklistItems?.length || 0}
+                        </p>
+                      </div>
+                      <CheckSquare className="w-8 h-8 text-primary" />
                     </div>
-                  )}
-                  {project.stage && (
-                    <Badge variant="outline">{project.stage.name}</Badge>
-                  )}
-                </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-white border-gray-200" data-testid="card-files-stat">
+                  <CardContent className="pt-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-gray-500 mb-1">Documents</p>
+                        <p className="text-3xl font-bold text-gray-900">{project.smartFiles?.length || 0}</p>
+                      </div>
+                      <FileText className="w-8 h-8 text-primary" />
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-white border-gray-200" data-testid="card-galleries-stat">
+                  <CardContent className="pt-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-gray-500 mb-1">Galleries</p>
+                        <p className="text-3xl font-bold text-gray-900">{project.galleries?.length || 0}</p>
+                      </div>
+                      <ImageIcon className="w-8 h-8 text-primary" />
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
 
               {/* Project Details Card */}
-              <Card>
+              <Card className="bg-white border-gray-200">
                 <CardHeader>
-                  <CardTitle>Project Details</CardTitle>
+                  <CardTitle className="text-xl">Project Details</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="flex items-center">
-                    <Mail className="w-4 h-4 mr-3 text-muted-foreground" />
-                    <span className="text-sm">{project.client.email}</span>
+                <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="flex items-center space-x-3" data-testid="detail-email">
+                    <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                      <Mail className="w-5 h-5 text-primary" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500">Email</p>
+                      <p className="text-sm font-medium text-gray-900">{project.client.email}</p>
+                    </div>
                   </div>
+
                   {project.client.phone && (
-                    <div className="flex items-center">
-                      <Phone className="w-4 h-4 mr-3 text-muted-foreground" />
-                      <span className="text-sm">{project.client.phone}</span>
+                    <div className="flex items-center space-x-3" data-testid="detail-phone">
+                      <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                        <Phone className="w-5 h-5 text-primary" />
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-500">Phone</p>
+                        <p className="text-sm font-medium text-gray-900">{project.client.phone}</p>
+                      </div>
                     </div>
                   )}
+
                   {project.eventDate && (
-                    <div className="flex items-center">
-                      <Heart className="w-4 h-4 mr-3 text-muted-foreground" />
-                      <span className="text-sm">
-                        Event Date: {new Date(project.eventDate).toLocaleDateString()}
-                      </span>
+                    <div className="flex items-center space-x-3" data-testid="detail-event-date">
+                      <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                        <Calendar className="w-5 h-5 text-primary" />
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-500">Event Date</p>
+                        <p className="text-sm font-medium text-gray-900">
+                          {new Date(project.eventDate).toLocaleDateString('en-US', {
+                            month: 'long',
+                            day: 'numeric',
+                            year: 'numeric'
+                          })}
+                        </p>
+                      </div>
                     </div>
                   )}
+
+                  <div className="flex items-center space-x-3" data-testid="detail-project-type">
+                    <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                      <Camera className="w-5 h-5 text-primary" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500">Project Type</p>
+                      <p className="text-sm font-medium text-gray-900">{project.projectType}</p>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
 
-              {/* Quick Stats */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Card>
-                  <CardContent className="pt-6">
-                    <div className="text-center">
-                      <p className="text-2xl font-bold">{project.checklistItems?.length || 0}</p>
-                      <p className="text-sm text-muted-foreground">Tasks</p>
+              {/* Recent Activity Preview */}
+              {project.activities && project.activities.length > 0 && (
+                <Card className="bg-white border-gray-200">
+                  <CardHeader>
+                    <CardTitle className="text-xl">Recent Activity</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      {project.activities.slice(0, 3).map((activity) => (
+                        <div key={activity.id} className="flex items-start space-x-3 pb-3 border-b last:border-0" data-testid={`activity-${activity.id}`}>
+                          <div className="w-2 h-2 bg-primary rounded-full mt-2" />
+                          <div className="flex-1">
+                            <p className="font-medium text-sm text-gray-900">{activity.title}</p>
+                            {activity.description && (
+                              <p className="text-sm text-gray-600 mt-1">{activity.description}</p>
+                            )}
+                            <p className="text-xs text-gray-400 mt-1">
+                              {new Date(activity.createdAt).toLocaleString()}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
                     </div>
+                    {project.activities.length > 3 && (
+                      <Button 
+                        variant="ghost" 
+                        className="w-full mt-4" 
+                        onClick={() => setActiveTab('activity')}
+                        data-testid="button-view-all-activity"
+                      >
+                        View All Activity
+                      </Button>
+                    )}
                   </CardContent>
                 </Card>
-                <Card>
-                  <CardContent className="pt-6">
-                    <div className="text-center">
-                      <p className="text-2xl font-bold">{project.smartFiles?.length || 0}</p>
-                      <p className="text-sm text-muted-foreground">Documents</p>
-                    </div>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardContent className="pt-6">
-                    <div className="text-center">
-                      <p className="text-2xl font-bold">{project.galleries?.length || 0}</p>
-                      <p className="text-sm text-muted-foreground">Galleries</p>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
+              )}
             </div>
           )}
 
           {/* Activity Tab */}
           {activeTab === 'activity' && (
-            <div className="space-y-6">
-              <h1 className="text-3xl font-bold">Activity</h1>
-              <Card>
+            <div className="space-y-6 max-w-4xl">
+              <h1 className="text-3xl font-bold text-gray-900">Activity</h1>
+              <Card className="bg-white border-gray-200">
                 <CardContent className="pt-6">
                   {(!project.activities || project.activities.length === 0) ? (
-                    <div className="text-center py-8 text-muted-foreground">
-                      <Activity className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                      <p>No activity yet</p>
-                      <p className="text-sm">Updates will appear here as things happen.</p>
+                    <div className="text-center py-12">
+                      <Activity className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                      <p className="text-gray-900 font-medium">No activity yet</p>
+                      <p className="text-sm text-gray-500 mt-2">Updates will appear here as things happen.</p>
                     </div>
                   ) : (
                     <div className="space-y-4">
                       {project.activities.map((activity) => (
-                        <div key={activity.id} className="flex items-start space-x-3 pb-4 border-b last:border-0">
-                          <div className="w-2 h-2 bg-primary rounded-full mt-2" />
-                          <div className="flex-1">
-                            <p className="font-medium">{activity.title}</p>
+                        <div key={activity.id} className="flex items-start space-x-4 p-4 rounded-lg hover:bg-gray-50 transition-colors" data-testid={`activity-item-${activity.id}`}>
+                          <div className="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0" />
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium text-gray-900">{activity.title}</p>
                             {activity.description && (
-                              <p className="text-sm text-muted-foreground">{activity.description}</p>
+                              <p className="text-sm text-gray-600 mt-1">{activity.description}</p>
                             )}
-                            <p className="text-xs text-muted-foreground mt-1">
+                            <p className="text-xs text-gray-400 mt-2">
                               {new Date(activity.createdAt).toLocaleString()}
                             </p>
                           </div>
@@ -387,70 +512,41 @@ export default function ClientPortalProject() {
             </div>
           )}
 
-          {/* Tasks Tab */}
-          {activeTab === 'tasks' && (
-            <div className="space-y-6">
-              <h1 className="text-3xl font-bold">Tasks</h1>
-              <Card>
-                <CardContent className="pt-6">
-                  {(!project.checklistItems || project.checklistItems.length === 0) ? (
-                    <div className="text-center py-8 text-muted-foreground">
-                      <CheckSquare className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                      <p>No tasks assigned yet</p>
-                    </div>
-                  ) : (
-                    <div className="space-y-3">
-                      {project.checklistItems.map((item) => (
-                        <div key={item.id} className="flex items-center space-x-3 p-3 border rounded-lg">
-                          <Checkbox 
-                            checked={!!item.completedAt} 
-                            disabled
-                            data-testid={`task-${item.id}`}
-                          />
-                          <span className={item.completedAt ? "line-through text-muted-foreground" : ""}>
-                            {item.title}
-                          </span>
-                          {item.completedAt && (
-                            <Badge variant="outline" className="ml-auto">
-                              Completed
-                            </Badge>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-          )}
-
           {/* Files Tab */}
           {activeTab === 'files' && (
-            <div className="space-y-6">
-              <h1 className="text-3xl font-bold">Files</h1>
-              <Card>
+            <div className="space-y-6 max-w-4xl">
+              <h1 className="text-3xl font-bold text-gray-900">Files & Galleries</h1>
+              
+              {/* Galleries Section */}
+              <Card className="bg-white border-gray-200">
                 <CardHeader>
-                  <CardTitle>Galleries</CardTitle>
+                  <CardTitle className="text-xl">Galleries</CardTitle>
                 </CardHeader>
                 <CardContent>
                   {(!project.galleries || project.galleries.length === 0) ? (
-                    <div className="text-center py-8 text-muted-foreground">
-                      <ImageIcon className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                      <p>No galleries shared yet</p>
+                    <div className="text-center py-12">
+                      <ImageIcon className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                      <p className="text-gray-900 font-medium">No galleries shared yet</p>
+                      <p className="text-sm text-gray-500 mt-2">Your photos will appear here when ready.</p>
                     </div>
                   ) : (
-                    <div className="space-y-3">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {project.galleries.map((gallery) => (
-                        <div key={gallery.id} className="flex items-center justify-between p-4 border rounded-lg">
-                          <div>
-                            <h4 className="font-medium">{gallery.title}</h4>
-                            <p className="text-sm text-muted-foreground">
-                              {gallery.imageCount} photos
-                            </p>
+                        <div key={gallery.id} className="border border-gray-200 rounded-lg p-4 hover:border-primary transition-colors" data-testid={`gallery-card-${gallery.id}`}>
+                          <div className="flex items-start justify-between mb-3">
+                            <div className="flex-1">
+                              <h4 className="font-semibold text-gray-900">{gallery.title}</h4>
+                              <p className="text-sm text-gray-500 mt-1">
+                                {gallery.imageCount} {gallery.imageCount === 1 ? 'photo' : 'photos'}
+                              </p>
+                            </div>
+                            <Badge variant={gallery.isPublic ? "default" : "secondary"} className="text-xs">
+                              {gallery.isPublic ? 'Public' : 'Private'}
+                            </Badge>
                           </div>
-                          <Button size="sm" data-testid={`view-gallery-${gallery.id}`}>
+                          <Button size="sm" className="w-full" data-testid={`view-gallery-${gallery.id}`}>
                             <Eye className="w-4 h-4 mr-2" />
-                            View
+                            View Gallery
                           </Button>
                         </div>
                       ))}
@@ -463,34 +559,37 @@ export default function ClientPortalProject() {
 
           {/* Payments Tab */}
           {activeTab === 'payments' && (
-            <div className="space-y-6">
-              <h1 className="text-3xl font-bold">Payments</h1>
-              <p className="text-muted-foreground">View and keep tabs on invoices.</p>
-              <Card>
+            <div className="space-y-6 max-w-4xl">
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900">Payments</h1>
+                <p className="text-gray-600 mt-2">View and manage your invoices and contracts.</p>
+              </div>
+              <Card className="bg-white border-gray-200">
                 <CardContent className="pt-6">
                   {(!project.smartFiles || project.smartFiles.length === 0) ? (
-                    <div className="text-center py-8 text-muted-foreground">
-                      <CreditCard className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                      <p className="font-medium">No paper trail yet!</p>
-                      <p className="text-sm">Your invoices will appear here for quick and easy tracking.</p>
+                    <div className="text-center py-12">
+                      <CreditCard className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                      <p className="text-gray-900 font-medium">No invoices yet!</p>
+                      <p className="text-sm text-gray-500 mt-2">Your invoices and contracts will appear here.</p>
                     </div>
                   ) : (
-                    <div className="space-y-4">
+                    <div className="space-y-3">
                       {project.smartFiles.map((smartFile) => (
-                        <div key={smartFile.id} className="flex items-center justify-between p-4 border rounded-lg">
-                          <div>
-                            <h4 className="font-medium">{smartFile.title}</h4>
-                            <p className="text-sm text-muted-foreground">
-                              Created: {new Date(smartFile.createdAt).toLocaleDateString()}
-                            </p>
-                            <p className="font-mono text-lg mt-1">{formatPrice(smartFile.totalCents)}</p>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <Badge variant={getStatusColor(smartFile.status)}>
-                              {smartFile.status}
-                            </Badge>
+                        <div key={smartFile.id} className="border border-gray-200 rounded-lg p-4 hover:border-primary transition-colors" data-testid={`smartfile-card-${smartFile.id}`}>
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center space-x-2 mb-2">
+                                <h4 className="font-semibold text-gray-900">{smartFile.title}</h4>
+                                <Badge variant={getStatusColor(smartFile.status)} className="text-xs">
+                                  {smartFile.status}
+                                </Badge>
+                              </div>
+                              <p className="text-sm text-gray-500 mb-2">
+                                Created {new Date(smartFile.createdAt).toLocaleDateString()}
+                              </p>
+                              <p className="text-2xl font-bold text-gray-900">{formatPrice(smartFile.totalCents)}</p>
+                            </div>
                             <Button 
-                              size="sm" 
                               onClick={() => setLocation(`/estimates/${smartFile.token}`)}
                               data-testid={`view-smartfile-${smartFile.id}`}
                             >
@@ -508,21 +607,23 @@ export default function ClientPortalProject() {
 
           {/* Notes Tab */}
           {activeTab === 'notes' && (
-            <div className="space-y-6">
-              <h1 className="text-3xl font-bold">Notes</h1>
-              <Card>
+            <div className="space-y-6 max-w-4xl">
+              <h1 className="text-3xl font-bold text-gray-900">Notes</h1>
+              <Card className="bg-white border-gray-200">
                 <CardContent className="pt-6">
                   {(!project.notes || project.notes.length === 0) ? (
-                    <div className="text-center py-8 text-muted-foreground">
-                      <StickyNote className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                      <p>No notes yet</p>
+                    <div className="text-center py-12">
+                      <StickyNote className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                      <p className="text-gray-900 font-medium">No notes yet</p>
+                      <p className="text-sm text-gray-500 mt-2">Shared notes will appear here.</p>
                     </div>
                   ) : (
                     <div className="space-y-3">
                       {project.notes.map((note) => (
-                        <div key={note.id} className="p-4 border rounded-lg">
-                          <p className="text-sm whitespace-pre-wrap">{note.noteText}</p>
-                          <p className="text-xs text-muted-foreground mt-2">
+                        <div key={note.id} className="border border-gray-200 rounded-lg p-4 bg-yellow-50 border-yellow-200" data-testid={`note-card-${note.id}`}>
+                          <p className="text-sm text-gray-900 whitespace-pre-wrap">{note.noteText}</p>
+                          <p className="text-xs text-gray-500 mt-3 flex items-center">
+                            <Clock className="w-3 h-3 mr-1" />
                             {new Date(note.createdAt).toLocaleString()}
                           </p>
                         </div>
