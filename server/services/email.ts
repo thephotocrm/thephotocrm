@@ -485,5 +485,71 @@ export async function fetchIncomingGmailMessage(photographerId: string, messageI
   }
 }
 
+/**
+ * Render magic link email template
+ */
+export function renderMagicLinkEmail(params: {
+  photographer: { businessName: string; logoUrl?: string };
+  contact: { firstName?: string; lastName?: string; email: string };
+  loginUrl: string;
+}): { subject: string; text: string; html: string } {
+  const { photographer, contact, loginUrl } = params;
+  const displayName = contact.firstName ? `${contact.firstName}${contact.lastName ? ' ' + contact.lastName : ''}` : contact.email;
+
+  const subject = `Sign in to ${photographer.businessName}`;
+
+  const text = `Hi ${displayName},
+
+Click the link below to securely sign in to your client portal:
+
+${loginUrl}
+
+This link will expire in 30 minutes for security.
+
+Alternatively, you can sign in with your password at your portal.
+
+${photographer.businessName}`;
+
+  const html = `
+    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px;">
+      ${photographer.logoUrl ? `
+        <div style="text-align: center; margin-bottom: 30px;">
+          <img src="${photographer.logoUrl}" alt="${photographer.businessName}" style="max-width: 150px; height: auto;" />
+        </div>
+      ` : `
+        <div style="text-align: center; margin-bottom: 30px;">
+          <h2 style="margin: 0; color: #333; font-size: 24px;">${photographer.businessName}</h2>
+        </div>
+      `}
+      
+      <div style="background: #f9fafb; border-radius: 12px; padding: 30px; margin-bottom: 30px;">
+        <h1 style="margin: 0 0 16px 0; color: #111827; font-size: 24px; font-weight: 600;">Sign in to your portal</h1>
+        <p style="margin: 0 0 24px 0; color: #6b7280; font-size: 16px; line-height: 1.5;">
+          Hi ${displayName}, click the button below to securely access your client portal.
+        </p>
+        
+        <div style="text-align: center; margin: 32px 0;">
+          <a href="${loginUrl}" style="display: inline-block; background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%); color: white; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: 600; font-size: 16px;">
+            Sign In Now
+          </a>
+        </div>
+        
+        <p style="margin: 24px 0 0 0; color: #9ca3af; font-size: 14px; line-height: 1.5;">
+          This link expires in 30 minutes. If you didn't request this, you can safely ignore this email.
+        </p>
+      </div>
+      
+      <div style="text-align: center; color: #9ca3af; font-size: 13px;">
+        <p style="margin: 0;">
+          Or copy and paste this link into your browser:<br/>
+          <span style="color: #6b7280;">${loginUrl}</span>
+        </p>
+      </div>
+    </div>
+  `;
+
+  return { subject, text, html };
+}
+
 // Re-export the shared template utility for backward compatibility
 export { renderTemplate } from '@shared/template-utils';

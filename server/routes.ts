@@ -12,7 +12,7 @@ import { detectDomain, loadPhotographerFromSubdomain, enforceSubdomainTenantAuth
 import { hashPassword, authenticateUser, generateToken } from "./services/auth";
 import { setAuthCookie, clearAuthCookies } from './cookie-auth';
 import { validatePortalSlug, normalizeSlug } from "./utils/slug-validation";
-import { sendEmail, fetchIncomingGmailMessage } from "./services/email";
+import { sendEmail, fetchIncomingGmailMessage, renderMagicLinkEmail } from "./services/email";
 import { sendSms, renderSmsTemplate } from "./services/sms";
 import { generateDripCampaign, regenerateEmail } from "./services/openai";
 import { uploadImageToCloudinary } from "./services/cloudinary";
@@ -42,6 +42,11 @@ import { nanoid } from "nanoid";
 import crypto from "crypto";
 import multer from "multer";
 import fs from "fs";
+
+// Rate limiting for magic link requests (in-memory)
+const magicLinkRateLimit = new Map<string, { count: number; windowStart: number }>();
+const RATE_LIMIT_WINDOW = 15 * 60 * 1000; // 15 minutes
+const RATE_LIMIT_MAX = 3; // 3 requests per window
 
 /**
  * Get the correct protocol for OAuth redirects
@@ -1316,6 +1321,104 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Portal token generation error:", error);
       res.status(500).json({ message: "Failed to generate portal token" });
+    }
+  });
+
+  // Request magic link for client portal login
+  app.post("/api/client-portal/request-magic-link", async (req, res) => {
+    try {
+      // Validate domain context
+      if (!req.domain || req.domain.type !== 'client_portal' || !req.domain.photographerSlug) {
+        return res.status(400).json({ message: "This endpoint is only available on client portal subdomains" });
+      }
+
+      // Validate request body
+      const bodySchema = z.object({ email: z.string().email() });
+      const validation = bodySchema.safeParse(req.body);
+      if (!validation.success) {
+        return res.status(400).json({ message: "Invalid email address" });
+      }
+
+      const { email } = validation.data;
+      const photographerId = req.domain.photographer?.id;
+
+      if (!photographerId) {
+        return res.status(400).json({ message: "Invalid photographer context" });
+      }
+
+      // Rate limiting
+      const rateLimitKey = `${photographerId}:${email.toLowerCase()}`;
+      const now = Date.now();
+      const rateLimitData = magicLinkRateLimit.get(rateLimitKey);
+
+      if (rateLimitData) {
+        // Reset window if expired
+        if (now - rateLimitData.windowStart > RATE_LIMIT_WINDOW) {
+          magicLinkRateLimit.set(rateLimitKey, { count: 1, windowStart: now });
+        } else if (rateLimitData.count >= RATE_LIMIT_MAX) {
+          return res.status(429).json({ message: "Too many requests. Please try again later." });
+        } else {
+          rateLimitData.count++;
+        }
+      } else {
+        magicLinkRateLimit.set(rateLimitKey, { count: 1, windowStart: now });
+      }
+
+      // Look up CLIENT account (photographer-scoped)
+      const contact = await storage.getContactByEmail(email, photographerId);
+
+      // Generic success response to prevent email enumeration
+      if (!contact) {
+        console.log(`Magic link request for non-existent email: ${email} (photographer: ${photographerId})`);
+        return res.json({ success: true });
+      }
+
+      // Create magic link token
+      const portalToken = await storage.createMagicLinkToken(contact.id, photographerId);
+
+      // Generate login URL
+      const protocol = getOAuthProtocol(req);
+      const host = req.get('host');
+      const loginUrl = `${protocol}://${host}/api/portal/${portalToken.token}`;
+
+      // Get photographer details
+      const photographer = await storage.getPhotographer(photographerId);
+      if (!photographer) {
+        return res.status(500).json({ message: "Photographer not found" });
+      }
+
+      // Render email template
+      const emailContent = renderMagicLinkEmail({
+        photographer: {
+          businessName: photographer.businessName,
+          logoUrl: photographer.logoUrl || undefined
+        },
+        contact: {
+          firstName: contact.firstName || undefined,
+          lastName: contact.lastName || undefined,
+          email: contact.email
+        },
+        loginUrl
+      });
+
+      // Send email
+      await sendEmail({
+        to: contact.email,
+        subject: emailContent.subject,
+        text: emailContent.text,
+        html: emailContent.html,
+        photographerId,
+        clientId: contact.id,
+        source: 'MANUAL'
+      });
+
+      console.log(`✅ Magic link sent to ${email} for photographer ${photographerId}`);
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Magic link request error:", error);
+      // Return success even on error to prevent enumeration
+      res.json({ success: true });
     }
   });
 
