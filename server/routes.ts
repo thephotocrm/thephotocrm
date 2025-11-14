@@ -11221,8 +11221,22 @@ ${photographer.businessName}`
       // SECURITY: Filter to only projects from the contact's photographer
       const filteredProjects = allProjects.filter(p => p.photographerId === contact.photographerId);
       
+      // PRIORITIZE: Sort projects by active status and event date
+      const sortedProjects = filteredProjects.sort((a, b) => {
+        // Active projects first (status enum is uppercase)
+        const aStatus = a.status?.toUpperCase();
+        const bStatus = b.status?.toUpperCase();
+        if (aStatus === 'ACTIVE' && bStatus !== 'ACTIVE') return -1;
+        if (aStatus !== 'ACTIVE' && bStatus === 'ACTIVE') return 1;
+        
+        // Sort by event date (most recent first), with null-safe comparison
+        const aDate = a.eventDate ? new Date(a.eventDate).getTime() : 0;
+        const bDate = b.eventDate ? new Date(b.eventDate).getTime() : 0;
+        return bDate - aDate;
+      });
+      
       // Format projects for display
-      const formattedProjects = filteredProjects.map(p => ({
+      const formattedProjects = sortedProjects.map(p => ({
         id: p.id,
         title: p.title,
         projectType: p.projectType,
@@ -11237,7 +11251,8 @@ ${photographer.businessName}`
         }
       }));
       
-      res.json({ projects: formattedProjects });
+      // Return flat array (frontend expects ClientProject[])
+      res.json(formattedProjects);
     } catch (error) {
       console.error("Get client projects error:", error);
       res.status(500).json({ message: "Failed to fetch projects" });
@@ -11311,12 +11326,31 @@ ${photographer.businessName}`
         ...participantProjects.map(p => ({ ...p, role: 'PARTICIPANT' as const }))
       ];
       
-      if (allProjects.length === 0) {
+      // SECURITY: Filter to only projects from the contact's photographer (multi-tenant isolation)
+      const tenantProjects = allProjects.filter(p => p.photographerId === contact.photographerId);
+      
+      if (tenantProjects.length === 0) {
         return res.status(404).json({ error: 'No projects found for client' });
       }
       
-      // Use the first project for client portal data
-      const project = allProjects[0];
+      // PRIORITIZE: Sort projects by active status and event date
+      // 1. Active projects come before archived
+      // 2. Within same status, sort by event date (most recent first)
+      const sortedProjects = tenantProjects.sort((a, b) => {
+        // Active projects first (status enum is uppercase)
+        const aStatus = a.status?.toUpperCase();
+        const bStatus = b.status?.toUpperCase();
+        if (aStatus === 'ACTIVE' && bStatus !== 'ACTIVE') return -1;
+        if (aStatus !== 'ACTIVE' && bStatus === 'ACTIVE') return 1;
+        
+        // Sort by event date (most recent first), with null-safe comparison
+        const aDate = a.eventDate ? new Date(a.eventDate).getTime() : 0;
+        const bDate = b.eventDate ? new Date(b.eventDate).getTime() : 0;
+        return bDate - aDate;
+      });
+      
+      // Use the most relevant project (active + most recent) for client portal data
+      const project = sortedProjects[0];
       
       // Get questionnaires for this client's projects
       const questionnaires = await storage.getQuestionnairesByClient(contact.id);
@@ -11332,8 +11366,11 @@ ${photographer.businessName}`
         completedAt: q.submittedAt
       }));
       
+      // Get photographer data for branding
+      const photographer = await storage.getPhotographer(contact.photographerId);
+      
       // Format projects for display
-      const formattedProjects = allProjects.map(p => ({
+      const formattedProjects = sortedProjects.map(p => ({
         id: p.id,
         title: p.title,
         projectType: p.projectType,
@@ -11358,8 +11395,8 @@ ${photographer.businessName}`
           stage: project.stage ? { name: project.stage.name } : { name: 'Unknown' }
         },
         photographer: {
-          businessName: "Wedding Photography Studio", // This would come from photographer data
-          logoUrl: undefined
+          businessName: photographer?.businessName || "Photography Studio",
+          logoUrl: photographer?.logoUrl
         },
         projects: formattedProjects,
         questionnaires: formattedQuestionnaires,
