@@ -1,0 +1,123 @@
+    at async sendViaGmail (file:///app/dist/index.js:5626:22)
+    at async Promise.allSettled (index 0)
+      maxRetryDelay: 9007199254740991,
+    at async file:///app/dist/index.js:14345:23 {
+  config: {
+    retry: true,
+    retryConfig: {
+      httpMethodsToRetry: [Array],
+      currentRetryAttempt: 0,
+      retry: 3,
+      noResponseRetries: 2,
+      'grant_type' => '<<REDACTED> - See `errorRedactor` option in `gaxios` for configuration>.' },
+      statusCodesToRetry: [Array]
+      protocol: 'https:',
+    },
+    body: URLSearchParams {
+      username: '',
+    method: 'POST',
+      'refresh_token' => '1//04cEAUGw5nRDXCgYIARAAGAQSNwF-L9IrUGiKDhtNAnBSlo1716dc4v55zBNytlKthmyFkAecFHv9pTBPv78SA6whE3CrT_Vlkkw',
+      password: '',
+    url: URL {
+      host: 'oauth2.googleapis.com',
+      hostname: 'oauth2.googleapis.com',
+      href: 'https://oauth2.googleapis.com/token',
+      port: '',
+      origin: 'https://oauth2.googleapis.com',
+      pathname: '/token',
+      search: '',
+      searchParams: URLSearchParams {},
+      hash: ''
+    },
+    data: URLSearchParams {
+      'refresh_token' => '1//04cEAUGw5nRDXCgYIARAAGAQSNwF-L9IrUGiKDhtNAnBSlo1716dc4v55zBNytlKthmyFkAecFHv9pTBPv78SA6whE3CrT_Vlkkw',
+      'client_id' => '905635479138-ut0qbr1417vh2pj3u1i0tbgin1h89g0s.apps.googleusercontent.com',
+      'client_secret' => '<<REDACTED> - See `errorRedactor` option in `gaxios` for configuration>.',
+      'client_id' => '905635479138-ut0qbr1417vh2pj3u1i0tbgin1h89g0s.apps.googleusercontent.com',
+      'client_secret' => '<<REDACTED> - See `errorRedactor` option in `gaxios` for configuration>.',
+      'grant_type' => '<<REDACTED> - See `errorRedactor` option in `gaxios` for configuration>.' },
+    validateStatus: [Function: validateStatus],
+    responseType: 'unknown',
+      validateStatus: [Function: validateStatus],
+  },
+      responseType: 'unknown',
+  response: Response {
+      errorRedactor: [Function: defaultErrorRedactor],
+    errorRedactor: [Function: defaultErrorRedactor],
+    size: 0,
+    data: { error: 'invalid_grant', error_description: 'Bad Request' },
+    duplex: 'half',
+    config: {
+      retryConfig: [Object],
+    headers: Headers {
+      retry: true,
+      'x-goog-api-client': 'gl-node/22.21.1',
+      method: 'POST',
+      'User-Agent': 'google-api-nodejs-client/10.3.0'
+      url: URL {},
+    }
+      data: [Object],
+      body: [Object],
+      headers: [Object],
+      counter: 0,
+      duplex: 'half',
+      highWaterMark: 16384
+      headers: Headers {
+        'x-goog-api-client': 'gl-node/22.21.1',
+    }
+        'User-Agent': 'google-api-nodejs-client/10.3.0'
+  },
+  code: 400,
+      }
+  status: 400,
+    },
+  error: undefined,
+    [Symbol(Body internals)]: {
+  [Symbol(gaxios-gaxios-error)]: '7.1.1',
+      body: [Gunzip],
+  [cause]: { message: 'invalid_grant', code: 400, status: 'Bad Request' }
+      stream: [Gunzip],
+}
+      boundary: null,
+Falling back to SendGrid due to Gmail error
+      disturbed: true,
+      error: null
+    },
+    [Symbol(Response internals)]: {
+      type: 'default',
+      url: 'https://oauth2.googleapis.com/token',
+      status: 400,
+      statusText: 'Bad Request',
+      'content-security-policy': "frame-ancestors 'none'",
+      'cache-control': 'no-cache',
+      'x-content-type-options': 'no-sniff',
+      'referrer-policy': 'strict-origin-when-cross-origin'
+    },
+    body: { errors: [Array] }
+SendGrid email error: ResponseError: Unauthorized
+    at node_modules/@sendgrid/client/src/classes/client.js:167:29
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5) {
+  code: 401,
+  response: {
+    headers: Object [AxiosHeaders] {
+      date: 'Fri, 14 Nov 2025 04:34:38 GMT',
+      'content-type': 'application/json',
+      'content-length': '76',
+      connection: 'keep-alive',
+      server: 'nginx',
+      'access-control-allow-origin': 'https://sendgrid.api-docs.io',
+      'access-control-allow-methods': 'POST',
+      'access-control-allow-headers': 'Authorization, Content-Type, On-behalf-of, x-sg-elas-acl',
+      'access-control-max-age': '600',
+      'x-no-cors-reason': 'https://sendgrid.com/docs/Classroom/Basics/API/cors.html',
+      'strict-transport-security': 'max-age=31536000; includeSubDomains',
+    "field": null,
+    "help": null
+  }
+  {
+    "message": "Maximum credits exceeded",
+  }
+}
+]
+SendGrid error details: [
+Email send failed: Unauthorized
