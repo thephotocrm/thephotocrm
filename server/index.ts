@@ -5,6 +5,10 @@ import { startCronJobs } from "./jobs/cron";
 
 const app = express();
 
+// Enable trust proxy to correctly detect hostname from X-Forwarded-Host header
+// This is essential for client portal cookie domain detection on Railway/Replit
+app.set('trust proxy', true);
+
 // DEBUG: Log ALL incoming requests BEFORE any middleware
 app.use((req, res, next) => {
   console.log(`📥 INCOMING REQUEST: ${req.method} ${req.path}`);

@@ -988,7 +988,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.post("/api/auth/logout", (req, res) => {
-    clearAuthCookies(res);
+    clearAuthCookies(res, req);
     res.json({ message: "Logged out successfully" });
   });
 
@@ -1318,7 +1318,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       );
 
       // Set HTTP-only cookie
-      setAuthCookie(res, jwtToken, 'CLIENT');
+      setAuthCookie(res, jwtToken, 'CLIENT', req);
 
       console.log("🍪 Auth cookie set for user:", user.email);
 
@@ -1416,7 +1416,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       );
 
       // Set HTTP-only cookie
-      setAuthCookie(res, jwtToken, 'CLIENT');
+      setAuthCookie(res, jwtToken, 'CLIENT', req);
 
       console.log("🍪 Auth cookie set for client:", user.email);
 

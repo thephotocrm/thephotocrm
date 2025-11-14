@@ -24,8 +24,8 @@ export interface TokenPayload {
   photographerId?: string;
 }
 
-// Set auth cookie based on role
-export function setAuthCookie(res: Response, token: string, role: string) {
+// Set auth cookie based on role with optional domain for client portal subdomains
+export function setAuthCookie(res: Response, token: string, role: string, req?: Request) {
   let cookieName: string;
   
   switch (role) {
@@ -42,12 +42,33 @@ export function setAuthCookie(res: Response, token: string, role: string) {
       cookieName = COOKIE_NAMES.LEGACY;
   }
   
+  // Prepare cookie options for role-specific cookie
+  let roleSpecificOptions = { ...COOKIE_OPTIONS };
+  
+  // For CLIENT cookies on portal subdomains, set domain to .tpcportal.co
+  // This allows the cookie to work across all subdomains (*.tpcportal.co)
+  if (role === 'CLIENT' && req) {
+    const hostname = req.hostname || req.get('host')?.split(':')[0] || '';
+    
+    // Check if this is a tpcportal.co subdomain (e.g., abbiestreetphoto.tpcportal.co)
+    if (hostname.endsWith('.tpcportal.co')) {
+      roleSpecificOptions = {
+        ...roleSpecificOptions,
+        domain: '.tpcportal.co' // Leading dot allows cookie to work across all subdomains
+      };
+      console.log(`🍪 Setting CLIENT cookie with domain: .tpcportal.co for ${hostname}`);
+    } else {
+      console.log(`🍪 Setting CLIENT cookie without domain (host-only) for ${hostname}`);
+    }
+  }
+  
   // Set the role-specific cookie
-  res.cookie(cookieName, token, COOKIE_OPTIONS);
+  res.cookie(cookieName, token, roleSpecificOptions);
   
   // Also set legacy token for backward compatibility (except for clients)
+  // Use fresh copy of COOKIE_OPTIONS to prevent domain bleed from CLIENT cookies
   if (role !== 'CLIENT') {
-    res.cookie(COOKIE_NAMES.LEGACY, token, COOKIE_OPTIONS);
+    res.cookie(COOKIE_NAMES.LEGACY, token, { ...COOKIE_OPTIONS });
   }
 }
 
@@ -82,21 +103,46 @@ export function getAuthToken(req: Request): { token: string; source: string } | 
 }
 
 // Clear all auth cookies
-export function clearAuthCookies(res: Response) {
+export function clearAuthCookies(res: Response, req?: Request) {
   res.clearCookie(COOKIE_NAMES.PHOTOGRAPHER);
-  res.clearCookie(COOKIE_NAMES.CLIENT);
   res.clearCookie(COOKIE_NAMES.ADMIN);
   res.clearCookie(COOKIE_NAMES.LEGACY);
+  
+  // Clear CLIENT cookie with domain if on portal subdomain
+  if (req) {
+    const hostname = req.hostname || req.get('host')?.split(':')[0] || '';
+    if (hostname.endsWith('.tpcportal.co')) {
+      res.clearCookie(COOKIE_NAMES.CLIENT, { domain: '.tpcportal.co' });
+    } else {
+      res.clearCookie(COOKIE_NAMES.CLIENT);
+    }
+  } else {
+    // No request context, clear both host-only and domain versions
+    res.clearCookie(COOKIE_NAMES.CLIENT);
+    res.clearCookie(COOKIE_NAMES.CLIENT, { domain: '.tpcportal.co' });
+  }
 }
 
 // Clear specific auth cookie
-export function clearAuthCookie(res: Response, role: string) {
+export function clearAuthCookie(res: Response, role: string, req?: Request) {
   switch (role) {
     case 'PHOTOGRAPHER':
       res.clearCookie(COOKIE_NAMES.PHOTOGRAPHER);
       break;
     case 'CLIENT':
-      res.clearCookie(COOKIE_NAMES.CLIENT);
+      // Clear CLIENT cookie with domain if on portal subdomain
+      if (req) {
+        const hostname = req.hostname || req.get('host')?.split(':')[0] || '';
+        if (hostname.endsWith('.tpcportal.co')) {
+          res.clearCookie(COOKIE_NAMES.CLIENT, { domain: '.tpcportal.co' });
+        } else {
+          res.clearCookie(COOKIE_NAMES.CLIENT);
+        }
+      } else {
+        // No request context, clear both host-only and domain versions
+        res.clearCookie(COOKIE_NAMES.CLIENT);
+        res.clearCookie(COOKIE_NAMES.CLIENT, { domain: '.tpcportal.co' });
+      }
       break;
     case 'ADMIN':
       res.clearCookie(COOKIE_NAMES.ADMIN);
