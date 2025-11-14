@@ -29,10 +29,7 @@ export default function Login() {
   // Magic link request mutation
   const requestMagicLinkMutation = useMutation({
     mutationFn: async (email: string) => {
-      return await apiRequest("/api/client-portal/request-magic-link", {
-        method: "POST",
-        body: { email }
-      });
+      return await apiRequest("POST", "/api/client-portal/request-magic-link", { email });
     },
     onSuccess: () => {
       toast({
