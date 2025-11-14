@@ -37,8 +37,29 @@ export function verifyToken(token: string): JwtPayload | null {
   }
 }
 
-export async function authenticateUser(email: string, password: string) {
-  const user = await storage.getUserByEmail(email);
+export async function authenticateUser(email: string, password: string, options?: { role?: string; photographerId?: string }) {
+  let user: any;
+  
+  // Role must always be provided to avoid ambiguous lookups
+  if (!options?.role) {
+    return null;
+  }
+  
+  // For CLIENT logins, photographerId is required for tenant isolation
+  if (options.role === 'CLIENT') {
+    if (!options.photographerId) {
+      console.error('CLIENT login attempted without photographerId - rejecting for security');
+      return null;
+    }
+    user = await storage.getUserByEmailRolePhotographer(email, 'CLIENT', options.photographerId);
+  } else if (options.role === 'PHOTOGRAPHER' || options.role === 'ADMIN') {
+    // For PHOTOGRAPHER/ADMIN, use role-specific lookup to avoid cross-tenant access
+    user = await storage.getUserByEmailAndRole(email, options.role);
+  } else {
+    // Unknown role
+    return null;
+  }
+  
   if (!user) {
     return null;
   }

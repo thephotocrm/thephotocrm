@@ -964,14 +964,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/auth/login", async (req, res) => {
     try {
       const { email, password } = req.body;
+      const normalizedEmail = email.toLowerCase().trim();
+      let result;
       
-      const result = await authenticateUser(email.toLowerCase().trim(), password);
+      // CLIENT portal domain with photographer slug
+      if (req.domain?.type === 'client_portal') {
+        if (!req.domain.isCustomSubdomain || !req.domain.photographerSlug) {
+          // Base tpcportal.co without photographer slug
+          return res.status(400).json({ 
+            message: "Please use your photographer's portal link to log in",
+            code: "NO_PHOTOGRAPHER_SLUG"
+          });
+        }
+        
+        const photographer = await storage.getPhotographerByPortalSlug(req.domain.photographerSlug);
+        if (!photographer) {
+          return res.status(404).json({ message: "Portal not found" });
+        }
+        
+        result = await authenticateUser(normalizedEmail, password, { 
+          role: 'CLIENT', 
+          photographerId: photographer.id 
+        });
+      } 
+      // Photographer CRM domain (thephotocrm.com) or dev
+      else if (req.domain?.type === 'photographer' || req.domain?.type === 'dev') {
+        // Try PHOTOGRAPHER first, then ADMIN as fallback
+        result = await authenticateUser(normalizedEmail, password, { role: 'PHOTOGRAPHER' });
+        
+        if (!result) {
+          result = await authenticateUser(normalizedEmail, password, { role: 'ADMIN' });
+        }
+      }
+      // Unknown domain
+      else {
+        return res.status(400).json({ message: "Invalid domain for login" });
+      }
+      
       if (!result) {
         return res.status(401).json({ message: "Invalid credentials" });
       }
 
-      // Set HTTP-only cookie
-      setAuthCookie(res, result.token, result.user.role);
+      // Set HTTP-only cookie with request context for domain-aware cookies
+      setAuthCookie(res, result.token, result.user.role, req);
 
       res.json({ 
         user: {
