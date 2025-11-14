@@ -164,9 +164,13 @@ export default function Settings() {
   });
 
   // Google Calendar queries and mutations
+  // CRITICAL FIX: Override default staleTime:Infinity to force refetch on mount
   const { data: calendarStatus, refetch: refetchCalendarStatus } = useQuery({
     queryKey: ["/api/calendar/status"],
-    enabled: !!user
+    enabled: !!user,
+    staleTime: 0,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true
   });
 
   const connectCalendarMutation = useMutation({
@@ -227,9 +231,13 @@ export default function Settings() {
   });
 
   // Gallery Integration queries and mutations
+  // CRITICAL FIX: Override default staleTime:Infinity to force refetch on mount
   const { data: galleryStatus, refetch: refetchGalleryStatus } = useQuery({
     queryKey: ["/api/gallery/status"],
-    enabled: !!user
+    enabled: !!user,
+    staleTime: 0,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true
   });
 
   const updateGalleryPlatformMutation = useMutation({

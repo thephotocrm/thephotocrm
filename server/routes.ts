@@ -9535,6 +9535,54 @@ ${photographer.businessName}`
     }
   });
 
+  // Google OAuth Health Check & Debug Endpoint
+  app.get("/api/google/debug", authenticateToken, requirePhotographer, async (req, res) => {
+    try {
+      const photographerId = req.user!.photographerId!;
+      
+      // Check environment variables
+      const envCheck = {
+        hasGoogleClientId: !!process.env.GOOGLE_CLIENT_ID,
+        hasGoogleClientSecret: !!process.env.GOOGLE_CLIENT_SECRET,
+        clientIdPreview: process.env.GOOGLE_CLIENT_ID ? `${process.env.GOOGLE_CLIENT_ID.slice(0, 20)}...` : 'not set',
+      };
+      
+      // Check database tokens
+      const calendarCreds = await storage.getGoogleCalendarCredentials(photographerId);
+      const photographer = await storage.getPhotographer(photographerId);
+      
+      const dbCheck = {
+        calendarAccessToken: !!calendarCreds?.accessToken,
+        calendarRefreshToken: !!calendarCreds?.refreshToken,
+        calendarEmail: calendarCreds?.email || null,
+        driveAccessToken: !!photographer?.googleDriveAccessToken,
+        driveRefreshToken: !!photographer?.googleDriveRefreshToken,
+        driveEmail: photographer?.googleDriveEmail || null,
+      };
+      
+      // Check service configuration
+      const serviceCheck = {
+        calendarConfigured: googleCalendarService.isConfigured(),
+        calendarAuthenticated: await googleCalendarService.isAuthenticated(photographerId),
+      };
+      
+      res.json({
+        photographerId,
+        environment: envCheck,
+        database: dbCheck,
+        services: serviceCheck,
+        timestamp: new Date().toISOString(),
+        message: "Google OAuth debug information retrieved successfully"
+      });
+    } catch (error) {
+      console.error('❌ Google debug endpoint error:', error);
+      res.status(500).json({ 
+        message: "Failed to retrieve debug information",
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
   // Google Calendar OAuth routes for photographers
   app.get("/api/auth/google-calendar", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
@@ -9610,14 +9658,22 @@ ${photographer.businessName}`
   app.get("/api/calendar/status", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       const photographerId = req.user!.photographerId!;
+      console.log(`📅 Checking calendar status for photographer: ${photographerId}`);
+      
       const isConfigured = googleCalendarService.isConfigured();
+      console.log(`  ✓ Calendar configured: ${isConfigured}`);
+      
       const isAuthenticated = await googleCalendarService.isAuthenticated(photographerId);
+      console.log(`  ✓ Calendar authenticated: ${isAuthenticated}`);
       
       // Get connected email if authenticated
       let connectedEmail: string | undefined;
       if (isAuthenticated) {
         const credentials = await storage.getGoogleCalendarCredentials(photographerId);
         connectedEmail = credentials?.email;
+        console.log(`  ✓ Connected email: ${connectedEmail || 'not found'}`);
+        console.log(`  ✓ Has access token: ${!!credentials?.accessToken}`);
+        console.log(`  ✓ Has refresh token: ${!!credentials?.refreshToken}`);
       }
       
       res.json({
@@ -9631,7 +9687,7 @@ ${photographer.businessName}`
             : "Calendar integration active"
       });
     } catch (error) {
-      console.error('Calendar status error:', error);
+      console.error('❌ Calendar status error:', error);
       res.status(500).json({ message: "Failed to check calendar status" });
     }
   });
@@ -9673,14 +9729,23 @@ ${photographer.businessName}`
   app.get("/api/gallery/status", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       const photographerId = req.user!.photographerId!;
+      console.log(`🖼️ Checking gallery status for photographer: ${photographerId}`);
+      
       const photographer = await storage.getPhotographer(photographerId);
       
       if (!photographer) {
+        console.log(`  ❌ Photographer not found: ${photographerId}`);
         return res.status(404).json({ message: "Photographer not found" });
       }
 
       const googleDriveConnected = !!(photographer.googleDriveAccessToken && photographer.googleDriveRefreshToken);
       const shootproofConnected = !!(photographer.shootproofAccessToken && photographer.shootproofRefreshToken);
+      
+      console.log(`  ✓ Google Drive connected: ${googleDriveConnected}`);
+      console.log(`  ✓ Has Drive access token: ${!!photographer.googleDriveAccessToken}`);
+      console.log(`  ✓ Has Drive refresh token: ${!!photographer.googleDriveRefreshToken}`);
+      console.log(`  ✓ Drive email: ${photographer.googleDriveEmail || 'not set'}`);
+      console.log(`  ✓ ShootProof connected: ${shootproofConnected}`);
 
       res.json({
         platform: photographer.galleryPlatform || null,
@@ -9697,7 +9762,7 @@ ${photographer.businessName}`
         }
       });
     } catch (error) {
-      console.error('Gallery status error:', error);
+      console.error('❌ Gallery status error:', error);
       res.status(500).json({ message: "Failed to get gallery status" });
     }
   });
