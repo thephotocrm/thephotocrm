@@ -212,6 +212,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(response);
   });
   
+  // Debug endpoint to check photographer slug lookup (helps troubleshoot production data issues)
+  app.get("/api/debug/slug/:slug", async (req, res) => {
+    try {
+      const { slug } = req.params;
+      const photographer = await storage.getPhotographerByPortalSlug(slug);
+      
+      if (!photographer) {
+        return res.json({
+          found: false,
+          slug: slug,
+          message: 'No photographer found with this portal_slug'
+        });
+      }
+      
+      return res.json({
+        found: true,
+        slug: slug,
+        photographer: {
+          id: photographer.id,
+          businessName: photographer.businessName,
+          photographerName: photographer.photographerName,
+          email: photographer.email,
+          portalSlug: photographer.portalSlug,
+          logoUrl: photographer.logoUrl
+        }
+      });
+    } catch (error) {
+      console.error('Error in debug slug endpoint:', error);
+      return res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+  
   // Simple chunked upload for gallery images using Multer + Cloudinary
   const uploadStorage = multer.memoryStorage();
   const upload = multer({
