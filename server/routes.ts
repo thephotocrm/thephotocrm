@@ -1993,100 +1993,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
         willProcessDNS: ('portalSlug' in req.body && oldSlug !== newSlug)
       });
       
-      // Handle DNS management asynchronously (don't block response)
-      // Only process DNS if portalSlug was actually in the update payload
+      // DNS management is now handled by wildcard *.tpcportal.co record in Railway
+      // Automatic individual CNAME creation/deletion is disabled
       if ('portalSlug' in req.body && oldSlug !== newSlug) {
-        console.log(`[Photographer Update] Step 3: Triggering DNS operations...`);
-        
-        import('./utils/cloudflare-dns').then(async ({ createPortalDNS, deletePortalDNS, updatePortalDNS }) => {
-          console.log(`[DNS Integration] DNS utility loaded for photographer ${photographerId}`);
-          
-          try {
-            if (!oldSlug && newSlug) {
-              // New slug - create DNS
-              console.log(`[DNS Integration] Operation: CREATE (new slug)`);
-              console.log(`[DNS Integration] Photographer: ${photographerId}`);
-              console.log(`[DNS Integration] Creating DNS for: ${newSlug}`);
-              
-              const result = await createPortalDNS(newSlug);
-              
-              if (result.success) {
-                console.log(`[DNS Integration] ✓✓✓ CREATE SUCCESS for ${photographerId}`, {
-                  slug: newSlug,
-                  recordId: result.recordId,
-                  domain: `${newSlug}.tpcportal.co`
-                });
-              } else {
-                console.error(`[DNS Integration] ✗✗✗ CREATE FAILED for ${photographerId}`, {
-                  slug: newSlug,
-                  error: result.error,
-                  timestamp: new Date().toISOString()
-                });
-              }
-            } else if (oldSlug && !newSlug) {
-              // Slug removed - delete DNS
-              console.log(`[DNS Integration] Operation: DELETE (slug removed)`);
-              console.log(`[DNS Integration] Photographer: ${photographerId}`);
-              console.log(`[DNS Integration] Deleting DNS for: ${oldSlug}`);
-              
-              const result = await deletePortalDNS(oldSlug);
-              
-              if (result.success) {
-                console.log(`[DNS Integration] ✓✓✓ DELETE SUCCESS for ${photographerId}`, {
-                  slug: oldSlug,
-                  domain: `${oldSlug}.tpcportal.co`
-                });
-              } else {
-                console.error(`[DNS Integration] ✗✗✗ DELETE FAILED for ${photographerId}`, {
-                  slug: oldSlug,
-                  error: result.error,
-                  timestamp: new Date().toISOString()
-                });
-              }
-            } else if (oldSlug && newSlug && oldSlug !== newSlug) {
-              // Slug changed - update DNS
-              console.log(`[DNS Integration] Operation: UPDATE (slug changed)`);
-              console.log(`[DNS Integration] Photographer: ${photographerId}`);
-              console.log(`[DNS Integration] Updating DNS: ${oldSlug} → ${newSlug}`);
-              
-              const result = await updatePortalDNS(oldSlug, newSlug);
-              
-              if (result.success) {
-                console.log(`[DNS Integration] ✓✓✓ UPDATE SUCCESS for ${photographerId}`, {
-                  oldSlug,
-                  newSlug,
-                  oldDomain: `${oldSlug}.tpcportal.co`,
-                  newDomain: `${newSlug}.tpcportal.co`
-                });
-              } else {
-                console.error(`[DNS Integration] ✗✗✗ UPDATE FAILED for ${photographerId}`, {
-                  oldSlug,
-                  newSlug,
-                  error: result.error,
-                  timestamp: new Date().toISOString()
-                });
-              }
-            }
-          } catch (dnsError) {
-            // Log DNS errors but don't fail the request
-            console.error(`[DNS Integration] ✗✗✗ EXCEPTION during DNS operation for ${photographerId}:`, {
-              error: dnsError instanceof Error ? dnsError.message : String(dnsError),
-              stack: dnsError instanceof Error ? dnsError.stack : null,
-              oldSlug,
-              newSlug,
-              timestamp: new Date().toISOString()
-            });
-          }
-        }).catch(err => {
-          console.error(`[DNS Integration] ✗✗✗ CRITICAL: Failed to load DNS utility for ${photographerId}:`, {
-            error: err instanceof Error ? err.message : String(err),
-            stack: err instanceof Error ? err.stack : null,
-            timestamp: new Date().toISOString()
-          });
+        console.log(`[Photographer Update] Step 3: Portal slug changed`, {
+          oldSlug: oldSlug || 'none',
+          newSlug: newSlug || 'none',
+          domain: newSlug ? `${newSlug}.tpcportal.co` : 'none'
         });
+        console.log(`[DNS Integration] ℹ Automatic DNS provisioning DISABLED - using wildcard *.tpcportal.co`);
+        console.log(`[DNS Integration] ✓ Portal subdomain ready: ${newSlug}.tpcportal.co (via wildcard routing)`);
       } else {
-        console.log(`[Photographer Update] Step 3: Skipping DNS operations (no slug changes)`);
+        console.log(`[Photographer Update] Step 3: No portal slug changes`);
       }
+      
+      // NOTE: Automatic DNS provisioning code preserved below for reference
+      // The code in server/utils/cloudflare-dns.ts is dormant but available if needed
+      /*
+      import('./utils/cloudflare-dns').then(async ({ createPortalDNS, deletePortalDNS, updatePortalDNS }) => {
+        console.log(`[DNS Integration] DNS utility loaded for photographer ${photographerId}`);
+        
+        try {
+          if (!oldSlug && newSlug) {
+            const result = await createPortalDNS(newSlug);
+            // Handle result...
+          } else if (oldSlug && !newSlug) {
+            const result = await deletePortalDNS(oldSlug);
+            // Handle result...
+          } else if (oldSlug && newSlug && oldSlug !== newSlug) {
+            const result = await updatePortalDNS(oldSlug, newSlug);
+            // Handle result...
+          }
+        } catch (dnsError) {
+          console.error(`[DNS Integration] Exception:`, dnsError);
+        }
+      }).catch(err => {
+        console.error(`[DNS Integration] Failed to load DNS utility:`, err);
+      });
+      */
 
       console.log(`[Photographer Update] ✓ Request completed successfully for ${photographerId}`);
       console.log(`[Photographer Update] ======================================`);
