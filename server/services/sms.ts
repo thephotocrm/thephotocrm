@@ -1,47 +1,83 @@
 import { renderTemplate } from '@shared/template-utils';
 import twilio from 'twilio';
 
-// Twilio client initialization with Replit connector
+// Twilio client initialization - supports both Replit connector (dev) and Railway env vars (production)
 let connectionSettings: any;
 
 async function getCredentials() {
-  const hostname = process.env.REPLIT_CONNECTORS_HOSTNAME
-  const xReplitToken = process.env.REPL_IDENTITY 
-    ? 'repl ' + process.env.REPL_IDENTITY 
-    : process.env.WEB_REPL_RENEWAL 
-    ? 'depl ' + process.env.WEB_REPL_RENEWAL 
-    : null;
+  // Try Replit connector first (dev environment)
+  if (process.env.REPLIT_CONNECTORS_HOSTNAME) {
+    console.log('Using Replit connector for Twilio credentials');
+    const hostname = process.env.REPLIT_CONNECTORS_HOSTNAME;
+    const xReplitToken = process.env.REPL_IDENTITY 
+      ? 'repl ' + process.env.REPL_IDENTITY 
+      : process.env.WEB_REPL_RENEWAL 
+      ? 'depl ' + process.env.WEB_REPL_RENEWAL 
+      : null;
 
-  if (!xReplitToken) {
-    throw new Error('X_REPLIT_TOKEN not found for repl/depl');
-  }
+    if (!xReplitToken) {
+      console.warn('REPLIT_CONNECTORS_HOSTNAME found but no X_REPLIT_TOKEN, falling back to env vars');
+    } else {
+      try {
+        connectionSettings = await fetch(
+          'https://' + hostname + '/api/v2/connection?include_secrets=true&connector_names=twilio',
+          {
+            headers: {
+              'Accept': 'application/json',
+              'X_REPLIT_TOKEN': xReplitToken
+            }
+          }
+        ).then(res => res.json()).then(data => data.items?.[0]);
 
-  connectionSettings = await fetch(
-    'https://' + hostname + '/api/v2/connection?include_secrets=true&connector_names=twilio',
-    {
-      headers: {
-        'Accept': 'application/json',
-        'X_REPLIT_TOKEN': xReplitToken
+        if (connectionSettings?.settings?.account_sid && connectionSettings?.settings?.api_key && connectionSettings?.settings?.api_key_secret) {
+          console.log('✅ Twilio credentials loaded from Replit connector');
+          return {
+            accountSid: connectionSettings.settings.account_sid,
+            apiKey: connectionSettings.settings.api_key,
+            apiKeySecret: connectionSettings.settings.api_key_secret,
+            phoneNumber: connectionSettings.settings.phone_number
+          };
+        }
+      } catch (error) {
+        console.warn('Failed to fetch Twilio from Replit connector, falling back to env vars:', error);
       }
     }
-  ).then(res => res.json()).then(data => data.items?.[0]);
-
-  if (!connectionSettings || (!connectionSettings.settings.account_sid || !connectionSettings.settings.api_key || !connectionSettings.settings.api_key_secret)) {
-    throw new Error('Twilio not connected');
   }
+
+  // Fall back to Railway environment variables (production)
+  console.log('Using environment variables for Twilio credentials');
+  const accountSid = process.env.TWILIO_ACCOUNT_SID;
+  const authToken = process.env.TWILIO_AUTH_TOKEN;
+  const phoneNumber = process.env.TWILIO_PHONE_NUMBER;
+
+  if (!accountSid || !authToken || !phoneNumber) {
+    throw new Error('Twilio credentials not found. Set TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, and TWILIO_PHONE_NUMBER environment variables.');
+  }
+
+  console.log('✅ Twilio credentials loaded from environment variables');
   return {
-    accountSid: connectionSettings.settings.account_sid,
-    apiKey: connectionSettings.settings.api_key,
-    apiKeySecret: connectionSettings.settings.api_key_secret,
-    phoneNumber: connectionSettings.settings.phone_number
+    accountSid,
+    authToken, // Note: Using authToken directly for production
+    phoneNumber
   };
 }
 
 async function getTwilioClient() {
-  const { accountSid, apiKey, apiKeySecret } = await getCredentials();
-  return twilio(apiKey, apiKeySecret, {
-    accountSid: accountSid
-  });
+  const credentials = await getCredentials();
+  
+  // Replit connector uses apiKey/apiKeySecret
+  if (credentials.apiKey && credentials.apiKeySecret) {
+    return twilio(credentials.apiKey, credentials.apiKeySecret, {
+      accountSid: credentials.accountSid
+    });
+  }
+  
+  // Railway/production uses authToken
+  if (credentials.authToken) {
+    return twilio(credentials.accountSid, credentials.authToken);
+  }
+  
+  throw new Error('Invalid Twilio credentials format');
 }
 
 async function getTwilioFromPhoneNumber() {
@@ -150,8 +186,20 @@ export async function sendSms(params: SmsParams): Promise<{ success: boolean; si
 
     // Only include status callback if we have a valid public domain
     // Localhost URLs are rejected by Twilio and cause "invalid URL" errors
+    let statusCallbackUrl: string | undefined;
+    
     if (process.env.REPLIT_DEV_DOMAIN) {
-      const statusCallbackUrl = `https://${process.env.REPLIT_DEV_DOMAIN}/webhooks/twilio/status`;
+      // Replit development
+      statusCallbackUrl = `https://${process.env.REPLIT_DEV_DOMAIN}/webhooks/twilio/status`;
+    } else if (process.env.RAILWAY_PUBLIC_DOMAIN) {
+      // Railway production
+      statusCallbackUrl = `https://${process.env.RAILWAY_PUBLIC_DOMAIN}/webhooks/twilio/status`;
+    } else if (process.env.NODE_ENV === 'production') {
+      // Fallback to main CRM domain for production
+      statusCallbackUrl = 'https://thephotocrm.com/webhooks/twilio/status';
+    }
+    
+    if (statusCallbackUrl) {
       messagePayload.statusCallback = statusCallbackUrl;
       console.log('Status callback URL:', statusCallbackUrl);
     } else {
