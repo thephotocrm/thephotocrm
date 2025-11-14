@@ -1340,7 +1340,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const { email } = validation.data;
-      const photographerId = req.domain.photographer?.id;
+      const photographerId = req.photographerFromSubdomain?.id;
 
       if (!photographerId) {
         return res.status(400).json({ message: "Invalid photographer context" });
