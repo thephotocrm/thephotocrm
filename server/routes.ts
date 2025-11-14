@@ -1761,6 +1761,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { token } = req.params;
       console.log("🔑 Client portal token validation request for token:", token.substring(0, 10) + "...");
 
+      // SECURITY: Require photographer subdomain for client portal access
+      // This prevents cross-tenant exposure by ensuring magic links are only used on the correct portal
+      if (!req.photographerFromSubdomain) {
+        console.error("❌ SECURITY: Magic link validation attempted without photographer subdomain");
+        console.error("  → Domain type:", req.domain?.type);
+        console.error("  → Slug:", req.domain?.photographerSlug);
+        return res.status(400).json({ 
+          message: "Please use your photographer's portal link to access your account.",
+          error: 'NO_PHOTOGRAPHER_SUBDOMAIN'
+        });
+      }
+
       const portalToken = await storage.validateClientPortalToken(token);
       if (!portalToken) {
         console.log("❌ Client portal token validation failed: Invalid or expired token");
@@ -1776,10 +1788,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Client not found" });
       }
 
-      // Check if user exists for this contact
-      let user = await storage.getUserByEmail(contact.email);
+      // SECURITY: Verify contact belongs to the photographer whose subdomain is being accessed
+      // This prevents cross-tenant data exposure (e.g., abbiestreet.tpcportal.co loading Sarah Johnson's clients)
+      const subdomainPhotographerId = req.photographerFromSubdomain.id;
+      if (contact.photographerId !== subdomainPhotographerId) {
+        console.error(`❌ SECURITY: Magic link for photographer ${contact.photographerId} used on subdomain for ${subdomainPhotographerId}`);
+        console.error(`  → Contact: ${contact.firstName} ${contact.lastName} (${contact.email})`);
+        console.error(`  → Subdomain: ${req.domain?.photographerSlug}`);
+        return res.status(403).json({ 
+          message: "This magic link is for a different photographer's portal. Please use the correct link from your photographer.",
+          error: 'CROSS_TENANT_MAGIC_LINK'
+        });
+      }
+      console.log(`✅ Verified contact belongs to subdomain photographer: ${subdomainPhotographerId}`);
+
+      // SECURITY: Look up user scoped by email, role, AND photographerId
+      // This handles clients with same email across multiple photographers (separate user accounts)
+      let user = await storage.getUserByEmailRolePhotographer(contact.email, "CLIENT", contact.photographerId);
       
-      // If no user exists, create one with a random password (they can reset it later)
+      // If no user exists for this photographer, create one
       if (!user) {
         const randomPassword = crypto.randomBytes(16).toString('hex');
         const hashedPassword = await bcrypt.hash(randomPassword, 10);
@@ -1791,25 +1818,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           photographerId: contact.photographerId
         });
         
-        console.log("👤 Created new user account for client:", user.email);
-      } else {
-        // SECURITY: Ensure existing user has photographerId set from contact
-        if (!user.photographerId || user.photographerId !== contact.photographerId) {
-          console.log(`⚠️ Updating user ${user.email} photographerId from ${user.photographerId} to ${contact.photographerId}`);
-          
-          // Reject if user belongs to different photographer (cross-tenant attempt)
-          if (user.photographerId && user.photographerId !== contact.photographerId) {
-            console.error(`❌ SECURITY: User ${user.email} belongs to photographer ${user.photographerId}, cannot access ${contact.photographerId}`);
-            return res.status(403).json({ message: "Access denied - account conflict" });
-          }
-          
-          // Backfill photographerId for legacy users
-          user = await storage.updateUser(user.id, {
-            photographerId: contact.photographerId
-          });
-          
-          console.log(`✅ Updated user ${user.email} with photographerId ${contact.photographerId}`);
-        }
+        console.log("👤 Created new tenant-scoped user account for client:", user.email, "photographer:", contact.photographerId);
       }
       
       // SECURITY: Validate photographerId exists before creating JWT
