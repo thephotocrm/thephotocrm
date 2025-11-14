@@ -544,7 +544,12 @@ export default function ClientPortalProject() {
                               {gallery.isPublic ? 'Public' : 'Private'}
                             </Badge>
                           </div>
-                          <Button size="sm" className="w-full" data-testid={`view-gallery-${gallery.id}`}>
+                          <Button 
+                            size="sm" 
+                            className="w-full" 
+                            onClick={() => setLocation(`/client/galleries/${gallery.id}`)}
+                            data-testid={`view-gallery-${gallery.id}`}
+                          >
                             <Eye className="w-4 h-4 mr-2" />
                             View Gallery
                           </Button>
