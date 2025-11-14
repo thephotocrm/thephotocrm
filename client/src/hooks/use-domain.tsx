@@ -7,9 +7,12 @@ interface DomainInfo {
   type: DomainType;
   photographerSlug?: string;
   isCustomSubdomain: boolean;
+  photographerNotFound?: boolean;
   photographer?: {
     businessName: string;
     logoUrl?: string;
+    brandPrimary?: string;
+    brandSecondary?: string;
   };
 }
 

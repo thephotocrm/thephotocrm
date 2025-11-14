@@ -194,8 +194,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (photographer) {
           response.photographer = {
             businessName: photographer.businessName,
-            logoUrl: photographer.logoUrl
+            logoUrl: photographer.logoUrl,
+            brandPrimary: photographer.brandPrimary,
+            brandSecondary: photographer.brandSecondary
           };
+        } else {
+          // Photographer slug doesn't exist - flag for frontend to show error page
+          console.log(`⚠️ Invalid photographer slug: ${req.domain.photographerSlug}`);
+          response.photographerNotFound = true;
         }
       } catch (error) {
         console.error('Error fetching photographer for domain endpoint:', error);
@@ -654,6 +660,164 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(500).send("Error processing link");
     }
   });
+
+  // MUST COME LAST: Catch-all for client portal subdomains with meta tag injection
+  // This will be registered after all API routes but before Vite middleware
+  // Handles ALL paths on client portal subdomains for proper Open Graph previews
+  const clientPortalMetaTagHandler = async (req: Request, res: Response, next: NextFunction) => {
+    // Only handle client portal subdomains
+    if (req.domain?.type !== 'client_portal' || !req.domain.isCustomSubdomain || !req.domain.photographerSlug) {
+      return next();
+    }
+    
+    // Skip API routes - they're already handled
+    if (req.path.startsWith('/api/')) {
+      return next();
+    }
+    
+    // Skip in development - let Vite/React handle it
+    if (app.get("env") === "development") {
+      return next();
+    }
+    
+    // Helper function to escape HTML content (attributes and text nodes)
+    const escapeHtml = (text: string) => {
+      return text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    };
+    
+    // Helper to read and inject meta tags into HTML
+    const injectMetaTags = async (metaTags: string, statusCode: number = 200) => {
+      const fs = await import('fs/promises');
+      const htmlPath = path.resolve(import.meta.dirname, "public/index.html");
+      let html = await fs.readFile(htmlPath, 'utf-8');
+      
+      html = html.replace(/<title>.*?<\/title>/s, '');
+      html = html.replace(/<meta\s+name="description"\s+content="[^"]*"\s*\/?>/gi, '');
+      html = html.replace(/<\/head>/, `${metaTags}\n  </head>`);
+      
+      return res.status(statusCode).set({ 'Content-Type': 'text/html' }).end(html);
+    };
+    
+    try {
+      const photographerSlug = req.domain.photographerSlug;
+      
+      // CRITICAL: Always fetch photographer data to determine if slug is valid
+      const photographer = await storage.getPhotographerByPortalSlug(photographerSlug);
+      
+      // INVALID SUBDOMAIN: Photographer not found - return 404 with error meta tags
+      if (!photographer) {
+        console.log(`❌ Invalid photographer subdomain: ${photographerSlug} - returning 404 error page`);
+        
+        const errorTitle = escapeHtml('Client Portal Not Found - thePhotoCrm');
+        const errorDescription = escapeHtml('This photographer portal does not exist. Please check your link or contact your photographer.');
+        
+        const errorMetaTags = `
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="${errorTitle}" />
+    <meta property="og:description" content="${errorDescription}" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="${errorTitle}" />
+    <meta name="twitter:description" content="${errorDescription}" />
+    <title>${errorTitle}</title>
+    <meta name="description" content="${errorDescription}" />
+  `;
+        
+        return await injectMetaTags(errorMetaTags, 404);
+      }
+      
+      // VALID SUBDOMAIN: Inject photographer branding into meta tags
+      console.log(`✅ Valid photographer subdomain: ${photographerSlug} (${photographer.businessName}) - injecting branded meta tags`);
+
+      // Build the meta tags with proper escaping
+      const businessName = escapeHtml(photographer.businessName);
+      const title = escapeHtml(`${photographer.businessName} - Client Portal`);
+      const description = escapeHtml(`Access your photos, contracts, and project updates from ${photographer.businessName}.`);
+      const currentUrl = escapeHtml(`${req.protocol}://${req.get('host')}${req.originalUrl}`);
+      
+      // Build image URL - use photographer's logo if available
+      let imageUrl = '';
+      if (photographer.logoUrl) {
+        let logoUrl = photographer.logoUrl.trim();
+        
+        if (logoUrl.startsWith('http://') || logoUrl.startsWith('https://')) {
+          try {
+            new URL(logoUrl);
+            imageUrl = escapeHtml(logoUrl);
+          } catch {
+            console.warn('Invalid logo URL for meta tags:', logoUrl);
+          }
+        } else if (logoUrl.startsWith('/')) {
+          imageUrl = escapeHtml(`${req.protocol}://${req.get('host')}${logoUrl}`);
+        }
+      }
+
+      const metaTags = `
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="${currentUrl}" />
+    <meta property="og:title" content="${title}" />
+    <meta property="og:description" content="${description}" />
+    ${imageUrl ? `<meta property="og:image" content="${imageUrl}" />` : ''}
+    ${imageUrl ? `<meta property="og:image:secure_url" content="${imageUrl}" />` : ''}
+    <meta property="og:image:type" content="image/jpeg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="${title}" />
+    <meta name="twitter:description" content="${description}" />
+    ${imageUrl ? `<meta name="twitter:image" content="${imageUrl}" />` : ''}
+    
+    <title>${title}</title>
+    <meta name="description" content="${description}" />
+  `;
+
+      return await injectMetaTags(metaTags, 200);
+    } catch (error) {
+      console.error("❌ ERROR generating client portal meta tags:", error);
+      // CRITICAL: Do NOT fall back to SPA - return generic error page instead
+      // This ensures crawlers/previews always get meta tags, not broken SPA
+      const errorTitle = escapeHtml('Error Loading Client Portal - thePhotoCrm');
+      const errorDescription = escapeHtml('There was a technical issue loading this portal. Please try again later.');
+      
+      const errorMetaTags = `
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="${errorTitle}" />
+    <meta property="og:description" content="${errorDescription}" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="${errorTitle}" />
+    <meta name="twitter:description" content="${errorDescription}" />
+    <title>${errorTitle}</title>
+    <meta name="description" content="${errorDescription}" />
+  `;
+      
+      try {
+        return await injectMetaTags(errorMetaTags, 500);
+      } catch (finalError) {
+        console.error("❌ CRITICAL: Could not even render error page:", finalError);
+        // Last resort - return simple error HTML
+        return res.status(500).set({ 'Content-Type': 'text/html' }).end(`
+          <!DOCTYPE html>
+          <html>
+            <head>
+              <meta property="og:title" content="${errorTitle}" />
+              <title>${errorTitle}</title>
+            </head>
+            <body>
+              <h1>Error Loading Portal</h1>
+              <p>Please try again later.</p>
+            </body>
+          </html>
+        `);
+      }
+    }
+  };
 
   // Public booking calendar route with server-side meta tag injection
   // Note: Uses /booking/* path instead of /public/* to avoid Vite static file handler conflict
@@ -13024,6 +13188,12 @@ ${photographer.businessName}
       res.status(500).json({ message: error.message || "Failed to delete testimonial" });
     }
   });
+
+  // CRITICAL: Register client portal meta tag handler as catch-all BEFORE Vite middleware
+  // This must come after all API routes to avoid interfering with them
+  // But before Vite so we can inject meta tags for social media previews
+  app.get("*", clientPortalMetaTagHandler);
+  console.log('✅ Client portal meta tag injection middleware registered');
 
   const httpServer = createServer(app);
   return httpServer;

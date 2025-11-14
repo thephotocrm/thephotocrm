@@ -42,6 +42,11 @@ export function DomainRouter({ children }: DomainRouterProps) {
     return <InvalidPortal />;
   }
 
+  // INVALID PHOTOGRAPHER SUBDOMAIN - Show error
+  if (domain.type === 'client_portal' && domain.isCustomSubdomain && domain.photographerNotFound) {
+    return <InvalidPortal />;
+  }
+
   // CLIENT PORTAL SUBDOMAIN (slug.tpcportal.co) - Render dedicated client portal routes only
   // This prevents CLIENT-role users from accessing photographer routes and hitting auth loops
   if (domain.type === 'client_portal' && domain.isCustomSubdomain) {
