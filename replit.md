@@ -15,7 +15,7 @@ Preferred communication style: Simple, everyday language.
 *   **Frontend Technologies:** React with Vite, Wouter for routing, Shadcn/ui (Radix UI-based) for components, and Tailwind CSS for styling.
 
 **Technical Implementations:**
-*   **Multi-Tenant Architecture:** Ensures strict data isolation per photographer.
+*   **Multi-Tenant Architecture:** Ensures strict data isolation per photographer with photographer-scoped CLIENT accounts (composite unique constraint on email + role + photographerId).
 *   **Static Email Marketing Platform:** Drip campaign system with pre-written templates, 3-phase timing, and a block-based visual email builder supporting real-time preview and scheduling.
 *   **Automation System:** Event-driven engine using `node-cron` for scheduled tasks, supporting stage-based triggers, dynamic content, multi-channel delivery (email, SMS, Smart Files), and internal URL shortening with click tracking.
 *   **Two-Way SMS Communication:** Integrates Twilio for SMS/MMS, including message logging and MMS image support with Cloudinary hosting.
@@ -25,7 +25,8 @@ Preferred communication style: Simple, everyday language.
 *   **Google Integration:** Comprehensive OAuth for Calendar, Meet, and Gmail API for email sending and reply capture.
 *   **Marketing Landing Page & Subscription System:** Conversion-optimized landing page with subscription enforcement, free trial, and demo booking.
 *   **Multi-Form Lead Capture System:** Flexible lead generation with customizable forms and client deduplication.
-*   **Authentication & Authorization:** Three-tier role system (PHOTOGRAPHER, CLIENT, ADMIN) with stateless JWT authentication, role-based middleware, and Google OAuth.
+*   **Authentication & Authorization:** Three-tier role system (PHOTOGRAPHER, CLIENT, ADMIN) with photographer-scoped CLIENT authentication. Features stateless JWT authentication, role-based middleware, domain-aware login (CLIENT on portals, PHOTOGRAPHER/ADMIN on CRM), and Google OAuth for photographers only.
+*   **Branded Client Portal Login:** HoneyBook-style login page with photographer logo/business name, passwordless magic link option, and password login. Domain-aware branding via `/api/domain` endpoint with graceful error handling.
 *   **Super Admin Dashboard:** Manages photographers, subscriptions, and activity logging.
 *   **Managed Advertising Platform:** White-label service for Google Ads and Facebook campaigns with tiered pricing.
 *   **Lead Management System:** Includes a Revenue Estimator, Lead Hub dashboard, and educational resources.
@@ -40,7 +41,7 @@ Preferred communication style: Simple, everyday language.
 *   **Wildcard DNS Routing:** Client portal subdomains (*.tpcportal.co) are handled by a wildcard DNS record in Railway for simplified infrastructure.
 *   **Terminology Refactor:** System-wide change from "Clients" to "Contacts."
 *   **Gallery Delivery System:** Automated touchpoint system triggered when galleries are marked ready, including expiration settings and automated communications (email, SMS reminders, upsell).
-*   **Domain-Aware Routing System:** Production-grade dual-domain routing infrastructure supporting split deployment (Replit for CRM, Railway for client portals). Features server-side domain detection, domain-specific routing security, and a frontend DomainProvider hook.
+*   **Domain-Aware Routing System:** Production-grade dual-domain routing infrastructure supporting split deployment (Replit for CRM, Railway for client portals). Features server-side domain detection, domain-specific routing security, and a frontend DomainProvider hook with error handling.
 
 **System Design Choices:**
 *   **Backend:** Node.js with Express.js, Drizzle ORM for PostgreSQL, JWT tokens in httpOnly cookies, bcrypt for password hashing, and RESTful API with role-based access control.

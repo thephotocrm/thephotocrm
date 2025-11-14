@@ -166,7 +166,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   console.log('✅ Domain detection and tenant isolation middleware initialized');
   
   // Domain information endpoint for frontend routing
-  app.get("/api/domain", (req, res) => {
+  app.get("/api/domain", async (req, res) => {
     // SECURITY: If domain detection failed, return error instead of defaulting to 'dev'
     if (!req.domain) {
       console.error('⚠️ Domain detection failed - req.domain is not set');
@@ -176,11 +176,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     }
     
-    res.json({
+    const response: any = {
       type: req.domain.type,
       photographerSlug: req.domain.photographerSlug,
       isCustomSubdomain: req.domain.isCustomSubdomain
-    });
+    };
+    
+    // For client portal subdomains, include photographer branding for login page
+    if (req.domain.type === 'client_portal' && req.domain.isCustomSubdomain && req.domain.photographerSlug) {
+      try {
+        const photographer = await storage.getPhotographerByPortalSlug(req.domain.photographerSlug);
+        if (photographer) {
+          response.photographer = {
+            businessName: photographer.businessName,
+            logoUrl: photographer.logoUrl
+          };
+        }
+      } catch (error) {
+        console.error('Error fetching photographer for domain endpoint:', error);
+        // Don't fail the request - just omit photographer data
+      }
+    }
+    
+    res.json(response);
   });
   
   // Simple chunked upload for gallery images using Multer + Cloudinary

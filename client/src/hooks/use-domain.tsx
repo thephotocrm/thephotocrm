@@ -7,25 +7,31 @@ interface DomainInfo {
   type: DomainType;
   photographerSlug?: string;
   isCustomSubdomain: boolean;
+  photographer?: {
+    businessName: string;
+    logoUrl?: string;
+  };
 }
 
 interface DomainContextValue {
   domain: DomainInfo | null;
   isLoading: boolean;
+  error: Error | null;
 }
 
 const DomainContext = createContext<DomainContextValue | undefined>(undefined);
 
 export function DomainProvider({ children }: { children: ReactNode }) {
-  const { data: domain, isLoading } = useQuery<DomainInfo>({
+  const { data: domain, isLoading, error } = useQuery<DomainInfo>({
     queryKey: ['/api/domain'],
     staleTime: 5 * 60 * 1000, // 5 minutes - allow refetching for admin/support switching tenants
     refetchOnWindowFocus: true,
-    refetchOnMount: true
+    refetchOnMount: true,
+    retry: 2 // Retry failed requests twice before giving up
   });
 
   return (
-    <DomainContext.Provider value={{ domain: domain || null, isLoading }}>
+    <DomainContext.Provider value={{ domain: domain || null, isLoading, error: error as Error | null }}>
       {children}
     </DomainContext.Provider>
   );
