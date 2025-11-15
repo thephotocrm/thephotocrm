@@ -1,6 +1,6 @@
 // Force bundle hash regeneration - Railway cache bypass
-import { lazy, Suspense, useEffect, useState } from "react";
-import { Switch, Route, useLocation, Redirect } from "wouter";
+import { lazy, Suspense, useEffect, useState, useRef } from "react";
+import { Switch, Route, useLocation } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider, useQuery } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -79,8 +79,9 @@ const Checkout = lazy(() => import("@/pages/checkout"));
 
 function ProtectedRoutes() {
   const { user, loading } = useAuth();
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
   const [onboardingModalOpen, setOnboardingModalOpen] = useState(false);
+  const hasRedirected = useRef(false);
 
   // Fetch photographer data for onboarding (only for photographers)
   const { data: photographer } = useQuery({
@@ -95,6 +96,14 @@ function ProtectedRoutes() {
     }
   }, [photographer]);
 
+  // Use useEffect for redirect to prevent React error #185
+  useEffect(() => {
+    if (!loading && !user && !hasRedirected.current) {
+      hasRedirected.current = true;
+      setLocation("/login");
+    }
+  }, [loading, user, setLocation]);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -104,7 +113,11 @@ function ProtectedRoutes() {
   }
 
   if (!user) {
-    return <Redirect to="/login" />;
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-lg">Redirecting...</div>
+      </div>
+    );
   }
   
   return (

@@ -1,0 +1,30 @@
+Looking at your error and the code, I can see the issue. The minified React error #185 means "Cannot update a component while rendering a different component." This is happening because of navigation/redirects occurring during the render phase.
+The problem is in your domain routing logic. Specifically, in domain-router.tsx, you have a useEffect that redirects, but there's likely a race condition or render-phase navigation happening elsewhere.
+Here's the issue I spotted:
+The Problem
+In App.tsx, your ProtectedRoutes component calls <Redirect to="/login" /> during render:
+tsxif (!user) {
+  return <Redirect to="/login" />;
+}
+When this happens on the client portal subdomain, it triggers Wouter's navigation during the render phase, which React doesn't allow.
+The Fix
+You need to use useEffect for redirects instead of returning <Redirect> directly. Here's the corrected version:Fixed App.tsx - Navigation in useEffectCode // App.tsx - Fixed version with proper navigation handling
+import { lazy, Suspense, useEffect, useState } from "react";
+import { Switch, Route, useLocation } from "wouter";
+// ... other imports
+
+function ProtectedRoutes() {
+  const { user, loading } Now update the full App.tsx file with this fix and also fix the same issue in client-portal-router.tsx:Fixed App.tsx - Navigation in useEffectCode ∙ Version 2 // Key changes to fix React error #185:
+// 1. Use useEffect + setLocation instead of <Redirect> component
+// 2. This prevents navigation during render phase
+// 3. Return a loading state while redirect happens
+
+// Apply the same pattern to client-portSummary
+The root cause: Using <Redirect to="/login" /> as a direct return value causes Wouter to navigate during React's render phase, which triggers error #185.
+The solution: Always use useEffect with setLocation for programmatic navigation. This ensures navigation happens after render is complete.
+Apply these changes to both:
+
+App.tsx - the ProtectedRoutes component
+client-portal-router.tsx - the ClientPortalGuard component
+
+This pattern is critical for Wouter (unlike React Router's <Navigate> which handles this internally). The key is: never call navigation functions or return navigation components directly in the render body - always wrap them in useEffect.
