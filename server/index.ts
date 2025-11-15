@@ -88,6 +88,18 @@ app.use((req, res, next) => {
   if (app.get("env") === "development") {
     await setupVite(app, server);
   } else {
+    // CRITICAL: Prevent Railway Metal Edge from caching JavaScript bundles
+    // This middleware MUST run before serveStatic to ensure headers are set
+    app.use((req, res, next) => {
+      if (req.path.endsWith('.js')) {
+        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+        res.setHeader('Surrogate-Control', 'no-store');
+        res.setHeader('Pragma', 'no-cache');
+        res.setHeader('Expires', '0');
+      }
+      next();
+    });
+    
     serveStatic(app);
   }
 
