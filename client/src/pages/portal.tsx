@@ -3,10 +3,12 @@ import { useParams, useLocation } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 import { Loader2, CheckCircle2, XCircle } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
+import { useAuth } from "@/hooks/use-auth";
 
 export default function Portal() {
   const { token } = useParams();
   const [, navigate] = useLocation();
+  const { refetchUser } = useAuth();
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -47,6 +49,12 @@ export default function Portal() {
         const data = await response.json();
         setStatus("success");
 
+        // CRITICAL: Refetch auth to update user state before redirecting
+        // This prevents race condition where /client-portal loads before auth is updated
+        console.log('✅ Magic link validated, refreshing auth state...');
+        await refetchUser();
+        console.log('✅ Auth state refreshed, redirecting...');
+
         // Redirect based on response type
         if (data.redirect) {
           // Client portal tokens may include redirect URL
@@ -72,7 +80,7 @@ export default function Portal() {
     };
 
     validateToken();
-  }, [token, navigate]);
+  }, [token, navigate, refetchUser]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
