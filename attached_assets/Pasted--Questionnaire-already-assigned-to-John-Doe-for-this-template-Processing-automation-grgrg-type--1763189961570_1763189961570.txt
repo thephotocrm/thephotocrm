@@ -1,0 +1,66 @@
+🚫 Questionnaire already assigned to John Doe for this template
+Processing automation: grgrg (type: COMMUNICATION)
+🚫 Questionnaire already assigned to SMS LogTest for this template
+Processing questionnaire assignment for E2E TestUser (automation: grgrg)
+🚫 Questionnaire already assigned to E2E TestUser for this template
+Processing questionnaire assignment for Final Test (automation: grgrg)
+Communication automation "grgrg" (af2915e9-a9ac-4471-98e2-cc1a08aec8ee) - found 15 projects in stage
+Processing questionnaire assignment for SMS LogTest (automation: grgrg)
+🚫 Questionnaire already assigned to Final Test for this template
+Processing questionnaire assignment for Debug SMS (automation: grgrg)
+🚫 Questionnaire already assigned to SMS LogTest for this template
+Processing questionnaire assignment for E2E TestUser (automation: grgrg)
+🚫 Questionnaire already assigned to Debug SMS for this template
+Processing questionnaire assignment for SMS Test2 (automation: grgrg)
+🚫 Questionnaire already assigned to E2E TestUser for this template
+Processing questionnaire assignment for Final Test (automation: grgrg)
+🚫 Questionnaire already assigned to SMS Test2 for this template
+Processing questionnaire assignment for Test SMSUser (automation: grgrg)
+🚫 Questionnaire already assigned to Final Test for this template
+Processing questionnaire assignment for Debug SMS (automation: grgrg)
+🚫 Questionnaire already assigned to Test SMSUser for this template
+Processing questionnaire assignment for Austin Pacholek (automation: grgrg)
+🚫 Questionnaire already assigned to Debug SMS for this template
+Processing questionnaire assignment for SMS Test2 (automation: grgrg)
+🚫 Questionnaire already assigned to Austin Pacholek for this template
+Processing questionnaire assignment for Test SMS User (automation: grgrg)
+🚫 Questionnaire already assigned to SMS Test2 for this template
+Processing questionnaire assignment for Test SMSUser (automation: grgrg)
+🚫 Questionnaire already assigned to Test SMSUser for this template
+Processing questionnaire assignment for Austin Pacholek (automation: grgrg)
+🚫 Questionnaire already assigned to Test SMS User for this template
+Processing questionnaire assignment for tim Pacholek (automation: grgrg)
+🚫 Questionnaire already assigned to tim Pacholek for this template
+Processing questionnaire assignment for sheen peeen (automation: grgrg)
+Processing questionnaire assignment for tim Pacholek (automation: grgrg)
+🚫 Questionnaire already assigned to Test SMS User for this template
+❌ No stageEnteredAt date for project e278ed96-4ed0-416a-9f07-678b171b14a7, skipping questionnaire assignment
+Processing questionnaire assignment for tim Pacholek (automation: grgrg)
+🚫 Questionnaire already assigned to tim Pacholek for this template
+Processing questionnaire assignment for tim sheeny (automation: grgrg)
+Processing questionnaire assignment for tim  peen (automation: grgrg)
+🚫 Questionnaire already assigned to tim Pacholek for this template
+Processing questionnaire assignment for Test User (automation: grgrg)
+🚫 Questionnaire already assigned to tim sheeny for this template
+🚫 Questionnaire already assigned to Austin Pacholek for this template
+Processing questionnaire assignment for Test SMS User (automation: grgrg)
+Processing questionnaire assignment for Test User (automation: grgrg)
+🚫 Questionnaire already assigned to tim Pacholek for this template
+Processing questionnaire assignment for tim Pacholek (automation: grgrg)
+🚫 Questionnaire already assigned to Test User for this template
+🚫 Questionnaire already assigned to Test User for this template
+Processing questionnaire assignment for tim sheeny (automation: grgrg)
+🚫 Questionnaire already assigned to tim  peen for this template
+Processing questionnaire assignment for John Doe (automation: grgrg)
+🚫 Questionnaire already assigned to tim sheeny for this template
+Processing questionnaire assignment for sheen peeen (automation: grgrg)
+❌ No stageEnteredAt date for project e278ed96-4ed0-416a-9f07-678b171b14a7, skipping questionnaire assignment
+Processing questionnaire assignment for tim  peen (automation: grgrg)
+🚫 Questionnaire already assigned to John Doe for this template
+Processing automation: grgrg (type: COMMUNICATION)
+🚫 Questionnaire already assigned to tim  peen for this template
+Processing questionnaire assignment for John Doe (automation: grgrg)
+🚫 Questionnaire already assigned to John Doe for this template
+Processing automation: grgrg (type: COMMUNICATION)
+Communication automation "grgrg" (9ff7ab5e-892f-4b34-99f8-e81004a871a5) - found 15 projects in stage
+Processing automation: grgrg (type: COMMUNICATION)
