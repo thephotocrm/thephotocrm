@@ -39,7 +39,7 @@ RUN npm ci --omit=dev
 COPY --from=builder /app/dist ./dist
 
 # Copy the built frontend static files from builder
-COPY --from=builder /app/server/public ./server/public
+COPY --from=builder /app/dist/public ./dist/public
 
 # Copy necessary runtime files
 COPY server/vite.ts ./server/vite.ts
