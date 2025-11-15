@@ -44,7 +44,7 @@ COPY --from=builder /app/server/public ./server/public
 # Copy necessary runtime files
 COPY server/vite.ts ./server/vite.ts
 COPY shared ./shared
-COPY db ./db
+COPY migrations ./migrations
 
 # Expose port (Railway will use PORT env var)
 EXPOSE 5000
