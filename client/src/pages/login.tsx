@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { useDomain } from "@/hooks/use-domain";
@@ -23,8 +23,17 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [magicLinkModalOpen, setMagicLinkModalOpen] = useState(false);
   const [magicLinkEmail, setMagicLinkEmail] = useState("");
+  const hasRedirected = useRef(false);
   
   const isClientPortal = domain?.type === 'client_portal' && domain.isCustomSubdomain;
+  
+  // Redirect if already logged in - use effect to prevent infinite loop
+  useEffect(() => {
+    if (user && !hasRedirected.current) {
+      hasRedirected.current = true;
+      setLocation("/");
+    }
+  }, [user, setLocation]);
   
   // Magic link request mutation
   const requestMagicLinkMutation = useMutation({
@@ -47,12 +56,6 @@ export default function Login() {
       });
     }
   });
-
-  // Redirect if already logged in
-  if (user) {
-    setLocation("/");
-    return null;
-  }
 
   // Show loading while domain is being determined
   // CRITICAL: Must check both isLoading AND domain existence to prevent layout flash
