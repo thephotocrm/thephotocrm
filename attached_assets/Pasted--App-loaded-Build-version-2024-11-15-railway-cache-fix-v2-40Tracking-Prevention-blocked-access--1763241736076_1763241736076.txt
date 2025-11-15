@@ -1,0 +1,52 @@
+🚀 App loaded - Build version: 2024-11-15-railway-cache-fix-v2
+40Tracking Prevention blocked access to storage for <URL>.
+index-Cq4V_ryX.js:40  Uncaught Error: Minified React error #185; visit https://reactjs.org/docs/error-decoder.html?invariant=185 for the full message or use the non-minified dev environment for full errors and additional helpful warnings.
+    at xi (index-Cq4V_ryX.js:40:33842)
+    at PM (index-Cq4V_ryX.js:38:19865)
+    at index-Cq4V_ryX.js:38:19728
+    at history.<computed> [as pushState] (index-Cq4V_ryX.js:48:1685)
+    at CW (index-Cq4V_ryX.js:48:1441)
+    at Array.<anonymous> (index-Cq4V_ryX.js:48:2272)
+    at index-Cq4V_ryX.js:48:988
+    at index-Cq4V_ryX.js:748:47769
+    at gv (index-Cq4V_ryX.js:40:24283)
+    at gu (index-Cq4V_ryX.js:40:42409)
+index-Cq4V_ryX.js:40  Uncaught Error: Minified React error #185; visit https://reactjs.org/docs/error-decoder.html?invariant=185 for the full message or use the non-minified dev environment for full errors and additional helpful warnings.
+    at xi (index-Cq4V_ryX.js:40:33842)
+    at PM (index-Cq4V_ryX.js:38:19865)
+    at index-Cq4V_ryX.js:38:19728
+    at history.<computed> [as pushState] (index-Cq4V_ryX.js:48:1685)
+    at CW (index-Cq4V_ryX.js:48:1441)
+    at Array.<anonymous> (index-Cq4V_ryX.js:48:2272)
+    at index-Cq4V_ryX.js:48:988
+    at Array.<anonymous> (index-Cq4V_ryX.js:48:4383)
+    at index-Cq4V_ryX.js:48:988
+    at index-Cq4V_ryX.js:48:4409
+index-Cq4V_ryX.js:40  Error: Minified React error #185; visit https://reactjs.org/docs/error-decoder.html?invariant=185 for the full message or use the non-minified dev environment for full errors and additional helpful warnings.
+    at xi (index-Cq4V_ryX.js:40:33842)
+    at CH (index-Cq4V_ryX.js:38:21898)
+    at index-Cq4V_ryX.js:48:55386
+    at gv (index-Cq4V_ryX.js:40:24283)
+    at Rk (index-Cq4V_ryX.js:40:31623)
+    at a6 (index-Cq4V_ryX.js:40:31479)
+    at LH (index-Cq4V_ryX.js:40:31029)
+    at VH (index-Cq4V_ryX.js:40:40920)
+    at Ec (index-Cq4V_ryX.js:40:40278)
+    at $k (index-Cq4V_ryX.js:40:36886)
+Ij @ index-Cq4V_ryX.js:40
+index-Cq4V_ryX.js:38  Uncaught Error: Minified React error #185; visit https://reactjs.org/docs/error-decoder.html?invariant=185 for the full message or use the non-minified dev environment for full errors and additional helpful warnings.
+    at xi (index-Cq4V_ryX.js:40:33842)
+    at CH (index-Cq4V_ryX.js:38:21898)
+    at index-Cq4V_ryX.js:48:55386
+    at gv (index-Cq4V_ryX.js:40:24283)
+    at Rk (index-Cq4V_ryX.js:40:31623)
+    at a6 (index-Cq4V_ryX.js:40:31479)
+    at LH (index-Cq4V_ryX.js:40:31029)
+    at VH (index-Cq4V_ryX.js:40:40920)
+    at Ec (index-Cq4V_ryX.js:40:40278)
+    at $k (index-Cq4V_ryX.js:40:36886)
+[NEW] Explain Console errors by using Copilot in Edge: click
+         
+         to explain an error. 
+        Learn more
+        Don't show again

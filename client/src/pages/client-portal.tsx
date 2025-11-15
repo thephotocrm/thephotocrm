@@ -98,6 +98,7 @@ export default function ClientPortal() {
   const [tokenStatus, setTokenStatus] = useState<"idle" | "validating" | "success" | "error">("idle");
   const [tokenError, setTokenError] = useState("");
   const hasValidatedToken = useRef(false);
+  const hasRedirectedToLogin = useRef(false);
 
   // Check for magic link token in URL
   useEffect(() => {
@@ -164,6 +165,14 @@ export default function ClientPortal() {
     }
   }, [refetchUser, setLocation]);
 
+  // Redirect to login if not authenticated (prevent infinite loop with ref guard)
+  useEffect(() => {
+    if (!loading && !user && tokenStatus !== "validating" && !hasRedirectedToLogin.current) {
+      hasRedirectedToLogin.current = true;
+      setLocation("/login");
+    }
+  }, [loading, user, tokenStatus, setLocation]);
+
   // Fetch client portal data from API
   const { data: portalData, isLoading: portalLoading } = useQuery<ClientPortalData>({
     queryKey: ["/api/client-portal"],
@@ -212,12 +221,6 @@ export default function ClientPortal() {
         </Card>
       </div>
     );
-  }
-
-  // For client portal access, redirect to login if not authenticated
-  if (!loading && !user && tokenStatus !== "validating") {
-    setLocation("/login");
-    return null;
   }
 
   if (loading || portalLoading) {
