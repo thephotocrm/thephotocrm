@@ -1737,18 +1737,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log("🍪 Auth cookie set for user:", user.email);
 
-      // Return user info and redirect to project
-      res.json({
-        user: {
-          id: user.id,
-          email: user.email,
-          role: user.role,
-          photographerId: user.photographerId
-        },
-        projectId: portalToken.projectId
-      });
+      // Get photographer slug for redirect
+      const photographer = await storage.getPhotographer(portalToken.photographerId);
+      if (!photographer) {
+        return res.status(404).json({ message: "Photographer not found" });
+      }
+
+      // Build redirect URL to the photographer's client portal
+      const protocol = getOAuthProtocol(req);
+      const portalDomain = `${photographer.portalSlug}.tpcportal.co`;
       
-      console.log("✅ Portal validation complete, redirecting to project:", portalToken.projectId);
+      // Redirect to project page if projectId exists, otherwise portal home
+      const redirectPath = portalToken.projectId ? `/project/${portalToken.projectId}` : '/';
+      const redirectUrl = `${protocol}://${portalDomain}${redirectPath}`;
+      
+      console.log("✅ Portal validation complete, redirecting to:", redirectUrl);
+      res.redirect(redirectUrl);
     } catch (error) {
       console.error("Portal token validation error:", error);
       res.status(500).json({ message: "Failed to validate portal token" });
