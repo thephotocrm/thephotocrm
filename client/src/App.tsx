@@ -71,6 +71,9 @@ import NotFound from "@/pages/not-found";
 import PublicReviewSubmit from "@/pages/public-review-submit";
 import Testimonials from "@/pages/testimonials";
 
+// Force new bundle hash - Railway cache bypass (this code will survive minification)
+const APP_BUILD_VERSION = "2024-11-15-railway-cache-fix";
+
 const Checkout = lazy(() => import("@/pages/checkout"));
 
 function ProtectedRoutes() {

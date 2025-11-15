@@ -1,0 +1,111 @@
+
+╭─────────────────╮
+│ Railpack 0.11.0 │
+╰─────────────────╯
+ 
+↳ Detected Node
+↳ Using npm package manager
+ 
+Packages
+──────────
+node  │  22.21.1  │  railpack default (22)
+ 
+Steps
+──────────
+▸ install
+$ npm ci
+ 
+▸ build
+$ npm run build
+ 
+Deploy
+──────────
+$ npm run start
+ 
+ 
+Successfully prepared Railpack plan for build
+ 
+ 
+context: fv0q-qXvg
+
+load build definition from railpack-plan.json
+0ms
+
+install mise packages: node
+2s
+mise node@22.21.1    install
+mise node@22.21.1    download node-v22.21.1-linux-x64.tar.gz
+mise node@22.21.1    extract node-v22.21.1-linux-x64.tar.gz
+mise node@22.21.1    node -v
+mise node@22.21.1    v22.21.1
+mise node@22.21.1    npm -v
+mise node@22.21.1    10.9.4
+mise node@22.21.1  ✓ installed
+
+mkdir -p /app/node_modules/.cache
+182ms
+
+copy package.json, package-lock.json
+163ms
+
+npm ci
+15s
+npm warn config production Use `--omit=dev` instead.
+npm warn deprecated inflight@1.0.6: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is much more comprehensive and powerful.
+npm warn deprecated lodash.pick@4.4.0: This package is deprecated. Use destructuring assignment syntax instead.
+npm warn deprecated @esbuild-kit/esm-loader@2.6.5: Merged into tsx: https://tsx.is
+npm warn deprecated rimraf@3.0.2: Rimraf versions prior to v4 are no longer supported
+npm warn deprecated @esbuild-kit/core-utils@3.3.2: Merged into tsx: https://tsx.is
+npm warn deprecated glob@7.2.3: Glob versions prior to v9 are no longer supported
+npm warn deprecated q@1.5.1: You or someone you depend on is using Q, the JavaScript Promise library that gave JavaScript developers strong feelings about promises. They can almost certainly migrate to the native JavaScript promise now. Thank you literally everyone for joining me in this bet against the odds. Be excellent to each other.
+npm warn deprecated
+npm warn deprecated (For a CapTP with native promises, see @endo/eventual-send and @endo/captp)
+npm warn deprecated node-domexception@1.0.0: Use your platform's native DOMException instead
+npm warn deprecated puppeteer@10.4.0: < 24.15.0 is no longer supported
+
+added 731 packages, and audited 732 packages in 14s
+
+23 vulnerabilities (3 low, 7 moderate, 13 high)
+
+To address issues that do not require attention, run:
+  npm audit fix
+
+To address all issues (including breaking changes), run:
+  npm audit fix --force
+
+Run `npm audit` for details.
+
+copy / /app
+445ms
+
+npm run build
+9s
+npm warn config production Use `--omit=dev` instead.
+
+> rest-express@1.0.0 build
+> vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist
+
+vite v5.4.19 building for production...
+transforming...
+Browserslist: browsers data (caniuse-lite) is 13 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+✓ 3317 modules transformed.
+rendering chunks...
+computing gzip size...
+../dist/public/index.html                                                                    2.39 kB │ gzip:   0.94 kB
+../dist/public/assets/professional_photogr_0f0fd30c-C5aAS_pr.jpg                           198.51 kB
+../dist/public/assets/professional_wedding_67201dd8-DJzf3n6T.jpg                           222.33 kB
+../dist/public/assets/vintage_camera_photo_e2b0b796-DPIV_6o0.jpg                           236.90 kB
+../dist/public/assets/happy_photographer_w_b5ffd29e-Ctj1DMOZ.jpg                           287.76 kB
+../dist/public/assets/D80061BD-D8EF-4249-9B60-3EF75FA04DD6_1759528934938-BGudeye-.png    1,930.75 kB
+../dist/public/assets/3D55A8ED-E647-49A1-943C-420BD0096F6E_1759528182642-Ct8yMFoY.png    1,987.20 kB
+../dist/public/assets/BF61BA78-E366-4F99-A4B7-09A688E2C3E7_1759531405412-ZXNCgl1R.png    2,013.99 kB
+../dist/public/assets/27748FBD-CFCF-4C6D-8905-E877732DDE1B_1759529204307-DMQwXWWj.png    2,090.89 kB
+../dist/public/assets/ChatGPT Image Oct 3_ 2025_ 03_42_16 PM_1759524152837-B6dqtvp3.png  2,119.37 kB
+../dist/public/assets/E7BF17EC-8882-4E01-BAD7-DE7BEB23322B_1759526130481-BXeGZqcI.png    2,363.75 kB
+../dist/public/assets/ChatGPT Image Oct 3_ 2025_ 03_49_31 PM_1759524583669-DIziCPxr.png  2,473.71 kB
+../dist/public/assets/ChatGPT Image Oct 3_ 2025_ 03_45_04 PM_1759524321494-BkkxcbgM.png  2,571.11 kB
+../dist/public/assets/index-Bt_GAwTp.css                                                   158.68 kB │ gzip:  23.61 kB
+../dist/public/assets/checkout-DxiiXQIz.js                                                   2.36 kB │ gzip:   1.12 kB
+../dist/public/assets/index-BX8c74U8.js                                                  2,029.63 kB │ gzip: 517.95 kB
