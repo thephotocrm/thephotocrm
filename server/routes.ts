@@ -1848,7 +1848,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log("🍪 Auth cookie set for client:", user.email);
 
-      // Prepare response based on token type
+      // Get photographer for redirect URL
+      const photographer = await storage.getPhotographer(contact.photographerId);
+      if (!photographer) {
+        return res.status(404).json({ message: "Photographer not found" });
+      }
+
+      // Build redirect URL to the photographer's client portal
+      const protocol = getOAuthProtocol(req);
+      const portalDomain = `${photographer.portalSlug}.tpcportal.co`;
+      
+      // Prepare redirect path based on token type
+      let redirectPath = '/';
+      
       if (portalToken.tokenType === 'PROJECT' && portalToken.projectId) {
         // Project-specific token - redirect to that project
         const project = await storage.getProject(portalToken.projectId);
@@ -1879,43 +1891,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
         
         console.log("✅ PROJECT token validated - redirecting to project:", portalToken.projectId);
-        return res.json({
-          user: {
-            id: user.id,
-            email: user.email,
-            role: user.role,
-            photographerId: user.photographerId
-          },
-          loginMode: 'PROJECT',
-          projectId: portalToken.projectId,
-          message: "Successfully logged in"
-        });
+        redirectPath = `/project/${portalToken.projectId}`;
       } else {
-        // Generic CLIENT token - return list of projects for smart routing
-        const allProjects = await storage.getProjectsByClient(contact.id);
-        
-        // SECURITY: Filter projects to only those from the contact's photographer
-        const filteredProjects = allProjects.filter(p => p.photographerId === contact.photographerId);
-        
-        console.log("✅ CLIENT token validated - client has", filteredProjects.length, "projects for this photographer");
-        return res.json({
-          user: {
-            id: user.id,
-            email: user.email,
-            role: user.role,
-            photographerId: user.photographerId
-          },
-          loginMode: 'CLIENT',
-          projects: filteredProjects.map(p => ({
-            id: p.id,
-            title: p.title,
-            projectType: p.projectType,
-            status: p.status,
-            eventDate: p.eventDate
-          })),
-          message: "Successfully logged in"
-        });
+        // Generic CLIENT token - redirect to portal home
+        console.log("✅ CLIENT token validated - redirecting to portal home");
       }
+      
+      const redirectUrl = `${protocol}://${portalDomain}${redirectPath}`;
+      console.log("✅ Magic link validation complete, redirecting to:", redirectUrl);
+      return res.redirect(redirectUrl);
     } catch (error) {
       console.error("Client portal token validation error:", error);
       res.status(500).json({ message: "Failed to validate client portal token" });
