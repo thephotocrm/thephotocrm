@@ -1,0 +1,55 @@
+Has Authorization header: false
+✅ Found photographer: Austin Street Photo (ID: c915adf1-020f-4ac0-951b-f726738447f2)
+5:05:29 AM [express] GET /api/domain 304 in 210ms :: {"type":"client_portal","photographerSlug":"abb…
+Origin: undefined
+Host: thephotocrm.com
+Token from cookie: photographer
+Token exists: true
+Auth source: photographer
+Token payload: true
+Authentication successful, continuing to route
+5:05:22 AM [express] GET /api/inbox/unread-count 304 in 851ms :: {"unreadCount":0}
+📥 INCOMING REQUEST: GET /api/domain
+   Headers: undefined
+🌐 Domain detection: abbiestreet.tpcportal.co
+📥 INCOMING REQUEST: POST /api/client-portal/request-magic-link
+   Headers: "application/json"
+🌐 Domain detection: abbiestreet.tpcportal.co
+  → Client portal subdomain detected: abbiestreet
+🔍 Looking up photographer by slug: abbiestreet for API route: /api/client-portal/request-magic-link
+✅ Found photographer: Austin Street Photo (ID: c915adf1-020f-4ac0-951b-f726738447f2)
+🔗 Magic link request received
+  → Domain: abbiestreet.tpcportal.co
+  → Email: austinpacholek2014@gmail.com
+  → Photographer ID: c915adf1-020f-4ac0-951b-f726738447f2
+}
+  → Error stack: error: column "token_type" of relation "portal_tokens" does not exist
+  length: 136,
+  column: undefined,
+  → Found contact: 914e45bd-1909-410d-b767-e419938e16e0
+  dataType: undefined,
+❌ Magic link request error: error: column "token_type" of relation "portal_tokens" does not exist
+  position: '45',
+  severity: 'ERROR',
+  constraint: undefined,
+  code: '42703',
+  file: 'parse_target.c',
+    at file:///app/node_modules/@neondatabase/serverless/index.mjs:1345:74
+  line: '1066',
+  internalPosition: undefined,
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+  routine: 'checkInsertTargets'
+  detail: undefined,
+  internalQuery: undefined,
+    at async NeonPreparedQuery.execute (file:///app/node_modules/drizzle-orm/neon-serverless/session.js:76:20)
+  where: undefined,
+    at async DatabaseStorage.createPortalToken (file:///app/dist/index.js:2946:25)
+  hint: undefined,
+    at async file:///app/dist/index.js:13333:27 {
+  schema: undefined,
+  table: undefined,
+    at file:///app/node_modules/@neondatabase/serverless/index.mjs:1345:74
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async NeonPreparedQuery.execute (file:///app/node_modules/drizzle-orm/neon-serverless/session.js:76:20)
+    at async DatabaseStorage.createPortalToken (file:///app/dist/index.js:2946:25)
+    at async file:///app/dist/index.js:13333:27
