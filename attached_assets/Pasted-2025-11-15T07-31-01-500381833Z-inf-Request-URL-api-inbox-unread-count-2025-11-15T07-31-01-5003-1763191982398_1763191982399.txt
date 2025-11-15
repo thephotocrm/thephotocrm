@@ -1,0 +1,1001 @@
+2025-11-15T07:31:01.500381833Z [inf]  Request URL: /api/inbox/unread-count
+2025-11-15T07:31:01.500389339Z [inf]  Request method: GET
+2025-11-15T07:31:01.503413277Z [inf]  Has Authorization header: false
+2025-11-15T07:31:01.503422510Z [inf]  Origin: undefined
+2025-11-15T07:31:01.503428512Z [inf]  Host: thephotocrm.com
+2025-11-15T07:31:01.503435618Z [inf]  Token from cookie: photographer
+2025-11-15T07:31:01.503441144Z [inf]  Token exists: true
+2025-11-15T07:31:01.503446533Z [inf]  Auth source: photographer
+2025-11-15T07:31:01.503452037Z [inf]  Token payload: true
+2025-11-15T07:31:01.503457327Z [inf]  Authentication successful, continuing to route
+2025-11-15T07:31:01.503479205Z [inf]  7:30:57 AM [express] GET /api/inbox/unread-count 304 in 860ms :: {"unreadCount":0}
+2025-11-15T07:31:01.503486073Z [inf]  Processing automations for photographer: e9097539-3fdb-44c7-b4b8-a45998d0d579
+2025-11-15T07:31:01.503493335Z [inf]  Found 0 enabled automations
+2025-11-15T07:31:01.503499040Z [inf]  Processing automations for photographer: be234128-3cad-438d-a2d9-9ae04e04435f
+2025-11-15T07:31:01.503505523Z [inf]  Found 0 enabled automations
+2025-11-15T07:31:01.503511224Z [inf]  Processing automations for photographer: 4c0412f6-7122-4716-b89a-f3de9c3a08e3
+2025-11-15T07:31:01.503516753Z [inf]  Found 0 enabled automations
+2025-11-15T07:31:01.503522079Z [inf]  Processing automations for photographer: 1a5f0df8-16ea-4cca-9b61-b4f91730827a
+2025-11-15T07:31:01.503527356Z [inf]  Processing automations for photographer: e9097539-3fdb-44c7-b4b8-a45998d0d579
+2025-11-15T07:31:01.503533488Z [inf]  Found 0 enabled automations
+2025-11-15T07:31:01.503538904Z [inf]  Processing automations for photographer: c050cb64-5721-4b18-bd9c-718ab981bf42
+2025-11-15T07:31:01.503544562Z [inf]  Found 0 enabled automations
+2025-11-15T07:31:01.503550472Z [inf]  Processing automations for photographer: be234128-3cad-438d-a2d9-9ae04e04435f
+2025-11-15T07:31:01.503555703Z [inf]  Found 0 enabled automations
+2025-11-15T07:31:01.503561161Z [inf]  Processing automations for photographer: 8ec7a803-c4c9-432c-9cb7-a85ea1fdb908
+2025-11-15T07:31:01.504789448Z [inf]  Processing automations for photographer: cdbfc61b-ec9a-4e6a-bb7f-dcaec60300d5
+2025-11-15T07:31:01.504795658Z [inf]  No enabled business triggers found for automation Valid Stage Change Test, skipping
+2025-11-15T07:31:01.504802515Z [inf]  Processing automations for photographer: test-photographer-7aa63fb0
+2025-11-15T07:31:01.504807022Z [inf]  Found 0 enabled automations
+2025-11-15T07:31:01.504807829Z [inf]  Found 2 enabled automations
+2025-11-15T07:31:01.504815985Z [inf]  Processing automation: Valid Communication Test (type: COMMUNICATION)
+2025-11-15T07:31:01.504819626Z [inf]  Processing automations for photographer: 4c0412f6-7122-4716-b89a-f3de9c3a08e3
+2025-11-15T07:31:01.504823551Z [inf]  Found 0 enabled automations
+2025-11-15T07:31:01.504830312Z [inf]  Found 2 enabled automations
+2025-11-15T07:31:01.504830915Z [inf]  Processing automations for photographer: faabd51c-4432-4cff-beb6-7b0e7dfbba72
+2025-11-15T07:31:01.504838001Z [inf]  Found 0 enabled automations
+2025-11-15T07:31:01.504838933Z [inf]  Processing automation: Valid Communication Test (type: COMMUNICATION)
+2025-11-15T07:31:01.504845676Z [inf]  Found 0 enabled automations
+2025-11-15T07:31:01.504852242Z [inf]  Processing automations for photographer: 1a5f0df8-16ea-4cca-9b61-b4f91730827a
+2025-11-15T07:31:01.504858748Z [inf]  Found 0 enabled automations
+2025-11-15T07:31:01.504864786Z [inf]  Processing automations for photographer: c050cb64-5721-4b18-bd9c-718ab981bf42
+2025-11-15T07:31:01.504870562Z [inf]  Communication automation "Valid Communication Test" (e20d2fb7-0ad4-4540-b8fe-dc911461f582) - found 0 projects in stage
+2025-11-15T07:31:01.504904538Z [inf]  Processing automation: Valid Stage Change Test (type: STAGE_CHANGE)
+2025-11-15T07:31:01.504912863Z [inf]  Processing stage change automation: Valid Stage Change Test
+2025-11-15T07:31:01.504918394Z [inf]  Found 0 enabled automations
+2025-11-15T07:31:01.504923727Z [inf]  Processing automations for photographer: 8ec7a803-c4c9-432c-9cb7-a85ea1fdb908
+2025-11-15T07:31:01.505716303Z [inf]  Communication automation "Valid Communication Test" (e20d2fb7-0ad4-4540-b8fe-dc911461f582) - found 0 projects in stage
+2025-11-15T07:31:01.505724798Z [inf]  Processing automation: Valid Stage Change Test (type: STAGE_CHANGE)
+2025-11-15T07:31:01.505731275Z [inf]  Processing stage change automation: Valid Stage Change Test
+2025-11-15T07:31:01.515224470Z [inf]  Found 0 enabled automations
+2025-11-15T07:31:01.515235555Z [inf]  Processing automations for photographer: c89dcfcd-2c97-4a7b-a062-92fa3532bcf4
+2025-11-15T07:31:02.222485736Z [inf]  No enabled business triggers found for automation Valid Stage Change Test, skipping
+2025-11-15T07:31:02.222497904Z [inf]  Processing automations for photographer: test-photographer-7aa63fb0
+2025-11-15T07:31:02.222506109Z [inf]  Found 0 enabled automations
+2025-11-15T07:31:02.222513194Z [inf]  Processing automations for photographer: 92d08d42-73d6-4430-b3a2-b877df460c11
+2025-11-15T07:31:02.222519231Z [inf]  Found 0 enabled automations
+2025-11-15T07:31:02.222525419Z [inf]  Processing automations for photographer: faabd51c-4432-4cff-beb6-7b0e7dfbba72
+2025-11-15T07:31:02.222531365Z [inf]  Found 0 enabled automations
+2025-11-15T07:31:02.222539861Z [inf]  Processing automations for photographer: 5c5d6336-b47a-40c8-b2ef-7edecbef3dd4
+2025-11-15T07:31:02.222546995Z [inf]  Found 0 enabled automations
+2025-11-15T07:31:02.222554104Z [inf]  Processing automations for photographer: cdbfc61b-ec9a-4e6a-bb7f-dcaec60300d5
+2025-11-15T07:31:02.222561376Z [inf]  Found 0 enabled automations
+2025-11-15T07:31:02.222567859Z [inf]  Processing automations for photographer: c60016fb-0e6c-4beb-99dc-b11a604c1b00
+2025-11-15T07:31:02.222573969Z [inf]  Found 0 enabled automations
+2025-11-15T07:31:02.222580653Z [inf]  Processing automations for photographer: c89dcfcd-2c97-4a7b-a062-92fa3532bcf4
+2025-11-15T07:31:02.222587764Z [inf]  Found 0 enabled automations
+2025-11-15T07:31:02.222593996Z [inf]  Processing automations for photographer: 623934a5-c301-4cd6-9958-012c599d1e52
+2025-11-15T07:31:02.222600816Z [inf]  Found 0 enabled automations
+2025-11-15T07:31:02.222607401Z [inf]  Processing automations for photographer: 519920d3-7eea-4fa6-8b29-636955072a61
+2025-11-15T07:31:02.222616798Z [inf]  Found 0 enabled automations
+2025-11-15T07:31:02.222623087Z [inf]  Processing automations for photographer: 92d08d42-73d6-4430-b3a2-b877df460c11
+2025-11-15T07:31:02.222629274Z [inf]  Found 0 enabled automations
+2025-11-15T07:31:02.223220154Z [inf]  Processing automations for photographer: b2b63133-c2ce-4701-94b0-e5faab170a41
+2025-11-15T07:31:02.223224702Z [inf]  Found 0 enabled automations
+2025-11-15T07:31:02.223229185Z [inf]  Processing automations for photographer: 5c5d6336-b47a-40c8-b2ef-7edecbef3dd4
+2025-11-15T07:31:02.255258233Z [inf]  Found 0 enabled automations
+2025-11-15T07:31:02.255266638Z [inf]  Processing automations for photographer: 624cc39e-287a-4c90-b1dd-ad76ee395d16
+2025-11-15T07:31:02.270367785Z [inf]  Found 0 enabled automations
+2025-11-15T07:31:02.270375296Z [inf]  Processing automations for photographer: c60016fb-0e6c-4beb-99dc-b11a604c1b00
+2025-11-15T07:31:02.358917530Z [inf]  Found 0 enabled automations
+2025-11-15T07:31:02.358937103Z [inf]  Processing automations for photographer: 8136992a-f433-4435-93ac-c6ebc7f300ff
+2025-11-15T07:31:02.384922746Z [inf]  Found 0 enabled automations
+2025-11-15T07:31:02.384932660Z [inf]  Processing automations for photographer: 623934a5-c301-4cd6-9958-012c599d1e52
+2025-11-15T07:31:02.472340414Z [inf]  Found 0 enabled automations
+2025-11-15T07:31:02.472356373Z [inf]  Processing automations for photographer: a262b088-f825-4fdc-a125-89506285758d
+2025-11-15T07:31:02.502371912Z [inf]  Found 0 enabled automations
+2025-11-15T07:31:02.502379547Z [inf]  Processing automations for photographer: 519920d3-7eea-4fa6-8b29-636955072a61
+2025-11-15T07:31:02.573951168Z [inf]  Found 0 enabled automations
+2025-11-15T07:31:02.573958508Z [inf]  Processing automations for photographer: 1aedb626-f859-4805-87fb-01d2bf3c51cc
+2025-11-15T07:31:03.132142329Z [inf]  Found 0 enabled automations
+2025-11-15T07:31:03.132154137Z [inf]  Processing automations for photographer: 509e2fe3-270f-4414-b75f-5518a6095749
+2025-11-15T07:31:03.132154800Z [inf]  Processing automations for photographer: 8136992a-f433-4435-93ac-c6ebc7f300ff
+2025-11-15T07:31:03.132169856Z [inf]  Found 0 enabled automations
+2025-11-15T07:31:03.132170149Z [inf]  Found 0 enabled automations
+2025-11-15T07:31:03.132178032Z [inf]  Found 0 enabled automations
+2025-11-15T07:31:03.132178371Z [inf]  Processing automations for photographer: d22dedf7-28f0-428f-8d84-55bfd134c3dc
+2025-11-15T07:31:03.132180085Z [inf]  Processing automations for photographer: b1a2cd3a-01ac-42cc-af22-ba7925c0a909
+2025-11-15T07:31:03.132188587Z [inf]  Found 0 enabled automations
+2025-11-15T07:31:03.132191262Z [inf]  Found 0 enabled automations
+2025-11-15T07:31:03.132196979Z [inf]  Processing automations for photographer: 6251dceb-2a62-41c1-a4d1-7c1ad3b7c6b1
+2025-11-15T07:31:03.132199153Z [inf]  Processing automations for photographer: 1aedb626-f859-4805-87fb-01d2bf3c51cc
+2025-11-15T07:31:03.132206574Z [inf]  Found 0 enabled automations
+2025-11-15T07:31:03.132208626Z [inf]  Found 0 enabled automations
+2025-11-15T07:31:03.132209579Z [inf]  Processing automations for photographer: 624cc39e-287a-4c90-b1dd-ad76ee395d16
+2025-11-15T07:31:03.132213902Z [inf]  Processing automations for photographer: a262b088-f825-4fdc-a125-89506285758d
+2025-11-15T07:31:03.132215892Z [inf]  Processing automations for photographer: b2b63133-c2ce-4701-94b0-e5faab170a41
+2025-11-15T07:31:03.132218472Z [inf]  Found 0 enabled automations
+2025-11-15T07:31:03.132231617Z [inf]  Processing automations for photographer: e6a743f9-b405-4060-93c8-642bc98ec82d
+2025-11-15T07:31:03.132239128Z [inf]  Found 0 enabled automations
+2025-11-15T07:31:03.214073617Z [inf]  Found 0 enabled automations
+2025-11-15T07:31:03.214083639Z [inf]  Processing automations for photographer: b1a2cd3a-01ac-42cc-af22-ba7925c0a909
+2025-11-15T07:31:03.230063858Z [inf]  Found 0 enabled automations
+2025-11-15T07:31:03.230072746Z [inf]  Processing automations for photographer: 21858155-3a7e-4d45-a09c-045e41cf86d7
+2025-11-15T07:31:03.327223559Z [inf]  Found 0 enabled automations
+2025-11-15T07:31:03.327234603Z [inf]  Processing automations for photographer: e6a743f9-b405-4060-93c8-642bc98ec82d
+2025-11-15T07:31:03.336970290Z [inf]  Found 0 enabled automations
+2025-11-15T07:31:03.336980120Z [inf]  Processing automations for photographer: e1d9497c-2ac4-4fc5-8a1b-84130da4f45b
+2025-11-15T07:31:03.440056287Z [inf]  Found 0 enabled automations
+2025-11-15T07:31:03.440071569Z [inf]  Processing automations for photographer: c3d5fcd5-cc7e-4326-8f77-e2b1a7d9e04e
+2025-11-15T07:31:03.442964953Z [inf]  Found 0 enabled automations
+2025-11-15T07:31:03.442983248Z [inf]  Processing automations for photographer: 6251dceb-2a62-41c1-a4d1-7c1ad3b7c6b1
+2025-11-15T07:31:03.555815221Z [inf]  Found 0 enabled automations
+2025-11-15T07:31:03.555824793Z [inf]  Processing automations for photographer: 6f99ec47-005e-4a2f-b9bc-8b1efd89a52d
+2025-11-15T07:31:03.560859619Z [inf]  Found 0 enabled automations
+2025-11-15T07:31:03.560865802Z [inf]  Processing automations for photographer: d22dedf7-28f0-428f-8d84-55bfd134c3dc
+2025-11-15T07:31:04.177356631Z [inf]  Found 0 enabled automations
+2025-11-15T07:31:04.177369422Z [inf]  Processing automations for photographer: 6f99ec47-005e-4a2f-b9bc-8b1efd89a52d
+2025-11-15T07:31:04.177424203Z [inf]  Found 0 enabled automations
+2025-11-15T07:31:04.177430937Z [inf]  Processing automations for photographer: 14a7c70f-84ce-4f65-919e-5f6c4d94c95a
+2025-11-15T07:31:04.177438550Z [inf]  Found 0 enabled automations
+2025-11-15T07:31:04.177446840Z [inf]  Processing automations for photographer: 509e2fe3-270f-4414-b75f-5518a6095749
+2025-11-15T07:31:04.177453709Z [inf]  Found 0 enabled automations
+2025-11-15T07:31:04.177460518Z [inf]  Processing automations for photographer: fa4f24a5-8503-4f7d-9c18-a1d1b35c5d47
+2025-11-15T07:31:04.177467143Z [inf]  Found 0 enabled automations
+2025-11-15T07:31:04.177473344Z [inf]  Processing automations for photographer: 21858155-3a7e-4d45-a09c-045e41cf86d7
+2025-11-15T07:31:04.177481516Z [inf]  Found 0 enabled automations
+2025-11-15T07:31:04.177488293Z [inf]  Processing automations for photographer: af9e86a7-5eee-4f1c-a376-a0079d8e95b3
+2025-11-15T07:31:04.177495299Z [inf]  Found 0 enabled automations
+2025-11-15T07:31:04.177501996Z [inf]  Processing automations for photographer: e1d9497c-2ac4-4fc5-8a1b-84130da4f45b
+2025-11-15T07:31:04.177509016Z [inf]  Found 0 enabled automations
+2025-11-15T07:31:04.177515376Z [inf]  Processing automations for photographer: 5e1a69c7-5169-4605-9dab-04f9c17c9e0e
+2025-11-15T07:31:04.177521958Z [inf]  Found 0 enabled automations
+2025-11-15T07:31:04.177527679Z [inf]  Processing automations for photographer: c3d5fcd5-cc7e-4326-8f77-e2b1a7d9e04e
+2025-11-15T07:31:04.177534746Z [inf]  Found 0 enabled automations
+2025-11-15T07:31:04.177542088Z [inf]  Processing automations for photographer: 48980e76-cee3-45ff-8409-6e9a120cebb7
+2025-11-15T07:31:04.183311032Z [inf]  Found 0 enabled automations
+2025-11-15T07:31:04.183318057Z [inf]  Processing automations for photographer: eb654a3d-7a97-46e2-915a-a71d79c8a079
+2025-11-15T07:31:04.226041441Z [inf]  Found 0 enabled automations
+2025-11-15T07:31:04.226047665Z [inf]  Processing automations for photographer: 14a7c70f-84ce-4f65-919e-5f6c4d94c95a
+2025-11-15T07:31:04.289529500Z [inf]  Found 0 enabled automations
+2025-11-15T07:31:04.289540067Z [inf]  Processing automations for photographer: test-photographer-email-flow
+2025-11-15T07:31:04.334092294Z [inf]  Found 0 enabled automations
+2025-11-15T07:31:04.334104081Z [inf]  Processing automations for photographer: fa4f24a5-8503-4f7d-9c18-a1d1b35c5d47
+2025-11-15T07:31:04.398339216Z [inf]  Found 0 enabled automations
+2025-11-15T07:31:04.398343056Z [inf]  Processing automations for photographer: photog-test-id
+2025-11-15T07:31:04.448742104Z [inf]  Found 0 enabled automations
+2025-11-15T07:31:04.448753594Z [inf]  Processing automations for photographer: af9e86a7-5eee-4f1c-a376-a0079d8e95b3
+2025-11-15T07:31:04.504492689Z [inf]  Found 0 enabled automations
+2025-11-15T07:31:04.504499698Z [inf]  Processing automations for photographer: afad1b6b-c885-41e8-a3de-d46284c46a43
+2025-11-15T07:31:04.554355642Z [inf]  Found 0 enabled automations
+2025-11-15T07:31:04.554369741Z [inf]  Processing automations for photographer: 5e1a69c7-5169-4605-9dab-04f9c17c9e0e
+2025-11-15T07:31:05.028950461Z [inf]  Processing automation: Test Email Automation (type: COMMUNICATION)
+2025-11-15T07:31:05.029014571Z [inf]  Found 0 enabled automations
+2025-11-15T07:31:05.029021284Z [inf]  Processing automations for photographer: ab06c25c-95ad-479e-af6c-e44104f1a1a7
+2025-11-15T07:31:05.029028145Z [inf]  Found 0 enabled automations
+2025-11-15T07:31:05.029034405Z [inf]  Processing automations for photographer: 48980e76-cee3-45ff-8409-6e9a120cebb7
+2025-11-15T07:31:05.029043274Z [inf]  Found 0 enabled automations
+2025-11-15T07:31:05.029049973Z [inf]  Processing automations for photographer: fb02eb77-2692-4686-b00a-83af54a3dcf9
+2025-11-15T07:31:05.029057024Z [inf]  Found 0 enabled automations
+2025-11-15T07:31:05.029063314Z [inf]  Processing automations for photographer: eb654a3d-7a97-46e2-915a-a71d79c8a079
+2025-11-15T07:31:05.029068832Z [inf]  Found 0 enabled automations
+2025-11-15T07:31:05.029077009Z [inf]  Processing automations for photographer: b03cc772-a4a1-4132-8cb0-4098cff9a3b7
+2025-11-15T07:31:05.029086762Z [inf]  Found 0 enabled automations
+2025-11-15T07:31:05.029093912Z [inf]  Processing automations for photographer: test-photographer-email-flow
+2025-11-15T07:31:05.029101021Z [inf]  Found 2 enabled automations
+2025-11-15T07:31:05.043517130Z [inf]  Found 0 enabled automations
+2025-11-15T07:31:05.043522345Z [inf]  Processing automations for photographer: photog-test-id
+2025-11-15T07:31:05.136215765Z [inf]  Communication automation "Test Email Automation" (a3f515c9-9096-424b-9934-4a21b8388f85) - found 0 projects in stage
+2025-11-15T07:31:05.136223491Z [inf]  Processing automation: Wedding Drip Campaign Automation (type: NURTURE)
+2025-11-15T07:31:05.136229000Z [inf]  Processing nurture automation: Wedding Drip Campaign Automation
+2025-11-15T07:31:05.155132541Z [inf]  Found 0 enabled automations
+2025-11-15T07:31:05.155138363Z [inf]  Processing automations for photographer: afad1b6b-c885-41e8-a3de-d46284c46a43
+2025-11-15T07:31:05.242622646Z [inf]  Found 0 active drip campaigns for project type WEDDING
+2025-11-15T07:31:05.242634405Z [inf]  Processing automations for photographer: c2221d44-e71a-49af-96b2-51fa1c35778c
+2025-11-15T07:31:05.254851000Z [inf]  Found 0 enabled automations
+2025-11-15T07:31:05.254859148Z [inf]  Processing automations for photographer: ab06c25c-95ad-479e-af6c-e44104f1a1a7
+2025-11-15T07:31:05.350493799Z [inf]  Found 0 enabled automations
+2025-11-15T07:31:05.350500289Z [inf]  Processing automations for photographer: test-photog-legal-123
+2025-11-15T07:31:05.357784093Z [inf]  Found 0 enabled automations
+2025-11-15T07:31:05.357790693Z [inf]  Processing automations for photographer: fb02eb77-2692-4686-b00a-83af54a3dcf9
+2025-11-15T07:31:05.454243941Z [inf]  Found 0 enabled automations
+2025-11-15T07:31:05.454249919Z [inf]  Processing automations for photographer: test-photog-legal-456
+2025-11-15T07:31:05.456998986Z [inf]  Found 0 enabled automations
+2025-11-15T07:31:05.457006843Z [inf]  Processing automations for photographer: b03cc772-a4a1-4132-8cb0-4098cff9a3b7
+2025-11-15T07:31:05.557284708Z [inf]  Found 0 enabled automations
+2025-11-15T07:31:05.557294124Z [inf]  Processing automations for photographer: test-forms-photographer-123
+2025-11-15T07:31:05.565130130Z [inf]  Found 2 enabled automations
+2025-11-15T07:31:05.565141916Z [inf]  Processing automation: Test Email Automation (type: COMMUNICATION)
+2025-11-15T07:31:06.153098996Z [inf]  Found 0 enabled automations
+2025-11-15T07:31:06.153103388Z [inf]  Processing automations for photographer: f779f013-e39f-4f60-bed2-5f7ff60223e1
+2025-11-15T07:31:06.153107571Z [inf]  Found 0 enabled automations
+2025-11-15T07:31:06.153111852Z [inf]  Processing automations for photographer: 3208b269-a837-44f6-a509-50436d2aecca
+2025-11-15T07:31:06.153115840Z [inf]  Communication automation "Test Email Automation" (a3f515c9-9096-424b-9934-4a21b8388f85) - found 0 projects in stage
+2025-11-15T07:31:06.153119282Z [inf]  Processing automation: Wedding Drip Campaign Automation (type: NURTURE)
+2025-11-15T07:31:06.153123696Z [inf]  Processing nurture automation: Wedding Drip Campaign Automation
+2025-11-15T07:31:06.153127772Z [inf]  Found 4 enabled automations
+2025-11-15T07:31:06.153131642Z [inf]  Processing automation: dwdwdw (type: COMMUNICATION)
+2025-11-15T07:31:06.153136561Z [inf]  Found 0 active drip campaigns for project type WEDDING
+2025-11-15T07:31:06.153141956Z [inf]  Processing automations for photographer: c2221d44-e71a-49af-96b2-51fa1c35778c
+2025-11-15T07:31:06.153146676Z [inf]  Found 0 enabled automations
+2025-11-15T07:31:06.153152241Z [inf]  Processing automations for photographer: test-photog-legal-123
+2025-11-15T07:31:06.153158912Z [inf]  Communication automation "dwdwdw" (b3740752-9e06-405f-8e19-b66b9d157bd2) - found 1 projects in stage
+2025-11-15T07:31:06.153165822Z [inf]  Processing step for contact hugh janus (austinpacholek@icloud.om)
+2025-11-15T07:31:06.153171668Z [inf]  ⏸️ Contact entered stage before automation was created (entered: 2025-10-02T05:31:26.957Z, effective: 2025-10-02T06:16:21.470Z), skipping
+2025-11-15T07:31:06.153178809Z [inf]  Processing questionnaire assignment for hugh janus (automation: dwdwdw)
+2025-11-15T07:31:06.159359822Z [inf]  Found 0 enabled automations
+2025-11-15T07:31:06.159367707Z [inf]  Processing automations for photographer: test-photog-legal-456
+2025-11-15T07:31:06.191952272Z [inf]  🚫 Questionnaire already assigned to hugh janus for this template
+2025-11-15T07:31:06.191959255Z [inf]  Processing automation: dwdwdw (type: COMMUNICATION)
+2025-11-15T07:31:06.285850281Z [inf]  Found 0 enabled automations
+2025-11-15T07:31:06.285858082Z [inf]  Processing automations for photographer: test-forms-photographer-123
+2025-11-15T07:31:06.404605450Z [inf]  Communication automation "dwdwdw" (cdc800f1-532b-4c85-96b4-c992e9fc8f16) - found 1 projects in stage
+2025-11-15T07:31:06.404612634Z [inf]  Processing step for contact hugh janus (austinpacholek@icloud.om)
+2025-11-15T07:31:06.404617383Z [inf]  ⏸️ Contact entered stage before automation was created (entered: 2025-10-02T05:31:26.957Z, effective: 2025-10-02T06:16:21.470Z), skipping
+2025-11-15T07:31:06.404622282Z [inf]  Processing questionnaire assignment for hugh janus (automation: dwdwdw)
+2025-11-15T07:31:06.406931207Z [inf]  Found 0 enabled automations
+2025-11-15T07:31:06.406942502Z [inf]  Processing automations for photographer: f779f013-e39f-4f60-bed2-5f7ff60223e1
+2025-11-15T07:31:06.512083669Z [inf]  🚫 Questionnaire already assigned to hugh janus for this template
+2025-11-15T07:31:06.512089844Z [inf]  Processing automation: big peen (type: STAGE_CHANGE)
+2025-11-15T07:31:06.512095447Z [inf]  Processing stage change automation: big peen
+2025-11-15T07:31:06.527727160Z [inf]  Found 0 enabled automations
+2025-11-15T07:31:06.527733331Z [inf]  Processing automations for photographer: 3208b269-a837-44f6-a509-50436d2aecca
+2025-11-15T07:31:07.122033972Z [inf]  Found 1 enabled business triggers for automation: APPOINTMENT_BOOKED
+2025-11-15T07:31:07.122039807Z [inf]  Found 4 enabled automations
+2025-11-15T07:31:07.122046860Z [inf]  Processing automation: dwdwdw (type: COMMUNICATION)
+2025-11-15T07:31:07.122053379Z [inf]  Found 1 active projects to check for business triggers
+2025-11-15T07:31:07.122059217Z [inf]  Checking trigger condition: APPOINTMENT_BOOKED for project 57b90dbb-6f2e-41b8-ae32-a9611c168c16
+2025-11-15T07:31:07.122065114Z [inf]  Processing automation: test scgedule (type: COMMUNICATION)
+2025-11-15T07:31:07.122070828Z [inf]  Communication automation "dwdwdw" (b3740752-9e06-405f-8e19-b66b9d157bd2) - found 1 projects in stage
+2025-11-15T07:31:07.122076932Z [inf]  Processing step for contact hugh janus (austinpacholek@icloud.om)
+2025-11-15T07:31:07.122082927Z [inf]  ⏸️ Contact entered stage before automation was created (entered: 2025-10-02T05:31:26.957Z, effective: 2025-10-02T06:16:21.470Z), skipping
+2025-11-15T07:31:07.122088669Z [inf]  Processing questionnaire assignment for hugh janus (automation: dwdwdw)
+2025-11-15T07:31:07.122098459Z [inf]  🚫 Questionnaire already assigned to hugh janus for this template
+2025-11-15T07:31:07.122105353Z [inf]  Processing automation: dwdwdw (type: COMMUNICATION)
+2025-11-15T07:31:07.122111279Z [inf]  Communication automation "test scgedule" (08b69fb3-d3ef-451f-9bc9-a30c210d5869) - found 1 projects in stage
+2025-11-15T07:31:07.122117540Z [inf]  Processing step for contact hugh janus (austinpacholek@icloud.om)
+2025-11-15T07:31:07.122124434Z [inf]  ⏸️ Contact entered stage before automation was created (entered: 2025-10-02T05:31:26.957Z, effective: 2025-10-02T06:16:21.470Z), skipping
+2025-11-15T07:31:07.122129839Z [inf]  Processing automations for photographer: c915adf1-020f-4ac0-951b-f726738447f2
+2025-11-15T07:31:07.144699262Z [inf]  Communication automation "dwdwdw" (cdc800f1-532b-4c85-96b4-c992e9fc8f16) - found 1 projects in stage
+2025-11-15T07:31:07.144708036Z [inf]  Processing step for contact hugh janus (austinpacholek@icloud.om)
+2025-11-15T07:31:07.144715823Z [inf]  ⏸️ Contact entered stage before automation was created (entered: 2025-10-02T05:31:26.957Z, effective: 2025-10-02T06:16:21.470Z), skipping
+2025-11-15T07:31:07.144723005Z [inf]  Processing questionnaire assignment for hugh janus (automation: dwdwdw)
+2025-11-15T07:31:07.147386967Z [inf]  Found 6 enabled automations
+2025-11-15T07:31:07.147394382Z [inf]  Processing automation: wddwdwd (type: COMMUNICATION)
+2025-11-15T07:31:07.244655147Z [inf]  🚫 Questionnaire already assigned to hugh janus for this template
+2025-11-15T07:31:07.244662243Z [inf]  Processing automation: big peen (type: STAGE_CHANGE)
+2025-11-15T07:31:07.244667812Z [inf]  Processing stage change automation: big peen
+2025-11-15T07:31:07.349551481Z [inf]  Found 1 enabled business triggers for automation: APPOINTMENT_BOOKED
+2025-11-15T07:31:07.357151412Z [inf]  Communication automation "wddwdwd" (6a825dbd-a17b-4267-ae93-9cb39ed44b01) - found 15 projects in stage
+2025-11-15T07:31:07.357163465Z [inf]  Processing automation: wddwdwd (type: COMMUNICATION)
+2025-11-15T07:31:07.454139287Z [inf]  Found 1 active projects to check for business triggers
+2025-11-15T07:31:07.454146100Z [inf]  Checking trigger condition: APPOINTMENT_BOOKED for project 57b90dbb-6f2e-41b8-ae32-a9611c168c16
+2025-11-15T07:31:07.561145657Z [inf]  Processing automation: test scgedule (type: COMMUNICATION)
+2025-11-15T07:31:07.572847687Z [inf]  Communication automation "wddwdwd" (f7cdd380-3e0b-4aa9-b5ec-eb2b5fa1e70b) - found 15 projects in stage
+2025-11-15T07:31:07.572864959Z [inf]  Processing automation:  (type: COMMUNICATION)
+2025-11-15T07:31:08.061218093Z [inf]  Communication automation "" (076b3cb7-6f7c-49d6-8491-b7e7716cd62d) - found 15 projects in stage
+2025-11-15T07:31:08.061223528Z [inf]  Processing questionnaire assignment for SMS LogTest (automation: )
+2025-11-15T07:31:08.061229071Z [inf]  Communication automation "test scgedule" (08b69fb3-d3ef-451f-9bc9-a30c210d5869) - found 1 projects in stage
+2025-11-15T07:31:08.061234728Z [inf]  Processing step for contact hugh janus (austinpacholek@icloud.om)
+2025-11-15T07:31:08.061294756Z [inf]  ⏸️ Contact entered stage before automation was created (entered: 2025-10-02T05:31:26.957Z, effective: 2025-10-02T06:16:21.470Z), skipping
+2025-11-15T07:31:08.061300893Z [inf]  Processing automations for photographer: c915adf1-020f-4ac0-951b-f726738447f2
+2025-11-15T07:31:08.061308629Z [inf]  🚫 Questionnaire already assigned to SMS LogTest for this template
+2025-11-15T07:31:08.061315314Z [inf]  Processing questionnaire assignment for E2E TestUser (automation: )
+2025-11-15T07:31:08.061321426Z [inf]  Found 6 enabled automations
+2025-11-15T07:31:08.061327273Z [inf]  Processing automation: wddwdwd (type: COMMUNICATION)
+2025-11-15T07:31:08.061332922Z [inf]  🚫 Questionnaire already assigned to E2E TestUser for this template
+2025-11-15T07:31:08.061338875Z [inf]  Processing questionnaire assignment for Final Test (automation: )
+2025-11-15T07:31:08.103501597Z [inf]  🚫 Questionnaire already assigned to Final Test for this template
+2025-11-15T07:31:08.103510397Z [inf]  Processing questionnaire assignment for Debug SMS (automation: )
+2025-11-15T07:31:08.150287944Z [inf]  Communication automation "wddwdwd" (6a825dbd-a17b-4267-ae93-9cb39ed44b01) - found 15 projects in stage
+2025-11-15T07:31:08.150295356Z [inf]  Processing automation: wddwdwd (type: COMMUNICATION)
+2025-11-15T07:31:08.206286406Z [inf]  🚫 Questionnaire already assigned to Debug SMS for this template
+2025-11-15T07:31:08.206301434Z [inf]  Processing questionnaire assignment for SMS Test2 (automation: )
+2025-11-15T07:31:08.312970289Z [inf]  🚫 Questionnaire already assigned to SMS Test2 for this template
+2025-11-15T07:31:08.312981116Z [inf]  Processing questionnaire assignment for Test SMSUser (automation: )
+2025-11-15T07:31:08.394682471Z [inf]  Communication automation "wddwdwd" (f7cdd380-3e0b-4aa9-b5ec-eb2b5fa1e70b) - found 15 projects in stage
+2025-11-15T07:31:08.394689459Z [inf]  Processing automation:  (type: COMMUNICATION)
+2025-11-15T07:31:08.418713581Z [inf]  🚫 Questionnaire already assigned to Test SMSUser for this template
+2025-11-15T07:31:08.418723361Z [inf]  Processing questionnaire assignment for Austin Pacholek (automation: )
+2025-11-15T07:31:08.534390212Z [inf]  🚫 Questionnaire already assigned to Austin Pacholek for this template
+2025-11-15T07:31:08.534407629Z [inf]  Processing questionnaire assignment for Test SMS User (automation: )
+2025-11-15T07:31:09.100083035Z [inf]  🚫 Questionnaire already assigned to tim sheeny for this template
+2025-11-15T07:31:09.100093375Z [inf]  Processing questionnaire assignment for sheen peeen (automation: )
+2025-11-15T07:31:09.100100524Z [inf]  ❌ No stageEnteredAt date for project e278ed96-4ed0-416a-9f07-678b171b14a7, skipping questionnaire assignment
+2025-11-15T07:31:09.100118495Z [inf]  🚫 Questionnaire already assigned to tim Pacholek for this template
+2025-11-15T07:31:09.100138035Z [inf]  Processing questionnaire assignment for Test User (automation: )
+2025-11-15T07:31:09.100147815Z [inf]  🚫 Questionnaire already assigned to E2E TestUser for this template
+2025-11-15T07:31:09.100153880Z [inf]  Processing questionnaire assignment for Final Test (automation: )
+2025-11-15T07:31:09.100159002Z [inf]  🚫 Questionnaire already assigned to Test User for this template
+2025-11-15T07:31:09.100171961Z [inf]  Processing questionnaire assignment for tim sheeny (automation: )
+2025-11-15T07:31:09.100180205Z [inf]  🚫 Questionnaire already assigned to Final Test for this template
+2025-11-15T07:31:09.100184895Z [inf]  Processing questionnaire assignment for Debug SMS (automation: )
+2025-11-15T07:31:09.100204684Z [inf]  🚫 Questionnaire already assigned to Test SMS User for this template
+2025-11-15T07:31:09.100217004Z [inf]  Processing questionnaire assignment for tim Pacholek (automation: )
+2025-11-15T07:31:09.100224585Z [inf]  Communication automation "" (076b3cb7-6f7c-49d6-8491-b7e7716cd62d) - found 15 projects in stage
+2025-11-15T07:31:09.100231738Z [inf]  Processing questionnaire assignment for SMS LogTest (automation: )
+2025-11-15T07:31:09.100238735Z [inf]  🚫 Questionnaire already assigned to tim Pacholek for this template
+2025-11-15T07:31:09.100245264Z [inf]  Processing questionnaire assignment for tim Pacholek (automation: )
+2025-11-15T07:31:09.100251725Z [inf]  🚫 Questionnaire already assigned to SMS LogTest for this template
+2025-11-15T07:31:09.100259211Z [inf]  Processing questionnaire assignment for E2E TestUser (automation: )
+2025-11-15T07:31:09.377408191Z [inf]  Processing questionnaire assignment for tim  peen (automation: )
+2025-11-15T07:31:09.377414261Z [inf]  🚫 Questionnaire already assigned to Debug SMS for this template
+2025-11-15T07:31:09.377420281Z [inf]  Processing questionnaire assignment for SMS Test2 (automation: )
+2025-11-15T07:31:09.382988758Z [inf]  🚫 Questionnaire already assigned to tim  peen for this template
+2025-11-15T07:31:09.382994841Z [inf]  Processing questionnaire assignment for John Doe (automation: )
+2025-11-15T07:31:09.385692561Z [inf]  🚫 Questionnaire already assigned to SMS Test2 for this template
+2025-11-15T07:31:09.385702434Z [inf]  Processing questionnaire assignment for Test SMSUser (automation: )
+2025-11-15T07:31:09.387053073Z [inf]  🚫 Questionnaire already assigned to John Doe for this template
+2025-11-15T07:31:09.387059530Z [inf]  Processing automation: grgrg (type: COMMUNICATION)
+2025-11-15T07:31:09.387064602Z [inf]  🚫 Questionnaire already assigned to Test SMSUser for this template
+2025-11-15T07:31:09.387070244Z [inf]  Processing questionnaire assignment for Austin Pacholek (automation: )
+2025-11-15T07:31:09.405584442Z [inf]  🚫 Questionnaire already assigned to Austin Pacholek for this template
+2025-11-15T07:31:09.405595642Z [inf]  Processing questionnaire assignment for Test SMS User (automation: )
+2025-11-15T07:31:09.474377009Z [inf]  Communication automation "grgrg" (af2915e9-a9ac-4471-98e2-cc1a08aec8ee) - found 15 projects in stage
+2025-11-15T07:31:09.474384755Z [inf]  Processing questionnaire assignment for SMS LogTest (automation: grgrg)
+2025-11-15T07:31:09.512544599Z [inf]  🚫 Questionnaire already assigned to Test SMS User for this template
+2025-11-15T07:31:09.512561525Z [inf]  Processing questionnaire assignment for tim Pacholek (automation: )
+2025-11-15T07:31:09.581188789Z [inf]  🚫 Questionnaire already assigned to SMS LogTest for this template
+2025-11-15T07:31:09.581197458Z [inf]  Processing questionnaire assignment for E2E TestUser (automation: grgrg)
+2025-11-15T07:31:10.128400920Z [inf]  🚫 Questionnaire already assigned to tim Pacholek for this template
+2025-11-15T07:31:10.128406520Z [inf]  Processing questionnaire assignment for tim Pacholek (automation: )
+2025-11-15T07:31:10.128411975Z [inf]  🚫 Questionnaire already assigned to E2E TestUser for this template
+2025-11-15T07:31:10.128416976Z [inf]  Processing questionnaire assignment for Final Test (automation: grgrg)
+2025-11-15T07:31:10.128422038Z [inf]  🚫 Questionnaire already assigned to tim Pacholek for this template
+2025-11-15T07:31:10.128427103Z [inf]  Processing questionnaire assignment for Test User (automation: )
+2025-11-15T07:31:10.128432235Z [inf]  🚫 Questionnaire already assigned to Final Test for this template
+2025-11-15T07:31:10.128436962Z [inf]  Processing questionnaire assignment for Debug SMS (automation: grgrg)
+2025-11-15T07:31:10.128442413Z [inf]  🚫 Questionnaire already assigned to Test User for this template
+2025-11-15T07:31:10.128447753Z [inf]  Processing questionnaire assignment for tim sheeny (automation: )
+2025-11-15T07:31:10.128453095Z [inf]  🚫 Questionnaire already assigned to Debug SMS for this template
+2025-11-15T07:31:10.128458210Z [inf]  Processing questionnaire assignment for SMS Test2 (automation: grgrg)
+2025-11-15T07:31:10.128462637Z [inf]  🚫 Questionnaire already assigned to SMS Test2 for this template
+2025-11-15T07:31:10.128467869Z [inf]  Processing questionnaire assignment for Test SMSUser (automation: grgrg)
+2025-11-15T07:31:10.128474897Z [inf]  🚫 Questionnaire already assigned to tim sheeny for this template
+2025-11-15T07:31:10.128480011Z [inf]  Processing questionnaire assignment for sheen peeen (automation: )
+2025-11-15T07:31:10.128484164Z [inf]  ❌ No stageEnteredAt date for project e278ed96-4ed0-416a-9f07-678b171b14a7, skipping questionnaire assignment
+2025-11-15T07:31:10.128489332Z [inf]  Processing questionnaire assignment for tim  peen (automation: )
+2025-11-15T07:31:10.131971368Z [inf]  🚫 Questionnaire already assigned to tim  peen for this template
+2025-11-15T07:31:10.131978627Z [inf]  Processing questionnaire assignment for John Doe (automation: )
+2025-11-15T07:31:10.131985765Z [inf]  🚫 Questionnaire already assigned to Test SMSUser for this template
+2025-11-15T07:31:10.131992153Z [inf]  Processing questionnaire assignment for Austin Pacholek (automation: grgrg)
+2025-11-15T07:31:10.208245467Z [inf]  🚫 Questionnaire already assigned to John Doe for this template
+2025-11-15T07:31:10.208252233Z [inf]  Processing automation: grgrg (type: COMMUNICATION)
+2025-11-15T07:31:10.218031992Z [inf]  🚫 Questionnaire already assigned to Austin Pacholek for this template
+2025-11-15T07:31:10.218039314Z [inf]  Processing questionnaire assignment for Test SMS User (automation: grgrg)
+2025-11-15T07:31:10.321517155Z [inf]  🚫 Questionnaire already assigned to Test SMS User for this template
+2025-11-15T07:31:10.321527395Z [inf]  Processing questionnaire assignment for tim Pacholek (automation: grgrg)
+2025-11-15T07:31:10.425485697Z [inf]  Communication automation "grgrg" (af2915e9-a9ac-4471-98e2-cc1a08aec8ee) - found 15 projects in stage
+2025-11-15T07:31:10.425497153Z [inf]  Processing questionnaire assignment for SMS LogTest (automation: grgrg)
+2025-11-15T07:31:10.427117700Z [inf]  🚫 Questionnaire already assigned to tim Pacholek for this template
+2025-11-15T07:31:10.427126700Z [inf]  Processing questionnaire assignment for tim Pacholek (automation: grgrg)
+2025-11-15T07:31:10.533272284Z [inf]  Processing questionnaire assignment for Test User (automation: grgrg)
+2025-11-15T07:31:10.533284991Z [inf]  🚫 Questionnaire already assigned to tim Pacholek for this template
+2025-11-15T07:31:10.541889697Z [inf]  🚫 Questionnaire already assigned to SMS LogTest for this template
+2025-11-15T07:31:10.541917555Z [inf]  Processing questionnaire assignment for E2E TestUser (automation: grgrg)
+2025-11-15T07:31:11.139566920Z [inf]  🚫 Questionnaire already assigned to Test User for this template
+2025-11-15T07:31:11.139574846Z [inf]  Processing questionnaire assignment for tim sheeny (automation: grgrg)
+2025-11-15T07:31:11.139584860Z [inf]  🚫 Questionnaire already assigned to E2E TestUser for this template
+2025-11-15T07:31:11.139604673Z [inf]  Processing questionnaire assignment for Final Test (automation: grgrg)
+2025-11-15T07:31:11.139617836Z [inf]  🚫 Questionnaire already assigned to tim sheeny for this template
+2025-11-15T07:31:11.142479102Z [inf]  Processing questionnaire assignment for sheen peeen (automation: grgrg)
+2025-11-15T07:31:11.142487056Z [inf]  ❌ No stageEnteredAt date for project e278ed96-4ed0-416a-9f07-678b171b14a7, skipping questionnaire assignment
+2025-11-15T07:31:11.142492522Z [inf]  Processing questionnaire assignment for tim  peen (automation: grgrg)
+2025-11-15T07:31:11.142497297Z [inf]  🚫 Questionnaire already assigned to Final Test for this template
+2025-11-15T07:31:11.142501395Z [inf]  Processing questionnaire assignment for Debug SMS (automation: grgrg)
+2025-11-15T07:31:11.142506500Z [inf]  🚫 Questionnaire already assigned to tim  peen for this template
+2025-11-15T07:31:11.142512291Z [inf]  Processing questionnaire assignment for John Doe (automation: grgrg)
+2025-11-15T07:31:11.142516767Z [inf]  🚫 Questionnaire already assigned to Debug SMS for this template
+2025-11-15T07:31:11.142520397Z [inf]  Processing questionnaire assignment for SMS Test2 (automation: grgrg)
+2025-11-15T07:31:11.142525686Z [inf]  🚫 Questionnaire already assigned to John Doe for this template
+2025-11-15T07:31:11.142529644Z [inf]  Processing automation: grgrg (type: COMMUNICATION)
+2025-11-15T07:31:11.142533621Z [inf]  🚫 Questionnaire already assigned to SMS Test2 for this template
+2025-11-15T07:31:11.142538074Z [inf]  Processing questionnaire assignment for Test SMSUser (automation: grgrg)
+2025-11-15T07:31:11.142876384Z [inf]  🚫 Questionnaire already assigned to Test SMSUser for this template
+2025-11-15T07:31:11.142880566Z [inf]  Processing questionnaire assignment for Austin Pacholek (automation: grgrg)
+2025-11-15T07:31:11.171139928Z [inf]  Communication automation "grgrg" (9ff7ab5e-892f-4b34-99f8-e81004a871a5) - found 15 projects in stage
+2025-11-15T07:31:11.171145999Z [inf]  Processing automation: grgrg (type: COMMUNICATION)
+2025-11-15T07:31:11.226563553Z [inf]  🚫 Questionnaire already assigned to Austin Pacholek for this template
+2025-11-15T07:31:11.226572527Z [inf]  Processing questionnaire assignment for Test SMS User (automation: grgrg)
+2025-11-15T07:31:11.331850019Z [inf]  🚫 Questionnaire already assigned to Test SMS User for this template
+2025-11-15T07:31:11.331862002Z [inf]  Processing questionnaire assignment for tim Pacholek (automation: grgrg)
+2025-11-15T07:31:11.385032363Z [inf]  Communication automation "grgrg" (bcee55b7-3461-4d04-b18d-d901dddafa16) - found 15 projects in stage
+2025-11-15T07:31:11.435731566Z [inf]  🚫 Questionnaire already assigned to tim Pacholek for this template
+2025-11-15T07:31:11.435742687Z [inf]  Processing questionnaire assignment for tim Pacholek (automation: grgrg)
+2025-11-15T07:31:11.537642553Z [inf]  🚫 Questionnaire already assigned to tim Pacholek for this template
+2025-11-15T07:31:11.537652492Z [inf]  Processing questionnaire assignment for Test User (automation: grgrg)
+2025-11-15T07:31:12.123791634Z [inf]  Processing questionnaire assignment for sheen peeen (automation: grgrg)
+2025-11-15T07:31:12.123803683Z [inf]  ❌ No stageEnteredAt date for project e278ed96-4ed0-416a-9f07-678b171b14a7, skipping questionnaire assignment
+2025-11-15T07:31:12.123809749Z [inf]  Processing questionnaire assignment for tim  peen (automation: grgrg)
+2025-11-15T07:31:12.123816418Z [inf]  🚫 Questionnaire already assigned to tim  peen for this template
+2025-11-15T07:31:12.123822122Z [inf]  Processing questionnaire assignment for John Doe (automation: grgrg)
+2025-11-15T07:31:12.123827804Z [inf]  🚫 Questionnaire already assigned to John Doe for this template
+2025-11-15T07:31:12.123832777Z [inf]  Processing automation: grgrg (type: COMMUNICATION)
+2025-11-15T07:31:12.124077195Z [inf]  🚫 Questionnaire already assigned to Test User for this template
+2025-11-15T07:31:12.124084878Z [inf]  Processing questionnaire assignment for tim sheeny (automation: grgrg)
+2025-11-15T07:31:12.124093998Z [inf]  🚫 Questionnaire already assigned to tim sheeny for this template
+2025-11-15T07:31:12.282626720Z [inf]  Communication automation "grgrg" (9ff7ab5e-892f-4b34-99f8-e81004a871a5) - found 15 projects in stage
+2025-11-15T07:31:12.282636120Z [inf]  Processing automation: grgrg (type: COMMUNICATION)
+2025-11-15T07:31:12.498857024Z [inf]  Communication automation "grgrg" (bcee55b7-3461-4d04-b18d-d901dddafa16) - found 15 projects in stage
+2025-11-15T07:31:32.360289451Z [inf]  📥 INCOMING REQUEST: GET /api/inbox/unread-count
+2025-11-15T07:31:32.360299328Z [inf]     Headers: undefined
+2025-11-15T07:31:32.360306616Z [inf]  🌐 Domain detection: thephotocrm.com
+2025-11-15T07:31:32.360312353Z [inf]    → Photographer domain detected
+2025-11-15T07:31:32.360317788Z [inf]  === AUTHENTICATE TOKEN MIDDLEWARE ===
+2025-11-15T07:31:32.360324392Z [inf]  Request URL: /api/inbox/unread-count
+2025-11-15T07:31:32.360330878Z [inf]  Request method: GET
+2025-11-15T07:31:32.360337690Z [inf]  Has cookies object: true
+2025-11-15T07:31:32.360347282Z [inf]  All cookies: {"_tccl_visitor":"99061ad6-bf98-487e-95a3-fdb77b0af020","__stripe_mid":"71f1b5ec-936c-4306-b459-16548e562479670a1b","photographer_token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIzMTFkZDQyZi01NmZmLTQyNjQtOTU5ZS0wNzIxYzVkMWQ3NzAiLCJyb2xlIjoiUEhPVE9HUkFQSEVSIiwicGhvdG9ncmFwaGVySWQiOiJjOTE1YWRmMS0wMjBmLTRhYzAtOTUxYi1mNzI2NzM4NDQ3ZjIiLCJpYXQiOjE3NjMwOTI0MTEsImV4cCI6MTc2MzY5NzIxMX0.jUzXryzYA1hmhEp91Ao5Buht7hFxcU-ygODzwfh2OWE","token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIzMTFkZDQyZi01NmZmLTQyNjQtOTU5ZS0wNzIxYzVkMWQ3NzAiLCJyb2xlIjoiUEhPVE9HUkFQSEVSIiwicGhvdG9ncmFwaGVySWQiOiJjOTE1YWRmMS0wMjBmLTRhYzAtOTUxYi1mNzI2NzM4NDQ3ZjIiLCJpYXQiOjE3NjMwOTI0MTEsImV4cCI6MTc2MzY5NzIxMX0.jUzXryzYA1hmhEp91Ao5Buht7hFxcU-ygODzwfh2OWE"}
+2025-11-15T07:31:32.360354030Z [inf]  Cookie header: _tccl_visitor=99061ad6-bf98-487e-95a3-fdb77b0af020; __stripe_mid=71f1b5ec-936c-4306-b459-16548e562479670a1b; photographer_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIzMTFkZDQyZi01NmZmLTQyNjQtOTU5ZS0wNzIxYzVkMWQ3NzAiLCJyb2xlIjoiUEhPVE9HUkFQSEVSIiwicGhvdG9ncmFwaGVySWQiOiJjOTE1YWRmMS0wMjBmLTRhYzAtOTUxYi1mNzI2NzM4NDQ3ZjIiLCJpYXQiOjE3NjMwOTI0MTEsImV4cCI6MTc2MzY5NzIxMX0.jUzXryzYA1hmhEp91Ao5Buht7hFxcU-ygODzwfh2OWE; token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIzMTFkZDQyZi01NmZmLTQyNjQtOTU5ZS0wNzIxYzVkMWQ3NzAiLCJyb2xlIjoiUEhPVE9HUkFQSEVSIiwicGhvdG9ncmFwaGVySWQiOiJjOTE1YWRmMS0wMjBmLTRhYzAtOTUxYi1mNzI2NzM4NDQ3ZjIiLCJpYXQiOjE3NjMwOTI0MTEsImV4cCI6MTc2MzY5NzIxMX0.jUzXryzYA1hmhEp91Ao5Buht7hFxcU-ygODzwfh2OWE
+2025-11-15T07:31:32.362313982Z [inf]  Has Authorization header: false
+2025-11-15T07:31:32.362321158Z [inf]  Origin: undefined
+2025-11-15T07:31:32.362326951Z [inf]  Host: thephotocrm.com
+2025-11-15T07:31:32.362332760Z [inf]  Token from cookie: photographer
+2025-11-15T07:31:32.362338330Z [inf]  Token exists: true
+2025-11-15T07:31:32.362343665Z [inf]  Auth source: photographer
+2025-11-15T07:31:32.362349309Z [inf]  Token payload: true
+2025-11-15T07:31:32.362355799Z [inf]  Authentication successful, continuing to route
+2025-11-15T07:31:32.362362471Z [inf]  7:31:28 AM [express] GET /api/inbox/unread-count 304 in 955ms :: {"unreadCount":0}
+2025-11-15T07:32:02.364116285Z [inf]  📥 INCOMING REQUEST: GET /login
+2025-11-15T07:32:02.364124487Z [inf]  📥 INCOMING REQUEST: GET /api/domain
+2025-11-15T07:32:02.364124634Z [inf]     Headers: undefined
+2025-11-15T07:32:02.364130659Z [inf]  🌐 Domain detection: abbiestreet.tpcportal.co
+2025-11-15T07:32:02.364136510Z [inf]    → Client portal subdomain detected: abbiestreet
+2025-11-15T07:32:02.364138087Z [inf]     Headers: undefined
+2025-11-15T07:32:02.364142785Z [inf]    → Skipping photographer lookup for frontend route: /login
+2025-11-15T07:32:02.364147273Z [inf]  🌐 Domain detection: abbiestreet.tpcportal.co
+2025-11-15T07:32:02.364149113Z [inf]  ✅ Valid photographer subdomain: abbiestreet (Austin Street Photo) - injecting branded meta tags
+2025-11-15T07:32:02.364155714Z [inf]    → Client portal subdomain detected: abbiestreet
+2025-11-15T07:32:02.364155920Z [inf]  📥 INCOMING REQUEST: GET /assets/index-BX8c74U8.js
+2025-11-15T07:32:02.364163926Z [inf]  🔍 Looking up photographer by slug: abbiestreet for API route: /api/domain
+2025-11-15T07:32:02.364164120Z [inf]     Headers: undefined
+2025-11-15T07:32:02.364169158Z [inf]  🌐 Domain detection: abbiestreet.tpcportal.co
+2025-11-15T07:32:02.364174631Z [inf]    → Client portal subdomain detected: abbiestreet
+2025-11-15T07:32:02.364175180Z [inf]  📥 INCOMING REQUEST: GET /api/auth/me
+2025-11-15T07:32:02.364179320Z [inf]    → Skipping photographer lookup for frontend route: /assets/index-BX8c74U8.js
+2025-11-15T07:32:02.364184500Z [inf]  📥 INCOMING REQUEST: GET /assets/index-Bt_GAwTp.css
+2025-11-15T07:32:02.364188473Z [inf]     Headers: undefined
+2025-11-15T07:32:02.364192603Z [inf]  🌐 Domain detection: abbiestreet.tpcportal.co
+2025-11-15T07:32:02.364196865Z [inf]    → Client portal subdomain detected: abbiestreet
+2025-11-15T07:32:02.364200723Z [inf]    → Skipping photographer lookup for frontend route: /assets/index-Bt_GAwTp.css
+2025-11-15T07:32:02.367100141Z [inf]     Headers: undefined
+2025-11-15T07:32:02.367103080Z [inf]  Request URL: /api/auth/me
+2025-11-15T07:32:02.367110757Z [inf]  🌐 Domain detection: abbiestreet.tpcportal.co
+2025-11-15T07:32:02.367118087Z [inf]  Request method: GET
+2025-11-15T07:32:02.367123476Z [inf]    → Client portal subdomain detected: abbiestreet
+2025-11-15T07:32:02.367129947Z [inf]  🔍 Looking up photographer by slug: abbiestreet for API route: /api/auth/me
+2025-11-15T07:32:02.367136801Z [inf]  ✅ Found photographer: Austin Street Photo (ID: c915adf1-020f-4ac0-951b-f726738447f2)
+2025-11-15T07:32:02.367144808Z [inf]  7:31:56 AM [express] GET /api/domain 304 in 222ms :: {"type":"client_portal","photographerSlug":"abb…
+2025-11-15T07:32:02.367150365Z [inf]  📥 INCOMING REQUEST: GET /attached_assets/logos/logo-1763154105985-963332433.png
+2025-11-15T07:32:02.367155473Z [inf]     Headers: undefined
+2025-11-15T07:32:02.367160936Z [inf]  🌐 Domain detection: abbiestreet.tpcportal.co
+2025-11-15T07:32:02.367166530Z [inf]    → Client portal subdomain detected: abbiestreet
+2025-11-15T07:32:02.367171518Z [inf]    → Skipping photographer lookup for frontend route: /attached_assets/logos/logo-1763154105985-963332433.png
+2025-11-15T07:32:02.367177161Z [inf]  📥 INCOMING REQUEST: GET /assets/professional_wedding_67201dd8-DJzf3n6T.jpg
+2025-11-15T07:32:02.367182238Z [inf]     Headers: undefined
+2025-11-15T07:32:02.367187517Z [inf]  🌐 Domain detection: abbiestreet.tpcportal.co
+2025-11-15T07:32:02.367194253Z [inf]    → Client portal subdomain detected: abbiestreet
+2025-11-15T07:32:02.367198696Z [inf]    → Skipping photographer lookup for frontend route: /assets/professional_wedding_67201dd8-DJzf3n6T.jpg
+2025-11-15T07:32:02.367203293Z [inf]  ✅ Found photographer: Austin Street Photo (ID: c915adf1-020f-4ac0-951b-f726738447f2)
+2025-11-15T07:32:02.367207948Z [inf]  === AUTHENTICATE TOKEN MIDDLEWARE ===
+2025-11-15T07:32:02.372695718Z [inf]  All cookies: {"_tccl_visitor":"99061ad6-bf98-487e-95a3-fdb77b0af020","__stripe_mid":"71f1b5ec-936c-4306-b459-16548e562479670a1b","photographer_token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIzMTFkZDQyZi01NmZmLTQyNjQtOTU5ZS0wNzIxYzVkMWQ3NzAiLCJyb2xlIjoiUEhPVE9HUkFQSEVSIiwicGhvdG9ncmFwaGVySWQiOiJjOTE1YWRmMS0wMjBmLTRhYzAtOTUxYi1mNzI2NzM4NDQ3ZjIiLCJpYXQiOjE3NjMwOTI0MTEsImV4cCI6MTc2MzY5NzIxMX0.jUzXryzYA1hmhEp91Ao5Buht7hFxcU-ygODzwfh2OWE","token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIzMTFkZDQyZi01NmZmLTQyNjQtOTU5ZS0wNzIxYzVkMWQ3NzAiLCJyb2xlIjoiUEhPVE9HUkFQSEVSIiwicGhvdG9ncmFwaGVySWQiOiJjOTE1YWRmMS0wMjBmLTRhYzAtOTUxYi1mNzI2NzM4NDQ3ZjIiLCJpYXQiOjE3NjMwOTI0MTEsImV4cCI6MTc2MzY5NzIxMX0.jUzXryzYA1hmhEp91Ao5Buht7hFxcU-ygODzwfh2OWE"}
+2025-11-15T07:32:02.372704443Z [inf]  Has cookies object: true
+2025-11-15T07:32:02.372712143Z [inf]  All cookies: {"__stripe_mid":"0cbf734c-377c-44e4-9574-7d77812ce5904df2cb","__stripe_sid":"9a43d0fb-302b-437b-b695-fe529e37253f074fd5"}
+2025-11-15T07:32:02.372717518Z [inf]  Cookie header: __stripe_mid=0cbf734c-377c-44e4-9574-7d77812ce5904df2cb; __stripe_sid=9a43d0fb-302b-437b-b695-fe529e37253f074fd5
+2025-11-15T07:32:02.372722120Z [inf]  Has Authorization header: false
+2025-11-15T07:32:02.372726772Z [inf]  Origin: undefined
+2025-11-15T07:32:02.372732091Z [inf]  Host: abbiestreet.tpcportal.co
+2025-11-15T07:32:02.372736898Z [inf]  Token exists: false
+2025-11-15T07:32:02.372741702Z [inf]  Auth source: none
+2025-11-15T07:32:02.372746204Z [inf]  No token found, returning 401
+2025-11-15T07:32:02.372750536Z [inf]  7:31:57 AM [express] GET /api/auth/me 401 in 545ms :: {"message":"Access token required"}
+2025-11-15T07:32:02.372755048Z [inf]  📥 INCOMING REQUEST: GET /api/inbox/unread-count
+2025-11-15T07:32:02.372759342Z [inf]     Headers: undefined
+2025-11-15T07:32:02.372763733Z [inf]  🌐 Domain detection: thephotocrm.com
+2025-11-15T07:32:02.372768126Z [inf]    → Photographer domain detected
+2025-11-15T07:32:02.372772481Z [inf]  === AUTHENTICATE TOKEN MIDDLEWARE ===
+2025-11-15T07:32:02.372777243Z [inf]  Request URL: /api/inbox/unread-count
+2025-11-15T07:32:02.372781846Z [inf]  Request method: GET
+2025-11-15T07:32:02.372787437Z [inf]  Has cookies object: true
+2025-11-15T07:32:02.374428853Z [inf]  Processing automations for photographer: be234128-3cad-438d-a2d9-9ae04e04435f
+2025-11-15T07:32:02.374430368Z [inf]  Cookie header: _tccl_visitor=99061ad6-bf98-487e-95a3-fdb77b0af020; __stripe_mid=71f1b5ec-936c-4306-b459-16548e562479670a1b; photographer_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIzMTFkZDQyZi01NmZmLTQyNjQtOTU5ZS0wNzIxYzVkMWQ3NzAiLCJyb2xlIjoiUEhPVE9HUkFQSEVSIiwicGhvdG9ncmFwaGVySWQiOiJjOTE1YWRmMS0wMjBmLTRhYzAtOTUxYi1mNzI2NzM4NDQ3ZjIiLCJpYXQiOjE3NjMwOTI0MTEsImV4cCI6MTc2MzY5NzIxMX0.jUzXryzYA1hmhEp91Ao5Buht7hFxcU-ygODzwfh2OWE; token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIzMTFkZDQyZi01NmZmLTQyNjQtOTU5ZS0wNzIxYzVkMWQ3NzAiLCJyb2xlIjoiUEhPVE9HUkFQSEVSIiwicGhvdG9ncmFwaGVySWQiOiJjOTE1YWRmMS0wMjBmLTRhYzAtOTUxYi1mNzI2NzM4NDQ3ZjIiLCJpYXQiOjE3NjMwOTI0MTEsImV4cCI6MTc2MzY5NzIxMX0.jUzXryzYA1hmhEp91Ao5Buht7hFxcU-ygODzwfh2OWE
+2025-11-15T07:32:02.374440339Z [inf]  Has Authorization header: false
+2025-11-15T07:32:02.374447135Z [inf]  Origin: undefined
+2025-11-15T07:32:02.374452562Z [inf]  Host: thephotocrm.com
+2025-11-15T07:32:02.374460192Z [inf]  Token from cookie: photographer
+2025-11-15T07:32:02.374465515Z [inf]  Token exists: true
+2025-11-15T07:32:02.374470499Z [inf]  Auth source: photographer
+2025-11-15T07:32:02.374477029Z [inf]  Token payload: true
+2025-11-15T07:32:02.374481711Z [inf]  Authentication successful, continuing to route
+2025-11-15T07:32:02.374487029Z [inf]  7:31:59 AM [express] GET /api/inbox/unread-count 304 in 412ms :: {"unreadCount":0}
+2025-11-15T07:32:02.374492454Z [inf]  Processing automations for photographer: e9097539-3fdb-44c7-b4b8-a45998d0d579
+2025-11-15T07:32:02.374498670Z [inf]  Processing automations for photographer: e9097539-3fdb-44c7-b4b8-a45998d0d579
+2025-11-15T07:32:02.374505214Z [inf]  Found 0 enabled automations
+2025-11-15T07:32:02.374510503Z [inf]  Processing automations for photographer: be234128-3cad-438d-a2d9-9ae04e04435f
+2025-11-15T07:32:02.374517733Z [inf]  Found 0 enabled automations
+2025-11-15T07:32:02.376776393Z [inf]  Communication automation "Valid Communication Test" (e20d2fb7-0ad4-4540-b8fe-dc911461f582) - found 0 projects in stage
+2025-11-15T07:32:02.376790561Z [inf]  Found 0 enabled automations
+2025-11-15T07:32:02.376798685Z [inf]  Processing automations for photographer: 4c0412f6-7122-4716-b89a-f3de9c3a08e3
+2025-11-15T07:32:02.376803718Z [inf]  Found 0 enabled automations
+2025-11-15T07:32:02.376810314Z [inf]  Processing automations for photographer: 4c0412f6-7122-4716-b89a-f3de9c3a08e3
+2025-11-15T07:32:02.376815006Z [inf]  Found 0 enabled automations
+2025-11-15T07:32:02.376821981Z [inf]  Processing automations for photographer: 1a5f0df8-16ea-4cca-9b61-b4f91730827a
+2025-11-15T07:32:02.376950567Z [inf]  Found 0 enabled automations
+2025-11-15T07:32:02.376957503Z [inf]  Processing automations for photographer: 1a5f0df8-16ea-4cca-9b61-b4f91730827a
+2025-11-15T07:32:02.376963540Z [inf]  Found 0 enabled automations
+2025-11-15T07:32:02.376969307Z [inf]  Processing automations for photographer: c050cb64-5721-4b18-bd9c-718ab981bf42
+2025-11-15T07:32:02.376975215Z [inf]  Found 0 enabled automations
+2025-11-15T07:32:02.376981205Z [inf]  Processing automations for photographer: c050cb64-5721-4b18-bd9c-718ab981bf42
+2025-11-15T07:32:02.376987132Z [inf]  Found 0 enabled automations
+2025-11-15T07:32:02.376992596Z [inf]  Processing automations for photographer: 8ec7a803-c4c9-432c-9cb7-a85ea1fdb908
+2025-11-15T07:32:02.376996812Z [inf]  Found 0 enabled automations
+2025-11-15T07:32:02.377008612Z [inf]  Processing automations for photographer: 8ec7a803-c4c9-432c-9cb7-a85ea1fdb908
+2025-11-15T07:32:02.377012734Z [inf]  Found 2 enabled automations
+2025-11-15T07:32:02.377016980Z [inf]  Processing automation: Valid Communication Test (type: COMMUNICATION)
+2025-11-15T07:32:02.377021052Z [inf]  Found 2 enabled automations
+2025-11-15T07:32:02.377025116Z [inf]  Processing automation: Valid Communication Test (type: COMMUNICATION)
+2025-11-15T07:32:02.379154363Z [inf]  Processing automation: Valid Stage Change Test (type: STAGE_CHANGE)
+2025-11-15T07:32:02.379164507Z [inf]  Processing stage change automation: Valid Stage Change Test
+2025-11-15T07:32:02.379171434Z [inf]  Communication automation "Valid Communication Test" (e20d2fb7-0ad4-4540-b8fe-dc911461f582) - found 0 projects in stage
+2025-11-15T07:32:02.379178471Z [inf]  Processing automation: Valid Stage Change Test (type: STAGE_CHANGE)
+2025-11-15T07:32:02.379185130Z [inf]  Processing stage change automation: Valid Stage Change Test
+2025-11-15T07:32:02.379192101Z [inf]  No enabled business triggers found for automation Valid Stage Change Test, skipping
+2025-11-15T07:32:02.379197519Z [inf]  Processing automations for photographer: test-photographer-7aa63fb0
+2025-11-15T07:32:02.379206395Z [inf]  No enabled business triggers found for automation Valid Stage Change Test, skipping
+2025-11-15T07:32:02.379212653Z [inf]  Processing automations for photographer: test-photographer-7aa63fb0
+2025-11-15T07:32:02.379219742Z [inf]  Found 0 enabled automations
+2025-11-15T07:32:02.379226424Z [inf]  Processing automations for photographer: faabd51c-4432-4cff-beb6-7b0e7dfbba72
+2025-11-15T07:32:02.379233597Z [inf]  Found 0 enabled automations
+2025-11-15T07:32:02.379240102Z [inf]  Processing automations for photographer: faabd51c-4432-4cff-beb6-7b0e7dfbba72
+2025-11-15T07:32:02.379247200Z [inf]  Found 0 enabled automations
+2025-11-15T07:32:02.379256780Z [inf]  Processing automations for photographer: cdbfc61b-ec9a-4e6a-bb7f-dcaec60300d5
+2025-11-15T07:32:02.379263188Z [inf]  Found 0 enabled automations
+2025-11-15T07:32:02.379269615Z [inf]  Processing automations for photographer: cdbfc61b-ec9a-4e6a-bb7f-dcaec60300d5
+2025-11-15T07:32:02.379276172Z [inf]  Found 0 enabled automations
+2025-11-15T07:32:02.379282184Z [inf]  Processing automations for photographer: c89dcfcd-2c97-4a7b-a062-92fa3532bcf4
+2025-11-15T07:32:02.379288468Z [inf]  Found 0 enabled automations
+2025-11-15T07:32:02.381705204Z [inf]  Processing automations for photographer: c89dcfcd-2c97-4a7b-a062-92fa3532bcf4
+2025-11-15T07:32:02.381717716Z [inf]  Found 0 enabled automations
+2025-11-15T07:32:02.381725386Z [inf]  Processing automations for photographer: 92d08d42-73d6-4430-b3a2-b877df460c11
+2025-11-15T07:32:02.381732123Z [inf]  Found 0 enabled automations
+2025-11-15T07:32:02.381737895Z [inf]  Processing automations for photographer: 92d08d42-73d6-4430-b3a2-b877df460c11
+2025-11-15T07:32:02.381754158Z [inf]  Found 0 enabled automations
+2025-11-15T07:32:02.381760413Z [inf]  Processing automations for photographer: 5c5d6336-b47a-40c8-b2ef-7edecbef3dd4
+2025-11-15T07:32:02.381767107Z [inf]  Found 0 enabled automations
+2025-11-15T07:32:02.381772811Z [inf]  Processing automations for photographer: 5c5d6336-b47a-40c8-b2ef-7edecbef3dd4
+2025-11-15T07:32:02.381779284Z [inf]  Found 0 enabled automations
+2025-11-15T07:32:02.381787887Z [inf]  Processing automations for photographer: c60016fb-0e6c-4beb-99dc-b11a604c1b00
+2025-11-15T07:32:02.381793854Z [inf]  Found 0 enabled automations
+2025-11-15T07:32:02.381799071Z [inf]  Processing automations for photographer: c60016fb-0e6c-4beb-99dc-b11a604c1b00
+2025-11-15T07:32:02.381803810Z [inf]  Found 0 enabled automations
+2025-11-15T07:32:02.381810281Z [inf]  Processing automations for photographer: 623934a5-c301-4cd6-9958-012c599d1e52
+2025-11-15T07:32:02.381815096Z [inf]  Found 0 enabled automations
+2025-11-15T07:32:02.381820725Z [inf]  Processing automations for photographer: 623934a5-c301-4cd6-9958-012c599d1e52
+2025-11-15T07:32:02.381826947Z [inf]  Found 0 enabled automations
+2025-11-15T07:32:02.381831899Z [inf]  Processing automations for photographer: 519920d3-7eea-4fa6-8b29-636955072a61
+2025-11-15T07:32:02.381838668Z [inf]  Found 0 enabled automations
+2025-11-15T07:32:02.381843989Z [inf]  Processing automations for photographer: 519920d3-7eea-4fa6-8b29-636955072a61
+2025-11-15T07:32:02.384369400Z [inf]  Found 0 enabled automations
+2025-11-15T07:32:02.384377778Z [inf]  Processing automations for photographer: b2b63133-c2ce-4701-94b0-e5faab170a41
+2025-11-15T07:32:02.384383232Z [inf]  Found 0 enabled automations
+2025-11-15T07:32:02.384388459Z [inf]  Processing automations for photographer: b2b63133-c2ce-4701-94b0-e5faab170a41
+2025-11-15T07:32:02.384395167Z [inf]  Found 0 enabled automations
+2025-11-15T07:32:02.384400251Z [inf]  Processing automations for photographer: 624cc39e-287a-4c90-b1dd-ad76ee395d16
+2025-11-15T07:32:02.384404207Z [inf]  Found 0 enabled automations
+2025-11-15T07:32:02.384409485Z [inf]  Processing automations for photographer: 624cc39e-287a-4c90-b1dd-ad76ee395d16
+2025-11-15T07:32:02.384413513Z [inf]  Found 0 enabled automations
+2025-11-15T07:32:02.384418345Z [inf]  Processing automations for photographer: 8136992a-f433-4435-93ac-c6ebc7f300ff
+2025-11-15T07:32:02.390591366Z [inf]  Found 0 enabled automations
+2025-11-15T07:32:02.390600068Z [inf]  Processing automations for photographer: 8136992a-f433-4435-93ac-c6ebc7f300ff
+2025-11-15T07:32:02.479489458Z [inf]  Found 0 enabled automations
+2025-11-15T07:32:02.479504045Z [inf]  Processing automations for photographer: a262b088-f825-4fdc-a125-89506285758d
+2025-11-15T07:32:02.497905373Z [inf]  Found 0 enabled automations
+2025-11-15T07:32:02.497912333Z [inf]  Processing automations for photographer: a262b088-f825-4fdc-a125-89506285758d
+2025-11-15T07:32:02.598073785Z [inf]  Found 0 enabled automations
+2025-11-15T07:32:02.598083121Z [inf]  Processing automations for photographer: 1aedb626-f859-4805-87fb-01d2bf3c51cc
+2025-11-15T07:32:02.606032699Z [inf]  Found 0 enabled automations
+2025-11-15T07:32:02.606041804Z [inf]  Processing automations for photographer: 1aedb626-f859-4805-87fb-01d2bf3c51cc
+2025-11-15T07:32:03.163367451Z [inf]  Found 0 enabled automations
+2025-11-15T07:32:03.163379198Z [inf]  Processing automations for photographer: 6251dceb-2a62-41c1-a4d1-7c1ad3b7c6b1
+2025-11-15T07:32:03.163385735Z [inf]  Found 0 enabled automations
+2025-11-15T07:32:03.163392055Z [inf]  Processing automations for photographer: d22dedf7-28f0-428f-8d84-55bfd134c3dc
+2025-11-15T07:32:03.163398324Z [inf]  Found 0 enabled automations
+2025-11-15T07:32:03.163405430Z [inf]  Processing automations for photographer: d22dedf7-28f0-428f-8d84-55bfd134c3dc
+2025-11-15T07:32:03.163411481Z [inf]  Found 0 enabled automations
+2025-11-15T07:32:03.163417700Z [inf]  Processing automations for photographer: 509e2fe3-270f-4414-b75f-5518a6095749
+2025-11-15T07:32:03.163424012Z [inf]  Found 0 enabled automations
+2025-11-15T07:32:03.163430905Z [inf]  Processing automations for photographer: 509e2fe3-270f-4414-b75f-5518a6095749
+2025-11-15T07:32:03.163590576Z [inf]  Found 0 enabled automations
+2025-11-15T07:32:03.163598039Z [inf]  Processing automations for photographer: b1a2cd3a-01ac-42cc-af22-ba7925c0a909
+2025-11-15T07:32:03.163606464Z [inf]  Found 0 enabled automations
+2025-11-15T07:32:03.163615266Z [inf]  Processing automations for photographer: b1a2cd3a-01ac-42cc-af22-ba7925c0a909
+2025-11-15T07:32:03.163624118Z [inf]  Found 0 enabled automations
+2025-11-15T07:32:03.163632418Z [inf]  Processing automations for photographer: e6a743f9-b405-4060-93c8-642bc98ec82d
+2025-11-15T07:32:03.163650490Z [inf]  Found 0 enabled automations
+2025-11-15T07:32:03.163660530Z [inf]  Processing automations for photographer: e6a743f9-b405-4060-93c8-642bc98ec82d
+2025-11-15T07:32:03.163672052Z [inf]  Found 0 enabled automations
+2025-11-15T07:32:03.163680717Z [inf]  Processing automations for photographer: 6251dceb-2a62-41c1-a4d1-7c1ad3b7c6b1
+2025-11-15T07:32:03.230850894Z [inf]  Found 0 enabled automations
+2025-11-15T07:32:03.230856352Z [inf]  Processing automations for photographer: 21858155-3a7e-4d45-a09c-045e41cf86d7
+2025-11-15T07:32:03.247951037Z [inf]  Found 0 enabled automations
+2025-11-15T07:32:03.247966848Z [inf]  Processing automations for photographer: 21858155-3a7e-4d45-a09c-045e41cf86d7
+2025-11-15T07:32:03.342467599Z [inf]  Found 0 enabled automations
+2025-11-15T07:32:03.342481803Z [inf]  Processing automations for photographer: e1d9497c-2ac4-4fc5-8a1b-84130da4f45b
+2025-11-15T07:32:03.359090377Z [inf]  Found 0 enabled automations
+2025-11-15T07:32:03.359107925Z [inf]  Processing automations for photographer: e1d9497c-2ac4-4fc5-8a1b-84130da4f45b
+2025-11-15T07:32:03.457186207Z [inf]  Found 0 enabled automations
+2025-11-15T07:32:03.457201523Z [inf]  Processing automations for photographer: c3d5fcd5-cc7e-4326-8f77-e2b1a7d9e04e
+2025-11-15T07:32:03.458981484Z [inf]  Found 0 enabled automations
+2025-11-15T07:32:03.458990224Z [inf]  Processing automations for photographer: c3d5fcd5-cc7e-4326-8f77-e2b1a7d9e04e
+2025-11-15T07:32:03.571075948Z [inf]  Found 0 enabled automations
+2025-11-15T07:32:03.571081605Z [inf]  Processing automations for photographer: 6f99ec47-005e-4a2f-b9bc-8b1efd89a52d
+2025-11-15T07:32:03.571086835Z [inf]  Found 0 enabled automations
+2025-11-15T07:32:03.571091779Z [inf]  Processing automations for photographer: 6f99ec47-005e-4a2f-b9bc-8b1efd89a52d
+2025-11-15T07:32:04.058402573Z [inf]  Processing automations for photographer: fa4f24a5-8503-4f7d-9c18-a1d1b35c5d47
+2025-11-15T07:32:04.058414803Z [inf]  Found 0 enabled automations
+2025-11-15T07:32:04.058422211Z [inf]  Processing automations for photographer: af9e86a7-5eee-4f1c-a376-a0079d8e95b3
+2025-11-15T07:32:04.058428893Z [inf]  Found 0 enabled automations
+2025-11-15T07:32:04.058434739Z [inf]  Processing automations for photographer: af9e86a7-5eee-4f1c-a376-a0079d8e95b3
+2025-11-15T07:32:04.058440228Z [inf]  Found 0 enabled automations
+2025-11-15T07:32:04.058445667Z [inf]  Processing automations for photographer: 5e1a69c7-5169-4605-9dab-04f9c17c9e0e
+2025-11-15T07:32:04.058453459Z [inf]  Found 0 enabled automations
+2025-11-15T07:32:04.058461003Z [inf]  Processing automations for photographer: 5e1a69c7-5169-4605-9dab-04f9c17c9e0e
+2025-11-15T07:32:04.058469960Z [inf]  Found 0 enabled automations
+2025-11-15T07:32:04.058473760Z [inf]  Processing automations for photographer: 14a7c70f-84ce-4f65-919e-5f6c4d94c95a
+2025-11-15T07:32:04.058477679Z [inf]  Found 0 enabled automations
+2025-11-15T07:32:04.058481739Z [inf]  Processing automations for photographer: 14a7c70f-84ce-4f65-919e-5f6c4d94c95a
+2025-11-15T07:32:04.058486264Z [inf]  Found 0 enabled automations
+2025-11-15T07:32:04.058490566Z [inf]  Processing automations for photographer: fa4f24a5-8503-4f7d-9c18-a1d1b35c5d47
+2025-11-15T07:32:04.058494873Z [inf]  Found 0 enabled automations
+2025-11-15T07:32:04.094842984Z [inf]  Found 0 enabled automations
+2025-11-15T07:32:04.094849849Z [inf]  Processing automations for photographer: 48980e76-cee3-45ff-8409-6e9a120cebb7
+2025-11-15T07:32:04.101022303Z [inf]  Found 0 enabled automations
+2025-11-15T07:32:04.101027939Z [inf]  Processing automations for photographer: 48980e76-cee3-45ff-8409-6e9a120cebb7
+2025-11-15T07:32:04.197781820Z [inf]  Found 0 enabled automations
+2025-11-15T07:32:04.197791924Z [inf]  Processing automations for photographer: eb654a3d-7a97-46e2-915a-a71d79c8a079
+2025-11-15T07:32:04.251419200Z [inf]  Found 0 enabled automations
+2025-11-15T07:32:04.251431401Z [inf]  Processing automations for photographer: eb654a3d-7a97-46e2-915a-a71d79c8a079
+2025-11-15T07:32:04.300806025Z [inf]  Found 0 enabled automations
+2025-11-15T07:32:04.300819699Z [inf]  Processing automations for photographer: test-photographer-email-flow
+2025-11-15T07:32:04.358145440Z [inf]  Found 0 enabled automations
+2025-11-15T07:32:04.358151416Z [inf]  Processing automations for photographer: test-photographer-email-flow
+2025-11-15T07:32:04.397829685Z [inf]  Processing automations for photographer: photog-test-id
+2025-11-15T07:32:04.397840203Z [inf]  Found 0 enabled automations
+2025-11-15T07:32:04.467678878Z [inf]  Found 0 enabled automations
+2025-11-15T07:32:04.467685747Z [inf]  Processing automations for photographer: photog-test-id
+2025-11-15T07:32:04.504442115Z [inf]  Found 0 enabled automations
+2025-11-15T07:32:04.504450778Z [inf]  Processing automations for photographer: afad1b6b-c885-41e8-a3de-d46284c46a43
+2025-11-15T07:32:04.571930205Z [inf]  Found 0 enabled automations
+2025-11-15T07:32:04.571938596Z [inf]  Processing automations for photographer: afad1b6b-c885-41e8-a3de-d46284c46a43
+2025-11-15T07:32:04.609901126Z [inf]  Found 0 enabled automations
+2025-11-15T07:32:04.609906582Z [inf]  Processing automations for photographer: ab06c25c-95ad-479e-af6c-e44104f1a1a7
+2025-11-15T07:32:05.123719976Z [inf]  Found 0 enabled automations
+2025-11-15T07:32:05.123725527Z [inf]  Processing automations for photographer: ab06c25c-95ad-479e-af6c-e44104f1a1a7
+2025-11-15T07:32:05.123731156Z [inf]  Found 0 enabled automations
+2025-11-15T07:32:05.123737314Z [inf]  Processing automations for photographer: fb02eb77-2692-4686-b00a-83af54a3dcf9
+2025-11-15T07:32:05.123743864Z [inf]  Found 0 enabled automations
+2025-11-15T07:32:05.123749953Z [inf]  Processing automations for photographer: fb02eb77-2692-4686-b00a-83af54a3dcf9
+2025-11-15T07:32:05.123756427Z [inf]  Found 0 enabled automations
+2025-11-15T07:32:05.123763542Z [inf]  Processing automations for photographer: b03cc772-a4a1-4132-8cb0-4098cff9a3b7
+2025-11-15T07:32:05.123774181Z [inf]  📥 INCOMING REQUEST: POST /api/client-portal/request-magic-link
+2025-11-15T07:32:05.123779931Z [inf]     Headers: "application/json"
+2025-11-15T07:32:05.123786420Z [inf]  🌐 Domain detection: abbiestreet.tpcportal.co
+2025-11-15T07:32:05.123793882Z [inf]    → Client portal subdomain detected: abbiestreet
+2025-11-15T07:32:05.123800605Z [inf]  🔍 Looking up photographer by slug: abbiestreet for API route: /api/client-portal/request-magic-link
+2025-11-15T07:32:05.123808048Z [inf]  Found 0 enabled automations
+2025-11-15T07:32:05.123817690Z [inf]  Processing automations for photographer: b03cc772-a4a1-4132-8cb0-4098cff9a3b7
+2025-11-15T07:32:05.123823561Z [inf]  Found 2 enabled automations
+2025-11-15T07:32:05.123829476Z [inf]  Processing automation: Test Email Automation (type: COMMUNICATION)
+2025-11-15T07:32:05.123834345Z [inf]  Found 2 enabled automations
+2025-11-15T07:32:05.123842896Z [inf]  Processing automation: Test Email Automation (type: COMMUNICATION)
+2025-11-15T07:32:05.136312093Z [inf]  Communication automation "Test Email Automation" (a3f515c9-9096-424b-9934-4a21b8388f85) - found 0 projects in stage
+2025-11-15T07:32:05.136334254Z [inf]  Processing automation: Wedding Drip Campaign Automation (type: NURTURE)
+2025-11-15T07:32:05.136341450Z [inf]  Processing nurture automation: Wedding Drip Campaign Automation
+2025-11-15T07:32:05.219311027Z [inf]  Communication automation "Test Email Automation" (a3f515c9-9096-424b-9934-4a21b8388f85) - found 0 projects in stage
+2025-11-15T07:32:05.219321926Z [inf]  Processing automation: Wedding Drip Campaign Automation (type: NURTURE)
+2025-11-15T07:32:05.219328856Z [inf]  Processing nurture automation: Wedding Drip Campaign Automation
+2025-11-15T07:32:05.235239541Z [inf]  Found 0 active drip campaigns for project type WEDDING
+2025-11-15T07:32:05.235247324Z [inf]  Processing automations for photographer: c2221d44-e71a-49af-96b2-51fa1c35778c
+2025-11-15T07:32:05.322517512Z [inf]  Found 0 active drip campaigns for project type WEDDING
+2025-11-15T07:32:05.322523894Z [inf]  Processing automations for photographer: c2221d44-e71a-49af-96b2-51fa1c35778c
+2025-11-15T07:32:05.348221127Z [inf]  Found 0 enabled automations
+2025-11-15T07:32:05.348228005Z [inf]  Processing automations for photographer: test-photog-legal-123
+2025-11-15T07:32:05.430210599Z [inf]  Found 0 enabled automations
+2025-11-15T07:32:05.430220988Z [inf]  Processing automations for photographer: test-photog-legal-123
+2025-11-15T07:32:05.455971883Z [inf]  Found 0 enabled automations
+2025-11-15T07:32:05.455978216Z [inf]  Processing automations for photographer: test-photog-legal-456
+2025-11-15T07:32:05.474576919Z [inf]  ✅ Found photographer: Austin Street Photo (ID: c915adf1-020f-4ac0-951b-f726738447f2)
+2025-11-15T07:32:05.474584811Z [inf]  🔗 Magic link request received
+2025-11-15T07:32:05.474589697Z [inf]    → Domain: abbiestreet.tpcportal.co
+2025-11-15T07:32:05.474594975Z [inf]    → Email: austinpacholek2014@gmail.com
+2025-11-15T07:32:05.474600386Z [inf]    → Photographer ID: c915adf1-020f-4ac0-951b-f726738447f2
+2025-11-15T07:32:05.533467084Z [inf]  Found 0 enabled automations
+2025-11-15T07:32:05.533471401Z [inf]  Processing automations for photographer: test-photog-legal-456
+2025-11-15T07:32:05.566519100Z [inf]  Found 0 enabled automations
+2025-11-15T07:32:05.566526522Z [inf]  Processing automations for photographer: test-forms-photographer-123
+2025-11-15T07:32:05.598609492Z [inf]    → Found contact: 914e45bd-1909-410d-b767-e419938e16e0
+2025-11-15T07:32:05.641648871Z [inf]  Processing automations for photographer: test-forms-photographer-123
+2025-11-15T07:32:05.641687763Z [inf]  Found 0 enabled automations
+2025-11-15T07:32:06.193720705Z [inf]  Communication automation "dwdwdw" (b3740752-9e06-405f-8e19-b66b9d157bd2) - found 1 projects in stage
+2025-11-15T07:32:06.193732845Z [inf]  Processing step for contact hugh janus (austinpacholek@icloud.om)
+2025-11-15T07:32:06.193735353Z [inf]  Found 4 enabled automations
+2025-11-15T07:32:06.193740699Z [inf]  ⏸️ Contact entered stage before automation was created (entered: 2025-10-02T05:31:26.957Z, effective: 2025-10-02T06:16:21.470Z), skipping
+2025-11-15T07:32:06.193746913Z [inf]  Processing automation: dwdwdw (type: COMMUNICATION)
+2025-11-15T07:32:06.193748286Z [inf]  Found 0 enabled automations
+2025-11-15T07:32:06.193754311Z [inf]  Found 4 enabled automations
+2025-11-15T07:32:06.193760627Z [inf]  Processing automations for photographer: 3208b269-a837-44f6-a509-50436d2aecca
+2025-11-15T07:32:06.193763819Z [inf]    → Email template rendered
+2025-11-15T07:32:06.193772156Z [inf]  Processing automation: dwdwdw (type: COMMUNICATION)
+2025-11-15T07:32:06.193774019Z [inf]    → Photographer: Austin Street Photo
+2025-11-15T07:32:06.193779187Z [inf]    → Attempting to send email to: austinpacholek2014@gmail.com
+2025-11-15T07:32:06.193788723Z [inf]  Found 0 enabled automations
+2025-11-15T07:32:06.193798406Z [inf]  Processing automations for photographer: 3208b269-a837-44f6-a509-50436d2aecca
+2025-11-15T07:32:06.193812990Z [inf]  Processing automations for photographer: f779f013-e39f-4f60-bed2-5f7ff60223e1
+2025-11-15T07:32:06.193813907Z [inf]  Found 0 enabled automations
+2025-11-15T07:32:06.193814094Z [inf]  Found 0 enabled automations
+2025-11-15T07:32:06.193818461Z [inf]  Processing automations for photographer: f779f013-e39f-4f60-bed2-5f7ff60223e1
+2025-11-15T07:32:06.193828436Z [inf]    → Created magic link token: 5ef91d4f39...
+2025-11-15T07:32:06.193836643Z [inf]    → Login URL: https://abbiestreet.tpcportal.co/api/portal/5ef91d4f39bdae39b250a328f1fa998f449d174aeed6f880d7067c539d6dfad5
+2025-11-15T07:32:06.339117113Z [inf]  Processing questionnaire assignment for hugh janus (automation: dwdwdw)
+2025-11-15T07:32:06.339121784Z [inf]  Communication automation "dwdwdw" (b3740752-9e06-405f-8e19-b66b9d157bd2) - found 1 projects in stage
+2025-11-15T07:32:06.339128792Z [inf]  Processing step for contact hugh janus (austinpacholek@icloud.om)
+2025-11-15T07:32:06.339135398Z [inf]  ⏸️ Contact entered stage before automation was created (entered: 2025-10-02T05:31:26.957Z, effective: 2025-10-02T06:16:21.470Z), skipping
+2025-11-15T07:32:06.339141604Z [inf]  Processing questionnaire assignment for hugh janus (automation: dwdwdw)
+2025-11-15T07:32:06.339406918Z [inf]  🚫 Questionnaire already assigned to hugh janus for this template
+2025-11-15T07:32:06.339411239Z [inf]  Processing automation: dwdwdw (type: COMMUNICATION)
+2025-11-15T07:32:06.342354157Z [inf]  🚫 Questionnaire already assigned to hugh janus for this template
+2025-11-15T07:32:06.342360845Z [inf]  Processing automation: dwdwdw (type: COMMUNICATION)
+2025-11-15T07:32:06.431092599Z [inf]  Communication automation "dwdwdw" (cdc800f1-532b-4c85-96b4-c992e9fc8f16) - found 1 projects in stage
+2025-11-15T07:32:06.431097395Z [inf]  Processing step for contact hugh janus (austinpacholek@icloud.om)
+2025-11-15T07:32:06.431102166Z [inf]  ⏸️ Contact entered stage before automation was created (entered: 2025-10-02T05:31:26.957Z, effective: 2025-10-02T06:16:21.470Z), skipping
+2025-11-15T07:32:06.431106692Z [inf]  Processing questionnaire assignment for hugh janus (automation: dwdwdw)
+2025-11-15T07:32:06.497602156Z [inf]  Processing questionnaire assignment for hugh janus (automation: dwdwdw)
+2025-11-15T07:32:06.497690264Z [inf]  Communication automation "dwdwdw" (cdc800f1-532b-4c85-96b4-c992e9fc8f16) - found 1 projects in stage
+2025-11-15T07:32:06.497699891Z [inf]  Processing step for contact hugh janus (austinpacholek@icloud.om)
+2025-11-15T07:32:06.497706933Z [inf]  ⏸️ Contact entered stage before automation was created (entered: 2025-10-02T05:31:26.957Z, effective: 2025-10-02T06:16:21.470Z), skipping
+2025-11-15T07:32:06.548542599Z [inf]  🚫 Questionnaire already assigned to hugh janus for this template
+2025-11-15T07:32:06.548555138Z [inf]  Processing automation: big peen (type: STAGE_CHANGE)
+2025-11-15T07:32:06.548564501Z [inf]  Processing stage change automation: big peen
+2025-11-15T07:32:06.607309853Z [inf]  🚫 Questionnaire already assigned to hugh janus for this template
+2025-11-15T07:32:06.607326230Z [inf]  Processing automation: big peen (type: STAGE_CHANGE)
+2025-11-15T07:32:06.607354274Z [inf]  Processing stage change automation: big peen
+2025-11-15T07:32:07.092920686Z [inf]  Found 1 enabled business triggers for automation: APPOINTMENT_BOOKED
+2025-11-15T07:32:07.092928541Z [inf]  Found 1 enabled business triggers for automation: APPOINTMENT_BOOKED
+2025-11-15T07:32:07.095531655Z [inf]  Found 1 active projects to check for business triggers
+2025-11-15T07:32:07.095540517Z [inf]  Checking trigger condition: APPOINTMENT_BOOKED for project 57b90dbb-6f2e-41b8-ae32-a9611c168c16
+2025-11-15T07:32:07.095548800Z [inf]  ✅ Email sent via Gmail: Sign in to Austin Street Photo to austinpacholek2014@gmail.com
+2025-11-15T07:32:07.095555243Z [inf]  ✅ Magic link email sent successfully to austinpacholek2014@gmail.com
+2025-11-15T07:32:07.095560098Z [inf]  7:32:06 AM [express] POST /api/client-portal/request-magic-link 200 in 1931ms :: {"success":true}
+2025-11-15T07:32:07.095565166Z [inf]  Found 1 active projects to check for business triggers
+2025-11-15T07:32:07.095569653Z [inf]  Checking trigger condition: APPOINTMENT_BOOKED for project 57b90dbb-6f2e-41b8-ae32-a9611c168c16
+2025-11-15T07:32:07.095573561Z [inf]  Processing automation: test scgedule (type: COMMUNICATION)
+2025-11-15T07:32:07.095577296Z [inf]  Processing automation: test scgedule (type: COMMUNICATION)
+2025-11-15T07:32:07.095582123Z [inf]  Communication automation "test scgedule" (08b69fb3-d3ef-451f-9bc9-a30c210d5869) - found 1 projects in stage
+2025-11-15T07:32:07.095586381Z [inf]  Processing step for contact hugh janus (austinpacholek@icloud.om)
+2025-11-15T07:32:07.095590924Z [inf]  ⏸️ Contact entered stage before automation was created (entered: 2025-10-02T05:31:26.957Z, effective: 2025-10-02T06:16:21.470Z), skipping
+2025-11-15T07:32:07.095594581Z [inf]  Processing automations for photographer: c915adf1-020f-4ac0-951b-f726738447f2
+2025-11-15T07:32:07.138754337Z [inf]  Communication automation "test scgedule" (08b69fb3-d3ef-451f-9bc9-a30c210d5869) - found 1 projects in stage
+2025-11-15T07:32:07.138762812Z [inf]  Processing step for contact hugh janus (austinpacholek@icloud.om)
+2025-11-15T07:32:07.138817238Z [inf]  ⏸️ Contact entered stage before automation was created (entered: 2025-10-02T05:31:26.957Z, effective: 2025-10-02T06:16:21.470Z), skipping
+2025-11-15T07:32:07.138826024Z [inf]  Processing automations for photographer: c915adf1-020f-4ac0-951b-f726738447f2
+2025-11-15T07:32:07.185918568Z [inf]  Found 6 enabled automations
+2025-11-15T07:32:07.185923729Z [inf]  Processing automation: wddwdwd (type: COMMUNICATION)
+2025-11-15T07:32:07.257130415Z [inf]  Found 6 enabled automations
+2025-11-15T07:32:07.257137514Z [inf]  Processing automation: wddwdwd (type: COMMUNICATION)
+2025-11-15T07:32:07.402864074Z [inf]  Communication automation "wddwdwd" (6a825dbd-a17b-4267-ae93-9cb39ed44b01) - found 15 projects in stage
+2025-11-15T07:32:07.402873465Z [inf]  Processing automation: wddwdwd (type: COMMUNICATION)
+2025-11-15T07:32:07.467381325Z [inf]  Communication automation "wddwdwd" (6a825dbd-a17b-4267-ae93-9cb39ed44b01) - found 15 projects in stage
+2025-11-15T07:32:07.467387335Z [inf]  Processing automation: wddwdwd (type: COMMUNICATION)
+2025-11-15T07:32:07.617004592Z [inf]  Processing automation:  (type: COMMUNICATION)
+2025-11-15T07:32:07.617091770Z [inf]  Communication automation "wddwdwd" (f7cdd380-3e0b-4aa9-b5ec-eb2b5fa1e70b) - found 15 projects in stage
+2025-11-15T07:32:08.152073768Z [inf]  Communication automation "" (076b3cb7-6f7c-49d6-8491-b7e7716cd62d) - found 15 projects in stage
+2025-11-15T07:32:08.152091631Z [inf]  Processing questionnaire assignment for SMS LogTest (automation: )
+2025-11-15T07:32:08.152120967Z [inf]  Communication automation "" (076b3cb7-6f7c-49d6-8491-b7e7716cd62d) - found 15 projects in stage
+2025-11-15T07:32:08.152142898Z [inf]  Communication automation "wddwdwd" (f7cdd380-3e0b-4aa9-b5ec-eb2b5fa1e70b) - found 15 projects in stage
+2025-11-15T07:32:08.152149889Z [inf]  Processing automation:  (type: COMMUNICATION)
+2025-11-15T07:32:08.152177144Z [inf]  Processing questionnaire assignment for SMS LogTest (automation: )
+2025-11-15T07:32:08.152183398Z [inf]  🚫 Questionnaire already assigned to SMS LogTest for this template
+2025-11-15T07:32:08.152190787Z [inf]  Processing questionnaire assignment for E2E TestUser (automation: )
+2025-11-15T07:32:08.152196468Z [inf]  🚫 Questionnaire already assigned to SMS LogTest for this template
+2025-11-15T07:32:08.152201866Z [inf]  Processing questionnaire assignment for E2E TestUser (automation: )
+2025-11-15T07:32:08.152210030Z [inf]  🚫 Questionnaire already assigned to E2E TestUser for this template
+2025-11-15T07:32:08.152215768Z [inf]  Processing questionnaire assignment for Final Test (automation: )
+2025-11-15T07:32:08.152235472Z [inf]  🚫 Questionnaire already assigned to E2E TestUser for this template
+2025-11-15T07:32:08.152240867Z [inf]  Processing questionnaire assignment for Final Test (automation: )
+2025-11-15T07:32:08.152247164Z [inf]  🚫 Questionnaire already assigned to Final Test for this template
+2025-11-15T07:32:08.152252994Z [inf]  Processing questionnaire assignment for Debug SMS (automation: )
+2025-11-15T07:32:08.214429196Z [inf]  🚫 Questionnaire already assigned to Final Test for this template
+2025-11-15T07:32:08.214435056Z [inf]  Processing questionnaire assignment for Debug SMS (automation: )
+2025-11-15T07:32:08.251907783Z [inf]  🚫 Questionnaire already assigned to Debug SMS for this template
+2025-11-15T07:32:08.251914286Z [inf]  Processing questionnaire assignment for SMS Test2 (automation: )
+2025-11-15T07:32:08.320295449Z [inf]  🚫 Questionnaire already assigned to Debug SMS for this template
+2025-11-15T07:32:08.320300109Z [inf]  Processing questionnaire assignment for SMS Test2 (automation: )
+2025-11-15T07:32:08.361027828Z [inf]  🚫 Questionnaire already assigned to SMS Test2 for this template
+2025-11-15T07:32:08.361039781Z [inf]  Processing questionnaire assignment for Test SMSUser (automation: )
+2025-11-15T07:32:08.427576108Z [inf]  🚫 Questionnaire already assigned to SMS Test2 for this template
+2025-11-15T07:32:08.427585705Z [inf]  Processing questionnaire assignment for Test SMSUser (automation: )
+2025-11-15T07:32:08.458125070Z [inf]  🚫 Questionnaire already assigned to Test SMSUser for this template
+2025-11-15T07:32:08.458141017Z [inf]  Processing questionnaire assignment for Austin Pacholek (automation: )
+2025-11-15T07:32:08.547158063Z [inf]  🚫 Questionnaire already assigned to Test SMSUser for this template
+2025-11-15T07:32:08.547171470Z [inf]  Processing questionnaire assignment for Austin Pacholek (automation: )
+2025-11-15T07:32:08.581128669Z [inf]  🚫 Questionnaire already assigned to Austin Pacholek for this template
+2025-11-15T07:32:08.581141877Z [inf]  Processing questionnaire assignment for Test SMS User (automation: )
+2025-11-15T07:32:08.642435344Z [inf]  🚫 Questionnaire already assigned to Austin Pacholek for this template
+2025-11-15T07:32:08.642441725Z [inf]  Processing questionnaire assignment for Test SMS User (automation: )
+2025-11-15T07:32:09.240913352Z [inf]  🚫 Questionnaire already assigned to Test SMS User for this template
+2025-11-15T07:32:09.240919612Z [inf]  Processing questionnaire assignment for tim Pacholek (automation: )
+2025-11-15T07:32:09.240926375Z [inf]  🚫 Questionnaire already assigned to Test SMS User for this template
+2025-11-15T07:32:09.240932796Z [inf]  Processing questionnaire assignment for tim Pacholek (automation: )
+2025-11-15T07:32:09.240938825Z [inf]  🚫 Questionnaire already assigned to tim Pacholek for this template
+2025-11-15T07:32:09.240946043Z [inf]  Processing questionnaire assignment for tim Pacholek (automation: )
+2025-11-15T07:32:09.240952788Z [inf]  🚫 Questionnaire already assigned to tim Pacholek for this template
+2025-11-15T07:32:09.240959300Z [inf]  Processing questionnaire assignment for tim Pacholek (automation: )
+2025-11-15T07:32:09.240966342Z [inf]  🚫 Questionnaire already assigned to tim Pacholek for this template
+2025-11-15T07:32:09.240972910Z [inf]  Processing questionnaire assignment for Test User (automation: )
+2025-11-15T07:32:09.240979591Z [inf]  🚫 Questionnaire already assigned to tim Pacholek for this template
+2025-11-15T07:32:09.240985861Z [inf]  Processing questionnaire assignment for Test User (automation: )
+2025-11-15T07:32:09.240992879Z [inf]  🚫 Questionnaire already assigned to Test User for this template
+2025-11-15T07:32:09.240999275Z [inf]  Processing questionnaire assignment for tim sheeny (automation: )
+2025-11-15T07:32:09.241007108Z [inf]  🚫 Questionnaire already assigned to Test User for this template
+2025-11-15T07:32:09.241013530Z [inf]  Processing questionnaire assignment for tim sheeny (automation: )
+2025-11-15T07:32:09.241020427Z [inf]  🚫 Questionnaire already assigned to tim sheeny for this template
+2025-11-15T07:32:09.241026473Z [inf]  Processing questionnaire assignment for sheen peeen (automation: )
+2025-11-15T07:32:09.241032742Z [inf]  ❌ No stageEnteredAt date for project e278ed96-4ed0-416a-9f07-678b171b14a7, skipping questionnaire assignment
+2025-11-15T07:32:09.241284716Z [inf]  Processing questionnaire assignment for tim  peen (automation: )
+2025-11-15T07:32:09.241290969Z [inf]  🚫 Questionnaire already assigned to tim sheeny for this template
+2025-11-15T07:32:09.241315645Z [inf]  Processing questionnaire assignment for sheen peeen (automation: )
+2025-11-15T07:32:09.241323748Z [inf]  ❌ No stageEnteredAt date for project e278ed96-4ed0-416a-9f07-678b171b14a7, skipping questionnaire assignment
+2025-11-15T07:32:09.241330615Z [inf]  Processing questionnaire assignment for tim  peen (automation: )
+2025-11-15T07:32:09.241336997Z [inf]  🚫 Questionnaire already assigned to tim  peen for this template
+2025-11-15T07:32:09.241347395Z [inf]  Processing questionnaire assignment for John Doe (automation: )
+2025-11-15T07:32:09.281798783Z [inf]  🚫 Questionnaire already assigned to tim  peen for this template
+2025-11-15T07:32:09.281806728Z [inf]  Processing questionnaire assignment for John Doe (automation: )
+2025-11-15T07:32:09.287823832Z [inf]  🚫 Questionnaire already assigned to John Doe for this template
+2025-11-15T07:32:09.287833115Z [inf]  Processing automation: grgrg (type: COMMUNICATION)
+2025-11-15T07:32:09.396378336Z [inf]  🚫 Questionnaire already assigned to John Doe for this template
+2025-11-15T07:32:09.396392767Z [inf]  Processing automation: grgrg (type: COMMUNICATION)
+2025-11-15T07:32:09.506375023Z [inf]  Communication automation "grgrg" (af2915e9-a9ac-4471-98e2-cc1a08aec8ee) - found 15 projects in stage
+2025-11-15T07:32:09.506382405Z [inf]  Processing questionnaire assignment for SMS LogTest (automation: grgrg)
+2025-11-15T07:32:09.608158393Z [inf]  Communication automation "grgrg" (af2915e9-a9ac-4471-98e2-cc1a08aec8ee) - found 15 projects in stage
+2025-11-15T07:32:09.608174405Z [inf]  Processing questionnaire assignment for SMS LogTest (automation: grgrg)
+2025-11-15T07:32:09.622838734Z [inf]  🚫 Questionnaire already assigned to SMS LogTest for this template
+2025-11-15T07:32:09.622842521Z [inf]  Processing questionnaire assignment for E2E TestUser (automation: grgrg)
+2025-11-15T07:32:10.236312440Z [inf]  Processing questionnaire assignment for Austin Pacholek (automation: grgrg)
+2025-11-15T07:32:10.236577895Z [inf]  🚫 Questionnaire already assigned to SMS LogTest for this template
+2025-11-15T07:32:10.236595586Z [inf]  Processing questionnaire assignment for E2E TestUser (automation: grgrg)
+2025-11-15T07:32:10.236602359Z [inf]  🚫 Questionnaire already assigned to E2E TestUser for this template
+2025-11-15T07:32:10.236609732Z [inf]  Processing questionnaire assignment for Final Test (automation: grgrg)
+2025-11-15T07:32:10.236615464Z [inf]  🚫 Questionnaire already assigned to E2E TestUser for this template
+2025-11-15T07:32:10.236622219Z [inf]  Processing questionnaire assignment for Final Test (automation: grgrg)
+2025-11-15T07:32:10.236628505Z [inf]  🚫 Questionnaire already assigned to Final Test for this template
+2025-11-15T07:32:10.236637313Z [inf]  Processing questionnaire assignment for Debug SMS (automation: grgrg)
+2025-11-15T07:32:10.236643450Z [inf]  🚫 Questionnaire already assigned to Final Test for this template
+2025-11-15T07:32:10.236650469Z [inf]  Processing questionnaire assignment for Debug SMS (automation: grgrg)
+2025-11-15T07:32:10.236656296Z [inf]  🚫 Questionnaire already assigned to Debug SMS for this template
+2025-11-15T07:32:10.236669775Z [inf]  Processing questionnaire assignment for SMS Test2 (automation: grgrg)
+2025-11-15T07:32:10.236677923Z [inf]  🚫 Questionnaire already assigned to Debug SMS for this template
+2025-11-15T07:32:10.236683850Z [inf]  Processing questionnaire assignment for SMS Test2 (automation: grgrg)
+2025-11-15T07:32:10.236691105Z [inf]  🚫 Questionnaire already assigned to SMS Test2 for this template
+2025-11-15T07:32:10.236713322Z [inf]  Processing questionnaire assignment for Test SMSUser (automation: grgrg)
+2025-11-15T07:32:10.236720091Z [inf]  🚫 Questionnaire already assigned to SMS Test2 for this template
+2025-11-15T07:32:10.236726762Z [inf]  Processing questionnaire assignment for Test SMSUser (automation: grgrg)
+2025-11-15T07:32:10.236732340Z [inf]  🚫 Questionnaire already assigned to Test SMSUser for this template
+2025-11-15T07:32:10.250803116Z [inf]  🚫 Questionnaire already assigned to Test SMSUser for this template
+2025-11-15T07:32:10.250814216Z [inf]  Processing questionnaire assignment for Austin Pacholek (automation: grgrg)
+2025-11-15T07:32:10.285525402Z [inf]  🚫 Questionnaire already assigned to Austin Pacholek for this template
+2025-11-15T07:32:10.285530158Z [inf]  Processing questionnaire assignment for Test SMS User (automation: grgrg)
+2025-11-15T07:32:10.362269738Z [inf]  🚫 Questionnaire already assigned to Austin Pacholek for this template
+2025-11-15T07:32:10.362280176Z [inf]  Processing questionnaire assignment for Test SMS User (automation: grgrg)
+2025-11-15T07:32:10.393123434Z [inf]  🚫 Questionnaire already assigned to Test SMS User for this template
+2025-11-15T07:32:10.393127644Z [inf]  Processing questionnaire assignment for tim Pacholek (automation: grgrg)
+2025-11-15T07:32:10.471082635Z [inf]  🚫 Questionnaire already assigned to Test SMS User for this template
+2025-11-15T07:32:10.471181175Z [inf]  Processing questionnaire assignment for tim Pacholek (automation: grgrg)
+2025-11-15T07:32:10.512453047Z [inf]  🚫 Questionnaire already assigned to tim Pacholek for this template
+2025-11-15T07:32:10.512463841Z [inf]  Processing questionnaire assignment for tim Pacholek (automation: grgrg)
+2025-11-15T07:32:10.571574608Z [inf]  🚫 Questionnaire already assigned to tim Pacholek for this template
+2025-11-15T07:32:10.571581570Z [inf]  Processing questionnaire assignment for tim Pacholek (automation: grgrg)
+2025-11-15T07:32:10.636301057Z [inf]  🚫 Questionnaire already assigned to tim Pacholek for this template
+2025-11-15T07:32:10.636306722Z [inf]  Processing questionnaire assignment for Test User (automation: grgrg)
+2025-11-15T07:32:11.252677123Z [inf]  Processing questionnaire assignment for tim  peen (automation: grgrg)
+2025-11-15T07:32:11.252689099Z [inf]  🚫 Questionnaire already assigned to tim  peen for this template
+2025-11-15T07:32:11.252696927Z [inf]  Processing questionnaire assignment for John Doe (automation: grgrg)
+2025-11-15T07:32:11.252703937Z [inf]  🚫 Questionnaire already assigned to tim  peen for this template
+2025-11-15T07:32:11.252711200Z [inf]  Processing questionnaire assignment for John Doe (automation: grgrg)
+2025-11-15T07:32:11.252726932Z [inf]  ❌ No stageEnteredAt date for project e278ed96-4ed0-416a-9f07-678b171b14a7, skipping questionnaire assignment
+2025-11-15T07:32:11.252740075Z [inf]  Processing questionnaire assignment for Test User (automation: grgrg)
+2025-11-15T07:32:11.252740508Z [inf]  Processing questionnaire assignment for tim  peen (automation: grgrg)
+2025-11-15T07:32:11.252748747Z [inf]  🚫 Questionnaire already assigned to tim sheeny for this template
+2025-11-15T07:32:11.252754822Z [inf]  🚫 Questionnaire already assigned to Test User for this template
+2025-11-15T07:32:11.252757962Z [inf]  Processing questionnaire assignment for sheen peeen (automation: grgrg)
+2025-11-15T07:32:11.252764402Z [inf]  Processing questionnaire assignment for tim sheeny (automation: grgrg)
+2025-11-15T07:32:11.252765437Z [inf]  ❌ No stageEnteredAt date for project e278ed96-4ed0-416a-9f07-678b171b14a7, skipping questionnaire assignment
+2025-11-15T07:32:11.252777038Z [inf]  🚫 Questionnaire already assigned to tim Pacholek for this template
+2025-11-15T07:32:11.252783077Z [inf]  🚫 Questionnaire already assigned to Test User for this template
+2025-11-15T07:32:11.252790525Z [inf]  Processing questionnaire assignment for tim sheeny (automation: grgrg)
+2025-11-15T07:32:11.252796557Z [inf]  🚫 Questionnaire already assigned to tim sheeny for this template
+2025-11-15T07:32:11.252802105Z [inf]  Processing questionnaire assignment for sheen peeen (automation: grgrg)
+2025-11-15T07:32:11.257218288Z [inf]  🚫 Questionnaire already assigned to John Doe for this template
+2025-11-15T07:32:11.257225850Z [inf]  Processing automation: grgrg (type: COMMUNICATION)
+2025-11-15T07:32:11.257231952Z [inf]  🚫 Questionnaire already assigned to John Doe for this template
+2025-11-15T07:32:11.257238377Z [inf]  Processing automation: grgrg (type: COMMUNICATION)
+2025-11-15T07:32:11.318082375Z [inf]  Communication automation "grgrg" (9ff7ab5e-892f-4b34-99f8-e81004a871a5) - found 15 projects in stage
+2025-11-15T07:32:11.318087078Z [inf]  Processing automation: grgrg (type: COMMUNICATION)
+2025-11-15T07:32:11.361783963Z [inf]  Communication automation "grgrg" (9ff7ab5e-892f-4b34-99f8-e81004a871a5) - found 15 projects in stage
+2025-11-15T07:32:11.361790149Z [inf]  Processing automation: grgrg (type: COMMUNICATION)
+2025-11-15T07:32:11.534227132Z [inf]  Communication automation "grgrg" (bcee55b7-3461-4d04-b18d-d901dddafa16) - found 15 projects in stage
+2025-11-15T07:32:11.605021298Z [inf]  Communication automation "grgrg" (bcee55b7-3461-4d04-b18d-d901dddafa16) - found 15 projects in stage
+2025-11-15T07:32:31.605982205Z [inf]  📥 INCOMING REQUEST: GET /api/portal/5ef91d4f39bdae39b250a328f1fa998f449d174aeed6f880d7067c539d6dfad5
+2025-11-15T07:32:31.605997014Z [inf]     Headers: undefined
+2025-11-15T07:32:31.606006873Z [inf]  🌐 Domain detection: abbiestreet.tpcportal.co
+2025-11-15T07:32:31.606014346Z [inf]    → Client portal subdomain detected: abbiestreet
+2025-11-15T07:32:31.606022453Z [inf]  🔍 Looking up photographer by slug: abbiestreet for API route: /api/portal/5ef91d4f39bdae39b250a328f1fa998f449d174aeed6f880d7067c539d6dfad5
+2025-11-15T07:32:31.606030879Z [inf]  ✅ Found photographer: Austin Street Photo (ID: c915adf1-020f-4ac0-951b-f726738447f2)
+2025-11-15T07:32:31.606037691Z [inf]  🔑 Portal token validation request for token: 5ef91d4f39...
+2025-11-15T07:32:31.606044645Z [inf]  ✅ Portal token validated successfully for project: null
+2025-11-15T07:32:31.606052121Z [inf]  🍪 Setting CLIENT cookie with domain: .tpcportal.co for abbiestreet.tpcportal.co
+2025-11-15T07:32:31.606061059Z [inf]  🍪 Auth cookie set for user: austinpacholek2014@gmail.com
+2025-11-15T07:32:31.606068277Z [inf]  ✅ Portal validation complete, redirecting to: https://abbiestreet.tpcportal.co/
+2025-11-15T07:32:31.606076134Z [inf]  7:32:27 AM [express] GET /api/portal/5ef91d4f39bdae39b250a328f1fa998f449d174aeed6f880d7067c539d6dfad…
+2025-11-15T07:32:31.606082455Z [inf]  📥 INCOMING REQUEST: GET /
+2025-11-15T07:32:31.606090671Z [inf]     Headers: undefined
+2025-11-15T07:32:31.606098005Z [inf]  🌐 Domain detection: abbiestreet.tpcportal.co
+2025-11-15T07:32:31.606105880Z [inf]    → Client portal subdomain detected: abbiestreet
+2025-11-15T07:32:31.606112961Z [inf]    → Skipping photographer lookup for frontend route: /
+2025-11-15T07:32:31.606121830Z [inf]  ✅ Valid photographer subdomain: abbiestreet (Austin Street Photo) - injecting branded meta tags
+2025-11-15T07:32:31.606129400Z [inf]  📥 INCOMING REQUEST: GET /assets/index-BX8c74U8.js
+2025-11-15T07:32:31.607817970Z [inf]    → Client portal subdomain detected: abbiestreet
+2025-11-15T07:32:31.607818287Z [inf]     Headers: undefined
+2025-11-15T07:32:31.607828917Z [inf]  🌐 Domain detection: abbiestreet.tpcportal.co
+2025-11-15T07:32:31.607834705Z [inf]  🔍 Looking up photographer by slug: abbiestreet for API route: /api/auth/me
+2025-11-15T07:32:31.607836431Z [inf]    → Client portal subdomain detected: abbiestreet
+2025-11-15T07:32:31.607844476Z [inf]  📥 INCOMING REQUEST: GET /api/domain
+2025-11-15T07:32:31.607845494Z [inf]    → Skipping photographer lookup for frontend route: /assets/index-BX8c74U8.js
+2025-11-15T07:32:31.607851210Z [inf]     Headers: undefined
+2025-11-15T07:32:31.607852747Z [inf]  📥 INCOMING REQUEST: GET /assets/index-Bt_GAwTp.css
+2025-11-15T07:32:31.607857857Z [inf]  🌐 Domain detection: abbiestreet.tpcportal.co
+2025-11-15T07:32:31.607861052Z [inf]     Headers: undefined
+2025-11-15T07:32:31.607865488Z [inf]    → Client portal subdomain detected: abbiestreet
+2025-11-15T07:32:31.607868581Z [inf]  🌐 Domain detection: abbiestreet.tpcportal.co
+2025-11-15T07:32:31.607871546Z [inf]  🔍 Looking up photographer by slug: abbiestreet for API route: /api/domain
+2025-11-15T07:32:31.607875756Z [inf]    → Client portal subdomain detected: abbiestreet
+2025-11-15T07:32:31.607878857Z [inf]  ✅ Found photographer: Austin Street Photo (ID: c915adf1-020f-4ac0-951b-f726738447f2)
+2025-11-15T07:32:31.607883845Z [inf]    → Skipping photographer lookup for frontend route: /assets/index-Bt_GAwTp.css
+2025-11-15T07:32:31.607884645Z [inf]  === AUTHENTICATE TOKEN MIDDLEWARE ===
+2025-11-15T07:32:31.607890744Z [inf]  Request URL: /api/auth/me
+2025-11-15T07:32:31.607892211Z [inf]  📥 INCOMING REQUEST: GET /api/auth/me
+2025-11-15T07:32:31.607898693Z [inf]     Headers: undefined
+2025-11-15T07:32:31.607904583Z [inf]  🌐 Domain detection: abbiestreet.tpcportal.co
+2025-11-15T07:32:31.609220508Z [inf]  Auth source: client
+2025-11-15T07:32:31.609221386Z [inf]  Has cookies object: true
+2025-11-15T07:32:31.609231607Z [inf]  Token payload: true
+2025-11-15T07:32:31.609232107Z [inf]  All cookies: {"__stripe_mid":"0cbf734c-377c-44e4-9574-7d77812ce5904df2cb","__stripe_sid":"9a43d0fb-302b-437b-b695-fe529e37253f074fd5","client_token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIzMTFkZDQyZi01NmZmLTQyNjQtOTU5ZS0wNzIxYzVkMWQ3NzAiLCJlbWFpbCI6ImF1c3RpbnBhY2hvbGVrMjAxNEBnbWFpbC5jb20iLCJyb2xlIjoiUEhPVE9HUkFQSEVSIiwicGhvdG9ncmFwaGVySWQiOiJjOTE1YWRmMS0wMjBmLTRhYzAtOTUxYi1mNzI2NzM4NDQ3ZjIiLCJpYXQiOjE3NjMxOTE5NDcsImV4cCI6MTc2Mzc5Njc0N30.WTPE-IP3opVH87MpcbBGZxhJUond6NKYx-qby-flviE"}
+2025-11-15T07:32:31.609240624Z [inf]  Authentication successful, continuing to route
+2025-11-15T07:32:31.609240912Z [inf]  Cookie header: __stripe_mid=0cbf734c-377c-44e4-9574-7d77812ce5904df2cb; __stripe_sid=9a43d0fb-302b-437b-b695-fe529e37253f074fd5; client_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIzMTFkZDQyZi01NmZmLTQyNjQtOTU5ZS0wNzIxYzVkMWQ3NzAiLCJlbWFpbCI6ImF1c3RpbnBhY2hvbGVrMjAxNEBnbWFpbC5jb20iLCJyb2xlIjoiUEhPVE9HUkFQSEVSIiwicGhvdG9ncmFwaGVySWQiOiJjOTE1YWRmMS0wMjBmLTRhYzAtOTUxYi1mNzI2NzM4NDQ3ZjIiLCJpYXQiOjE3NjMxOTE5NDcsImV4cCI6MTc2Mzc5Njc0N30.WTPE-IP3opVH87MpcbBGZxhJUond6NKYx-qby-flviE
+2025-11-15T07:32:31.609248004Z [inf]  Has Authorization header: false
+2025-11-15T07:32:31.609249607Z [inf]  7:32:28 AM [express] GET /api/auth/me 200 in 319ms :: {"id":"311dd42f-56ff-4264-959e-0721c5d1d770","…
+2025-11-15T07:32:31.609253963Z [inf]  Origin: undefined
+2025-11-15T07:32:31.609257643Z [inf]  ✅ Found photographer: Austin Street Photo (ID: c915adf1-020f-4ac0-951b-f726738447f2)
+2025-11-15T07:32:31.609260590Z [inf]  Host: abbiestreet.tpcportal.co
+2025-11-15T07:32:31.609265272Z [inf]  Token from cookie: client
+2025-11-15T07:32:31.609271557Z [inf]  Token exists: true
+2025-11-15T07:32:31.609287895Z [inf]  Request method: GET
+2025-11-15T07:32:31.610879613Z [inf]  7:32:29 AM [express] GET /api/domain 304 in 656ms :: {"type":"client_portal","photographerSlug":"abb…
+2025-11-15T07:32:31.610886922Z [inf]  📥 INCOMING REQUEST: GET /attached_assets/logos/logo-1763154105985-963332433.png
+2025-11-15T07:32:31.610893558Z [inf]     Headers: undefined
+2025-11-15T07:32:31.610899881Z [inf]  🌐 Domain detection: abbiestreet.tpcportal.co
+2025-11-15T07:32:31.610906729Z [inf]    → Client portal subdomain detected: abbiestreet
+2025-11-15T07:32:31.610913087Z [inf]    → Skipping photographer lookup for frontend route: /attached_assets/logos/logo-1763154105985-963332433.png
+2025-11-15T07:32:31.610919917Z [inf]  📥 INCOMING REQUEST: GET /api/inbox/unread-count
+2025-11-15T07:32:31.610926989Z [inf]     Headers: undefined
+2025-11-15T07:32:31.610933109Z [inf]  🌐 Domain detection: thephotocrm.com
+2025-11-15T07:32:31.610941962Z [inf]    → Photographer domain detected
+2025-11-15T07:32:31.610948210Z [inf]  === AUTHENTICATE TOKEN MIDDLEWARE ===
+2025-11-15T07:32:31.610955446Z [inf]  Request URL: /api/inbox/unread-count
+2025-11-15T07:32:31.610962050Z [inf]  Request method: GET
+2025-11-15T07:32:31.610972491Z [inf]  Has cookies object: true
+2025-11-15T07:32:31.610978701Z [inf]  All cookies: {"_tccl_visitor":"99061ad6-bf98-487e-95a3-fdb77b0af020","__stripe_mid":"71f1b5ec-936c-4306-b459-16548e562479670a1b","photographer_token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIzMTFkZDQyZi01NmZmLTQyNjQtOTU5ZS0wNzIxYzVkMWQ3NzAiLCJyb2xlIjoiUEhPVE9HUkFQSEVSIiwicGhvdG9ncmFwaGVySWQiOiJjOTE1YWRmMS0wMjBmLTRhYzAtOTUxYi1mNzI2NzM4NDQ3ZjIiLCJpYXQiOjE3NjMwOTI0MTEsImV4cCI6MTc2MzY5NzIxMX0.jUzXryzYA1hmhEp91Ao5Buht7hFxcU-ygODzwfh2OWE","token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIzMTFkZDQyZi01NmZmLTQyNjQtOTU5ZS0wNzIxYzVkMWQ3NzAiLCJyb2xlIjoiUEhPVE9HUkFQSEVSIiwicGhvdG9ncmFwaGVySWQiOiJjOTE1YWRmMS0wMjBmLTRhYzAtOTUxYi1mNzI2NzM4NDQ3ZjIiLCJpYXQiOjE3NjMwOTI0MTEsImV4cCI6MTc2MzY5NzIxMX0.jUzXryzYA1hmhEp91Ao5Buht7hFxcU-ygODzwfh2OWE"}
+2025-11-15T07:32:31.614004830Z [inf]  Cookie header: _tccl_visitor=99061ad6-bf98-487e-95a3-fdb77b0af020; __stripe_mid=71f1b5ec-936c-4306-b459-16548e562479670a1b; photographer_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIzMTFkZDQyZi01NmZmLTQyNjQtOTU5ZS0wNzIxYzVkMWQ3NzAiLCJyb2xlIjoiUEhPVE9HUkFQSEVSIiwicGhvdG9ncmFwaGVySWQiOiJjOTE1YWRmMS0wMjBmLTRhYzAtOTUxYi1mNzI2NzM4NDQ3ZjIiLCJpYXQiOjE3NjMwOTI0MTEsImV4cCI6MTc2MzY5NzIxMX0.jUzXryzYA1hmhEp91Ao5Buht7hFxcU-ygODzwfh2OWE; token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIzMTFkZDQyZi01NmZmLTQyNjQtOTU5ZS0wNzIxYzVkMWQ3NzAiLCJyb2xlIjoiUEhPVE9HUkFQSEVSIiwicGhvdG9ncmFwaGVySWQiOiJjOTE1YWRmMS0wMjBmLTRhYzAtOTUxYi1mNzI2NzM4NDQ3ZjIiLCJpYXQiOjE3NjMwOTI0MTEsImV4cCI6MTc2MzY5NzIxMX0.jUzXryzYA1hmhEp91Ao5Buht7hFxcU-ygODzwfh2OWE
+2025-11-15T07:32:31.614015259Z [inf]  Has Authorization header: false
+2025-11-15T07:32:31.614022156Z [inf]  Origin: undefined
+2025-11-15T07:32:31.614028368Z [inf]  Host: thephotocrm.com
+2025-11-15T07:32:31.614040844Z [inf]  Token from cookie: photographer
+2025-11-15T07:32:31.614047069Z [inf]  Token exists: true
+2025-11-15T07:32:31.614053236Z [inf]  Auth source: photographer
+2025-11-15T07:32:31.614058841Z [inf]  Token payload: true
+2025-11-15T07:32:31.614063598Z [inf]  Authentication successful, continuing to route
+2025-11-15T07:32:31.614069242Z [inf]  7:32:29 AM [express] GET /api/inbox/unread-count 304 in 417ms :: {"unreadCount":0}
+2025-11-15T07:32:32.461861945Z [inf]  📥 INCOMING REQUEST: GET /assets/index-Bt_GAwTp.css
+2025-11-15T07:32:32.461879496Z [inf]     Headers: undefined
+2025-11-15T07:32:32.461884967Z [inf]  🌐 Domain detection: abbiestreet.tpcportal.co
+2025-11-15T07:32:32.461890860Z [inf]    → Client portal subdomain detected: abbiestreet
+2025-11-15T07:32:32.461904373Z [inf]    → Skipping photographer lookup for frontend route: /assets/index-Bt_GAwTp.css
