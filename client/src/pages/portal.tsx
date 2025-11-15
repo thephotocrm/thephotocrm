@@ -11,6 +11,7 @@ export default function Portal() {
   const { refetchUser } = useAuth();
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
   const [errorMessage, setErrorMessage] = useState("");
+  const [redirectUrl, setRedirectUrl] = useState<string | null>(null);
 
   useEffect(() => {
     const validateToken = async () => {
@@ -53,24 +54,15 @@ export default function Portal() {
         // This prevents race condition where /client-portal loads before auth is updated
         console.log('✅ Magic link validated, refreshing auth state...');
         await refetchUser();
-        console.log('✅ Auth state refreshed, redirecting...');
+        console.log('✅ Auth state refreshed');
 
-        // Redirect based on response type
+        // Determine redirect URL and set state (navigation happens in useEffect)
         if (data.redirect) {
-          // Client portal tokens may include redirect URL
-          setTimeout(() => {
-            navigate(data.redirect);
-          }, 1500);
+          setRedirectUrl(data.redirect);
         } else if (data.projectId) {
-          // Project-specific token
-          setTimeout(() => {
-            navigate(`/client-portal/projects/${data.projectId}`);
-          }, 1500);
+          setRedirectUrl(`/client-portal/projects/${data.projectId}`);
         } else {
-          // Generic client token - go to project selection or overview
-          setTimeout(() => {
-            navigate('/client-portal');
-          }, 1500);
+          setRedirectUrl('/client-portal');
         }
       } catch (error) {
         console.error("Portal token validation error:", error);
@@ -80,7 +72,19 @@ export default function Portal() {
     };
 
     validateToken();
-  }, [token, navigate, refetchUser]);
+  }, [token, refetchUser]);
+
+  // State-driven navigation in useEffect to prevent React error #185
+  useEffect(() => {
+    if (redirectUrl) {
+      console.log('✅ Redirecting to:', redirectUrl);
+      // Delay to show success message briefly
+      const timer = setTimeout(() => {
+        navigate(redirectUrl);
+      }, 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [redirectUrl, navigate]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">

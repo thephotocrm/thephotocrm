@@ -97,6 +97,7 @@ export default function ClientPortal() {
   const [, setLocation] = useLocation();
   const [tokenStatus, setTokenStatus] = useState<"idle" | "validating" | "success" | "error">("idle");
   const [tokenError, setTokenError] = useState("");
+  const [redirectUrl, setRedirectUrl] = useState<string | null>(null);
   const hasValidatedToken = useRef(false);
   const hasRedirectedToLogin = useRef(false);
 
@@ -128,29 +129,26 @@ export default function ClientPortal() {
           // Refresh user auth state first
           await refetchUser();
           
-          // Smart routing based on token type and project count
-          // Use setTimeout to ensure navigation happens after state update
-          setTimeout(() => {
-            if (data.loginMode === 'PROJECT' && data.projectId) {
-              // Project-specific link - go directly to that project
-              console.log("Redirecting to project:", data.projectId);
-              setLocation(`/client-portal/projects/${data.projectId}`);
-            } else if (data.loginMode === 'CLIENT') {
-              // Generic portal link - check project count
-              if (data.projects && data.projects.length === 1) {
-                // Single project - auto-redirect
-                console.log("Single project - auto-redirecting to:", data.projects[0].id);
-                setLocation(`/client-portal/projects/${data.projects[0].id}`);
-              } else if (data.projects && data.projects.length > 1) {
-                // Multiple projects - show selection page
-                console.log("Multiple projects - showing selection");
-                setLocation('/client-portal/select-project');
-              } else {
-                // No projects - stay on main portal
-                console.log("No projects - staying on portal");
-              }
+          // Smart routing based on token type and project count (navigation happens in useEffect)
+          if (data.loginMode === 'PROJECT' && data.projectId) {
+            // Project-specific link - go directly to that project
+            console.log("Will redirect to project:", data.projectId);
+            setRedirectUrl(`/client-portal/projects/${data.projectId}`);
+          } else if (data.loginMode === 'CLIENT') {
+            // Generic portal link - check project count
+            if (data.projects && data.projects.length === 1) {
+              // Single project - auto-redirect
+              console.log("Single project - will auto-redirect to:", data.projects[0].id);
+              setRedirectUrl(`/client-portal/projects/${data.projects[0].id}`);
+            } else if (data.projects && data.projects.length > 1) {
+              // Multiple projects - show selection page
+              console.log("Multiple projects - showing selection");
+              setRedirectUrl('/client-portal/select-project');
+            } else {
+              // No projects - stay on main portal
+              console.log("No projects - staying on portal");
             }
-          }, 100);
+          }
         } catch (error) {
           console.error("Token validation error:", error);
           setTokenStatus("error");
@@ -160,7 +158,17 @@ export default function ClientPortal() {
 
       validateToken();
     }
-  }, [refetchUser, setLocation]);
+  }, [refetchUser]);
+
+  // State-driven navigation in useEffect to prevent React error #185
+  useEffect(() => {
+    if (redirectUrl) {
+      console.log('✅ Redirecting to:', redirectUrl);
+      setLocation(redirectUrl);
+      // Clear redirect URL after navigation
+      setRedirectUrl(null);
+    }
+  }, [redirectUrl, setLocation]);
 
   // Redirect to login if not authenticated (prevent infinite loop with ref guard)
   useEffect(() => {
