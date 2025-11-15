@@ -1,0 +1,98 @@
+Based on the error code, React error #185 typically means **"Cannot update a component while rendering a different component."** This is a common issue when you're causing a state update or navigation during the render phase of a component.
+
+Looking at your App.tsx, I can see a few potential issues:
+
+## Most Likely Culprits:
+
+1. **The `<Redirect>` in ProtectedRoutes** - This redirect happens during render and might be causing the issue if the client portal login screen is somehow triggering the ProtectedRoutes component.
+
+2. **Route matching conflicts** - Your route structure has overlapping paths. Notice that you have:
+   - `/client-portal` as a public route
+   - Then later, all the protected routes that could match
+
+3. **The `useEffect` that opens the onboarding modal** - While less likely, this could be triggering during render in some edge cases.
+
+## Recommended Fixes:
+
+### 1. Fix the Route Order and Matching
+The issue is likely that the client portal routes are somehow matching the protected routes. Try this restructure:
+
+```tsx
+function Router() {
+  const { user } = useAuth();
+
+  return (
+    <Switch>
+      {/* Auth routes - FIRST */}
+      <Route path="/auth/login" component={Login} />
+      <Route path="/auth/register" component={Register} />
+      <Route path="/login" component={Login} />
+      <Route path="/register" component={Register} />
+      <Route path="/forgot-password" component={ForgotPassword} />
+      <Route path="/reset-password" component={ResetPassword} />
+      <Route path="/link-google" component={LinkGoogle} />
+      
+      {/* Public pages - BEFORE protected routes */}
+      <Route path="/checkout">
+        <Suspense fallback={<div className="flex items-center justify-center h-screen">Loading...</div>}>
+          <Checkout />
+        </Suspense>
+      </Route>
+      <Route path="/client-portal/select-project" component={SelectProject} />
+      <Route path="/client-portal/projects/:id" component={ClientPortalProject} />
+      <Route path="/client-portal" component={ClientPortal} />
+      <Route path="/portal/:token" component={Portal} />
+      <Route path="/smart-file/:token/success" component={SmartFileSuccess} />
+      <Route path="/smart-file/:token" component={PublicSmartFile} />
+      <Route path="/public/booking/:token" component={PublicBooking} />
+      <Route path="/booking/calendar/:publicToken" component={PublicBookingCalendar} />
+      <Route path="/public/galleries/:photographerPublicToken" component={PublicGalleries} />
+      <Route path="/client/galleries/:galleryId" component={ClientGalleryView} />
+      <Route path="/booking/confirmation" component={BookingConfirmation} />
+      <Route path="/admin/setup" component={AdminSetup} />
+      <Route path="/lead-form" component={LeadFormDemo} />
+      <Route path="/reviews/submit/:photographerId" component={PublicReviewSubmit} />
+      
+      {/* Protected routes - Use a wildcard matcher */}
+      <Route path="/dashboard" nest><ProtectedRoutes /></Route>
+      <Route path="/admin" nest><ProtectedRoutes /></Route>
+      <Route path="/contacts" nest><ProtectedRoutes /></Route>
+      <Route path="/projects" nest><ProtectedRoutes /></Route>
+      <Route path="/inbox"><ProtectedRoutes /></Route>
+      <Route path="/templates"><ProtectedRoutes /></Route>
+      <Route path="/automations"><ProtectedRoutes /></Route>
+      <Route path="/drip-campaigns"><ProtectedRoutes /></Route>
+      <Route path="/packages"><ProtectedRoutes /></Route>
+      <Route path="/add-ons"><ProtectedRoutes /></Route>
+      <Route path="/smart-files" nest><ProtectedRoutes /></Route>
+      <Route path="/galleries" nest><ProtectedRoutes /></Route>
+      <Route path="/lead-forms" nest><ProtectedRoutes /></Route>
+      <Route path="/widget-generator"><ProtectedRoutes /></Route>
+      <Route path="/questionnaires"><ProtectedRoutes /></Route>
+      <Route path="/scheduling"><ProtectedRoutes /></Route>
+      <Route path="/reports"><ProtectedRoutes /></Route>
+      <Route path="/earnings"><ProtectedRoutes /></Route>
+      <Route path="/lead-hub"><ProtectedRoutes /></Route>
+      <Route path="/budget-estimator"><ProtectedRoutes /></Route>
+      <Route path="/how-it-works"><ProtectedRoutes /></Route>
+      <Route path="/facebook-ads"><ProtectedRoutes /></Route>
+      <Route path="/google-ads"><ProtectedRoutes /></Route>
+      <Route path="/instagram-ads"><ProtectedRoutes /></Route>
+      <Route path="/pinterest-ads"><ProtectedRoutes /></Route>
+      <Route path="/tiktok-ads"><ProtectedRoutes /></Route>
+      <Route path="/settings"><ProtectedRoutes /></Route>
+      <Route path="/tutorials"><ProtectedRoutes /></Route>
+      <Route path="/testimonials"><ProtectedRoutes /></Route>
+      
+      {/* Landing page - LAST */}
+      <Route path="/" component={Landing} />
+    </Switch>
+  );
+}
+```
+
+### 2. Check if ClientPortal Component is Causing Navigation During Render
+
+The client portal login screen might be triggering a redirect or navigation during its render. Can you share the ClientPortal component code? The issue is likely there if it's trying to redirect users during render instead of in a useEffect.
+
+The key insight is that React error #185 means something is calling a state update or navigation function **during the render phase** rather than in an event handler or useEffect. This is usually caused by calling navigate/redirect directly in the component body rather than in a useEffect or event handler.

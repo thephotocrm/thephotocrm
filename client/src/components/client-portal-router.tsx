@@ -1,5 +1,5 @@
-import { ReactNode } from "react";
-import { Switch, Route, Redirect } from "wouter";
+import { ReactNode, useEffect, useRef } from "react";
+import { Switch, Route, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import ClientPortal from "@/pages/client-portal";
 import ClientPortalProject from "@/pages/client-portal-project";
@@ -18,6 +18,16 @@ import NotFound from "@/pages/not-found";
 
 function ClientPortalGuard({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth();
+  const [, setLocation] = useLocation();
+  const hasRedirected = useRef(false);
+
+  // Use useEffect for redirect to prevent React error #185
+  useEffect(() => {
+    if (!loading && (!user || user.role !== 'CLIENT') && !hasRedirected.current) {
+      hasRedirected.current = true;
+      setLocation("/login");
+    }
+  }, [loading, user, setLocation]);
 
   if (loading) {
     return (
@@ -28,7 +38,11 @@ function ClientPortalGuard({ children }: { children: ReactNode }) {
   }
 
   if (!user || user.role !== 'CLIENT') {
-    return <Redirect to="/login" />;
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-lg">Redirecting...</div>
+      </div>
+    );
   }
 
   return <>{children}</>;

@@ -1,4 +1,5 @@
 import { useDomain } from "@/hooks/use-domain";
+import { useAuth } from "@/hooks/use-auth";
 import { useLocation } from "wouter";
 import InvalidPortal from "@/pages/invalid-portal";
 import { ReactNode, useEffect } from "react";
@@ -11,14 +12,23 @@ interface DomainRouterProps {
 export function DomainRouter({ children }: DomainRouterProps) {
   // CRITICAL: All hooks must be called BEFORE any conditional returns (React rules of hooks)
   const { domain, isLoading } = useDomain();
+  const { user, loading: authLoading } = useAuth();
   const [location, setLocation] = useLocation();
 
-  // Redirect logic - always call the effect, gate logic inside
+  // Redirect root path to appropriate landing page
   useEffect(() => {
     if (domain?.type === 'client_portal' && domain.isCustomSubdomain && location === '/') {
-      setLocation('/client-portal');
+      // Wait for auth to load before making any decisions
+      if (authLoading) return;
+      
+      // Redirect to client portal or login based on auth status
+      if (user) {
+        setLocation('/client-portal');
+      } else {
+        setLocation('/login');
+      }
     }
-  }, [domain, location, setLocation]);
+  }, [domain, location, setLocation, user, authLoading]);
 
   // NOW safe to do conditional returns - all hooks have been called
   if (isLoading) {
