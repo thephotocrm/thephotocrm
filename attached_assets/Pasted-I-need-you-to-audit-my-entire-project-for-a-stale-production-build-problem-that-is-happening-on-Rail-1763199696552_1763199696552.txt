@@ -1,0 +1,43 @@
+I need you to audit my entire project for a stale-production-build problem that is happening on Railway.
+
+Here’s the situation I need you to investigate deeply:
+
+1. Railway keeps serving an old JS bundle (index-BX8c74U8.js) on my custom domain (*.tpcportal.co), even though my latest code should produce a new hashed bundle.
+
+2. I need you to find out whether:
+   - I accidentally committed a dist/ or build/ or server/public/ folder to git
+   - My build command is outputting to the wrong place
+   - Vite is not generating new content hashes
+   - The server is serving stale files from a folder I’m unaware of
+   - There are old assets sitting inside server/public or another static directory
+   - The Express static path is pointing somewhere unexpected
+
+3. Inspect:
+   - vite.config.*
+   - server/index.ts
+   - server/vite.ts
+   - Any file that defines static or public paths
+   - My build command and package.json scripts
+   - The folder structure inside my repo
+
+4. After reviewing everything, tell me:
+   - Where the stale JS file might be lingering
+   - Whether my repo is storing old build artifacts
+   - Whether my Vite hash output is configured correctly
+   - Whether Express is serving files from the location Railway deploys
+   - Whether anything about my config would prevent Vite from generating new hashes
+
+5. Then propose a **fix plan** that guarantees:
+   - Vite always generates a new hashed bundle on every deploy
+   - No stale assets exist in the repo or deployment output
+   - Express always serves only fresh assets
+   - Cache-busting works correctly in production
+   - No leftover folders or files can cause Railway to keep serving old bundles
+
+6. Also generate:
+   - A correct .gitignore for a Vite + Node + Express monorepo
+   - A correct build → serve pipeline
+   - Any changes needed to vite.config to ensure strong hashing
+   - Any improvements to server/static config to prevent accidental serving of old files
+
+This is a **critical production issue**, so be extremely thorough. Search the entire repo and identify every possible path where stale files might survive a rebuild. 
