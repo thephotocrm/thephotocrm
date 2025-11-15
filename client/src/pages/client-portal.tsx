@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { useLocation } from "wouter";
@@ -97,13 +97,15 @@ export default function ClientPortal() {
   const [, setLocation] = useLocation();
   const [tokenStatus, setTokenStatus] = useState<"idle" | "validating" | "success" | "error">("idle");
   const [tokenError, setTokenError] = useState("");
+  const hasValidatedToken = useRef(false);
 
   // Check for magic link token in URL
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const token = params.get('token');
 
-    if (token && !user) {
+    if (token && !hasValidatedToken.current) {
+      hasValidatedToken.current = true;
       const validateToken = async () => {
         setTokenStatus("validating");
         try {
@@ -160,7 +162,7 @@ export default function ClientPortal() {
 
       validateToken();
     }
-  }, [user, refetchUser, setLocation]);
+  }, [refetchUser, setLocation]);
 
   // Fetch client portal data from API
   const { data: portalData, isLoading: portalLoading } = useQuery<ClientPortalData>({
