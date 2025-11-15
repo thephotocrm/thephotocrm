@@ -2771,6 +2771,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete("/api/contacts/:id", authenticateToken, requirePhotographer, requireActiveSubscription, async (req, res) => {
     try {
       console.log('[DELETE CONTACT] Step 1: About to call storage.getContact with ID:', req.params.id);
+      
+      // Check for admin force deletion
+      const forceDelete = req.query.force === 'true';
+      const isAdmin = req.user!.role === 'ADMIN';
+      
+      if (forceDelete && !isAdmin) {
+        return res.status(403).json({ message: "Only administrators can force delete contacts" });
+      }
+      
       // Verify contact belongs to this photographer
       const existingContact = await storage.getContact(req.params.id);
       console.log('[DELETE CONTACT] Step 1.5: Got contact:', existingContact ? 'exists' : 'not found');
@@ -2807,8 +2816,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log('[DELETE CONTACT] Financial check - SmartFiles:', hasSmartFiles, 'Payments:', hasPayments);
       
-      // Prevent deletion if there's financial activity
-      if (hasSmartFiles || hasPayments) {
+      // Prevent deletion if there's financial activity (unless admin force delete)
+      if ((hasSmartFiles || hasPayments) && !forceDelete) {
         return res.status(400).json({ 
           message: "Cannot delete contact with Smart Files or payment history. Please archive this contact instead to maintain financial records.",
           canArchive: true,
@@ -2817,13 +2826,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
+      if (forceDelete && isAdmin) {
+        console.log('[DELETE CONTACT] ADMIN FORCE DELETE - Bypassing financial checks');
+      }
+      
       console.log('[DELETE CONTACT] Step 5: Deleting contact via storage');
-      // Safe to delete - no financial records
+      // Safe to delete - no financial records or admin override
       await storage.deleteContact(req.params.id);
       
       res.json({ 
-        message: "Contact and all related data deleted successfully",
-        deletedContactId: req.params.id
+        message: forceDelete ? "Contact force deleted by admin - all related data removed" : "Contact and all related data deleted successfully",
+        deletedContactId: req.params.id,
+        forceDeleted: forceDelete
       });
     } catch (error) {
       console.error('Delete contact error:', error);
@@ -5034,6 +5048,14 @@ ${photographer?.businessName || 'Your Photography Team'}`;
   app.delete("/api/projects/:projectId/smart-files/:projectSmartFileId", authenticateToken, requirePhotographer, async (req, res) => {
     try {
       const { projectId, projectSmartFileId } = req.params;
+      
+      // Check for admin force deletion
+      const forceDelete = req.query.force === 'true';
+      const isAdmin = req.user!.role === 'ADMIN';
+      
+      if (forceDelete && !isAdmin) {
+        return res.status(403).json({ message: "Only administrators can force delete Smart Files" });
+      }
 
       // Verify project ownership
       const project = await storage.getProject(projectId);
@@ -5052,25 +5074,34 @@ ${photographer?.businessName || 'Your Photography Team'}`;
         return res.status(404).json({ message: "Smart File not found for this project" });
       }
 
-      // Prevent deletion if payments have been made or contract has been signed
-      if (projectSmartFile.status === 'DEPOSIT_PAID' || projectSmartFile.status === 'PAID') {
-        return res.status(400).json({ 
-          message: "Cannot delete Smart File with payment received. This is a legally binding contract.",
-          code: "HAS_PAYMENT"
-        });
-      }
+      // Prevent deletion if payments have been made or contract has been signed (unless admin force delete)
+      if (!forceDelete) {
+        if (projectSmartFile.status === 'DEPOSIT_PAID' || projectSmartFile.status === 'PAID') {
+          return res.status(400).json({ 
+            message: "Cannot delete Smart File with payment received. This is a legally binding contract.",
+            code: "HAS_PAYMENT"
+          });
+        }
 
-      if (projectSmartFile.clientSignatureUrl || projectSmartFile.photographerSignatureUrl) {
-        return res.status(400).json({ 
-          message: "Cannot delete signed contract. This is a legally binding document.",
-          code: "HAS_SIGNATURE"
-        });
+        if (projectSmartFile.clientSignatureUrl || projectSmartFile.photographerSignatureUrl) {
+          return res.status(400).json({ 
+            message: "Cannot delete signed contract. This is a legally binding document.",
+            code: "HAS_SIGNATURE"
+          });
+        }
+      }
+      
+      if (forceDelete && isAdmin) {
+        console.log('[ADMIN FORCE DELETE] Deleting Smart File despite payment/signature:', projectSmartFileId);
       }
 
       // Delete the project smart file attachment
       await storage.deleteProjectSmartFile(projectSmartFileId);
 
-      res.json({ success: true });
+      res.json({ 
+        success: true,
+        forceDeleted: forceDelete 
+      });
     } catch (error) {
       console.error("Remove smart file from project error:", error);
       res.status(500).json({ message: "Internal server error" });
