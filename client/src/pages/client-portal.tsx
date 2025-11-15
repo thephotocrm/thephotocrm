@@ -125,10 +125,7 @@ export default function ClientPortal() {
           const data = await response.json();
           setTokenStatus("success");
           
-          // Remove token from URL immediately to prevent re-validation
-          window.history.replaceState({}, '', '/client-portal');
-          
-          // Refresh user auth state
+          // Refresh user auth state first
           await refetchUser();
           
           // Smart routing based on token type and project count
