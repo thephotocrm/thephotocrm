@@ -72,7 +72,8 @@ import PublicReviewSubmit from "@/pages/public-review-submit";
 import Testimonials from "@/pages/testimonials";
 
 // Force new bundle hash - Railway cache bypass (this code will survive minification)
-const APP_BUILD_VERSION = "2024-11-15-railway-cache-fix";
+const APP_BUILD_VERSION = "2024-11-15-railway-cache-fix-v2";
+console.log("🚀 App loaded - Build version:", APP_BUILD_VERSION);
 
 const Checkout = lazy(() => import("@/pages/checkout"));
 
