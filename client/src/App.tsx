@@ -1,3 +1,4 @@
+// Force bundle hash regeneration - Railway cache bypass
 import { lazy, Suspense, useEffect, useState } from "react";
 import { Switch, Route, useLocation, Redirect } from "wouter";
 import { queryClient } from "./lib/queryClient";
