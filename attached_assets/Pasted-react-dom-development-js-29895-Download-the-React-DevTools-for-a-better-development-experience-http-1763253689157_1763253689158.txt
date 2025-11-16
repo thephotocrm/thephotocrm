@@ -1,0 +1,54 @@
+react-dom.development.js:29895 Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+App.tsx:76 🚀 App loaded - Build version: 2024-11-15-railway-cache-fix-v2
+Tracking Prevention blocked access to storage for <URL>.
+Tracking Prevention blocked access to storage for <URL>.
+Tracking Prevention blocked access to storage for <URL>.
+Tracking Prevention blocked access to storage for <URL>.
+Tracking Prevention blocked access to storage for <URL>.
+Tracking Prevention blocked access to storage for <URL>.
+Tracking Prevention blocked access to storage for <URL>.
+Tracking Prevention blocked access to storage for <URL>.
+Tracking Prevention blocked access to storage for <URL>.
+Tracking Prevention blocked access to storage for <URL>.
+Tracking Prevention blocked access to storage for <URL>.
+Tracking Prevention blocked access to storage for <URL>.
+Tracking Prevention blocked access to storage for <URL>.
+Tracking Prevention blocked access to storage for <URL>.
+Tracking Prevention blocked access to storage for <URL>.
+Tracking Prevention blocked access to storage for <URL>.
+Tracking Prevention blocked access to storage for <URL>.
+Tracking Prevention blocked access to storage for <URL>.
+Tracking Prevention blocked access to storage for <URL>.
+Tracking Prevention blocked access to storage for <URL>.
+Tracking Prevention blocked access to storage for <URL>.
+Tracking Prevention blocked access to storage for <URL>.
+Tracking Prevention blocked access to storage for <URL>.
+Tracking Prevention blocked access to storage for <URL>.
+Tracking Prevention blocked access to storage for <URL>.
+Tracking Prevention blocked access to storage for <URL>.
+Tracking Prevention blocked access to storage for <URL>.
+[NEW] Explain Console errors by using Copilot in Edge: click
+         
+         to explain an error. 
+        Learn more
+        Don't show again
+queryClient.ts:32   GET https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/api/client-portal 404 (Not Found)
+(anonymous) @ queryClient.ts:32
+fetchFn @ query.ts:429
+run @ retryer.ts:153
+start @ retryer.ts:218
+fetch @ query.ts:540
+executeFetch_fn @ queryObserver.ts:346
+setOptions @ queryObserver.ts:199
+(anonymous) @ useBaseQuery.ts:109
+commitHookEffectListMount @ react-dom.development.js:23189
+commitPassiveMountOnFiber @ react-dom.development.js:24965
+commitPassiveMountEffects_complete @ react-dom.development.js:24930
+commitPassiveMountEffects_begin @ react-dom.development.js:24917
+commitPassiveMountEffects @ react-dom.development.js:24905
+flushPassiveEffectsImpl @ react-dom.development.js:27078
+flushPassiveEffects @ react-dom.development.js:27023
+(anonymous) @ react-dom.development.js:26808
+workLoop @ scheduler.development.js:266
+flushWork @ scheduler.development.js:239
+performWorkUntilDeadline @ scheduler.development.js:533
