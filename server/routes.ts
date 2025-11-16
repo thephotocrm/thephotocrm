@@ -11426,8 +11426,36 @@ ${photographer.businessName}`
       // SECURITY: Filter to only projects from the contact's photographer (multi-tenant isolation)
       const tenantProjects = allProjects.filter(p => p.photographerId === contact.photographerId);
       
+      // Get photographer data for branding (needed even with zero projects)
+      const photographer = await storage.getPhotographer(contact.photographerId);
+      
+      // Handle zero projects case gracefully (return 200, not 404)
       if (tenantProjects.length === 0) {
-        return res.status(404).json({ error: 'No projects found for client' });
+        const emptyPortalData = {
+          contact: {
+            firstName: contact.firstName,
+            lastName: contact.lastName,
+            email: contact.email,
+            phone: contact.phone,
+            weddingDate: null,
+            stage: { name: 'No Project' }
+          },
+          photographer: {
+            businessName: photographer?.businessName || "Photography Studio",
+            logoUrl: photographer?.logoUrl,
+            email: photographer?.email,
+            phone: photographer?.phone
+          },
+          projects: [],
+          questionnaires: [],
+          checklistItems: [],
+          links: [],
+          bookings: [],
+          estimates: [],
+          hasProjects: false
+        };
+        
+        return res.json(emptyPortalData);
       }
       
       // PRIORITIZE: Sort projects by active status and event date
@@ -11463,9 +11491,6 @@ ${photographer.businessName}`
         completedAt: q.submittedAt
       }));
       
-      // Get photographer data for branding
-      const photographer = await storage.getPhotographer(contact.photographerId);
-      
       // Format projects for display
       const formattedProjects = sortedProjects.map(p => ({
         id: p.id,
@@ -11499,7 +11524,9 @@ ${photographer.businessName}`
         questionnaires: formattedQuestionnaires,
         checklistItems: [], // TODO: Implement checklist items
         links: [], // TODO: Implement client links
-        bookings: [] // TODO: Implement bookings for client
+        bookings: [], // TODO: Implement bookings for client
+        estimates: [],
+        hasProjects: true
       };
       
       res.json(portalData);
