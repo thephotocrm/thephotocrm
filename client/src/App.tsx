@@ -219,6 +219,7 @@ function Router() {
       <Route path="/client-portal" component={ClientPortal} />
       <Route path="/client-portal/select-project" component={SelectProject} />
       <Route path="/client-portal/projects/:id" component={ClientPortalProject} />
+      <Route path="/client-portal/validate/:token" component={Portal} />
       <Route path="/portal/:token" component={Portal} />
       <Route path="/smart-file/:token/success" component={SmartFileSuccess} />
       <Route path="/smart-file/:token" component={PublicSmartFile} />

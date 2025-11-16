@@ -1619,10 +1619,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const portalToken = await storage.createMagicLinkToken(contact.id, photographerId);
       console.log("  → Created magic link token:", portalToken.token.substring(0, 10) + "...");
 
-      // Generate login URL
+      // Generate login URL (frontend route, not API endpoint)
       const protocol = getOAuthProtocol(req);
       const host = req.get('host');
-      const loginUrl = `${protocol}://${host}/api/portal/${portalToken.token}`;
+      const loginUrl = `${protocol}://${host}/portal/${portalToken.token}`;
       console.log("  → Login URL:", loginUrl);
 
       // Get photographer details
