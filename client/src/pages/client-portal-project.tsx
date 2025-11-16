@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { useLocation, useRoute } from "wouter";
@@ -7,16 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { ClientPortalLayout } from "@/components/layout/client-portal-layout";
 import { 
-  Camera,
-  ChevronDown,
-  LayoutDashboard,
-  Activity,
-  CheckSquare,
-  FileText,
-  CreditCard,
-  StickyNote,
-  LogOut,
   Calendar,
   Mail,
   Phone,
@@ -25,14 +17,14 @@ import {
   Eye,
   Users,
   MapPin,
-  Clock
+  Clock,
+  CheckSquare,
+  FileText,
+  Camera,
+  Activity,
+  StickyNote,
+  CreditCard
 } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 
 interface ClientProject {
   id: string;
@@ -89,14 +81,27 @@ interface ClientProject {
   }>;
 }
 
-type TabType = 'overview' | 'activity' | 'files' | 'payments' | 'notes';
+type TabType = 'overview' | 'activity' | 'tasks' | 'files' | 'payments' | 'notes';
 
 export default function ClientPortalProject() {
   const { user, loading: authLoading, logout } = useAuth();
   const [, params] = useRoute("/client-portal/projects/:id");
-  const [, setLocation] = useLocation();
-  const [activeTab, setActiveTab] = useState<TabType>('overview');
+  const [location, setLocation] = useLocation();
   const projectId = params?.id;
+  
+  // Get tab from URL query param - update whenever location changes
+  const [activeTab, setActiveTab] = useState<TabType>('overview');
+  
+  useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    const tab = searchParams.get('tab') as TabType;
+    if (tab && ['overview', 'activity', 'tasks', 'files', 'payments', 'notes'].includes(tab)) {
+      setActiveTab(tab);
+    } else {
+      // Default to overview if no tab specified
+      setActiveTab('overview');
+    }
+  }, [location]); // Re-run when location changes
 
   const { data: project, isLoading } = useQuery<ClientProject>({
     queryKey: ["/api/client-portal/projects", projectId],
@@ -170,114 +175,12 @@ export default function ClientPortalProject() {
     }
   };
 
-  const navItems = [
-    { id: 'overview' as TabType, label: 'Overview', icon: LayoutDashboard },
-    { id: 'activity' as TabType, label: 'Activity', icon: Activity },
-    { id: 'files' as TabType, label: 'Files', icon: FileText },
-    { id: 'payments' as TabType, label: 'Payments', icon: CreditCard },
-    { id: 'notes' as TabType, label: 'Notes', icon: StickyNote },
-  ];
-
   const getInitials = (firstName: string, lastName: string) => {
     return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
   };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-50">
-      {/* Left Sidebar */}
-      <div className="w-64 bg-white border-r border-gray-200 flex flex-col">
-        {/* Logo & Business Name */}
-        <div className="p-6 border-b border-gray-200">
-          <div className="flex items-center space-x-3 mb-4">
-            {project.photographer.logoUrl ? (
-              <img 
-                src={project.photographer.logoUrl} 
-                alt={project.photographer.businessName}
-                className="w-10 h-10 rounded-lg object-cover"
-                data-testid="img-photographer-logo"
-              />
-            ) : (
-              <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
-                <Camera className="w-6 h-6 text-white" />
-              </div>
-            )}
-            <div className="flex-1 min-w-0">
-              <h1 className="text-sm font-semibold text-gray-900 truncate" data-testid="text-business-name">
-                {project.photographer.businessName}
-              </h1>
-              <p className="text-xs text-gray-500">Client Portal</p>
-            </div>
-          </div>
-
-          {/* Project Switcher */}
-          {allProjects && allProjects.length > 1 && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button 
-                  variant="outline" 
-                  className="w-full justify-between text-sm"
-                  data-testid="button-project-switcher"
-                >
-                  <span className="truncate">{project.title}</span>
-                  <ChevronDown className="w-4 h-4 ml-2 flex-shrink-0" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56">
-                {allProjects.map((proj) => (
-                  <DropdownMenuItem
-                    key={proj.id}
-                    onClick={() => setLocation(`/client-portal/projects/${proj.id}`)}
-                    data-testid={`project-option-${proj.id}`}
-                  >
-                    <div className="flex-1">
-                      <p className="font-medium text-sm">{proj.title}</p>
-                      <p className="text-xs text-gray-500">{proj.projectType}</p>
-                    </div>
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
-        </div>
-
-        {/* Navigation */}
-        <nav className="flex-1 p-3 space-y-1">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = activeTab === item.id;
-            return (
-              <button
-                key={item.id}
-                onClick={() => setActiveTab(item.id)}
-                className={`w-full flex items-center space-x-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                  isActive 
-                    ? 'bg-primary text-white' 
-                    : 'text-gray-700 hover:bg-gray-100'
-                }`}
-                data-testid={`nav-tab-${item.id}`}
-              >
-                <Icon className="w-5 h-5 flex-shrink-0" />
-                <span>{item.label}</span>
-              </button>
-            );
-          })}
-        </nav>
-
-        {/* Logout */}
-        <div className="p-3 border-t border-gray-200">
-          <button
-            onClick={handleLogout}
-            className="w-full flex items-center space-x-3 px-4 py-2.5 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors"
-            data-testid="button-logout"
-          >
-            <LogOut className="w-5 h-5" />
-            <span>Log out</span>
-          </button>
-        </div>
-      </div>
-
-      {/* Main Content */}
-      <div className="flex-1 overflow-y-auto bg-gray-50">
+    <ClientPortalLayout currentProjectId={projectId}>
         {/* Hero Banner */}
         <div 
           className="h-64 bg-gradient-to-br from-primary/90 to-primary relative"
@@ -610,6 +513,43 @@ export default function ClientPortalProject() {
             </div>
           )}
 
+          {/* Tasks Tab */}
+          {activeTab === 'tasks' && (
+            <div className="space-y-6 max-w-4xl">
+              <h1 className="text-3xl font-bold text-gray-900">Tasks</h1>
+              <Card className="bg-white border-gray-200">
+                <CardContent className="pt-6">
+                  {(!project.checklistItems || project.checklistItems.length === 0) ? (
+                    <div className="text-center py-12">
+                      <CheckSquare className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                      <p className="text-gray-900 font-medium">No tasks yet</p>
+                      <p className="text-sm text-gray-500 mt-2">Your photographer will assign tasks here.</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {project.checklistItems.map((item) => (
+                        <div key={item.id} className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg" data-testid={`checklist-item-${item.id}`}>
+                          <Checkbox 
+                            checked={!!item.completedAt} 
+                            disabled={!!item.completedAt}
+                          />
+                          <span className={item.completedAt ? "line-through text-gray-500" : "text-gray-900"}>
+                            {item.title}
+                          </span>
+                          {item.completedAt && (
+                            <Badge variant="outline" className="ml-auto">
+                              Completed
+                            </Badge>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
           {/* Notes Tab */}
           {activeTab === 'notes' && (
             <div className="space-y-6 max-w-4xl">
@@ -640,7 +580,6 @@ export default function ClientPortalProject() {
             </div>
           )}
         </div>
-      </div>
-    </div>
+    </ClientPortalLayout>
   );
 }

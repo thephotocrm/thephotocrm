@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
+import { ClientPortalLayout } from "@/components/layout/client-portal-layout";
 import { 
   Camera, 
   CheckCircle, 
@@ -291,24 +292,7 @@ export default function ClientPortal() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="bg-card border-b border-border">
-        <div className="max-w-6xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
-                <Camera className="w-6 h-6 text-primary-foreground" />
-              </div>
-              <div>
-                <h1 className="text-xl font-semibold" data-testid="text-photographer-name">{portalData.photographer.businessName}</h1>
-                <p className="text-sm text-muted-foreground">Client Portal</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </header>
-
+    <ClientPortalLayout currentProjectId={portalData.projects[0]?.id}>
       <div className="max-w-6xl mx-auto px-6 py-8">
         {/* Welcome Section */}
         <div className="mb-8">
@@ -610,6 +594,6 @@ export default function ClientPortal() {
           </div>
         </div>
       </div>
-    </div>
+    </ClientPortalLayout>
   );
 }
