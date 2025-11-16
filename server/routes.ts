@@ -1737,22 +1737,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log("🍪 Auth cookie set for user:", user.email);
 
-      // Get photographer slug for redirect
+      // Get photographer for response data
       const photographer = await storage.getPhotographer(portalToken.photographerId);
       if (!photographer) {
         return res.status(404).json({ message: "Photographer not found" });
       }
 
-      // Build redirect URL to the photographer's client portal
-      const protocol = getOAuthProtocol(req);
-      const portalDomain = `${photographer.portalSlug}.tpcportal.co`;
-      
-      // Redirect to project page if projectId exists, otherwise portal home
-      const redirectPath = portalToken.projectId ? `/project/${portalToken.projectId}` : '/';
-      const redirectUrl = `${protocol}://${portalDomain}${redirectPath}`;
-      
-      console.log("✅ Portal validation complete, redirecting to:", redirectUrl);
-      res.redirect(redirectUrl);
+      // Return JSON response instead of redirecting
+      // Frontend will handle the navigation after receiving auth cookie
+      const responseData: any = {
+        success: true,
+        user: {
+          id: user.id,
+          email: user.email,
+          role: user.role
+        },
+        photographer: {
+          id: photographer.id,
+          businessName: photographer.businessName,
+          portalSlug: photographer.portalSlug
+        }
+      };
+
+      // Include project ID if this is a project-specific token
+      if (portalToken.projectId) {
+        responseData.projectId = portalToken.projectId;
+      }
+
+      console.log("✅ Portal validation complete, returning JSON response");
+      res.json(responseData);
     } catch (error) {
       console.error("Portal token validation error:", error);
       res.status(500).json({ message: "Failed to validate portal token" });
