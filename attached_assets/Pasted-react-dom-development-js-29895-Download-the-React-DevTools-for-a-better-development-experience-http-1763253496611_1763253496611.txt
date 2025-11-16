@@ -1,0 +1,108 @@
+react-dom.development.js:29895 Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+App.tsx:76 🚀 App loaded - Build version: 2024-11-15-railway-cache-fix-v2
+Tracking Prevention blocked access to storage for <URL>.
+Tracking Prevention blocked access to storage for <URL>.
+Tracking Prevention blocked access to storage for <URL>.
+Tracking Prevention blocked access to storage for <URL>.
+Tracking Prevention blocked access to storage for <URL>.
+Tracking Prevention blocked access to storage for <URL>.
+Tracking Prevention blocked access to storage for <URL>.
+Tracking Prevention blocked access to storage for <URL>.
+Tracking Prevention blocked access to storage for <URL>.
+Tracking Prevention blocked access to storage for <URL>.
+Tracking Prevention blocked access to storage for <URL>.
+Tracking Prevention blocked access to storage for <URL>.
+Tracking Prevention blocked access to storage for <URL>.
+Tracking Prevention blocked access to storage for <URL>.
+Tracking Prevention blocked access to storage for <URL>.
+Tracking Prevention blocked access to storage for <URL>.
+Tracking Prevention blocked access to storage for <URL>.
+Tracking Prevention blocked access to storage for <URL>.
+Tracking Prevention blocked access to storage for <URL>.
+Tracking Prevention blocked access to storage for <URL>.
+Tracking Prevention blocked access to storage for <URL>.
+Tracking Prevention blocked access to storage for <URL>.
+Tracking Prevention blocked access to storage for <URL>.
+Tracking Prevention blocked access to storage for <URL>.
+Tracking Prevention blocked access to storage for <URL>.
+Tracking Prevention blocked access to storage for <URL>.
+Tracking Prevention blocked access to storage for <URL>.
+Tracking Prevention blocked access to storage for <URL>.
+Tracking Prevention blocked access to storage for <URL>.
+Tracking Prevention blocked access to storage for <URL>.
+Tracking Prevention blocked access to storage for <URL>.
+[NEW] Explain Console errors by using Copilot in Edge: click
+         
+         to explain an error. 
+        Learn more
+        Don't show again
+queryClient.ts:15   GET https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/api/auth/me 401 (Unauthorized)
+apiRequest @ queryClient.ts:15
+getCurrentUser @ auth.ts:41
+loadUser @ use-auth.tsx:35
+(anonymous) @ use-auth.tsx:44
+commitHookEffectListMount @ react-dom.development.js:23189
+commitPassiveMountOnFiber @ react-dom.development.js:24965
+commitPassiveMountEffects_complete @ react-dom.development.js:24930
+commitPassiveMountEffects_begin @ react-dom.development.js:24917
+commitPassiveMountEffects @ react-dom.development.js:24905
+flushPassiveEffectsImpl @ react-dom.development.js:27078
+flushPassiveEffects @ react-dom.development.js:27023
+performSyncWorkOnRoot @ react-dom.development.js:26115
+flushSyncCallbacks @ react-dom.development.js:12042
+commitRootImpl @ react-dom.development.js:26998
+commitRoot @ react-dom.development.js:26721
+finishConcurrentRender @ react-dom.development.js:26020
+performConcurrentWorkOnRoot @ react-dom.development.js:25848
+workLoop @ scheduler.development.js:266
+flushWork @ scheduler.development.js:239
+performWorkUntilDeadline @ scheduler.development.js:533
+portal.tsx:18 🚀 [PORTAL] Starting validation flow {token: 'DEV-TEST-MAGIC-LINK-...', pathname: '/portal/DEV-TEST-MAGIC-LINK-123', href: 'https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13…zw.worf.replit.dev/portal/DEV-TEST-MAGIC-LINK-123'}
+portal.tsx:38 🔍 [PORTAL] Calling API: {pathname: '/portal/DEV-TEST-MAGIC-LINK-123', isClientPortalValidate: false, apiEndpoint: '/api/portal/DEV-TEST-MAGIC-LINK-123'}
+portal.tsx:49 📡 [PORTAL] API response: {status: 200, ok: true, headers: {…}}
+portal.tsx:64 ✅ [PORTAL] Validation successful: {success: true, user: {…}, photographer: {…}}
+portal.tsx:68 🔄 [PORTAL] Refetching user auth state...
+portal.tsx:70 ✅ [PORTAL] Auth state refreshed: {id: '68fc61bc-c445-4582-b87e-d5073250ada7', email: 'john.smith@test.com', role: 'CLIENT', photographerId: 'b03cc772-a4a1-4132-8cb0-4098cff9a3b7', isImpersonating: false, …}
+portal.tsx:80 🎯 [PORTAL] Setting redirect URL: /client-portal
+portal.tsx:95 🚀 [PORTAL-NAV] Navigation effect triggered
+portal.tsx:96 🎯 [PORTAL-NAV] Target URL: /client-portal
+portal.tsx:97 ⏰ [PORTAL-NAV] Will navigate in 1500ms...
+portal.tsx:101 ➡️ [PORTAL-NAV] NAVIGATING NOW to: /client-portal
+portal.tsx:103 ✅ [PORTAL-NAV] Navigate called
+portal.tsx:107 🧹 [PORTAL-NAV] Cleanup - clearing timer
+queryClient.ts:32   GET https://e8d0fcf6-db56-4af1-8ae3-8de7ba3f84ea-00-13xo0986d9yzw.worf.replit.dev/api/client-portal 404 (Not Found)
+(anonymous) @ queryClient.ts:32
+fetchFn @ query.ts:429
+run @ retryer.ts:153
+start @ retryer.ts:218
+fetch @ query.ts:540
+executeFetch_fn @ queryObserver.ts:346
+onSubscribe @ queryObserver.ts:108
+subscribe @ subscribable.ts:11
+(anonymous) @ useBaseQuery.ts:92
+subscribeToStore @ react-dom.development.js:16139
+commitHookEffectListMount @ react-dom.development.js:23189
+commitPassiveMountOnFiber @ react-dom.development.js:24965
+commitPassiveMountEffects_complete @ react-dom.development.js:24930
+commitPassiveMountEffects_begin @ react-dom.development.js:24917
+commitPassiveMountEffects @ react-dom.development.js:24905
+flushPassiveEffectsImpl @ react-dom.development.js:27078
+flushPassiveEffects @ react-dom.development.js:27023
+commitRootImpl @ react-dom.development.js:26974
+commitRoot @ react-dom.development.js:26721
+performSyncWorkOnRoot @ react-dom.development.js:26156
+flushSyncCallbacks @ react-dom.development.js:12042
+(anonymous) @ react-dom.development.js:25690
+setTimeout
+(anonymous) @ portal.tsx:100
+commitHookEffectListMount @ react-dom.development.js:23189
+commitPassiveMountOnFiber @ react-dom.development.js:24965
+commitPassiveMountEffects_complete @ react-dom.development.js:24930
+commitPassiveMountEffects_begin @ react-dom.development.js:24917
+commitPassiveMountEffects @ react-dom.development.js:24905
+flushPassiveEffectsImpl @ react-dom.development.js:27078
+flushPassiveEffects @ react-dom.development.js:27023
+(anonymous) @ react-dom.development.js:26808
+workLoop @ scheduler.development.js:266
+flushWork @ scheduler.development.js:239
+performWorkUntilDeadline @ scheduler.development.js:533
