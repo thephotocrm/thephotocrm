@@ -15,7 +15,14 @@ export default function Portal() {
 
   useEffect(() => {
     const validateToken = async () => {
+      console.log('🚀 [PORTAL] Starting validation flow', {
+        token: token?.substring(0, 20) + '...',
+        pathname: window.location.pathname,
+        href: window.location.href
+      });
+
       if (!token) {
+        console.error('❌ [PORTAL] No token provided');
         setStatus("error");
         setErrorMessage("No token provided");
         return;
@@ -28,11 +35,10 @@ export default function Portal() {
           ? `/api/client-portal/validate/${token}`
           : `/api/portal/${token}`;
 
-        console.log('🔍 Portal validation:', {
+        console.log('🔍 [PORTAL] Calling API:', {
           pathname: window.location.pathname,
           isClientPortalValidate,
-          apiEndpoint,
-          token: token.substring(0, 10) + '...'
+          apiEndpoint
         });
 
         const response = await fetch(apiEndpoint, {
@@ -40,32 +46,41 @@ export default function Portal() {
           credentials: "include"
         });
 
+        console.log('📡 [PORTAL] API response:', {
+          status: response.status,
+          ok: response.ok,
+          headers: Object.fromEntries(response.headers.entries())
+        });
+
         if (!response.ok) {
           const data = await response.json();
+          console.error('❌ [PORTAL] Validation failed:', data);
           setStatus("error");
           setErrorMessage(data.message || "Invalid or expired link");
           return;
         }
 
         const data = await response.json();
+        console.log('✅ [PORTAL] Validation successful:', data);
         setStatus("success");
 
         // CRITICAL: Refetch auth to update user state before redirecting
-        // This prevents race condition where /client-portal loads before auth is updated
-        console.log('✅ Magic link validated, refreshing auth state...');
-        await refetchUser();
-        console.log('✅ Auth state refreshed');
+        console.log('🔄 [PORTAL] Refetching user auth state...');
+        const userResult = await refetchUser();
+        console.log('✅ [PORTAL] Auth state refreshed:', userResult);
 
         // Determine redirect URL and set state (navigation happens in useEffect)
+        let targetUrl = '/client-portal';
         if (data.redirect) {
-          setRedirectUrl(data.redirect);
+          targetUrl = data.redirect;
         } else if (data.projectId) {
-          setRedirectUrl(`/client-portal/projects/${data.projectId}`);
-        } else {
-          setRedirectUrl('/client-portal');
+          targetUrl = `/client-portal/projects/${data.projectId}`;
         }
+        
+        console.log('🎯 [PORTAL] Setting redirect URL:', targetUrl);
+        setRedirectUrl(targetUrl);
       } catch (error) {
-        console.error("Portal token validation error:", error);
+        console.error("❌ [PORTAL] Token validation error:", error);
         setStatus("error");
         setErrorMessage("Failed to validate access link");
       }
@@ -77,12 +92,21 @@ export default function Portal() {
   // State-driven navigation in useEffect to prevent React error #185
   useEffect(() => {
     if (redirectUrl) {
-      console.log('✅ Redirecting to:', redirectUrl);
+      console.log('🚀 [PORTAL-NAV] Navigation effect triggered');
+      console.log('🎯 [PORTAL-NAV] Target URL:', redirectUrl);
+      console.log('⏰ [PORTAL-NAV] Will navigate in 1500ms...');
+      
       // Delay to show success message briefly
       const timer = setTimeout(() => {
+        console.log('➡️ [PORTAL-NAV] NAVIGATING NOW to:', redirectUrl);
         navigate(redirectUrl);
+        console.log('✅ [PORTAL-NAV] Navigate called');
       }, 1500);
-      return () => clearTimeout(timer);
+      
+      return () => {
+        console.log('🧹 [PORTAL-NAV] Cleanup - clearing timer');
+        clearTimeout(timer);
+      };
     }
   }, [redirectUrl, navigate]);
 

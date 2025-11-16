@@ -21,15 +21,33 @@ function ClientPortalGuard({ children }: { children: ReactNode }) {
   const [, setLocation] = useLocation();
   const hasRedirected = useRef(false);
 
+  console.log('🛡️ [CLIENT-GUARD] Render check:', {
+    loading,
+    hasUser: !!user,
+    userRole: user?.role,
+    hasRedirected: hasRedirected.current
+  });
+
   // Use useEffect for redirect to prevent React error #185
   useEffect(() => {
+    console.log('🛡️ [CLIENT-GUARD] Auth check effect:', {
+      loading,
+      hasUser: !!user,
+      userRole: user?.role,
+      hasRedirected: hasRedirected.current
+    });
+
     if (!loading && (!user || user.role !== 'CLIENT') && !hasRedirected.current) {
+      console.warn('⚠️ [CLIENT-GUARD] Unauthorized - redirecting to login');
       hasRedirected.current = true;
       setLocation("/login");
+    } else if (!loading && user && user.role === 'CLIENT') {
+      console.log('✅ [CLIENT-GUARD] Authorized CLIENT user - allowing access');
     }
   }, [loading, user, setLocation]);
 
   if (loading) {
+    console.log('⏳ [CLIENT-GUARD] Still loading auth...');
     return (
       <div className="flex items-center justify-center h-screen">
         <div className="text-lg">Loading...</div>
@@ -38,6 +56,7 @@ function ClientPortalGuard({ children }: { children: ReactNode }) {
   }
 
   if (!user || user.role !== 'CLIENT') {
+    console.log('🚫 [CLIENT-GUARD] No user or wrong role - showing redirect screen');
     return (
       <div className="flex items-center justify-center h-screen">
         <div className="text-lg">Redirecting...</div>
@@ -45,6 +64,7 @@ function ClientPortalGuard({ children }: { children: ReactNode }) {
     );
   }
 
+  console.log('✅ [CLIENT-GUARD] Rendering protected content');
   return <>{children}</>;
 }
 
