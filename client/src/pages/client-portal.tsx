@@ -24,12 +24,12 @@ import {
 } from "lucide-react";
 
 interface ClientPortalData {
-  client: {
+  contact: {
     firstName: string;
     lastName: string;
     email: string;
     phone?: string;
-    weddingDate?: string;
+    weddingDate?: string | null;
     stage: {
       name: string;
     };
@@ -37,8 +37,10 @@ interface ClientPortalData {
   photographer: {
     businessName: string;
     logoUrl?: string;
+    email?: string;
+    phone?: string;
   };
-  projects?: Array<{
+  projects: Array<{
     id: string;
     title: string;
     projectType: string;
@@ -90,6 +92,7 @@ interface ClientPortalData {
     endAt: string;
     status: string;
   }>;
+  hasProjects?: boolean;
 }
 
 export default function ClientPortal() {
@@ -236,65 +239,35 @@ export default function ClientPortal() {
     );
   }
 
-  // Fallback to mock data if API fails
-  const fallbackData: ClientPortalData = {
-    client: {
-      firstName: "Emily",
-      lastName: "Peterson",
-      email: "emily.peterson@email.com",
-      phone: "(555) 123-4567",
-      weddingDate: "2024-06-15",
-      stage: { name: "Consultation" }
-    },
-    photographer: {
-      businessName: "Sarah Johnson Photography",
-      logoUrl: undefined
-    },
-    checklistItems: [
-      { id: "1", title: "Send welcome packet", completedAt: "2024-01-15", orderIndex: 0 },
-      { id: "2", title: "Schedule consultation call", completedAt: null, orderIndex: 1 },
-      { id: "3", title: "Send questionnaire", completedAt: null, orderIndex: 2 },
-      { id: "4", title: "Create and send proposal", completedAt: null, orderIndex: 3 }
-    ],
-    links: [
-      { id: "1", title: "Client Portal", url: "/client-portal", orderIndex: 0 },
-      { id: "2", title: "Wedding Planning Guide", url: "#", orderIndex: 1 },
-      { id: "3", title: "Portfolio Gallery", url: "#", orderIndex: 2 }
-    ],
-    questionnaires: [
-      {
-        id: "1",
-        template: { title: "Wedding Day Details", description: "Help us capture your perfect day" },
-        status: "PENDING",
-        completedAt: null
-      }
-    ],
-    estimates: [
-      {
-        id: "1",
-        title: "Gold Wedding Package",
-        status: "SENT",
-        totalCents: 450000,
-        token: "est_12345",
-        createdAt: "2024-01-10"
-      }
-    ],
-    bookings: [
-      {
-        id: "1",
-        title: "Consultation Call",
-        startAt: "2024-02-01T14:00:00",
-        endAt: "2024-02-01T15:00:00",
-        status: "CONFIRMED"
-      }
-    ]
-  };
+  // If no data returned from API, show error
+  if (!portalData) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Card className="w-full max-w-md" data-testid="card-portal-error">
+          <CardContent className="pt-6">
+            <div className="flex flex-col items-center space-y-4 py-8">
+              <XCircle className="w-12 h-12 text-red-600" />
+              <div className="text-center">
+                <h2 className="text-xl font-semibold mb-2">Unable to Load Portal</h2>
+                <p className="text-sm text-muted-foreground mb-4">
+                  There was an error loading your client portal data.
+                </p>
+                <Button onClick={() => window.location.reload()} data-testid="button-reload">
+                  Reload Page
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
-  // Use API data if available, otherwise fallback to mock data
-  const currentPortalData = portalData || fallbackData;
-
-  const completedChecklistItems = currentPortalData.checklistItems.filter(item => item.completedAt).length;
-  const checklistProgress = (completedChecklistItems / currentPortalData.checklistItems.length) * 100;
+  const hasProjects = portalData.projects.length > 0;
+  const completedChecklistItems = portalData.checklistItems.filter(item => item.completedAt).length;
+  const checklistProgress = portalData.checklistItems.length > 0 
+    ? (completedChecklistItems / portalData.checklistItems.length) * 100 
+    : 0;
 
   const formatPrice = (cents: number) => {
     return (cents / 100).toLocaleString('en-US', {
@@ -328,7 +301,7 @@ export default function ClientPortal() {
                 <Camera className="w-6 h-6 text-primary-foreground" />
               </div>
               <div>
-                <h1 className="text-xl font-semibold">{currentPortalData.photographer.businessName}</h1>
+                <h1 className="text-xl font-semibold" data-testid="text-photographer-name">{portalData.photographer.businessName}</h1>
                 <p className="text-sm text-muted-foreground">Client Portal</p>
               </div>
             </div>
@@ -339,86 +312,125 @@ export default function ClientPortal() {
       <div className="max-w-6xl mx-auto px-6 py-8">
         {/* Welcome Section */}
         <div className="mb-8">
-          <h2 className="text-3xl font-bold mb-2">
-            Welcome, {currentPortalData.client.firstName} & {currentPortalData.client.lastName}!
+          <h2 className="text-3xl font-bold mb-2" data-testid="text-welcome">
+            Welcome, {portalData.contact.firstName} {portalData.contact.lastName && `& ${portalData.contact.lastName}`}!
           </h2>
           <div className="flex items-center space-x-6 text-muted-foreground">
-            {currentPortalData.client.weddingDate && (
+            {portalData.contact.weddingDate && (
               <div className="flex items-center">
                 <Heart className="w-4 h-4 mr-2" />
-                <span>Wedding: {new Date(currentPortalData.client.weddingDate).toLocaleDateString()}</span>
+                <span>Wedding: {new Date(portalData.contact.weddingDate).toLocaleDateString()}</span>
               </div>
             )}
             <div className="flex items-center">
               <Users className="w-4 h-4 mr-2" />
-              <span>Status: {currentPortalData.client.stage.name}</span>
+              <span>Status: {portalData.contact.stage.name}</span>
             </div>
           </div>
         </div>
+
+        {/* No Projects Empty State */}
+        {!hasProjects && (
+          <Card className="mb-8" data-testid="card-no-projects">
+            <CardContent className="py-12">
+              <div className="text-center">
+                <Camera className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
+                <h3 className="text-xl font-semibold mb-2">No Projects Yet</h3>
+                <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+                  Your photographer hasn't assigned any projects to you yet. They'll create your project soon and you'll be able to access all your wedding details here.
+                </p>
+                {(portalData.photographer.email || portalData.photographer.phone) && (
+                  <div className="space-y-2 text-sm">
+                    <p className="font-medium">Need to get in touch?</p>
+                    {portalData.photographer.email && (
+                      <div className="flex items-center justify-center">
+                        <Mail className="w-4 h-4 mr-2 text-muted-foreground" />
+                        <a href={`mailto:${portalData.photographer.email}`} className="text-primary hover:underline">
+                          {portalData.photographer.email}
+                        </a>
+                      </div>
+                    )}
+                    {portalData.photographer.phone && (
+                      <div className="flex items-center justify-center">
+                        <Phone className="w-4 h-4 mr-2 text-muted-foreground" />
+                        <a href={`tel:${portalData.photographer.phone}`} className="text-primary hover:underline">
+                          {portalData.photographer.phone}
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-8">
             {/* Wedding Checklist */}
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle className="flex items-center">
-                    <CheckCircle className="w-5 h-5 mr-2" />
-                    Wedding Checklist
-                  </CardTitle>
-                  <Badge variant="outline">
-                    {completedChecklistItems} of {currentPortalData.checklistItems.length} complete
-                  </Badge>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="mb-4">
-                  <div className="flex justify-between text-sm mb-2">
-                    <span>Progress</span>
-                    <span>{Math.round(checklistProgress)}%</span>
+            {hasProjects && portalData.checklistItems.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="flex items-center">
+                      <CheckCircle className="w-5 h-5 mr-2" />
+                      Wedding Checklist
+                    </CardTitle>
+                    <Badge variant="outline">
+                      {completedChecklistItems} of {portalData.checklistItems.length} complete
+                    </Badge>
                   </div>
-                  <Progress value={checklistProgress} className="h-2" />
-                </div>
-                
-                <div className="space-y-3">
-                  {currentPortalData.checklistItems.map((item) => (
-                    <div key={item.id} className="flex items-center space-x-3">
-                      <Checkbox 
-                        checked={!!item.completedAt} 
-                        disabled={!!item.completedAt}
-                        data-testid={`checklist-item-${item.id}`}
-                      />
-                      <span className={item.completedAt ? "line-through text-muted-foreground" : ""}>
-                        {item.title}
-                      </span>
-                      {item.completedAt && (
-                        <Badge variant="outline" className="ml-auto">
-                          Completed
-                        </Badge>
-                      )}
+                </CardHeader>
+                <CardContent>
+                  <div className="mb-4">
+                    <div className="flex justify-between text-sm mb-2">
+                      <span>Progress</span>
+                      <span>{Math.round(checklistProgress)}%</span>
                     </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+                    <Progress value={checklistProgress} className="h-2" />
+                  </div>
+                  
+                  <div className="space-y-3">
+                    {portalData.checklistItems.map((item) => (
+                      <div key={item.id} className="flex items-center space-x-3">
+                        <Checkbox 
+                          checked={!!item.completedAt} 
+                          disabled={!!item.completedAt}
+                          data-testid={`checklist-item-${item.id}`}
+                        />
+                        <span className={item.completedAt ? "line-through text-muted-foreground" : ""}>
+                          {item.title}
+                        </span>
+                        {item.completedAt && (
+                          <Badge variant="outline" className="ml-auto">
+                            Completed
+                          </Badge>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Questionnaires */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <FileText className="w-5 h-5 mr-2" />
-                  Questionnaires
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {currentPortalData.questionnaires.length === 0 ? (
-                  <p className="text-muted-foreground text-center py-4">
-                    No questionnaires assigned yet.
-                  </p>
-                ) : (
-                  <div className="space-y-4">
-                    {currentPortalData.questionnaires.map((questionnaire) => (
+            {hasProjects && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <FileText className="w-5 h-5 mr-2" />
+                    Questionnaires
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {portalData.questionnaires.length === 0 ? (
+                    <p className="text-muted-foreground text-center py-4">
+                      No questionnaires assigned yet.
+                    </p>
+                  ) : (
+                    <div className="space-y-4">
+                      {portalData.questionnaires.map((questionnaire) => (
                       <div key={questionnaire.id} className="flex items-center justify-between p-4 border border-border rounded-lg">
                         <div>
                           <h4 className="font-medium">{questionnaire.template.title}</h4>
@@ -442,108 +454,115 @@ export default function ClientPortal() {
                 )}
               </CardContent>
             </Card>
+            )}
 
             {/* Estimates & Invoices */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <FileText className="w-5 h-5 mr-2" />
-                  Estimates & Invoices
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {currentPortalData.estimates.length === 0 ? (
-                  <p className="text-muted-foreground text-center py-4">
-                    No estimates available yet.
-                  </p>
-                ) : (
-                  <div className="space-y-4">
-                    {currentPortalData.estimates.map((estimate) => (
-                      <div key={estimate.id} className="flex items-center justify-between p-4 border border-border rounded-lg">
-                        <div>
-                          <h4 className="font-medium">{estimate.title}</h4>
-                          <p className="text-sm text-muted-foreground">
-                            Created: {new Date(estimate.createdAt).toLocaleDateString()}
-                          </p>
-                          <p className="font-mono text-lg">{formatPrice(estimate.totalCents)}</p>
+            {hasProjects && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <FileText className="w-5 h-5 mr-2" />
+                    Estimates & Invoices
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {portalData.estimates.length === 0 ? (
+                    <p className="text-muted-foreground text-center py-4">
+                      No estimates available yet.
+                    </p>
+                  ) : (
+                    <div className="space-y-4">
+                      {portalData.estimates.map((estimate) => (
+                        <div key={estimate.id} className="flex items-center justify-between p-4 border border-border rounded-lg">
+                          <div>
+                            <h4 className="font-medium">{estimate.title}</h4>
+                            <p className="text-sm text-muted-foreground">
+                              Created: {new Date(estimate.createdAt).toLocaleDateString()}
+                            </p>
+                            <p className="font-mono text-lg">{formatPrice(estimate.totalCents)}</p>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <Badge variant={getStatusColor(estimate.status)}>
+                              {estimate.status}
+                            </Badge>
+                            <Button 
+                              size="sm" 
+                              onClick={() => setLocation(`/estimates/${estimate.token}`)}
+                              data-testid={`view-estimate-${estimate.id}`}
+                            >
+                              View
+                            </Button>
+                          </div>
                         </div>
-                        <div className="flex items-center space-x-2">
-                          <Badge variant={getStatusColor(estimate.status)}>
-                            {estimate.status}
-                          </Badge>
-                          <Button 
-                            size="sm" 
-                            onClick={() => setLocation(`/estimates/${estimate.token}`)}
-                            data-testid={`view-estimate-${estimate.id}`}
-                          >
-                            View
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
 
             {/* Upcoming Bookings */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Calendar className="w-5 h-5 mr-2" />
-                  Upcoming Appointments
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {currentPortalData.bookings.length === 0 ? (
-                  <p className="text-muted-foreground text-center py-4">
-                    No appointments scheduled yet.
-                  </p>
-                ) : (
-                  <div className="space-y-4">
-                    {currentPortalData.bookings.map((booking) => (
-                      <div key={booking.id} className="flex items-center justify-between p-4 border border-border rounded-lg">
-                        <div>
-                          <h4 className="font-medium">{booking.title}</h4>
-                          <p className="text-sm text-muted-foreground">
-                            {new Date(booking.startAt).toLocaleDateString()} at{' '}
-                            {new Date(booking.startAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                          </p>
+            {hasProjects && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <Calendar className="w-5 h-5 mr-2" />
+                    Upcoming Appointments
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {portalData.bookings.length === 0 ? (
+                    <p className="text-muted-foreground text-center py-4">
+                      No appointments scheduled yet.
+                    </p>
+                  ) : (
+                    <div className="space-y-4">
+                      {portalData.bookings.map((booking) => (
+                        <div key={booking.id} className="flex items-center justify-between p-4 border border-border rounded-lg">
+                          <div>
+                            <h4 className="font-medium">{booking.title}</h4>
+                            <p className="text-sm text-muted-foreground">
+                              {new Date(booking.startAt).toLocaleDateString()} at{' '}
+                              {new Date(booking.startAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </p>
+                          </div>
+                          <Badge variant={getStatusColor(booking.status)}>
+                            {booking.status}
+                          </Badge>
                         </div>
-                        <Badge variant={getStatusColor(booking.status)}>
-                          {booking.status}
-                        </Badge>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
           </div>
 
           {/* Sidebar */}
           <div className="space-y-6">
             {/* Quick Links */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Quick Links</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {currentPortalData.links.map((link) => (
-                    <a
-                      key={link.id}
-                      href={link.url}
-                      className="flex items-center justify-between p-3 border border-border rounded-lg hover:bg-accent transition-colors"
-                      data-testid={`quick-link-${link.id}`}
-                    >
-                      <span className="font-medium">{link.title}</span>
-                      <ExternalLink className="w-4 h-4" />
-                    </a>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+            {hasProjects && portalData.links.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Quick Links</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {portalData.links.map((link) => (
+                      <a
+                        key={link.id}
+                        href={link.url}
+                        className="flex items-center justify-between p-3 border border-border rounded-lg hover:bg-accent transition-colors"
+                        data-testid={`quick-link-${link.id}`}
+                      >
+                        <span className="font-medium">{link.title}</span>
+                        <ExternalLink className="w-4 h-4" />
+                      </a>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Contact Information */}
             <Card>
@@ -554,19 +573,19 @@ export default function ClientPortal() {
                 <div className="space-y-3">
                   <div className="flex items-center">
                     <Mail className="w-4 h-4 mr-3 text-muted-foreground" />
-                    <span className="text-sm">{currentPortalData.client.email}</span>
+                    <span className="text-sm">{portalData.contact.email}</span>
                   </div>
-                  {currentPortalData.client.phone && (
+                  {portalData.contact.phone && (
                     <div className="flex items-center">
                       <Phone className="w-4 h-4 mr-3 text-muted-foreground" />
-                      <span className="text-sm">{currentPortalData.client.phone}</span>
+                      <span className="text-sm">{portalData.contact.phone}</span>
                     </div>
                   )}
-                  {currentPortalData.client.weddingDate && (
+                  {portalData.contact.weddingDate && (
                     <div className="flex items-center">
                       <Heart className="w-4 h-4 mr-3 text-muted-foreground" />
                       <span className="text-sm">
-                        {new Date(currentPortalData.client.weddingDate).toLocaleDateString()}
+                        {new Date(portalData.contact.weddingDate).toLocaleDateString()}
                       </span>
                     </div>
                   )}
