@@ -1780,14 +1780,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // SECURITY: Require photographer subdomain for client portal access
       // This prevents cross-tenant exposure by ensuring magic links are only used on the correct portal
-      if (!req.photographerFromSubdomain) {
+      // Development bypass requires BOTH conditions to prevent production exploitation:
+      // 1. req.domain.type === 'dev' (server-side domain detection, cannot be spoofed)
+      // 2. process.env.NODE_ENV === 'development' (server environment variable)
+      const isDev = req.domain?.type === 'dev' && process.env.NODE_ENV === 'development';
+      
+      if (!req.photographerFromSubdomain && !isDev) {
         console.error("❌ SECURITY: Magic link validation attempted without photographer subdomain");
         console.error("  → Domain type:", req.domain?.type);
         console.error("  → Slug:", req.domain?.photographerSlug);
+        console.error("  → NODE_ENV:", process.env.NODE_ENV);
         return res.status(400).json({ 
           message: "Please use your photographer's portal link to access your account.",
           error: 'NO_PHOTOGRAPHER_SUBDOMAIN'
         });
+      }
+      
+      if (isDev) {
+        console.log("⚠️  DEV MODE: Allowing magic link validation without photographer subdomain");
       }
 
       const portalToken = await storage.validateClientPortalToken(token);
@@ -1807,17 +1817,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // SECURITY: Verify contact belongs to the photographer whose subdomain is being accessed
       // This prevents cross-tenant data exposure (e.g., abbiestreet.tpcportal.co loading Sarah Johnson's clients)
-      const subdomainPhotographerId = req.photographerFromSubdomain.id;
-      if (contact.photographerId !== subdomainPhotographerId) {
-        console.error(`❌ SECURITY: Magic link for photographer ${contact.photographerId} used on subdomain for ${subdomainPhotographerId}`);
-        console.error(`  → Contact: ${contact.firstName} ${contact.lastName} (${contact.email})`);
-        console.error(`  → Subdomain: ${req.domain?.photographerSlug}`);
-        return res.status(403).json({ 
-          message: "This magic link is for a different photographer's portal. Please use the correct link from your photographer.",
-          error: 'CROSS_TENANT_MAGIC_LINK'
-        });
+      // In dev mode, skip this check since there's no subdomain
+      if (req.photographerFromSubdomain) {
+        const subdomainPhotographerId = req.photographerFromSubdomain.id;
+        if (contact.photographerId !== subdomainPhotographerId) {
+          console.error(`❌ SECURITY: Magic link for photographer ${contact.photographerId} used on subdomain for ${subdomainPhotographerId}`);
+          console.error(`  → Contact: ${contact.firstName} ${contact.lastName} (${contact.email})`);
+          console.error(`  → Subdomain: ${req.domain?.photographerSlug}`);
+          return res.status(403).json({ 
+            message: "This magic link is for a different photographer's portal. Please use the correct link from your photographer.",
+            error: 'CROSS_TENANT_MAGIC_LINK'
+          });
+        }
+        console.log(`✅ Verified contact belongs to subdomain photographer: ${subdomainPhotographerId}`);
+      } else {
+        console.log(`⚠️  DEV MODE: Skipping photographer subdomain verification`);
       }
-      console.log(`✅ Verified contact belongs to subdomain photographer: ${subdomainPhotographerId}`);
 
       // SECURITY: Look up user scoped by email, role, AND photographerId
       // This handles clients with same email across multiple photographers (separate user accounts)
@@ -1861,21 +1876,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log("🍪 Auth cookie set for client:", user.email);
 
-      // Get photographer for redirect URL
+      // Get photographer for client portal data
       const photographer = await storage.getPhotographer(contact.photographerId);
       if (!photographer) {
         return res.status(404).json({ message: "Photographer not found" });
       }
 
-      // Build redirect URL to the photographer's client portal
-      const protocol = getOAuthProtocol(req);
-      const portalDomain = `${photographer.portalSlug}.tpcportal.co`;
+      // Get all projects for routing logic
+      const ownProjects = await storage.getProjectsByClient(contact.id);
+      const participantProjects = await storage.getParticipantProjects(contact.id);
+      const allProjects = [
+        ...ownProjects.map(p => ({ ...p, role: 'PRIMARY' as const })),
+        ...participantProjects.map(p => ({ ...p, role: 'PARTICIPANT' as const }))
+      ];
+      const tenantProjects = allProjects.filter(p => p.photographerId === contact.photographerId);
       
-      // Prepare redirect path based on token type
-      let redirectPath = '/';
-      
+      // Validate PROJECT token if provided
+      let validatedProjectId: string | null = null;
       if (portalToken.tokenType === 'PROJECT' && portalToken.projectId) {
-        // Project-specific token - redirect to that project
         const project = await storage.getProject(portalToken.projectId);
         if (!project) {
           return res.status(404).json({ message: "Project not found" });
@@ -1903,16 +1921,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(403).json({ message: "Access denied: Invalid token" });
         }
         
-        console.log("✅ PROJECT token validated - redirecting to project:", portalToken.projectId);
-        redirectPath = `/project/${portalToken.projectId}`;
+        validatedProjectId = portalToken.projectId;
+        console.log("✅ PROJECT token validated for project:", validatedProjectId);
       } else {
-        // Generic CLIENT token - redirect to portal home
-        console.log("✅ CLIENT token validated - redirecting to portal home");
+        console.log("✅ CLIENT token validated");
       }
       
-      const redirectUrl = `${protocol}://${portalDomain}${redirectPath}`;
-      console.log("✅ Magic link validation complete, redirecting to:", redirectUrl);
-      return res.redirect(redirectUrl);
+      // Return JSON response instead of redirecting (frontend handles navigation)
+      console.log("✅ Magic link validation complete, returning JSON response");
+      return res.json({
+        success: true,
+        loginMode: portalToken.tokenType,
+        projectId: validatedProjectId,
+        projects: tenantProjects.map(p => ({
+          id: p.id,
+          title: p.title
+        }))
+      });
     } catch (error) {
       console.error("Client portal token validation error:", error);
       res.status(500).json({ message: "Failed to validate client portal token" });
