@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
+import { useDomain } from "@/hooks/use-domain";
 import { useQuery } from "@tanstack/react-query";
 import { 
   Camera,
@@ -59,6 +60,7 @@ interface ClientPortalSidebarProps {
 function ClientPortalSidebar({ currentProjectId }: ClientPortalSidebarProps) {
   const [location, setLocation] = useLocation();
   const { user, logout } = useAuth();
+  const { domain } = useDomain();
   const { openMobile, setOpenMobile, isMobile } = useSidebar();
 
   // Fetch all projects for dropdown
@@ -84,7 +86,8 @@ function ClientPortalSidebar({ currentProjectId }: ClientPortalSidebarProps) {
     ? projects.find(p => p.id === currentProjectId)
     : projects[0];
 
-  const photographer = currentProject?.photographer;
+  // Get photographer info from project or domain (fallback for when no project exists)
+  const photographer = currentProject?.photographer || domain?.photographer;
 
   // Navigation items
   const navItems = [

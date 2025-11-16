@@ -293,25 +293,41 @@ export default function ClientPortal() {
 
   return (
     <ClientPortalLayout currentProjectId={portalData.projects[0]?.id}>
+      {/* Cover Photo Hero Banner */}
+      <div 
+        className="relative h-48 md:h-64 w-full bg-cover bg-center"
+        style={{ backgroundImage: 'url(https://images.unsplash.com/photo-1606800052052-a08af7148866?w=1200&h=400&fit=crop)' }}
+        data-testid="hero-banner"
+      >
+        <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/20 to-black/50"></div>
+        <div className="relative h-full flex items-end p-6 md:p-8">
+          <div className="text-white max-w-4xl">
+            <h2 className="text-2xl md:text-3xl font-bold mb-1 drop-shadow-lg" data-testid="text-welcome">
+              Welcome, {portalData.contact.firstName} {portalData.contact.lastName && `& ${portalData.contact.lastName}`}!
+            </h2>
+            <div className="flex items-center text-white/90 drop-shadow">
+              <Badge variant="secondary" className="bg-white/20 text-white border-white/30 hover:bg-white/25">
+                {hasProjects ? portalData.contact.stage?.name || 'Active' : 'No Project'}
+              </Badge>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div className="max-w-6xl mx-auto px-6 py-8">
-        {/* Welcome Section */}
-        <div className="mb-8">
-          <h2 className="text-3xl font-bold mb-2" data-testid="text-welcome">
-            Welcome, {portalData.contact.firstName} {portalData.contact.lastName && `& ${portalData.contact.lastName}`}!
-          </h2>
-          <div className="flex items-center space-x-6 text-muted-foreground">
-            {portalData.contact.weddingDate && (
-              <div className="flex items-center">
-                <Heart className="w-4 h-4 mr-2" />
-                <span>Wedding: {new Date(portalData.contact.weddingDate).toLocaleDateString()}</span>
-              </div>
-            )}
+        {/* Status info bar */}
+        {portalData.contact.weddingDate && (
+          <div className="mb-8 flex flex-wrap items-center gap-6 text-muted-foreground">
+            <div className="flex items-center">
+              <Heart className="w-4 h-4 mr-2" />
+              <span>Wedding: {new Date(portalData.contact.weddingDate).toLocaleDateString()}</span>
+            </div>
             <div className="flex items-center">
               <Users className="w-4 h-4 mr-2" />
               <span>Status: {portalData.contact.stage.name}</span>
             </div>
           </div>
-        </div>
+        )}
 
         {/* No Projects Empty State */}
         {!hasProjects && (

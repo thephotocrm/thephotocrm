@@ -181,22 +181,23 @@ export default function ClientPortalProject() {
 
   return (
     <ClientPortalLayout currentProjectId={projectId}>
-        {/* Hero Banner */}
+        {/* Cover Photo Hero Banner */}
         <div 
-          className="h-64 bg-gradient-to-br from-primary/90 to-primary relative"
+          className="relative h-64 md:h-80 w-full bg-cover bg-center"
+          style={{ backgroundImage: 'url(https://images.unsplash.com/photo-1519741497674-611481863552?w=1200&h=400&fit=crop)' }}
           data-testid="hero-banner"
         >
-          <div className="absolute inset-0 bg-black/10"></div>
-          <div className="relative h-full flex items-end p-8">
-            <div className="text-white">
-              <h1 className="text-4xl font-bold mb-2" data-testid="text-project-title">
+          <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-black/60"></div>
+          <div className="relative h-full flex items-end p-6 md:p-8">
+            <div className="text-white max-w-4xl">
+              <h1 className="text-3xl md:text-4xl font-bold mb-2 drop-shadow-lg" data-testid="text-project-title">
                 {project.title}
               </h1>
-              <div className="flex items-center space-x-4 text-white/90">
+              <div className="flex flex-wrap items-center gap-4 text-white/95 drop-shadow">
                 {project.eventDate && (
                   <div className="flex items-center" data-testid="text-event-date">
                     <Calendar className="w-4 h-4 mr-2" />
-                    <span className="text-sm">
+                    <span className="text-sm font-medium">
                       {new Date(project.eventDate).toLocaleDateString('en-US', {
                         month: 'long',
                         day: 'numeric',
