@@ -1704,10 +1704,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Client not found" });
       }
 
-      // Check if user exists for this contact
-      let user = await storage.getUserByEmail(contact.email);
+      // CRITICAL: Find CLIENT user for this specific photographer
+      // This allows the same email to have both PHOTOGRAPHER and CLIENT roles
+      let user = await storage.getUserByEmailRolePhotographer(contact.email, "CLIENT", portalToken.photographerId);
       
-      // If no user exists, create one with a random password (they can reset it later)
+      // If no CLIENT user exists for this photographer, create one
       if (!user) {
         const randomPassword = crypto.randomBytes(16).toString('hex');
         const hashedPassword = await bcrypt.hash(randomPassword, 10);
