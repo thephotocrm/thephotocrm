@@ -9,7 +9,7 @@ interface AuthContextType {
   login: (credentials: LoginCredentials) => Promise<void>;
   register: (data: RegisterData) => Promise<void>;
   logout: () => Promise<void>;
-  refetchUser: () => Promise<void>;
+  refetchUser: () => Promise<User | null>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -61,15 +61,17 @@ export function AuthProvider({ children }: PropsWithChildren): JSX.Element {
     window.location.href = '/login';
   };
 
-  const refetchUser = async () => {
+  const refetchUser = useCallback(async (): Promise<User | null> => {
     try {
       const currentUser = await getCurrentUser();
       setUser(currentUser);
+      return currentUser;
     } catch (error) {
       console.error("Error refetching user:", error);
       setUser(null);
+      return null;
     }
-  };
+  }, []);
 
   return (
     <AuthContext.Provider value={{ user, loading, login, register, logout, refetchUser }}>
