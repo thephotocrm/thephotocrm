@@ -39,6 +39,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { cn } from "@/lib/utils";
 
 interface ClientProject {
   id: string;
@@ -160,8 +161,8 @@ function ClientPortalSidebar({ currentProjectId }: ClientPortalSidebarProps) {
   };
 
   return (
-    <Sidebar>
-      <SidebarHeader className="border-b border-border p-4">
+    <Sidebar portal="client">
+      <SidebarHeader className="border-b border-gray-200 p-4">
         {/* Photographer branding */}
         <div className="flex items-center gap-3 mb-4">
           {photographer?.logoUrl ? (
@@ -231,6 +232,12 @@ function ClientPortalSidebar({ currentProjectId }: ClientPortalSidebarProps) {
                     <SidebarMenuButton 
                       asChild 
                       isActive={active}
+                      className={cn(
+                        active 
+                          ? "bg-[#C9909B]/15 text-[#8B4565] hover:bg-[#C9909B]/25 hover:text-[#8B4565] data-[state=active]:opacity-100" 
+                          : "text-gray-700 hover:bg-gray-100 data-[state=open]:text-gray-700 data-[state=open]:bg-gray-100",
+                        "opacity-100"
+                      )}
                       data-testid={`nav-${item.id}`}
                     >
                       <Link href={item.href}>
@@ -246,10 +253,14 @@ function ClientPortalSidebar({ currentProjectId }: ClientPortalSidebarProps) {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="border-t border-border p-4">
+      <SidebarFooter className="border-t border-gray-200 p-4">
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild data-testid="nav-settings">
+            <SidebarMenuButton 
+              asChild 
+              className="text-gray-700 hover:bg-gray-100 opacity-100"
+              data-testid="nav-settings"
+            >
               <Link href="/client-portal/settings">
                 <Settings className="w-4 h-4" />
                 <span>Settings</span>
@@ -259,6 +270,7 @@ function ClientPortalSidebar({ currentProjectId }: ClientPortalSidebarProps) {
           <SidebarMenuItem>
             <SidebarMenuButton 
               onClick={handleLogout}
+              className="text-gray-700 hover:bg-gray-100 opacity-100"
               data-testid="button-logout"
             >
               <LogOut className="w-4 h-4" />
@@ -269,7 +281,7 @@ function ClientPortalSidebar({ currentProjectId }: ClientPortalSidebarProps) {
 
         {/* User info */}
         {user && (
-          <div className="flex items-center gap-2 mt-4 pt-4 border-t border-border">
+          <div className="flex items-center gap-2 mt-4 pt-4 border-t border-gray-200">
             <Avatar className="h-8 w-8">
               <AvatarFallback className="text-xs">
                 {user.firstName?.[0]}{user.lastName?.[0]}

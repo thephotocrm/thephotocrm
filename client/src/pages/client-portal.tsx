@@ -294,9 +294,12 @@ export default function ClientPortal() {
   return (
     <ClientPortalLayout currentProjectId={portalData.projects[0]?.id}>
       {/* Cover Photo Hero Banner */}
+      {/* TODO: Add photographer.coverImageUrl field to schema for custom branding */}
       <div 
-        className="relative h-48 md:h-64 w-full bg-cover bg-center"
-        style={{ backgroundImage: 'url(https://images.unsplash.com/photo-1606800052052-a08af7148866?w=1200&h=400&fit=crop)' }}
+        className="relative h-48 md:h-64 w-full bg-cover bg-center bg-gray-100"
+        style={{ 
+          backgroundImage: 'url(https://images.unsplash.com/photo-1606800052052-a08af7148866?w=1200&h=400&fit=crop)'
+        }}
         data-testid="hero-banner"
       >
         <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/20 to-black/50"></div>

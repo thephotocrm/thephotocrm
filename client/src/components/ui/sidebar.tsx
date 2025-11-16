@@ -170,6 +170,7 @@ const Sidebar = React.forwardRef<
     side?: "left" | "right"
     variant?: "sidebar" | "floating" | "inset"
     collapsible?: "offcanvas" | "icon" | "none"
+    portal?: "client" | "photographer"
   }
 >(
   (
@@ -177,6 +178,7 @@ const Sidebar = React.forwardRef<
       side = "left",
       variant = "sidebar",
       collapsible = "offcanvas",
+      portal = "photographer",
       className,
       children,
       ...props
@@ -206,14 +208,21 @@ const Sidebar = React.forwardRef<
           <SheetContent
             data-sidebar="sidebar"
             data-mobile="true"
-            className="bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 p-0 w-[100vw] max-w-none [&>button]:flex [&>button]:items-center [&>button]:justify-center [&>button]:absolute [&>button]:top-4 [&>button]:right-4 [&>button]:z-20 [&>button]:h-12 [&>button]:w-12 [&>button]:text-white [&>button]:hover:bg-white/10 [&>button]:rounded-md [&>button>svg]:h-8 [&>button>svg]:w-8"
+            className={cn(
+              "p-0 w-[100vw] max-w-none [&>button]:flex [&>button]:items-center [&>button]:justify-center [&>button]:absolute [&>button]:top-4 [&>button]:right-4 [&>button]:z-20 [&>button]:h-12 [&>button]:w-12 [&>button]:rounded-md [&>button>svg]:h-8 [&>button>svg]:w-8",
+              portal === "client" 
+                ? "bg-[#F7F7F7] [&>button]:text-gray-700 [&>button]:hover:bg-gray-200"
+                : "bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 [&>button]:text-white [&>button]:hover:bg-white/10"
+            )}
             side="left"
           >
             <SheetHeader className="sr-only">
               <SheetTitle>Sidebar</SheetTitle>
               <SheetDescription>Displays the mobile sidebar.</SheetDescription>
             </SheetHeader>
-            <div className="absolute inset-0 bg-slate-900/60 pointer-events-none"></div>
+            {portal === "photographer" && (
+              <div className="absolute inset-0 bg-slate-900/60 pointer-events-none"></div>
+            )}
             <div className="relative z-10 flex h-full w-full flex-col">{children}</div>
           </SheetContent>
         </Sheet>
@@ -256,9 +265,16 @@ const Sidebar = React.forwardRef<
         >
           <div
             data-sidebar="sidebar"
-            className="flex h-full w-full flex-col relative bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:border group-data-[variant=floating]:border-sidebar-border group-data-[variant=floating]:shadow"
+            className={cn(
+              "flex h-full w-full flex-col relative group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:border group-data-[variant=floating]:border-sidebar-border group-data-[variant=floating]:shadow",
+              portal === "client"
+                ? "bg-[#F7F7F7]"
+                : "bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600"
+            )}
           >
-            <div className="absolute inset-0 bg-slate-900/60 group-data-[variant=floating]:rounded-lg"></div>
+            {portal === "photographer" && (
+              <div className="absolute inset-0 bg-slate-900/60 group-data-[variant=floating]:rounded-lg"></div>
+            )}
             <div className="relative z-10 h-full flex flex-col">
               {children}
             </div>
