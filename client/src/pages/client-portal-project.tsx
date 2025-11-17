@@ -89,19 +89,53 @@ export default function ClientPortalProject() {
   const [location, setLocation] = useLocation();
   const projectId = params?.id;
   
-  // Get tab from URL query param - update whenever location changes
-  const [activeTab, setActiveTab] = useState<TabType>('overview');
+  // Force re-render when query params change
+  const [, forceUpdate] = useState({});
   
   useEffect(() => {
-    const searchParams = new URLSearchParams(window.location.search);
-    const tab = searchParams.get('tab') as TabType;
-    if (tab && ['overview', 'activity', 'tasks', 'files', 'galleries', 'payments', 'notes'].includes(tab)) {
-      setActiveTab(tab);
+    const handleLocationChange = () => {
+      forceUpdate({}); // Trigger re-render
+    };
+    
+    // Listen to both popstate (back/forward) and pushState/replaceState (wouter navigation)
+    window.addEventListener('popstate', handleLocationChange);
+    
+    // Intercept pushState and replaceState to detect wouter navigation
+    const originalPushState = window.history.pushState;
+    const originalReplaceState = window.history.replaceState;
+    
+    window.history.pushState = function(...args) {
+      originalPushState.apply(window.history, args);
+      handleLocationChange();
+    };
+    
+    window.history.replaceState = function(...args) {
+      originalReplaceState.apply(window.history, args);
+      handleLocationChange();
+    };
+    
+    return () => {
+      window.removeEventListener('popstate', handleLocationChange);
+      window.history.pushState = originalPushState;
+      window.history.replaceState = originalReplaceState;
+    };
+  }, []);
+  
+  // Derive active tab directly from URL query params (re-computes on every render)
+  const searchParams = new URLSearchParams(window.location.search);
+  const tab = searchParams.get('tab') as TabType;
+  const activeTab: TabType = (tab && ['overview', 'activity', 'tasks', 'files', 'galleries', 'payments', 'notes'].includes(tab)) 
+    ? tab 
+    : 'overview';
+  
+  // Helper to navigate to a specific tab
+  const navigateToTab = (tabName: TabType) => {
+    if (tabName === 'overview') {
+      setLocation(`/client-portal/projects/${projectId}`);
     } else {
-      // Default to overview if no tab specified
-      setActiveTab('overview');
+      setLocation(`/client-portal/projects/${projectId}?tab=${tabName}`);
     }
-  }, [location]); // Re-run when location changes
+  };
 
   const { data: project, isLoading } = useQuery<ClientProject>({
     queryKey: ["/api/client-portal/projects", projectId],
@@ -370,7 +404,7 @@ export default function ClientPortalProject() {
                       <Button 
                         variant="ghost" 
                         className="w-full mt-4" 
-                        onClick={() => setActiveTab('activity')}
+                        onClick={() => navigateToTab('activity')}
                         data-testid="button-view-all-activity"
                       >
                         View All Activity
