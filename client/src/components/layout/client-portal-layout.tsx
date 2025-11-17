@@ -52,6 +52,13 @@ interface ClientProject {
     businessName: string;
     logoUrl?: string;
   };
+  galleries?: Array<{
+    id: string;
+    title: string;
+    imageCount: number;
+    isPublic: boolean;
+    createdAt: string;
+  }>;
 }
 
 interface ClientPortalSidebarProps {
@@ -90,43 +97,59 @@ function ClientPortalSidebar({ currentProjectId }: ClientPortalSidebarProps) {
   // Get photographer info from project or domain (fallback for when no project exists)
   const photographer = currentProject?.photographer || domain?.photographer;
 
+  // Check if galleries exist for conditional styling
+  const hasGalleries = currentProject?.galleries && currentProject.galleries.length > 0;
+
   // Navigation items
   const navItems = [
     { 
       id: 'overview', 
       label: 'Overview', 
       icon: LayoutDashboard,
-      href: currentProjectId ? `/client-portal/projects/${currentProjectId}` : '/client-portal'
+      href: currentProjectId ? `/client-portal/projects/${currentProjectId}` : '/client-portal',
+      disabled: false
     },
     { 
       id: 'activity', 
       label: 'Activity', 
       icon: Activity,
-      href: currentProjectId ? `/client-portal/projects/${currentProjectId}?tab=activity` : '/client-portal'
+      href: currentProjectId ? `/client-portal/projects/${currentProjectId}?tab=activity` : '/client-portal',
+      disabled: false
     },
     { 
       id: 'tasks', 
       label: 'Tasks', 
       icon: CheckSquare,
-      href: currentProjectId ? `/client-portal/projects/${currentProjectId}?tab=tasks` : '/client-portal'
+      href: currentProjectId ? `/client-portal/projects/${currentProjectId}?tab=tasks` : '/client-portal',
+      disabled: false
     },
     { 
       id: 'files', 
       label: 'Files', 
       icon: FileText,
-      href: currentProjectId ? `/client-portal/projects/${currentProjectId}?tab=files` : '/client-portal'
+      href: currentProjectId ? `/client-portal/projects/${currentProjectId}?tab=files` : '/client-portal',
+      disabled: false
+    },
+    { 
+      id: 'galleries', 
+      label: 'Galleries', 
+      icon: Camera,
+      href: currentProjectId ? `/client-portal/projects/${currentProjectId}?tab=galleries` : '/client-portal',
+      disabled: !hasGalleries
     },
     { 
       id: 'payments', 
       label: 'Payments', 
       icon: CreditCard,
-      href: currentProjectId ? `/client-portal/projects/${currentProjectId}?tab=payments` : '/client-portal'
+      href: currentProjectId ? `/client-portal/projects/${currentProjectId}?tab=payments` : '/client-portal',
+      disabled: false
     },
     { 
       id: 'notes', 
       label: 'Notes', 
       icon: StickyNote,
-      href: currentProjectId ? `/client-portal/projects/${currentProjectId}?tab=notes` : '/client-portal'
+      href: currentProjectId ? `/client-portal/projects/${currentProjectId}?tab=notes` : '/client-portal',
+      disabled: false
     },
   ];
 
@@ -230,20 +253,30 @@ function ClientPortalSidebar({ currentProjectId }: ClientPortalSidebarProps) {
                 return (
                   <SidebarMenuItem key={item.id}>
                     <SidebarMenuButton 
-                      asChild 
+                      asChild={!item.disabled}
                       isActive={active}
+                      disabled={item.disabled}
                       className={cn(
-                        active 
-                          ? "bg-[#C9909B]/15 text-[#8B4565] hover:bg-[#C9909B]/25 hover:text-[#8B4565] data-[state=active]:opacity-100" 
-                          : "text-gray-700 hover:bg-gray-100 data-[state=open]:text-gray-700 data-[state=open]:bg-gray-100",
+                        item.disabled 
+                          ? "text-gray-400 cursor-not-allowed opacity-50 hover:bg-transparent"
+                          : active 
+                            ? "bg-[#C9909B]/15 text-[#8B4565] hover:bg-[#C9909B]/25 hover:text-[#8B4565] data-[state=active]:opacity-100" 
+                            : "text-gray-700 hover:bg-gray-100 data-[state=open]:text-gray-700 data-[state=open]:bg-gray-100",
                         "opacity-100"
                       )}
                       data-testid={`nav-${item.id}`}
                     >
-                      <Link href={item.href}>
-                        <Icon className="w-4 h-4" />
-                        <span>{item.label}</span>
-                      </Link>
+                      {item.disabled ? (
+                        <div className="flex items-center gap-2">
+                          <Icon className="w-4 h-4" />
+                          <span>{item.label}</span>
+                        </div>
+                      ) : (
+                        <Link href={item.href}>
+                          <Icon className="w-4 h-4" />
+                          <span>{item.label}</span>
+                        </Link>
+                      )}
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 );

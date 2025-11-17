@@ -1514,18 +1514,22 @@ export class DatabaseStorage implements IStorage {
         ? db.select().from(stages).where(eq(stages.id, project.stageId)).limit(1).then(r => r[0])
         : Promise.resolve(null),
       
-      // Fetch smart files for this project
+      // Fetch smart files sent to this project via projectSmartFiles (only client-visible statuses)
       db.select({
-        id: smartFiles.id,
-        title: smartFiles.title,
-        status: smartFiles.status,
-        totalCents: smartFiles.totalCents,
-        token: smartFiles.token,
-        createdAt: smartFiles.createdAt,
+        id: projectSmartFiles.id,
+        title: projectSmartFiles.smartFileName,
+        status: projectSmartFiles.status,
+        totalCents: projectSmartFiles.totalCents,
+        token: projectSmartFiles.token,
+        createdAt: sql<string>`COALESCE(${projectSmartFiles.sentAt}, ${projectSmartFiles.createdAt})`.as('created_at'),
       })
-      .from(smartFiles)
-      .where(eq(smartFiles.projectId, projectId))
-      .orderBy(desc(smartFiles.createdAt)),
+      .from(projectSmartFiles)
+      .where(and(
+        eq(projectSmartFiles.projectId, projectId),
+        // Only show SENT or later statuses (not DRAFT)
+        sql`${projectSmartFiles.status} IN ('SENT', 'VIEWED', 'ACCEPTED', 'PAID')`
+      ))
+      .orderBy(desc(sql`COALESCE(${projectSmartFiles.sentAt}, ${projectSmartFiles.createdAt})`)),
       
       // Fetch checklist items
       db.select()

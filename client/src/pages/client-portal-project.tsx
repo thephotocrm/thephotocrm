@@ -81,7 +81,7 @@ interface ClientProject {
   }>;
 }
 
-type TabType = 'overview' | 'activity' | 'tasks' | 'files' | 'payments' | 'notes';
+type TabType = 'overview' | 'activity' | 'tasks' | 'files' | 'galleries' | 'payments' | 'notes';
 
 export default function ClientPortalProject() {
   const { user, loading: authLoading, logout } = useAuth();
@@ -95,7 +95,7 @@ export default function ClientPortalProject() {
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
     const tab = searchParams.get('tab') as TabType;
-    if (tab && ['overview', 'activity', 'tasks', 'files', 'payments', 'notes'].includes(tab)) {
+    if (tab && ['overview', 'activity', 'tasks', 'files', 'galleries', 'payments', 'notes'].includes(tab)) {
       setActiveTab(tab);
     } else {
       // Default to overview if no tab specified
@@ -420,14 +420,66 @@ export default function ClientPortalProject() {
           {/* Files Tab */}
           {activeTab === 'files' && (
             <div className="space-y-6 max-w-4xl">
-              <h1 className="text-3xl font-bold text-gray-900">Files & Galleries</h1>
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900">Files</h1>
+                <p className="text-gray-600 mt-2">View invoices, contracts, and documents.</p>
+              </div>
+              
+              {/* Smart Files Section */}
+              <Card className="bg-white border-gray-200">
+                <CardContent className="pt-6">
+                  {(!project.smartFiles || project.smartFiles.length === 0) ? (
+                    <div className="text-center py-12">
+                      <FileText className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                      <p className="text-gray-900 font-medium">No files shared yet</p>
+                      <p className="text-sm text-gray-500 mt-2">Your invoices, contracts, and documents will appear here.</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {project.smartFiles.map((smartFile) => (
+                        <div key={smartFile.id} className="border border-gray-200 rounded-lg p-4 hover:border-primary transition-colors" data-testid={`smartfile-card-${smartFile.id}`}>
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center space-x-2 mb-2">
+                                <h4 className="font-semibold text-gray-900">{smartFile.title}</h4>
+                                <Badge variant={getStatusColor(smartFile.status)} className="text-xs">
+                                  {smartFile.status}
+                                </Badge>
+                              </div>
+                              <p className="text-sm text-gray-500 mb-2">
+                                Created {new Date(smartFile.createdAt).toLocaleDateString()}
+                              </p>
+                              {smartFile.totalCents > 0 && (
+                                <p className="text-2xl font-bold text-gray-900">{formatPrice(smartFile.totalCents)}</p>
+                              )}
+                            </div>
+                            <Button 
+                              onClick={() => setLocation(`/estimates/${smartFile.token}`)}
+                              data-testid={`view-smartfile-${smartFile.id}`}
+                            >
+                              View
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {/* Galleries Tab */}
+          {activeTab === 'galleries' && (
+            <div className="space-y-6 max-w-4xl">
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900">Galleries</h1>
+                <p className="text-gray-600 mt-2">View your photo galleries.</p>
+              </div>
               
               {/* Galleries Section */}
               <Card className="bg-white border-gray-200">
-                <CardHeader>
-                  <CardTitle className="text-xl">Galleries</CardTitle>
-                </CardHeader>
-                <CardContent>
+                <CardContent className="pt-6">
                   {(!project.galleries || project.galleries.length === 0) ? (
                     <div className="text-center py-12">
                       <ImageIcon className="w-12 h-12 mx-auto mb-4 text-gray-300" />
