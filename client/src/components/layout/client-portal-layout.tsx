@@ -272,7 +272,7 @@ function ClientPortalSidebar({ currentProjectId }: ClientPortalSidebarProps) {
                           <span>{item.label}</span>
                         </div>
                       ) : (
-                        <Link href={item.href}>
+                        <Link to={item.href}>
                           <Icon className="w-4 h-4" />
                           <span>{item.label}</span>
                         </Link>
@@ -294,7 +294,7 @@ function ClientPortalSidebar({ currentProjectId }: ClientPortalSidebarProps) {
               className="text-gray-700 hover:bg-gray-100 opacity-100"
               data-testid="nav-settings"
             >
-              <Link href="/client-portal/settings">
+              <Link to="/client-portal/settings">
                 <Settings className="w-4 h-4" />
                 <span>Settings</span>
               </Link>
