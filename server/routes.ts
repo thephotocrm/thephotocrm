@@ -11333,7 +11333,7 @@ ${photographer.businessName}`
       const ownProjects = await storage.getProjectsByClient(contact.id);
       
       // Get projects where user is a participant and normalize structure
-      // Extract project data and add role metadata
+      // Extract project data from records and add role metadata while preserving all fields
       const participantRecords = await storage.getParticipantProjects(contact.id);
       const participantProjects = participantRecords.map(record => ({
         ...record.project,
