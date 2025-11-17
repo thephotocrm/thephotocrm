@@ -11468,31 +11468,48 @@ ${photographer.businessName}`
     try {
       const user = req.user!;
       
+      console.log(`[CLIENT PORTAL] Request from user: ${user.email}, photographerId: ${user.photographerId}`);
+      
       // Verify user has photographerId in JWT (required for client portal access)
       if (!user.photographerId) {
+        console.error(`[CLIENT PORTAL] No photographerId in JWT for user: ${user.email}`);
         return res.status(403).json({ message: "Access denied - invalid client context" });
       }
       
       // Get the contact for this authenticated user, scoped to their photographer
       const contact = await storage.getContactByEmail(user.email, user.photographerId);
       if (!contact) {
+        console.error(`[CLIENT PORTAL] Contact not found for email: ${user.email}, photographerId: ${user.photographerId}`);
         return res.status(404).json({ message: "Contact not found" });
       }
       
+      console.log(`[CLIENT PORTAL] Found contact: ${contact.id}`);
+      
       // Get client's own projects
       const ownProjects = await storage.getProjectsByClient(contact.id);
+      console.log(`[CLIENT PORTAL] Own projects: ${ownProjects.length}`);
       
       // Get projects where user is a participant
-      const participantProjects = await storage.getParticipantProjects(contact.id);
+      const participantRecords = await storage.getParticipantProjects(contact.id);
+      console.log(`[CLIENT PORTAL] Participant records: ${participantRecords.length}`);
+      
+      // Normalize participant projects - extract the nested project object
+      const participantProjects = participantRecords.map(record => ({
+        ...record.project,
+        role: 'PARTICIPANT' as const
+      }));
       
       // Combine all projects
       const allProjects = [
         ...ownProjects.map(p => ({ ...p, role: 'PRIMARY' as const })),
-        ...participantProjects.map(p => ({ ...p, role: 'PARTICIPANT' as const }))
+        ...participantProjects
       ];
+      
+      console.log(`[CLIENT PORTAL] Total projects: ${allProjects.length}`);
       
       // SECURITY: Filter to only projects from the contact's photographer (multi-tenant isolation)
       const tenantProjects = allProjects.filter(p => p.photographerId === contact.photographerId);
+      console.log(`[CLIENT PORTAL] Filtered to tenant projects: ${tenantProjects.length}`);
       
       // Get photographer data for branding (needed even with zero projects)
       const photographer = await storage.getPhotographer(contact.photographerId);
@@ -11559,28 +11576,40 @@ ${photographer.businessName}`
         completedAt: q.submittedAt
       }));
       
-      // Format projects for display
-      const formattedProjects = sortedProjects.map(p => ({
-        id: p.id,
-        title: p.title,
-        projectType: p.projectType,
-        eventDate: p.eventDate,
-        status: p.status,
-        role: p.role,
-        stage: p.stage ? { name: p.stage.name } : undefined,
-        primaryClient: {
-          firstName: p.contact.firstName,
-          lastName: p.contact.lastName,
-          email: p.contact.email
+      // Format projects for display with defensive null checks
+      const formattedProjects = sortedProjects.map(p => {
+        // Defensive check - p.client exists from the database join
+        if (!p.client) {
+          console.error(`[CLIENT PORTAL] Project ${p.id} missing client data`);
         }
-      }));
+        
+        return {
+          id: p.id,
+          title: p.title,
+          projectType: p.projectType,
+          eventDate: p.eventDate,
+          status: p.status,
+          role: p.role,
+          stage: p.stage ? { name: p.stage.name } : undefined,
+          primaryClient: {
+            firstName: p.client?.firstName || '',
+            lastName: p.client?.lastName || '',
+            email: p.client?.email || ''
+          }
+        };
+      });
+      
+      // Defensive check for project.client
+      if (!project.client) {
+        console.error(`[CLIENT PORTAL] Primary project ${project.id} missing client data, using contact data as fallback`);
+      }
       
       const portalData = {
         contact: {
-          firstName: project.contact.firstName,
-          lastName: project.contact.lastName,
-          email: project.contact.email,
-          phone: project.contact.phone,
+          firstName: project.client?.firstName || contact.firstName,
+          lastName: project.client?.lastName || contact.lastName,
+          email: project.client?.email || contact.email,
+          phone: project.client?.phone || contact.phone,
           weddingDate: project.eventDate,
           stage: project.stage ? { name: project.stage.name } : { name: 'Unknown' }
         },
@@ -11597,9 +11626,15 @@ ${photographer.businessName}`
         hasProjects: true
       };
       
+      console.log(`[CLIENT PORTAL] Successfully formatted portal data for ${contact.email}`);
       res.json(portalData);
     } catch (error) {
-      console.error('Failed to fetch client portal data:', error);
+      console.error('[CLIENT PORTAL] Error details:', {
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined,
+        user: req.user?.email,
+        photographerId: req.user?.photographerId
+      });
       res.status(500).json({ error: 'Failed to fetch client portal data' });
     }
   });
