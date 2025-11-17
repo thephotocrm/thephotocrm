@@ -4983,9 +4983,16 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       }
 
       // Update status to SENT and set sentAt date
+      console.log(`📤 [SEND SMART FILE] Updating projectSmartFile ${projectSmartFileId} status to SENT`);
       const updatedProjectSmartFile = await storage.updateProjectSmartFile(projectSmartFileId, {
         status: 'SENT',
         sentAt: new Date()
+      });
+      console.log(`✅ [SEND SMART FILE] Successfully updated to SENT:`, {
+        id: updatedProjectSmartFile.id,
+        status: updatedProjectSmartFile.status,
+        sentAt: updatedProjectSmartFile.sentAt,
+        smartFileName: updatedProjectSmartFile.smartFileName
       });
 
       // Log Smart File sent to project history
@@ -11474,8 +11481,8 @@ ${photographer.businessName}`
   // Debug version endpoint
   app.get("/api/debug/version", (_req, res) => {
     res.json({
-      timestamp: "2024-11-17-22:45:00",
-      buildId: "projectHistory-fix-v3",
+      timestamp: "2024-11-17-23:50:00",
+      buildId: "smartfiles-debug-logging-v1",
       commit: process.env.RAILWAY_GIT_COMMIT_SHA || "local",
       deployedAt: new Date().toISOString()
     });

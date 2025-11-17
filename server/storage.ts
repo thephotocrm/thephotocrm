@@ -1574,6 +1574,16 @@ export class DatabaseStorage implements IStorage {
         .limit(50), // Limit to recent 50 activities
     ]);
 
+    console.log(`📁 [CLIENT PORTAL PROJECT] Project ${projectId} Smart Files query returned:`, {
+      count: smartFilesList.length,
+      files: smartFilesList.map(f => ({
+        id: f.id,
+        title: f.title,
+        status: f.status,
+        createdAt: f.createdAt
+      }))
+    });
+
     // Build the client portal project response
     return {
       id: project.id,
