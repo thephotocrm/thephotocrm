@@ -1521,15 +1521,15 @@ export class DatabaseStorage implements IStorage {
         status: projectSmartFiles.status,
         totalCents: projectSmartFiles.totalCents,
         token: projectSmartFiles.token,
-        createdAt: sql<string>`COALESCE(${projectSmartFiles.sentAt}, ${projectSmartFiles.createdAt})`.as('created_at'),
+        createdAt: projectSmartFiles.createdAt,
       })
       .from(projectSmartFiles)
       .where(and(
         eq(projectSmartFiles.projectId, projectId),
         // Only show SENT or later statuses (not DRAFT)
-        sql`${projectSmartFiles.status} IN ('SENT', 'VIEWED', 'ACCEPTED', 'PAID')`
+        inArray(projectSmartFiles.status, ['SENT', 'VIEWED', 'ACCEPTED', 'PAID'])
       ))
-      .orderBy(desc(sql`COALESCE(${projectSmartFiles.sentAt}, ${projectSmartFiles.createdAt})`)),
+      .orderBy(desc(projectSmartFiles.createdAt)),
       
       // Fetch checklist items
       db.select()
