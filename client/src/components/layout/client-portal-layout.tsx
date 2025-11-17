@@ -100,6 +100,12 @@ function ClientPortalSidebar({ currentProjectId }: ClientPortalSidebarProps) {
   // Check if galleries exist for conditional styling
   const hasGalleries = currentProject?.galleries && currentProject.galleries.length > 0;
 
+  // Debug logging
+  console.log('[SIDEBAR DEBUG] currentProjectId:', currentProjectId);
+  console.log('[SIDEBAR DEBUG] projects:', projects);
+  console.log('[SIDEBAR DEBUG] currentProject:', currentProject);
+  console.log('[SIDEBAR DEBUG] hasGalleries:', hasGalleries);
+
   // Navigation items
   const navItems = [
     { 
