@@ -11474,8 +11474,8 @@ ${photographer.businessName}`
   // Debug version endpoint
   app.get("/api/debug/version", (_req, res) => {
     res.json({
-      timestamp: "2024-11-17-22:30:00",
-      buildId: "smart-files-fix-v2",
+      timestamp: "2024-11-17-22:45:00",
+      buildId: "projectHistory-fix-v3",
       commit: process.env.RAILWAY_GIT_COMMIT_SHA || "local",
       deployedAt: new Date().toISOString()
     });

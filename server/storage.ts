@@ -1566,11 +1566,11 @@ export class DatabaseStorage implements IStorage {
         .where(eq(projectNotes.projectId, projectId))
         .orderBy(desc(projectNotes.createdAt)),
       
-      // Fetch project activities (from project history)
+      // Fetch project activities (from project activity log)
       db.select()
-        .from(projectHistory)
-        .where(eq(projectHistory.projectId, projectId))
-        .orderBy(desc(projectHistory.createdAt))
+        .from(projectActivityLog)
+        .where(eq(projectActivityLog.projectId, projectId))
+        .orderBy(desc(projectActivityLog.createdAt))
         .limit(50), // Limit to recent 50 activities
     ]);
 
