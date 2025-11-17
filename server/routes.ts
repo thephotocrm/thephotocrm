@@ -11323,18 +11323,26 @@ ${photographer.businessName}`
       // Get the contact ID from the authenticated user
       const user = req.user!;
       
+      console.log(`[CLIENT PORTAL PROJECTS] Request from user: ${user.email}, photographerId: ${user.photographerId}`);
+      
       // Find the contact associated with this user email
       const contact = await storage.getContactByEmail(user.email, user.photographerId!);
       if (!contact) {
+        console.error(`[CLIENT PORTAL PROJECTS] Contact not found for email: ${user.email}, photographerId: ${user.photographerId}`);
         return res.status(404).json({ message: "Contact not found" });
       }
       
+      console.log(`[CLIENT PORTAL PROJECTS] Found contact: ${contact.id}, photographerId: ${contact.photographerId}`);
+      
       // Get client's own projects
       const ownProjects = await storage.getProjectsByClient(contact.id);
+      console.log(`[CLIENT PORTAL PROJECTS] Own projects count: ${ownProjects.length}`);
       
       // Get projects where user is a participant and normalize structure
       // Extract project data from records and add role metadata while preserving all fields
       const participantRecords = await storage.getParticipantProjects(contact.id);
+      console.log(`[CLIENT PORTAL PROJECTS] Participant projects count: ${participantRecords.length}`);
+      
       const participantProjects = participantRecords.map(record => ({
         ...record.project,
         role: 'PARTICIPANT' as const
@@ -11346,8 +11354,11 @@ ${photographer.businessName}`
         ...participantProjects
       ];
       
+      console.log(`[CLIENT PORTAL PROJECTS] Total projects before filtering: ${allProjects.length}`);
+      
       // SECURITY: Filter to only projects from the contact's photographer
       const filteredProjects = allProjects.filter(p => p.photographerId === contact.photographerId);
+      console.log(`[CLIENT PORTAL PROJECTS] Projects after photographer filter: ${filteredProjects.length}`);
       
       // PRIORITIZE: Sort projects by active status and event date
       const sortedProjects = filteredProjects.sort((a, b) => {
@@ -11366,30 +11377,49 @@ ${photographer.businessName}`
       // Fetch photographer data once for branding (businessName, logoUrl)
       const photographer = await storage.getPhotographer(contact.photographerId);
       
+      // Defensive check: log if photographer is missing
+      if (!photographer) {
+        console.error(`[CLIENT PORTAL PROJECTS] WARNING: Photographer not found for ID: ${contact.photographerId}`);
+      }
+      
       // Format projects for display
-      const formattedProjects = sortedProjects.map(p => ({
-        id: p.id,
-        title: p.title,
-        projectType: p.projectType,
-        eventDate: p.eventDate,
-        status: p.status,
-        role: p.role,
-        stage: p.stage ? { name: p.stage.name } : undefined,
-        photographer: {
-          businessName: photographer?.businessName || '',
-          logoUrl: photographer?.logoUrl || undefined
-        },
-        primaryClient: {
-          firstName: p.client?.firstName || '',
-          lastName: p.client?.lastName || '',
-          email: p.client?.email || ''
+      const formattedProjects = sortedProjects.map(p => {
+        // Defensive null check on project fields
+        if (!p.id || !p.title) {
+          console.error(`[CLIENT PORTAL PROJECTS] Invalid project data:`, p);
         }
-      }));
+        
+        return {
+          id: p.id,
+          title: p.title,
+          projectType: p.projectType || 'Unknown',
+          eventDate: p.eventDate,
+          status: p.status || 'ACTIVE',
+          role: p.role,
+          stage: p.stage ? { name: p.stage.name } : undefined,
+          photographer: {
+            businessName: photographer?.businessName || '',
+            logoUrl: photographer?.logoUrl || undefined
+          },
+          primaryClient: {
+            firstName: p.client?.firstName || '',
+            lastName: p.client?.lastName || '',
+            email: p.client?.email || ''
+          }
+        };
+      });
+      
+      console.log(`[CLIENT PORTAL PROJECTS] Returning ${formattedProjects.length} formatted projects`);
       
       // Return flat array (frontend expects ClientProject[])
       res.json(formattedProjects);
     } catch (error) {
-      console.error("Get client projects error:", error);
+      console.error("[CLIENT PORTAL PROJECTS] Error details:", {
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined,
+        user: req.user?.email,
+        photographerId: req.user?.photographerId
+      });
       res.status(500).json({ message: "Failed to fetch projects" });
     }
   });
