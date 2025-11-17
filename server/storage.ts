@@ -1537,17 +1537,28 @@ export class DatabaseStorage implements IStorage {
         .where(eq(projectChecklistItems.projectId, projectId))
         .orderBy(projectChecklistItems.orderIndex),
       
-      // Fetch galleries linked to this project
+      // Fetch galleries linked to this project with image counts
       db.select({
         id: galleries.id,
         title: galleries.title,
-        imageCount: sql<number>`COALESCE((SELECT COUNT(*) FROM ${galleryImages} WHERE ${galleryImages.galleryId} = ${galleries.id}), 0)`,
         isPublic: galleries.isPublic,
         createdAt: galleries.createdAt,
       })
       .from(galleries)
       .where(eq(galleries.projectId, projectId))
-      .orderBy(desc(galleries.createdAt)),
+      .orderBy(desc(galleries.createdAt))
+      .then(async (galleriesList) => {
+        // Fetch image counts separately for each gallery
+        return Promise.all(galleriesList.map(async (gallery) => {
+          const [countResult] = await db.select({ count: sql<number>`count(*)` })
+            .from(galleryImages)
+            .where(eq(galleryImages.galleryId, gallery.id));
+          return {
+            ...gallery,
+            imageCount: Number(countResult?.count || 0),
+          };
+        }));
+      }),
       
       // Fetch project notes
       db.select()

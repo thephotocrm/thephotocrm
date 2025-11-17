@@ -11458,9 +11458,27 @@ ${photographer.businessName}`
       
       res.json(projectData);
     } catch (error) {
-      console.error("Get client portal project error:", error);
-      res.status(500).json({ message: "Failed to fetch project" });
+      console.error("=== CLIENT PORTAL PROJECT ERROR ===");
+      console.error("Project ID:", req.params.id);
+      console.error("User:", req.user?.email);
+      console.error("Error message:", error instanceof Error ? error.message : error);
+      console.error("Error stack:", error instanceof Error ? error.stack : "No stack trace");
+      console.error("===================================");
+      res.status(500).json({ 
+        message: "Failed to fetch project",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
     }
+  });
+
+  // Debug version endpoint
+  app.get("/api/debug/version", (_req, res) => {
+    res.json({
+      timestamp: "2024-11-17-22:30:00",
+      buildId: "smart-files-fix-v2",
+      commit: process.env.RAILWAY_GIT_COMMIT_SHA || "local",
+      deployedAt: new Date().toISOString()
+    });
   });
 
   // Client Portal Data
