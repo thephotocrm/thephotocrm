@@ -11332,13 +11332,18 @@ ${photographer.businessName}`
       // Get client's own projects
       const ownProjects = await storage.getProjectsByClient(contact.id);
       
-      // Get projects where user is a participant
-      const participantProjects = await storage.getParticipantProjects(contact.id);
+      // Get projects where user is a participant and normalize structure
+      // Extract project data and add role metadata
+      const participantRecords = await storage.getParticipantProjects(contact.id);
+      const participantProjects = participantRecords.map(record => ({
+        ...record.project,
+        role: 'PARTICIPANT' as const
+      }));
       
-      // Combine all projects
+      // Combine all projects with role metadata
       const allProjects = [
         ...ownProjects.map(p => ({ ...p, role: 'PRIMARY' as const })),
-        ...participantProjects.map(p => ({ ...p, role: 'PARTICIPANT' as const }))
+        ...participantProjects
       ];
       
       // SECURITY: Filter to only projects from the contact's photographer
@@ -11358,6 +11363,9 @@ ${photographer.businessName}`
         return bDate - aDate;
       });
       
+      // Fetch photographer data once for branding (businessName, logoUrl)
+      const photographer = await storage.getPhotographer(contact.photographerId);
+      
       // Format projects for display
       const formattedProjects = sortedProjects.map(p => ({
         id: p.id,
@@ -11367,10 +11375,14 @@ ${photographer.businessName}`
         status: p.status,
         role: p.role,
         stage: p.stage ? { name: p.stage.name } : undefined,
+        photographer: {
+          businessName: photographer?.businessName || '',
+          logoUrl: photographer?.logoUrl || undefined
+        },
         primaryClient: {
-          firstName: p.contact.firstName,
-          lastName: p.contact.lastName,
-          email: p.contact.email
+          firstName: p.client?.firstName || '',
+          lastName: p.client?.lastName || '',
+          email: p.client?.email || ''
         }
       }));
       

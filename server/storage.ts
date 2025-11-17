@@ -1254,6 +1254,7 @@ export class DatabaseStorage implements IStorage {
       eventDate: projects.eventDate,
       notes: projects.notes,
       status: projects.status,
+      photographerId: projects.photographerId,
       createdAt: projects.createdAt,
       client: {
         id: contacts.id,
