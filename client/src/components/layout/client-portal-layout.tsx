@@ -126,6 +126,14 @@ function ClientPortalSidebar({ currentProjectId }: ClientPortalSidebarProps) {
 
   // Get photographer info from project or domain (fallback for when no project exists)
   const photographer = currentProject?.photographer || domain?.photographer;
+  
+  // Debug: Log photographer data to help diagnose logo issues
+  console.log('🖼️ Client Portal - Photographer Logo Debug:', {
+    hasPhotographer: !!photographer,
+    businessName: photographer?.businessName,
+    logoUrl: photographer?.logoUrl,
+    logoUrlLength: photographer?.logoUrl?.length
+  });
 
   // Check if galleries exist for conditional styling
   const hasGalleries = currentProject?.galleries && currentProject.galleries.length > 0;
