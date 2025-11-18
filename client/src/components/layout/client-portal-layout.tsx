@@ -70,12 +70,42 @@ function ClientPortalSidebar({ currentProjectId }: ClientPortalSidebarProps) {
   const { user, logout } = useAuth();
   const { domain } = useDomain();
   const { openMobile, setOpenMobile, isMobile } = useSidebar();
+  const [, forceUpdate] = useState({});
 
   // Fetch all projects for dropdown
   const { data: projects = [], isLoading: projectsLoading } = useQuery<ClientProject[]>({
     queryKey: ["/api/client-portal/projects"],
     enabled: !!user
   });
+
+  // Force re-render when URL changes (including query params)
+  useEffect(() => {
+    const originalPushState = window.history.pushState;
+    const originalReplaceState = window.history.replaceState;
+
+    // Handle browser back/forward navigation
+    const handlePopState = () => {
+      forceUpdate({});
+    };
+
+    window.history.pushState = function(...args) {
+      originalPushState.apply(window.history, args);
+      forceUpdate({});
+    };
+
+    window.history.replaceState = function(...args) {
+      originalReplaceState.apply(window.history, args);
+      forceUpdate({});
+    };
+
+    window.addEventListener('popstate', handlePopState);
+
+    return () => {
+      window.history.pushState = originalPushState;
+      window.history.replaceState = originalReplaceState;
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, []);
 
   // Auto-close mobile sidebar when navigating
   useEffect(() => {
@@ -154,8 +184,8 @@ function ClientPortalSidebar({ currentProjectId }: ClientPortalSidebarProps) {
   ];
 
   const isActive = (href: string) => {
-    // Compare both pathname and query params for accurate tab highlighting
-    const currentUrl = location;
+    // Use window.location to get full URL with query params (wouter's location only has pathname)
+    const currentUrl = `${window.location.pathname}${window.location.search}`;
     const itemUrl = href;
     
     // Extract pathname and query params for both current URL and item URL
