@@ -2540,26 +2540,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Configure multer for logo uploads
-  const logoStorage = multer.diskStorage({
-    destination: (req, file, cb) => {
-      const uploadsDir = path.join(process.cwd(), 'attached_assets', 'logos');
-      // Ensure directory exists
-      if (!fs.existsSync(uploadsDir)) {
-        fs.mkdirSync(uploadsDir, { recursive: true });
-      }
-      cb(null, uploadsDir);
-    },
-    filename: (req, file, cb) => {
-      // Generate unique filename with original extension
-      const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1E9)}`;
-      const ext = path.extname(file.originalname);
-      cb(null, `logo-${uniqueSuffix}${ext}`);
-    }
-  });
-
+  // Configure multer for logo uploads (use memory storage for Cloudinary)
   const uploadLogo = multer({ 
-    storage: logoStorage,
+    storage: multer.memoryStorage(),
     limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
     fileFilter: (req, file, cb) => {
       // Accept images only
@@ -2577,9 +2560,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "No file uploaded" });
       }
       
-      // Return the file path relative to attached_assets
-      const logoUrl = `/attached_assets/logos/${req.file.filename}`;
-      res.json({ logoUrl });
+      // Upload to Cloudinary
+      const { uploadToCloudinary } = await import('./services/cloudinary');
+      const result = await uploadToCloudinary(req.file.buffer, 'logos', {
+        public_id: `logo-${req.user!.photographerId}-${Date.now()}`
+      });
+      
+      // Return the secure Cloudinary URL
+      res.json({ logoUrl: result.secure_url });
     } catch (error) {
       console.error("Logo upload error:", error);
       res.status(500).json({ message: "Failed to upload logo" });
