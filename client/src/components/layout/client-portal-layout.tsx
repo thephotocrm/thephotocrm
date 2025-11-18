@@ -354,7 +354,7 @@ function ClientPortalSidebar({ currentProjectId }: ClientPortalSidebarProps) {
         {user && (
           <div className="flex items-center gap-2 mt-4 pt-4 border-t border-gray-200">
             <Avatar className="h-8 w-8">
-              <AvatarFallback className="text-xs">
+              <AvatarFallback className="bg-primary text-white text-xs">
                 {user.firstName?.[0]}{user.lastName?.[0]}
               </AvatarFallback>
             </Avatar>
