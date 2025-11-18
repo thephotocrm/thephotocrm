@@ -488,7 +488,7 @@ export default function ClientPortalProject() {
                               )}
                             </div>
                             <Button 
-                              onClick={() => setLocation(`/estimates/${smartFile.token}`)}
+                              onClick={() => setLocation(`/smart-file/${smartFile.token}`)}
                               data-testid={`view-smartfile-${smartFile.id}`}
                             >
                               View
@@ -586,7 +586,7 @@ export default function ClientPortalProject() {
                               <p className="text-2xl font-bold text-gray-900">{formatPrice(smartFile.totalCents)}</p>
                             </div>
                             <Button 
-                              onClick={() => setLocation(`/estimates/${smartFile.token}`)}
+                              onClick={() => setLocation(`/smart-file/${smartFile.token}`)}
                               data-testid={`view-smartfile-${smartFile.id}`}
                             >
                               View
