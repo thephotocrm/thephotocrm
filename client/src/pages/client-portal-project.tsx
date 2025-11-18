@@ -265,9 +265,6 @@ export default function ClientPortalProject() {
               <span className="text-sm text-gray-700" data-testid="text-client-name">
                 {project.client.firstName} {project.client.lastName}
               </span>
-              <Badge variant="outline" className="text-xs" data-testid="badge-client-role">
-                {project.role === 'PRIMARY' ? 'Lead' : 'Participant'}
-              </Badge>
             </div>
           </div>
         </div>
