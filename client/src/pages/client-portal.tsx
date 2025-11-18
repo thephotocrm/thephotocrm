@@ -188,6 +188,20 @@ export default function ClientPortal() {
     enabled: !!user
   });
 
+  // Auto-redirect to most recent project when data loads
+  // ONLY on base /client-portal route to preserve multi-project selection UX
+  const [location] = useLocation();
+  useEffect(() => {
+    const isBasePortalRoute = location === '/client-portal';
+    if (isBasePortalRoute && portalData && portalData.projects.length > 0 && !redirectUrl) {
+      // Projects are already sorted by createdAt DESC from backend
+      // Always redirect to the first (most recent) project
+      const mostRecentProject = portalData.projects[0];
+      console.log(`🚀 Auto-redirecting to most recent project: ${mostRecentProject.id}`);
+      setRedirectUrl(`/client-portal/projects/${mostRecentProject.id}`);
+    }
+  }, [location, portalData, redirectUrl]);
+
   // Show token validation state
   if (tokenStatus === "validating") {
     return (

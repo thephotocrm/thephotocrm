@@ -2214,6 +2214,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin endpoint to backfill clientId for existing CLIENT users
+  app.post("/api/admin/backfill-client-ids", authenticateToken, requireAdmin, async (req, res) => {
+    try {
+      const { dryRun = true } = req.body;
+      
+      console.log(`\n🔧 Admin ${req.user!.email} initiated clientId backfill (dryRun: ${dryRun})`);
+      
+      const result = await storage.backfillClientIds(dryRun);
+      
+      // Log admin activity
+      await storage.logAdminActivity({
+        adminUserId: req.user!.userId,
+        action: 'BACKFILL_CLIENT_IDS',
+        metadata: { 
+          dryRun,
+          updated: result.updated,
+          skipped: result.skipped,
+          details: `Backfilled ${result.updated} CLIENT users` 
+        }
+      });
+      
+      res.json({
+        success: true,
+        dryRun,
+        summary: {
+          updated: result.updated,
+          skipped: result.skipped,
+          total: result.updated + result.skipped
+        },
+        details: result.details
+      });
+    } catch (error) {
+      console.error("❌ Backfill error:", error);
+      res.status(500).json({ 
+        success: false,
+        message: error instanceof Error ? error.message : "Backfill failed" 
+      });
+    }
+  });
+
   app.post("/api/admin/exit-impersonation", authenticateToken, async (req, res) => {
     try {
       // Check if user is currently impersonating
@@ -11572,20 +11612,12 @@ ${photographer.businessName}`
         return res.json(emptyPortalData);
       }
       
-      // PRIORITIZE: Sort projects by active status and event date
-      // 1. Active projects come before archived
-      // 2. Within same status, sort by event date (most recent first)
+      // PRIORITIZE: Sort projects by creation date (most recent first)
+      // This ensures clients always see their newest project first
       const sortedProjects = tenantProjects.sort((a, b) => {
-        // Active projects first (status enum is uppercase)
-        const aStatus = a.status?.toUpperCase();
-        const bStatus = b.status?.toUpperCase();
-        if (aStatus === 'ACTIVE' && bStatus !== 'ACTIVE') return -1;
-        if (aStatus !== 'ACTIVE' && bStatus === 'ACTIVE') return 1;
-        
-        // Sort by event date (most recent first), with null-safe comparison
-        const aDate = a.eventDate ? new Date(a.eventDate).getTime() : 0;
-        const bDate = b.eventDate ? new Date(b.eventDate).getTime() : 0;
-        return bDate - aDate;
+        const aCreated = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const bCreated = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        return bCreated - aCreated;
       });
       
       // Use the most relevant project (active + most recent) for client portal data

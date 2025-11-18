@@ -63,6 +63,7 @@ export interface IStorage {
   linkGoogleAccount(userId: string, googleId: string): Promise<User>;
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: string, user: Partial<User>): Promise<User>;
+  backfillClientIds(dryRun: boolean): Promise<{ updated: number; skipped: number; details: any[] }>;
   
   // Account Linking Requests
   createLinkingRequest(request: InsertLinkingRequest): Promise<LinkingRequest>;
@@ -527,6 +528,112 @@ export class DatabaseStorage implements IStorage {
   async updateUser(id: string, updateData: Partial<User>): Promise<User> {
     const [user] = await db.update(users).set(updateData).where(eq(users.id, id)).returning();
     return user;
+  }
+
+  async backfillClientIds(dryRun: boolean = true): Promise<{ updated: number; skipped: number; details: any[] }> {
+    console.log(`\n🔄 Starting CLIENT user backfill (dryRun: ${dryRun})...`);
+    
+    // Find all CLIENT users with NULL clientId
+    const clientUsers = await db.select()
+      .from(users)
+      .where(and(
+        eq(users.role, 'CLIENT'),
+        isNull(users.clientId)
+      ));
+    
+    console.log(`📊 Found ${clientUsers.length} CLIENT users with NULL clientId`);
+    
+    let updated = 0;
+    let skipped = 0;
+    const details: any[] = [];
+    
+    for (const user of clientUsers) {
+      try {
+        // Find matching contact by email + photographerId
+        const [contact] = await db.select()
+          .from(contacts)
+          .where(and(
+            eq(contacts.email, user.email),
+            eq(contacts.photographerId, user.photographerId!)
+          ))
+          .limit(2); // Check for duplicates
+        
+        if (!contact) {
+          console.log(`⚠️  No contact found for user ${user.email} (photographerId: ${user.photographerId})`);
+          skipped++;
+          details.push({
+            email: user.email,
+            photographerId: user.photographerId,
+            status: 'SKIPPED',
+            reason: 'No matching contact found'
+          });
+          continue;
+        }
+        
+        // Check for ambiguous matches (safety check)
+        const duplicateCheck = await db.select()
+          .from(contacts)
+          .where(and(
+            eq(contacts.email, user.email),
+            eq(contacts.photographerId, user.photographerId!)
+          ));
+        
+        if (duplicateCheck.length > 1) {
+          console.log(`⚠️  Multiple contacts found for ${user.email} - skipping for safety`);
+          skipped++;
+          details.push({
+            email: user.email,
+            photographerId: user.photographerId,
+            status: 'SKIPPED',
+            reason: `Multiple contacts found (${duplicateCheck.length})`
+          });
+          continue;
+        }
+        
+        if (dryRun) {
+          console.log(`✅ [DRY RUN] Would update user ${user.email} with clientId: ${contact.id}`);
+          updated++;
+          details.push({
+            email: user.email,
+            photographerId: user.photographerId,
+            clientId: contact.id,
+            contactName: `${contact.firstName} ${contact.lastName}`,
+            status: 'DRY_RUN_SUCCESS'
+          });
+        } else {
+          // Actually update the user
+          await db.update(users)
+            .set({ clientId: contact.id })
+            .where(eq(users.id, user.id));
+          
+          console.log(`✅ Updated user ${user.email} with clientId: ${contact.id}`);
+          updated++;
+          details.push({
+            email: user.email,
+            photographerId: user.photographerId,
+            clientId: contact.id,
+            contactName: `${contact.firstName} ${contact.lastName}`,
+            status: 'UPDATED'
+          });
+        }
+      } catch (error) {
+        console.error(`❌ Error processing user ${user.email}:`, error);
+        skipped++;
+        details.push({
+          email: user.email,
+          photographerId: user.photographerId,
+          status: 'ERROR',
+          reason: error instanceof Error ? error.message : 'Unknown error'
+        });
+      }
+    }
+    
+    console.log(`\n📈 Backfill Summary:`);
+    console.log(`   ✅ Updated: ${updated}`);
+    console.log(`   ⚠️  Skipped: ${skipped}`);
+    console.log(`   📊 Total: ${clientUsers.length}`);
+    
+    return { updated, skipped, details };
   }
 
   async getAllPhotographers(): Promise<Photographer[]> {
