@@ -8,6 +8,8 @@ export interface User {
   isImpersonating?: boolean;
   adminUserId?: string;
   businessName?: string;
+  firstName?: string;
+  lastName?: string;
 }
 
 export interface LoginCredentials {

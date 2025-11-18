@@ -2322,7 +2322,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
 
       // If user is a photographer, include photographer metadata
-      if (user.photographerId) {
+      if (user.photographerId && user.role === 'PHOTOGRAPHER') {
         try {
           const photographer = await storage.getPhotographer(user.photographerId);
           if (photographer) {
@@ -2334,6 +2334,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         } catch (photogError) {
           console.error("Error fetching photographer data:", photogError);
           // Continue without photographer data if fetch fails
+        }
+      }
+
+      // If user is a client, include contact name data
+      if (user.role === 'CLIENT' && user.clientId) {
+        try {
+          const contact = await storage.getContact(user.clientId);
+          if (contact) {
+            userData.firstName = contact.firstName;
+            userData.lastName = contact.lastName;
+          }
+        } catch (contactError) {
+          console.error("Error fetching contact data:", contactError);
+          // Continue without contact data if fetch fails
         }
       }
 
