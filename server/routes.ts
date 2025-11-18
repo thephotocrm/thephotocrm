@@ -1717,7 +1717,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           email: contact.email,
           passwordHash: hashedPassword,
           role: "CLIENT",
-          photographerId: portalToken.photographerId
+          photographerId: portalToken.photographerId,
+          clientId: contact.id
         });
       }
 
@@ -1848,7 +1849,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           email: contact.email,
           passwordHash: hashedPassword,
           role: "CLIENT",
-          photographerId: contact.photographerId
+          photographerId: contact.photographerId,
+          clientId: contact.id
         });
         
         console.log("👤 Created new tenant-scoped user account for client:", user.email, "photographer:", contact.photographerId);
