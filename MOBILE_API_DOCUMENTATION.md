@@ -97,49 +97,25 @@ These features require desktop/laptop for full workflow:
 
 ---
 
-### Client Features (Full Portal Access)
+### Why No Client Mobile App?
 
-Clients get the **complete portal experience** on mobile:
+Clients access their portal through the **mobile-responsive web portal** at `{photographer-slug}.tpcportal.co` instead of downloading an app.
 
-#### ✅ All Client Portal Features Included
-
-**1. Projects Dashboard**
-- View all their projects
-- See project timeline and status
-- Event date and photographer info
-- Easy project switching if multiple
-
-**2. Project Details**
-- View all project information
-- Timeline of important dates
-- Participant list (partner, family members)
-
-**3. Smart Files (Proposals/Contracts)**
-- View proposals and invoices
-- Sign contracts with finger/stylus
-- Select packages and add-ons
-- Make payments via Stripe
-
-**4. Photo Galleries**
-- Browse all photos in grid view
-- Full-screen image viewing with pinch-zoom
-- Favorite photos (heart icon)
-- Download selected favorites
-- Share gallery link
-
-**5. Messaging**
+**Client Portal Features (Mobile Web):**
+- View all projects and project details
+- Sign contracts and make payments via Stripe
+- Browse photo galleries with pinch-zoom
+- Favorite and download photos
 - Message their photographer
-- View conversation history
-- Receive notifications for new messages
-
-**6. Bookings**
-- Book appointments from available slots
-- View upcoming appointments
-- Reschedule if photographer allows
-
-**7. Settings**
+- Book and manage appointments
 - Update contact information
-- Manage notification preferences
+
+**Benefits of Mobile Web for Clients:**
+- **Zero friction** - Click magic link from email/SMS, instant access
+- **No downloads** - Works immediately in any mobile browser
+- **Always current** - No app updates required
+- **Bookmarkable** - Save to home screen for app-like experience
+- **Universal** - Works on any device, any platform
 
 ---
 
