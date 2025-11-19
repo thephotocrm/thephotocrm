@@ -261,7 +261,7 @@ const inputStyle = {
 
 ### Navigation Structure
 
-#### Photographer Navigation (Bottom Tabs)
+The mobile app uses a **bottom tab navigation** pattern with stack navigators for each section.
 
 ```
 ┌─────────────────────────────────┐
@@ -277,41 +277,16 @@ const inputStyle = {
 ```
 
 **Bottom Tab Bar:**
-1. **Projects** (Home icon) - Projects dashboard
-2. **Inbox** (Message icon + badge) - Messaging center
-3. **Bookings** (Calendar icon) - Upcoming appointments
-4. **More** (Menu icon) - Profile & settings
+1. **Projects** (Home icon) - Projects dashboard with pipeline view
+2. **Inbox** (Message icon + badge) - Messaging center for SMS/Email
+3. **Bookings** (Calendar icon) - Upcoming appointments and availability
+4. **More** (Menu icon) - Profile, settings, logout
 
 **Stack Navigators:**
-- **Projects Stack**: Projects List → Project Detail → Add Note
+- **Projects Stack**: Projects List → Project Detail → Add Note → Contact Detail
 - **Inbox Stack**: Conversations List → Thread Detail → Send Message
-- **Bookings Stack**: Calendar View → Booking Detail
-- **More Stack**: Profile → Settings → Edit Availability
-
-#### Client Navigation (Bottom Tabs)
-
-```
-┌─────────────────────────────────┐
-│    Photographer Logo & Name     │
-├─────────────────────────────────┤
-│                                 │
-│      Main Content Area          │
-│                                 │
-│                                 │
-├─────────────────────────────────┤
-│   Projects   Gallery   Messages │
-└─────────────────────────────────┘
-```
-
-**Bottom Tab Bar:**
-1. **Projects** (Folder icon) - Project dashboard
-2. **Gallery** (Image icon) - Photo galleries
-3. **Messages** (Chat icon) - Messaging
-
-**Stack Navigators:**
-- **Projects Stack**: Projects List → Project Detail → Smart File → Payment
-- **Gallery Stack**: Gallery List → Photo Grid → Full Screen Viewer
-- **Messages Stack**: Conversation Thread
+- **Bookings Stack**: Calendar View → Booking Detail → Reschedule
+- **More Stack**: Profile → Settings → Edit Availability → Toggle Face ID
 
 ---
 
