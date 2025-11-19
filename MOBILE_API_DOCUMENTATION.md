@@ -6,14 +6,553 @@
 
 ## Table of Contents
 
-1. [Overview](#overview)
-2. [Architecture](#architecture)
-3. [Authentication](#authentication)
-4. [API Endpoints](#api-endpoints)
-5. [Data Models](#data-models)
-6. [Mobile-Specific Considerations](#mobile-specific-considerations)
-7. [Error Handling](#error-handling)
-8. [Environment Variables](#environment-variables)
+1. [Mobile App Specifications](#mobile-app-specifications)
+2. [Overview](#overview)
+3. [Architecture](#architecture)
+4. [Authentication](#authentication)
+5. [API Endpoints](#api-endpoints)
+6. [Data Models](#data-models)
+7. [Mobile-Specific Considerations](#mobile-specific-considerations)
+8. [Error Handling](#error-handling)
+9. [Environment Variables](#environment-variables)
+
+---
+
+## Mobile App Specifications
+
+### App Overview
+
+The thePhotoCrm mobile app serves **two distinct user types** with different feature sets:
+
+1. **Photographers** - Simplified on-the-go CRM for managing their business
+2. **Clients** - Full-featured portal access for viewing projects, galleries, and communicating
+
+**Key Principle:** Photographers get a **streamlined mobile experience** focused on essential tasks they need while away from their desk. Clients get the **complete portal experience** optimized for mobile viewing.
+
+---
+
+### Photographer Features (Simplified On-the-Go)
+
+Photographers should have access to these **essential features only** on mobile:
+
+#### ✅ Included Features
+
+**1. Projects Dashboard**
+- View all active projects in a scrollable list
+- Quick status overview (stage, event date, client name)
+- Tap to view project details
+- Move projects between stages (drag & drop or quick action)
+- Add quick notes to projects
+
+**2. Messaging Inbox**
+- View all conversations with clients
+- Send/receive SMS and view email threads
+- Quick replies with templates
+- Attach photos from camera/library (MMS)
+- Unread message badges
+
+**3. Bookings & Calendar**
+- View upcoming appointments
+- See daily/weekly schedule
+- Confirm or reschedule bookings
+- View client booking requests
+
+**4. Quick Actions**
+- Send magic link to client
+- Call/text client directly
+- Mark important projects with star/flag
+- Quick project creation
+
+**5. Profile & Settings**
+- View business info
+- Update availability
+- Manage notification preferences
+- Logout
+
+#### ❌ Features NOT Included for Photographers
+
+These features require desktop/laptop for full workflow:
+- **Smart Files** (proposals, invoices, contracts) - Too complex for mobile editing
+- **Automations** - Configuration requires larger screen
+- **Drip Campaigns** - Email builder not mobile-optimized
+- **Full Gallery Management** - Uploading 100+ photos better on desktop
+- **Lead Forms** - Form builder too complex
+- **Revenue Reports** - Analytics best viewed on larger screens
+- **Testimonials Management** - Review and publish flow
+- **Questionnaires** - Template creation and management
+- **Package/Add-on Management** - Complex pricing configuration
+
+**Why this limitation?**
+- Focuses mobile app on what photographers actually need on-the-go
+- Prevents complex workflows on small screens
+- Keeps app simple and fast
+- Encourages desktop use for important business configuration
+
+---
+
+### Client Features (Full Portal Access)
+
+Clients get the **complete portal experience** on mobile:
+
+#### ✅ All Client Portal Features Included
+
+**1. Projects Dashboard**
+- View all their projects
+- See project timeline and status
+- Event date and photographer info
+- Easy project switching if multiple
+
+**2. Project Details**
+- View all project information
+- Timeline of important dates
+- Participant list (partner, family members)
+
+**3. Smart Files (Proposals/Contracts)**
+- View proposals and invoices
+- Sign contracts with finger/stylus
+- Select packages and add-ons
+- Make payments via Stripe
+
+**4. Photo Galleries**
+- Browse all photos in grid view
+- Full-screen image viewing with pinch-zoom
+- Favorite photos (heart icon)
+- Download selected favorites
+- Share gallery link
+
+**5. Messaging**
+- Message their photographer
+- View conversation history
+- Receive notifications for new messages
+
+**6. Bookings**
+- Book appointments from available slots
+- View upcoming appointments
+- Reschedule if photographer allows
+
+**7. Settings**
+- Update contact information
+- Manage notification preferences
+
+---
+
+### Design System & Branding
+
+#### Color Palette
+
+**Primary Colors:**
+```typescript
+const colors = {
+  // Primary brand color - dusty rose
+  primary: '#8B4565',
+  primaryLight: '#A65678',
+  primaryDark: '#6D3650',
+  
+  // Neutral colors - HoneyBook inspired
+  lightGray: '#F7F7F7',
+  mediumGray: '#E5E5E5',
+  darkGray: '#6B7280',
+  
+  // Semantic colors
+  success: '#22C55E',
+  error: '#EF4444',
+  warning: '#F59E0B',
+  info: '#3B82F6',
+  
+  // Background & Text
+  background: '#FFFFFF',
+  backgroundSecondary: '#F9FAFB',
+  textPrimary: '#111827',
+  textSecondary: '#6B7280',
+  border: '#E5E7EB'
+};
+```
+
+**Usage:**
+- **Primary (#8B4565)** - Action buttons, active states, highlights
+- **Light Gray (#F7F7F7)** - Sidebar backgrounds, card backgrounds
+- **White (#FFFFFF)** - Main content areas
+- **Success (#22C55E)** - Completed states, positive actions
+- **Dark Gray (#6B7280)** - Secondary text, inactive icons
+
+#### Typography
+
+**Font Family:**
+- **iOS:** SF Pro Display / SF Pro Text (system default)
+- **Android:** Roboto (system default)
+
+**Font Sizes:**
+```typescript
+const typography = {
+  // Headers
+  h1: { fontSize: 32, fontWeight: '700' },
+  h2: { fontSize: 24, fontWeight: '600' },
+  h3: { fontSize: 20, fontWeight: '600' },
+  h4: { fontSize: 18, fontWeight: '600' },
+  
+  // Body
+  body: { fontSize: 16, fontWeight: '400' },
+  bodySmall: { fontSize: 14, fontWeight: '400' },
+  
+  // Special
+  button: { fontSize: 16, fontWeight: '600' },
+  caption: { fontSize: 12, fontWeight: '400' },
+  label: { fontSize: 14, fontWeight: '500' }
+};
+```
+
+#### Spacing System
+
+**8-point grid system:**
+```typescript
+const spacing = {
+  xs: 4,
+  sm: 8,
+  md: 16,
+  lg: 24,
+  xl: 32,
+  xxl: 48
+};
+```
+
+#### Component Styling
+
+**Cards:**
+```typescript
+const cardStyle = {
+  backgroundColor: '#FFFFFF',
+  borderRadius: 12,
+  padding: 16,
+  shadowColor: '#000',
+  shadowOffset: { width: 0, height: 2 },
+  shadowOpacity: 0.1,
+  shadowRadius: 8,
+  elevation: 3 // Android
+};
+```
+
+**Buttons:**
+```typescript
+const primaryButton = {
+  backgroundColor: '#8B4565',
+  borderRadius: 8,
+  paddingVertical: 12,
+  paddingHorizontal: 24,
+  color: '#FFFFFF',
+  fontSize: 16,
+  fontWeight: '600'
+};
+
+const secondaryButton = {
+  backgroundColor: 'transparent',
+  borderWidth: 1,
+  borderColor: '#8B4565',
+  borderRadius: 8,
+  paddingVertical: 12,
+  paddingHorizontal: 24,
+  color: '#8B4565'
+};
+```
+
+**Inputs:**
+```typescript
+const inputStyle = {
+  backgroundColor: '#F9FAFB',
+  borderWidth: 1,
+  borderColor: '#E5E7EB',
+  borderRadius: 8,
+  paddingVertical: 12,
+  paddingHorizontal: 16,
+  fontSize: 16
+};
+```
+
+---
+
+### Navigation Structure
+
+#### Photographer Navigation (Bottom Tabs)
+
+```
+┌─────────────────────────────────┐
+│         Screen Header           │
+├─────────────────────────────────┤
+│                                 │
+│      Main Content Area          │
+│                                 │
+│                                 │
+├─────────────────────────────────┤
+│ Projects  Inbox  Bookings  More │
+└─────────────────────────────────┘
+```
+
+**Bottom Tab Bar:**
+1. **Projects** (Home icon) - Projects dashboard
+2. **Inbox** (Message icon + badge) - Messaging center
+3. **Bookings** (Calendar icon) - Upcoming appointments
+4. **More** (Menu icon) - Profile & settings
+
+**Stack Navigators:**
+- **Projects Stack**: Projects List → Project Detail → Add Note
+- **Inbox Stack**: Conversations List → Thread Detail → Send Message
+- **Bookings Stack**: Calendar View → Booking Detail
+- **More Stack**: Profile → Settings → Edit Availability
+
+#### Client Navigation (Bottom Tabs)
+
+```
+┌─────────────────────────────────┐
+│    Photographer Logo & Name     │
+├─────────────────────────────────┤
+│                                 │
+│      Main Content Area          │
+│                                 │
+│                                 │
+├─────────────────────────────────┤
+│   Projects   Gallery   Messages │
+└─────────────────────────────────┘
+```
+
+**Bottom Tab Bar:**
+1. **Projects** (Folder icon) - Project dashboard
+2. **Gallery** (Image icon) - Photo galleries
+3. **Messages** (Chat icon) - Messaging
+
+**Stack Navigators:**
+- **Projects Stack**: Projects List → Project Detail → Smart File → Payment
+- **Gallery Stack**: Gallery List → Photo Grid → Full Screen Viewer
+- **Messages Stack**: Conversation Thread
+
+---
+
+### Authentication UX Flow
+
+#### Initial App Launch
+
+```
+App Opens
+   │
+   ├─ Check AsyncStorage for saved token
+   │
+   ├─ If token exists
+   │  └─ Decode JWT → Check role
+   │     ├─ PHOTOGRAPHER → Navigate to Photographer Dashboard
+   │     └─ CLIENT → Navigate to Client Portal
+   │
+   └─ If no token
+      └─ Show Welcome Screen with options:
+         ├─ "I'm a Photographer" → Login Screen
+         └─ "I'm a Client" → Magic Link Entry
+```
+
+#### Photographer Login Screen
+
+```tsx
+<Screen>
+  <Logo /> {/* thePhotoCrm logo */}
+  <Heading>Photographer Login</Heading>
+  
+  <Input placeholder="Email" />
+  <Input placeholder="Password" secureTextEntry />
+  
+  <Button>Log In</Button>
+  <TextButton>Sign Up</TextButton>
+  
+  <Divider text="OR" />
+  
+  <GoogleButton>Continue with Google</GoogleButton>
+  
+  <TextButton>Forgot Password?</TextButton>
+</Screen>
+```
+
+#### Client Magic Link Entry
+
+```tsx
+<Screen>
+  <Logo /> {/* Photographer's logo if known, else thePhotoCrm */}
+  <Heading>Access Your Portal</Heading>
+  <Subheading>
+    Your photographer sent you a magic link. 
+    Click the link in your email or text message.
+  </Subheading>
+  
+  <TextButton>Enter link manually</TextButton>
+</Screen>
+```
+
+**Deep Link Handling:**
+When user clicks magic link (`thephotocrm://portal/abc123`):
+1. App opens to loading screen
+2. Validates token via `GET /api/portal/:token`
+3. Stores JWT in AsyncStorage
+4. Navigates to Client Portal
+
+---
+
+### Key Screen Specifications
+
+#### 1. Photographer - Projects List
+
+**Layout:**
+- Search bar at top
+- Stage filter chips (horizontal scroll)
+- Project cards in vertical list
+
+**Project Card:**
+```tsx
+<Card>
+  <Row>
+    <Avatar>{clientInitials}</Avatar>
+    <Column flex={1}>
+      <Text weight="600">{projectTitle}</Text>
+      <Text color="secondary">{clientName}</Text>
+      <Row>
+        <Badge color={stage.color}>{stage.name}</Badge>
+        <Text size="small">{eventDate}</Text>
+      </Row>
+    </Column>
+    <Icon name="chevron-right" />
+  </Row>
+</Card>
+```
+
+#### 2. Photographer - Inbox
+
+**Layout:**
+- Conversations list with unread badges
+- Swipe actions (archive, star)
+- Pull to refresh
+
+**Conversation Card:**
+```tsx
+<Card onPress={() => navigate('Thread', { contactId })}>
+  <Row>
+    <Avatar>{contactInitials}</Avatar>
+    <Column flex={1}>
+      <Row justify="space-between">
+        <Text weight="600">{contactName}</Text>
+        <Text size="small" color="secondary">{timestamp}</Text>
+      </Row>
+      <Text numberOfLines={2} color="secondary">
+        {lastMessage}
+      </Text>
+    </Column>
+    {unreadCount > 0 && <Badge>{unreadCount}</Badge>}
+  </Row>
+</Card>
+```
+
+#### 3. Client - Gallery Grid
+
+**Layout:**
+- Grid of thumbnail images (3 columns)
+- Favorite button overlay on long-press
+- Download selection mode
+
+**Image Grid Item:**
+```tsx
+<TouchableOpacity onPress={() => openFullScreen(image)}>
+  <FastImage
+    source={{ uri: image.thumbnailUrl }}
+    style={{ aspectRatio: 1, borderRadius: 8 }}
+  />
+  {image.isFavorite && (
+    <HeartIcon
+      filled
+      color="#8B4565"
+      style={{ position: 'absolute', top: 8, right: 8 }}
+    />
+  )}
+</TouchableOpacity>
+```
+
+#### 4. Client - Smart File Viewer
+
+**Layout:**
+- Scrollable pages (Text, Packages, Contract, Payment)
+- Sticky "Accept & Continue" button at bottom
+- Progress indicator
+
+**Package Selection:**
+```tsx
+<Card selected={isSelected}>
+  <Image source={{ uri: package.imageUrl }} />
+  <Text weight="600">{package.name}</Text>
+  <Text>${package.price}</Text>
+  <Text color="secondary">{package.description}</Text>
+  <Checkbox checked={isSelected} />
+</Card>
+```
+
+---
+
+### Expo/React Native Component Recommendations
+
+**UI Components:**
+- `@react-navigation/native` + `@react-navigation/bottom-tabs` - Navigation
+- `react-native-fast-image` - Optimized image loading for galleries
+- `react-native-image-viewing` - Full-screen image viewer
+- `@expo/vector-icons` - Icons (MaterialCommunityIcons)
+- `react-native-gesture-handler` - Swipe actions, gestures
+
+**Forms & Inputs:**
+- `react-hook-form` + `zod` - Form validation
+- `@react-native-picker/picker` - Dropdowns
+- `react-native-date-picker` - Date selection
+
+**Payments:**
+- `@stripe/stripe-react-native` - Payment processing
+
+**Messaging:**
+- `react-native-gifted-chat` - Chat UI (customize to match design)
+
+**Media:**
+- `expo-image-picker` - Camera & photo library access
+- `expo-camera` - Direct camera access
+- `react-native-signature-canvas` - Contract signing
+
+**Notifications:**
+- `expo-notifications` - Push notifications
+
+**Storage:**
+- `@react-native-async-storage/async-storage` - Offline data caching
+
+**Utilities:**
+- `date-fns` - Date formatting
+- `react-native-mmkv` - Fast key-value storage (alternative to AsyncStorage)
+
+---
+
+###  Implementation Priority
+
+**Phase 1: Core Authentication & Navigation**
+1. Welcome screen with role selection
+2. Photographer login (email/password)
+3. Client magic link handling
+4. Bottom tab navigation setup
+5. JWT storage & auto-login
+
+**Phase 2: Photographer Essential Features**
+6. Projects list screen
+7. Project detail screen
+8. Messaging inbox
+9. Thread detail & send message
+10. Bookings calendar view
+
+**Phase 3: Client Portal Features**
+11. Client projects list
+12. Client project detail
+13. Gallery grid view
+14. Gallery full-screen viewer
+15. Client messaging
+
+**Phase 4: Advanced Features**
+16. Smart File viewer
+17. Stripe payment integration
+18. Contract signing
+19. Push notifications
+20. Offline caching
 
 ---
 
