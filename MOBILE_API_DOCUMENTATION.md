@@ -17,6 +17,107 @@
 
 ---
 
+## ⚠️ Backend Modifications Required for Mobile
+
+The current backend is optimized for web browsers using httpOnly cookies and subdomain-based routing. Before building the mobile app, make these backend changes:
+
+### 1. Return JWT Tokens in API Responses
+
+**File:** `server/routes.ts`
+
+**Modify Login Endpoint (around line 1268):**
+```typescript
+res.json({ 
+  user: {
+    id: result.user.id,
+    email: result.user.email,
+    role: result.user.role,
+    photographerId: result.user.photographerId
+  },
+  token: result.token // ADD THIS LINE
+});
+```
+
+**Modify Portal Token Endpoint (around line 1753):**
+```typescript
+const responseData: any = {
+  success: true,
+  user: { ... },
+  photographer: { ... },
+  token: jwtToken // ADD THIS LINE
+};
+```
+
+### 2. Add Mobile Tenant Header Support
+
+**File:** `server/middleware/domain-routing.ts`
+
+**Step 2a:** Update the existing `Express.Request` interface to include `photographerId` (lines 6-11):
+
+```typescript
+declare global {
+  namespace Express {
+    interface Request {
+      domain?: {
+        type: 'photographer' | 'client_portal' | 'dev';
+        photographerId?: string;        // ADD THIS LINE
+        photographerSlug?: string;
+        isCustomSubdomain?: boolean;
+      };
+    }
+  }
+}
+```
+
+**Step 2b:** Add mobile header support at the beginning of `detectDomain()` function (around line 24, BEFORE hostname detection):
+
+```typescript
+export function detectDomain(req: Request, res: Response, next: NextFunction) {
+  // Support mobile apps via custom headers (lowercase as per HTTP spec)
+  const mobilePhotographerId = req.headers['x-photographer-id'] as string | undefined;
+  const mobileUserRole = req.headers['x-user-role'] as string | undefined;
+  const mobilePhotographerSlug = req.headers['x-photographer-slug'] as string | undefined;
+
+  if (mobilePhotographerId && mobileUserRole) {
+    req.domain = {
+      type: mobileUserRole === 'CLIENT' ? 'client_portal' : 'photographer',
+      photographerId: mobilePhotographerId,
+      photographerSlug: mobilePhotographerSlug,
+      isCustomSubdomain: mobileUserRole === 'CLIENT'
+    };
+    console.log(`  → Mobile app detected: ${mobileUserRole} for photographer ${mobilePhotographerId}`);
+    next();
+    return;
+  }
+  
+  // Existing hostname-based detection continues below...
+  const hostname = req.hostname.toLowerCase();
+  // ... rest of existing code
+}
+```
+
+**Note:** Headers are lowercase (`x-photographer-id`, not `X-Photographer-Id`) as per HTTP specification.
+
+### 3. Verify Authorization Header Support
+
+**File:** `server/middleware/auth.ts`
+
+✅ **Good news:** The backend already supports `Authorization: Bearer <token>` headers alongside cookie auth. No changes needed here.
+
+The middleware checks for Bearer tokens first, then falls back to cookies. Mobile apps should use:
+
+```typescript
+fetch('/api/projects', {
+  headers: {
+    'Authorization': `Bearer ${jwtToken}`,
+    'x-photographer-id': photographerId,
+    'x-user-role': 'PHOTOGRAPHER'
+  }
+});
+```
+
+---
+
 ## Overview
 
 thePhotoCrm is a comprehensive multi-tenant CRM system for wedding photographers with a triple-domain architecture:
@@ -48,6 +149,50 @@ The mobile app will serve BOTH photographers (CRM features) and clients (portal 
 ---
 
 ## Architecture
+
+### Multi-Tenant Routing for Mobile Apps
+
+**CRITICAL:** The web backend uses subdomain-based tenant isolation:
+- Photographers: `app.thephotocrm.com`
+- Clients: `{photographer-slug}.tpcportal.co`
+
+The backend middleware (`detectDomain`, `loadPhotographerFromSubdomain`) derives tenant context from the request's `Host` header. 
+
+**Mobile App Strategy:**
+
+Since mobile apps can't use subdomain-based routing like browsers, you MUST implement the tenant header support described in "Backend Modifications Required" above.
+
+**Mobile API calls should include:**
+
+```typescript
+// For photographer API calls
+fetch('https://app.thephotocrm.com/api/projects', {
+  headers: {
+    'Authorization': `Bearer ${photographerToken}`,
+    'x-photographer-id': photographerId, // UUID from token
+    'x-user-role': 'PHOTOGRAPHER'
+  }
+});
+
+// For client API calls
+fetch('https://app.thephotocrm.com/api/client-portal/projects', {
+  headers: {
+    'Authorization': `Bearer ${clientToken}`,
+    'x-photographer-id': photographerId, // UUID from token
+    'x-user-role': 'CLIENT',
+    'x-photographer-slug': photographerSlug // Optional, for portal routing
+  }
+});
+```
+
+**Why this is required:**
+- The backend's `detectDomain` middleware derives tenant context from the request's `Host` header
+- Mobile apps make all requests to the same base URL (`https://app.thephotocrm.com`)
+- Custom headers (`x-photographer-id`, `x-user-role`) allow the backend to determine which tenant the request belongs to
+- This approach works for both iOS and Android without platform-specific workarounds
+- **Important:** Headers must be lowercase as per HTTP specification - React Native's fetch automatically lowercases all header names
+
+**Implementation:** Make sure to apply Backend Modification #2 (tenant header support) before building the mobile app.
 
 ### Multi-Tenant Model
 
@@ -86,8 +231,9 @@ Three user roles:
 ```json
 {
   "userId": "uuid",
+  "email": "photographer@example.com",
   "role": "PHOTOGRAPHER",
-  "photographerId": "photographer-slug",
+  "photographerId": "uuid-not-slug",
   "iat": 1234567890,
   "exp": 1234567890
 }
@@ -99,11 +245,18 @@ Three user roles:
   "userId": "uuid",
   "email": "client@example.com",
   "role": "CLIENT",
-  "photographerId": "photographer-uuid",
+  "photographerId": "uuid-not-slug",
+  "clientId": "uuid",
   "iat": 1234567890,
   "exp": 1234567890
 }
 ```
+
+**Important Notes:**
+- `photographerId` is a UUID, NOT a slug
+- `clientId` is included in client tokens to link to the contact record
+- All tokens expire after 7 days
+- Tokens are signed with JWT_SECRET environment variable
 
 ### Authentication Endpoints
 
@@ -135,6 +288,8 @@ Register a new photographer account.
 #### POST /api/auth/login
 Login with email and password.
 
+**⚠️ IMPORTANT FOR MOBILE:** The current backend implementation sets an httpOnly cookie but does NOT return the JWT token in the response. For mobile app support, you'll need to modify the backend to also return the token in the JSON response.
+
 **Request:**
 ```json
 {
@@ -143,23 +298,52 @@ Login with email and password.
 }
 ```
 
-**Response:**
+**Current Response (Web Only):**
 ```json
 {
-  "token": "jwt-token-here",
   "user": {
     "id": "uuid",
     "email": "user@example.com",
     "role": "PHOTOGRAPHER",
-    "photographerId": "photographer-id"
+    "photographerId": "uuid"
   }
 }
+```
+*Note: JWT is set as httpOnly cookie, not returned in response*
+
+**Recommended Mobile Response (Requires Backend Change):**
+```json
+{
+  "user": {
+    "id": "uuid",
+    "email": "user@example.com",
+    "role": "PHOTOGRAPHER",
+    "photographerId": "uuid"
+  },
+  "token": "jwt-token-here"
+}
+```
+
+**Backend Modification Needed:**
+In `server/routes.ts`, modify the login endpoint to include the token:
+```typescript
+res.json({ 
+  user: {
+    id: result.user.id,
+    email: result.user.email,
+    role: result.user.role,
+    photographerId: result.user.photographerId
+  },
+  token: result.token // ADD THIS LINE
+});
 ```
 
 #### GET /api/auth/me
 Get current authenticated user.
 
-**Headers:** `Cookie: token=<jwt>`
+**Headers:** 
+- Web: `Cookie: photographer_token=<jwt>` or `Cookie: client_token=<jwt>`
+- Mobile: `Authorization: Bearer <jwt>`
 
 **Response:**
 ```json
@@ -190,21 +374,51 @@ Request a magic link for client login.
 ```
 
 #### GET /api/portal/:token
-Validate magic link token and return user info.
+Validate magic link token and authenticate client.
 
-**Response:**
+**⚠️ IMPORTANT FOR MOBILE:** This endpoint currently only sets a cookie and does NOT return the JWT token. For mobile support, modify the backend to return the token.
+
+**Current Response:**
 ```json
 {
+  "success": true,
+  "user": {
+    "id": "uuid",
+    "email": "client@example.com",
+    "role": "CLIENT"
+  },
+  "photographer": {
+    "id": "uuid",
+    "businessName": "John's Photography",
+    "portalSlug": "johnsphotography"
+  },
+  "projectId": "uuid"
+}
+```
+*Note: JWT is set as httpOnly cookie, not in response*
+
+**Recommended Mobile Response (Backend Change Needed):**
+```json
+{
+  "success": true,
   "user": {
     "id": "uuid",
     "email": "client@example.com",
     "role": "CLIENT",
-    "photographerId": "photographer-uuid"
+    "photographerId": "uuid"
   },
-  "token": "jwt-token-here",
-  "redirect": "/client-portal"
+  "photographer": {
+    "id": "uuid",
+    "businessName": "John's Photography",
+    "portalSlug": "johnsphotography"
+  },
+  "projectId": "uuid",
+  "token": "jwt-token-here"
 }
 ```
+
+**Backend Modification:**
+In `server/routes.ts`, add `token: jwtToken` to the responseData object around line 1753.
 
 #### POST /api/auth/logout
 Logout current user.
