@@ -316,64 +316,6 @@ export default function ClientPortalProject() {
                 </Card>
               </div>
 
-              {/* Project Details Card */}
-              <Card className="bg-white border-gray-200">
-                <CardHeader>
-                  <CardTitle className="text-xl">Project Details</CardTitle>
-                </CardHeader>
-                <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="flex items-center space-x-3" data-testid="detail-email">
-                    <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
-                      <Mail className="w-5 h-5 text-primary" />
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-500">Email</p>
-                      <p className="text-sm font-medium text-gray-900">{project.client.email}</p>
-                    </div>
-                  </div>
-
-                  {project.client.phone && (
-                    <div className="flex items-center space-x-3" data-testid="detail-phone">
-                      <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
-                        <Phone className="w-5 h-5 text-primary" />
-                      </div>
-                      <div>
-                        <p className="text-xs text-gray-500">Phone</p>
-                        <p className="text-sm font-medium text-gray-900">{project.client.phone}</p>
-                      </div>
-                    </div>
-                  )}
-
-                  {project.eventDate && (
-                    <div className="flex items-center space-x-3" data-testid="detail-event-date">
-                      <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
-                        <Calendar className="w-5 h-5 text-primary" />
-                      </div>
-                      <div>
-                        <p className="text-xs text-gray-500">Event Date</p>
-                        <p className="text-sm font-medium text-gray-900">
-                          {new Date(project.eventDate).toLocaleDateString('en-US', {
-                            month: 'long',
-                            day: 'numeric',
-                            year: 'numeric'
-                          })}
-                        </p>
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="flex items-center space-x-3" data-testid="detail-project-type">
-                    <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
-                      <Camera className="w-5 h-5 text-primary" />
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-500">Project Type</p>
-                      <p className="text-sm font-medium text-gray-900">{project.projectType}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
               {/* Recent Activity Preview */}
               {project.activities && project.activities.length > 0 && (
                 <Card className="bg-white border-gray-200">

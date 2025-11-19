@@ -11525,6 +11525,116 @@ ${photographer.businessName}`
     }
   });
 
+  // Get client contact information for settings page
+  app.get("/api/client-portal/contact-info", authenticateToken, enforceSubdomainTenantAuth, async (req, res) => {
+    try {
+      const user = req.user!;
+      
+      // Verify user has photographerId in JWT (required for client portal access)
+      if (!user.photographerId) {
+        return res.status(403).json({ message: "Access denied - invalid client context" });
+      }
+      
+      // Get the user record to find their clientId (stable identifier)
+      const userRecord = await storage.getUser(user.userId);
+      if (!userRecord || !userRecord.clientId) {
+        return res.status(404).json({ message: "User not found or not associated with a contact" });
+      }
+      
+      // Get the contact using the stable clientId
+      const contact = await storage.getContact(userRecord.clientId);
+      
+      if (!contact) {
+        return res.status(404).json({ message: "Contact not found" });
+      }
+      
+      // Additional security: verify contact's photographer matches JWT photographer
+      if (contact.photographerId !== user.photographerId) {
+        return res.status(403).json({ message: "Access denied - photographer mismatch" });
+      }
+      
+      // Return contact information
+      res.json({
+        id: contact.id,
+        firstName: contact.firstName,
+        lastName: contact.lastName,
+        email: contact.email,
+        phone: contact.phone || ""
+      });
+    } catch (error) {
+      console.error("Error fetching client contact info:", error);
+      res.status(500).json({ message: "Failed to fetch contact information" });
+    }
+  });
+
+  // Update client contact information
+  app.put("/api/client-portal/contact-info", authenticateToken, enforceSubdomainTenantAuth, async (req, res) => {
+    try {
+      const user = req.user!;
+      const { firstName, lastName, email, phone } = req.body;
+      
+      // Validate required fields
+      if (!firstName || !lastName || !email) {
+        return res.status(400).json({ message: "First name, last name, and email are required" });
+      }
+      
+      // Verify user has photographerId in JWT (required for client portal access)
+      if (!user.photographerId) {
+        return res.status(403).json({ message: "Access denied - invalid client context" });
+      }
+      
+      // Get the user record to find their clientId (stable identifier)
+      const userRecord = await storage.getUser(user.userId);
+      if (!userRecord || !userRecord.clientId) {
+        return res.status(404).json({ message: "User not found or not associated with a contact" });
+      }
+      
+      // Get the contact using the stable clientId
+      const contact = await storage.getContact(userRecord.clientId);
+      
+      if (!contact) {
+        return res.status(404).json({ message: "Contact not found" });
+      }
+      
+      // Additional security: verify contact's photographer matches JWT photographer
+      if (contact.photographerId !== user.photographerId) {
+        return res.status(403).json({ message: "Access denied - photographer mismatch" });
+      }
+      
+      // If email is changing, check if new email already exists for this photographer
+      if (email !== contact.email) {
+        const existingContact = await storage.getContactByEmail(email, user.photographerId);
+        if (existingContact && existingContact.id !== contact.id) {
+          return res.status(400).json({ message: "This email is already in use" });
+        }
+      }
+      
+      // Update the contact
+      const updatedContact = await storage.updateContact(contact.id, {
+        firstName,
+        lastName,
+        email,
+        phone: phone || null
+      });
+      
+      // If email changed, update the user record as well
+      if (email !== contact.email && user.userId) {
+        await storage.updateUser(user.userId, { email });
+      }
+      
+      res.json({
+        id: updatedContact.id,
+        firstName: updatedContact.firstName,
+        lastName: updatedContact.lastName,
+        email: updatedContact.email,
+        phone: updatedContact.phone || ""
+      });
+    } catch (error) {
+      console.error("Error updating client contact info:", error);
+      res.status(500).json({ message: "Failed to update contact information" });
+    }
+  });
+
   // Debug version endpoint
   app.get("/api/debug/version", (_req, res) => {
     res.json({

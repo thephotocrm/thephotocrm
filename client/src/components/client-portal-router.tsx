@@ -3,6 +3,7 @@ import { Switch, Route, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import ClientPortal from "@/pages/client-portal";
 import ClientPortalProject from "@/pages/client-portal-project";
+import ClientPortalSettings from "@/pages/client-portal-settings";
 import SelectProject from "@/pages/select-project";
 import Portal from "@/pages/portal";
 import PublicSmartFile from "@/pages/public-smart-file";
@@ -86,6 +87,11 @@ export function ClientPortalRouter() {
         <Route path="/client-portal/projects/:id">
           <ClientPortalGuard>
             <ClientPortalProject />
+          </ClientPortalGuard>
+        </Route>
+        <Route path="/client-portal/settings">
+          <ClientPortalGuard>
+            <ClientPortalSettings />
           </ClientPortalGuard>
         </Route>
         
