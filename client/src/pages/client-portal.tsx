@@ -192,7 +192,9 @@ export default function ClientPortal() {
   // ONLY on base /client-portal route to preserve multi-project selection UX
   const [location] = useLocation();
   useEffect(() => {
-    const isBasePortalRoute = location === '/client-portal';
+    // Normalize path by removing trailing slash for comparison
+    const normalizedPath = location.endsWith('/') ? location.slice(0, -1) : location;
+    const isBasePortalRoute = normalizedPath === '/client-portal';
     if (isBasePortalRoute && portalData && portalData.projects.length > 0 && !redirectUrl) {
       // Projects are already sorted by createdAt DESC from backend
       // Always redirect to the first (most recent) project
