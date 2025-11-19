@@ -35,8 +35,10 @@ export function detectDomain(req: Request, res: Response, next: NextFunction) {
     return;
   }
   
-  // Check if it's the photographer domain
-  if (hostname === PHOTOGRAPHER_DOMAIN || hostname === `www.${PHOTOGRAPHER_DOMAIN}`) {
+  // Check if it's the photographer domain (includes app subdomain)
+  if (hostname === PHOTOGRAPHER_DOMAIN || 
+      hostname === `www.${PHOTOGRAPHER_DOMAIN}` || 
+      hostname === `app.${PHOTOGRAPHER_DOMAIN}`) {
     req.domain = {
       type: 'photographer'
     };

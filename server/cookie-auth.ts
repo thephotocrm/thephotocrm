@@ -45,20 +45,28 @@ export function setAuthCookie(res: Response, token: string, role: string, req?: 
   // Prepare cookie options for role-specific cookie
   let roleSpecificOptions = { ...COOKIE_OPTIONS };
   
-  // For CLIENT cookies on portal subdomains, set domain to .tpcportal.co
-  // This allows the cookie to work across all subdomains (*.tpcportal.co)
-  if (role === 'CLIENT' && req) {
+  // Set domain for cross-subdomain cookie support
+  if (req) {
     const hostname = req.hostname || req.get('host')?.split(':')[0] || '';
     
-    // Check if this is a tpcportal.co subdomain (e.g., abbiestreetphoto.tpcportal.co)
-    if (hostname.endsWith('.tpcportal.co')) {
+    // For CLIENT cookies on portal subdomains, set domain to .tpcportal.co
+    if (role === 'CLIENT' && hostname.endsWith('.tpcportal.co')) {
       roleSpecificOptions = {
         ...roleSpecificOptions,
         domain: '.tpcportal.co' // Leading dot allows cookie to work across all subdomains
       };
       console.log(`🍪 Setting CLIENT cookie with domain: .tpcportal.co for ${hostname}`);
+    }
+    // For PHOTOGRAPHER/ADMIN cookies on photographer domain, set domain to .thephotocrm.com
+    // This allows cookies to work across thephotocrm.com and app.thephotocrm.com
+    else if ((role === 'PHOTOGRAPHER' || role === 'ADMIN') && hostname.endsWith('thephotocrm.com')) {
+      roleSpecificOptions = {
+        ...roleSpecificOptions,
+        domain: '.thephotocrm.com' // Leading dot allows cookie to work across all subdomains
+      };
+      console.log(`🍪 Setting ${role} cookie with domain: .thephotocrm.com for ${hostname}`);
     } else {
-      console.log(`🍪 Setting CLIENT cookie without domain (host-only) for ${hostname}`);
+      console.log(`🍪 Setting ${role} cookie without domain (host-only) for ${hostname}`);
     }
   }
   
@@ -104,50 +112,41 @@ export function getAuthToken(req: Request): { token: string; source: string } | 
 
 // Clear all auth cookies
 export function clearAuthCookies(res: Response, req?: Request) {
-  res.clearCookie(COOKIE_NAMES.PHOTOGRAPHER);
-  res.clearCookie(COOKIE_NAMES.ADMIN);
-  res.clearCookie(COOKIE_NAMES.LEGACY);
+  // Always clear BOTH host-only and domain variants for photographer/admin cookies
+  // This handles legacy cookies from before domain cookie implementation
+  // and works even when req context is missing
+  res.clearCookie(COOKIE_NAMES.PHOTOGRAPHER); // Host-only version
+  res.clearCookie(COOKIE_NAMES.PHOTOGRAPHER, { domain: '.thephotocrm.com' }); // Domain version
+  res.clearCookie(COOKIE_NAMES.ADMIN); // Host-only version
+  res.clearCookie(COOKIE_NAMES.ADMIN, { domain: '.thephotocrm.com' }); // Domain version
+  res.clearCookie(COOKIE_NAMES.LEGACY); // Host-only version
+  res.clearCookie(COOKIE_NAMES.LEGACY, { domain: '.thephotocrm.com' }); // Domain version
   
-  // Clear CLIENT cookie with domain if on portal subdomain
-  if (req) {
-    const hostname = req.hostname || req.get('host')?.split(':')[0] || '';
-    if (hostname.endsWith('.tpcportal.co')) {
-      res.clearCookie(COOKIE_NAMES.CLIENT, { domain: '.tpcportal.co' });
-    } else {
-      res.clearCookie(COOKIE_NAMES.CLIENT);
-    }
-  } else {
-    // No request context, clear both host-only and domain versions
-    res.clearCookie(COOKIE_NAMES.CLIENT);
-    res.clearCookie(COOKIE_NAMES.CLIENT, { domain: '.tpcportal.co' });
-  }
+  // Always clear BOTH host-only and domain variants for CLIENT cookies
+  // Clearing extra cookies is harmless even if they don't exist
+  res.clearCookie(COOKIE_NAMES.CLIENT); // Host-only version
+  res.clearCookie(COOKIE_NAMES.CLIENT, { domain: '.tpcportal.co' }); // Domain version
 }
 
 // Clear specific auth cookie
 export function clearAuthCookie(res: Response, role: string, req?: Request) {
+  // Always clear both host-only and domain variants
+  // Clearing extra cookies is harmless even if they don't exist
   switch (role) {
     case 'PHOTOGRAPHER':
-      res.clearCookie(COOKIE_NAMES.PHOTOGRAPHER);
+      res.clearCookie(COOKIE_NAMES.PHOTOGRAPHER); // Host-only version
+      res.clearCookie(COOKIE_NAMES.PHOTOGRAPHER, { domain: '.thephotocrm.com' }); // Domain version
       break;
     case 'CLIENT':
-      // Clear CLIENT cookie with domain if on portal subdomain
-      if (req) {
-        const hostname = req.hostname || req.get('host')?.split(':')[0] || '';
-        if (hostname.endsWith('.tpcportal.co')) {
-          res.clearCookie(COOKIE_NAMES.CLIENT, { domain: '.tpcportal.co' });
-        } else {
-          res.clearCookie(COOKIE_NAMES.CLIENT);
-        }
-      } else {
-        // No request context, clear both host-only and domain versions
-        res.clearCookie(COOKIE_NAMES.CLIENT);
-        res.clearCookie(COOKIE_NAMES.CLIENT, { domain: '.tpcportal.co' });
-      }
+      res.clearCookie(COOKIE_NAMES.CLIENT); // Host-only version
+      res.clearCookie(COOKIE_NAMES.CLIENT, { domain: '.tpcportal.co' }); // Domain version
       break;
     case 'ADMIN':
-      res.clearCookie(COOKIE_NAMES.ADMIN);
+      res.clearCookie(COOKIE_NAMES.ADMIN); // Host-only version
+      res.clearCookie(COOKIE_NAMES.ADMIN, { domain: '.thephotocrm.com' }); // Domain version
       break;
   }
-  // Always clear legacy token
-  res.clearCookie(COOKIE_NAMES.LEGACY);
+  // Always clear legacy token (both variants)
+  res.clearCookie(COOKIE_NAMES.LEGACY); // Host-only version
+  res.clearCookie(COOKIE_NAMES.LEGACY, { domain: '.thephotocrm.com' }); // Domain version
 }

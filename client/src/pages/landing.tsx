@@ -200,10 +200,19 @@ export default function Landing() {
     },
   });
   
-  // Redirect logged-in users to dashboard
+  // Redirect logged-in users to app subdomain (or dashboard if already there)
   useEffect(() => {
     if (user) {
-      setLocation("/dashboard");
+      const currentHost = window.location.hostname;
+      
+      // If on main thephotocrm.com domain (not app.thephotocrm.com), redirect to app subdomain
+      if (currentHost === 'thephotocrm.com' || currentHost === 'www.thephotocrm.com') {
+        // Redirect to app.thephotocrm.com/dashboard in production
+        window.location.href = `${window.location.protocol}//app.thephotocrm.com/dashboard`;
+      } else {
+        // Already on app subdomain or dev environment - just navigate to dashboard
+        setLocation("/dashboard");
+      }
     }
   }, [user, setLocation]);
 
