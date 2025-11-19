@@ -22,12 +22,19 @@
 
 ### App Overview
 
-The thePhotoCrm mobile app serves **two distinct user types** with different feature sets:
+The thePhotoCrm mobile app is a **photographer-only** iOS/Android application for managing their wedding photography business on-the-go.
 
-1. **Photographers** - Simplified on-the-go CRM for managing their business
-2. **Clients** - Full-featured portal access for viewing projects, galleries, and communicating
+**Key Principle:** The mobile app focuses exclusively on essential tasks photographers need while away from their desk - responding to clients, managing projects, and staying on top of their schedule.
 
-**Key Principle:** Photographers get a **streamlined mobile experience** focused on essential tasks they need while away from their desk. Clients get the **complete portal experience** optimized for mobile viewing.
+**What About Clients?**
+
+Clients do **NOT** need to download a mobile app. Instead, they access their portal through their mobile browser at `{photographer-slug}.tpcportal.co`. This approach:
+- **Eliminates friction** - No app download required for clients
+- **Always up-to-date** - No waiting for App Store approvals
+- **Works perfectly on mobile** - The web portal is fully responsive
+- **Multi-photographer friendly** - If a client hires multiple photographers, they just bookmark different portal URLs instead of managing multiple apps
+
+This matches the proven model used by HoneyBook, the leading CRM for wedding professionals.
 
 ---
 
