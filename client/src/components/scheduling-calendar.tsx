@@ -58,10 +58,22 @@ export function SchedulingCalendar({
     queryKey: ["/api/availability/slots", selectedDate ? formatLocalDate(selectedDate) : null, photographerId],
     enabled: !!selectedDate && !!photographerId,
     queryFn: async () => {
-      if (!selectedDate || !photographerId) return [];
+      if (!selectedDate || !photographerId) {
+        console.log('🔍 [CLIENT DEBUG] Missing required params:', { selectedDate: !!selectedDate, photographerId: !!photographerId });
+        return [];
+      }
       const dateStr = formatLocalDate(selectedDate);
-      const response = await apiRequest("GET", `/api/public/availability/${photographerId}/slots/${dateStr}`);
-      return await response.json();
+      console.log('🔍 [CLIENT DEBUG] Fetching slots for:', { photographerId, dateStr, selectedDate });
+      
+      try {
+        const response = await apiRequest("GET", `/api/public/availability/${photographerId}/slots/${dateStr}`);
+        const data = await response.json();
+        console.log('✅ [CLIENT DEBUG] Slots received:', data.length, 'slots', data.slice(0, 3));
+        return data;
+      } catch (error) {
+        console.error('❌ [CLIENT DEBUG] Error fetching slots:', error);
+        throw error;
+      }
     }
   });
 

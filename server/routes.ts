@@ -1171,13 +1171,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
         }
 
-        // Create default scheduling availability: Monday-Friday 9am-5pm
+        // Create default scheduling availability: All 7 days, 7am-7pm
+        // This ensures clients can book appointments even if photographer hasn't configured hours yet
         const defaultScheduleTemplates = [
-          { dayOfWeek: 1, startTime: "09:00", endTime: "17:00", isEnabled: true }, // Monday
-          { dayOfWeek: 2, startTime: "09:00", endTime: "17:00", isEnabled: true }, // Tuesday
-          { dayOfWeek: 3, startTime: "09:00", endTime: "17:00", isEnabled: true }, // Wednesday
-          { dayOfWeek: 4, startTime: "09:00", endTime: "17:00", isEnabled: true }, // Thursday
-          { dayOfWeek: 5, startTime: "09:00", endTime: "17:00", isEnabled: true }, // Friday
+          { dayOfWeek: 0, startTime: "07:00", endTime: "19:00", isEnabled: true }, // Sunday
+          { dayOfWeek: 1, startTime: "07:00", endTime: "19:00", isEnabled: true }, // Monday
+          { dayOfWeek: 2, startTime: "07:00", endTime: "19:00", isEnabled: true }, // Tuesday
+          { dayOfWeek: 3, startTime: "07:00", endTime: "19:00", isEnabled: true }, // Wednesday
+          { dayOfWeek: 4, startTime: "07:00", endTime: "19:00", isEnabled: true }, // Thursday
+          { dayOfWeek: 5, startTime: "07:00", endTime: "19:00", isEnabled: true }, // Friday
+          { dayOfWeek: 6, startTime: "07:00", endTime: "19:00", isEnabled: true }, // Saturday
         ];
 
         for (const template of defaultScheduleTemplates) {
@@ -12056,24 +12059,66 @@ ${photographer.businessName}`
     try {
       const { photographerId, date } = req.params;
       
+      console.log('🔍 [SCHEDULER DEBUG] Request received:', { photographerId, date });
+      
       // Validate date format (YYYY-MM-DD)
       if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+        console.log('❌ [SCHEDULER DEBUG] Invalid date format:', date);
         return res.status(400).json({ message: "Invalid date format. Expected YYYY-MM-DD" });
       }
 
+      // Get photographer's templates for debugging
+      const templates = await storage.getDailyAvailabilityTemplatesByPhotographer(photographerId);
+      console.log('📋 [SCHEDULER DEBUG] Templates found:', templates.length, templates.map(t => ({
+        dayOfWeek: t.dayOfWeek,
+        startTime: t.startTime,
+        endTime: t.endTime,
+        isEnabled: t.isEnabled
+      })));
+
+      // Parse date in local timezone to avoid UTC offset issues
+      const requestedDate = new Date(date + 'T00:00:00');
+      const dayOfWeek = requestedDate.getDay(); // 0 = Sunday, 1 = Monday, etc.
+      console.log('📅 [SCHEDULER DEBUG] Day of week for', date, ':', dayOfWeek, '(0=Sun, 1=Mon, 2=Tue, 3=Wed, 4=Thu, 5=Fri, 6=Sat)');
+
       // Generate slots for the specific date using the slot generation service
-      const slots = await slotGenerationService.getSlotsForDate(photographerId, new Date(date));
+      const slots = await slotGenerationService.getSlotsForDate(photographerId, requestedDate);
+      console.log('⏰ [SCHEDULER DEBUG] Slots generated BEFORE filtering:', slots.length, slots.length > 0 ? `First slot: ${slots[0].startTime}-${slots[0].endTime}` : 'None');
       
       // Filter out slots that are in the past and only return available slots
       const now = new Date();
+      console.log('🕐 [SCHEDULER DEBUG] Current time:', now.toISOString());
+      
+      let pastSlotsCount = 0;
+      let bookedSlotsCount = 0;
+      
       const availableSlots = slots.filter(slot => {
-        const slotDateTime = new Date(`${slot.date}T${slot.startTime}`);
-        return slotDateTime > now && slot.isAvailable;
+        // Parse slot time in LOCAL timezone (not UTC) to avoid timezone bugs
+        // Use same logic as slotGeneration service's combineDateTime method
+        const [hours, minutes] = slot.startTime.split(':').map(Number);
+        const slotDateTime = new Date(requestedDate);
+        slotDateTime.setHours(hours, minutes, 0, 0);
+        
+        const isPast = slotDateTime <= now;
+        const isAvailable = slot.isAvailable;
+        
+        if (isPast) pastSlotsCount++;
+        if (!isAvailable) bookedSlotsCount++;
+        
+        return !isPast && isAvailable;
       });
+
+      console.log('🔢 [SCHEDULER DEBUG] Filtering summary:', {
+        totalGenerated: slots.length,
+        filteredOutPast: pastSlotsCount,
+        filteredOutBooked: bookedSlotsCount,
+        finalAvailable: availableSlots.length
+      });
+      console.log('✅ [SCHEDULER DEBUG] Final available slots:', availableSlots.length, availableSlots.length > 0 ? `First: ${availableSlots[0].startTime}-${availableSlots[0].endTime}` : 'None');
 
       res.json(availableSlots);
     } catch (error) {
-      console.error('Get public availability slots error:', error);
+      console.error('❌ [SCHEDULER DEBUG] Error:', error);
       res.status(500).json({ message: "Failed to fetch available slots" });
     }
   });
