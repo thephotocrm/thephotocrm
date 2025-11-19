@@ -297,61 +297,96 @@ The mobile app uses a **bottom tab navigation** pattern with stack navigators fo
 ```
 App Opens
    │
-   ├─ Check AsyncStorage for saved token
+   ├─ Check SecureStore for saved token
    │
-   ├─ If token exists
-   │  └─ Decode JWT → Check role
-   │     ├─ PHOTOGRAPHER → Navigate to Photographer Dashboard
-   │     └─ CLIENT → Navigate to Client Portal
+   ├─ If token exists AND Face ID enabled
+   │  └─ Show Face ID prompt
+   │     ├─ Success → Validate token → Navigate to Dashboard
+   │     └─ Fail → Show Login Screen
+   │
+   ├─ If token exists BUT Face ID disabled
+   │  └─ Validate token → Navigate to Dashboard
    │
    └─ If no token
-      └─ Show Welcome Screen with options:
-         ├─ "I'm a Photographer" → Login Screen
-         └─ "I'm a Client" → Magic Link Entry
+      └─ Show Login Screen
 ```
 
-#### Photographer Login Screen
+#### Login Screen
 
 ```tsx
 <Screen>
-  <Logo /> {/* thePhotoCrm logo */}
-  <Heading>Photographer Login</Heading>
+  <Logo source={require('@assets/logo.png')} />
+  <Heading>Welcome to thePhotoCrm</Heading>
+  <Subheading>Manage your photography business on the go</Subheading>
   
-  <Input placeholder="Email" />
-  <Input placeholder="Password" secureTextEntry />
+  <Input 
+    placeholder="Email" 
+    keyboardType="email-address"
+    autoCapitalize="none"
+  />
+  <Input 
+    placeholder="Password" 
+    secureTextEntry 
+  />
   
-  <Button>Log In</Button>
-  <TextButton>Sign Up</TextButton>
+  <Button onPress={handleLogin}>Log In</Button>
   
   <Divider text="OR" />
   
-  <GoogleButton>Continue with Google</GoogleButton>
+  <GoogleButton onPress={handleGoogleLogin}>
+    Continue with Google
+  </GoogleButton>
   
-  <TextButton>Forgot Password?</TextButton>
+  <Row>
+    <TextButton onPress={navigateToSignup}>
+      Don't have an account? Sign up
+    </TextButton>
+  </Row>
+  
+  <TextButton onPress={navigateToForgotPassword}>
+    Forgot Password?
+  </TextButton>
 </Screen>
 ```
 
-#### Client Magic Link Entry
+#### Face ID Onboarding (After First Login)
 
 ```tsx
-<Screen>
-  <Logo /> {/* Photographer's logo if known, else thePhotoCrm */}
-  <Heading>Access Your Portal</Heading>
-  <Subheading>
-    Your photographer sent you a magic link. 
-    Click the link in your email or text message.
-  </Subheading>
+<Modal>
+  <Icon name="face-id" size={64} color="#8B4565" />
+  <Heading>Enable Face ID?</Heading>
+  <Text>
+    Use Face ID to quickly and securely log in 
+    to your thePhotoCrm account
+  </Text>
   
-  <TextButton>Enter link manually</TextButton>
-</Screen>
+  <Button onPress={enableFaceID}>Enable Face ID</Button>
+  <TextButton onPress={skipFaceID}>Not Now</TextButton>
+</Modal>
 ```
 
-**Deep Link Handling:**
-When user clicks magic link (`thephotocrm://portal/abc123`):
-1. App opens to loading screen
-2. Validates token via `GET /api/portal/:token`
-3. Stores JWT in AsyncStorage
-4. Navigates to Client Portal
+#### Face ID Implementation
+
+Uses `expo-local-authentication`:
+
+```typescript
+import * as LocalAuthentication from 'expo-local-authentication';
+
+// Check if device supports biometrics
+const isAvailable = await LocalAuthentication.hasHardwareAsync();
+const isEnrolled = await LocalAuthentication.isEnrolledAsync();
+
+// Authenticate user
+const result = await LocalAuthentication.authenticateAsync({
+  promptMessage: 'Log in to thePhotoCrm',
+  fallbackLabel: 'Use Password',
+  disableDeviceFallback: false
+});
+
+if (result.success) {
+  // Retrieve token from SecureStore and navigate to app
+}
+```
 
 ---
 
