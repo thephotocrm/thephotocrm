@@ -70,10 +70,17 @@ Photographers should have access to these **essential features only** on mobile:
 - Mark important projects with star/flag
 - Quick project creation
 
-**5. Profile & Settings**
+**5. Biometric Authentication**
+- Face ID (iOS) / Fingerprint (Android) for quick login
+- Optional - enable during onboarding or in settings
+- Secure token storage in device keychain
+- Fallback to password if biometric fails
+
+**6. Profile & Settings**
 - View business info
 - Update availability
 - Manage notification preferences
+- Toggle Face ID/Touch ID
 - Logout
 
 #### ❌ Features NOT Included for Photographers
