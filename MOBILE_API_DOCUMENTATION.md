@@ -443,46 +443,68 @@ if (result.success) {
 </Card>
 ```
 
-#### 3. Client - Gallery Grid
+#### 3. Bookings Calendar
 
 **Layout:**
-- Grid of thumbnail images (3 columns)
-- Favorite button overlay on long-press
-- Download selection mode
+- Monthly calendar view
+- Today indicator
+- Dots on dates with bookings
+- List view of upcoming appointments below calendar
 
-**Image Grid Item:**
+**Booking Card:**
 ```tsx
-<TouchableOpacity onPress={() => openFullScreen(image)}>
-  <FastImage
-    source={{ uri: image.thumbnailUrl }}
-    style={{ aspectRatio: 1, borderRadius: 8 }}
-  />
-  {image.isFavorite && (
-    <HeartIcon
-      filled
-      color="#8B4565"
-      style={{ position: 'absolute', top: 8, right: 8 }}
-    />
-  )}
-</TouchableOpacity>
+<Card>
+  <Row>
+    <Column style={{ borderLeft: `4px solid ${eventType.color}` }}>
+      <Text weight="600">{eventTitle}</Text>
+      <Text color="secondary">{clientName}</Text>
+      <Row>
+        <Icon name="calendar" size={16} />
+        <Text size="small">{eventDate}</Text>
+      </Row>
+      <Row>
+        <Icon name="clock" size={16} />
+        <Text size="small">{startTime} - {endTime}</Text>
+      </Row>
+    </Column>
+    <IconButton name="more-vertical" onPress={showOptions} />
+  </Row>
+</Card>
 ```
 
-#### 4. Client - Smart File Viewer
+#### 4. Project Detail
 
 **Layout:**
-- Scrollable pages (Text, Packages, Contract, Payment)
-- Sticky "Accept & Continue" button at bottom
-- Progress indicator
+- Hero section with client info and event date
+- Quick actions (Call, Text, Email, Send Magic Link)
+- Project timeline/status badges
+- Notes section with add note button
+- Recent activity feed
 
-**Package Selection:**
+**Quick Actions:**
 ```tsx
-<Card selected={isSelected}>
-  <Image source={{ uri: package.imageUrl }} />
-  <Text weight="600">{package.name}</Text>
-  <Text>${package.price}</Text>
-  <Text color="secondary">{package.description}</Text>
-  <Checkbox checked={isSelected} />
-</Card>
+<Row style={{ justifyContent: 'space-around' }}>
+  <ActionButton 
+    icon="phone" 
+    label="Call"
+    onPress={() => Linking.openURL(`tel:${clientPhone}`)}
+  />
+  <ActionButton 
+    icon="message" 
+    label="Text"
+    onPress={() => navigateToSMS(contactId)}
+  />
+  <ActionButton 
+    icon="mail" 
+    label="Email"
+    onPress={() => Linking.openURL(`mailto:${clientEmail}`)}
+  />
+  <ActionButton 
+    icon="link" 
+    label="Send Link"
+    onPress={() => sendMagicLink(contactId)}
+  />
+</Row>
 ```
 
 ---
