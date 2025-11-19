@@ -513,26 +513,25 @@ if (result.success) {
 
 **UI Components:**
 - `@react-navigation/native` + `@react-navigation/bottom-tabs` - Navigation
-- `react-native-fast-image` - Optimized image loading for galleries
-- `react-native-image-viewing` - Full-screen image viewer
 - `@expo/vector-icons` - Icons (MaterialCommunityIcons)
 - `react-native-gesture-handler` - Swipe actions, gestures
+- `react-native-calendars` - Calendar views for bookings
 
 **Forms & Inputs:**
 - `react-hook-form` + `zod` - Form validation
 - `@react-native-picker/picker` - Dropdowns
 - `react-native-date-picker` - Date selection
 
-**Payments:**
-- `@stripe/stripe-react-native` - Payment processing
-
 **Messaging:**
 - `react-native-gifted-chat` - Chat UI (customize to match design)
 
 **Media:**
-- `expo-image-picker` - Camera & photo library access
+- `expo-image-picker` - Photo attachment for MMS
 - `expo-camera` - Direct camera access
-- `react-native-signature-canvas` - Contract signing
+
+**Authentication:**
+- `expo-local-authentication` - Face ID / Touch ID / Fingerprint
+- `expo-secure-store` - Secure token storage
 
 **Notifications:**
 - `expo-notifications` - Push notifications
@@ -548,33 +547,35 @@ if (result.success) {
 
 ###  Implementation Priority
 
-**Phase 1: Core Authentication & Navigation**
-1. Welcome screen with role selection
-2. Photographer login (email/password)
-3. Client magic link handling
-4. Bottom tab navigation setup
-5. JWT storage & auto-login
+**Phase 1: Core Authentication & Navigation (MVP)**
+1. Login screen (email/password)
+2. Google OAuth integration
+3. JWT token storage in SecureStore
+4. Auto-login on app launch
+5. Bottom tab navigation setup (Projects, Inbox, Bookings, More)
 
-**Phase 2: Photographer Essential Features**
-6. Projects list screen
-7. Project detail screen
-8. Messaging inbox
-9. Thread detail & send message
-10. Bookings calendar view
+**Phase 2: Essential Photographer Features**
+6. Projects list screen with search and stage filters
+7. Project detail screen with client info
+8. Move project between stages
+9. Add quick notes to project
+10. Messaging inbox with unread badges
+11. Thread detail view with message history
+12. Send SMS/Email from app
 
-**Phase 3: Client Portal Features**
-11. Client projects list
-12. Client project detail
-13. Gallery grid view
-14. Gallery full-screen viewer
-15. Client messaging
+**Phase 3: Calendar & Bookings**
+13. Monthly calendar view with bookings
+14. Upcoming appointments list
+15. Booking detail view
+16. Reschedule appointment functionality
 
-**Phase 4: Advanced Features**
-16. Smart File viewer
-17. Stripe payment integration
-18. Contract signing
-19. Push notifications
-20. Offline caching
+**Phase 4: Polish & Advanced Features**
+17. Face ID / Touch ID biometric authentication
+18. Push notifications for new messages and bookings
+19. Offline data caching for projects and messages
+20. Quick actions (call, text, send magic link)
+21. Profile & settings screens
+22. Update availability preferences
 
 ---
 
