@@ -54,6 +54,7 @@ Photographers should have access to these **essential features only** on mobile:
 **2. Messaging Inbox**
 - View all conversations with clients
 - Send/receive SMS and view email threads
+- Receive messages from clients sent through their portal
 - Quick replies with templates
 - Attach photos from camera/library (MMS)
 - Unread message badges

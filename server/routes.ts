@@ -11525,6 +11525,108 @@ ${photographer.businessName}`
     }
   });
 
+  // Client sends message to photographer
+  app.post("/api/client-portal/projects/:id/send-message", authenticateToken, enforceSubdomainTenantAuth, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { subject, body } = req.body;
+      const user = req.user!;
+      
+      if (!subject || !body) {
+        return res.status(400).json({ message: "Subject and body are required" });
+      }
+      
+      // Verify user has photographerId in JWT (required for client portal access)
+      if (!user.photographerId) {
+        return res.status(403).json({ message: "Access denied - invalid client context" });
+      }
+      
+      // Get the contact for this authenticated user
+      const contact = await storage.getContactByEmail(user.email, user.photographerId);
+      
+      if (!contact) {
+        return res.status(403).json({ message: "Access denied - contact not found" });
+      }
+      
+      // Verify contact's photographer matches JWT photographer
+      if (contact.photographerId !== user.photographerId) {
+        return res.status(403).json({ message: "Access denied - photographer mismatch" });
+      }
+      
+      // Get project and verify access
+      const project = await storage.getProject(id);
+      if (!project || project.photographerId !== user.photographerId) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+      
+      // Verify client has access to this project (either primary or participant)
+      const hasAccess = project.clientId === contact.id || 
+                       (await storage.getProjectParticipants(id)).some(p => p.contactId === contact.id);
+      
+      if (!hasAccess) {
+        return res.status(403).json({ message: "Access denied - you are not associated with this project" });
+      }
+      
+      // Get photographer info
+      const photographer = await storage.getPhotographer(user.photographerId);
+      if (!photographer || !photographer.email) {
+        return res.status(400).json({ message: "Photographer email not found" });
+      }
+      
+      const clientName = `${contact.firstName} ${contact.lastName}`.trim() || contact.email;
+      
+      // Send email to photographer
+      const { sendEmail } = await import('./services/email');
+      const result = await sendEmail({
+        to: photographer.email,
+        subject: `[Client Message] ${subject}`,
+        html: `
+          <p><strong>From:</strong> ${clientName} (${contact.email})</p>
+          <p><strong>Project:</strong> ${project.title}</p>
+          <p><strong>Message:</strong></p>
+          <div>${body.replace(/\n/g, '<br>')}</div>
+        `,
+        text: `From: ${clientName} (${contact.email})\nProject: ${project.title}\n\nMessage:\n${body}`,
+        replyTo: contact.email,
+        photographerId: user.photographerId,
+        clientId: contact.id,
+        projectId: project.id,
+        source: 'CLIENT_REPLY'
+      });
+      
+      if (!result.success) {
+        return res.status(500).json({ message: "Failed to send message", error: result.error });
+      }
+      
+      // Log to activity log
+      await storage.addProjectActivityLog({
+        projectId: project.id,
+        activityType: 'EMAIL_RECEIVED',
+        action: 'RECEIVED',
+        title: `Client message: ${subject}`,
+        description: `Message from ${clientName}`,
+        metadata: JSON.stringify({
+          subject,
+          body,
+          htmlBody: body.replace(/\n/g, '<br>'),
+          from: contact.email,
+          fromName: clientName,
+          source: 'CLIENT_REPLY'
+        }),
+        relatedId: result.messageId || null,
+        relatedType: 'EMAIL'
+      });
+      
+      res.json({ 
+        success: true, 
+        message: "Message sent successfully to photographer"
+      });
+    } catch (error) {
+      console.error("Client send message error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   // Get client contact information for settings page
   app.get("/api/client-portal/contact-info", authenticateToken, enforceSubdomainTenantAuth, async (req, res) => {
     try {

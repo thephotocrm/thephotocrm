@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { useLocation, useRoute } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,6 +7,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { useToast } from "@/hooks/use-toast";
+import { queryClient, apiRequest } from "@/lib/queryClient";
 import { ClientPortalLayout } from "@/components/layout/client-portal-layout";
 import { 
   Calendar,
@@ -23,7 +29,8 @@ import {
   Camera,
   Activity,
   StickyNote,
-  CreditCard
+  CreditCard,
+  Send
 } from "lucide-react";
 
 interface ClientProject {
@@ -137,6 +144,12 @@ export default function ClientPortalProject() {
     }
   };
 
+  // Message dialog state
+  const [messageDialogOpen, setMessageDialogOpen] = useState(false);
+  const [messageSubject, setMessageSubject] = useState("");
+  const [messageBody, setMessageBody] = useState("");
+  const { toast } = useToast();
+
   const { data: project, isLoading } = useQuery<ClientProject>({
     queryKey: ["/api/client-portal/projects", projectId],
     enabled: !!projectId && !!user
@@ -146,6 +159,45 @@ export default function ClientPortalProject() {
     queryKey: ["/api/client-portal/projects"],
     enabled: !!user
   });
+
+  // Send message mutation
+  const sendMessageMutation = useMutation({
+    mutationFn: async (data: { subject: string; body: string }) => {
+      return await apiRequest("POST", `/api/client-portal/projects/${projectId}/send-message`, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/client-portal/projects", projectId] });
+      setMessageDialogOpen(false);
+      setMessageSubject("");
+      setMessageBody("");
+      toast({
+        title: "Message sent",
+        description: "Your message has been sent to your photographer."
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to send message",
+        description: error.message || "Please try again",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const handleSendMessage = () => {
+    if (!messageSubject.trim() || !messageBody.trim()) {
+      toast({
+        title: "Missing information",
+        description: "Please enter both subject and message",
+        variant: "destructive"
+      });
+      return;
+    }
+    sendMessageMutation.mutate({
+      subject: messageSubject,
+      body: messageBody
+    });
+  };
 
   if (!authLoading && !user) {
     setLocation("/login");
@@ -358,33 +410,65 @@ export default function ClientPortalProject() {
           {/* Activity Tab */}
           {activeTab === 'activity' && (
             <div className="space-y-6 max-w-4xl">
-              <h1 className="text-3xl font-bold text-gray-900">Activity</h1>
+              <div className="flex items-center justify-between">
+                <h1 className="text-3xl font-bold text-gray-900">Messages & Activity</h1>
+                <Button 
+                  onClick={() => setMessageDialogOpen(true)}
+                  className="gap-2"
+                  data-testid="button-send-message"
+                >
+                  <Send className="w-4 h-4" />
+                  Send Message
+                </Button>
+              </div>
               <Card className="bg-white border-gray-200">
                 <CardContent className="pt-6">
-                  {(!project.activities || project.activities.length === 0) ? (
-                    <div className="text-center py-12">
-                      <Activity className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                      <p className="text-gray-900 font-medium">No activity yet</p>
-                      <p className="text-sm text-gray-500 mt-2">Updates will appear here as things happen.</p>
-                    </div>
-                  ) : (
-                    <div className="space-y-4">
-                      {project.activities.map((activity) => (
-                        <div key={activity.id} className="flex items-start space-x-4 p-4 rounded-lg hover:bg-gray-50 transition-colors" data-testid={`activity-item-${activity.id}`}>
-                          <div className="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0" />
-                          <div className="flex-1 min-w-0">
-                            <p className="font-medium text-gray-900">{activity.title}</p>
-                            {activity.description && (
-                              <p className="text-sm text-gray-600 mt-1">{activity.description}</p>
-                            )}
-                            <p className="text-xs text-gray-400 mt-2">
-                              {new Date(activity.createdAt).toLocaleString()}
-                            </p>
-                          </div>
+                  {(() => {
+                    // Filter activities to show only EMAIL-related activities (exclude SMS)
+                    const emailActivities = (project.activities || []).filter(
+                      activity => activity.type?.includes('EMAIL') || activity.type?.includes('RECEIVED')
+                    );
+                    
+                    if (emailActivities.length === 0) {
+                      return (
+                        <div className="text-center py-12">
+                          <Mail className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                          <p className="text-gray-900 font-medium">No messages yet</p>
+                          <p className="text-sm text-gray-500 mt-2">
+                            Start a conversation by sending a message to your photographer.
+                          </p>
+                          <Button 
+                            onClick={() => setMessageDialogOpen(true)}
+                            className="mt-4"
+                            variant="outline"
+                            data-testid="button-send-first-message"
+                          >
+                            <Send className="w-4 h-4 mr-2" />
+                            Send your first message
+                          </Button>
                         </div>
-                      ))}
-                    </div>
-                  )}
+                      );
+                    }
+                    
+                    return (
+                      <div className="space-y-4">
+                        {emailActivities.map((activity) => (
+                          <div key={activity.id} className="flex items-start space-x-4 p-4 rounded-lg hover:bg-gray-50 transition-colors" data-testid={`activity-item-${activity.id}`}>
+                            <Mail className="w-5 h-5 text-primary mt-1 flex-shrink-0" />
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium text-gray-900">{activity.title}</p>
+                              {activity.description && (
+                                <p className="text-sm text-gray-600 mt-1">{activity.description}</p>
+                              )}
+                              <p className="text-xs text-gray-400 mt-2">
+                                {new Date(activity.createdAt).toLocaleString()}
+                              </p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  })()}
                 </CardContent>
               </Card>
             </div>
@@ -607,6 +691,71 @@ export default function ClientPortalProject() {
             </div>
           )}
         </div>
+
+        {/* Message Composer Dialog */}
+        <Dialog open={messageDialogOpen} onOpenChange={setMessageDialogOpen}>
+          <DialogContent className="sm:max-w-[600px]">
+            <DialogHeader>
+              <DialogTitle>Send Message to {project.photographer.businessName}</DialogTitle>
+              <DialogDescription>
+                Your message will be sent directly to your photographer's email.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="message-subject">Subject</Label>
+                <Input
+                  id="message-subject"
+                  placeholder="Enter message subject"
+                  value={messageSubject}
+                  onChange={(e) => setMessageSubject(e.target.value)}
+                  data-testid="input-message-subject"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="message-body">Message</Label>
+                <Textarea
+                  id="message-body"
+                  placeholder="Type your message here..."
+                  value={messageBody}
+                  onChange={(e) => setMessageBody(e.target.value)}
+                  rows={8}
+                  data-testid="textarea-message-body"
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setMessageDialogOpen(false);
+                  setMessageSubject("");
+                  setMessageBody("");
+                }}
+                data-testid="button-cancel-message"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleSendMessage}
+                disabled={sendMessageMutation.isPending}
+                data-testid="button-confirm-send-message"
+              >
+                {sendMessageMutation.isPending ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Sending...
+                  </>
+                ) : (
+                  <>
+                    <Send className="w-4 h-4 mr-2" />
+                    Send Message
+                  </>
+                )}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
     </ClientPortalLayout>
   );
 }
