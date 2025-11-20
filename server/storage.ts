@@ -1740,6 +1740,7 @@ export class DatabaseStorage implements IStorage {
         type: activity.activityType,
         title: activity.title,
         description: activity.description,
+        metadata: activity.metadata,
         createdAt: activity.createdAt,
       })),
     };
