@@ -579,7 +579,11 @@ export default function ClientPortalProject() {
                         const isLatest = index === 0;
                         
                         if (metadata && (metadata.body || metadata.htmlBody || metadata.subject)) {
-                          // Render HoneyBook-style email card
+                          // Determine sender name for avatar
+                          const senderName = metadata.fromName || metadata.from || project.client.firstName + ' ' + project.client.lastName;
+                          const toName = metadata.to || project.photographer.businessName;
+                          
+                          // Render HoneyBook-style email card with avatar
                           return (
                             <Card 
                               key={activity.id} 
@@ -587,43 +591,50 @@ export default function ClientPortalProject() {
                               data-testid={`activity-item-${activity.id}`}
                               ref={isLatest ? latestMessageRef : null}
                             >
-                              <CardContent className="p-6 relative">
-                                {/* From/To Header */}
-                                <div className="flex items-start justify-between mb-4">
-                                  <div className="flex-1">
-                                    <div className="flex items-center gap-2 text-sm">
-                                      <span className="font-semibold text-gray-700">From:</span>
-                                      <span className="text-gray-900">{metadata.fromName || metadata.from || project.client.firstName + ' ' + project.client.lastName}</span>
+                              <CardContent className="p-6">
+                                <div className="flex gap-4">
+                                  {/* Avatar */}
+                                  <Avatar className="w-10 h-10 flex-shrink-0">
+                                    <AvatarFallback className="bg-gray-900 text-white text-sm font-medium">
+                                      {senderName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                  
+                                  {/* Content */}
+                                  <div className="flex-1 min-w-0">
+                                    {/* From/To Header with Date */}
+                                    <div className="flex items-start justify-between mb-3">
+                                      <div className="flex-1 min-w-0">
+                                        <div className="text-sm">
+                                          <span className="font-medium text-gray-900">From: </span>
+                                          <span className="text-gray-700">{senderName}</span>
+                                        </div>
+                                        <div className="text-sm mt-0.5">
+                                          <span className="font-medium text-gray-900">To: </span>
+                                          <span className="text-gray-700">{toName}</span>
+                                        </div>
+                                      </div>
+                                      <span className="text-sm text-gray-500 whitespace-nowrap ml-4">
+                                        {new Date(activity.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                      </span>
                                     </div>
-                                    <div className="flex items-center gap-2 text-sm mt-1">
-                                      <span className="font-semibold text-gray-700">To:</span>
-                                      <span className="text-gray-900">{metadata.to || project.photographer.businessName}</span>
+                                    
+                                    {/* Subject Line */}
+                                    {metadata.subject && (
+                                      <h3 className="font-semibold text-gray-900 mb-3">
+                                        {metadata.subject}
+                                      </h3>
+                                    )}
+                                    
+                                    {/* Email Body */}
+                                    <div className="text-sm text-gray-700 leading-relaxed break-words overflow-hidden">
+                                      {metadata.htmlBody ? (
+                                        <div className="prose prose-sm max-w-none [&>*]:break-words" dangerouslySetInnerHTML={{ __html: metadata.htmlBody }} />
+                                      ) : (
+                                        <div className="whitespace-pre-wrap break-words">{metadata.body}</div>
+                                      )}
                                     </div>
                                   </div>
-                                  <span className="text-sm text-gray-500 whitespace-nowrap">
-                                    {new Date(activity.createdAt).toLocaleDateString()} {new Date(activity.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                  </span>
-                                </div>
-                                
-                                {/* Subject Line */}
-                                {metadata.subject && (
-                                  <h3 className="font-semibold text-gray-900 mb-4">
-                                    {metadata.subject}
-                                  </h3>
-                                )}
-                                
-                                {/* Email Body */}
-                                <div className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
-                                  {metadata.htmlBody ? (
-                                    <div dangerouslySetInnerHTML={{ __html: metadata.htmlBody }} />
-                                  ) : (
-                                    metadata.body
-                                  )}
-                                </div>
-                                
-                                {/* Mail icon in bottom right */}
-                                <div className="absolute bottom-4 right-4">
-                                  <Mail className="w-5 h-5 text-gray-300" />
                                 </div>
                               </CardContent>
                             </Card>
