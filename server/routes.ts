@@ -3777,6 +3777,18 @@ ${photographer?.businessName || 'Your Photography Team'}`;
         return res.status(500).json({ message: "Failed to send email", error: result.error });
       }
       
+      // Get photographer info for metadata
+      const photographer = await storage.getPhotographer(req.user!.photographerId!);
+      const [user] = await db.select()
+        .from(users)
+        .where(and(
+          eq(users.photographerId, req.user!.photographerId!),
+          eq(users.role, 'PHOTOGRAPHER')
+        ))
+        .limit(1);
+      const photographerEmail = photographer?.emailFromAddr || user?.email || 'photographer@unknown.com';
+      const fromName = photographer?.photographerName || photographer?.businessName || 'Photographer';
+      
       // Log to activity log with full email content and Gmail threading metadata
       await storage.addProjectActivityLog({
         projectId: req.params.id,
@@ -3788,6 +3800,9 @@ ${photographer?.businessName || 'Your Photography Team'}`;
           subject,
           body: body,
           htmlBody: body.replace(/\n/g, '<br>'),
+          from: photographerEmail,
+          fromName,
+          to: primaryEmail,
           recipients: [primaryEmail, ...bccEmails],
           participantCount: bccEmails.length,
           source: result.source || 'MANUAL'
@@ -4107,6 +4122,18 @@ ${photographer?.businessName || 'Your Photography Team'}`;
         return res.status(500).json({ message: "Failed to send email", error: result.error });
       }
       
+      // Get photographer info for metadata
+      const photographer = await storage.getPhotographer(req.user!.photographerId!);
+      const [user] = await db.select()
+        .from(users)
+        .where(and(
+          eq(users.photographerId, req.user!.photographerId!),
+          eq(users.role, 'PHOTOGRAPHER')
+        ))
+        .limit(1);
+      const photographerEmail = photographer?.emailFromAddr || user?.email || 'photographer@unknown.com';
+      const fromName = photographer?.photographerName || photographer?.businessName || 'Photographer';
+      
       // Log to activity log
       await storage.addProjectActivityLog({
         projectId: req.params.id,
@@ -4116,12 +4143,20 @@ ${photographer?.businessName || 'Your Photography Team'}`;
         description: `Email sent to ${recipients.length} recipient${recipients.length > 1 ? 's' : ''}`,
         metadata: JSON.stringify({
           subject,
+          body: emailBodyWithPortalLink,
+          htmlBody: emailBodyWithPortalLink.replace(/\n/g, '<br>'),
+          from: photographerEmail,
+          fromName,
+          to: primaryEmail,
           recipients,
           recipientCount: recipients.length,
           source: result.source || 'MANUAL'
         }),
         relatedId: result.messageId || null,
-        relatedType: 'EMAIL'
+        relatedType: 'EMAIL',
+        gmailThreadId: result.threadId || null,
+        gmailMessageId: result.messageId || null,
+        emailDirection: 'OUTBOUND'
       });
       
       res.json({ 
@@ -11745,10 +11780,15 @@ ${photographer.businessName}`
       }
       
       // Get photographer's email - try emailFromAddr first, then get user email as fallback
-      let photographerEmail = photographer.emailFromAddr;
+      // Validate it's a proper email address (not just a domain)
+      const isValidEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+      
+      let photographerEmail = photographer.emailFromAddr && isValidEmail(photographer.emailFromAddr) 
+        ? photographer.emailFromAddr 
+        : null;
       
       if (!photographerEmail) {
-        console.log('⚠️ [CLIENT-PORTAL-MESSAGE] No emailFromAddr, fetching user email...');
+        console.log('⚠️ [CLIENT-PORTAL-MESSAGE] No valid emailFromAddr, fetching user email...');
         const [photographerUser] = await db.select()
           .from(users)
           .where(and(
@@ -11817,10 +11857,12 @@ ${photographer.businessName}`
           htmlBody: body.replace(/\n/g, '<br>'),
           from: contact.email,
           fromName: clientName,
+          to: photographerEmail,
           source: 'CLIENT_REPLY'
         }),
         relatedId: result.messageId || null,
-        relatedType: 'EMAIL'
+        relatedType: 'EMAIL',
+        emailDirection: 'OUTBOUND'
       });
       
       res.json({ 
