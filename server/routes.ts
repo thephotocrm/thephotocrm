@@ -4,7 +4,7 @@ import { createServer, type Server } from "http";
 import { log } from "./vite";
 import cookieParser from 'cookie-parser';
 import Stripe from "stripe";
-import { eq, sql, inArray } from "drizzle-orm";
+import { eq, sql, inArray, and } from "drizzle-orm";
 import { storage } from "./storage";
 import { db } from "./db";
 import { authenticateToken, requirePhotographer, requireRole, requireAdmin, requireActiveSubscription, requireGalleryPlan } from "./middleware/auth";
