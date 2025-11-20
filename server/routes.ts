@@ -3803,6 +3803,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
           from: photographerEmail,
           fromName,
           to: primaryEmail,
+          toName: `${project.contact.firstName} ${project.contact.lastName}`.trim() || primaryEmail,
           recipients: [primaryEmail, ...bccEmails],
           participantCount: bccEmails.length,
           source: result.source || 'MANUAL'
@@ -4148,6 +4149,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
           from: photographerEmail,
           fromName,
           to: primaryEmail,
+          toName: `${project.contact.firstName} ${project.contact.lastName}`.trim() || primaryEmail,
           recipients,
           recipientCount: recipients.length,
           source: result.source || 'MANUAL'
