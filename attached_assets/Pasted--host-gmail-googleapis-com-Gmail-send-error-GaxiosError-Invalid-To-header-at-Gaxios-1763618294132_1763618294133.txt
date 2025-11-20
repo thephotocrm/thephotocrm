@@ -1,0 +1,113 @@
+      host: 'gmail.googleapis.com',
+Gmail send error: GaxiosError: Invalid To header
+    at Gaxios._request (/app/node_modules/gaxios/build/cjs/src/gaxios.js:154:23)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async OAuth2Client.requestAsync (/app/node_modules/google-auth-library/build/src/auth/oauth2client.js:463:20)
+    at async createAPIRequestAsync (/app/node_modules/googleapis-common/build/src/apirequest.js:308:25)
+    at async sendViaGmail (file:///app/dist/index.js:5855:22)
+    at async file:///app/dist/index.js:21489:22 {
+  config: {
+      hostname: 'gmail.googleapis.com',
+    url: URL {
+      href: 'https://gmail.googleapis.com/gmail/v1/users/me/messages/send',
+      port: '',
+      origin: 'https://gmail.googleapis.com',
+      pathname: '/gmail/v1/users/me/messages/send',
+      protocol: 'https:',
+      search: '',
+      username: '',
+      searchParams: URLSearchParams {},
+      password: '',
+      hash: ''
+    },
+    method: 'POST',
+    apiVersion: '',
+    userAgentDirectives: [ [Object] ],
+    data: {
+      raw: 'RnJvbTogYXVzdGlucGFjaG9sZWsyMDE0QGdtYWlsLmNvbQ0KVG86IGFiYmllc3RyZWV0LmNvbQ0KUmVwbHktVG86IGF1c3RpbnBhY2hvbGVrMjAxNEBnbWFpbC5jb20NClN1YmplY3Q6IFtDbGllbnQgTWVzc2FnZV0gZHdkDQpNSU1FLVZlcnNpb246IDEuMA0KWC1UUEMtUHJvamVjdDogYmZmYTNmZjktNGRlNi00ODNmLThlMzktNzIxMDNjMjBiYjhhDQpYLVRQQy1Db250YWN0OiA4N2Q5NTJlZS1hMmU2LTQ3MjQtOGE2OS1mMmQ4ZGQ3OWJlNTMNClgtVFBDLVNpZ25hdHVyZTogZ3dBT2pNMkdham1sZ01uMUw4b1ZNMmpUS0o2akg2TCtMSldmdWNvRXo4UT0NCkNvbnRlbnQtVHlwZTogbXVsdGlwYXJ0L2FsdGVybmF0aXZlOyBib3VuZGFyeT0iYm91bmRhcnkiDQoNCi0tYm91bmRhcnkNCkNvbnRlbnQtVHlwZTogdGV4dC9wbGFpbjsgY2hhcnNldD1VVEYtOA0KDQpGcm9tOiBBdXN0aW4gUGFjaG9sZWsgKGF1c3RpbnBhY2hvbGVrMjAxNEBnbWFpbC5jb20pClByb2plY3Q6IEF1c3RpbidzIFdlZGRpbmcKCk1lc3NhZ2U6CndkZHdkDQoNCi0tYm91bmRhcnkNCkNvbnRlbnQtVHlwZTogdGV4dC9odG1sOyBjaGFyc2V0PVVURi04DQoNCgogICAgPGRpdiBzdHlsZT0iZm9udC1mYW1pbHk6IC1hcHBsZS1zeXN0ZW0sIEJsaW5rTWFjU3lzdGVtRm9udCwgJ1NlZ29lIFVJJywgUm9ib3RvLCAnSGVsdmV0aWNhIE5ldWUnLCBBcmlhbCwgc2Fucy1zZXJpZjsgbWF4LXdpZHRoOiA2MDBweDsgbWFyZ2luOiAwIGF1dG87IHBhZGRpbmc6IDIwcHg7Ij4KICAgICAgCiAgICAgIDxkaXYgc3R5bGU9ImNvbG9yOiAjMzMzMzMzOyBmb250LXNpemU6IDE1cHg7IGxpbmUtaGVpZ2h0OiAxLjY7Ij4KICAgICAgICAKICAgICAgICAgIDxwPjxzdHJvbmc-RnJvbTo8L3N0cm9uZz4gQXVzdGluIFBhY2hvbGVrIChhdXN0aW5wYWNob2xlazIwMTRAZ21haWwuY29tKTwvcD4KICAgICAgICAgIDxwPjxzdHJvbmc-UHJvamVjdDo8L3N0cm9uZz4gQXVzdGluJ3MgV2VkZGluZzwvcD4KICAgICAgICAgIDxwPjxzdHJvbmc-TWVzc2FnZTo8L3N0cm9uZz48L3A-CiAgICAgICAgICA8ZGl2PndkZHdkPC9kaXY-CiAgICAgICAgCiAgICAgIDwvZGl2PgogICAgICAKICAgIDwvZGl2PgogIA0KDQotLWJvdW5kYXJ5LS0'
+    },
+    headers: Headers {
+      'accept-encoding': 'gzip',
+      authorization: '<<REDACTED> - See `errorRedactor` option in `gaxios` for configuration>.',
+      'user-agent': 'google-api-nodejs-client/8.0.0 (gzip)',
+      'x-goog-api-client': 'gdcl/8.0.0 gl-node/22.21.1',
+      'content-type': 'application/json'
+    },
+    validateStatus: [Function (anonymous)],
+    retry: true,
+    body: '{"raw":"RnJvbTogYXVzdGlucGFjaG9sZWsyMDE0QGdtYWlsLmNvbQ0KVG86IGFiYmllc3RyZWV0LmNvbQ0KUmVwbHktVG86IGF1c3RpbnBhY2hvbGVrMjAxNEBnbWFpbC5jb20NClN1YmplY3Q6IFtDbGllbnQgTWVzc2FnZV0gZHdkDQpNSU1FLVZlcnNpb246IDEuMA0KWC1UUEMtUHJvamVjdDogYmZmYTNmZjktNGRlNi00ODNmLThlMzktNzIxMDNjMjBiYjhhDQpYLVRQQy1Db250YWN0OiA4N2Q5NTJlZS1hMmU2LTQ3MjQtOGE2OS1mMmQ4ZGQ3OWJlNTMNClgtVFBDLVNpZ25hdHVyZTogZ3dBT2pNMkdham1sZ01uMUw4b1ZNMmpUS0o2akg2TCtMSldmdWNvRXo4UT0NCkNvbnRlbnQtVHlwZTogbXVsdGlwYXJ0L2FsdGVybmF0aXZlOyBib3VuZGFyeT0iYm91bmRhcnkiDQoNCi0tYm91bmRhcnkNCkNvbnRlbnQtVHlwZTogdGV4dC9wbGFpbjsgY2hhcnNldD1VVEYtOA0KDQpGcm9tOiBBdXN0aW4gUGFjaG9sZWsgKGF1c3RpbnBhY2hvbGVrMjAxNEBnbWFpbC5jb20pClByb2plY3Q6IEF1c3RpbidzIFdlZGRpbmcKCk1lc3NhZ2U6CndkZHdkDQoNCi0tYm91bmRhcnkNCkNvbnRlbnQtVHlwZTogdGV4dC9odG1sOyBjaGFyc2V0PVVURi04DQoNCgogICAgPGRpdiBzdHlsZT0iZm9udC1mYW1pbHk6IC1hcHBsZS1zeXN0ZW0sIEJsaW5rTWFjU3lzdGVtRm9udCwgJ1NlZ29lIFVJJywgUm9ib3RvLCAnSGVsdmV0aWNhIE5ldWUnLCBBcmlhbCwgc2Fucy1zZXJpZjsgbWF4LXdpZHRoOiA2MDBweDsgbWFyZ2luOiAwIGF1dG87IHBhZGRpbmc6IDIwcHg7Ij4KICAgICAgCiAgICAgIDxkaXYgc3R5bGU9ImNvbG9yOiAjMzMzMzMzOyBmb250LXNpemU6IDE1cHg7IGxpbmUtaGVpZ2h0OiAxLjY7Ij4KICAgICAgICAKICAgICAgICAgIDxwPjxzdHJvbmc-RnJvbTo8L3N0cm9uZz4gQXVzdGluIFBhY2hvbGVrIChhdXN0aW5wYWNob2xlazIwMTRAZ21haWwuY29tKTwvcD4KICAgICAgICAgIDxwPjxzdHJvbmc-UHJvamVjdDo8L3N0cm9uZz4gQXVzdGluJ3MgV2VkZGluZzwvcD4KICAgICAgICAgIDxwPjxzdHJvbmc-TWVzc2FnZTo8L3N0cm9uZz48L3A-CiAgICAgICAgICA8ZGl2PndkZHdkPC9kaXY-CiAgICAgICAgCiAgICAgIDwvZGl2PgogICAgICAKICAgIDwvZGl2PgogIA0KDQotLWJvdW5kYXJ5LS0"}',
+    responseType: 'unknown',
+    errorRedactor: [Function: defaultErrorRedactor],
+    duplex: 'half',
+    retryConfig: {
+      currentRetryAttempt: 0,
+      retry: 3,
+      httpMethodsToRetry: [Array],
+      noResponseRetries: 2,
+      retryDelayMultiplier: 2,
+      timeOfFirstRequest: 1763618250238,
+      totalTimeout: 9007199254740991,
+      maxRetryDelay: 9007199254740991,
+      statusCodesToRetry: [Array]
+    }
+  },
+  response: Response {
+    size: 0,
+    data: { error: [Object] },
+    config: {
+      url: URL {},
+      method: 'POST',
+      apiVersion: '',
+      userAgentDirectives: [Array],
+      data: [Object],
+      headers: Headers {
+        'accept-encoding': 'gzip',
+        authorization: '<<REDACTED> - See `errorRedactor` option in `gaxios` for configuration>.',
+        'user-agent': 'google-api-nodejs-client/8.0.0 (gzip)',
+        'x-goog-api-client': 'gdcl/8.0.0 gl-node/22.21.1',
+        'content-type': 'application/json'
+      },
+      validateStatus: [Function (anonymous)],
+      retry: true,
+      body: '{"raw":"RnJvbTogYXVzdGlucGFjaG9sZWsyMDE0QGdtYWlsLmNvbQ0KVG86IGFiYmllc3RyZWV0LmNvbQ0KUmVwbHktVG86IGF1c3RpbnBhY2hvbGVrMjAxNEBnbWFpbC5jb20NClN1YmplY3Q6IFtDbGllbnQgTWVzc2FnZV0gZHdkDQpNSU1FLVZlcnNpb246IDEuMA0KWC1UUEMtUHJvamVjdDogYmZmYTNmZjktNGRlNi00ODNmLThlMzktNzIxMDNjMjBiYjhhDQpYLVRQQy1Db250YWN0OiA4N2Q5NTJlZS1hMmU2LTQ3MjQtOGE2OS1mMmQ4ZGQ3OWJlNTMNClgtVFBDLVNpZ25hdHVyZTogZ3dBT2pNMkdham1sZ01uMUw4b1ZNMmpUS0o2akg2TCtMSldmdWNvRXo4UT0NCkNvbnRlbnQtVHlwZTogbXVsdGlwYXJ0L2FsdGVybmF0aXZlOyBib3VuZGFyeT0iYm91bmRhcnkiDQoNCi0tYm91bmRhcnkNCkNvbnRlbnQtVHlwZTogdGV4dC9wbGFpbjsgY2hhcnNldD1VVEYtOA0KDQpGcm9tOiBBdXN0aW4gUGFjaG9sZWsgKGF1c3RpbnBhY2hvbGVrMjAxNEBnbWFpbC5jb20pClByb2plY3Q6IEF1c3RpbidzIFdlZGRpbmcKCk1lc3NhZ2U6CndkZHdkDQoNCi0tYm91bmRhcnkNCkNvbnRlbnQtVHlwZTogdGV4dC9odG1sOyBjaGFyc2V0PVVURi04DQoNCgogICAgPGRpdiBzdHlsZT0iZm9udC1mYW1pbHk6IC1hcHBsZS1zeXN0ZW0sIEJsaW5rTWFjU3lzdGVtRm9udCwgJ1NlZ29lIFVJJywgUm9ib3RvLCAnSGVsdmV0aWNhIE5ldWUnLCBBcmlhbCwgc2Fucy1zZXJpZjsgbWF4LXdpZHRoOiA2MDBweDsgbWFyZ2luOiAwIGF1dG87IHBhZGRpbmc6IDIwcHg7Ij4KICAgICAgCiAgICAgIDxkaXYgc3R5bGU9ImNvbG9yOiAjMzMzMzMzOyBmb250LXNpemU6IDE1cHg7IGxpbmUtaGVpZ2h0OiAxLjY7Ij4KICAgICAgICAKICAgICAgICAgIDxwPjxzdHJvbmc-RnJvbTo8L3N0cm9uZz4gQXVzdGluIFBhY2hvbGVrIChhdXN0aW5wYWNob2xlazIwMTRAZ21haWwuY29tKTwvcD4KICAgICAgICAgIDxwPjxzdHJvbmc-UHJvamVjdDo8L3N0cm9uZz4gQXVzdGluJ3MgV2VkZGluZzwvcD4KICAgICAgICAgIDxwPjxzdHJvbmc-TWVzc2FnZTo8L3N0cm9uZz48L3A-CiAgICAgICAgICA8ZGl2PndkZHdkPC9kaXY-CiAgICAgICAgCiAgICAgIDwvZGl2PgogICAgICAKICAgIDwvZGl2PgogIA0KDQotLWJvdW5kYXJ5LS0"}',
+      responseType: 'unknown',
+      errorRedactor: [Function: defaultErrorRedactor],
+      duplex: 'half'
+    },
+    [Symbol(Body internals)]: {
+    status: 'INVALID_ARGUMENT',
+      counter: 0,
+    errors: [ [Object] ]
+      highWaterMark: 16384
+      body: [Gunzip],
+  }
+      stream: [Gunzip],
+    }
+}
+      boundary: null,
+  },
+Falling back to SendGrid due to Gmail error
+      disturbed: true,
+  code: 400,
+      error: null
+  status: 400,
+    },
+  error: undefined,
+  [Symbol(gaxios-gaxios-error)]: '7.1.1',
+    [Symbol(Response internals)]: {
+  [cause]: {
+      type: 'default',
+    message: 'Invalid To header',
+    code: 400,
+      url: 'https://gmail.googleapis.com/gmail/v1/users/me/messages/send',
+      status: 400,
+      statusText: 'Bad Request',
+      headers: [Object],
+SendGrid email error: ResponseError: Unauthorized
+      'referrer-policy': 'strict-origin-when-cross-origin'
+    at node_modules/@sendgrid/client/src/classes/client.js:167:29
+    },
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5) {
+    body: { errors: [Array] }
+  code: 401,
+  response: {
