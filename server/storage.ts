@@ -1332,6 +1332,10 @@ export class DatabaseStorage implements IStorage {
     metadata?: any;
     relatedId?: string;
     relatedType?: string;
+    gmailThreadId?: string | null;
+    gmailMessageId?: string | null;
+    gmailInReplyTo?: string | null;
+    emailDirection?: string | null;
   }): Promise<void> {
     await db.insert(projectActivityLog).values(logEntry);
   }

@@ -65,6 +65,166 @@ function getOAuthProtocol(req: express.Request): string {
 }
 
 /**
+ * Extract header value from Gmail message headers
+ */
+function getHeaderValue(headers: any[], headerName: string): string | null {
+  const header = headers.find(h => h.name.toLowerCase() === headerName.toLowerCase());
+  return header?.value || null;
+}
+
+/**
+ * Extract email body from Gmail message
+ */
+function extractEmailBody(payload: any): { text: string; html: string | null } {
+  let text = '';
+  let html = null;
+
+  if (payload.body?.data) {
+    // Single part message
+    const decodedBody = Buffer.from(payload.body.data, 'base64').toString('utf-8');
+    if (payload.mimeType === 'text/html') {
+      html = decodedBody;
+      text = decodedBody.replace(/<[^>]*>/g, ''); // Strip HTML tags for text version
+    } else {
+      text = decodedBody;
+    }
+  } else if (payload.parts) {
+    // Multi-part message
+    for (const part of payload.parts) {
+      if (part.mimeType === 'text/plain' && part.body?.data) {
+        text = Buffer.from(part.body.data, 'base64').toString('utf-8');
+      } else if (part.mimeType === 'text/html' && part.body?.data) {
+        html = Buffer.from(part.body.data, 'base64').toString('utf-8');
+      } else if (part.parts) {
+        // Nested parts (e.g., multipart/alternative inside multipart/mixed)
+        const nested = extractEmailBody(part);
+        if (nested.text) text = nested.text;
+        if (nested.html) html = nested.html;
+      }
+    }
+  }
+
+  return { text, html };
+}
+
+/**
+ * Fetch and process an incoming Gmail message for email reply threading
+ */
+async function fetchIncomingGmailMessage(photographerId: string, messageId: string) {
+  try {
+    const { google } = await import('googleapis');
+    const { OAuth2Client } = await import('google-auth-library');
+    const { verifyEmailSignature } = await import('./services/email');
+    
+    const clientId = process.env.GOOGLE_CLIENT_ID;
+    const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+    
+    if (!clientId || !clientSecret) {
+      console.error('Google OAuth not configured');
+      return;
+    }
+
+    const oauth2Client = new google.auth.OAuth2(clientId, clientSecret);
+    const credentials = await storage.getGoogleCalendarCredentials(photographerId);
+    
+    if (!credentials || !credentials.accessToken) {
+      console.error(`No Google credentials found for photographer ${photographerId}`);
+      return;
+    }
+
+    oauth2Client.setCredentials({
+      access_token: credentials.accessToken,
+      refresh_token: credentials.refreshToken,
+      expiry_date: credentials.expiryDate?.getTime()
+    });
+
+    const gmail = google.gmail({ version: 'v1', auth: oauth2Client });
+    
+    // Fetch the full message
+    const messageResponse = await gmail.users.messages.get({
+      userId: 'me',
+      id: messageId,
+      format: 'full'
+    });
+
+    const message = messageResponse.data;
+    const headers = message.payload?.headers || [];
+    
+    // Extract tracking headers
+    const projectId = getHeaderValue(headers, 'X-TPC-Project');
+    const contactId = getHeaderValue(headers, 'X-TPC-Contact');
+    const signature = getHeaderValue(headers, 'X-TPC-Signature');
+    const inReplyTo = getHeaderValue(headers, 'In-Reply-To');
+    const subject = getHeaderValue(headers, 'Subject') || 'No subject';
+    const from = getHeaderValue(headers, 'From') || '';
+    const to = getHeaderValue(headers, 'To') || '';
+    
+    console.log('Processing Gmail message:', {
+      messageId,
+      projectId,
+      contactId,
+      from,
+      subject
+    });
+
+    // Skip if no tracking headers (not a reply to our emails)
+    if (!projectId || !contactId || !signature) {
+      console.log('Message missing tracking headers, skipping');
+      return;
+    }
+
+    // Verify HMAC signature
+    if (!verifyEmailSignature(signature, projectId, contactId)) {
+      console.error('Invalid email signature, possible tampering detected');
+      return;
+    }
+
+    // Verify project belongs to photographer
+    const project = await storage.getProject(projectId);
+    if (!project || project.photographerId !== photographerId) {
+      console.error('Project not found or does not belong to photographer');
+      return;
+    }
+
+    // Extract email body
+    const { text, html } = extractEmailBody(message.payload);
+    
+    if (!text && !html) {
+      console.log('Message has no body, skipping');
+      return;
+    }
+
+    // Create activity log entry for the email reply
+    await storage.addProjectActivityLog({
+      projectId,
+      activityType: 'EMAIL_RECEIVED',
+      action: 'RECEIVED',
+      title: `Client reply: ${subject}`,
+      description: `Email received from ${from}`,
+      metadata: JSON.stringify({
+        subject,
+        from,
+        to,
+        body: text,
+        htmlBody: html,
+        isReply: true
+      }),
+      relatedId: messageId,
+      relatedType: 'EMAIL',
+      gmailThreadId: message.threadId || null,
+      gmailMessageId: messageId,
+      gmailInReplyTo: inReplyTo,
+      emailDirection: 'INBOUND'
+    });
+
+    console.log(`✅ Email reply processed and logged to project ${projectId}`);
+
+  } catch (error: any) {
+    console.error('Error fetching incoming Gmail message:', error);
+  }
+}
+
+/**
  * Process Gmail push notification asynchronously
  */
 async function processGmailNotification(photographerId: string, emailAddress: string, historyId: string) {
@@ -3617,7 +3777,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
         return res.status(500).json({ message: "Failed to send email", error: result.error });
       }
       
-      // Log to activity log with full email content
+      // Log to activity log with full email content and Gmail threading metadata
       await storage.addProjectActivityLog({
         projectId: req.params.id,
         activityType: 'EMAIL_SENT',
@@ -3633,7 +3793,10 @@ ${photographer?.businessName || 'Your Photography Team'}`;
           source: result.source || 'MANUAL'
         }),
         relatedId: result.messageId || null,
-        relatedType: 'EMAIL'
+        relatedType: 'EMAIL',
+        gmailThreadId: result.threadId || null,
+        gmailMessageId: result.messageId || null,
+        emailDirection: 'OUTBOUND'
       });
       
       res.json({ 

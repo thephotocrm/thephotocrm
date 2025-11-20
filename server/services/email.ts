@@ -7,6 +7,7 @@ import { users, photographers } from '@shared/schema';
 import { eq } from 'drizzle-orm';
 import { renderTemplate } from '@shared/template-utils';
 import { wrapEmailContent, BrandingData } from './email-branding';
+import crypto from 'crypto';
 
 // SendGrid fallback for backward compatibility
 const mailService = process.env.SENDGRID_API_KEY ? new MailService() : null;
@@ -35,6 +36,32 @@ interface EmailResult {
   messageId?: string;
   threadId?: string;
   error?: string;
+}
+
+/**
+ * Generate HMAC signature for email reply tracking
+ * @param projectId The project ID
+ * @param contactId The contact ID
+ * @returns Base64-encoded HMAC signature
+ */
+function generateEmailSignature(projectId: string, contactId: string): string {
+  const secret = process.env.EMAIL_SIGNATURE_SECRET || 'default-secret-change-in-production';
+  const data = `${projectId}:${contactId}`;
+  const hmac = crypto.createHmac('sha256', secret);
+  hmac.update(data);
+  return hmac.digest('base64');
+}
+
+/**
+ * Verify HMAC signature for incoming email replies
+ * @param signature The HMAC signature from the email header
+ * @param projectId The project ID
+ * @param contactId The contact ID
+ * @returns True if signature is valid
+ */
+export function verifyEmailSignature(signature: string, projectId: string, contactId: string): boolean {
+  const expectedSignature = generateEmailSignature(projectId, contactId);
+  return signature === expectedSignature;
 }
 
 /**
@@ -76,6 +103,19 @@ function createRawEmail(params: EmailParams, fromEmail: string): string {
   const ccAddresses = params.cc ? (Array.isArray(params.cc) ? params.cc.join(', ') : params.cc) : '';
   const bccAddresses = params.bcc ? (Array.isArray(params.bcc) ? params.bcc.join(', ') : params.bcc) : '';
 
+  // Generate tracking headers for email reply threading
+  const trackingHeaders: string[] = [];
+  if (params.projectId) {
+    trackingHeaders.push(`X-TPC-Project: ${params.projectId}`);
+  }
+  if (params.clientId) {
+    trackingHeaders.push(`X-TPC-Contact: ${params.clientId}`);
+  }
+  if (params.projectId && params.clientId) {
+    const signature = generateEmailSignature(params.projectId, params.clientId);
+    trackingHeaders.push(`X-TPC-Signature: ${signature}`);
+  }
+
   const messageParts = [
     `From: ${fromEmail}`,
     `To: ${toAddresses}`,
@@ -84,6 +124,7 @@ function createRawEmail(params: EmailParams, fromEmail: string): string {
     ...(params.replyTo ? [`Reply-To: ${params.replyTo}`] : []),
     `Subject: ${params.subject}`,
     'MIME-Version: 1.0',
+    ...trackingHeaders,
     ...(params.html && params.text ? [
       'Content-Type: multipart/alternative; boundary="boundary"',
       '',
