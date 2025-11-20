@@ -1608,37 +1608,59 @@ export default function ProjectDetail() {
                               {event.activityType === 'EMAIL_SENT' && (() => {
                                 try {
                                   const metadata = event.metadata ? (typeof event.metadata === 'string' ? JSON.parse(event.metadata) : event.metadata) : null;
-                                  if (metadata && (metadata.body || metadata.subject)) {
-                                    // Render HoneyBook card with timestamp inside - no external timestamp needed
+                                  if (metadata && (metadata.body || metadata.htmlBody || metadata.subject)) {
+                                    // Determine sender name for avatar
+                                    const senderName = metadata.fromName || metadata.from || 'You';
+                                    const contactInfo = getContactInfo(project);
+                                    const contactName = contactInfo ? `${contactInfo.firstName} ${contactInfo.lastName}`.trim() : '';
+                                    const toName = metadata.toName || metadata.to || contactName || contactInfo?.email || 'Client';
+                                    
+                                    // Get initials from sender name
+                                    const nameWords = senderName.split(' ');
+                                    const initials = nameWords.length >= 2 
+                                      ? `${nameWords[0][0]}${nameWords[nameWords.length - 1][0]}`.toUpperCase()
+                                      : senderName.substring(0, 2).toUpperCase();
+                                    
+                                    // Render HoneyBook card with avatar circle and clean names
                                     return (
                                       <div className="mt-3 p-4 bg-white border rounded-lg relative">
-                                        {/* From/To Header */}
-                                        <div className="flex items-start justify-between mb-4">
-                                          <div className="flex-1">
-                                            <div className="flex items-center gap-2 text-sm">
-                                              <span className="font-semibold">From:</span>
-                                              <span>{metadata.from || 'You'}</span>
+                                        {/* Avatar and Header */}
+                                        <div className="flex items-start gap-3 mb-3">
+                                          {/* Avatar Circle */}
+                                          <Avatar className="w-10 h-10 flex-shrink-0">
+                                            <AvatarFallback className="bg-primary/10 text-primary font-semibold">
+                                              {initials}
+                                            </AvatarFallback>
+                                          </Avatar>
+                                          
+                                          {/* From/To and Date */}
+                                          <div className="flex-1 min-w-0">
+                                            <div className="flex items-start justify-between gap-2">
+                                              <div className="flex-1 min-w-0">
+                                                <div className="flex items-center gap-2 text-sm">
+                                                  <span className="font-semibold">From:</span>
+                                                  <span className="truncate">{senderName}</span>
+                                                </div>
+                                                <div className="flex items-center gap-2 text-sm mt-1">
+                                                  <span className="font-semibold">To:</span>
+                                                  <span className="truncate">{toName}</span>
+                                                </div>
+                                              </div>
+                                              <span className="text-sm text-muted-foreground whitespace-nowrap">
+                                                {new Date(event.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                              </span>
                                             </div>
-                                            <div className="flex items-center gap-2 text-sm mt-1">
-                                              <span className="font-semibold">To:</span>
-                                              <span>{metadata.to || getContactInfo(project)?.email || 'Client'}</span>
-                                            </div>
-                                          </div>
-                                          <div className="flex items-center gap-3">
-                                            <button className="text-muted-foreground hover:text-foreground transition-colors">
-                                              <Reply className="w-4 h-4" />
-                                            </button>
-                                            <span className="text-sm text-muted-foreground whitespace-nowrap">
-                                              {formatDate(event.createdAt)}
-                                            </span>
                                           </div>
                                         </div>
                                         
                                         {/* Subject Line */}
                                         {metadata.subject && (
-                                          <h3 className="font-semibold text-base mb-4">
-                                            {metadata.subject}
-                                          </h3>
+                                          <>
+                                            <h3 className="font-semibold text-base mb-2">
+                                              {metadata.subject.trim() || 'No subject'}
+                                            </h3>
+                                            <div className="border-b border-gray-200 mb-3"></div>
+                                          </>
                                         )}
                                         
                                         {/* Email Body */}
@@ -1692,38 +1714,61 @@ export default function ProjectDetail() {
                             let renderedCard = false;
                             try {
                               const metadata = event.metadata ? (typeof event.metadata === 'string' ? JSON.parse(event.metadata) : event.metadata) : null;
-                              if (metadata && (metadata.body || metadata.subject)) {
+                              if (metadata && (metadata.body || metadata.htmlBody || metadata.subject)) {
                                 renderedCard = true;
+                                
+                                // Determine sender name for avatar
+                                const senderName = metadata.fromName || metadata.from || 'You';
+                                const contactInfo = getContactInfo(project);
+                                const contactName = contactInfo ? `${contactInfo.firstName} ${contactInfo.lastName}`.trim() : '';
+                                const toName = metadata.toName || metadata.to || contactName || contactInfo?.email || 'Client';
+                                
+                                // Get initials from sender name
+                                const nameWords = senderName.split(' ');
+                                const initials = nameWords.length >= 2 
+                                  ? `${nameWords[0][0]}${nameWords[nameWords.length - 1][0]}`.toUpperCase()
+                                  : senderName.substring(0, 2).toUpperCase();
+                                
                                 return (
                                   <div>
                                     <div className="p-4 bg-white border rounded-lg relative">
-                                      {/* From/To Header */}
-                                      <div className="flex items-start justify-between mb-4">
-                                        <div className="flex-1">
-                                          <div className="flex items-center gap-2 text-sm">
-                                            <span className="font-semibold">From:</span>
-                                            <span>{metadata.from || 'You'}</span>
+                                      {/* Avatar and Header */}
+                                      <div className="flex items-start gap-3 mb-3">
+                                        {/* Avatar Circle */}
+                                        <Avatar className="w-10 h-10 flex-shrink-0">
+                                          <AvatarFallback className="bg-primary/10 text-primary font-semibold">
+                                            {initials}
+                                          </AvatarFallback>
+                                        </Avatar>
+                                        
+                                        {/* From/To and Date */}
+                                        <div className="flex-1 min-w-0">
+                                          <div className="flex items-start justify-between gap-2">
+                                            <div className="flex-1 min-w-0">
+                                              <div className="flex items-center gap-2 text-sm">
+                                                <span className="font-semibold">From:</span>
+                                                <span className="truncate">{senderName}</span>
+                                              </div>
+                                              <div className="flex items-center gap-2 text-sm mt-1">
+                                                <span className="font-semibold">To:</span>
+                                                <span className="truncate">{toName}</span>
+                                              </div>
+                                            </div>
+                                            <span className="text-sm text-muted-foreground whitespace-nowrap">
+                                              {event.sentAt ? new Date(event.sentAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : new Date(event.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                            </span>
                                           </div>
-                                          <div className="flex items-center gap-2 text-sm mt-1">
-                                            <span className="font-semibold">To:</span>
-                                            <span>{metadata.to || getContactInfo(project)?.email || 'Client'}</span>
-                                          </div>
-                                        </div>
-                                        <div className="flex items-center gap-3">
-                                          <button className="text-muted-foreground hover:text-foreground transition-colors">
-                                            <Reply className="w-4 h-4" />
-                                          </button>
-                                          <span className="text-sm text-muted-foreground whitespace-nowrap">
-                                            {event.sentAt ? formatDate(event.sentAt) : formatDate(event.createdAt)}
-                                          </span>
                                         </div>
                                       </div>
                                       
                                       {/* Subject Line */}
                                       {(metadata.subject || event.title) && (
-                                        <h3 className="font-semibold text-base mb-4">
-                                          {metadata.subject || event.title}
-                                        </h3>
+                                        <>
+                                          <h3 className="font-semibold text-base mb-2">
+                                            {(metadata.subject?.trim() || event.title?.trim()) || 'No subject'}
+                                          </h3>
+                                          <div className="border-b border-gray-200 mb-3"></div>
+                                        </>
                                       )}
                                       
                                       {/* Email Body */}

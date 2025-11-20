@@ -586,7 +586,7 @@ export default function ClientPortalProject() {
                           });
                           // Determine sender name for avatar
                           const senderName = metadata.fromName || metadata.from || project.client.firstName + ' ' + project.client.lastName;
-                          const toName = metadata.to || project.photographer.businessName;
+                          const toName = metadata.toName || metadata.to || project.photographer.businessName;
                           
                           // Render HoneyBook-style email card with avatar
                           return (
