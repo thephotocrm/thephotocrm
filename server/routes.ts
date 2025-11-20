@@ -3794,7 +3794,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
         projectId: req.params.id,
         activityType: 'EMAIL_SENT',
         action: 'SENT',
-        title: `Manual email: ${subject}`,
+        title: subject?.trim() || 'No subject',
         description: `Email sent to ${primaryEmail}${bccEmails.length > 0 ? ` + ${bccEmails.length} participants` : ''}`,
         metadata: JSON.stringify({
           subject,
@@ -4139,7 +4139,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
         projectId: req.params.id,
         activityType: 'EMAIL_SENT',
         action: 'SENT',
-        title: `Manual email: ${subject}`,
+        title: subject?.trim() || 'No subject',
         description: `Email sent to ${recipients.length} recipient${recipients.length > 1 ? 's' : ''}`,
         metadata: JSON.stringify({
           subject,
@@ -11849,7 +11849,7 @@ ${photographer.businessName}`
         projectId: project.id,
         activityType: 'EMAIL_RECEIVED',
         action: 'RECEIVED',
-        title: `Client message: ${subject}`,
+        title: subject?.trim() || 'No subject',
         description: `Message from ${clientName}`,
         metadata: JSON.stringify({
           subject,
