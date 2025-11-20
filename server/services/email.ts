@@ -61,7 +61,16 @@ function generateEmailSignature(projectId: string, contactId: string): string {
  */
 export function verifyEmailSignature(signature: string, projectId: string, contactId: string): boolean {
   const expectedSignature = generateEmailSignature(projectId, contactId);
-  return signature === expectedSignature;
+  
+  // Use timing-safe comparison to prevent timing attacks
+  if (signature.length !== expectedSignature.length) {
+    return false;
+  }
+  
+  const signatureBuffer = Buffer.from(signature, 'utf8');
+  const expectedBuffer = Buffer.from(expectedSignature, 'utf8');
+  
+  return crypto.timingSafeEqual(signatureBuffer, expectedBuffer);
 }
 
 /**

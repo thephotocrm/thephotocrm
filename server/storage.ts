@@ -678,6 +678,23 @@ export class DatabaseStorage implements IStorage {
     return updated;
   }
 
+  async getPhotographerByEmail(email: string): Promise<Photographer | undefined> {
+    // Get photographer by their Google email (googleEmail field)
+    const [photographer] = await db
+      .select()
+      .from(photographers)
+      .where(eq(photographers.googleEmail, email));
+    return photographer || undefined;
+  }
+
+  async getPhotographersWithGmailWatch(): Promise<Photographer[]> {
+    // Get all photographers who have Gmail watch set up (have gmailWatchSetupAt)
+    return await db
+      .select()
+      .from(photographers)
+      .where(sql`${photographers.gmailWatchSetupAt} IS NOT NULL`);
+  }
+
   async getContactsByPhotographer(photographerId: string, projectType?: string): Promise<ContactWithProjects[]> {
     // First get all contacts for this photographer
     const contactRows = await db.select()
