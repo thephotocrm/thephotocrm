@@ -1,0 +1,31 @@
+npm run build
+12s
+npm warn config production Use `--omit=dev` instead.
+
+> rest-express@1.0.0 build
+> vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist
+
+vite v5.4.19 building for production...
+transforming...
+Browserslist: browsers data (caniuse-lite) is 13 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+✓ 3319 modules transformed.
+rendering chunks...
+computing gzip size...
+../dist/public/index.html                                                                    2.39 kB │ gzip:   0.94 kB
+../dist/public/assets/professional_photogr_0f0fd30c-C5aAS_pr.jpg                           198.51 kB
+../dist/public/assets/professional_wedding_67201dd8-DJzf3n6T.jpg                           222.33 kB
+../dist/public/assets/vintage_camera_photo_e2b0b796-DPIV_6o0.jpg                           236.90 kB
+../dist/public/assets/happy_photographer_w_b5ffd29e-Ctj1DMOZ.jpg                           287.76 kB
+../dist/public/assets/D80061BD-D8EF-4249-9B60-3EF75FA04DD6_1759528934938-BGudeye-.png    1,930.75 kB
+../dist/public/assets/3D55A8ED-E647-49A1-943C-420BD0096F6E_1759528182642-Ct8yMFoY.png    1,987.20 kB
+../dist/public/assets/BF61BA78-E366-4F99-A4B7-09A688E2C3E7_1759531405412-ZXNCgl1R.png    2,013.99 kB
+../dist/public/assets/27748FBD-CFCF-4C6D-8905-E877732DDE1B_1759529204307-DMQwXWWj.png    2,090.89 kB
+../dist/public/assets/ChatGPT Image Oct 3_ 2025_ 03_42_16 PM_1759524152837-B6dqtvp3.png  2,119.37 kB
+../dist/public/assets/E7BF17EC-8882-4E01-BAD7-DE7BEB23322B_1759526130481-BXeGZqcI.png    2,363.75 kB
+../dist/public/assets/ChatGPT Image Oct 3_ 2025_ 03_49_31 PM_1759524583669-DIziCPxr.png  2,473.71 kB
+../dist/public/assets/ChatGPT Image Oct 3_ 2025_ 03_45_04 PM_1759524321494-BkkxcbgM.png  2,571.11 kB
+../dist/public/assets/index-CuH5k4uz.css                                                   161.02 kB │ gzip:  23.90 kB
+../dist/public/assets/checkout-BR7aTHln.js                                                   2.36 kB │ gzip:   1.12 kB
+../dist/public/assets/index-DeIsodtt.js      

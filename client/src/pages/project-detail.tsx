@@ -1608,7 +1608,7 @@ export default function ProjectDetail() {
                               {event.activityType === 'EMAIL_SENT' && (() => {
                                 try {
                                   const metadata = event.metadata ? (typeof event.metadata === 'string' ? JSON.parse(event.metadata) : event.metadata) : null;
-                                  if (metadata && (metadata.body || metadata.htmlBody || metadata.subject)) {
+                                  if (metadata && ('body' in metadata || 'htmlBody' in metadata || 'subject' in metadata)) {
                                     // Determine sender name for avatar
                                     const senderName = metadata.fromName || metadata.from || 'You';
                                     const contactInfo = getContactInfo(project);
@@ -1714,7 +1714,7 @@ export default function ProjectDetail() {
                             let renderedCard = false;
                             try {
                               const metadata = event.metadata ? (typeof event.metadata === 'string' ? JSON.parse(event.metadata) : event.metadata) : null;
-                              if (metadata && (metadata.body || metadata.htmlBody || metadata.subject)) {
+                              if (metadata && ('body' in metadata || 'htmlBody' in metadata || 'subject' in metadata)) {
                                 renderedCard = true;
                                 
                                 // Determine sender name for avatar
