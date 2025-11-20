@@ -644,43 +644,31 @@ export default function ClientPortalProject() {
                             </Card>
                           );
                         } else {
-                          // Fallback to simple display if no metadata
+                          // Metadata missing - show minimal card (no redundant title/description)
                           return (
                             <Card key={activity.id} className="bg-white border-gray-200" data-testid={`activity-item-${activity.id}`}>
                               <CardContent className="p-4">
-                                <div className="flex items-start space-x-3">
-                                  <Mail className="w-5 h-5 text-primary mt-1 flex-shrink-0" />
-                                  <div className="flex-1 min-w-0">
-                                    <p className="font-medium text-gray-900">{activity.title}</p>
-                                    {activity.description && (
-                                      <p className="text-sm text-gray-600 mt-1">{activity.description}</p>
-                                    )}
-                                    <p className="text-xs text-gray-400 mt-2">
-                                      {new Date(activity.createdAt).toLocaleString()}
-                                    </p>
-                                  </div>
-                                </div>
+                                <p className="text-sm text-gray-500 italic">
+                                  Email content unavailable
+                                </p>
+                                <p className="text-xs text-gray-400 mt-2">
+                                  {new Date(activity.createdAt).toLocaleString()}
+                                </p>
                               </CardContent>
                             </Card>
                           );
                         }
                       } catch (e) {
-                        // Parsing failed - show simple display
+                        // Parsing failed - show minimal card (no redundant title/description)
                         return (
                           <Card key={activity.id} className="bg-white border-gray-200" data-testid={`activity-item-${activity.id}`}>
                             <CardContent className="p-4">
-                              <div className="flex items-start space-x-3">
-                                <Mail className="w-5 h-5 text-primary mt-1 flex-shrink-0" />
-                                <div className="flex-1 min-w-0">
-                                  <p className="font-medium text-gray-900">{activity.title}</p>
-                                  {activity.description && (
-                                    <p className="text-sm text-gray-600 mt-1">{activity.description}</p>
-                                  )}
-                                  <p className="text-xs text-gray-400 mt-2">
-                                    {new Date(activity.createdAt).toLocaleString()}
-                                  </p>
-                                </div>
-                              </div>
+                              <p className="text-sm text-gray-500 italic">
+                                Email content unavailable
+                              </p>
+                              <p className="text-xs text-gray-400 mt-2">
+                                {new Date(activity.createdAt).toLocaleString()}
+                              </p>
                             </CardContent>
                           </Card>
                         );

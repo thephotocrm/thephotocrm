@@ -1600,9 +1600,14 @@ export default function ProjectDetail() {
                         <div className="flex-1 min-w-0">
                           {event.type === 'activity' && (
                             <div>
-                              <p className="font-medium text-sm">{event.title}</p>
-                              {event.description && (
-                                <p className="text-sm text-muted-foreground mt-1">{event.description}</p>
+                              {/* Hide title and description for EMAIL_SENT and EMAIL_RECEIVED since HoneyBook card shows all info */}
+                              {event.activityType !== 'EMAIL_SENT' && event.activityType !== 'EMAIL_RECEIVED' && (
+                                <>
+                                  <p className="font-medium text-sm">{event.title}</p>
+                                  {event.description && (
+                                    <p className="text-sm text-muted-foreground mt-1">{event.description}</p>
+                                  )}
+                                </>
                               )}
                               
                               {/* Display full email in HoneyBook-style card for EMAIL_SENT activities */}
