@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { useLocation, useRoute } from "wouter";
@@ -30,7 +30,8 @@ import {
   Activity,
   StickyNote,
   CreditCard,
-  Send
+  Send,
+  X
 } from "lucide-react";
 
 interface ClientProject {
@@ -59,6 +60,7 @@ interface ClientProject {
     title: string;
     description?: string;
     createdAt: string;
+    metadata?: string | any;
   }>;
   smartFiles?: Array<{
     id: string;
@@ -136,18 +138,29 @@ export default function ClientPortalProject() {
     : 'overview';
   
   // Helper to navigate to a specific tab
-  const navigateToTab = (tabName: TabType) => {
+  const navigateToTab = (tabName: TabType, shouldFocusComposer = false) => {
     if (tabName === 'overview') {
       setLocation(`/client-portal/projects/${projectId}`);
     } else {
       setLocation(`/client-portal/projects/${projectId}?tab=${tabName}`);
     }
+    
+    // If navigating to activity tab and should focus, focus the subject input
+    if (tabName === 'activity' && shouldFocusComposer) {
+      // Use setTimeout to ensure DOM has updated before focusing
+      setTimeout(() => {
+        subjectInputRef.current?.focus();
+      }, 100);
+    }
   };
 
-  // Message dialog state
-  const [messageDialogOpen, setMessageDialogOpen] = useState(false);
+  // Message inline composer state (no dialog)
   const [messageSubject, setMessageSubject] = useState("");
   const [messageBody, setMessageBody] = useState("");
+  const subjectInputRef = useRef<HTMLInputElement>(null);
+  const latestMessageRef = useRef<HTMLDivElement>(null);
+  const [shouldScrollToLatest, setShouldScrollToLatest] = useState(false);
+  const previousActivitiesLengthRef = useRef<number>(0);
   const { toast } = useToast();
 
   const { data: project, isLoading } = useQuery<ClientProject>({
@@ -167,9 +180,9 @@ export default function ClientPortalProject() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/client-portal/projects", projectId] });
-      setMessageDialogOpen(false);
       setMessageSubject("");
       setMessageBody("");
+      setShouldScrollToLatest(true); // Flag to trigger scroll after data refresh
       toast({
         title: "Message sent",
         description: "Your message has been sent to your photographer."
@@ -183,6 +196,34 @@ export default function ClientPortalProject() {
       });
     }
   });
+  
+  // Track the activity feed length to detect when new messages arrive
+  useEffect(() => {
+    if (project?.activities) {
+      const currentLength = project.activities.length;
+      const previousLength = previousActivitiesLengthRef.current;
+      
+      // If we're waiting to scroll and a new activity has been added
+      if (shouldScrollToLatest && currentLength > previousLength && latestMessageRef.current) {
+        // Update the tracked length BEFORE scheduling the scroll
+        previousActivitiesLengthRef.current = currentLength;
+        
+        // Wait a brief moment for the DOM to fully render
+        const scrollTimeout = setTimeout(() => {
+          latestMessageRef.current?.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'start' 
+          });
+          setShouldScrollToLatest(false);
+        }, 100);
+        
+        return () => clearTimeout(scrollTimeout);
+      }
+      
+      // Update the tracked length even if we didn't scroll
+      previousActivitiesLengthRef.current = currentLength;
+    }
+  }, [shouldScrollToLatest, project?.activities]);
 
   const handleSendMessage = () => {
     if (!messageSubject.trim() || !messageBody.trim()) {
@@ -326,6 +367,31 @@ export default function ClientPortalProject() {
           {/* Overview Tab */}
           {activeTab === 'overview' && (
             <div className="space-y-6 max-w-6xl">
+              {/* Send Message CTA */}
+              <Card className="bg-gradient-to-r from-primary/10 to-primary/5 border-primary/20">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                        <Mail className="w-6 h-6 text-primary" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-gray-900 mb-1">Have a question?</h3>
+                        <p className="text-sm text-gray-600">Send a message to {project.photographer.businessName}</p>
+                      </div>
+                    </div>
+                    <Button 
+                      onClick={() => navigateToTab('activity', true)}
+                      className="gap-2"
+                      data-testid="button-send-message-overview"
+                    >
+                      <Send className="w-4 h-4" />
+                      Send Message
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {/* Quick Stats Cards */}
                 <Card className="bg-white border-gray-200" data-testid="card-tasks-stat">
@@ -410,19 +476,81 @@ export default function ClientPortalProject() {
           {/* Activity Tab */}
           {activeTab === 'activity' && (
             <div className="space-y-6 max-w-4xl">
-              <div className="flex items-center justify-between">
-                <h1 className="text-3xl font-bold text-gray-900">Messages & Activity</h1>
-                <Button 
-                  onClick={() => setMessageDialogOpen(true)}
-                  className="gap-2"
-                  data-testid="button-send-message"
-                >
-                  <Send className="w-4 h-4" />
-                  Send Message
-                </Button>
-              </div>
+              <h1 className="text-3xl font-bold text-gray-900">Messages & Activity</h1>
+              
+              {/* Inline Email Composer - HoneyBook Style */}
               <Card className="bg-white border-gray-200">
-                <CardContent className="pt-6">
+                <CardContent className="p-6">
+                  {/* Header with Send To info */}
+                  <div className="flex items-center justify-between mb-4 pb-4 border-b">
+                    <div className="flex items-center gap-2">
+                      <Avatar className="w-8 h-8">
+                        <AvatarFallback className="bg-primary/10 text-primary text-sm">
+                          {project.photographer.businessName.substring(0, 2).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <div className="text-sm text-gray-600">Send to:</div>
+                        <div className="font-medium text-gray-900">{project.photographer.businessName}</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Subject Field */}
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      SUBJECT
+                    </label>
+                    <Input
+                      ref={subjectInputRef}
+                      placeholder="What's the topic?"
+                      value={messageSubject}
+                      onChange={(e) => setMessageSubject(e.target.value)}
+                      className="text-base"
+                      data-testid="input-message-subject"
+                    />
+                  </div>
+
+                  {/* Message Body */}
+                  <div className="mb-4">
+                    <Textarea
+                      placeholder="Type your message here..."
+                      value={messageBody}
+                      onChange={(e) => setMessageBody(e.target.value)}
+                      rows={8}
+                      className="text-base resize-none"
+                      data-testid="textarea-message-body"
+                    />
+                  </div>
+
+                  {/* Send Button */}
+                  <div className="flex justify-end">
+                    <Button
+                      onClick={handleSendMessage}
+                      disabled={sendMessageMutation.isPending || !messageSubject.trim() || !messageBody.trim()}
+                      className="gap-2"
+                      data-testid="button-send-message"
+                    >
+                      {sendMessageMutation.isPending ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          Sending...
+                        </>
+                      ) : (
+                        <>
+                          <Send className="w-4 h-4" />
+                          Send
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Email Activity Feed */}
+              <div>
+                <h2 className="text-sm font-semibold text-gray-600 mb-4 uppercase tracking-wider">Message History</h2>
+                <div className="space-y-4">
                   {(() => {
                     // Filter activities to show only EMAIL-related activities (exclude SMS)
                     const emailActivities = (project.activities || []).filter(
@@ -431,46 +559,121 @@ export default function ClientPortalProject() {
                     
                     if (emailActivities.length === 0) {
                       return (
-                        <div className="text-center py-12">
-                          <Mail className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                          <p className="text-gray-900 font-medium">No messages yet</p>
-                          <p className="text-sm text-gray-500 mt-2">
-                            Start a conversation by sending a message to your photographer.
-                          </p>
-                          <Button 
-                            onClick={() => setMessageDialogOpen(true)}
-                            className="mt-4"
-                            variant="outline"
-                            data-testid="button-send-first-message"
-                          >
-                            <Send className="w-4 h-4 mr-2" />
-                            Send your first message
-                          </Button>
-                        </div>
+                        <Card className="bg-white border-gray-200">
+                          <CardContent className="py-12">
+                            <div className="text-center">
+                              <Mail className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                              <p className="text-gray-900 font-medium">No messages yet</p>
+                              <p className="text-sm text-gray-500 mt-2">
+                                Your message history will appear here.
+                              </p>
+                            </div>
+                          </CardContent>
+                        </Card>
                       );
                     }
                     
-                    return (
-                      <div className="space-y-4">
-                        {emailActivities.map((activity) => (
-                          <div key={activity.id} className="flex items-start space-x-4 p-4 rounded-lg hover:bg-gray-50 transition-colors" data-testid={`activity-item-${activity.id}`}>
-                            <Mail className="w-5 h-5 text-primary mt-1 flex-shrink-0" />
-                            <div className="flex-1 min-w-0">
-                              <p className="font-medium text-gray-900">{activity.title}</p>
-                              {activity.description && (
-                                <p className="text-sm text-gray-600 mt-1">{activity.description}</p>
-                              )}
-                              <p className="text-xs text-gray-400 mt-2">
-                                {new Date(activity.createdAt).toLocaleString()}
-                              </p>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    );
+                    return emailActivities.map((activity, index) => {
+                      try {
+                        const metadata = activity.metadata ? (typeof activity.metadata === 'string' ? JSON.parse(activity.metadata) : activity.metadata) : null;
+                        const isLatest = index === 0;
+                        
+                        if (metadata && (metadata.body || metadata.htmlBody || metadata.subject)) {
+                          // Render HoneyBook-style email card
+                          return (
+                            <Card 
+                              key={activity.id} 
+                              className="bg-white border-gray-200" 
+                              data-testid={`activity-item-${activity.id}`}
+                              ref={isLatest ? latestMessageRef : null}
+                            >
+                              <CardContent className="p-6 relative">
+                                {/* From/To Header */}
+                                <div className="flex items-start justify-between mb-4">
+                                  <div className="flex-1">
+                                    <div className="flex items-center gap-2 text-sm">
+                                      <span className="font-semibold text-gray-700">From:</span>
+                                      <span className="text-gray-900">{metadata.fromName || metadata.from || project.client.firstName + ' ' + project.client.lastName}</span>
+                                    </div>
+                                    <div className="flex items-center gap-2 text-sm mt-1">
+                                      <span className="font-semibold text-gray-700">To:</span>
+                                      <span className="text-gray-900">{metadata.to || project.photographer.businessName}</span>
+                                    </div>
+                                  </div>
+                                  <span className="text-sm text-gray-500 whitespace-nowrap">
+                                    {new Date(activity.createdAt).toLocaleDateString()} {new Date(activity.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                  </span>
+                                </div>
+                                
+                                {/* Subject Line */}
+                                {metadata.subject && (
+                                  <h3 className="font-semibold text-gray-900 mb-4">
+                                    {metadata.subject}
+                                  </h3>
+                                )}
+                                
+                                {/* Email Body */}
+                                <div className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
+                                  {metadata.htmlBody ? (
+                                    <div dangerouslySetInnerHTML={{ __html: metadata.htmlBody }} />
+                                  ) : (
+                                    metadata.body
+                                  )}
+                                </div>
+                                
+                                {/* Mail icon in bottom right */}
+                                <div className="absolute bottom-4 right-4">
+                                  <Mail className="w-5 h-5 text-gray-300" />
+                                </div>
+                              </CardContent>
+                            </Card>
+                          );
+                        } else {
+                          // Fallback to simple display if no metadata
+                          return (
+                            <Card key={activity.id} className="bg-white border-gray-200" data-testid={`activity-item-${activity.id}`}>
+                              <CardContent className="p-4">
+                                <div className="flex items-start space-x-3">
+                                  <Mail className="w-5 h-5 text-primary mt-1 flex-shrink-0" />
+                                  <div className="flex-1 min-w-0">
+                                    <p className="font-medium text-gray-900">{activity.title}</p>
+                                    {activity.description && (
+                                      <p className="text-sm text-gray-600 mt-1">{activity.description}</p>
+                                    )}
+                                    <p className="text-xs text-gray-400 mt-2">
+                                      {new Date(activity.createdAt).toLocaleString()}
+                                    </p>
+                                  </div>
+                                </div>
+                              </CardContent>
+                            </Card>
+                          );
+                        }
+                      } catch (e) {
+                        // Parsing failed - show simple display
+                        return (
+                          <Card key={activity.id} className="bg-white border-gray-200" data-testid={`activity-item-${activity.id}`}>
+                            <CardContent className="p-4">
+                              <div className="flex items-start space-x-3">
+                                <Mail className="w-5 h-5 text-primary mt-1 flex-shrink-0" />
+                                <div className="flex-1 min-w-0">
+                                  <p className="font-medium text-gray-900">{activity.title}</p>
+                                  {activity.description && (
+                                    <p className="text-sm text-gray-600 mt-1">{activity.description}</p>
+                                  )}
+                                  <p className="text-xs text-gray-400 mt-2">
+                                    {new Date(activity.createdAt).toLocaleString()}
+                                  </p>
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        );
+                      }
+                    });
                   })()}
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             </div>
           )}
 
@@ -691,71 +894,6 @@ export default function ClientPortalProject() {
             </div>
           )}
         </div>
-
-        {/* Message Composer Dialog */}
-        <Dialog open={messageDialogOpen} onOpenChange={setMessageDialogOpen}>
-          <DialogContent className="sm:max-w-[600px]">
-            <DialogHeader>
-              <DialogTitle>Send Message to {project.photographer.businessName}</DialogTitle>
-              <DialogDescription>
-                Your message will be sent directly to your photographer's email.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <Label htmlFor="message-subject">Subject</Label>
-                <Input
-                  id="message-subject"
-                  placeholder="Enter message subject"
-                  value={messageSubject}
-                  onChange={(e) => setMessageSubject(e.target.value)}
-                  data-testid="input-message-subject"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="message-body">Message</Label>
-                <Textarea
-                  id="message-body"
-                  placeholder="Type your message here..."
-                  value={messageBody}
-                  onChange={(e) => setMessageBody(e.target.value)}
-                  rows={8}
-                  data-testid="textarea-message-body"
-                />
-              </div>
-            </div>
-            <DialogFooter>
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setMessageDialogOpen(false);
-                  setMessageSubject("");
-                  setMessageBody("");
-                }}
-                data-testid="button-cancel-message"
-              >
-                Cancel
-              </Button>
-              <Button
-                onClick={handleSendMessage}
-                disabled={sendMessageMutation.isPending}
-                data-testid="button-confirm-send-message"
-              >
-                {sendMessageMutation.isPending ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Sending...
-                  </>
-                ) : (
-                  <>
-                    <Send className="w-4 h-4 mr-2" />
-                    Send Message
-                  </>
-                )}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
     </ClientPortalLayout>
   );
 }
