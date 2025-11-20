@@ -578,6 +578,7 @@ export default function ClientPortalProject() {
                         const metadata = activity.metadata ? (typeof activity.metadata === 'string' ? JSON.parse(activity.metadata) : activity.metadata) : null;
                         const isLatest = index === 0;
                         
+                        // Use 'in' operator to check property presence (not truthy values) so empty subjects still render HoneyBook cards
                         if (metadata && ('body' in metadata || 'htmlBody' in metadata || 'subject' in metadata)) {
                           // Determine sender name for avatar
                           const senderName = metadata.fromName || metadata.from || `${project.client.firstName} ${project.client.lastName}`.trim();
