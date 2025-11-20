@@ -11858,6 +11858,7 @@ ${photographer.businessName}`
           from: contact.email,
           fromName: clientName,
           to: photographerEmail,
+          toName: photographer.businessName || photographerEmail,
           source: 'CLIENT_REPLY'
         }),
         relatedId: result.messageId || null,
