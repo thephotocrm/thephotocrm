@@ -1,0 +1,42 @@
+Token payload: true
+Authentication successful, continuing to route
+✅ SECURITY: User austinpacholek2014@gmail.com authorized for photographer a16236ad-09ab-44ce-b5d9-b985017fa780
+📧 [CLIENT-PORTAL-MESSAGE] Photographer data: {
+  photographerId: 'a16236ad-09ab-44ce-b5d9-b985017fa780',
+  hasPhotographer: true,
+  emailFromAddr: 'austinpacholek2014@gmail.com',
+  businessName: 'Austin Pacholek Photography'
+}
+✅ [CLIENT-PORTAL-MESSAGE] Using photographer email: austinpacholek2014@gmail.com
+📤 [CLIENT-PORTAL-MESSAGE] Sending email: {
+  to: 'austinpacholek2014@gmail.com',
+  from: 'Austin Pacholek',
+  subject: '[Client Message] dwd',
+  projectId: 'bffa3ff9-4de6-483f-8e39-72103c20bb8a',
+  projectTitle: "Austin's Wedding"
+}
+✅ Email sent via Gmail: [Client Message] dwd to austinpacholek2014@gmail.com
+8:10:20 AM [express] POST /api/client-portal/projects/bffa3ff9-4de6-483f-8e39-72103c20bb8a/send-mess…
+📥 INCOMING REQUEST: GET /api/client-portal/projects/bffa3ff9-4de6-483f-8e39-72103c20bb8a
+   Headers: undefined
+🌐 Domain detection: abbiestreet.tpcportal.co
+  → Client portal subdomain detected: abbiestreet
+🔍 Looking up photographer by slug: abbiestreet for API route: /api/client-portal/projects/bffa3ff9-4de6-483f-8e39-72103c20bb8a
+✅ Found photographer: Austin Pacholek Photography (ID: a16236ad-09ab-44ce-b5d9-b985017fa780)
+=== AUTHENTICATE TOKEN MIDDLEWARE ===
+Request URL: /api/client-portal/projects/bffa3ff9-4de6-483f-8e39-72103c20bb8a
+Request method: GET
+Has cookies object: true
+All cookies: {"__stripe_mid":"907ff105-e559-47c6-bca0-ecac2d23e0a797e432","__stripe_sid":"7e3fbe20-3a18-4f9f-9f94-e90c61fcf9685058c2","client_token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIzY2UyYWI3Mi0wYzdmLTQyNjEtODhhMi01MmI5YmM5NjIzNzAiLCJlbWFpbCI6ImF1c3RpbnBhY2hvbGVrMjAxNEBnbWFpbC5jb20iLCJyb2xlIjoiQ0xJRU5UIiwicGhvdG9ncmFwaGVySWQiOiJhMTYyMzZhZC0wOWFiLTQ0Y2UtYjVkOS1iOTg1MDE3ZmE3ODAiLCJpYXQiOjE3NjM2MjYwOTIsImV4cCI6MTc2NDIzMDg5Mn0.exVjpu7Humhc5pn1-ewrLc-ngdjip1iARNgVx3xU8Kk"}
+Cookie header: __stripe_mid=907ff105-e559-47c6-bca0-ecac2d23e0a797e432; __stripe_sid=7e3fbe20-3a18-4f9f-9f94-e90c61fcf9685058c2; client_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIzY2UyYWI3Mi0wYzdmLTQyNjEtODhhMi01MmI5YmM5NjIzNzAiLCJlbWFpbCI6ImF1c3RpbnBhY2hvbGVrMjAxNEBnbWFpbC5jb20iLCJyb2xlIjoiQ0xJRU5UIiwicGhvdG9ncmFwaGVySWQiOiJhMTYyMzZhZC0wOWFiLTQ0Y2UtYjVkOS1iOTg1MDE3ZmE3ODAiLCJpYXQiOjE3NjM2MjYwOTIsImV4cCI6MTc2NDIzMDg5Mn0.exVjpu7Humhc5pn1-ewrLc-ngdjip1iARNgVx3xU8Kk
+Has Authorization header: false
+Origin: undefined
+Host: abbiestreet.tpcportal.co
+Token from cookie: client
+Token exists: true
+Auth source: client
+Token payload: true
+Authentication successful, continuing to route
+✅ SECURITY: User austinpacholek2014@gmail.com authorized for photographer a16236ad-09ab-44ce-b5d9-b985017fa780
+📁 [CLIENT PORTAL PROJECT] Project bffa3ff9-4de6-483f-8e39-72103c20bb8a Smart Files query returned: { count: 0, files: [] }
+8:10:22 AM [express] GET /api/client-portal/projects/bffa3ff9-4de6-483f-8e39-72103c20bb8a 200 in 108…

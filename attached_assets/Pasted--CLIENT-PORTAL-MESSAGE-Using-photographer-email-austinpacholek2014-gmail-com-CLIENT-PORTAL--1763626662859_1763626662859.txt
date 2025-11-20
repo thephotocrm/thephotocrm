@@ -1,0 +1,56 @@
+✅ [CLIENT-PORTAL-MESSAGE] Using photographer email: austinpacholek2014@gmail.com
+📤 [CLIENT-PORTAL-MESSAGE] Sending email: {
+  to: 'austinpacholek2014@gmail.com',
+  from: 'Austin Pacholek',
+  subject: '[Client Message] dwdw',
+  projectId: 'bffa3ff9-4de6-483f-8e39-72103c20bb8a',
+  projectTitle: "Austin's Wedding"
+}
+✅ Email sent via Gmail: [Client Message] dwdw to austinpacholek2014@gmail.com
+8:16:45 AM [express] POST /api/client-portal/projects/bffa3ff9-4de6-483f-8e39-72103c20bb8a/send-mess…
+📥 INCOMING REQUEST: GET /api/client-portal/projects/bffa3ff9-4de6-483f-8e39-72103c20bb8a
+   Headers: undefined
+🌐 Domain detection: abbiestreet.tpcportal.co
+  → Client portal subdomain detected: abbiestreet
+🔍 Looking up photographer by slug: abbiestreet for API route: /api/client-portal/projects/bffa3ff9-4de6-483f-8e39-72103c20bb8a
+Has cookies object: true
+All cookies: {"__stripe_mid":"907ff105-e559-47c6-bca0-ecac2d23e0a797e432","__stripe_sid":"7e3fbe20-3a18-4f9f-9f94-e90c61fcf9685058c2","client_token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIzY2UyYWI3Mi0wYzdmLTQyNjEtODhhMi01MmI5YmM5NjIzNzAiLCJlbWFpbCI6ImF1c3RpbnBhY2hvbGVrMjAxNEBnbWFpbC5jb20iLCJyb2xlIjoiQ0xJRU5UIiwicGhvdG9ncmFwaGVySWQiOiJhMTYyMzZhZC0wOWFiLTQ0Y2UtYjVkOS1iOTg1MDE3ZmE3ODAiLCJpYXQiOjE3NjM2MjYwOTIsImV4cCI6MTc2NDIzMDg5Mn0.exVjpu7Humhc5pn1-ewrLc-ngdjip1iARNgVx3xU8Kk"}
+Host: abbiestreet.tpcportal.co
+Cookie header: __stripe_mid=907ff105-e559-47c6-bca0-ecac2d23e0a797e432; __stripe_sid=7e3fbe20-3a18-4f9f-9f94-e90c61fcf9685058c2; client_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIzY2UyYWI3Mi0wYzdmLTQyNjEtODhhMi01MmI5YmM5NjIzNzAiLCJlbWFpbCI6ImF1c3RpbnBhY2hvbGVrMjAxNEBnbWFpbC5jb20iLCJyb2xlIjoiQ0xJRU5UIiwicGhvdG9ncmFwaGVySWQiOiJhMTYyMzZhZC0wOWFiLTQ0Y2UtYjVkOS1iOTg1MDE3ZmE3ODAiLCJpYXQiOjE3NjM2MjYwOTIsImV4cCI6MTc2NDIzMDg5Mn0.exVjpu7Humhc5pn1-ewrLc-ngdjip1iARNgVx3xU8Kk
+Token exists: true
+Token payload: true
+Has Authorization header: false
+Token from cookie: client
+Authentication successful, continuing to route
+Auth source: client
+✅ Found photographer: Austin Pacholek Photography (ID: a16236ad-09ab-44ce-b5d9-b985017fa780)
+Origin: undefined
+=== AUTHENTICATE TOKEN MIDDLEWARE ===
+Request URL: /api/client-portal/projects/bffa3ff9-4de6-483f-8e39-72103c20bb8a
+Request method: GET
+✅ SECURITY: User austinpacholek2014@gmail.com authorized for photographer a16236ad-09ab-44ce-b5d9-b985017fa780
+📁 [CLIENT PORTAL PROJECT] Project bffa3ff9-4de6-483f-8e39-72103c20bb8a Smart Files query returned: { count: 0, files: [] }
+8:16:46 AM [express] GET /api/client-portal/projects/bffa3ff9-4de6-483f-8e39-72103c20bb8a 200 in 103…
+Processing automations for photographer: a16236ad-09ab-44ce-b5d9-b985017fa780
+Processing automations for photographer: a16236ad-09ab-44ce-b5d9-b985017fa780
+Found 0 enabled automations
+Found 0 enabled automations
+📥 INCOMING REQUEST: GET /api/inbox/unread-count
+   Headers: undefined
+🌐 Domain detection: thephotocrm.com
+  → Photographer domain detected
+=== AUTHENTICATE TOKEN MIDDLEWARE ===
+Request URL: /api/inbox/unread-count
+Request method: GET
+Has cookies object: true
+All cookies: {"__stripe_mid":"4c37c819-02eb-44af-90d9-36b1740a51c645d02e","__stripe_sid":"7a218bab-fd52-47fe-a283-dd78171720e5c30000","photographer_token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIzZTMyZDg2NC0xNWIxLTRiOTItYWZlZC1jYjJkMTcyZDQ4ZTgiLCJlbWFpbCI6ImF1c3RpbnBhY2hvbGVrMjAxNEBnbWFpbC5jb20iLCJyb2xlIjoiUEhPVE9HUkFQSEVSIiwicGhvdG9ncmFwaGVySWQiOiJhMTYyMzZhZC0wOWFiLTQ0Y2UtYjVkOS1iOTg1MDE3ZmE3ODAiLCJpYXQiOjE3NjM2MjYzMjIsImV4cCI6MTc2NDIzMTEyMn0.Yft_IGaMi5EpWbPr51l8E6sC6PGu5VzmVVhdqWLfi4g","token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIzZTMyZDg2NC0xNWIxLTRiOTItYWZlZC1jYjJkMTcyZDQ4ZTgiLCJlbWFpbCI6ImF1c3RpbnBhY2hvbGVrMjAxNEBnbWFpbC5jb20iLCJyb2xlIjoiUEhPVE9HUkFQSEVSIiwicGhvdG9ncmFwaGVySWQiOiJhMTYyMzZhZC0wOWFiLTQ0Y2UtYjVkOS1iOTg1MDE3ZmE3ODAiLCJpYXQiOjE3NjM2MjYzMjIsImV4cCI6MTc2NDIzMTEyMn0.Yft_IGaMi5EpWbPr51l8E6sC6PGu5VzmVVhdqWLfi4g"}
+Cookie header: __stripe_mid=4c37c819-02eb-44af-90d9-36b1740a51c645d02e; __stripe_sid=7a218bab-fd52-47fe-a283-dd78171720e5c30000; photographer_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIzZTMyZDg2NC0xNWIxLTRiOTItYWZlZC1jYjJkMTcyZDQ4ZTgiLCJlbWFpbCI6ImF1c3RpbnBhY2hvbGVrMjAxNEBnbWFpbC5jb20iLCJyb2xlIjoiUEhPVE9HUkFQSEVSIiwicGhvdG9ncmFwaGVySWQiOiJhMTYyMzZhZC0wOWFiLTQ0Y2UtYjVkOS1iOTg1MDE3ZmE3ODAiLCJpYXQiOjE3NjM2MjYzMjIsImV4cCI6MTc2NDIzMTEyMn0.Yft_IGaMi5EpWbPr51l8E6sC6PGu5VzmVVhdqWLfi4g; token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIzZTMyZDg2NC0xNWIxLTRiOTItYWZlZC1jYjJkMTcyZDQ4ZTgiLCJlbWFpbCI6ImF1c3RpbnBhY2hvbGVrMjAxNEBnbWFpbC5jb20iLCJyb2xlIjoiUEhPVE9HUkFQSEVSIiwicGhvdG9ncmFwaGVySWQiOiJhMTYyMzZhZC0wOWFiLTQ0Y2UtYjVkOS1iOTg1MDE3ZmE3ODAiLCJpYXQiOjE3NjM2MjYzMjIsImV4cCI6MTc2NDIzMTEyMn0.Yft_IGaMi5EpWbPr51l8E6sC6PGu5VzmVVhdqWLfi4g
+Has Authorization header: false
+Origin: undefined
+Host: thephotocrm.com
+Token from cookie: photographer
+Token exists: true
+Auth source: photographer
+Token payload: true
+Authentication successful, continuing to route
+8:17:11 AM [express] GET /api/inbox/unread-count 304 in 628ms :: {"unreadCount":
