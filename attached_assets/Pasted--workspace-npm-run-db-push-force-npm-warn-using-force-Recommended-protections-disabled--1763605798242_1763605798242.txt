@@ -1,0 +1,51 @@
+~/workspace$ npm run db:push --force
+npm warn using --force Recommended protections disabled.
+
+> rest-express@1.0.0 db:push
+> drizzle-kit push
+
+No config path provided, using default 'drizzle.config.ts'
+Reading config file '/home/runner/workspace/drizzle.config.ts'
+Using 'pg' driver for database querying
+[✓] Pulling schema from database...
+· You're about to add automation_executions_email_builder_unique unique constraint to the table, which contains 39 items. If this statement fails, you will receive an error from the database. Do you want to truncate automation_executions table?
+
+· You're about to add automation_executions_countdown_unique unique constraint to the table, which contains 39 items. If this statement fails, you will receive an error from the database. Do you want to truncate automation_executions table?
+
+· You're about to add drip_subscription_project_campaign_unique unique constraint to the table, which contains 7 items. If this statement fails, you will receive an error from the database. Do you want to truncate drip_campaign_subscriptions table?
+
+· You're about to add drip_delivery_subscription_email_unique unique constraint to the table, which contains 8 items. If this statement fails, you will receive an error from the database. Do you want to truncate drip_email_deliveries table?
+
+· You're about to add automation_business_triggers_unique unique constraint to the table, which contains 3 items. If this statement fails, you will receive an error from the database. Do you want to truncate automation_business_triggers table?
+
+· You're about to add short_links_short_code_unique unique constraint to the table, which contains 6 items. If this statement fails, you will receive an error from the database. Do you want to truncate short_links table?
+
+· You're about to add lead_forms_public_token_unique unique constraint to the table, which contains 4 items. If this statement fails, you will receive an error from the database. Do you want to truncate lead_forms table?
+
+· You're about to add portal_tokens_token_unique unique constraint to the table, which contains 5 items. If this statement fails, you will receive an error from the database. Do you want to truncate portal_tokens table?
+
+error: insert or update on table "contacts" violates foreign key constraint "contacts_photographer_id_photographers_id_fk"
+    at /home/runner/workspace/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async Object.query (/home/runner/workspace/node_modules/drizzle-kit/bin.cjs:66575:26)
+    at async pgPush (/home/runner/workspace/node_modules/drizzle-kit/bin.cjs:70117:13)
+    at async Object.handler (/home/runner/workspace/node_modules/drizzle-kit/bin.cjs:79124:9)
+    at async run (/home/runner/workspace/node_modules/drizzle-kit/bin.cjs:78381:7) {
+  length: 351,
+  severity: 'ERROR',
+  code: '23503',
+  detail: 'Key (photographer_id)=(c915adf1-020f-4ac0-951b-f726738447f2) is not present in table "photographers".',
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: 'public',
+  table: 'contacts',
+  column: undefined,
+  dataType: undefined,
+  constraint: 'contacts_photographer_id_photographers_id_fk',
+  file: 'ri_triggers.c',
+  line: '2608',
+  routine: 'ri_ReportViolation'
+}

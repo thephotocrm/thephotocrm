@@ -1,0 +1,108 @@
+Error loading photographer from subdomain: error: column "gmail_history_id" does not exist
+   Headers: undefined
+    at file:///app/node_modules/@neondatabase/serverless/index.mjs:1345:74
+  position: '400',
+🌐 Domain detection: abbiestreet.tpcportal.co
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+  internalPosition: undefined,
+  → Client portal subdomain detected: abbiestreet
+    at async NeonPreparedQuery.execute (file:///app/node_modules/drizzle-orm/neon-serverless/session.js:76:20)
+  internalQuery: undefined,
+    at async DatabaseStorage.getPhotographerByPortalSlug (file:///app/dist/index.js:2394:32)
+🔍 Looking up photographer by slug: abbiestreet for API route: /api/domain
+    at async loadPhotographerFromSubdomain (file:///app/dist/index.js:11896:26) {
+  length: 117,
+  severity: 'ERROR',
+  code: '42703',
+  detail: undefined,
+  hint: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  internalPosition: undefined,
+  column: undefined,
+  internalQuery: undefined,
+  dataType: undefined,
+  where: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  schema: undefined,
+  line: '3722',
+  table: undefined,
+  routine: 'errorMissingColumn'
+}
+2:20:00 AM [express] GET /api/auth/me 500 in 421ms :: {"message":"Internal server error"}
+Error loading photographer from subdomain: error: column "gmail_history_id" does not exist
+    at file:///app/node_modules/@neondatabase/serverless/index.mjs:1345:74
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async NeonPreparedQuery.execute (file:///app/node_modules/drizzle-orm/neon-serverless/session.js:76:20)
+    at async DatabaseStorage.getPhotographerByPortalSlug (file:///app/dist/index.js:2394:32)
+    at async loadPhotographerFromSubdomain (file:///app/dist/index.js:11896:26) {
+  length: 117,
+  severity: 'ERROR',
+  code: '42703',
+  detail: undefined,
+  hint: undefined,
+  position: '400',
+    at async DatabaseStorage.getAllPhotographers (file:///app/dist/index.js:2382:16)
+    at async file:///app/dist/index.js:12464:30
+    at async Timeout._onTimeout (/app/node_modules/node-cron/dist/esm/scheduler/runner.js:70:44) {
+  length: 117,
+  severity: 'ERROR',
+  code: '42703',
+  detail: undefined,
+  column: undefined,
+  hint: undefined,
+  position: '400',
+  dataType: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  constraint: undefined,
+  where: undefined,
+  file: 'parse_relation.c',
+  schema: undefined,
+  line: '3722',
+  routine: 'errorMissingColumn'
+}
+2:20:00 AM [express] GET /api/domain 500 in 426ms :: {"message":"Internal server error"}
+Cron job error: error: column "gmail_history_id" does not exist
+    at file:///app/node_modules/@neondatabase/serverless/index.mjs:1345:74
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async NeonPreparedQuery.execute (file:///app/node_modules/drizzle-orm/neon-serverless/session.js:76:20)
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '3722',
+  routine: 'errorMissingColumn'
+}
+Cron job error: error: column "gmail_history_id" does not exist
+    at file:///app/node_modules/@neondatabase/serverless/index.mjs:1345:74
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async NeonPreparedQuery.execute (file:///app/node_modules/drizzle-orm/neon-serverless/session.js:76:20)
+    at async DatabaseStorage.getAllPhotographers (file:///app/dist/index.js:2382:16)
+    at async file:///app/dist/index.js:12464:30
+    at async Timeout._onTimeout (/app/node_modules/node-cron/dist/esm/scheduler/runner.js:70:44) {
+  length: 117,
+  severity: 'ERROR',
+  code: '42703',
+  detail: undefined,
+  hint: undefined,
+  position: '400',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '3722',
+  routine: 'errorMissingColumn'
+}
+📥 INCOMING REQUEST: GET /api/domain
+   Headers: undefined
+🌐 Domain detection: abbiestreet.tpcportal.co
+  → Client portal subdomain detected: abbiestreet
