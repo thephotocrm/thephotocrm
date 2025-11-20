@@ -126,6 +126,10 @@ export const photographers = pgTable("photographers", {
   googleCalendarConnectedAt: timestamp("google_calendar_connected_at"),
   googleCalendarId: text("google_calendar_id"), // Dedicated business calendar ID
   googleEmail: text("google_email"), // Email address of connected Google account
+  // Gmail watch/history tracking for email reply threading
+  gmailHistoryId: text("gmail_history_id"), // Last processed Gmail history ID for incremental sync
+  gmailWatchExpiration: timestamp("gmail_watch_expiration"), // When Gmail watch expires (needs renewal)
+  gmailWatchSetupAt: timestamp("gmail_watch_setup_at"), // When watch was last set up
   // Default consent settings
   defaultEmailOptIn: boolean("default_email_opt_in").default(true),
   defaultSmsOptIn: boolean("default_sms_opt_in").default(false),
@@ -1013,8 +1017,20 @@ export const projectActivityLog = pgTable("project_activity_log", {
   metadata: json("metadata"), // Additional structured data
   relatedId: varchar("related_id"), // ID of related record (estimate, message, etc.)
   relatedType: text("related_type"), // Type of related record (ESTIMATE, MESSAGE, EMAIL_LOG, etc.)
+  // Gmail threading fields for email reply tracking
+  gmailThreadId: text("gmail_thread_id"), // Gmail conversation thread ID for threading replies
+  gmailMessageId: text("gmail_message_id"), // Gmail message ID for this specific email
+  gmailInReplyTo: text("gmail_in_reply_to"), // Message ID this email is replying to
+  emailDirection: text("email_direction"), // OUTBOUND (sent from portal) or INBOUND (reply from client)
+  emailSignature: text("email_signature"), // HMAC signature for verifying incoming emails
+  processedAt: timestamp("processed_at"), // When an incoming email was processed
   createdAt: timestamp("created_at").defaultNow()
-});
+}, (table) => ({
+  // Index for finding emails by thread ID for threading conversations
+  gmailThreadIdx: index("project_activity_gmail_thread_idx").on(table.gmailThreadId),
+  // Index for preventing duplicate processing of incoming emails
+  gmailMessageIdx: index("project_activity_gmail_message_idx").on(table.gmailMessageId)
+}));
 
 export const clientPortalTokens = pgTable("client_portal_tokens", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
