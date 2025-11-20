@@ -1,3 +1,4 @@
+// EMAIL_RECEIVED activities now display with HoneyBook-style cards in CRM sidebar
 import { useParams, useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
