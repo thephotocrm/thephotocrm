@@ -1708,6 +1708,115 @@ export default function ProjectDetail() {
                                   );
                                 }
                               })()}
+                              
+                              {/* Display full email in HoneyBook-style card for EMAIL_RECEIVED activities */}
+                              {event.activityType === 'EMAIL_RECEIVED' && (() => {
+                                try {
+                                  const metadata = event.metadata ? (typeof event.metadata === 'string' ? JSON.parse(event.metadata) : event.metadata) : null;
+                                  if (metadata && typeof metadata === 'object' && ('body' in metadata || 'htmlBody' in metadata || 'subject' in metadata)) {
+                                    // Determine sender name for avatar (client is sender for received emails)
+                                    const contactInfo = getContactInfo(project);
+                                    const contactName = contactInfo ? `${contactInfo.firstName} ${contactInfo.lastName}`.trim() : '';
+                                    const senderName = metadata.fromName || metadata.from || contactName || contactInfo?.email || 'Client';
+                                    const toName = metadata.toName || metadata.to || 'You';
+                                    
+                                    // Get initials from sender name
+                                    const nameWords = senderName.split(' ');
+                                    const initials = nameWords.length >= 2 
+                                      ? `${nameWords[0][0]}${nameWords[nameWords.length - 1][0]}`.toUpperCase()
+                                      : senderName.substring(0, 2).toUpperCase();
+                                    
+                                    // Render HoneyBook card with avatar circle and clean names
+                                    return (
+                                      <div className="mt-3 p-4 bg-white border rounded-lg relative">
+                                        {/* Avatar and Header */}
+                                        <div className="flex items-start gap-3 mb-3">
+                                          {/* Avatar Circle */}
+                                          <Avatar className="w-10 h-10 flex-shrink-0">
+                                            <AvatarFallback className="bg-primary/10 text-primary font-semibold">
+                                              {initials}
+                                            </AvatarFallback>
+                                          </Avatar>
+                                          
+                                          {/* From/To and Date */}
+                                          <div className="flex-1 min-w-0">
+                                            <div className="flex items-start justify-between gap-2">
+                                              <div className="flex-1 min-w-0">
+                                                <div className="flex items-center gap-2 text-sm">
+                                                  <span className="font-semibold">From:</span>
+                                                  <span className="truncate">{senderName}</span>
+                                                </div>
+                                                <div className="flex items-center gap-2 text-sm mt-1">
+                                                  <span className="font-semibold">To:</span>
+                                                  <span className="truncate">{toName}</span>
+                                                </div>
+                                              </div>
+                                              <span className="text-sm text-muted-foreground whitespace-nowrap">
+                                                {new Date(event.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                              </span>
+                                            </div>
+                                          </div>
+                                        </div>
+                                        
+                                        {/* Subject Line */}
+                                        {metadata.subject && (
+                                          <>
+                                            <h3 className="font-semibold text-base mb-2">
+                                              {metadata.subject.trim() || 'No subject'}
+                                            </h3>
+                                            <div className="border-b border-gray-200 mb-3"></div>
+                                          </>
+                                        )}
+                                        
+                                        {/* Email Body */}
+                                        {(metadata.htmlBody || metadata.body) && (
+                                          <div className="text-sm leading-relaxed">
+                                            {metadata.htmlBody ? (
+                                              <div className="whitespace-pre-wrap break-words" dangerouslySetInnerHTML={{ __html: metadata.htmlBody }} />
+                                            ) : (
+                                              <div className="whitespace-pre-wrap">{metadata.body}</div>
+                                            )}
+                                          </div>
+                                        )}
+                                        
+                                        {/* Attachments Section */}
+                                        {metadata.attachments && metadata.attachments.length > 0 && (
+                                          <div className="mt-6 pt-4 border-t">
+                                            {metadata.attachments.map((attachment: any, idx: number) => (
+                                              <div key={idx} className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded">
+                                                <FileText className="w-5 h-5 text-muted-foreground" />
+                                                <span className="text-sm font-medium truncate">
+                                                  {attachment.name || attachment.filename || 'Attachment'}
+                                                </span>
+                                                <MoreVertical className="w-4 h-4 ml-auto text-muted-foreground" />
+                                              </div>
+                                            ))}
+                                          </div>
+                                        )}
+                                        
+                                        {/* Envelope Icon */}
+                                        <div className="absolute bottom-4 right-4">
+                                          <Mail className="w-5 h-5 text-muted-foreground" />
+                                        </div>
+                                      </div>
+                                    );
+                                  } else {
+                                    // No valid metadata - show simple timestamp
+                                    return (
+                                      <p className="text-xs text-muted-foreground mt-2">
+                                        {formatDate(event.createdAt)}
+                                      </p>
+                                    );
+                                  }
+                                } catch (e) {
+                                  // Parsing failed - show simple timestamp
+                                  return (
+                                    <p className="text-xs text-muted-foreground mt-2">
+                                      {formatDate(event.createdAt)}
+                                    </p>
+                                  );
+                                }
+                              })()}
                             </div>
                           )}
                           {event.type === 'email' && (() => {
