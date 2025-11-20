@@ -24,7 +24,7 @@ Preferred communication style: Simple, everyday language.
 *   **Automation System:** Event-driven engine for scheduled tasks, supporting stage-based triggers, dynamic content, and multi-channel delivery.
 *   **Email Marketing Platform:** Drip campaign system with templates, 3-phase timing, and a block-based visual email builder.
 *   **Two-Way SMS Communication:** Twilio integration for SMS/MMS, including message logging and Cloudinary for MMS image hosting.
-*   **Client Portal Messaging:** HoneyBook-style activity feed messaging system where clients can send messages to photographers through their portal. Messages are delivered via email to photographers and logged in the project activity feed (SMS messages are photographer-only and not visible to clients).
+*   **Client Portal Messaging:** HoneyBook-style inline email composer at the top of the Activity tab with professional email cards in the activity feed. The Overview page includes a "Send Message" CTA that navigates to Activity and auto-focuses the composer. After sending, messages are delivered via email to photographers (using photographer.emailFromAddr with fallback to user.email), the form clears, and the feed auto-scrolls to show the newest message. Email activity cards display From/To headers, subject, body, and timestamp. SMS messages remain photographer-only and are not visible to clients.
 *   **Payment Processing:** Stripe Connect integration with configurable platform fees.
 *   **Contract & E-Signature System:** Honeybook-style contract generation with dual signature capture and dynamic templates.
 *   **Google Integration:** OAuth for Calendar, Meet, and Gmail API for email sending and reply capture.
