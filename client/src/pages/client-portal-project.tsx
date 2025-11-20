@@ -579,6 +579,11 @@ export default function ClientPortalProject() {
                         const isLatest = index === 0;
                         
                         if (metadata && (metadata.body || metadata.htmlBody || metadata.subject)) {
+                          console.log('✅ Rendering AVATAR UI for activity:', activity.id, { 
+                            hasAvatar: true,
+                            fromName: metadata.fromName,
+                            from: metadata.from 
+                          });
                           // Determine sender name for avatar
                           const senderName = metadata.fromName || metadata.from || project.client.firstName + ' ' + project.client.lastName;
                           const toName = metadata.to || project.photographer.businessName;
@@ -621,9 +626,12 @@ export default function ClientPortalProject() {
                                     
                                     {/* Subject Line */}
                                     {metadata.subject && (
-                                      <h3 className="font-semibold text-gray-900 mb-3">
-                                        {metadata.subject}
-                                      </h3>
+                                      <>
+                                        <h3 className="font-semibold text-gray-900 mb-2">
+                                          {metadata.subject}
+                                        </h3>
+                                        <div className="border-b border-gray-200 mb-3"></div>
+                                      </>
                                     )}
                                     
                                     {/* Email Body */}
@@ -640,6 +648,13 @@ export default function ClientPortalProject() {
                             </Card>
                           );
                         } else {
+                          console.log('❌ Using FALLBACK UI for activity:', activity.id, { 
+                            hasMetadata: !!metadata,
+                            hasBody: metadata?.body,
+                            hasHtmlBody: metadata?.htmlBody,
+                            hasSubject: metadata?.subject,
+                            rawMetadata: metadata
+                          });
                           // Fallback to simple display if no metadata
                           return (
                             <Card key={activity.id} className="bg-white border-gray-200" data-testid={`activity-item-${activity.id}`}>
