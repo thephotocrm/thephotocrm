@@ -11569,16 +11569,59 @@ ${photographer.businessName}`
       
       // Get photographer info
       const photographer = await storage.getPhotographer(user.photographerId);
-      if (!photographer || !photographer.email) {
-        return res.status(400).json({ message: "Photographer email not found" });
+      console.log('📧 [CLIENT-PORTAL-MESSAGE] Photographer data:', {
+        photographerId: user.photographerId,
+        hasPhotographer: !!photographer,
+        emailFromAddr: photographer?.emailFromAddr,
+        businessName: photographer?.businessName
+      });
+      
+      if (!photographer) {
+        console.error('❌ [CLIENT-PORTAL-MESSAGE] Photographer not found:', user.photographerId);
+        return res.status(400).json({ message: "Photographer not found" });
       }
       
+      // Get photographer's email - try emailFromAddr first, then get user email as fallback
+      let photographerEmail = photographer.emailFromAddr;
+      
+      if (!photographerEmail) {
+        console.log('⚠️ [CLIENT-PORTAL-MESSAGE] No emailFromAddr, fetching user email...');
+        const [photographerUser] = await db.select()
+          .from(users)
+          .where(and(
+            eq(users.photographerId, user.photographerId),
+            eq(users.role, 'PHOTOGRAPHER')
+          ))
+          .limit(1);
+        photographerEmail = photographerUser?.email;
+        console.log('📧 [CLIENT-PORTAL-MESSAGE] Photographer user email:', photographerEmail);
+      }
+      
+      if (!photographerEmail) {
+        console.error('❌ [CLIENT-PORTAL-MESSAGE] No email found for photographer:', {
+          photographerId: user.photographerId,
+          emailFromAddr: photographer.emailFromAddr,
+          hasUser: !!photographerEmail
+        });
+        return res.status(400).json({ message: "Photographer email not found - please set up your business email in settings" });
+      }
+      
+      console.log('✅ [CLIENT-PORTAL-MESSAGE] Using photographer email:', photographerEmail);
+      
       const clientName = `${contact.firstName} ${contact.lastName}`.trim() || contact.email;
+      
+      console.log('📤 [CLIENT-PORTAL-MESSAGE] Sending email:', {
+        to: photographerEmail,
+        from: clientName,
+        subject: `[Client Message] ${subject}`,
+        projectId: project.id,
+        projectTitle: project.title
+      });
       
       // Send email to photographer
       const { sendEmail } = await import('./services/email');
       const result = await sendEmail({
-        to: photographer.email,
+        to: photographerEmail,
         subject: `[Client Message] ${subject}`,
         html: `
           <p><strong>From:</strong> ${clientName} (${contact.email})</p>
