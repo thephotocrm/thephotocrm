@@ -75,7 +75,7 @@ interface SmartFileData {
     title: string;
     projectType: string;
   };
-  client: {
+  contact: {
     id: string;
     firstName: string;
     lastName: string;
@@ -1407,10 +1407,10 @@ export default function PublicSmartFile() {
                             template={currentPage.content.contractTemplate || ''}
                             variables={{
                               // Client info
-                              client_name: `${data?.client.firstName} ${data?.client.lastName}`,
-                              client_email: data?.client.email || '',
-                              client_phone: data?.client.phone || '',
-                              client_address: data?.client.address || '',
+                              client_name: `${data?.contact.firstName} ${data?.contact.lastName}`,
+                              client_email: data?.contact.email || '',
+                              client_phone: data?.contact.phone || '',
+                              client_address: data?.contact.address || '',
                               
                               // Photographer info
                               photographer_name: data?.photographer.businessName || '',
