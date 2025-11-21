@@ -4140,6 +4140,15 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       const photographerEmail = photographer?.emailFromAddr || user?.email || 'photographer@unknown.com';
       const fromName = photographer?.photographerName || photographer?.businessName || 'Photographer';
       
+      // Get contact info for toName
+      let toName = primaryEmail;
+      if (project.clientId) {
+        const contact = await storage.getContact(project.clientId);
+        if (contact) {
+          toName = `${contact.firstName} ${contact.lastName}`.trim() || primaryEmail;
+        }
+      }
+      
       // Log to activity log
       await storage.addProjectActivityLog({
         projectId: req.params.id,
@@ -4154,7 +4163,7 @@ ${photographer?.businessName || 'Your Photography Team'}`;
           from: photographerEmail,
           fromName,
           to: primaryEmail,
-          toName: `${project.contact.firstName} ${project.contact.lastName}`.trim() || primaryEmail,
+          toName,
           recipients,
           recipientCount: recipients.length,
           source: result.source || 'MANUAL'
