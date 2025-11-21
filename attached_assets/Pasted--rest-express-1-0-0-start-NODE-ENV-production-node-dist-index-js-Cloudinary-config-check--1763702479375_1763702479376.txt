@@ -1,0 +1,119 @@
+> rest-express@1.0.0 start
+> NODE_ENV=production node dist/index.js
+🔐 Cloudinary config check: {
+  hasCloudName: true,
+  hasApiKey: true,
+  hasApiSecret: true,
+  cloudName: 'dpqnbq0lq'
+}
+Google Calendar: GOOGLE_OAUTH_HMAC_SECRET not set in production. Using GOOGLE_CLIENT_SECRET as HMAC key.
+Cron jobs started
+✅ Cookie-parser middleware initialized
+✅ Domain detection and tenant isolation middleware initialized
+✅ REGISTERING Twilio inbound webhook route at /webhooks/twilio/inbound
+Cron jobs started
+✅ Client portal meta tag injection middleware registered
+5:16:32 AM [express] serving on port 8080
+Processing automations for photographer: a16236ad-09ab-44ce-b5d9-b985017fa780
+Processing automations for photographer: a16236ad-09ab-44ce-b5d9-b985017fa780
+Found 0 enabled automations
+Found 0 enabled automations
+Processing automations for photographer: a16236ad-09ab-44ce-b5d9-b985017fa780
+Processing automations for photographer: a16236ad-09ab-44ce-b5d9-b985017fa780
+Found 0 enabled automations
+Found 0 enabled automations
+Processing automations for photographer: a16236ad-09ab-44ce-b5d9-b985017fa780
+Processing automations for photographer: a16236ad-09ab-44ce-b5d9-b985017fa780
+Found 0 enabled automations
+Found 0 enabled automations
+Processing automations for photographer: a16236ad-09ab-44ce-b5d9-b985017fa780
+Processing automations for photographer: a16236ad-09ab-44ce-b5d9-b985017fa780
+Found 0 enabled automations
+Found 0 enabled automations
+Request URL: /api/auth/me
+Request method: GET
+Has cookies object: true
+All cookies: {"__stripe_mid":"d626ff4f-e717-4edc-a2c7-883657ab4bba2367a0","__stripe_sid":"22bc4bed-43cf-4b19-883f-a6198ce6c3c2e5ef15"}
+Cookie header: __stripe_mid=d626ff4f-e717-4edc-a2c7-883657ab4bba2367a0; __stripe_sid=22bc4bed-43cf-4b19-883f-a6198ce6c3c2e5ef15; __stripe_mid=d626ff4f-e717-4edc-a2c7-883657ab4bba2367a0; __stripe_sid=22bc4bed-43cf-4b19-883f-a6198ce6c3c2e5ef15; oauth_state=s%3A077c15d26fa962e0579080ba89cbd1552970afb937e4f77cfbcfc26cc12c5928.Q8oI2pFL7HnoZ%2Fm18eiSfD9nY5Ujh3F77NHGBiT8zuI
+📥 INCOMING REQUEST: GET /api/domain
+   Headers: undefined
+🌐 Domain detection: app.thephotocrm.com
+   Headers: undefined
+  → Photographer domain detected
+🌐 Domain detection: app.thephotocrm.com
+📥 INCOMING REQUEST: GET /api/auth/me
+🌐 Domain detection: app.thephotocrm.com
+  → Photographer domain detected
+   Headers: undefined
+5:20:17 AM [express] GET /api/domain 304 in 4ms :: {"type":"photographer"}
+🌐 Domain detection: app.thephotocrm.com
+  → Photographer domain detected
+  → Photographer domain detected
+📥 INCOMING REQUEST: GET /login
+=== AUTHENTICATE TOKEN MIDDLEWARE ===
+📥 INCOMING REQUEST: GET /assets/index-DEMKEADK.js
+   Headers: undefined
+Has Authorization header: false
+Origin: undefined
+Host: app.thephotocrm.com
+Token exists: false
+Auth source: none
+No token found, returning 401
+5:20:19 AM [express] GET /api/auth/me 401 in 2ms :: {"message":"Access token required"}
+📥 INCOMING REQUEST: GET /api/domain
+   Headers: undefined
+🌐 Domain detection: app.thephotocrm.com
+  → Photographer domain detected
+5:20:20 AM [express] GET /api/domain 304 in 1ms :: {"type":"photographer"}
+📥 INCOMING REQUEST: GET /api/auth/google
+   Headers: undefined
+🌐 Domain detection: app.thephotocrm.com
+  → Photographer domain detected
+5:20:23 AM [express] GET /api/auth/google 302 in 46ms
+  code: '4/0Ab32j91bIJTggJZTyBW05JOtoo-wNMnN36wTWaznurWc11f13bb4EqrEX7GmRRawAXosIA',
+  scope: 'email profile https://www.googleapis.com/auth/userinfo.email openid https://www.googleapis.com/auth/userinfo.profile',
+  authuser: '0',
+  prompt: 'none'
+}
+📥 INCOMING REQUEST: GET /api/auth/google/callback
+   Headers: undefined
+🌐 Domain detection: thephotocrm.com
+  → Photographer domain detected
+🔍 Google OAuth callback - Full query params: {
+  state: '000916c71be0f7a87bc096a7b1f14644bbdb6bbd9a4cfbd429eee7c1e57c5ce9',
+  → Photographer domain detected
+5:20:24 AM [express] GET /api/auth/google/callback 302 in 510ms
+📥 INCOMING REQUEST: GET /dashboard
+  → Photographer domain detected
+   Headers: undefined
+🌐 Domain detection: app.thephotocrm.com
+📥 INCOMING REQUEST: GET /assets/index-DEMKEADK.js
+✅ Existing Google user logging in: austinpacholek2014@gmail.com
+   Headers: undefined
+🌐 Domain detection: app.thephotocrm.com
+5:20:26 AM [express] GET /api/domain 304 in 1ms :: {"type":"photographer"}
+📥 INCOMING REQUEST: GET /api/auth/me
+   Headers: undefined
+🌐 Domain detection: app.thephotocrm.com
+  → Photographer domain detected
+=== AUTHENTICATE TOKEN MIDDLEWARE ===
+Request URL: /api/auth/me
+Request method: GET
+Has cookies object: true
+All cookies: {"__stripe_mid":"d626ff4f-e717-4edc-a2c7-883657ab4bba2367a0","__stripe_sid":"22bc4bed-43cf-4b19-883f-a6198ce6c3c2e5ef15"}
+Cookie header: __stripe_mid=d626ff4f-e717-4edc-a2c7-883657ab4bba2367a0; __stripe_sid=22bc4bed-43cf-4b19-883f-a6198ce6c3c2e5ef15; __stripe_mid=d626ff4f-e717-4edc-a2c7-883657ab4bba2367a0; __stripe_sid=22bc4bed-43cf-4b19-883f-a6198ce6c3c2e5ef15; oauth_state=s%3A077c15d26fa962e0579080ba89cbd1552970afb937e4f77cfbcfc26cc12c5928.Q8oI2pFL7HnoZ%2Fm18eiSfD9nY5Ujh3F77NHGBiT8zuI
+Has Authorization header: false
+Origin: undefined
+Host: app.thephotocrm.com
+Token exists: false
+Auth source: none
+No token found, returning 401
+5:20:26 AM [express] GET /api/auth/me 401 in 1ms :: {"message":"Access token required"}
+📥 INCOMING REQUEST: GET /api/domain
+   Headers: undefined
+🌐 Domain detection: app.thephotocrm.com
+  → Photographer domain detected
+Processing automations for photographer: a16236ad-09ab-44ce-b5d9-b985017fa780
+Processing automations for photographer: a16236ad-09ab-44ce-b5d9-b985017fa780
+Found 0 enabled automations
+Found 0 enabled automations

@@ -1609,7 +1609,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       // Set HTTP-only cookie (same as email/password login)
-      setAuthCookie(res, token, user.role);
+      // Pass req to enable domain-scoped cookie (.thephotocrm.com) for cross-subdomain visibility
+      setAuthCookie(req, res, token, user.role);
 
       // Redirect to photographer app dashboard (with proper domain handling)
       const appUrl = getPhotographerAppUrl();
