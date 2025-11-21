@@ -1,0 +1,115 @@
+Processing automations for photographer: a16236ad-09ab-44ce-b5d9-b985017fa780
+Processing automations for photographer: a16236ad-09ab-44ce-b5d9-b985017fa780
+Found 0 enabled automations
+Found 0 enabled automations
+📥 INCOMING REQUEST: GET /api/domain
+   Headers: undefined
+🌐 Domain detection: app.thephotocrm.com
+  → Photographer domain detected
+6:02:19 AM [express] GET /api/domain 304 in 2ms :: {"type":"photographer"}
+📥 INCOMING REQUEST: GET /login
+   Headers: undefined
+🌐 Domain detection: app.thephotocrm.com
+  → Photographer domain detected
+📥 INCOMING REQUEST: GET /assets/index-DEMKEADK.js
+   Headers: undefined
+🌐 Domain detection: app.thephotocrm.com
+  → Photographer domain detected
+📥 INCOMING REQUEST: GET /api/auth/me
+   Headers: undefined
+🌐 Domain detection: app.thephotocrm.com
+  → Photographer domain detected
+=== AUTHENTICATE TOKEN MIDDLEWARE ===
+Request URL: /api/auth/me
+Request method: GET
+Has cookies object: true
+All cookies: {"__stripe_mid":"d626ff4f-e717-4edc-a2c7-883657ab4bba2367a0"}
+Cookie header: __stripe_mid=d626ff4f-e717-4edc-a2c7-883657ab4bba2367a0; __stripe_mid=d626ff4f-e717-4edc-a2c7-883657ab4bba2367a0
+Has Authorization header: false
+Origin: undefined
+Host: app.thephotocrm.com
+Token exists: false
+Auth source: none
+No token found, returning 401
+6:02:25 AM [express] GET /api/auth/me 401 in 1ms :: {"message":"Access token required"}
+📥 INCOMING REQUEST: GET /api/domain
+   Headers: undefined
+🌐 Domain detection: app.thephotocrm.com
+  → Photographer domain detected
+6:02:25 AM [express] GET /api/domain 304 in 1ms :: {"type":"photographer"}
+📥 INCOMING REQUEST: GET /api/auth/google
+   Headers: undefined
+🌐 Domain detection: app.thephotocrm.com
+  → Photographer domain detected
+6:02:30 AM [express] GET /api/auth/google 302 in 45ms
+📥 INCOMING REQUEST: GET /api/auth/google/callback
+   Headers: undefined
+🌐 Domain detection: thephotocrm.com
+  → Photographer domain detected
+🔍 Google OAuth callback - Full query params: {
+  state: 'd1abd222d12e94e7120c831ec14f61eb5b755233cb54a39176cb0cb67362ce58',
+  code: '4/0Ab32j909rOcy4DXR7a1lYNFpPxFxjfbeTYmLhcWLMHV5EZqkQ-uim56cvetlAQ7AtItOew',
+  scope: 'email profile https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email openid',
+  authuser: '0',
+  prompt: 'none'
+}
+✅ Existing Google user logging in: austinpacholek2014@gmail.com
+❌ Google OAuth callback error: TypeError: req.get is not a function
+    at setAuthCookie (file:///app/dist/index.js:11663:42)
+    at file:///app/dist/index.js:13655:7
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+6:02:31 AM [express] GET /api/auth/google/callback 302 in 484ms
+📥 INCOMING REQUEST: GET /login
+   Headers: undefined
+🌐 Domain detection: thephotocrm.com
+  → Photographer domain detected
+📥 INCOMING REQUEST: GET /assets/index-DEMKEADK.js
+   Headers: undefined
+🌐 Domain detection: thephotocrm.com
+  → Photographer domain detected
+   Headers: undefined
+📥 INCOMING REQUEST: GET /assets/index-CuH5k4uz.css
+🌐 Domain detection: thephotocrm.com
+  → Photographer domain detected
+📥 INCOMING REQUEST: GET /api/domain
+   Headers: undefined
+🌐 Domain detection: thephotocrm.com
+  → Photographer domain detected
+6:02:32 AM [express] GET /api/domain 304 in 1ms :: {"type":"photographer"}
+📥 INCOMING REQUEST: GET /api/auth/me
+   Headers: undefined
+🌐 Domain detection: thephotocrm.com
+  → Photographer domain detected
+=== AUTHENTICATE TOKEN MIDDLEWARE ===
+Request URL: /api/auth/me
+Request method: GET
+Has cookies object: true
+All cookies: {"__stripe_mid":"d626ff4f-e717-4edc-a2c7-883657ab4bba2367a0","photographer_token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIzZTMyZDg2NC0xNWIxLTRiOTItYWZlZC1jYjJkMTcyZDQ4ZTgiLCJlbWFpbCI6ImF1c3RpbnBhY2hvbGVrMjAxNEBnbWFpbC5jb20iLCJyb2xlIjoiUEhPVE9HUkFQSEVSIiwicGhvdG9ncmFwaGVySWQiOiJhMTYyMzZhZC0wOWFiLTQ0Y2UtYjVkOS1iOTg1MDE3ZmE3ODAiLCJpYXQiOjE3NjM3MDI0MjQsImV4cCI6MTc2NDMwNzIyNH0.oeQQx3rrdAKO4LLy-kGsrkLgCxdzzfC5indhCsBReXk","token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIzZTMyZDg2NC0xNWIxLTRiOTItYWZlZC1jYjJkMTcyZDQ4ZTgiLCJlbWFpbCI6ImF1c3RpbnBhY2hvbGVrMjAxNEBnbWFpbC5jb20iLCJyb2xlIjoiUEhPVE9HUkFQSEVSIiwicGhvdG9ncmFwaGVySWQiOiJhMTYyMzZhZC0wOWFiLTQ0Y2UtYjVkOS1iOTg1MDE3ZmE3ODAiLCJpYXQiOjE3NjM3MDI0MjQsImV4cCI6MTc2NDMwNzIyNH0.oeQQx3rrdAKO4LLy-kGsrkLgCxdzzfC5indhCsBReXk"}
+Cookie header: __stripe_mid=d626ff4f-e717-4edc-a2c7-883657ab4bba2367a0; photographer_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIzZTMyZDg2NC0xNWIxLTRiOTItYWZlZC1jYjJkMTcyZDQ4ZTgiLCJlbWFpbCI6ImF1c3RpbnBhY2hvbGVrMjAxNEBnbWFpbC5jb20iLCJyb2xlIjoiUEhPVE9HUkFQSEVSIiwicGhvdG9ncmFwaGVySWQiOiJhMTYyMzZhZC0wOWFiLTQ0Y2UtYjVkOS1iOTg1MDE3ZmE3ODAiLCJpYXQiOjE3NjM3MDI0MjQsImV4cCI6MTc2NDMwNzIyNH0.oeQQx3rrdAKO4LLy-kGsrkLgCxdzzfC5indhCsBReXk; token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIzZTMyZDg2NC0xNWIxLTRiOTItYWZlZC1jYjJkMTcyZDQ4ZTgiLCJlbWFpbCI6ImF1c3RpbnBhY2hvbGVrMjAxNEBnbWFpbC5jb20iLCJyb2xlIjoiUEhPVE9HUkFQSEVSIiwicGhvdG9ncmFwaGVySWQiOiJhMTYyMzZhZC0wOWFiLTQ0Y2UtYjVkOS1iOTg1MDE3ZmE3ODAiLCJpYXQiOjE3NjM3MDI0MjQsImV4cCI6MTc2NDMwNzIyNH0.oeQQx3rrdAKO4LLy-kGsrkLgCxdzzfC5indhCsBReXk
+Has Authorization header: false
+Origin: undefined
+Host: thephotocrm.com
+Token from cookie: photographer
+Token exists: true
+Auth source: photographer
+Token payload: true
+Authentication successful, continuing to route
+6:02:33 AM [express] GET /api/auth/me 304 in 269ms :: {"id":"3e32d864-15b1-4b92-afed-cb2d172d48e8","…
+📥 INCOMING REQUEST: GET /api/stats/photographer-count
+   Headers: undefined
+🌐 Domain detection: thephotocrm.com
+  → Photographer domain detected
+6:02:33 AM [express] GET /api/stats/photographer-count 200 in 3ms
+📥 INCOMING REQUEST: GET /dashboard
+   Headers: undefined
+🌐 Domain detection: app.thephotocrm.com
+  → Photographer domain detected
+📥 INCOMING REQUEST: GET /assets/index-DEMKEADK.js
+   Headers: undefined
+🌐 Domain detection: app.thephotocrm.com
+  → Photographer domain detected
+📥 INCOMING REQUEST: GET /api/domain
+   Headers: undefined
+🌐 Domain detection: app.thephotocrm.com
+  → Photographer domain detected
+6:02:34 AM [express] GET /api/domain 304 in 1ms :: {"type":"photographer"}
