@@ -1453,7 +1453,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const state = generateStateToken();
       
       // Store state in signed cookie for validation in callback (expires in 10 minutes)
+      // Set domain to .thephotocrm.com so cookie is visible across app.thephotocrm.com and thephotocrm.com
       res.cookie('oauth_state', state, {
+        path: '/', // Critical: must be root path so callback can access it
+        domain: '.thephotocrm.com', // Allow cookie to work across thephotocrm.com and app.thephotocrm.com
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax', // Allow cross-site for OAuth redirect
@@ -1507,8 +1510,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.redirect('/login?error=invalid_state');
       }
 
-      // Clear the state cookie after validation
-      res.clearCookie('oauth_state');
+      // Clear the state cookie after validation (must specify same path and domain to actually clear it)
+      res.clearCookie('oauth_state', { path: '/', domain: '.thephotocrm.com' });
 
       const { exchangeCodeForClaims } = await import('./services/googleAuth');
       // Use shared redirect URI utility for consistent behavior across Railway/Replit

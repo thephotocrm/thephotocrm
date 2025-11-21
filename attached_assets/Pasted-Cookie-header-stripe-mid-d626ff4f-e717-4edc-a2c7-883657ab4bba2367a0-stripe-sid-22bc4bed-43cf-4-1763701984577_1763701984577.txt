@@ -1,0 +1,124 @@
+Cookie header: __stripe_mid=d626ff4f-e717-4edc-a2c7-883657ab4bba2367a0; __stripe_sid=22bc4bed-43cf-4b19-883f-a6198ce6c3c2e5ef15; __stripe_mid=d626ff4f-e717-4edc-a2c7-883657ab4bba2367a0; __stripe_sid=22bc4bed-43cf-4b19-883f-a6198ce6c3c2e5ef15; oauth_state=s%3Aad6aca55edd49b78afd934818ae11348b79fe17093fd1b99c6d711c1f892d4d5.iGsbdgZ5aDTAmx5oWxMzVHDdErwvUYmJ6zbY5aNDwxg
+Has Authorization header: false
+Origin: undefined
+Host: app.thephotocrm.com
+Token exists: false
+Auth source: none
+No token found, returning 401
+5:10:56 AM [express] GET /api/auth/me 401 in 1ms :: {"message":"Access token required"}
+📥 INCOMING REQUEST: GET /api/auth/me
+   Headers: undefined
+📥 INCOMING REQUEST: GET /api/auth/google
+   Headers: undefined
+🌐 Domain detection: app.thephotocrm.com
+  → Photographer domain detected
+5:10:57 AM [express] GET /api/auth/google 302 in 1ms
+  authuser: '0',
+  prompt: 'none'
+}
+📥 INCOMING REQUEST: GET /api/auth/google/callback
+Expected state from cookie: undefined
+   Headers: undefined
+Received state from query: 96e0e229a77aca21b25b6da27badbf599f37c658140bb97115bb6b35630cc9b5
+🌐 Domain detection: thephotocrm.com
+❌ State mismatch in OAuth callback - possible CSRF attack
+  → Photographer domain detected
+5:10:58 AM [express] GET /api/auth/google/callback 302 in 1ms
+🔍 Google OAuth callback - Full query params: {
+  state: '96e0e229a77aca21b25b6da27badbf599f37c658140bb97115bb6b35630cc9b5',
+  code: '4/0Ab32j92OjoxGD8CZms8OrgIKRDLNs1OkZE6KSRbFzmuWz1sHa-y-y3FUyM6429_fodCqaA',
+  scope: 'email profile openid https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile',
+📥 INCOMING REQUEST: GET /login
+   Headers: undefined
+🌐 Domain detection: thephotocrm.com
+  → Photographer domain detected
+📥 INCOMING REQUEST: GET /assets/index-DEMKEADK.js
+   Headers: undefined
+🌐 Domain detection: thephotocrm.com
+  → Photographer domain detected
+📥 INCOMING REQUEST: GET /assets/index-CuH5k4uz.css
+   Headers: undefined
+🌐 Domain detection: thephotocrm.com
+  → Photographer domain detected
+📥 INCOMING REQUEST: GET /api/auth/me
+   Headers: undefined
+🌐 Domain detection: thephotocrm.com
+  → Photographer domain detected
+=== AUTHENTICATE TOKEN MIDDLEWARE ===
+Request URL: /api/auth/me
+Request method: GET
+Has cookies object: true
+All cookies: {"__stripe_mid":"d626ff4f-e717-4edc-a2c7-883657ab4bba2367a0","photographer_token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIzZTMyZDg2NC0xNWIxLTRiOTItYWZlZC1jYjJkMTcyZDQ4ZTgiLCJlbWFpbCI6ImF1c3RpbnBhY2hvbGVrMjAxNEBnbWFpbC5jb20iLCJyb2xlIjoiUEhPVE9HUkFQSEVSIiwicGhvdG9ncmFwaGVySWQiOiJhMTYyMzZhZC0wOWFiLTQ0Y2UtYjVkOS1iOTg1MDE3ZmE3ODAiLCJpYXQiOjE3NjM2OTc5NzksImV4cCI6MTc2NDMwMjc3OX0.PiuCZFOX2DfNzBpc1sixTs8ODNkZdZFBXHnhNu2_cbs","token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIzZTMyZDg2NC0xNWIxLTRiOTItYWZlZC1jYjJkMTcyZDQ4ZTgiLCJlbWFpbCI6ImF1c3RpbnBhY2hvbGVrMjAxNEBnbWFpbC5jb20iLCJyb2xlIjoiUEhPVE9HUkFQSEVSIiwicGhvdG9ncmFwaGVySWQiOiJhMTYyMzZhZC0wOWFiLTQ0Y2UtYjVkOS1iOTg1MDE3ZmE3ODAiLCJpYXQiOjE3NjM2OTc5NzksImV4cCI6MTc2NDMwMjc3OX0.PiuCZFOX2DfNzBpc1sixTs8ODNkZdZFBXHnhNu2_cbs","__stripe_sid":"22bc4bed-43cf-4b19-883f-a6198ce6c3c2e5ef15"}
+Cookie header: __stripe_mid=d626ff4f-e717-4edc-a2c7-883657ab4bba2367a0; photographer_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIzZTMyZDg2NC0xNWIxLTRiOTItYWZlZC1jYjJkMTcyZDQ4ZTgiLCJlbWFpbCI6ImF1c3RpbnBhY2hvbGVrMjAxNEBnbWFpbC5jb20iLCJyb2xlIjoiUEhPVE9HUkFQSEVSIiwicGhvdG9ncmFwaGVySWQiOiJhMTYyMzZhZC0wOWFiLTQ0Y2UtYjVkOS1iOTg1MDE3ZmE3ODAiLCJpYXQiOjE3NjM2OTc5NzksImV4cCI6MTc2NDMwMjc3OX0.PiuCZFOX2DfNzBpc1sixTs8ODNkZdZFBXHnhNu2_cbs; token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIzZTMyZDg2NC0xNWIxLTRiOTItYWZlZC1jYjJkMTcyZDQ4ZTgiLCJlbWFpbCI6ImF1c3RpbnBhY2hvbGVrMjAxNEBnbWFpbC5jb20iLCJyb2xlIjoiUEhPVE9HUkFQSEVSIiwicGhvdG9ncmFwaGVySWQiOiJhMTYyMzZhZC0wOWFiLTQ0Y2UtYjVkOS1iOTg1MDE3ZmE3ODAiLCJpYXQiOjE3NjM2OTc5NzksImV4cCI6MTc2NDMwMjc3OX0.PiuCZFOX2DfNzBpc1sixTs8ODNkZdZFBXHnhNu2_cbs; __stripe_sid=22bc4bed-43cf-4b19-883f-a6198ce6c3c2e5ef15
+Has Authorization header: false
+Origin: undefined
+Host: thephotocrm.com
+Token from cookie: photographer
+Token exists: true
+Auth source: photographer
+Token payload: true
+Authentication successful, continuing to route
+📥 INCOMING REQUEST: GET /api/domain
+   Headers: undefined
+🌐 Domain detection: thephotocrm.com
+  → Photographer domain detected
+5:10:59 AM [express] GET /api/domain 304 in 0ms :: {"type":"photographer"}
+📥 INCOMING REQUEST: GET /assets/professional_wedding_67201dd8-DJzf3n6T.jpg
+   Headers: undefined
+🌐 Domain detection: thephotocrm.com
+  → Photographer domain detected
+5:10:59 AM [express] GET /api/auth/me 304 in 209ms :: {"id":"3e32d864-15b1-4b92-afed-cb2d172d48e8","…
+📥 INCOMING REQUEST: GET /assets/ChatGPT%20Image%20Oct%203_%202025_%2003_42_16%20PM_1759524152837-B6dqtvp3.png
+   Headers: undefined
+🌐 Domain detection: thephotocrm.com
+  → Photographer domain detected
+📥 INCOMING REQUEST: GET /api/stats/photographer-count
+   Headers: undefined
+🌐 Domain detection: thephotocrm.com
+  → Photographer domain detected
+5:10:59 AM [express] GET /api/stats/photographer-count 304 in 2ms
+📥 INCOMING REQUEST: GET /dashboard
+   Headers: undefined
+🌐 Domain detection: app.thephotocrm.com
+  → Photographer domain detected
+📥 INCOMING REQUEST: GET /assets/index-DEMKEADK.js
+   Headers: undefined
+🌐 Domain detection: app.thephotocrm.com
+  → Photographer domain detected
+Processing automations for photographer: a16236ad-09ab-44ce-b5d9-b985017fa780
+Found 0 enabled automations
+📥 INCOMING REQUEST: GET /api/auth/me
+   Headers: undefined
+🌐 Domain detection: app.thephotocrm.com
+  → Photographer domain detected
+=== AUTHENTICATE TOKEN MIDDLEWARE ===
+Request URL: /api/auth/me
+Request method: GET
+Has cookies object: true
+All cookies: {"__stripe_mid":"d626ff4f-e717-4edc-a2c7-883657ab4bba2367a0","__stripe_sid":"22bc4bed-43cf-4b19-883f-a6198ce6c3c2e5ef15"}
+Cookie header: __stripe_mid=d626ff4f-e717-4edc-a2c7-883657ab4bba2367a0; __stripe_sid=22bc4bed-43cf-4b19-883f-a6198ce6c3c2e5ef15; __stripe_mid=d626ff4f-e717-4edc-a2c7-883657ab4bba2367a0; __stripe_sid=22bc4bed-43cf-4b19-883f-a6198ce6c3c2e5ef15; oauth_state=s%3A96e0e229a77aca21b25b6da27badbf599f37c658140bb97115bb6b35630cc9b5.xA3PjfFiXWrc1VJeSaTaFBNEKbHtflMFMLBZP%2BfnvYI
+Has Authorization header: false
+Origin: undefined
+Host: app.thephotocrm.com
+Token exists: false
+Auth source: none
+No token found, returning 401
+5:11:00 AM [express] GET /api/auth/me 401 in 1ms :: {"message":"Access token required"}
+📥 INCOMING REQUEST: GET /api/domain
+   Headers: undefined
+🌐 Domain detection: app.thephotocrm.com
+  → Photographer domain detected
+5:11:00 AM [express] GET /api/domain 304 in 1ms :: {"type":"photographer"}
+Processing automations for photographer: a16236ad-09ab-44ce-b5d9-b985017fa780
+Found 0 enabled automations
+📥 INCOMING REQUEST: GET /api/auth/google
+   Headers: undefined
+🌐 Domain detection: app.thephotocrm.com
+  → Photographer domain detected
+5:11:17 AM [express] GET /api/auth/google 302 in 1ms
+📥 INCOMING REQUEST: GET /api/auth/google/callback
+   Headers: undefined
+🌐 Domain detection: thephotocrm.com
+  → Photographer domain detected
+🔍 Google OAuth callback - Full query params: {
+  state: '077c15d26fa962e0579080ba89cbd1552970afb937e4f77cfbcfc26cc12c5928',
