@@ -122,3 +122,35 @@ export function getEnvironmentType(): 'railway' | 'replit-dev' | 'replit-prod' |
   
   return 'local';
 }
+
+/**
+ * Get the photographer CRM app domain URL
+ * In production (Railway): https://app.thephotocrm.com
+ * In development: uses current dev domain
+ */
+export function getPhotographerAppUrl(): string {
+  // Production on Railway: always use app.thephotocrm.com
+  if (process.env.RAILWAY_PUBLIC_DOMAIN) {
+    return 'https://app.thephotocrm.com';
+  }
+  
+  // Replit development: use current dev domain (already on correct domain during dev)
+  if (process.env.REPLIT_DEV_DOMAIN) {
+    return `https://${process.env.REPLIT_DEV_DOMAIN}`;
+  }
+  
+  // Replit production: use current production domain
+  if (process.env.REPLIT_DOMAINS) {
+    const domains = process.env.REPLIT_DOMAINS.split(',');
+    return `https://${domains[0]}`;
+  }
+  
+  // Replit legacy format
+  if (process.env.REPL_SLUG && process.env.REPL_OWNER) {
+    return `https://${process.env.REPL_SLUG}--${process.env.REPL_OWNER}.repl.co`;
+  }
+  
+  // Local development
+  const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http';
+  return `${protocol}://localhost:5000`;
+}
