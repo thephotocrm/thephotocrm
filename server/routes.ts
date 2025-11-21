@@ -4150,6 +4150,8 @@ ${photographer?.businessName || 'Your Photography Team'}`;
       }
       
       // Log to activity log
+      // NOTE: Save the original body (without portal link) so it doesn't appear in activity feed
+      // The portal link is only for the actual email clients receive, not the CRM/portal display
       await storage.addProjectActivityLog({
         projectId: req.params.id,
         activityType: 'EMAIL_SENT',
@@ -4158,8 +4160,8 @@ ${photographer?.businessName || 'Your Photography Team'}`;
         description: `Email sent to ${recipients.length} recipient${recipients.length > 1 ? 's' : ''}`,
         metadata: JSON.stringify({
           subject,
-          body: emailBodyWithPortalLink,
-          htmlBody: emailBodyWithPortalLink.replace(/\n/g, '<br>'),
+          body: body,
+          htmlBody: body.replace(/\n/g, '<br>'),
           from: photographerEmail,
           fromName,
           to: primaryEmail,
