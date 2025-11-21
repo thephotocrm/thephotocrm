@@ -1671,7 +1671,7 @@ export default function ProjectDetail() {
                                         
                                         {/* Email Body */}
                                         {metadata.body && (
-                                          <div className="text-sm whitespace-pre-wrap leading-relaxed">
+                                          <div className="text-sm whitespace-pre-wrap leading-relaxed break-words">
                                             {metadata.body}
                                           </div>
                                         )}
@@ -1780,7 +1780,7 @@ export default function ProjectDetail() {
                                             {metadata.htmlBody ? (
                                               <div className="whitespace-pre-wrap break-words" dangerouslySetInnerHTML={{ __html: metadata.htmlBody }} />
                                             ) : (
-                                              <div className="whitespace-pre-wrap">{metadata.body}</div>
+                                              <div className="whitespace-pre-wrap break-words">{metadata.body}</div>
                                             )}
                                           </div>
                                         )}
