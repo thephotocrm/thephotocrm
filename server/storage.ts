@@ -1655,7 +1655,7 @@ export class DatabaseStorage implements IStorage {
       .where(and(
         eq(projectSmartFiles.projectId, projectId),
         // Only show SENT or later statuses (not DRAFT)
-        inArray(projectSmartFiles.status, ['SENT', 'VIEWED', 'ACCEPTED', 'PAID'])
+        inArray(projectSmartFiles.status, ['SENT', 'VIEWED', 'ACCEPTED', 'DEPOSIT_PAID', 'PAID'])
       ))
       .orderBy(desc(projectSmartFiles.createdAt)),
       
