@@ -1406,7 +1406,7 @@ export default function PublicSmartFile() {
                           <ContractRenderer
                             template={currentPage.content.contractTemplate || ''}
                             variables={{
-                              // Client info
+                              // Client contact info
                               client_name: `${data?.contact.firstName} ${data?.contact.lastName}`,
                               client_email: data?.contact.email || '',
                               client_phone: data?.contact.phone || '',
