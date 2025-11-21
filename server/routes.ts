@@ -20,7 +20,7 @@ import { tusServer } from "./services/tus-upload";
 import { createPaymentIntent, createCheckoutSession, createConnectCheckoutSession, createConnectPaymentIntent, calculatePlatformFee, handleWebhook, stripe } from "./services/stripe";
 import { googleCalendarService, createBookingCalendarEvent } from "./services/calendar";
 import { slotGenerationService } from "./services/slotGeneration";
-import { getGoogleRedirectUri } from "./utils/oauthRedirect";
+import { getGoogleRedirectUri, getPhotographerAppUrl } from "./utils/oauthRedirect";
 import { insertUserSchema, insertPhotographerSchema, insertContactSchema, insertStageSchema, 
          insertTemplateSchema, insertAutomationSchema, validateAutomationSchema, insertAutomationStepSchema, insertAutomationBusinessTriggerSchema, insertPackageSchema, insertAddOnSchema, insertLeadFormSchema,
          insertBookingSchema, updateBookingSchema, 
@@ -1608,8 +1608,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Set HTTP-only cookie (same as email/password login)
       setAuthCookie(res, token, user.role);
 
-      // Redirect to dashboard
-      res.redirect('/dashboard');
+      // Redirect to photographer app dashboard (with proper domain handling)
+      const appUrl = getPhotographerAppUrl();
+      res.redirect(`${appUrl}/dashboard`);
     } catch (error) {
       console.error("❌ Google OAuth callback error:", error);
       res.redirect('/login?error=oauth_failed');
